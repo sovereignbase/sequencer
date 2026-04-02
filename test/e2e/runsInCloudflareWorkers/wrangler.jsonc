@@ -1,0 +1,6 @@
+{
+  /** update to current package */
+  "name": "bytecodec-e2e-cloudflare-workers",
+  "main": "./worker.mjs",
+  "compatibility_date": "2026-03-27",
+}

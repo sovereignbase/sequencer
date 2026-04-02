@@ -68,7 +68,8 @@
     "@sovereignbase/bytecodec": "^1.5.1",
     "@sovereignbase/cryptosuite": "^2.0.5",
     "@sovereignbase/observed-remove-set": "^1.0.1",
-    "@sovereignbase/utils": "^1.1.0"
+    "@sovereignbase/utils": "^1.1.0",
+    "uuid": "^13.0.0"
   },
   "repository": {
     "type": "git",

@@ -1,12 +1,30 @@
-export type PackageNameErrorCode = 'EXAMPLE_ERROR_CODE'
+/**
+ * Error codes thrown by {@link RGA}.
+ */
+export type RGAErrorCode =
+  | 'DEFAULTS_NOT_CLONEABLE'
+  | 'VALUE_NOT_CLONEABLE'
+  | 'VALUE_TYPE_MISMATCH'
 
-export class PackageNameError extends Error {
-  readonly code: PackageNameErrorCode
+/**
+ * Represents a typed OO-Struct runtime error.
+ */
+export class RGAError extends Error {
+  /**
+   * The semantic error code for the failure.
+   */
+  readonly code: RGAErrorCode
 
-  constructor(code: PackageNameErrorCode, message?: string) {
+  /**
+   * Creates a typed OO-Struct error.
+   *
+   * @param code - The semantic error code.
+   * @param message - An optional human-readable detail message.
+   */
+  constructor(code: RGAErrorCode, message?: string) {
     const detail = message ?? code
-    super(`{@z-base/package-name} ${detail}`)
+    super(`{@sovereignbase/replicated-growable-array} ${detail}`)
     this.code = code
-    this.name = 'PackageNameError'
+    this.name = 'RGAError'
   }
 }

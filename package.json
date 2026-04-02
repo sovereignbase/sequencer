@@ -52,13 +52,13 @@
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
-    "@playwright/test": "^1.58.2",
+    "@playwright/test": "^1.59.1",
     "@types/node": "^25.5.0",
     "c8": "^11.0.0",
     "edge-runtime": "^4.0.1",
     "fast-glob": "^3.3.3",
     "husky": "^9.1.7",
-    "playwright": "^1.58.2",
+    "playwright": "^1.59.1",
     "prettier": "^3.8.1",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
@@ -67,7 +67,8 @@
   "dependencies": {
     "@sovereignbase/bytecodec": "^1.5.1",
     "@sovereignbase/cryptosuite": "^2.0.5",
-    "@sovereignbase/observed-remove-set": "^1.0.1"
+    "@sovereignbase/observed-remove-set": "^1.0.1",
+    "@sovereignbase/utils": "^1.1.0"
   },
   "repository": {
     "type": "git",

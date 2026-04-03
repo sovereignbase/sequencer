@@ -107,17 +107,29 @@
             publisher: 'IETF',
             date: '2024-05',
           },
+          INFRA: {
+            title: 'Infra',
+            href: 'https://infra.spec.whatwg.org/',
+            publisher: 'WhatWG',
+            date: '2026-03',
+          },
           HTML: {
             title: '2.7 Safe passing of structured data',
             href: 'https://html.spec.whatwg.org/multipage/structured-data.html',
             publisher: 'WhatWG',
             date: '2026-04',
           },
-          INFRA: {
-            title: 'Infra',
-            href: 'https://infra.spec.whatwg.org/',
-            publisher: 'WhatWG',
-            date: '2026-03',
+          LINKED_LIST: {
+            title: 'linked list',
+            href: 'https://xlinux.nist.gov/dads/HTML/linkedList.html',
+            publisher: 'NIST',
+            date: '2022-01',
+          },
+          DOUBLY_LINKED_LIST: {
+            title: 'linked list',
+            href: 'https://xlinux.nist.gov/dads/HTML/doublyLinkedList.html',
+            publisher: 'NIST',
+            date: '2021-07',
           },
         },
       }
@@ -293,7 +305,7 @@
     <section id="abstract">
       <p>
         This document defines Convergent Replicated List (CR-List), a delta CRDT
-        for ordered sequences of entries. Each index resolves to a single
+        for an ordered sequence of entries. Each index resolves to a single
         visible value. Every update is assigned a UUIDv7, and deletions are
         tracked as a list of UUIDv7 identifiers.
       </p>
@@ -361,12 +373,22 @@
         version 7 as defined by [[RFC9562]].
       </p>
       <p>
+        a <dfn>linked list</dfn> is a list implemented by each item having a
+        link to the next item. [[LINKED_LIST]].
+      </p>
+      <p>
+        a <dfn>doubly linked list</dfn> is a variant of a <a>linked list</a> in
+        which each item has a link to the previous item as well as the next.
+        [[DOUBLY_LINKED_LIST]].
+      </p>
+      <p>
         a <dfn>serializable object</dfn> is an object that support being
         serialized, and later deserialized as defined by [[HTML]].
       </p>
       <p>
-        A <dfn>after pointer</dfn> is an <a>UUIDv7 identifier</a> pointing to
-        what <a>list value</a> a <a>list value</a> comes after.
+        A <dfn>predecessor identifier</dfn> is an
+        <a>UUIDv7 identifier</a> pointing to what <a>list value</a> a
+        <a>list value</a> comes after.
       </p>
       <p>
         A <dfn>list index</dfn> is the position of a <a>list value</a>, starting
@@ -385,75 +407,60 @@
       <p>
         A <dfn>replica state</dfn> is a struct consisting of
         <a>replica values</a> and <a>replica tombstones</a> tracked by
-        <a>CR-List replica</a>
+        <a>CR-List replica</a>.
       </p>
       <p>
-        The <dfn>replica values</dfn> is a list of <a>values entry</a>(s)
-        tracked by <a>replica state</a>.
+        The <dfn>replica values</dfn> is a <a>linked list</a> containing 0 or
+        more <a>values entry</a>(s) tracked by <a>replica state</a>.
       </p>
       <p>
         A <dfn>values entry</dfn> is a struct consisting of a
         <a>UUIDv7 Identifier</a>, <a>list value</a>, and
-        <a>after pointer</a> tracked by <a>replica values</a>
+        <a>predecessor identifier</a> tracked by <a>replica values</a>.
       </p>
       <p>
-        The <dfn>replica tombstones</dfn> is a list of overwritten
+        The <dfn>replica tombstones</dfn> is a list of 0 or more overwritten
         <a>tombstones entry</a>(s) tracked by <a>replica state</a>.
       </p>
       <p>
         A <dfn>tombstones entry</dfn> is a <a>UUIDv7 identifier</a> presenting a
-        <a>list value</a> tracked by <a>replica tombstones</a>
+        <a>list value</a> tracked by <a>replica tombstones</a>.
       </p>
       <p>
         An <dfn>acknowledgement</dfn> is a <a>serializable object</a> struct
-        containing an
-        <a>acknowledgement frontier</a>
+        containing stating an <a>acknowledgement frontier</a> of a single
+        <a>CR-List replica</a>.
       </p>
       <p>
         An <dfn>acknowledgement frontier</dfn> is the largest
         <a>tombstones entry</a> resolved by lexographically sorting
-        <a>replica tombstones</a>
+        <a>replica tombstones</a>.
       </p>
       <p>
         A <dfn>snapshot</dfn> is a <a>serializable object</a> presentation of a
         <a>replica state</a>.
       </p>
       <p>
-        A <dfn>delta</dfn> is a partial <a>snapshot</a> containing only entries
-        what replica wishes to share.
+        A <dfn>delta</dfn> is a partial <a>snapshot</a> containing only the
+        entries a <a>CR-List replica</a> wishes to share.
       </p>
     </section>
 
     <section>
       <h2>Core Model</h2>
-      <p>Each <a>cr-list replica</a> maintains two logical objects:</p>
-      <ul>
-        <li>
-          a live struct keyed by <a>field key</a>, containing the visible
-          <a>field value</a> values; and
-        </li>
-        <li>
-          a state struct keyed by <a>field key</a>, containing one current
-          <a>field state entry</a> per field.
-        </li>
-      </ul>
       <p>
-        Each current <a>field state entry</a> records one current
-        <a>UUIDv7 identifier</a>, one predecessor <a>UUIDv7 identifier</a>, one
-        current <a>field value</a>, and one set of
-        <a>overwritten identifier</a>s.
+        Each <a>CR-List replica</a> hydrates <a>replica values</a> into a
+        <a>doubly linked list</a> from <a>replica values</a> assigning them
+        indexes based on ordering inferenced from
+        <a>predecessor identifier</a>(s) ignoring <a>values entry</a>(s) whose
+        <a>UUIDv7 identifier</a> is included in <a>replica tombstones</a>.
       </p>
       <p>
-        A UUIDv7 that appears in a field's overwrite set is an
-        <a>overwritten identifier</a>. If an identifier is overwritten, a
-        conforming implementation MUST NOT later make it current again for that
-        same <a>field key</a>.
-      </p>
-      <p>
-        The predecessor identifier names one overwritten predecessor and MUST
-        itself be present in the field's overwrite set. The reference binding
-        bootstraps each field with a synthetic predecessor UUIDv7 so that every
-        field state entry always names an already overwritten predecessor.
+        Operations search their given index by traversing the
+        <a>doubly linked list</a> in and performing operations at best case O(1)
+        worst case O(n) as only the distance (d) to a next item needs to be
+        iterated over and in some cases an additional iteration to patch an (m)
+        amount of index adjustments needed.
       </p>
       <p>
         A snapshot input MAY contain malformed or unknown members. The reference

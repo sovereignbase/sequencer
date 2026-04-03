@@ -1,78 +1,66 @@
+import { CRListError } from '../../../.errors/class.js'
+import { safeStructuredClone } from '@sovereignbase/utils'
+import { walkToIndex } from '../../../.helpers/index.js'
+import { v7 as uuidv7 } from 'uuid'
+import { CRListReplica, DoublyLinkedListEntry } from '../../../.types/index.js'
 /**
  * Time complexity: O(d), worst case O(n)
  * - d = distance from cursor to target index
  * Space complexity: O(1)
  */
-export function update(
-  index: number,
-  value: T,
+export function __update<T>(
+  crListReplica: CRListReplica<T>,
+  listValue: T,
+  listIndex: number,
   overwrite: boolean = false
 ): void {
-  const [cloned, copiedValue] = safeStructuredClone(value)
+  const [cloned, copiedValue] = safeStructuredClone(listValue)
 
   if (!cloned) throw new CRListError('VALUE_NOT_CLONEABLE')
 
   const v7 = uuidv7()
 
-  if (index === this.state._length + 1) /**push*/ {
-    this.walkToIndex(index--)
-    const cursor = this.state._cursor as CRListStateEntry<T>
-    const node = {
-      __uuidv7: v7,
-      __value: copiedValue,
-      __after: cursor.__uuidv7,
-      _index: index,
-      _next: undefined,
-      _prev: cursor,
+  if (listIndex === crListReplica.length + 1) /**push*/ {
+    walkToIndex(crListReplica.cursor, crListReplica.length, listIndex)
+    const cursor = crListReplica.cursor
+    if (!cursor) return
+    const entry: DoublyLinkedListEntry<T> = {
+      uuidv7: v7,
+      value: copiedValue,
+      predecessor: cursor.uuidv7,
+      index: listIndex,
+      next: undefined,
+      prev: cursor,
     }
-    cursor._next = node
-    this.state._cursor = node
-  } else if (overwrite) /**write index*/ {
-    this.walkToIndex(index)
-    this.state._tombstones.add(node.__uuidv7)
+    cursor.next = entry
+    crListReplica.cursor = entry
+  } else if (overwrite) /**overwrite index*/ {
+    walkToIndex(crListReplica.cursor, crListReplica.length, listIndex)
+    const cursor = crListReplica.cursor
+    if (!cursor) return
+    crListReplica.tombstones.add(cursor.uuidv7)
+    cursor.uuidv7 = v7
+    cursor.value = copiedValue
+  } else /**insertAfter (between)*/ {
+    walkToIndex(crListReplica.cursor, crListReplica.length, listIndex)
+    const cursor = crListReplica.cursor
+    if (!cursor) return
 
-    if (prev) prev._next = next
-    if (next) {
-      next._prev = prev
-      if (prev) next.__after = prev.__uuidv7
+    const entry: DoublyLinkedListEntry<T> = {
+      uuidv7: v7,
+      value: copiedValue,
+      predecessor: cursor.uuidv7,
+      index: listIndex,
+      next: cursor.next?.next,
+      prev: cursor,
     }
 
-    let current = next
+    cursor.next = entry
+
+    let current: DoublyLinkedListEntry<T> = entry
     while (current) {
-      current._index++
-      current = current._next
+      current.index++
+      current = current.next
     }
-
-    this.state._cursor = next ?? prev
-
-    node._prev = undefined
-    node._next = undefined
-  } else /**insert*/ {
-    const insert = {
-      __uuidv7: v7,
-      __value: copiedValue,
-      __after: node.__uuidv7,
-      _index: index,
-      _next: next,
-      _prev: node,
-    }
-    node._next = insert
-
-    if (prev) prev._next = insert
-    if (next) {
-      next._prev = prev
-      if (prev) next.__after = v7
-    }
-
-    let current = next
-    while (current) {
-      current._index++
-      current = current._next
-    }
-
-    this.state._cursor = next ?? prev
-
-    node._prev = undefined
-    node._next = undefined
   }
 }

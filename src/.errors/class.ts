@@ -5,6 +5,7 @@ export type CRListErrorCode =
   | 'DEFAULTS_NOT_CLONEABLE'
   | 'VALUE_NOT_CLONEABLE'
   | 'VALUE_TYPE_MISMATCH'
+  | 'INDEX_OUT_OF_BOUNDS'
 
 /**
  * Represents a typed OO-Struct runtime error.

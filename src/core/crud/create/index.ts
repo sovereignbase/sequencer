@@ -1,36 +1,42 @@
 import { isUuidV7, safeStructuredClone, prototype } from '@sovereignbase/utils'
-import { CRListSnapshot, CRListState } from '../../../.types/index.js'
+import { CRListSnapshot, CRListReplica } from '../../../.types/index.js'
 
-export function create<T>(
-  state: CRListState<T>,
-  snapshot?: CRListSnapshot<T>
-): void {
-  if (!snapshot || prototype(snapshot) !== 'record') return
+export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
+  const crListReplica: CRListReplica<T> = {
+    length: 0,
+    cursor: undefined,
+    tombstones: new Set<string>(),
+    seenUuidV7Identifiers: {},
+    seenPredecessorIdentifiers: {},
+  }
+  if (!snapshot || prototype(snapshot) !== 'record') return crListReplica
 
   if (
-    Object.hasOwn(snapshot, '_tombstones') &&
-    Array.isArray(snapshot.__tombstones)
+    Object.hasOwn(snapshot, 'tombstones') &&
+    Array.isArray(snapshot.tombstones)
   ) {
-    for (const tombstone in snapshot.__tombstones) {
-      if (state._tombstones.has(tombstone) || !isUuidV7(tombstone)) continue
-      state._tombstones.add(tombstone)
+    for (const tombstone in snapshot.tombstones) {
+      if (crListReplica.tombstones.has(tombstone) || !isUuidV7(tombstone))
+        continue
+      crListReplica.tombstones.add(tombstone)
     }
   }
 
-  if (Object.hasOwn(snapshot, '__values')) {
-    for (const { __uuidv7, __value, __after } of snapshot?.__values) {
-      if (state._tombstones.has(__uuidv7) || !isUuidV7(__uuidv7)) continue
-      const [cloned, copiedValue] = safeStructuredClone(__value)
+  if (Object.hasOwn(snapshot, 'values')) {
+    for (const { uuidv7, value, predecessor } of snapshot?.values) {
+      if (crListReplica.tombstones.has(uuidv7) || !isUuidV7(uuidv7)) continue
+      const [cloned, copiedValue] = safeStructuredClone(value)
       if (!cloned) continue
-      state._cursor = {
-        __uuidv7,
-        __value: copiedValue,
-        __after,
-        _index: state._length,
-        _next: undefined,
-        _prev: undefined,
+      crListReplica.cursor = {
+        uuidv7,
+        value: copiedValue,
+        predecessor,
+        index: crListReplica.length,
+        next: undefined,
+        prev: undefined,
       }
-      state._length++
+      crListReplica.length++
     }
   }
+  return crListReplica
 }

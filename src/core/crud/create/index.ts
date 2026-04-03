@@ -24,9 +24,24 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
 
   if (Object.hasOwn(snapshot, 'values') && Array.isArray(snapshot.values)) {
     for (const { uuidv7, value, predecessor } of snapshot.values) {
-      if (crListReplica.tombstones.has(uuidv7) || !isUuidV7(uuidv7)) continue
+      if (
+        crListReplica.tombstones.has(uuidv7) ||
+        !isUuidV7(uuidv7) ||
+        !isUuidV7(predecessor)
+      )
+        continue
       const [cloned, copiedValue] = safeStructuredClone(value)
       if (!cloned) continue
+
+      //**these two indexes allow dynamic order adujusting because of the doubly linked list structure we ;) we can just detect and adjust*/
+      if (Object.hasOwn(crListReplica.seenUuidV7Identifiers, predecessor)) {
+        //**jump in and patch here
+      }
+
+      if (Object.hasOwn(crListReplica.seenPredecessorIdentifiers, uuidv7)) {
+        //**jump in and patch here
+      }
+
       const prev = crListReplica.cursor
       const entry = {
         uuidv7,
@@ -36,8 +51,16 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
         next: undefined,
         prev,
       }
+
       if (prev) prev.next = entry
       crListReplica.cursor = entry
+
+      crListReplica.seenUuidV7Identifiers[uuidv7] = entry
+
+      if (predecessor) {
+        crListReplica.seenPredecessorIdentifiers[predecessor] = entry
+      }
+
       crListReplica.length++
     }
   }

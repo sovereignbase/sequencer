@@ -339,6 +339,10 @@
         the data model.
       </p>
       <p>
+        A <dfn>UUIDv7 identifier</dfn> is an identifier that is a valid UUID
+        version 7 as defined by [[RFC9562]].
+      </p>
+      <p>
         A <dfn>list index</dfn> is the position of a <a>list value</a>, starting
         at 0 and ending at the <a>list length</a>, in the resolved conflict-free
         ordering of a <a>CR-List replica</a>.
@@ -350,10 +354,6 @@
       <p>
         The <dfn>list length</dfn> is the number of <a>list value</a>(s) in a
         <a>CR-List replica</a>.
-      </p>
-      <p>
-        A <dfn>UUIDv7 identifier</dfn> is an identifier that is a valid UUID
-        version 7 as defined by [[RFC9562]].
       </p>
       <p>
         An <dfn>overwritten identifier</dfn> is a UUIDv7 that appears in a
@@ -413,34 +413,7 @@
     </section>
 
     <section>
-      <h2>UUIDv7 Identifier Requirements</h2>
-      <p>
-        A conforming cr-list implementation MUST assign one valid
-        <a>UUIDv7 identifier</a> to each current <a>field state entry</a>.
-      </p>
-      <p>
-        The reference binding generates fresh UUIDv7 identifiers for local
-        overwrites and compares canonical textual UUIDv7 representations
-        lexicographically when it needs an order for merge resolution.
-      </p>
-      <p>
-        Ordering does not override overwrite knowledge. If an identifier is in a
-        field's overwrite set, it is an
-        <a>overwritten identifier</a> regardless of any later lexical
-        comparison.
-      </p>
-      <aside class="note">
-        <p>
-          UUIDv7 combines a Unix-epoch millisecond time component with
-          additional bits reserved for monotonicity and pseudorandom uniqueness
-          [[RFC9562]]. This makes it a useful fit for per-field identifiers that
-          benefit from both local ordering and low collision probability.
-        </p>
-      </aside>
-    </section>
-
-    <section>
-      <h2>Methods</h2>
+      <h2>Algorithms</h2>
 
       <section>
         <h3>CRUD</h3>
@@ -590,56 +563,6 @@
           </p>
         </section>
       </section>
-
-      <section>
-        <h3>Additional</h3>
-
-        <section>
-          <h4>keys(), values(), entries()</h4>
-          <p>
-            These operations expose resolved live state without mutating replica
-            history.
-          </p>
-          <p>
-            In the reference binding, <code>keys()</code> returns the known
-            field keys, <code>values()</code> returns detached clones of the
-            current visible values, and <code>entries()</code> returns key-value
-            pairs whose values are likewise detached clones.
-          </p>
-        </section>
-      </section>
-    </section>
-
-    <section>
-      <h2>Overwrite-Set Compaction</h2>
-      <p>
-        The reference binding exposes compaction explicitly through
-        <code>acknowledge()</code> and <code>garbageCollect()</code>.
-      </p>
-      <p>
-        Acknowledgement and garbage collection operate only on identifiers that
-        are already known to be overwritten. They do not remove the current
-        winning UUIDv7 for a field, and they do not remove the current
-        predecessor identifier named by <code>after</code>.
-      </p>
-      <p>
-        Consequently, compaction can shrink overwrite history without changing
-        the resolved visible live state of the replica.
-      </p>
-    </section>
-
-    <section class="informative">
-      <h2>Payload Guidance</h2>
-      <p>
-        cr-list is best suited to static object shapes whose fields hold stable
-        runtime kinds. It is not, by itself, a field-level CRDT for recursively
-        mutating nested object graphs.
-      </p>
-      <p>
-        The reference binding performs a shallow runtime-kind validation against
-        the corresponding default value. It does not define deep schema
-        validation for nested payload structure.
-      </p>
     </section>
 
     <section>
@@ -653,9 +576,9 @@
         <h3>API Summary</h3>
         <pre class="idl">
 [Exposed=*]
-interface OOStruct {
+interface CRList {
   constructor(object defaults, optional object snapshot);
-  static OOStruct create(object defaults, optional object snapshot);
+  static CRList create(object defaults, optional object snapshot);
   any read(DOMString key);
   undefined update(DOMString key, any value);
   undefined delete(optional DOMString key);
@@ -670,7 +593,7 @@ interface OOStruct {
   undefined removeEventListener(DOMString type, any listener, optional any options);
 };
 
-dictionary OOStructSnapshotEntry {
+dictionary CRListSnapshotEntry {
   required DOMString uuidv7;
   required DOMString after;
   required any value;
@@ -699,7 +622,7 @@ dictionary OOStructSnapshotEntry {
       <section>
         <h3>Errors</h3>
         <p>
-          The JavaScript binding throws <code>OOStructError</code> with a string
+          The JavaScript binding throws <code>CRListError</code> with a string
           <code>code</code> attribute for local API misuse.
         </p>
         <dl>
@@ -710,14 +633,14 @@ dictionary OOStructSnapshotEntry {
           </dd>
           <dt><code>VALUE_NOT_CLONEABLE</code></dt>
           <dd>
-            Thrown when <a data-link-for="OOStruct">update()</a> receives a
-            value that is not supported by <code>structuredClone</code>.
+            Thrown when <a data-link-for="CRList">update()</a> receives a value
+            that is not supported by <code>structuredClone</code>.
           </dd>
           <dt><code>VALUE_TYPE_MISMATCH</code></dt>
           <dd>
-            Thrown when <a data-link-for="OOStruct">update()</a> receives a
-            value whose runtime prototype category does not match the
-            corresponding default field value.
+            Thrown when <a data-link-for="CRList">update()</a> receives a value
+            whose runtime prototype category does not match the corresponding
+            default field value.
           </dd>
         </dl>
       </section>
@@ -756,25 +679,25 @@ dictionary OOStructSnapshotEntry {
           <dd>
             A <code>CustomEvent</code> whose <code>detail</code> maps known keys
             to their current acknowledgement frontier values produced when
-            <a data-link-for="OOStruct">acknowledge()</a>
+            <a data-link-for="CRList">acknowledge()</a>
             is invoked.
           </dd>
           <dt><dfn>snapshot event</dfn></dt>
           <dd>
             A <code>CustomEvent</code> whose <code>detail</code> is the full
             current snapshot produced when
-            <a data-link-for="OOStruct">snapshot()</a>
+            <a data-link-for="CRList">snapshot()</a>
             is invoked.
           </dd>
         </dl>
         <p>
-          <a data-link-for="OOStruct">update()</a> and
-          <a data-link-for="OOStruct">delete()</a> MUST dispatch
+          <a data-link-for="CRList">update()</a> and
+          <a data-link-for="CRList">delete()</a> MUST dispatch
           <a>delta event</a> before <a>change event</a>. A merge MUST dispatch
           <a>delta event</a> only when it produces egress delta material and
           MUST dispatch <a>change event</a> only when visible field values
-          change. <a data-link-for="OOStruct">acknowledge()</a> MUST dispatch
-          <a>ack event</a>, and <a data-link-for="OOStruct">snapshot()</a> MUST
+          change. <a data-link-for="CRList">acknowledge()</a> MUST dispatch
+          <a>ack event</a>, and <a data-link-for="CRList">snapshot()</a> MUST
           dispatch <a>snapshot event</a>.
         </p>
       </section>
@@ -845,7 +768,7 @@ dictionary OOStructSnapshotEntry {
         <section>
           <h4>CRUD</h4>
 
-          <section data-dfn-for="OOStruct">
+          <section data-dfn-for="CRList">
             <h5><dfn class="lint-ignore">Constructor</dfn></h5>
             <ol class="algorithm">
               <li>
@@ -853,7 +776,7 @@ dictionary OOStructSnapshotEntry {
                 <code>structuredClone</code>.
               </li>
               <li>
-                If copying fails, throw <code>OOStructError</code> with code
+                If copying fails, throw <code>CRListError</code> with code
                 <code>DEFAULTS_NOT_CLONEABLE</code>.
               </li>
               <li>Store the cloned defaults as the <a>default struct</a>.</li>
@@ -874,14 +797,14 @@ dictionary OOStructSnapshotEntry {
             </ol>
           </section>
 
-          <section data-dfn-for="OOStruct">
+          <section data-dfn-for="CRList">
             <h5><dfn class="lint-ignore">create()</dfn></h5>
             <p>
-              Return a new <code>OOStruct</code> constructed from the arguments.
+              Return a new <code>CRList</code> constructed from the arguments.
             </p>
           </section>
 
-          <section data-dfn-for="OOStruct">
+          <section data-dfn-for="CRList">
             <h5><dfn class="lint-ignore">read()</dfn></h5>
             <p>
               Return a detached structured clone of the current visible value
@@ -889,7 +812,7 @@ dictionary OOStructSnapshotEntry {
             </p>
           </section>
 
-          <section data-dfn-for="OOStruct">
+          <section data-dfn-for="CRList">
             <h5><dfn>update()</dfn></h5>
             <ol class="algorithm">
               <li>
@@ -897,13 +820,13 @@ dictionary OOStructSnapshotEntry {
                 <code>structuredClone</code>.
               </li>
               <li>
-                If copying fails, throw <code>OOStructError</code> with code
+                If copying fails, throw <code>CRListError</code> with code
                 <code>VALUE_NOT_CLONEABLE</code>.
               </li>
               <li>
                 If the copied value does not have the same runtime prototype
                 category as the corresponding default value, throw
-                <code>OOStructError</code> with code
+                <code>CRListError</code> with code
                 <code>VALUE_TYPE_MISMATCH</code>.
               </li>
               <li>Let <var>delta</var> be a new empty <a>delta</a>.</li>
@@ -931,7 +854,7 @@ dictionary OOStructSnapshotEntry {
             </ol>
           </section>
 
-          <section data-dfn-for="OOStruct">
+          <section data-dfn-for="CRList">
             <h5><dfn>delete()</dfn></h5>
             <ol class="algorithm">
               <li>Let <var>delta</var> be a new empty <a>delta</a>.</li>
@@ -964,7 +887,7 @@ dictionary OOStructSnapshotEntry {
         <section>
           <h4>MAGS</h4>
 
-          <section data-dfn-for="OOStruct">
+          <section data-dfn-for="CRList">
             <h5><dfn class="lint-ignore">merge()</dfn></h5>
             <ol class="algorithm">
               <li>If replica is null, not an object, or a list, return.</li>
@@ -1048,7 +971,7 @@ dictionary OOStructSnapshotEntry {
             </ol>
           </section>
 
-          <section data-dfn-for="OOStruct">
+          <section data-dfn-for="CRList">
             <h5><dfn class="lint-ignore">acknowledge()</dfn></h5>
             <ol class="algorithm">
               <li>Let <var>ack</var> be a new empty acknowledgement object.</li>
@@ -1065,7 +988,7 @@ dictionary OOStructSnapshotEntry {
             </ol>
           </section>
 
-          <section data-dfn-for="OOStruct">
+          <section data-dfn-for="CRList">
             <h5><dfn class="lint-ignore">garbageCollect()</dfn></h5>
             <ol class="algorithm">
               <li>
@@ -1105,7 +1028,7 @@ dictionary OOStructSnapshotEntry {
             </ol>
           </section>
 
-          <section data-dfn-for="OOStruct">
+          <section data-dfn-for="CRList">
             <h5><dfn class="lint-ignore">snapshot()</dfn></h5>
             <p>
               Run <a>serialize a state entry</a> on every current field entry,
@@ -1118,12 +1041,12 @@ dictionary OOStructSnapshotEntry {
         <section>
           <h4>Additional</h4>
 
-          <section data-dfn-for="OOStruct">
+          <section data-dfn-for="CRList">
             <h5><dfn class="lint-ignore">keys()</dfn></h5>
             <p>Return the known field keys from live state.</p>
           </section>
 
-          <section data-dfn-for="OOStruct">
+          <section data-dfn-for="CRList">
             <h5><dfn class="lint-ignore">values()</dfn></h5>
             <p>
               Return detached structured clones of the current visible field
@@ -1131,7 +1054,7 @@ dictionary OOStructSnapshotEntry {
             </p>
           </section>
 
-          <section data-dfn-for="OOStruct">
+          <section data-dfn-for="CRList">
             <h5><dfn class="lint-ignore">entries()</dfn></h5>
             <p>
               Return key-value pairs where each value is a detached structured
@@ -1143,7 +1066,7 @@ dictionary OOStructSnapshotEntry {
         <section>
           <h4>EventTarget</h4>
 
-          <section data-dfn-for="OOStruct">
+          <section data-dfn-for="CRList">
             <h5>
               <dfn class="lint-ignore">addEventListener()</dfn> and
               <dfn class="lint-ignore">removeEventListener()</dfn>
@@ -1156,16 +1079,6 @@ dictionary OOStructSnapshotEntry {
           </section>
         </section>
       </section>
-    </section>
-
-    <section class="informative">
-      <h2>Acknowledgements</h2>
-      <p>
-        This specification builds on UUIDv7 [[RFC9562]], map CRDTs with
-        observed-remove semantics [[RIAKDTMAP]] [[DELTACRDTS]], and LWW-register
-        literature [[CRDTOVERVIEW]], while defining a new fixed-key
-        overwrite-tracked struct CRDT.
-      </p>
     </section>
   </body>
 </html>

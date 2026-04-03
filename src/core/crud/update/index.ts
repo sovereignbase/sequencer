@@ -20,9 +20,24 @@ export function __update<T>(
 
   const v7 = uuidv7()
 
-  if (listIndex === crListReplica.length + 1) /**push*/ {
-    walkToIndex(crListReplica.cursor, crListReplica.length, listIndex)
-    const cursor = crListReplica.cursor
+  if (listIndex === crListReplica.length) /**push*/ {
+    if (!crListReplica.cursor) {
+      crListReplica.cursor = {
+        uuidv7: v7,
+        value: copiedValue,
+        predecessor: '',
+        index: 0,
+        next: undefined,
+        prev: undefined,
+      }
+      crListReplica.length++
+      return
+    }
+    const cursor = walkToIndex(
+      crListReplica.cursor,
+      crListReplica.length,
+      crListReplica.length - 1
+    )
     if (!cursor) return
     const entry: DoublyLinkedListEntry<T> = {
       uuidv7: v7,
@@ -34,33 +49,44 @@ export function __update<T>(
     }
     cursor.next = entry
     crListReplica.cursor = entry
+    crListReplica.length++
   } else if (overwrite) /**overwrite index*/ {
-    walkToIndex(crListReplica.cursor, crListReplica.length, listIndex)
-    const cursor = crListReplica.cursor
+    const cursor = walkToIndex(
+      crListReplica.cursor,
+      crListReplica.length,
+      listIndex
+    )
     if (!cursor) return
     crListReplica.tombstones.add(cursor.uuidv7)
     cursor.uuidv7 = v7
     cursor.value = copiedValue
+    crListReplica.cursor = cursor
   } else /**insertAfter (between)*/ {
-    walkToIndex(crListReplica.cursor, crListReplica.length, listIndex)
-    const cursor = crListReplica.cursor
+    const cursor = walkToIndex(
+      crListReplica.cursor,
+      crListReplica.length,
+      listIndex
+    )
     if (!cursor) return
 
     const entry: DoublyLinkedListEntry<T> = {
       uuidv7: v7,
       value: copiedValue,
       predecessor: cursor.uuidv7,
-      index: listIndex,
-      next: cursor.next?.next,
+      index: cursor.index + 1,
+      next: cursor.next,
       prev: cursor,
     }
 
+    if (entry.next) entry.next.prev = entry
     cursor.next = entry
+    crListReplica.length++
 
-    let current: DoublyLinkedListEntry<T> = entry
+    let current = entry.next
     while (current) {
       current.index++
       current = current.next
     }
+    crListReplica.cursor = entry
   }
 }

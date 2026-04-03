@@ -16,9 +16,13 @@ export function __delete<T>(
   endIndex?: number
 ): void {
   let listIndex = startIndex ?? 0
-  let cursor = crListReplica.cursor
-  while (listIndex < (endIndex ?? crListReplica.length)) {
-    walkToIndex<T>(cursor, crListReplica.length, listIndex)
+  let deleteCount = (endIndex ?? crListReplica.length) - listIndex
+  while (deleteCount > 0 && listIndex < crListReplica.length) {
+    const cursor = walkToIndex<T>(
+      crListReplica.cursor,
+      crListReplica.length,
+      listIndex
+    )
     if (!cursor) return
     const prev = cursor.prev
     const next = cursor.next
@@ -42,5 +46,6 @@ export function __delete<T>(
 
     cursor.prev = undefined
     cursor.next = undefined
+    deleteCount--
   }
 }

@@ -12,9 +12,9 @@ export function __read<T>(
   targetIndex: number
 ): T | undefined {
   try {
-    walkToIndex<T>(cursor, listLength, targetIndex)
+    const entry = walkToIndex<T>(cursor, listLength, targetIndex)
+    return entry?.value
   } catch {
     return undefined
   }
-  return cursor?.value
 }

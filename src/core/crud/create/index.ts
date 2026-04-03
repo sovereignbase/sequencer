@@ -15,26 +15,29 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
     Object.hasOwn(snapshot, 'tombstones') &&
     Array.isArray(snapshot.tombstones)
   ) {
-    for (const tombstone in snapshot.tombstones) {
+    for (const tombstone of snapshot.tombstones) {
       if (crListReplica.tombstones.has(tombstone) || !isUuidV7(tombstone))
         continue
       crListReplica.tombstones.add(tombstone)
     }
   }
 
-  if (Object.hasOwn(snapshot, 'values')) {
-    for (const { uuidv7, value, predecessor } of snapshot?.values) {
+  if (Object.hasOwn(snapshot, 'values') && Array.isArray(snapshot.values)) {
+    for (const { uuidv7, value, predecessor } of snapshot.values) {
       if (crListReplica.tombstones.has(uuidv7) || !isUuidV7(uuidv7)) continue
       const [cloned, copiedValue] = safeStructuredClone(value)
       if (!cloned) continue
-      crListReplica.cursor = {
+      const prev = crListReplica.cursor
+      const entry = {
         uuidv7,
         value: copiedValue,
         predecessor,
         index: crListReplica.length,
         next: undefined,
-        prev: undefined,
+        prev,
       }
+      if (prev) prev.next = entry
+      crListReplica.cursor = entry
       crListReplica.length++
     }
   }

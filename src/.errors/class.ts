@@ -1,7 +1,7 @@
 /**
- * Error codes thrown by {@link RGA}.
+ * Error codes thrown by {@link CRList}.
  */
-export type RGAErrorCode =
+export type CRListErrorCode =
   | 'DEFAULTS_NOT_CLONEABLE'
   | 'VALUE_NOT_CLONEABLE'
   | 'VALUE_TYPE_MISMATCH'
@@ -9,11 +9,11 @@ export type RGAErrorCode =
 /**
  * Represents a typed OO-Struct runtime error.
  */
-export class RGAError extends Error {
+export class CRListError extends Error {
   /**
    * The semantic error code for the failure.
    */
-  readonly code: RGAErrorCode
+  readonly code: CRListErrorCode
 
   /**
    * Creates a typed OO-Struct error.
@@ -21,10 +21,10 @@ export class RGAError extends Error {
    * @param code - The semantic error code.
    * @param message - An optional human-readable detail message.
    */
-  constructor(code: RGAErrorCode, message?: string) {
+  constructor(code: CRListErrorCode, message?: string) {
     const detail = message ?? code
-    super(`{@sovereignbase/replicated-growable-array} ${detail}`)
+    super(`{@sovereignbase/convergent-replicated-list} ${detail}`)
     this.code = code
-    this.name = 'RGAError'
+    this.name = 'CRListError'
   }
 }

@@ -95,11 +95,11 @@
           'no-unused-dfns': true,
         },
         localBiblio: {
-          DELTACRDTS: {
-            title: 'Delta State Replicated Data Types',
-            href: 'https://doi.org/10.1016/j.jpdc.2017.08.003',
-            publisher: 'Journal of Parallel and Distributed Computing',
-            date: '2018',
+          MARTIN_KLEPPMANN: {
+            title: 'CRDTs: The Hard Parts',
+            href: 'https://martin.kleppmann.com/2020/07/06/crdt-hard-parts-hydra.html',
+            publisher: 'Martin Kleppmann',
+            date: '2020-06',
           },
           RFC9562: {
             title: 'Universally Unique IDentifiers (UUIDs)',
@@ -300,9 +300,14 @@
 
     <section id="sotd">
       <p>
+        CR-List is designed to serve as a core for use-case-optimized CRDT
+        interfaces, such as text or arrays.
+      </p>
+      <p>
         This is an unofficial specification maintained alongside a reference
         implementation.
       </p>
+      <p>Inspired by [[MARTIN_KLEPPMANN]].</p>
     </section>
 
     <section id="conformance">
@@ -321,14 +326,6 @@
       <p>
         A conforming implementation MUST preserve the replica convergence and
         deletion semantics defined by the algorithms in this specification.
-      </p>
-    </section>
-
-    <section class="informative">
-      <h2>Introduction</h2>
-      <p>
-        CR-List is designed to serve as a core for use-case-optimized CRDT
-        interfaces, such as text or arrays.
       </p>
     </section>
 

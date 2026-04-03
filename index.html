@@ -355,9 +355,20 @@
         The <dfn>list length</dfn> is the number of <a>list value</a>(s) in a
         <a>CR-List replica</a>.
       </p>
+
       <p>
-        An <dfn>overwritten identifier</dfn> is a UUIDv7 that appears in a
-        <a>field state entry</a>'s set of overwritten identifiers.
+        A <dfn>replica state</dfn> is a struct consisting of
+        <a>replica values</a> and <a>replica tombstones</a> tracked by
+        <a>CR-List replica</a>
+      </p>
+      <p>
+        The <dfn>replica values</dfn> is a list of overwritten
+        <a>UUIDv7 identifier</a>(s) stored in a <a>replica state</a>.
+      </p>
+      <p>
+        The <dfn>replica tombstones</dfn> is a list of overwritten
+        <a>values</a> presented as their <a>UUIDv7 identifier</a> stored in a
+        <a>CR-List replica</a> state.
       </p>
       <p>
         A <dfn>snapshot</dfn> is the full current replica state containing one

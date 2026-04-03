@@ -107,6 +107,12 @@
             publisher: 'IETF',
             date: '2024-05',
           },
+          HTML: {
+            title: '2.7 Safe passing of structured data',
+            href: 'https://html.spec.whatwg.org/multipage/structured-data.html',
+            publisher: 'WhatWG',
+            date: '2026-04',
+          },
           INFRA: {
             title: 'Infra',
             href: 'https://infra.spec.whatwg.org/',
@@ -304,9 +310,24 @@
         interfaces, such as text or arrays.
       </p>
       <p>
-        This is an unofficial specification maintained alongside a reference
-        implementation.
+        This specification is maintained alongside a reference implementation.
       </p>
+
+      <p>To use the reference implementation see:</p>
+      <ul>
+        <li>
+          <a
+            href="https://www.npmjs.com/package/@sovereignbase/convergent-replicated-list"
+            >NPM Registry
+          </a>
+        </li>
+        <li>
+          <a href="https://jsr.io/@sovereignbase/convergent-replicated-list"
+            >JSR Registry
+          </a>
+        </li>
+      </ul>
+
       <p>Inspired by [[MARTIN_KLEPPMANN]].</p>
     </section>
 
@@ -340,8 +361,12 @@
         version 7 as defined by [[RFC9562]].
       </p>
       <p>
+        a <dfn>serializable object</dfn> is an object that support being
+        serialized, and later deserialized as defined by [[HTML]].
+      </p>
+      <p>
         A <dfn>after pointer</dfn> is an <a>UUIDv7 identifier</a> pointing to
-        what <a>list value</a> a <a>list value</a> came after
+        what <a>list value</a> a <a>list value</a> comes after.
       </p>
       <p>
         A <dfn>list index</dfn> is the position of a <a>list value</a>, starting
@@ -380,7 +405,17 @@
         <a>list value</a> tracked by <a>replica tombstones</a>
       </p>
       <p>
-        A <dfn>snapshot</dfn> is a serializeable presentation of a
+        An <dfn>acknowledgement</dfn> is a <a>serializable object</a> struct
+        containing an
+        <a>acknowledgement frontier</a>
+      </p>
+      <p>
+        An <dfn>acknowledgement frontier</dfn> is the largest
+        <a>tombstones entry</a> resolved by lexographically sorting
+        <a>replica tombstones</a>
+      </p>
+      <p>
+        A <dfn>snapshot</dfn> is a <a>serializable object</a> presentation of a
         <a>replica state</a>.
       </p>
       <p>

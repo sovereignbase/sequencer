@@ -292,7 +292,7 @@
         tracked as a list of UUIDv7 identifiers.
       </p>
       <p>
-        The specification defines the data model, merge rules, snapshot and
+        The specification defines the data structure, merge rules, snapshot and
         delta formats, garbage-collection rules, acknowledgement formats, and
         one conforming JavaScript binding.
       </p>
@@ -336,11 +336,15 @@
       <h2>Terminology</h2>
       <p>
         A <dfn>CR-List replica</dfn> is one independently mutable instance of
-        the data model.
+        the data structure.
       </p>
       <p>
         A <dfn>UUIDv7 identifier</dfn> is an identifier that is a valid UUID
         version 7 as defined by [[RFC9562]].
+      </p>
+      <p>
+        A <dfn>after pointer</dfn> is an <a>UUIDv7 identifier</a> pointing to
+        what <a>list value</a> a <a>list value</a> came after
       </p>
       <p>
         A <dfn>list index</dfn> is the position of a <a>list value</a>, starting
@@ -348,8 +352,8 @@
         ordering of a <a>CR-List replica</a>.
       </p>
       <p>
-        A <dfn>list value</dfn> is the visible payload presently selected for a
-        given <a>list index</a>.
+        A <dfn>list value</dfn> is the consumer defined payload presently
+        selected for a given <a>list index</a>.
       </p>
       <p>
         The <dfn>list length</dfn> is the number of <a>list value</a>(s) in a
@@ -362,26 +366,29 @@
         <a>CR-List replica</a>
       </p>
       <p>
-        The <dfn>replica values</dfn> is a list of overwritten
-        <a>UUIDv7 identifier</a>(s) stored in a <a>replica state</a>.
+        The <dfn>replica values</dfn> is a list of <a>values entry</a>(s)
+        tracked by <a>replica state</a>.
+      </p>
+      <p>
+        A <dfn>values entry</dfn> is a struct consisting of a
+        <a>UUIDv7 Identifier</a>, <a>list value</a>, and
+        <a>after pointer</a> tracked by <a>replica values</a>
       </p>
       <p>
         The <dfn>replica tombstones</dfn> is a list of overwritten
-        <a>values</a> presented as their <a>UUIDv7 identifier</a> stored in a
-        <a>CR-List replica</a> state.
+        <a>tombstones entry</a>(s) tracked by <a>replica state</a>.
       </p>
       <p>
-        A <dfn>snapshot</dfn> is the full current replica state containing one
-        <a>field state entry</a> for every <a>field key</a>.
+        A <dfn>tombstones entry</dfn> is a <a>UUIDv7 identifier</a> presenting a
+        <a>list value</a> tracked by <a>replica tombstones</a>
       </p>
       <p>
-        A <dfn>delta</dfn> is a partial snapshot containing only the keys a
-        replica wishes to upstream.
+        A <dfn>snapshot</dfn> is a serializeable presentation of a
+        <a>replica state</a>.
       </p>
       <p>
-        A <dfn>well-formed snapshot entry</dfn> is a serialized field value that
-        parses as a valid field state entry for the corresponding
-        <a>default struct</a> field.
+        A <dfn>delta</dfn> is a partial <a>snapshot</a> containing only entries
+        what replica wishes to share.
       </p>
     </section>
 
@@ -421,6 +428,11 @@
         binding processes known keys individually and ignores entries that do
         not parse.
       </p>
+    </section>
+
+    <section>
+      <h2>Data Structure</h2>
+      <!--JSON examples or something-->
     </section>
 
     <section>

@@ -31,11 +31,10 @@
   "sideEffects": false,
   "scripts": {
     "format": "prettier . --write",
-    "build": "tsup",
+    "build": "tsup && node in-browser-testing-build.js",
     "test": "npm run build && node test/run-coverage.mjs && node test/e2e/run.mjs",
-    "bench": "npm run build && node benchmark/bench.js",
     "prepare": "husky",
-    "prepublishOnly": "npm run test && npm run bench"
+    "prepublishOnly": "npm run test"
   },
   "c8": {
     "all": true,
@@ -53,7 +52,7 @@
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
     "@playwright/test": "^1.59.1",
-    "@types/node": "^25.5.0",
+    "@types/node": "^25.5.2",
     "c8": "^11.0.0",
     "edge-runtime": "^4.0.1",
     "fast-glob": "^3.3.3",
@@ -65,8 +64,7 @@
     "wrangler": "^4.79.0"
   },
   "dependencies": {
-    "@sovereignbase/utils": "^1.1.0",
-    "uuid": "^13.0.0"
+    "@sovereignbase/bytecodec": "^1.5.1"
   },
   "repository": {
     "type": "git",

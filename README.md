@@ -1,660 +1,715 @@
-[![npm version](https://img.shields.io/npm/v/@sovereignbase/package-name)](https://www.npmjs.com/package/@sovereignbase/package-name)
-[![CI](https://github.com/sovereignbase/package-name/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/sovereignbase/package-name/actions/workflows/ci.yaml)
-[![codecov](https://codecov.io/gh/sovereignbase/package-name/branch/master/graph/badge.svg)](https://codecov.io/gh/sovereignbase/package-name)
-[![license](https://img.shields.io/npm/l/@sovereignbase/package-name)](LICENSE)
+# AGENTS.md
 
-1. Title
+This file defines normative development rules for this repository.
 
-# package-name
+All RFC 2119 keywords (MUST, MUST NOT, SHOULD, etc.) are to be interpreted as described in:
+https://www.rfc-editor.org/rfc/rfc2119.html
 
-2. Description
+---
 
-1–2 sentences:
+# General
 
-what it is
+- **NEVER USE MEMORY CACHE.**
+- **ALWAYS READ CURRENT FILE STATE FROM DISK OR THE ACTIVE CODE EDITOR BUFFER.**
+- **AGENT MEMORY IS A FORBIDDEN STATE / REALITY SOURCE.**
+- When uncertain about behavior, **prefer primary specifications and vendor documentation over assumptions.**
+- Do not invent behavior. Verify it.
 
-what it’s for
+---
 
-(optional) what it’s not for
+# Verification
 
-3. Compatibility
+Run the smallest set of checks that covers your change.
 
-A small bullet list, always in this order:
+- If you change runtime logic or public API: `npm run test`.
+- If you touch benchmarks or performance-sensitive code: `npm run bench`.
+- If you modify TypeScript build config or emit-related logic: `npm run build`.
+- If you change formatting or add files: `npm run format`.
 
-Runtimes: Node >= X; Browsers: <notes>; Workers/Edge: <notes>
+If a required command cannot run in the current environment, state that explicitly and explain why.
 
-Module format: ESM/CJS
+---
 
-Required globals / APIs: crypto.subtle, CompressionStream, indexedDB, etc.
+# Architectural Principles
 
-TypeScript: bundled types / source TS / etc.
+## 1. Minimal Surface Area
 
-4. Goals
+Every directory under `src/` represents a single logical unit.
 
-3–6 bullets, phrased as outcomes:
+Each unit:
 
-“Developer-friendly API…”
+- MUST contain at most one root-level `.ts` file.
+- MUST export at most one top-level class OR one top-level function.
+- SHOULD remain under ~100 lines of executable logic (imports and type-only declarations excluded).
+- The ~100 line budget counts executable statements only and excludes imports, type-only exports, comments, and blank lines.
+- MUST have a single, clear responsibility.
 
-“No deps…”
+If complexity grows:
 
-“Returns copies for safety…”
+- Extract a subdirectory.
+- Or prefer an external dependency.
 
-5. Installation
+Large files are a design failure, not an achievement.
 
-Always the same triple:
+---
 
-npm install <name>
+## 2. Package Preference Rule
 
-# or
+Reimplementation of common infrastructure logic is forbidden.
 
-pnpm add <name>
+- Prefer mature, audited packages over ad-hoc boilerplate.
+- Do not reimplement encoding, parsing, crypto primitives, validation frameworks, etc.
+- Local code MUST focus on domain logic, not infrastructure recreation.
 
-# or
+If boilerplate appears repeatedly, dependency evaluation is mandatory.
 
-yarn add <name>
+Dependency evaluation MUST consider maintenance activity within the last 12 months, license compatibility, known security advisories, API stability, and real-world adoption. Record the decision in change notes or the PR description.
 
-6. Usage
+---
 
-Smallest runnable example (the “copy/paste test”)
+## 3. Helpers
 
-Common patterns: 2–5 short subsections max (don’t turn this into an API book)
+If helpers are unavoidable:
 
-7. Runtime behavior
+- They MUST reside under a `.helpers/` directory.
+- They MUST be minimal and narrowly scoped.
+- They MUST NOT evolve into a general-purpose utility framework.
+- They MUST NOT contain domain logic.
 
-This is where you put the “how it behaves in different environments” and “what errors look like”.
+A growing `.helpers/` directory indicates architectural drift.
 
-Use a consistent set of subheadings when relevant:
+Domain logic means business rules, policy decisions, and data model validation specific to this package. It excludes encoding/decoding, crypto, serialization, I/O, and generic data plumbing.
 
-Node
+---
 
-Browsers / Edge runtimes
+## 4. Types
 
-Validation & errors
+Reusable structural types MUST be isolated.
 
-Safety / copying semantics
+Structure:
 
-Caching semantics (if applicable)
-
-8. Tests
-
-This section should answer:
-
-What test types exist? (unit / integration / e2e / type tests)
-
-Where do they run? (Node versions; browser matrix)
-
-Coverage: tool + percentage (and what it measures)
-
-Status claim: “passes on …” (keep it factual)
-
-Example format:
-
-Suite: unit (Node), integration, E2E (Playwright)
-
-Matrix: Chromium / Firefox / WebKit (+ mobile emulation if you do it)
-
-Coverage: c8 — 100% statements/branches/functions/lines (Node)
-
-Notes: any known skips
-
-9. Benchmarks
-
-This should show actual numbers, plus reproduction context.
-
-Minimum content:
-
-How it was run: command
-
-Environment: runtime version + platform
-
-Results: table or block of key ops/s or timings
-
-Disclaimer: results vary by machine
-
-10. License
-
-One line. Always last.
-
-EXAMPLES:
-
-1.
-
-[![npm version](https://img.shields.io/npm/v/@sovereignbase/bytecodec)](https://www.npmjs.com/package/@sovereignbase/bytecodec)
-[![CI](https://github.com/sovereignbase/bytecodec/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/sovereignbase/bytecodec/actions/workflows/ci.yaml)
-[![codecov](https://codecov.io/gh/sovereignbase/bytecodec/branch/master/graph/badge.svg)](https://codecov.io/gh/sovereignbase/bytecodec)
-[![license](https://img.shields.io/npm/l/@sovereignbase/bytecodec)](LICENSE)
-
-# bytecodec
-
-Typed JavaScript byte utilities for base64url, UTF-8 strings, JSON, and gzip that behave the same in browsers and Node. Built to make JavaScript/TypeScript projects with lots of byte-format data a breeze to build, without having to write your own utilities or boilerplate.
-
-## Compatibility
-
-- Runtimes: Node >= 18; Browsers: modern browsers with TextEncoder/TextDecoder + btoa/atob; Workers/Edge: runtimes with TextEncoder/TextDecoder + btoa/atob (gzip needs CompressionStream/DecompressionStream).
-- Module format: ESM-only (no CJS build).
-- Required globals / APIs: Node `Buffer` (base64/UTF-8 fallback); browser/edge `TextEncoder`, `TextDecoder`, `btoa`, `atob`; gzip in browser/edge needs `CompressionStream`/`DecompressionStream`.
-- TypeScript: bundled types.
-
-## Goals
-
-- Developer-friendly API for base64url, UTF-8, JSON, gzip, concat, and equality.
-- No dependencies or bundler shims.
-- ESM-only and side-effect free for tree-shaking.
-- Returns copies for safety when normalizing inputs.
-- Consistent behavior across Node, browsers, and edge runtimes.
-
-## Installation
-
-```sh
-npm install @sovereignbase/bytecodec
-# or
-pnpm add @sovereignbase/bytecodec
-# or
-yarn add @sovereignbase/bytecodec
 ```
 
-## Usage
+.types/
+TypeName/
+type.ts
 
-### Bytes wrapper
-
-```js
-import { Bytes } from '@sovereignbase/bytecodec'
-// The `Bytes` convenience class wraps the same functions as static methods.
-const encoded = Bytes.toBase64UrlString(new Uint8Array([1, 2, 3]))
 ```
 
-### Base64URL
+Rules:
 
-```js
-import {
-  toBase64UrlString,
-  fromBase64UrlString,
-} from '@sovereignbase/bytecodec'
+- Each reusable type gets its own folder.
+- The file MUST be named `type.ts`.
+- No executable logic is allowed in `.types/`.
+- Types define contracts, not behavior.
 
-const bytes = new Uint8Array([104, 101, 108, 108, 111])
-const encoded = toBase64UrlString(bytes) // string of base64url chars
-const decoded = fromBase64UrlString(encoded) // Uint8Array
+---
+
+## 5. Errors
+
+Errors MUST be explicit, semantic, and typed.
+
+Structure:
+
 ```
 
-### UTF-8 strings
+.errors/
+class.ts
 
-```js
-import { fromString, toString } from '@sovereignbase/bytecodec'
-
-const textBytes = fromString('caffe and rockets') // Uint8Array
-const text = toString(textBytes) // "caffe and rockets"
 ```
 
-### JSON
-
-```js
-import { fromJSON, toJSON } from '@sovereignbase/bytecodec'
-
-const jsonBytes = fromJSON({ ok: true, count: 3 }) // Uint8Array
-const obj = toJSON(jsonBytes) // { ok: true, count: 3 }
-```
-
-### Compression
-
-```js
-import { toCompressed, fromCompressed } from '@sovereignbase/bytecodec'
-
-const compressed = await toCompressed(new Uint8Array([1, 2, 3])) // Uint8Array
-const restored = await fromCompressed(compressed) // Uint8Array
-```
-
-### Normalization
-
-```js
-import {
-  toUint8Array,
-  toArrayBuffer,
-  toBufferSource,
-} from '@sovereignbase/bytecodec'
-
-const normalized = toUint8Array([1, 2, 3]) // Uint8Array
-const copied = toArrayBuffer(normalized) // ArrayBuffer
-const bufferSource = toBufferSource(normalized) // Uint8Array as BufferSource
-```
-
-### Equality
-
-```js
-import { equals } from '@sovereignbase/bytecodec'
-
-const isSame = equals(new Uint8Array([1, 2, 3]), new Uint8Array([1, 2, 3])) // true | false
-```
-
-### Concatenating
-
-```js
-import { concat } from '@sovereignbase/bytecodec'
-
-const joined = concat([new Uint8Array([1, 2]), new Uint8Array([3, 4]), [5, 6]]) // Uint8Array
-```
-
-## Runtime behavior
-
-### Node
-
-Uses `Buffer.from` for base64 and `TextEncoder`/`TextDecoder` when available, with `Buffer` fallback; gzip uses `node:zlib`.
-
-### Browsers / Edge runtimes
-
-Uses `TextEncoder`/`TextDecoder` and `btoa`/`atob`. Gzip uses `CompressionStream`/`DecompressionStream` when available.
-
-### Validation & errors
-
-Validation failures throw `BytecodecError` with a `code` string (for example `BASE64URL_INVALID_LENGTH`, `UTF8_DECODER_UNAVAILABLE`, `GZIP_COMPRESSION_UNAVAILABLE`), while underlying runtime errors may bubble through.
-
-### Safety / copying semantics
-
-Normalization helpers return copies (`Uint8Array`/`ArrayBuffer`) to avoid mutating caller-owned buffers.
-
-## Tests
-
-Suite: unit + integration (Node), E2E (Playwright)
-Matrix: Chromium / Firefox / WebKit + mobile emulation (Pixel 5, iPhone 12)
-Coverage: c8 — 100% statements/branches/functions/lines (Node)
-Notes: no known skips
-
-## Benchmarks
-
-How it was run: `node benchmark/bench.js`
-Environment: Node v22.14.0 (win32 x64)
-Results:
-
-| Benchmark        | Result                     |
-| ---------------- | -------------------------- |
-| base64 encode    | 514,743 ops/s (97.1 ms)    |
-| base64 decode    | 648,276 ops/s (77.1 ms)    |
-| utf8 encode      | 1,036,895 ops/s (48.2 ms)  |
-| utf8 decode      | 2,893,954 ops/s (17.3 ms)  |
-| json encode      | 698,985 ops/s (28.6 ms)    |
-| json decode      | 791,690 ops/s (25.3 ms)    |
-| concat 3 buffers | 617,497 ops/s (81.0 ms)    |
-| toUint8Array     | 10,149,502 ops/s (19.7 ms) |
-| toArrayBuffer    | 620,992 ops/s (322.1 ms)   |
-| toBufferSource   | 8,297,585 ops/s (24.1 ms)  |
-| equals same      | 4,035,195 ops/s (49.6 ms)  |
-| equals diff      | 2,760,784 ops/s (72.4 ms)  |
-| gzip compress    | 10,275 ops/s (38.9 ms)     |
-| gzip decompress  | 18,615 ops/s (21.5 ms)     |
-
-Results vary by machine.
-
-## License
-
-Apache
-
-2.
-
-[![npm version](https://img.shields.io/npm/v/@sovereignbase/cryptosuite)](https://www.npmjs.com/package/@sovereignbase/cryptosuite)
-[![CI](https://github.com/sovereignbase/cryptosuite/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/sovereignbase/cryptosuite/actions/workflows/ci.yaml)
-[![codecov](https://codecov.io/gh/sovereignbase/cryptosuite/branch/master/graph/badge.svg)](https://codecov.io/gh/sovereignbase/cryptosuite)
-[![license](https://img.shields.io/npm/l/@sovereignbase/cryptosuite)](LICENSE)
-
-# cryptosuite
-
-Developer-experience-first cryptography toolkit that lets you powerfully express cryptographic intentions through a semantic and declarative API surface.
-
-## Compatibility
-
-- Runtimes: Modern JavaScript hosts with WebCrypto.
-- Module format: ESM-only (no CJS build).
-- Required globals / APIs: `crypto`, `crypto.subtle`, `crypto.getRandomValues`.
-- TypeScript: bundled types.
-
-## Goals
-
-- Consistent JWK validation for AES-GCM, HMAC, Ed25519, and RSA-OAEP.
-- Byte-oriented APIs (`Uint8Array` and `ArrayBuffer`) to avoid ambiguous inputs.
-- No side effects on import; all work happens per call.
-- Clean separation between agents (stateful) and clusters (cached).
-- Minimal, but strict WebCrypto wrappers with explicit `CryptosuiteError` codes.
-
-## Installation
-
-```sh
-npm install @sovereignbase/cryptosuite
-# or
-pnpm add @sovereignbase/cryptosuite
-# or
-yarn add @sovereignbase/cryptosuite
-```
-
-## Usage
-
-### Cryptosuite wrapper
+Pattern:
 
 ```ts
-import { Cryptosuite } from '@sovereignbase/cryptosuite'
-// The `Cryptosuite` convenience class wraps classes and functions into an intuitive structure.
-const cipherJwk = await Cryptosuite.cipher.generateKey()
-const payload = new Uint8Array([1, 2, 3])
-const artifact = await Cryptosuite.cipher.encrypt(cipherJwk, payload)
-const roundtrip = await Cryptosuite.cipher.decrypt(cipherJwk, artifact)
-```
-
-### OpaqueIdentifier
-
-```ts
-import {
-  deriveOID,
-  generateOID,
-  validateOID,
-  type OpaqueIdentifier,
-} from '@sovereignbase/cryptosuite'
-
-const oid = await generateOID() // 43 random base64url chars
-const derived = await deriveOID(idBytesFromSomewhere) // 43 deterministic base64url chars
-const valid = validateOID(uncontrolledOID) // 43 base64url chars | false
-if (!valid) return
-```
-
-### Cipher
-
-```ts
-import { fromJSON, toJSON } from '@sovereignbase/bytecodec'
-import {
-  deriveCipherKey,
-  CipherCluster,
-  CipherAgent,
-  type CipherJWK,
-} from '@sovereignbase/cryptosuite'
-
-const cipherJwk = await deriveCipherKey(deterministicBytes)
-
-const state = { name: 'Bob', email: 'bob@email.com' }
-const enc = await CipherCluster.encrypt(cipherJwk, fromJSON(state)) // {iv, ciphertext}
-const dec = await CipherCluster.decrypt(cipherJwk, enc)
-
-const restored = toJSON(dec)
-console.log(restored.name) // "Bob"
-```
-
-### Exchange
-
-```ts
-import { fromString, toString } from '@sovereignbase/bytecodec'
-import {
-  generateCipherKey,
-  generateExchangePair,
-  ExchangeCluster,
-  WrapAgent,
-  type WrapJWK,
-  UnwrapAgent,
-  type UnwrapJWK,
-  CipherAgent,
-  type CipherJWK,
-} from '@sovereignbase/cryptosuite'
-
-const { wrapJwk, unwrapJwk } = await generateExchangePair()
-const encryptJwk = await generateCipherKey()
-const encryptAgent = new CipherAgent(encryptJwk)
-const body = await encryptAgent.encrypt(fromString('Hello world!')) // {iv, ciphertext}
-const header = await ExchangeCluster.wrap(wrapJwk, encryptJwk) // ArrayBuffer
-const message = { header, body }
-const decryptJwk = (await ExchangeCluster.unwrap(
-  unwrapJwk,
-  message.header
-)) as CipherJWK
-const decryptAgent = new CipherAgent(decryptJwk)
-const decryptedBody = await decryptAgent.decrypt(message.body)
-const messageText = toString(decryptedBody) // "Hello world!"
-```
-
-### HMAC
-
-```ts
-import { fromString } from '@sovereignbase/bytecodec'
-import {
-  generateHMACKey,
-  HMACCluster,
-  HMACAgent,
-  type HMACJWK,
-} from '@sovereignbase/cryptosuite'
-
-const hmacJwk = await generateHMACKey()
-
-const challenge = crypto.getRandomValues(new Uint8Array(32))
-const sig = await HMACCluster.sign(hmacJwk, challenge) // ArrayBuffer
-const ok = await HMACCluster.verify(hmacJwk, challenge, sig) // true | false
-```
-
-### Verification
-
-```ts
-import {
-  generateVerificationPair,
-  VerificationCluster,
-  SignAgent,
-  type SignJWK,
-  VerifyAgent,
-  type VerifyJWK,
-} from '@sovereignbase/cryptosuite'
-
-const { signJwk, verifyJwk } = await generateVerificationPair()
-const payload = new Uint8Array([9, 8, 7])
-const sig = await VerificationCluster.sign(signJwk, payload) // ArrayBuffer
-const ok = await VerificationCluster.verify(verifyJwk, payload, sig) // true | false
-```
-
-## Runtime behavior
-
-### Node
-
-Uses Node's global WebCrypto (`globalThis.crypto`) when available. Node is not the primary target, but tests and benchmarks run on Node 18+.
-
-### Browsers / Edge runtimes
-
-Uses `crypto.subtle` and `crypto.getRandomValues`. Ed25519 and RSA-OAEP support vary by engine; unsupported operations throw `CryptosuiteError` codes.
-
-### Validation & errors
-
-Validation failures throw `CryptosuiteError` with a `code` string (for example `AES_GCM_KEY_EXPECTED`, `RSA_OAEP_UNSUPPORTED`, `ED25519_ALG_INVALID`). Cryptographic failures (e.g., decrypt with the wrong key) bubble the underlying WebCrypto error.
-
-### Security considerations
-
-- Keep `{iv, ciphertext}` together and never mix IVs across messages or keys.
-- Treat all JWKs and raw key bytes as secrets; never log them and rotate on exposure.
-- Always sign a canonical byte serialization so verifiers see identical bytes.
-- Ciphertext length leaks; add padding at your protocol layer if size is sensitive.
-- Handle decrypt/verify failures uniformly; don't leak which check failed.
-
-## Tests
-
-Suite: unit + integration (Node), E2E (Playwright)
-Matrix: Chromium / Firefox / WebKit + mobile emulation (Pixel 5, iPhone 12)
-Coverage: c8 — 100% statements/branches/functions/lines (Node)
-
-## Benchmarks
-
-How it was run: `node benchmark/bench.js`
-Environment: Node v22.14.0 (win32 x64)
-Results:
-
-| Benchmark            | Result                    |
-| -------------------- | ------------------------- |
-| AES-GCM encrypt      | 30.41ms (6575.9 ops/sec)  |
-| HMAC sign+verify     | 29.95ms (6678.1 ops/sec)  |
-| Ed25519 sign+verify  | 76.45ms (2616.0 ops/sec)  |
-| RSA-OAEP wrap+unwrap | 1224.07ms (163.4 ops/sec) |
-
-Results vary by machine.
-
-## License
-
-Apache
-
-3.
-
-[![npm version](https://img.shields.io/npm/v/@sovereignbase/zero-knowledge-credentials)](https://www.npmjs.com/package/@sovereignbase/zero-knowledge-credentials)
-[![CI](https://github.com/sovereignbase/zero-knowledge-credentials/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/sovereignbase/zero-knowledge-credentials/actions/workflows/ci.yaml)
-[![codecov](https://codecov.io/gh/sovereignbase/zero-knowledge-credentials/branch/master/graph/badge.svg)](https://codecov.io/gh/sovereignbase/zero-knowledge-credentials)
-[![license](https://img.shields.io/npm/l/@sovereignbase/zero-knowledge-credentials)](LICENSE)
-
-# zero-knowledge-credentials
-
-Client-side WebAuthn credential discovery for strict zero-knowledge apps. Deterministically derive a routing identifier and cryptographic root keys from a user-verifying authenticator, without accounts, identifiers, or server-side state.
-
-## Compatibility
-
-- Runtimes: modern browsers with WebAuthn + PRF extension + user verification.
-- Module format: ESM-only (no CJS build).
-- Required globals / APIs: `window`, `navigator.credentials`, `PublicKeyCredential`, PRF extension, `crypto.subtle`, `crypto.getRandomValues`.
-- TypeScript: bundled types.
-
-## Goals
-
-- Enable strict local-first zero-knowledge for browsers.
-- Deterministic, runtime-only derivation of an opaque ID and root keys.
-- No storage, no networking, no server-side requirements.
-- Explicit failure modes with stable error codes.
-
-## Installation
-
-```sh
-npm install @sovereignbase/zero-knowledge-credentials
-# or
-pnpm add @sovereignbase/zero-knowledge-credentials
-# or
-yarn add @sovereignbase/zero-knowledge-credentials
-```
-
-## Usage
-
-**These give a general idea and MUST NOT be interpreted as a full solution.**
-
-### Register a credential
-
-```ts
-import {
-  ZKCredentials,
-  type ZKCredential,
-  type ZKCredentialErrorCode,
-} from '@sovereignbase/zero-knowledge-credentials'
-
-await ZKCredentials.registerCredential(
-  'User display name',
-  'platform' // or 'cross-platform'
-)
-```
-
-### Discover a credential
-
-```ts
-import { Bytes } from '@sovereignbase/bytecodec'
-import { Cryptosuite } from '@sovereignbase/cryptosuite'
-import { ZKCredentials } from '@sovereignbase/zero-knowledge-credentials'
-
-const root = await ZKCredentials.discoverCredential()
-
-const id = root.id // routing identifier / OpaqueIdentifier
-const hmacJwk = root.hmacJwk // HMAC root key / HMACJWK
-const cipherJwk = root.cipherJwk // AES-GCM root key / CipherJWK
-
-const cache = await caches.open('opaque-blobs')
-
-let artifact = await cache.match(id) // {iv, ciphertext}
-
-if (!artifact) {
-  const challengeRaw = await fetch(`/api/v1/artifact/${id}/challenge`)
-  const challengeText = await challengeRaw.text()
-  const challengeBytes = Bytes.fromBase64UrlString(challengeText)
-  const signature = await Cryptosuite.hmac.sign(hmacJwk, challengeBytes)
-  const raw = await fetch(`/api/v1/artifact/${id}`, {
-    headers: {
-      Authorization: Bytes.toBase64UrlString(signature),
-    },
-  })
-  artifact = await raw.json() // {iv, ciphertext}
-}
-
-const accountCredentials = await Cryptosuite.cipher.decrypt(cipherJwk, artifact)
-
-// const {id, hmacJwk, cipherJwk} = accountCredentials
-// repeat...
-// const {profileCredentials, workspaceCredentials}  = resourceCredentials
-```
-
-### Generate a credential
-
-```ts
-import { Bytes } from '@sovereignbase/bytecodec'
-import { Cryptosuite } from '@sovereignbase/cryptosuite'
-import { ZKCredentials } from '@sovereignbase/zero-knowledge-credentials'
-
-const profile = {
-  name: 'Bob',
-  preferences: {
-    theme: 'dark',
-  },
-}
-
-const credentials = await ZKCredentials.generateCredential()
-
-const id = credentials.id // resource routing identifier / OpaqueIdentifier
-const hmacJwk = credentials.hmacJwk // HMAC resource key / HMACJWK
-const cipherJwk = credentials.cipherJwk // AES-GCM resource key / CipherJWK
-
-const profileBytes = Bytes.fromJSON(profile)
-const artifact = await Cryptosuite.cipher.encrypt(cipherJwk, profileBytes)
-fetch(
-  `/api/v1/artifact/${id}`,
-  JSON.stringify({
-    verifier: hmacJwk,
-    state: {
-      iv: Bytes.toBase64UrlString(artifact.iv),
-      ciphertext: Bytes.toBase64UrlString(artifact.ciphertext),
-    },
-  }),
-  {
-    method: 'POST',
+export type PackageNameCode = 'SOME_ERROR_CODE' | 'ANOTHER_ERROR_CODE'
+
+export class PackageNameError extends Error {
+  readonly code: PackageNameCode
+
+  constructor(code: PackageNameCode, message?: string) {
+    const detail = message ?? code
+    super(`{@scope/package-name} ${detail}`)
+    this.code = code
+    this.name = 'PackageNameError'
   }
-)
+}
 ```
 
-## Runtime behavior
+Rules:
 
-### Browsers
+- Error codes MUST be semantic string literals.
+- Error codes MUST be SCREAMING_SNAKE_CASE and use short domain prefixes when needed (example: `CRYPTO_INVALID_KEY`).
+- Throwing raw `Error` is forbidden.
+- Every thrown error MUST map to an explicit error code.
+- Error messages MUST include package scope.
 
-Uses WebAuthn PRF outputs to derive:
+Errors are part of the public contract.
 
-- `id` (SHA-256 -> base64url of `rawId`)
-- `cipherJwk` (AES-GCM)
-- `hmacJwk` (HMAC-SHA256)
+---
 
-### Validation & errors
+## 6. Forbidden Patterns
 
-All failures are explicit and semantic. Errors are instances of `ZKCredentialError` with a stable `code`:
+- No multi-responsibility modules
+- No utility dumping grounds
+- No silent boilerplate replication
+- No implicit global state
+- No hidden cross-layer imports
 
-- `unsupported`
-- `aborted`
-- `user-denied`
-- `no-credential`
-- `prf-unavailable`
-- `key-derivation-failed`
+Architecture must remain explicit and auditable.
 
-## Tests
+Example disallowed: `.helpers/` importing from `src/domain/*`, or `.types/` importing from runtime code.
 
-Suite: unit + integration (Node), E2E (Playwright)
-Matrix: Chromium / Firefox / WebKit + mobile emulation (Pixel 5, iPhone 12)
-Coverage: c8 — 100% statements/branches/functions/lines (dist via source maps)
+---
 
-## Benchmarks
+# Specification Discipline (`index.html`)
 
-How it was run: `npm run bench`
-Environment: Node v22.14.0 (win32 x64)
-Results:
+When working on `(cwd | root | .)/index.html`:
 
-| Benchmark          | Result                             |
-| ------------------ | ---------------------------------- |
-| fromPRF            | 5,224 ops/s (0.191 ms/op, 200 ops) |
-| generateCredential | 5,825 ops/s (0.172 ms/op, 50 ops)  |
+This applies only when `index.html` exists or a task explicitly asks to create it. Otherwise, do not create or modify it.
 
-Results vary by machine.
+## Authoring Tool
 
-## License
+Use ReSpec:
 
-Apache
+- [https://respec.org/docs/](https://respec.org/docs/)
+- [https://github.com/speced/respec](https://github.com/speced/respec)
+- [https://www.w3.org/community/reports/reqs/](https://www.w3.org/community/reports/reqs/)
+- [https://respec.org/docs/#using-respec](https://respec.org/docs/#using-respec)
+
+## Normative References
+
+### Infra / Language
+
+- ECMA-262 — [https://tc39.es/ecma262/](https://tc39.es/ecma262/)
+- WHATWG Infra — [https://infra.spec.whatwg.org/](https://infra.spec.whatwg.org/)
+- Infra Extension — [https://www.w3.org/TR/xmlschema11-2/](https://www.w3.org/TR/xmlschema11-2/)
+- Base64Url — [https://base64.guru/standards/base64url](https://base64.guru/standards/base64url)
+- JSON — [https://www.rfc-editor.org/rfc/rfc8259](https://www.rfc-editor.org/rfc/rfc8259)
+- URI — [https://www.rfc-editor.org/rfc/rfc3986](https://www.rfc-editor.org/rfc/rfc3986)
+
+### Identifiers / Credentials
+
+- DID Use Cases — [https://www.w3.org/TR/did-use-cases/](https://www.w3.org/TR/did-use-cases/)
+- DID Core v1.0 — [https://www.w3.org/TR/did-core/](https://www.w3.org/TR/did-core/)
+- DID Core v1.1 — [https://www.w3.org/TR/did-1.1/](https://www.w3.org/TR/did-1.1/)
+- DID Test Suite — [https://w3c.github.io/did-test-suite/](https://w3c.github.io/did-test-suite/)
+- DID Extensions — [https://www.w3.org/TR/did-extensions/](https://www.w3.org/TR/did-extensions/)
+
+- VC Data Model v2.0 — [https://www.w3.org/TR/vc-data-model-2.0/](https://www.w3.org/TR/vc-data-model-2.0/)
+- VC Overview — [https://www.w3.org/TR/vc-overview/](https://www.w3.org/TR/vc-overview/)
+- VC Test Suite — [https://w3c.github.io/vc-test-suite/](https://w3c.github.io/vc-test-suite/)
+- Distributed Ledger Technologies — [https://en.wikipedia.org/wiki/Distributed_ledger](https://en.wikipedia.org/wiki/Distributed_ledger)
+
+### JSON-LD / RDF
+
+- JSON-LD 1.1 — [https://www.w3.org/TR/json-ld11/](https://www.w3.org/TR/json-ld11/)
+- JSON-LD API — [https://www.w3.org/TR/json-ld11-api/](https://www.w3.org/TR/json-ld11-api/)
+- RDF Concepts — [https://www.w3.org/TR/rdf11-concepts/](https://www.w3.org/TR/rdf11-concepts/)
+- RDF Schema — [https://www.w3.org/TR/rdf-schema/](https://www.w3.org/TR/rdf-schema/)
+- Schema Org — [https://schema.org/docs/schemas.html](https://schema.org/docs/schemas.html)
+
+### WebCrypto
+
+- Web Cryptography Level 2 — [https://www.w3.org/TR/webcrypto-2/](https://www.w3.org/TR/webcrypto-2/)
+
+### JOSE
+
+- JWS — [https://www.rfc-editor.org/rfc/rfc7515.html](https://www.rfc-editor.org/rfc/rfc7515.html)
+- JWE — [https://www.rfc-editor.org/rfc/rfc7516.html](https://www.rfc-editor.org/rfc/rfc7516.html)
+- JWK — [https://www.rfc-editor.org/rfc/rfc7517.html](https://www.rfc-editor.org/rfc/rfc7517.html)
+- JWA — [https://www.rfc-editor.org/rfc/rfc7518.html](https://www.rfc-editor.org/rfc/rfc7518.html)
+- JWT — [https://www.rfc-editor.org/rfc/rfc7519.html](https://www.rfc-editor.org/rfc/rfc7519.html)
+- JWS Unencoded Payload — [https://www.rfc-editor.org/rfc/rfc7797.html](https://www.rfc-editor.org/rfc/rfc7797.html)
+- JWT BCP — [https://www.rfc-editor.org/rfc/rfc8725.html](https://www.rfc-editor.org/rfc/rfc8725.html)
+- JWT/JWS Updates — [https://www.rfc-editor.org/rfc/rfc9864.html](https://www.rfc-editor.org/rfc/rfc9864.html)
+- JOSE Cookbook — [https://www.rfc-editor.org/rfc/rfc7520.html](https://www.rfc-editor.org/rfc/rfc7520.html)
+- JWK Thumbprint — [https://www.rfc-editor.org/rfc/rfc7638.html](https://www.rfc-editor.org/rfc/rfc7638.html)
+- EdDSA for JOSE — [https://www.rfc-editor.org/rfc/rfc8037.html](https://www.rfc-editor.org/rfc/rfc8037.html)
+- IANA JOSE Registries — [https://www.iana.org/assignments/jose/jose.xhtml](https://www.iana.org/assignments/jose/jose.xhtml)
+
+### HTTP
+
+- HTTP [https://datatracker.ietf.org/doc/html/rfc9110](https://datatracker.ietf.org/doc/html/rfc9110)
+
+### Ideas
+
+- KERI — [https://trustoverip.github.io/kswg-keri-specification/](https://trustoverip.github.io/kswg-keri-specification/)
+- ACDA — [https://trustoverip.github.io/kswg-acdc-specification/][https://trustoverip.github.io/kswg-acdc-specification/s]
+- CESR — [https://trustoverip.github.io/kswg-cesr-specification/](https://trustoverip.github.io/kswg-cesr-specification/)
+
+---
+
+## NON-SPEC Web page styling guid
+
+Must not be used with respec documents.
+
+Something like this!
+
+Always ensure mobile-optimization!
+
+css```
+
+<style>
+:root {
+color-scheme: dark;
+font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+background: #000;
+color: #fff;
+}
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(
+            circle at top,
+            rgba(255, 255, 255, 0.1),
+            transparent 36%
+          ),
+          #000;
+        color: #fff;
+      }
+
+      main {
+        width: min(100%, 42rem);
+        margin: 0 auto;
+        padding: 1.25rem;
+      }
+
+      .shell {
+        display: grid;
+        gap: 1.25rem;
+        padding: 1.25rem;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 1.25rem;
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.45);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 8vw, 3.4rem);
+        line-height: 0.95;
+      }
+
+      .lede {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.76);
+        line-height: 1.6;
+      }
+
+      .controls {
+        display: grid;
+        gap: 1rem;
+      }
+
+      label {
+        display: grid;
+        gap: 0.55rem;
+        font-size: 0.95rem;
+      }
+
+      input,
+      button,
+      a {
+        border-radius: 999px;
+      }
+
+      input {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: #050505;
+        color: #fff;
+        font: inherit;
+      }
+
+      input::placeholder {
+        color: rgba(255, 255, 255, 0.38);
+      }
+
+      .actions {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      button {
+        width: 100%;
+        padding: 0.95rem 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: #fff;
+        color: #000;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: transparent;
+        color: #fff;
+      }
+
+      button:disabled {
+        opacity: 0.55;
+        cursor: progress;
+      }
+
+      .status {
+        margin: 0;
+        min-height: 1.5rem;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .result {
+        display: grid;
+        gap: 0.5rem;
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 1rem;
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .result-label {
+        font-size: 0.78rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      output {
+        display: block;
+        overflow-wrap: anywhere;
+        font-family: 'IBM Plex Mono', 'Cascadia Code', monospace;
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+
+      .links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      .links a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        min-height: 2.5rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #fff;
+        text-decoration: none;
+      }
+
+      .links img {
+        width: 1rem;
+        height: 1rem;
+        flex: 0 0 1rem;
+      }
+
+      @media (min-width: 40rem) {
+        main {
+          padding: 2rem;
+        }
+
+        .shell {
+          padding: 1.75rem;
+        }
+
+        .actions {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+    </style>
+
+````
+
+---
+
+## Seo guide
+
+```html
+ <title></title>
+    <meta
+      name="description"
+      content=""
+    />
+    <meta
+      name="keywords""
+    />
+    <meta name="author" content="Jori Lehtinen" />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <meta name="application-name" content="package-name" />
+    <link
+      rel="canonical"
+      href="https://sovereignbase.dev/package-name/"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://sovereignbase.dev/sovereignbase_logo.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="https://sovereignbase.dev/sovereignbase_logo.png"
+    />
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:site_name" content="Sovereignbase" />
+    <meta
+      property="og:title"
+      content=""
+    />
+    <meta
+      property="og:description"
+      content=""
+    />
+    <meta
+      property="og:url"
+      content="https://sovereignbase.dev/package-name/"
+    />
+    <meta
+      property="og:image"
+      content="https://sovereignbase.dev/sovereignbase_social_sharing_image.png"
+    />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content=""
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content=""
+    />
+    <meta
+      name="twitter:description"
+      content=""
+    />
+    <meta
+      name="twitter:image"
+      content="https://sovereignbase.dev/sovereignbase_social_sharing_image.png"
+    />
+    <meta
+      name="twitter:image:alt"
+      content=""
+    />
+    <meta name="twitter:creator" content="@jortsupetterson" />
+        <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://sovereignbase.dev/package-name/#organization",
+            "name": "Sovereignbase",
+            "url": "https://github.com/sovereignbase",
+            "alternateName": ["@sovereignbase"],
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://sovereignbase.dev/sovereignbase_logo.png",
+              "width": 320,
+              "height": 320
+            },
+            "sameAs": [
+              "https://github.com/sovereignbase",
+              "https://jsr.io/@sovereignbase",
+              "https://www.npmjs.com/org/sovereignbase"
+            ]
+          },
+          {
+            "@type": "Person",
+            "@id": "https://sovereignbase.dev/package-name/#author",
+            "name": "Jori Lehtinen",
+            "url": "https://github.com/jortsupetterson",
+            "alternateName": ["jortsupetterson", "@jortsupetterson"],
+            "sameAs": [
+              "https://github.com/jortsupetterson",
+              "https://www.npmjs.com/~jortsupetterson",
+              "https://jsr.io/user/ab186a13-a64f-429e-a757-927aa4fa6e6c",
+              "https://linkedin.com/in/jortsupetterson",
+              "https://x.com/jortsupetterson",
+              "https://www.youtube.com/@jortsupetterson"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://sovereignbase.dev/package-name/#website",
+            "url": "https://sovereignbase.dev/package-name/",
+            "name": "package-name",
+            "inLanguage": "en",
+            "publisher": {
+              "@id": "https://sovereignbase.dev/package-name/#organization"
+            }
+          },
+          {
+            "@type": "SoftwareSourceCode",
+            "@id": "https://sovereignbase.dev/package-name/#software",
+            "name": "@sovereignbase/package-name",
+            "alternateName": [],
+            "url": "https://sovereignbase.dev/package-name/",
+            "description": "",
+            "codeRepository": "https://github.com/sovereignbase/package-name",
+            "license": "https://www.apache.org/licenses/LICENSE-2.0",
+            "programmingLanguage": ["TypeScript", "JavaScript"],
+            "runtimePlatform": [
+              "Node.js",
+              "Web Browser",
+              "Bun",
+              "Deno",
+              "Cloudflare Workers",
+              "Edge Runtime"
+            ],
+            "keywords": [],
+            "image": "https://sovereignbase.dev/sovereignbase_social_sharing_image.png",
+            "isAccessibleForFree": true,
+            "author": {
+              "@id": "https://sovereignbase.dev/package-name/#author"
+            },
+            "maintainer": {
+              "@id": "https://sovereignbase.dev/package-name/#organization"
+            },
+            "publisher": {
+              "@id": "https://sovereignbase.dev/package-name/#organization"
+            },
+            "sameAs": [
+              "https://jsr.io/@sovereignbase/package-name/",
+              "https://www.npmjs.com/package/@sovereignbase/package-name"
+            ]
+          },
+          {
+            "@type": "TechArticle",
+            "@id": "https://sovereignbase.dev/package-name/#specification",
+            "headline": "",
+            "name": "",
+            "url": "https://sovereignbase.dev/package-name/",
+            "description": "",
+            "inLanguage": "en",
+            "isPartOf": {
+              "@id": "https://sovereignbase.dev/package-name/#website"
+            },
+            "mainEntityOfPage": {
+              "@id": "https://sovereignbase.dev/package-name/#webpage"
+            },
+            "about": {
+              "@id": "https://sovereignbase.dev/package-name/#software"
+            },
+            "author": {
+              "@id": "https://sovereignbase.dev/package-name/#author"
+            },
+            "publisher": {
+              "@id": "https://sovereignbase.dev/package-name/#organization"
+            },
+            "image": {
+              "@type": "ImageObject",
+              "url": "https://sovereignbase.dev/sovereignbase_social_sharing_image.png",
+              "width": 1200,
+              "height": 630
+            }
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://sovereignbase.dev/package-name/#webpage",
+            "url": "https://sovereignbase.dev/package-name/",
+            "name": "",
+            "description": "",
+            "inLanguage": "en",
+            "isPartOf": {
+              "@id": "https://sovereignbase.dev/package-name/#website"
+            },
+            "about": {
+              "@id": "https://sovereignbase.dev/package-name/#software"
+            },
+            "author": {
+              "@id": "https://sovereignbase.dev/package-name/#author"
+            },
+            "publisher": {
+              "@id": "https://sovereignbase.dev/package-name/#organization"
+            },
+            "primaryImageOfPage": {
+              "@type": "ImageObject",
+              "url": "https://sovereignbase.dev/sovereignbase_social_sharing_image.png",
+              "width": 1200,
+              "height": 630
+            },
+            "relatedLink": [
+              "https://github.com/sovereignbase",
+              "https://jsr.io/@sovereignbase",
+              "https://www.npmjs.com/org/sovereignbase",
+              "https://github.com/sovereignbase/package-name",
+              "https://jsr.io/@sovereignbase/package-name/",
+              "https://www.npmjs.com/package/@sovereignbase/package-name",
+              "https://github.com/jortsupetterson",
+              "https://www.npmjs.com/~jortsupetterson",
+              "https://jsr.io/user/ab186a13-a64f-429e-a757-927aa4fa6e6c",
+              "https://linkedin.com/in/jortsupetterson",
+              "https://x.com/jortsupetterson",
+              "https://www.youtube.com/@jortsupetterson"
+            ]
+          }
+        ]
+      }
+    </script>
+````
+
+---
+
+# Cloudflare Workers Discipline
+
+Your knowledge of Cloudflare Workers MAY be outdated.
+
+Before any task involving Workers, KV, R2, D1, Durable Objects, Queues, Vectorize, Workers AI, Hyperdrive, or Agents:
+
+- Retrieve current documentation.
+- Verify platform limits.
+- Confirm API behavior against official docs.
+- If documentation cannot be retrieved due to environment restrictions, request permission to browse and state the limitation.
+
+## Documentation Entry Points
+
+- Workers — [https://developers.cloudflare.com/workers/](https://developers.cloudflare.com/workers/)
+- Agents — [https://developers.cloudflare.com/agents/](https://developers.cloudflare.com/agents/)
+- MCP — [https://developers.cloudflare.com/agents/model-context-protocol/](https://developers.cloudflare.com/agents/model-context-protocol/)
+
+## Limits
+
+Always consult official limits pages before reasoning about quotas.
+
+## Commands
+
+| Command               | Purpose                   |
+| --------------------- | ------------------------- |
+| `npx wrangler dev`    | Local development         |
+| `npx wrangler deploy` | Deploy to Cloudflare      |
+| `npx wrangler types`  | Generate TypeScript types |
+
+After modifying bindings in `wrangler.toml` or `wrangler.jsonc`, run:
+
+```
+
+npx wrangler types
+
+```
+
+---
+
+# Philosophy
+
+Small modules.
+Explicit contracts.
+Typed errors.
+Spec-first reasoning.
+Dependency over reinvention.
+No hidden state.
+
+Architecture is a constraint system, not a suggestion.

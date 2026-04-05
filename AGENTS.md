@@ -239,6 +239,431 @@ Use ReSpec:
 
 ---
 
+## NON-SPEC Web page styling guid
+
+Must not be used with respec documents.
+
+Something like this!
+
+Always ensure mobile-optimization!
+
+css```
+
+<style>
+:root {
+color-scheme: dark;
+font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+background: #000;
+color: #fff;
+}
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(
+            circle at top,
+            rgba(255, 255, 255, 0.1),
+            transparent 36%
+          ),
+          #000;
+        color: #fff;
+      }
+
+      main {
+        width: min(100%, 42rem);
+        margin: 0 auto;
+        padding: 1.25rem;
+      }
+
+      .shell {
+        display: grid;
+        gap: 1.25rem;
+        padding: 1.25rem;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 1.25rem;
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.45);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 8vw, 3.4rem);
+        line-height: 0.95;
+      }
+
+      .lede {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.76);
+        line-height: 1.6;
+      }
+
+      .controls {
+        display: grid;
+        gap: 1rem;
+      }
+
+      label {
+        display: grid;
+        gap: 0.55rem;
+        font-size: 0.95rem;
+      }
+
+      input,
+      button,
+      a {
+        border-radius: 999px;
+      }
+
+      input {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: #050505;
+        color: #fff;
+        font: inherit;
+      }
+
+      input::placeholder {
+        color: rgba(255, 255, 255, 0.38);
+      }
+
+      .actions {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      button {
+        width: 100%;
+        padding: 0.95rem 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: #fff;
+        color: #000;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: transparent;
+        color: #fff;
+      }
+
+      button:disabled {
+        opacity: 0.55;
+        cursor: progress;
+      }
+
+      .status {
+        margin: 0;
+        min-height: 1.5rem;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .result {
+        display: grid;
+        gap: 0.5rem;
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 1rem;
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .result-label {
+        font-size: 0.78rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      output {
+        display: block;
+        overflow-wrap: anywhere;
+        font-family: 'IBM Plex Mono', 'Cascadia Code', monospace;
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+
+      .links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      .links a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        min-height: 2.5rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #fff;
+        text-decoration: none;
+      }
+
+      .links img {
+        width: 1rem;
+        height: 1rem;
+        flex: 0 0 1rem;
+      }
+
+      @media (min-width: 40rem) {
+        main {
+          padding: 2rem;
+        }
+
+        .shell {
+          padding: 1.75rem;
+        }
+
+        .actions {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+    </style>
+
+````
+
+---
+
+## Seo guide
+
+```html
+ <title></title>
+    <meta
+      name="description"
+      content=""
+    />
+    <meta
+      name="keywords""
+    />
+    <meta name="author" content="Jori Lehtinen" />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <meta name="application-name" content="package-name" />
+    <link
+      rel="canonical"
+      href="https://sovereignbase.dev/package-name/"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://sovereignbase.dev/sovereignbase_logo.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="https://sovereignbase.dev/sovereignbase_logo.png"
+    />
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:site_name" content="Sovereignbase" />
+    <meta
+      property="og:title"
+      content=""
+    />
+    <meta
+      property="og:description"
+      content=""
+    />
+    <meta
+      property="og:url"
+      content="https://sovereignbase.dev/package-name/"
+    />
+    <meta
+      property="og:image"
+      content="https://sovereignbase.dev/sovereignbase_social_sharing_image.png"
+    />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content=""
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content=""
+    />
+    <meta
+      name="twitter:description"
+      content=""
+    />
+    <meta
+      name="twitter:image"
+      content="https://sovereignbase.dev/sovereignbase_social_sharing_image.png"
+    />
+    <meta
+      name="twitter:image:alt"
+      content=""
+    />
+    <meta name="twitter:creator" content="@jortsupetterson" />
+        <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://sovereignbase.dev/package-name/#organization",
+            "name": "Sovereignbase",
+            "url": "https://github.com/sovereignbase",
+            "alternateName": ["@sovereignbase"],
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://sovereignbase.dev/sovereignbase_logo.png",
+              "width": 320,
+              "height": 320
+            },
+            "sameAs": [
+              "https://github.com/sovereignbase",
+              "https://jsr.io/@sovereignbase",
+              "https://www.npmjs.com/org/sovereignbase"
+            ]
+          },
+          {
+            "@type": "Person",
+            "@id": "https://sovereignbase.dev/package-name/#author",
+            "name": "Jori Lehtinen",
+            "url": "https://github.com/jortsupetterson",
+            "alternateName": ["jortsupetterson", "@jortsupetterson"],
+            "sameAs": [
+              "https://github.com/jortsupetterson",
+              "https://www.npmjs.com/~jortsupetterson",
+              "https://jsr.io/user/ab186a13-a64f-429e-a757-927aa4fa6e6c",
+              "https://linkedin.com/in/jortsupetterson",
+              "https://x.com/jortsupetterson",
+              "https://www.youtube.com/@jortsupetterson"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://sovereignbase.dev/package-name/#website",
+            "url": "https://sovereignbase.dev/package-name/",
+            "name": "package-name",
+            "inLanguage": "en",
+            "publisher": {
+              "@id": "https://sovereignbase.dev/package-name/#organization"
+            }
+          },
+          {
+            "@type": "SoftwareSourceCode",
+            "@id": "https://sovereignbase.dev/package-name/#software",
+            "name": "@sovereignbase/package-name",
+            "alternateName": [],
+            "url": "https://sovereignbase.dev/package-name/",
+            "description": "",
+            "codeRepository": "https://github.com/sovereignbase/package-name",
+            "license": "https://www.apache.org/licenses/LICENSE-2.0",
+            "programmingLanguage": ["TypeScript", "JavaScript"],
+            "runtimePlatform": [
+              "Node.js",
+              "Web Browser",
+              "Bun",
+              "Deno",
+              "Cloudflare Workers",
+              "Edge Runtime"
+            ],
+            "keywords": [],
+            "image": "https://sovereignbase.dev/sovereignbase_social_sharing_image.png",
+            "isAccessibleForFree": true,
+            "author": {
+              "@id": "https://sovereignbase.dev/package-name/#author"
+            },
+            "maintainer": {
+              "@id": "https://sovereignbase.dev/package-name/#organization"
+            },
+            "publisher": {
+              "@id": "https://sovereignbase.dev/package-name/#organization"
+            },
+            "sameAs": [
+              "https://jsr.io/@sovereignbase/package-name/",
+              "https://www.npmjs.com/package/@sovereignbase/package-name"
+            ]
+          },
+          {
+            "@type": "TechArticle",
+            "@id": "https://sovereignbase.dev/package-name/#specification",
+            "headline": "",
+            "name": "",
+            "url": "https://sovereignbase.dev/package-name/",
+            "description": "",
+            "inLanguage": "en",
+            "isPartOf": {
+              "@id": "https://sovereignbase.dev/package-name/#website"
+            },
+            "mainEntityOfPage": {
+              "@id": "https://sovereignbase.dev/package-name/#webpage"
+            },
+            "about": {
+              "@id": "https://sovereignbase.dev/package-name/#software"
+            },
+            "author": {
+              "@id": "https://sovereignbase.dev/package-name/#author"
+            },
+            "publisher": {
+              "@id": "https://sovereignbase.dev/package-name/#organization"
+            },
+            "image": {
+              "@type": "ImageObject",
+              "url": "https://sovereignbase.dev/sovereignbase_social_sharing_image.png",
+              "width": 1200,
+              "height": 630
+            }
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://sovereignbase.dev/package-name/#webpage",
+            "url": "https://sovereignbase.dev/package-name/",
+            "name": "",
+            "description": "",
+            "inLanguage": "en",
+            "isPartOf": {
+              "@id": "https://sovereignbase.dev/package-name/#website"
+            },
+            "about": {
+              "@id": "https://sovereignbase.dev/package-name/#software"
+            },
+            "author": {
+              "@id": "https://sovereignbase.dev/package-name/#author"
+            },
+            "publisher": {
+              "@id": "https://sovereignbase.dev/package-name/#organization"
+            },
+            "primaryImageOfPage": {
+              "@type": "ImageObject",
+              "url": "https://sovereignbase.dev/sovereignbase_social_sharing_image.png",
+              "width": 1200,
+              "height": 630
+            },
+            "relatedLink": [
+              "https://github.com/sovereignbase",
+              "https://jsr.io/@sovereignbase",
+              "https://www.npmjs.com/org/sovereignbase",
+              "https://github.com/sovereignbase/package-name",
+              "https://jsr.io/@sovereignbase/package-name/",
+              "https://www.npmjs.com/package/@sovereignbase/package-name",
+              "https://github.com/jortsupetterson",
+              "https://www.npmjs.com/~jortsupetterson",
+              "https://jsr.io/user/ab186a13-a64f-429e-a757-927aa4fa6e6c",
+              "https://linkedin.com/in/jortsupetterson",
+              "https://x.com/jortsupetterson",
+              "https://www.youtube.com/@jortsupetterson"
+            ]
+          }
+        ]
+      }
+    </script>
+````
+
+---
+
 # Cloudflare Workers Discipline
 
 Your knowledge of Cloudflare Workers MAY be outdated.
@@ -271,7 +696,9 @@ Always consult official limits pages before reasoning about quotas.
 After modifying bindings in `wrangler.toml` or `wrangler.jsonc`, run:
 
 ```
+
 npx wrangler types
+
 ```
 
 ---

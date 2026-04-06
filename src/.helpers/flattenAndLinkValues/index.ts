@@ -17,7 +17,6 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
       delete crListReplica.parentMap[entry.uuidv7]
       continue
     }
-    crListReplica.cursor = entry
     const predecessorIdentifier = entry.predecessor
     const isRootPredecessor = predecessorIdentifier === '\0'
     const predecessor = isRootPredecessor
@@ -38,7 +37,6 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
       delete crListReplica.childrenMap[predecessorIdentifier]
       continue
     }
-    crListReplica.size++
     siblings = siblings.map((sibling) => {
       return crListReplica.parentMap[sibling.uuidv7]
     }) as Array<LinkedListEntry<T>>
@@ -78,5 +76,7 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
       prev = tail
     }
     resolvedSiblingPredecessors.add(predecessorIdentifier)
+    crListReplica.cursor = entry
   }
+  crListReplica.size = Object.keys(crListReplica.parentMap).length
 }

@@ -62,8 +62,10 @@ export function tryToMergeEntry<T>(
 
         placeholder.prev = entry
         placeholder.predecessor = entry.uuidv7
-        crListReplica.seenPredecessorIdentifiersAndTheirEntry[entry.uuidv7] =
-          placeholder
+        crListReplica.seenPredecessorIdentifiersAndTheirEntry[
+          placeholder.predecessor
+        ] = placeholder
+        crListReplica.cursor = entry
         crListReplica.size++
         break
       }
@@ -75,9 +77,11 @@ export function tryToMergeEntry<T>(
         if (entry.next) {
           entry.next.prev = entry
           entry.next.predecessor = entry.uuidv7
-          crListReplica.seenPredecessorIdentifiersAndTheirEntry[entry.uuidv7] =
-            entry.next
-        } else crListReplica.cursor = entry
+          crListReplica.seenPredecessorIdentifiersAndTheirEntry[
+            entry.next.predecessor
+          ] = entry.next
+        }
+        crListReplica.cursor = entry
         crListReplica.size++
         break
       }

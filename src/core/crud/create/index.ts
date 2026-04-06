@@ -12,8 +12,8 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
     cursor: undefined,
     tombstones: new Set<string>(),
     detachedEntries: new Set<DoublyLinkedListEntry<T>>(),
-    seenUuidV7Identifiers: new Set<string>(),
-    seenPredecessorIdentifiersAndTheirEntry: {},
+    seenUuidV7IdentifiersAndTheirEntry: {},
+    seenPredecessorIdentifiersAndTheirEntries: {},
   }
   if (!snapshot || prototype(snapshot) !== 'record') return crListReplica
 
@@ -34,7 +34,10 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
     for (const { uuidv7, value, predecessor } of snapshot.values) {
       if (
         crListReplica.tombstones.has(uuidv7) ||
-        crListReplica.seenUuidV7Identifiers.has(uuidv7) ||
+        Object.hasOwn(
+          crListReplica.seenUuidV7IdentifiersAndTheirEntry,
+          uuidv7
+        ) ||
         !isUuidV7(uuidv7) ||
         (predecessor && !isUuidV7(predecessor))
       )
@@ -57,10 +60,12 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
         crListReplica.size++
       } else tryToMergeEntry(crListReplica, entry)
 
-      crListReplica.seenUuidV7Identifiers.add(entry.uuidv7)
-      crListReplica.seenPredecessorIdentifiersAndTheirEntry[entry.predecessor] =
-        entry
+      crListReplica.seenUuidV7IdentifiersAndTheirEntry[entry.uuidv7] = entry
+      crListReplica.seenPredecessorIdentifiersAndTheirEntries[
+        entry.predecessor
+      ].add(entry)
     }
+    //**append detached*/
     const detachedSizeAfterLinear = crListReplica.detachedEntries.size
     for (let i = 0; i < detachedSizeAfterLinear; i++) {
       crListReplica.detachedEntries.forEach((entry) => {
@@ -69,11 +74,39 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
       })
       if (crListReplica.detachedEntries.size <= 0) break
     }
+    //**order siblings*/
+    for (const siblingsSet of Object.values(
+      crListReplica.seenPredecessorIdentifiersAndTheirEntries
+    )) {
+      let currCursor: DoublyLinkedListEntry<T>
+      let prevCursor: DoublyLinkedListEntry<T>
+      let nextAfterSiblings: DoublyLinkedListEntry<T>
+      const siblings = Array.from(siblingsSet)
+        .filter((entry) => entry !== undefined)
+        .sort((a, b) => a.uuidv7.localeCompare(b.uuidv7))
+
+      const first = siblings[0]
+      if (first === undefined) continue
+      currCursor = first
+      prevCursor =
+        crListReplica.seenUuidV7IdentifiersAndTheirEntry[first.predecessor]
+      if (prevCursor === undefined) continue
+      nextAfterSiblings = prevCursor.next
+
+      for (const sibling of siblings) {
+        currCursor = sibling
+        currCursor.prev = prevCursor
+        currCursor.predecessor = prevCursor.uuidv7
+        prevCursor.next = currCursor
+        prevCursor = currCursor
+      }
+      currCursor.next = nextAfterSiblings
+    }
+    //**write indices*/
     if (crListReplica.cursor) {
       while (crListReplica.cursor.next) {
         crListReplica.cursor = crListReplica.cursor.next
       }
-
       let listIndex: number = crListReplica.size - 1
       let indexingCursor: DoublyLinkedListEntry<T> = crListReplica.cursor
       indexingCursor.index = listIndex

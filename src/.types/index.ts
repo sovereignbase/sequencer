@@ -16,10 +16,10 @@ export type CRListReplica<T> = {
   cursor: DoublyLinkedListEntry<T>
   tombstones: Set<string>
   detachedEntries: Set<DoublyLinkedListEntry<T>>
-  seenUuidV7Identifiers: Set<string>
-  seenPredecessorIdentifiersAndTheirEntry: Record<
+  seenUuidV7IdentifiersAndTheirEntry: Record<string, DoublyLinkedListEntry<T>>
+  seenPredecessorIdentifiersAndTheirEntries: Record<
     string,
-    DoublyLinkedListEntry<T>
+    Set<DoublyLinkedListEntry<T>>
   >
 }
 /****/

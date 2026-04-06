@@ -44,48 +44,13 @@ export function tryToMergeEntry<T>(
   } else if (
     /**CONFLICT RESOLVE PATH*/
     Object.hasOwn(
-      crListReplica.seenPredecessorIdentifiersAndTheirEntry,
+      crListReplica.seenPredecessorIdentifiersAndTheirEntries,
       entry.predecessor
     )
   ) {
-    const placeholder =
-      crListReplica.seenPredecessorIdentifiersAndTheirEntry[entry.predecessor]
-    if (!placeholder) return
-    const entryPlacement = placeholder.uuidv7 > entry.uuidv7 ? 'left' : 'right'
-
-    switch (entryPlacement) {
-      case 'left': {
-        entry.predecessor = placeholder.predecessor
-        entry.prev = placeholder.prev
-        entry.next = placeholder
-        if (entry.prev) entry.prev.next = entry
-
-        placeholder.prev = entry
-        placeholder.predecessor = entry.uuidv7
-        crListReplica.seenPredecessorIdentifiersAndTheirEntry[
-          placeholder.predecessor
-        ] = placeholder
-        crListReplica.cursor = entry
-        crListReplica.size++
-        break
-      }
-      case 'right': {
-        entry.predecessor = placeholder.uuidv7
-        entry.prev = placeholder
-        entry.next = placeholder.next
-        placeholder.next = entry
-        if (entry.next) {
-          entry.next.prev = entry
-          entry.next.predecessor = entry.uuidv7
-          crListReplica.seenPredecessorIdentifiersAndTheirEntry[
-            entry.next.predecessor
-          ] = entry.next
-        }
-        crListReplica.cursor = entry
-        crListReplica.size++
-        break
-      }
-    }
+    crListReplica.seenPredecessorIdentifiersAndTheirEntries[
+      entry.predecessor
+    ].add(entry)
   } else /**DETACHED*/ {
     crListReplica.detachedEntries.add(entry)
   }

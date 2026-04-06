@@ -27,6 +27,9 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
       continue
     }
     crListReplica.size++
+    siblings = siblings.map((sibling) => {
+      return crListReplica.parentMap[sibling.uuidv7]
+    }) as Array<LinkedListEntry<T>>
 
     siblings = siblings.filter(
       (sibling) => !crListReplica.tombstones.has(sibling.uuidv7)

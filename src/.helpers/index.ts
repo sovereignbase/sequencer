@@ -1,5 +1,3 @@
 export { assertListIndices } from './assertListIndices/index.js'
-export { resolveSiblingOrdering } from './resolveSiblingOrdering/index.js'
-export { tryMergingDetached } from './tryMergingDetached/index.js'
 export { walkToIndex } from './walkToIndex/index.js'
-export { tryToMergeEntry } from './tryToMergeEntry/index.js'
+export { flattenAndLinkValues } from './flattenAndLinkValues/index.js'

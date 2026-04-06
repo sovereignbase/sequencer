@@ -5,10 +5,8 @@ import {
   DoublyLinkedListEntry,
 } from '../../../.types/index.js'
 import {
-  tryToMergeEntry,
+  flattenAndLinkValues,
   assertListIndices,
-  resolveSiblingOrdering,
-  tryMergingDetached,
 } from '../../../.helpers/index.js'
 
 export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
@@ -16,9 +14,8 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
     size: 0,
     cursor: undefined,
     tombstones: new Set<string>(),
-    detachedEntries: new Set<DoublyLinkedListEntry<T>>(),
-    seenUuidV7IdentifiersAndTheirEntry: {},
-    seenPredecessorIdentifiersAndTheirEntries: {},
+    parentMap: {},
+    childrenMap: {},
   }
   if (!snapshot || prototype(snapshot) !== 'record') return crListReplica
 
@@ -35,47 +32,28 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
   }
 
   /**Hydrate values entry(s)*/
-  if (Object.hasOwn(snapshot, 'values') && Array.isArray(snapshot.values)) {
-    for (const { uuidv7, value, predecessor } of snapshot.values) {
-      if (
-        crListReplica.tombstones.has(uuidv7) ||
-        Object.hasOwn(
-          crListReplica.seenUuidV7IdentifiersAndTheirEntry,
-          uuidv7
-        ) ||
-        !isUuidV7(uuidv7) ||
-        (predecessor && !isUuidV7(predecessor))
-      )
-        continue
+  if (!Object.hasOwn(snapshot, 'values')) return crListReplica
+  //**BUILD TREE*/
+  const values = snapshot.values
 
-      const [cloned, copiedValue] = safeStructuredClone(value)
-      if (!cloned) continue
+  if (
+    !Object.hasOwn(values, 'parentMap') ||
+    !Object.hasOwn(values, 'childrenMap')
+  )
+    return crListReplica
 
-      const entry: Exclude<DoublyLinkedListEntry<T>, undefined> = {
-        uuidv7,
-        value: copiedValue,
-        predecessor,
-        index: 0,
-        next: undefined,
-        prev: undefined,
-      }
+  crListReplica.parentMap = values.parentMap as Record<
+    string,
+    DoublyLinkedListEntry<T>
+  >
+  crListReplica.childrenMap = values.childrenMap as Record<
+    string,
+    Array<DoublyLinkedListEntry<T>>
+  >
+  //**flatten tree in to doubly linked list */
+  flattenAndLinkValues(crListReplica)
+  //**write indices*/
+  assertListIndices(crListReplica)
 
-      if (!crListReplica.cursor) {
-        crListReplica.cursor = entry
-        crListReplica.size++
-      } else tryToMergeEntry(crListReplica, entry)
-
-      crListReplica.seenUuidV7IdentifiersAndTheirEntry[entry.uuidv7] = entry
-      crListReplica.seenPredecessorIdentifiersAndTheirEntries[
-        entry.predecessor
-      ].add(entry)
-    }
-    //**retry merging detached*/
-    tryMergingDetached(crListReplica)
-    //**order siblings*/
-    resolveSiblingOrdering(crListReplica)
-    //**write indices*/
-    assertListIndices(crListReplica)
-  }
   return crListReplica
 }

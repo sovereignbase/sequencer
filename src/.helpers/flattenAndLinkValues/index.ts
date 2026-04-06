@@ -78,23 +78,22 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
       const next = siblings[index + 1]
 
       sibling.prev = prev
-      if (prev) prev.next = sibling
-      let tail: NonNullable<DoublyLinkedListEntry<T>> = sibling
+      if (!prev) continue
+      prev.next = sibling
 
-      while (tail.next && !siblingSet.has(tail.next)) {
-        tail = tail.next as NonNullable<DoublyLinkedListEntry<T>>
+      while (prev.next && !siblingSet.has(prev.next)) {
+        prev = prev.next as NonNullable<DoublyLinkedListEntry<T>>
       }
 
       if (next) {
-        tail.next = next
-        next.prev = tail
+        prev.next = next
+        next.prev = prev
       } else if (predecessorNext && !siblingSet.has(predecessorNext)) {
-        tail.next = predecessorNext
-        predecessorNext.prev = tail
+        prev.next = predecessorNext
+        predecessorNext.prev = prev
       } else {
-        tail.next = undefined
+        prev.next = undefined
       }
-      prev = tail
     }
     resolvedSiblingPredecessors.add(predecessorIdentifier)
     crListReplica.cursor = entry

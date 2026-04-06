@@ -19,9 +19,16 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
     }
     crListReplica.cursor = entry
     const predecessorIdentifier = entry.predecessor
-    const predecessor = crListReplica.parentMap[predecessorIdentifier]
+    const isRootPredecessor = predecessorIdentifier === '\0'
+    const predecessor = isRootPredecessor
+      ? undefined
+      : crListReplica.parentMap[predecessorIdentifier]
 
-    if (!predecessor || predecessorIdentifier !== predecessor.uuidv7) continue
+    if (
+      !isRootPredecessor &&
+      (!predecessor || predecessorIdentifier !== predecessor.uuidv7)
+    )
+      continue
 
     let siblings = crListReplica.childrenMap[predecessorIdentifier] as Array<
       LinkedListEntry<T>
@@ -44,32 +51,32 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
 
     siblings.sort((a, b) => a.uuidv7.localeCompare(b.uuidv7))
 
-    let prev: LinkedListEntry<T> = predecessor
-    const predecessorNext = prev.next
+    let prev: DoublyLinkedListEntry<T> = predecessor
+    const predecessorNext = prev?.next
     const siblingSet = new Set(siblings)
     for (let index = 0; index < siblings.length; index++) {
       const sibling = siblings[index]
       const next = siblings[index + 1]
 
       sibling.prev = prev
-      prev.next = sibling
-      prev = sibling
+      if (prev) prev.next = sibling
+      let tail: LinkedListEntry<T> = sibling
 
-      while (prev.next && !siblingSet.has(prev.next)) {
-        prev = prev.next as LinkedListEntry<T>
+      while (tail.next && !siblingSet.has(tail.next)) {
+        tail = tail.next as LinkedListEntry<T>
       }
 
       if (next) {
-        prev.next = next
-        next.prev = prev
+        tail.next = next
+        next.prev = tail
       } else if (predecessorNext && !siblingSet.has(predecessorNext)) {
-        prev.next = predecessorNext
-        predecessorNext.prev = prev
+        tail.next = predecessorNext
+        predecessorNext.prev = tail
       } else {
-        prev.next = undefined
+        tail.next = undefined
       }
+      prev = tail
     }
     resolvedSiblingPredecessors.add(predecessorIdentifier)
   }
-  if (crListReplica.cursor) crListReplica.size++
 }

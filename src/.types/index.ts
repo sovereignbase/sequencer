@@ -12,11 +12,15 @@ export type DoublyLinkedListEntry<T> =
   | undefined
 /****/
 export type CRListReplica<T> = {
-  length: number
+  size: number
   cursor: DoublyLinkedListEntry<T>
   tombstones: Set<string>
-  seenUuidV7Identifiers: Record<string, DoublyLinkedListEntry<T>>
-  seenPredecessorIdentifiers: Record<string, DoublyLinkedListEntry<T>>
+  detachedEntries: Set<DoublyLinkedListEntry<T>>
+  seenUuidV7Identifiers: Set<string>
+  seenPredecessorIdentifiersAndTheirEntry: Record<
+    string,
+    DoublyLinkedListEntry<T>
+  >
 }
 /****/
 export type CRListSnapshotValueEntry<T> = {

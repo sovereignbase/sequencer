@@ -1,4 +1,4 @@
-import type { DoublyLinkedListEntry } from '../.types/index.ts'
+import type { DoublyLinkedListEntry, CRListReplica } from '../.types/index.ts'
 
 const walker = {
   forward<T>(cursor: DoublyLinkedListEntry<T>) {
@@ -23,4 +23,53 @@ export function walkToIndex<T>(
     if (!cursor) throw new Error('broken list')
   }
   return cursor
+}
+
+export function tryToMergeEntry<T>(
+  crListReplica: CRListReplica<T>,
+  entry: DoublyLinkedListEntry<T>
+) {
+  if (!entry) return
+  /**FAST PATH (append right)*/ if (
+    entry.predecessor === crListReplica.cursor?.uuidv7 &&
+    !Object.hasOwn(
+      crListReplica.seenPredecessorIdentifiersAndTheirEntry,
+      crListReplica.cursor.uuidv7
+    )
+  ) {
+    entry.prev = crListReplica.cursor
+    if (crListReplica.cursor) crListReplica.cursor.next = entry
+    crListReplica.cursor = entry
+    crListReplica.size++
+  }
+  /**CONFLICT RESOLVE PATH*/ if (
+    Object.hasOwn(
+      crListReplica.seenPredecessorIdentifiersAndTheirEntry,
+      entry.uuidv7
+    )
+  ) {
+    const placeholder =
+      crListReplica.seenPredecessorIdentifiersAndTheirEntry[entry.uuidv7]
+    if (!placeholder) return
+    const entryPlacement = placeholder.uuidv7 > entry.uuidv7 ? 'left' : 'right'
+
+    switch (entryPlacement) {
+      case 'left': {
+        entry.prev = placeholder.prev
+        entry.next = placeholder
+        placeholder.prev = entry
+        crListReplica.cursor = entry
+        crListReplica.size++
+      }
+      case 'right': {
+        entry.prev = placeholder
+        entry.next = placeholder.next
+        placeholder.next = entry
+        crListReplica.cursor = entry
+        crListReplica.size++
+      }
+    }
+  } else /**DETACHED*/ {
+    crListReplica.detachedEntries.add(entry)
+  }
 }

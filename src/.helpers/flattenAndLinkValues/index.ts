@@ -3,11 +3,10 @@ import type {
   CRListReplica,
   DoublyLinkedListEntry,
 } from '../../.types/index.js'
-type LinkedListEntry<T> = Exclude<DoublyLinkedListEntry<T>, undefined>
 export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
   crListReplica.size = 0
   const resolvedSiblingPredecessors = new Set<string>()
-  const tombstonedEntries = new Set<LinkedListEntry<T>>()
+  const tombstonedEntries = new Set<NonNullable<DoublyLinkedListEntry<T>>>()
   for (const entry of Object.values(crListReplica.parentMap)) {
     if (!entry) continue
     if (crListReplica.tombstones.has(entry.uuidv7)) tombstonedEntries.add(entry)
@@ -47,7 +46,7 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
     }
 
     let siblings = crListReplica.childrenMap[predecessorIdentifier] as Array<
-      LinkedListEntry<T>
+      NonNullable<DoublyLinkedListEntry<T>>
     >
 
     if (!Array.isArray(siblings)) {
@@ -64,7 +63,7 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
     }
     siblings = siblings.map((sibling) => {
       return crListReplica.parentMap[sibling.uuidv7]
-    }) as Array<LinkedListEntry<T>>
+    }) as Array<NonNullable<DoublyLinkedListEntry<T>>>
 
     siblings = siblings.filter((sibling) => sibling)
 
@@ -81,10 +80,10 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
 
       sibling.prev = prev
       if (prev) prev.next = sibling
-      let tail: LinkedListEntry<T> = sibling
+      let tail: NonNullable<DoublyLinkedListEntry<T>> = sibling
 
       while (tail.next && !siblingSet.has(tail.next)) {
-        tail = tail.next as LinkedListEntry<T>
+        tail = tail.next as NonNullable<DoublyLinkedListEntry<T>>
       }
 
       if (next) {

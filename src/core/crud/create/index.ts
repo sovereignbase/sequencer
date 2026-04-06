@@ -4,7 +4,12 @@ import {
   CRListReplica,
   DoublyLinkedListEntry,
 } from '../../../.types/index.js'
-import { tryToMergeEntry, assertListIndices } from '../../../.helpers/index.js'
+import {
+  tryToMergeEntry,
+  assertListIndices,
+  resolveSiblingOrdering,
+  tryMergingDetached,
+} from '../../../.helpers/index.js'
 
 export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
   const crListReplica: CRListReplica<T> = {
@@ -65,43 +70,10 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
         entry.predecessor
       ].add(entry)
     }
-    //**append detached*/
-    const detachedSizeAfterLinear = crListReplica.detachedEntries.size
-    for (let i = 0; i < detachedSizeAfterLinear; i++) {
-      crListReplica.detachedEntries.forEach((entry) => {
-        crListReplica.detachedEntries.delete(entry)
-        tryToMergeEntry(crListReplica, entry)
-      })
-      if (crListReplica.detachedEntries.size <= 0) break
-    }
+    //**retry merging detached*/
+    tryMergingDetached(crListReplica)
     //**order siblings*/
-    for (const siblingsSet of Object.values(
-      crListReplica.seenPredecessorIdentifiersAndTheirEntries
-    )) {
-      let currCursor: DoublyLinkedListEntry<T>
-      let prevCursor: DoublyLinkedListEntry<T>
-      let nextAfterSiblings: DoublyLinkedListEntry<T>
-      const siblings = Array.from(siblingsSet)
-        .filter((entry) => entry !== undefined)
-        .sort((a, b) => a.uuidv7.localeCompare(b.uuidv7))
-
-      const first = siblings[0]
-      if (first === undefined) continue
-      currCursor = first
-      prevCursor =
-        crListReplica.seenUuidV7IdentifiersAndTheirEntry[first.predecessor]
-      if (prevCursor === undefined) continue
-      nextAfterSiblings = prevCursor.next
-
-      for (const sibling of siblings) {
-        currCursor = sibling
-        currCursor.prev = prevCursor
-        currCursor.predecessor = prevCursor.uuidv7
-        prevCursor.next = currCursor
-        prevCursor = currCursor
-      }
-      currCursor.next = nextAfterSiblings
-    }
+    resolveSiblingOrdering(crListReplica)
     //**write indices*/
     assertListIndices(crListReplica)
   }

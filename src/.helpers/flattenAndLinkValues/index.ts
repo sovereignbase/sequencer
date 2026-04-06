@@ -1,3 +1,4 @@
+import { isUuidV7 } from '@sovereignbase/utils'
 import type {
   CRListReplica,
   DoublyLinkedListEntry,
@@ -8,7 +9,11 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
   const resolvedSiblingPredecessors = new Set<string>()
   for (const entry of Object.values(crListReplica.parentMap)) {
     if (!entry) continue
-    if (crListReplica.tombstones.has(entry.uuidv7)) {
+    if (
+      crListReplica.tombstones.has(entry.uuidv7) ||
+      !isUuidV7(entry.uuidv7) ||
+      (entry.predecessor !== '\0' && !isUuidV7(entry.predecessor))
+    ) {
       delete crListReplica.parentMap[entry.uuidv7]
       continue
     }

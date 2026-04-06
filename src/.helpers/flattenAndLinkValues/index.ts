@@ -103,8 +103,27 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
   for (const entry of tombstonedEntries) {
     if (entry.prev) entry.prev.next = entry.next
     if (entry.next) {
-      entry.next.prev = entry.prev
-      entry.next.predecessor = entry.prev?.uuidv7 ?? '\0'
+      const next = entry.next
+      const nextPredecessor = entry.prev?.uuidv7 ?? '\0'
+      const oldNextPredecessor = next.predecessor
+      next.prev = entry.prev
+      next.predecessor = nextPredecessor
+      if (oldNextPredecessor !== nextPredecessor) {
+        const oldNextSiblings = crListReplica.childrenMap[oldNextPredecessor]
+        const nextSiblings = crListReplica.childrenMap[nextPredecessor]
+        if (Array.isArray(oldNextSiblings))
+          crListReplica.childrenMap[oldNextPredecessor] =
+            oldNextSiblings.filter((sibling) => sibling?.uuidv7 !== next.uuidv7)
+        if (Array.isArray(nextSiblings)) {
+          if (!nextSiblings.some((sibling) => sibling?.uuidv7 === next.uuidv7))
+            nextSiblings.push(next)
+        } else {
+          crListReplica.childrenMap[nextPredecessor] = [next]
+        }
+      }
+    }
+    if (crListReplica.cursor === entry) {
+      crListReplica.cursor = entry.next ?? entry.prev
     }
     entry.prev = undefined
     entry.next = undefined

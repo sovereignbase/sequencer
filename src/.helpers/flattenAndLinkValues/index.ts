@@ -26,14 +26,17 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
     if (
       !isRootPredecessor &&
       (!predecessor || predecessorIdentifier !== predecessor.uuidv7)
-    )
+    ) {
+      delete crListReplica.parentMap[entry.uuidv7]
       continue
+    }
 
     let siblings = crListReplica.childrenMap[predecessorIdentifier] as Array<
       LinkedListEntry<T>
     >
 
     if (!Array.isArray(siblings)) {
+      delete crListReplica.parentMap[entry.uuidv7]
       delete crListReplica.childrenMap[predecessorIdentifier]
       continue
     }

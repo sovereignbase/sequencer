@@ -33,7 +33,7 @@ export function tryToMergeEntry<T>(
   /**FAST PATH (append right)*/ if (
     entry.predecessor === crListReplica.cursor?.uuidv7 &&
     !Object.hasOwn(
-      crListReplica.seenPredecessorIdentifiersAndTheirEntry,
+      crListReplica.seenPredecessorIdentifiersAndTheirEntries,
       crListReplica.cursor.uuidv7
     )
   ) {
@@ -55,3 +55,5 @@ export function tryToMergeEntry<T>(
     crListReplica.detachedEntries.add(entry)
   }
 }
+
+export { assertListIndices } from './assertListIndices/index.js'

@@ -4,7 +4,7 @@ import {
   CRListReplica,
   DoublyLinkedListEntry,
 } from '../../../.types/index.js'
-import { tryToMergeEntry } from '../../../.helpers/index.js'
+import { tryToMergeEntry, assertListIndices } from '../../../.helpers/index.js'
 
 export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
   const crListReplica: CRListReplica<T> = {
@@ -103,19 +103,7 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
       currCursor.next = nextAfterSiblings
     }
     //**write indices*/
-    if (crListReplica.cursor) {
-      while (crListReplica.cursor.next) {
-        crListReplica.cursor = crListReplica.cursor.next
-      }
-      let listIndex: number = crListReplica.size - 1
-      let indexingCursor: DoublyLinkedListEntry<T> = crListReplica.cursor
-      indexingCursor.index = listIndex
-      while (indexingCursor && listIndex > 0) {
-        listIndex--
-        indexingCursor = indexingCursor.prev
-        if (indexingCursor) indexingCursor.index = listIndex
-      }
-    }
+    assertListIndices(crListReplica)
   }
   return crListReplica
 }

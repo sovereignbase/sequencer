@@ -32,7 +32,7 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
     }) as Array<LinkedListEntry<T>>
 
     siblings = siblings.filter(
-      (sibling) => !crListReplica.tombstones.has(sibling.uuidv7)
+      (sibling) => sibling && !crListReplica.tombstones.has(sibling.uuidv7)
     )
 
     if (resolvedSiblingPredecessors.has(predecessorIdentifier)) continue

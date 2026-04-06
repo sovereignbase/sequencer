@@ -1,6 +1,7 @@
 import type { CRListReplica } from '../../.types/index.js'
 export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
   crListReplica.size = 0
+  const resolvedSiblingPredeseccors = new Set<string>()
   for (const entry of Object.values(crListReplica.parentMap)) {
     if (!entry) continue
     if (crListReplica.tombstones.has(entry.uuidv7)) {
@@ -21,6 +22,8 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
     }
 
     crListReplica.size++
+
+    if (resolvedSiblingPredeseccors.has(predecessorIdentifier)) continue
 
     const siblings = rawSiblings
       .filter((sibling) => sibling !== undefined)

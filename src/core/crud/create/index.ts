@@ -76,7 +76,7 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
 
       let listIndex: number = crListReplica.size
       let indexingCursor: DoublyLinkedListEntry<T> = crListReplica.cursor
-      indexingCursor.index = listIndex
+      indexingCursor.index = listIndex--
       while (indexingCursor && listIndex > 0) {
         listIndex--
         indexingCursor = indexingCursor.prev

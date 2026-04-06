@@ -32,4 +32,5 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
     }
     crListReplica.cursor = prev
   }
+  if (crListReplica.size > 0) crListReplica.size++
 }

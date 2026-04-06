@@ -14,6 +14,13 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
       !isUuidV7(entry.uuidv7) ||
       (entry.predecessor !== '\0' && !isUuidV7(entry.predecessor))
     ) {
+      if (entry.prev) entry.prev.next = entry.next
+      if (entry.next) {
+        entry.next.prev = entry.prev
+        entry.next.predecessor = entry.prev?.uuidv7 ?? '\0'
+      }
+      entry.prev = undefined
+      entry.next = undefined
       delete crListReplica.parentMap[entry.uuidv7]
       continue
     }
@@ -27,6 +34,13 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
       !isRootPredecessor &&
       (!predecessor || predecessorIdentifier !== predecessor.uuidv7)
     ) {
+      if (entry.prev) entry.prev.next = entry.next
+      if (entry.next) {
+        entry.next.prev = entry.prev
+        entry.next.predecessor = entry.prev?.uuidv7 ?? '\0'
+      }
+      entry.prev = undefined
+      entry.next = undefined
       delete crListReplica.parentMap[entry.uuidv7]
       continue
     }
@@ -36,6 +50,13 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
     >
 
     if (!Array.isArray(siblings)) {
+      if (entry.prev) entry.prev.next = entry.next
+      if (entry.next) {
+        entry.next.prev = entry.prev
+        entry.next.predecessor = entry.prev?.uuidv7 ?? '\0'
+      }
+      entry.prev = undefined
+      entry.next = undefined
       delete crListReplica.parentMap[entry.uuidv7]
       delete crListReplica.childrenMap[predecessorIdentifier]
       continue

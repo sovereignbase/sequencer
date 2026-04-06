@@ -17,6 +17,7 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
       nextIndex++
       sibling.next = siblings[nextIndex]
       sibling.prev = prev
+      prev.next = sibling
       prev = sibling
     }
     crListReplica.size++

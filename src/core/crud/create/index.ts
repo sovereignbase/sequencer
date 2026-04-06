@@ -18,13 +18,16 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
     childrenMap: {},
   }
   if (!snapshot || prototype(snapshot) !== 'record') return crListReplica
+  const [cloned, copiedSnapshot] = safeStructuredClone(snapshot)
+
+  if (!cloned || !copiedSnapshot) return crListReplica
 
   /**Hydrate tombstones entry(s)*/
   if (
-    Object.hasOwn(snapshot, 'tombstones') &&
-    Array.isArray(snapshot.tombstones)
+    Object.hasOwn(copiedSnapshot, 'tombstones') &&
+    Array.isArray(copiedSnapshot.tombstones)
   ) {
-    for (const tombstone of snapshot.tombstones) {
+    for (const tombstone of copiedSnapshot.tombstones) {
       if (crListReplica.tombstones.has(tombstone) || !isUuidV7(tombstone))
         continue
       crListReplica.tombstones.add(tombstone)
@@ -32,9 +35,9 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
   }
 
   /**Hydrate values entry(s)*/
-  if (!Object.hasOwn(snapshot, 'values')) return crListReplica
+  if (!Object.hasOwn(copiedSnapshot, 'values')) return crListReplica
   //**BUILD TREE*/
-  const values = snapshot.values
+  const values = copiedSnapshot.values
 
   if (
     !Object.hasOwn(values, 'parentMap') ||

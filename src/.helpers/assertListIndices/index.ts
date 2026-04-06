@@ -27,7 +27,7 @@ export function assertListIndices<T>(crListReplica: CRListReplica<T>): void {
       case 'prev': {
         for (let i = 0; i < crListReplica.size; i++) {
           if (indexingCursor !== undefined) {
-            indexingCursor.index = i - 1
+            indexingCursor.index = i
             indexingCursor = indexingCursor.next
           }
         }

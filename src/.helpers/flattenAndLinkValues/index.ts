@@ -18,7 +18,7 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
 
     if (!predecessor || predecessorIdentifier !== predecessor.uuidv7) continue
 
-    const siblings = crListReplica.childrenMap[predecessorIdentifier] as Array<
+    let siblings = crListReplica.childrenMap[predecessorIdentifier] as Array<
       LinkedListEntry<T>
     >
 
@@ -26,8 +26,11 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
       delete crListReplica.childrenMap[predecessorIdentifier]
       continue
     }
-
     crListReplica.size++
+
+    siblings = siblings.filter(
+      (sibling) => !crListReplica.tombstones.has(sibling.uuidv7)
+    )
 
     if (resolvedSiblingPredecessors.has(predecessorIdentifier)) continue
 

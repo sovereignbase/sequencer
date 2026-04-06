@@ -1,4 +1,7 @@
-import type { CRListReplica } from '../../.types/index.js'
+import type {
+  CRListReplica,
+  DoublyLinkedListEntry,
+} from '../../.types/index.js'
 export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
   crListReplica.size = 0
   const resolvedSiblingPredecessors = new Set<string>()
@@ -26,23 +29,36 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
     if (resolvedSiblingPredecessors.has(predecessorIdentifier)) continue
 
     const siblings = rawSiblings
-      .filter((sibling) => sibling !== undefined)
+      .filter(
+        (sibling) =>
+          sibling !== undefined &&
+          crListReplica.parentMap[sibling?.uuidv7] !== undefined
+      )
       .sort((a, b) => a.uuidv7.localeCompare(b.uuidv7))
 
     let prev = predecessor
-    let nextIndex = 0
     const predecessorNext = prev.next
-    for (const sibling of siblings) {
-      const safeSibling = crListReplica.parentMap[sibling.uuidv7]
-      if (!safeSibling) continue
-      nextIndex++
-      const next = crListReplica.parentMap[siblings[nextIndex].uuidv7]
-      safeSibling.next = next ?? undefined
-      safeSibling.prev = prev
-      prev.next = safeSibling
-      prev = safeSibling
+    const siblingSet = new Set(siblings)
+    for (let index = 0; index < siblings.length; index++) {
+      const sibling = siblings[index]
+      const next = siblings[index + 1]
+
+      sibling.prev = prev
+      prev.next = sibling
+      prev = sibling
+
+      while (prev?.next && !siblingSet.has(prev.next)) prev = prev.next
+
+      if (next) {
+        prev.next = next
+        next.prev = prev
+      } else if (predecessorNext && !siblingSet.has(predecessorNext)) {
+        prev.next = predecessorNext
+        predecessorNext.prev = prev
+      } else {
+        prev.next = undefined
+      }
     }
-    if (predecessorNext) prev.next = predecessorNext
     resolvedSiblingPredecessors.add(predecessorIdentifier)
   }
   if (crListReplica.cursor) crListReplica.size++

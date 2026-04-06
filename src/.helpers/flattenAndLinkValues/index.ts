@@ -3,6 +3,7 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
   crListReplica.size = 0
   for (const entry of Object.values(crListReplica.parentMap)) {
     if (!entry) continue
+    crListReplica.cursor = entry
     const predecessorIdentifier = entry.predecessor
     const predecessor = crListReplica.parentMap[predecessorIdentifier]
 
@@ -30,7 +31,6 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
       prev.next = sibling
       prev = sibling
     }
-    crListReplica.cursor = prev
   }
-  if (crListReplica.size > 0) crListReplica.size++
+  if (crListReplica.cursor) crListReplica.size++
 }

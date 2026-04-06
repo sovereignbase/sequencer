@@ -101,6 +101,7 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
     crListReplica.cursor = entry
   }
   for (const entry of tombstonedEntries) {
+    const entrySiblings = crListReplica.childrenMap[entry.predecessor]
     if (entry.prev) entry.prev.next = entry.next
     if (entry.next) {
       const next = entry.next
@@ -122,6 +123,10 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
         }
       }
     }
+    if (Array.isArray(entrySiblings))
+      crListReplica.childrenMap[entry.predecessor] = entrySiblings.filter(
+        (sibling) => sibling?.uuidv7 !== entry.uuidv7
+      )
     if (crListReplica.cursor === entry) {
       crListReplica.cursor = entry.next ?? entry.prev
     }

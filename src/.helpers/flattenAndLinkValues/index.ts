@@ -40,6 +40,7 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
       prev.next = safeSibling
       prev = safeSibling
     }
+    resolvedSiblingPredeseccors.add(predecessorIdentifier)
   }
   if (crListReplica.cursor) crListReplica.size++
 }

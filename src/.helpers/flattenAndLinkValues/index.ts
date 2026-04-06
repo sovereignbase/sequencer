@@ -1,5 +1,6 @@
 import type { CRListReplica } from '../../.types/index.js'
 export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
+  crListReplica.size = 0
   for (const entry of Object.values(crListReplica.parentMap)) {
     if (!entry) continue
     const predecessorIdentifier = entry.predecessor
@@ -7,7 +8,16 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
 
     if (!predecessor || predecessorIdentifier !== predecessor.uuidv7) continue
 
-    const siblings = crListReplica.childrenMap[predecessorIdentifier]
+    crListReplica.size++
+
+    const rawSiblings = crListReplica.childrenMap[predecessorIdentifier]
+
+    if (!Array.isArray(rawSiblings)) {
+      delete crListReplica.childrenMap[predecessorIdentifier]
+      continue
+    }
+
+    const siblings = rawSiblings
       .filter((sibling) => sibling !== undefined)
       .sort((a, b) => a.uuidv7.localeCompare(b.uuidv7))
 
@@ -20,7 +30,6 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
       prev.next = sibling
       prev = sibling
     }
-    crListReplica.size++
     crListReplica.cursor = prev
   }
 }

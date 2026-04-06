@@ -55,18 +55,31 @@ export function tryToMergeEntry<T>(
 
     switch (entryPlacement) {
       case 'left': {
+        entry.predecessor = placeholder.predecessor
         entry.prev = placeholder.prev
         entry.next = placeholder
+        if (entry.prev) entry.prev.next = entry
         placeholder.prev = entry
-        crListReplica.cursor = entry
+        placeholder.predecessor = entry.uuidv7
+        crListReplica.seenPredecessorIdentifiersAndTheirEntry[entry.uuidv7] =
+          placeholder
         crListReplica.size++
+        break
       }
       case 'right': {
+        const next = placeholder.next
+        entry.predecessor = placeholder.uuidv7
         entry.prev = placeholder
-        entry.next = placeholder.next
+        entry.next = next
         placeholder.next = entry
-        crListReplica.cursor = entry
+        if (next) {
+          next.prev = entry
+          next.predecessor = entry.uuidv7
+          crListReplica.seenPredecessorIdentifiersAndTheirEntry[entry.uuidv7] =
+            next
+        } else crListReplica.cursor = entry
         crListReplica.size++
+        break
       }
     }
   } else /**DETACHED*/ {

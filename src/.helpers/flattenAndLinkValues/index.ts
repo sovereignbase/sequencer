@@ -8,14 +8,14 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
 
     if (!predecessor || predecessorIdentifier !== predecessor.uuidv7) continue
 
-    crListReplica.size++
-
     const rawSiblings = crListReplica.childrenMap[predecessorIdentifier]
 
     if (!Array.isArray(rawSiblings)) {
       delete crListReplica.childrenMap[predecessorIdentifier]
       continue
     }
+
+    crListReplica.size++
 
     const siblings = rawSiblings
       .filter((sibling) => sibling !== undefined)

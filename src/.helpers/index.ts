@@ -41,15 +41,15 @@ export function tryToMergeEntry<T>(
     if (crListReplica.cursor) crListReplica.cursor.next = entry
     crListReplica.cursor = entry
     crListReplica.size++
-  }
-  /**CONFLICT RESOLVE PATH*/ if (
+  } else if (
+    /**CONFLICT RESOLVE PATH*/
     Object.hasOwn(
       crListReplica.seenPredecessorIdentifiersAndTheirEntry,
       entry.uuidv7
     )
   ) {
     const placeholder =
-      crListReplica.seenPredecessorIdentifiersAndTheirEntry[entry.uuidv7]
+      crListReplica.seenPredecessorIdentifiersAndTheirEntry[entry.predecessor]
     if (!placeholder) return
     const entryPlacement = placeholder.uuidv7 > entry.uuidv7 ? 'left' : 'right'
 

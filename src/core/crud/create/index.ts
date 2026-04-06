@@ -55,10 +55,7 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
       if (!crListReplica.cursor) {
         crListReplica.cursor = entry
         crListReplica.size++
-        continue
-      }
-
-      tryToMergeEntry(crListReplica, entry)
+      } else tryToMergeEntry(crListReplica, entry)
 
       crListReplica.seenUuidV7Identifiers.add(entry.uuidv7)
       crListReplica.seenPredecessorIdentifiersAndTheirEntry[entry.predecessor] =
@@ -77,7 +74,7 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
         crListReplica.cursor = crListReplica.cursor.next
       }
 
-      let listIndex: number = crListReplica.size--
+      let listIndex: number = crListReplica.size
       let indexingCursor: DoublyLinkedListEntry<T> = crListReplica.cursor
       indexingCursor.index = listIndex
       while (indexingCursor && listIndex > 0) {

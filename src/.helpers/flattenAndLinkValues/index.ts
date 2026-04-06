@@ -7,10 +7,11 @@ type LinkedListEntry<T> = Exclude<DoublyLinkedListEntry<T>, undefined>
 export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
   crListReplica.size = 0
   const resolvedSiblingPredecessors = new Set<string>()
+  const tombstonedEntries = new Set<LinkedListEntry<T>>()
   for (const entry of Object.values(crListReplica.parentMap)) {
     if (!entry) continue
+    if (crListReplica.tombstones.has(entry.uuidv7)) tombstonedEntries.add(entry)
     if (
-      crListReplica.tombstones.has(entry.uuidv7) ||
       !isUuidV7(entry.uuidv7) ||
       (entry.predecessor !== '\0' && !isUuidV7(entry.predecessor))
     ) {
@@ -65,9 +66,7 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
       return crListReplica.parentMap[sibling.uuidv7]
     }) as Array<LinkedListEntry<T>>
 
-    siblings = siblings.filter(
-      (sibling) => sibling && !crListReplica.tombstones.has(sibling.uuidv7)
-    )
+    siblings = siblings.filter((sibling) => sibling)
 
     if (resolvedSiblingPredecessors.has(predecessorIdentifier)) continue
 
@@ -101,6 +100,16 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
     }
     resolvedSiblingPredecessors.add(predecessorIdentifier)
     crListReplica.cursor = entry
+  }
+  for (const entry of tombstonedEntries) {
+    if (entry.prev) entry.prev.next = entry.next
+    if (entry.next) {
+      entry.next.prev = entry.prev
+      entry.next.predecessor = entry.prev?.uuidv7 ?? '\0'
+    }
+    entry.prev = undefined
+    entry.next = undefined
+    delete crListReplica.parentMap[entry.uuidv7]
   }
   crListReplica.size = Object.keys(crListReplica.parentMap).length
 }

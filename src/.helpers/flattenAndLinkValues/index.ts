@@ -45,6 +45,7 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
       sibling.prev = prev
       if (prev !== undefined) {
         prev.next = sibling
+        prev = sibling
 
         while (prev.next && !siblingSet.has(prev.next)) {
           prev = prev.next as NonNullable<DoublyLinkedListEntry<T>>

@@ -12,6 +12,17 @@ import {
 } from '../../../.helpers/index.js'
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
 
+/**
+ * Time complexity: O(n log n + v + t + d + r + c), worst case O(n log n + c)
+ * - n = replica value entry count after merge
+ * - v = delta value entry count
+ * - t = delta tombstone count
+ * - d = distance from cursor to first changed index
+ * - r = amount of nodes from first changed index to list end
+ * - c = cloned delta value payload size
+ *
+ * Space complexity: O(n + r + c)
+ */
 export function __merge<T>(
   crListReplica: CRListReplica<T>,
   crListDelta: CRListDelta<T>

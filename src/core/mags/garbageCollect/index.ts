@@ -1,6 +1,13 @@
 import { CRListAck, CRListReplica } from '../../../.types/index.js'
 
-export function garbageCollect<T>(
+/**
+ * Time complexity: O(f log f + t)
+ * - f = frontier count
+ * - t = replica tombstone count
+ *
+ * Space complexity: O(1)
+ */
+export function __garbageCollect<T>(
   frontiers: Array<CRListAck>,
   crListReplica: CRListReplica<T>
 ): void {

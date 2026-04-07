@@ -1,4 +1,3 @@
-import { isUuidV7 } from '@sovereignbase/utils'
 import type {
   CRListReplica,
   DoublyLinkedListEntry,
@@ -44,7 +43,7 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
       const next = siblings[index + 1]
 
       sibling.prev = prev
-      if (prev) {
+      if (prev !== undefined) {
         prev.next = sibling
 
         while (prev.next && !siblingSet.has(prev.next)) {
@@ -60,6 +59,10 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
         } else {
           prev.next = undefined
         }
+      } else {
+        sibling.next = next
+        if (next) next.prev = sibling
+        prev = sibling
       }
     }
     resolvedSiblingPredecessors.add(predecessorIdentifier)

@@ -32,7 +32,7 @@ export type CRListSnapshot<T> = {
 /****/
 export type CRListDelta<T> = Partial<CRListSnapshot<T>>
 /****/
-export type CRListChange<T> = Record<number, T>
+export type CRListChange<T> = Record<number, T | undefined>
 /****/
 export type CRListAck = string
 /****/

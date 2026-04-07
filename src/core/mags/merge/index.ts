@@ -55,7 +55,7 @@ export function __merge<T>(
     !Object.hasOwn(crListDelta, 'values') ||
     !Array.isArray(crListDelta.values)
   )
-    return crListReplica
+    return false
   //**attach valid ones to tree*/
   for (const valueEntry of crListDelta.values) {
     const linkedListEntry = snapshotValueToLinkedListValue<T>(

@@ -8,21 +8,6 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
   const resolvedSiblingPredecessors = new Set<string>()
   for (const entry of Object.values(crListReplica.parentMap)) {
     if (!entry) continue
-    if (
-      crListReplica.tombstones.has(entry.uuidv7) ||
-      !isUuidV7(entry.uuidv7) ||
-      (entry.predecessor !== '\0' && !isUuidV7(entry.predecessor))
-    ) {
-      if (entry.prev) entry.prev.next = entry.next
-      if (entry.next) {
-        entry.next.prev = entry.prev
-        entry.next.predecessor = entry.prev?.uuidv7 ?? '\0'
-      }
-      entry.prev = undefined
-      entry.next = undefined
-      delete crListReplica.parentMap[entry.uuidv7]
-      continue
-    }
     const predecessorIdentifier = entry.predecessor
     const isRootPredecessor = predecessorIdentifier === '\0'
     const predecessor = isRootPredecessor
@@ -32,34 +17,15 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
     if (
       !isRootPredecessor &&
       (!predecessor || predecessorIdentifier !== predecessor.uuidv7)
-    ) {
-      if (entry.prev) entry.prev.next = entry.next
-      if (entry.next) {
-        entry.next.prev = entry.prev
-        entry.next.predecessor = entry.prev?.uuidv7 ?? '\0'
-      }
-      entry.prev = undefined
-      entry.next = undefined
-      delete crListReplica.parentMap[entry.uuidv7]
+    )
       continue
-    }
 
     let siblings = crListReplica.childrenMap[predecessorIdentifier] as Array<
       NonNullable<DoublyLinkedListEntry<T>>
     >
 
-    if (!Array.isArray(siblings)) {
-      if (entry.prev) entry.prev.next = entry.next
-      if (entry.next) {
-        entry.next.prev = entry.prev
-        entry.next.predecessor = entry.prev?.uuidv7 ?? '\0'
-      }
-      entry.prev = undefined
-      entry.next = undefined
-      delete crListReplica.parentMap[entry.uuidv7]
-      delete crListReplica.childrenMap[predecessorIdentifier]
-      continue
-    }
+    if (!Array.isArray(siblings)) continue
+
     siblings = siblings.map((sibling) => {
       return crListReplica.parentMap[sibling.uuidv7]
     }) as Array<NonNullable<DoublyLinkedListEntry<T>>>

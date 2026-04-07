@@ -7,9 +7,27 @@ export function flattenAndLinkTrustedState<T>(
 ): void {
   crListReplica.size = 0
   const resolvedSiblingPredecessors = new Set<string>()
+  const orphanRootSiblings: Array<NonNullable<DoublyLinkedListEntry<T>>> = []
+  for (const entry of crListReplica.parentMap.values()) {
+    entry.prev = undefined
+    entry.next = undefined
+  }
+  for (const [predecessorIdentifier, siblings] of crListReplica.childrenMap) {
+    if (
+      predecessorIdentifier === '\0' ||
+      crListReplica.parentMap.has(predecessorIdentifier)
+    )
+      continue
+    orphanRootSiblings.push(...siblings)
+  }
   for (const entry of crListReplica.parentMap.values()) {
     if (!entry) continue
-    const predecessorIdentifier = entry.predecessor
+    const originalPredecessorIdentifier = entry.predecessor
+    const predecessorIdentifier =
+      originalPredecessorIdentifier === '\0' ||
+      crListReplica.parentMap.has(originalPredecessorIdentifier)
+        ? originalPredecessorIdentifier
+        : '\0'
     const isRootPredecessor = predecessorIdentifier === '\0'
     const predecessor = isRootPredecessor
       ? undefined
@@ -21,10 +39,17 @@ export function flattenAndLinkTrustedState<T>(
     )
       continue
 
-    const siblings = crListReplica.childrenMap.get(predecessorIdentifier)
+    if (resolvedSiblingPredecessors.has(predecessorIdentifier)) continue
 
-    if (!siblings || resolvedSiblingPredecessors.has(predecessorIdentifier))
-      continue
+    const siblings =
+      predecessorIdentifier === '\0' && orphanRootSiblings.length > 0
+        ? [
+            ...(crListReplica.childrenMap.get(predecessorIdentifier) ?? []),
+            ...orphanRootSiblings,
+          ]
+        : crListReplica.childrenMap.get(predecessorIdentifier)
+
+    if (!siblings) continue
 
     siblings.sort((a, b) => a.uuidv7.localeCompare(b.uuidv7))
 

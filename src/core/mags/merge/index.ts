@@ -63,6 +63,22 @@ export function __merge<T>(
   }
   //**attach valid ones to tree*/
   for (const valueEntry of crListDelta.values) {
+    const existingEntry = crListReplica.parentMap.get(valueEntry.uuidv7)
+    if (existingEntry) {
+      if (
+        crListReplica.tombstones.has(valueEntry.uuidv7) ||
+        (!isUuidV7(valueEntry.predecessor) && valueEntry.predecessor !== '\0')
+      )
+        continue
+      if (existingEntry.predecessor >= valueEntry.predecessor) continue
+      const siblings = crListReplica.childrenMap.get(existingEntry.predecessor)
+      const siblingIndex = siblings?.indexOf(existingEntry) ?? -1
+      if (siblings && siblingIndex !== -1) siblings.splice(siblingIndex, 1)
+      existingEntry.predecessor = valueEntry.predecessor
+      void updateEntryToMaps<T>(crListReplica, existingEntry)
+      void newVals.push(existingEntry)
+      continue
+    }
     const linkedListEntry = snapshotValueToLinkedListValue<T>(
       valueEntry,
       crListReplica

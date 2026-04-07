@@ -70,7 +70,11 @@ export function __update<T>(
           const siblingIndex = siblings?.indexOf(entryToOverwrite.next) ?? -1
           if (siblings && siblingIndex !== -1) siblings.splice(siblingIndex, 1)
           entryToOverwrite.next.predecessor = linkedListEntry.uuidv7
-          void updateEntryToMaps<T>(crListReplica, entryToOverwrite.next)
+          void updateEntryToMaps<T>(
+            crListReplica,
+            entryToOverwrite.next,
+            result.delta
+          )
         }
       }
       void updateEntryToMaps<T>(crListReplica, linkedListEntry, result.delta)
@@ -110,7 +114,7 @@ export function __update<T>(
           const siblingIndex = siblings?.indexOf(next) ?? -1
           if (siblings && siblingIndex !== -1) siblings.splice(siblingIndex, 1)
           next.predecessor = linkedListEntry.uuidv7
-          void updateEntryToMaps<T>(crListReplica, next)
+          void updateEntryToMaps<T>(crListReplica, next, result.delta)
         }
       }
       void updateEntryToMaps<T>(crListReplica, linkedListEntry, result.delta)
@@ -146,7 +150,11 @@ export function __update<T>(
         const siblingIndex = siblings?.indexOf(crListReplica.cursor) ?? -1
         if (siblings && siblingIndex !== -1) siblings.splice(siblingIndex, 1)
         crListReplica.cursor.predecessor = linkedListEntry.uuidv7
-        void updateEntryToMaps<T>(crListReplica, crListReplica.cursor)
+        void updateEntryToMaps<T>(
+          crListReplica,
+          crListReplica.cursor,
+          result.delta
+        )
       }
       void updateEntryToMaps<T>(crListReplica, linkedListEntry, result.delta)
       crListReplica.cursor = linkedListEntry

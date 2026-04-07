@@ -19,14 +19,10 @@ export function snapshotValueToLinkedListValue<T>(
   const [cloned, copiedValue] = safeStructuredClone(valueEntry.value)
 
   if (!cloned) return undefined
-  const predecessor = crListReplica.tombstones.has(valueEntry.predecessor)
-    ? '\0'
-    : valueEntry.predecessor
-
   return {
     uuidv7: valueEntry.uuidv7,
     value: copiedValue,
-    predecessor,
+    predecessor: valueEntry.predecessor,
     index: 0,
     next: undefined,
     prev: undefined,

@@ -17,7 +17,7 @@ import type {
  * - r = amount of nodes after the deleted range whose indexes must be shifted
  * - k = sibling bucket size when deleted entries are removed from buckets
  *
- * Space complexity: O(q + r)
+ * Space complexity: O(q)
  */
 export function __delete<T>(
   crListReplica: CRListReplica<T>,
@@ -46,6 +46,7 @@ export function __delete<T>(
   let deleted = 0
 
   while (current && deleted < deleteCount) {
+    result.change[current.index] = undefined
     void deleteLinkedEntry<T>(crListReplica, current, result.delta)
     current = crListReplica.cursor
     deleted++
@@ -55,7 +56,6 @@ export function __delete<T>(
 
   while (current) {
     current.index -= deleted
-    result.change[current.index] = current.value
     current = current.next
   }
 

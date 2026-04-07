@@ -19,7 +19,7 @@ import {
  * - k = sibling bucket size when predecessor bucket is updated
  * - c = cloned value payload size
  *
- * Space complexity: O(r + c)
+ * Space complexity: O(c)
  */
 export function __update<T>(
   listIndex: number,
@@ -159,10 +159,6 @@ export function __update<T>(
       break
     }
   }
-  let cursor: DoublyLinkedListEntry<T> = linkedListEntry
-  while (cursor) {
-    result.change[cursor.index] = cursor.value
-    cursor = cursor.next
-  }
+  result.change[linkedListEntry.index] = linkedListEntry.value
   return result
 }

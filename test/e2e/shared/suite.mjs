@@ -1,7 +1,12 @@
 const TEST_TIMEOUT_MS = 10_000
 
 export async function runCRListSuite(api, options = {}) {
-  const { label = 'runtime', stressRounds = 24, includeStress = true } = options
+  const {
+    label = 'runtime',
+    stressRounds = 24,
+    includeStress = false,
+    verbose = false,
+  } = options
   const results = { label, ok: true, errors: [], tests: [] }
 
   function assert(condition, message) {
@@ -32,6 +37,7 @@ export async function runCRListSuite(api, options = {}) {
 
   async function runTest(name, fn) {
     try {
+      if (verbose) console.log(`${label}: ${name}`)
       await withTimeout(Promise.resolve().then(fn), TEST_TIMEOUT_MS, name)
       results.tests.push({ name, ok: true })
     } catch (error) {
@@ -50,10 +56,31 @@ export async function runCRListSuite(api, options = {}) {
   }
 
   function liveView(replica) {
-    const view = []
-    for (let index = 0; index < replica.size; index++) {
-      view.push(api.__read(index, replica))
+    if (replica.size === 0) return []
+    if (!replica.cursor) throw new Error('replica has size but no cursor')
+    const limit = Math.max(replica.size, replica.parentMap?.size ?? 0) + 10
+    const seen = new Set()
+    let head = replica.cursor
+
+    for (let step = 0; head.prev; step++) {
+      if (step > limit) throw new Error('prev traversal exceeded list limit')
+      if (seen.has(head)) throw new Error('cycle detected while finding head')
+      seen.add(head)
+      head = head.prev
     }
+
+    const view = []
+    seen.clear()
+    for (let cursor = head, step = 0; cursor; cursor = cursor.next, step++) {
+      if (step > limit) throw new Error('next traversal exceeded list limit')
+      if (seen.has(cursor)) throw new Error('cycle detected while reading list')
+      seen.add(cursor)
+      view.push(cursor.value)
+    }
+    if (view.length !== replica.size)
+      throw new Error(
+        `live view length ${view.length} did not match size ${replica.size}`
+      )
     return view
   }
 
@@ -142,12 +169,40 @@ export async function runCRListSuite(api, options = {}) {
     }
   }
 
-  function mergeDeltas(replica, deltas, seed) {
+  function mergeDeltas(replica, deltas, seed, options = {}) {
+    const { label = 'merge', verboseMerges = false } = options
     const order = shuffledIndices(deltas.length, seed)
-    for (const deltaIndex of order) {
+    for (let orderIndex = 0; orderIndex < order.length; orderIndex++) {
+      const deltaIndex = order[orderIndex]
+      if (verboseMerges)
+        console.log(`${label}: merge order=${orderIndex} delta=${deltaIndex}`)
       api.__merge(replica, deltas[deltaIndex])
-      if (deltaIndex % 3 === 0) api.__merge(replica, deltas[deltaIndex])
+      if (deltaIndex % 3 === 0) {
+        if (verboseMerges)
+          console.log(`${label}: replay order=${orderIndex} delta=${deltaIndex}`)
+        api.__merge(replica, deltas[deltaIndex])
+      }
     }
+  }
+
+  function mergeDeltasWithRestarts(replica, deltas, seed, options = {}) {
+    const { label = 'restart-merge', verboseMerges = false } = options
+    let current = replica
+    const order = shuffledIndices(deltas.length, seed)
+    for (let index = 0; index < order.length; index++) {
+      const deltaIndex = order[index]
+      if (verboseMerges)
+        console.log(`${label}: merge order=${index} delta=${deltaIndex}`)
+      api.__merge(current, deltas[deltaIndex])
+      if (deltaIndex % 3 === 0) {
+        if (verboseMerges)
+          console.log(`${label}: replay order=${index} delta=${deltaIndex}`)
+        api.__merge(current, deltas[deltaIndex])
+      }
+      if (index % 7 === 0) current = cloneReplica(current)
+      if (index % 11 === 0) current = api.__create(api.__snapshot(current))
+    }
+    return current
   }
 
   function collectStressDeltas(replicas, rounds) {
@@ -262,10 +317,27 @@ export async function runCRListSuite(api, options = {}) {
       const deltas = collectStressDeltas(replicas, stressRounds)
 
       for (let index = 0; index < replicas.length; index++) {
-        mergeDeltas(replicas[index], deltas, 10_000 + index)
+        mergeDeltas(replicas[index], deltas, 10_000 + index, {
+          label: `replica-${index}`,
+          verboseMerges: verbose,
+        })
       }
 
       assertReplicasConverged(replicas)
+    })
+
+    await runTest('replicas converge across shuffled delivery with restarts', () => {
+      const base = seededReplica(6)
+      const replicas = Array.from({ length: 5 }, () => cloneReplica(base))
+      const deltas = collectStressDeltas(replicas, stressRounds)
+      const restartedReplicas = replicas.map((replica, index) =>
+        mergeDeltasWithRestarts(replica, deltas, 20_000 + index, {
+          label: `restart-replica-${index}`,
+          verboseMerges: verbose,
+        })
+      )
+
+      assertReplicasConverged(restartedReplicas)
     })
 
     await runTest('concurrent insert after concurrently deleted predecessor converges', () => {

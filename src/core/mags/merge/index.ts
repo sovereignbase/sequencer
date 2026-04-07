@@ -13,15 +13,14 @@ import {
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
 
 /**
- * Time complexity: O(n log n + v + t + d + r + c), worst case O(n log n + c)
+ * Time complexity: O(n log n + v + tk + c), worst case O(n log n + n^2 + c)
  * - n = replica value entry count after merge
  * - v = delta value entry count
  * - t = delta tombstone count
- * - d = distance from cursor to first changed index
- * - r = amount of nodes from first changed index to list end
+ * - k = sibling bucket size when deleted entries are removed from buckets
  * - c = cloned delta value payload size
  *
- * Space complexity: O(n + r + c)
+ * Space complexity: O(n + v + t + c)
  */
 export function __merge<T>(
   crListReplica: CRListReplica<T>,

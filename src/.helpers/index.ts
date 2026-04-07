@@ -4,3 +4,4 @@ export { flattenAndLinkTrustedState } from './flattenAndLinkTrustedState/index.j
 export { snapshotValueToLinkedListValue } from './snapshotValueToLinkedListValue/index.js'
 export { updateEntryToMaps } from './updateEntryToMaps/index.js'
 export { deleteEntryFromMaps } from './deleteEntryFromMaps/index.js'
+export { deleteLinkedEntry } from './deleteLinkedEntry/index.js'

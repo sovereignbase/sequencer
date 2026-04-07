@@ -1,6 +1,5 @@
 import {
-  deleteEntryFromMaps,
-  updateEntryToMaps,
+  deleteLinkedEntry,
   walkToIndex,
 } from '../../../.helpers/index.js'
 import { CRListError } from '../../../.errors/class.js'
@@ -43,34 +42,15 @@ export function __delete<T>(
   void walkToIndex<T>(listIndex, crListReplica)
   if (!crListReplica.cursor) return false
 
-  const prev: DoublyLinkedListEntry<T> = crListReplica.cursor.prev
   let current: DoublyLinkedListEntry<T> = crListReplica.cursor
   let deleted = 0
 
   while (current && deleted < deleteCount) {
-    const next: DoublyLinkedListEntry<T> = current.next
-    crListReplica.tombstones.add(current.uuidv7)
-    result.delta.tombstones?.push(current.uuidv7)
-    void deleteEntryFromMaps<T>(crListReplica, current)
-    current.prev = undefined
-    current.next = undefined
-    current = next
+    void deleteLinkedEntry<T>(crListReplica, current, result.delta)
+    current = crListReplica.cursor
     deleted++
   }
 
-  if (prev) prev.next = current
-  if (current) {
-    current.prev = prev
-    if (crListReplica.tombstones.has(current.predecessor)) {
-      const siblings = crListReplica.childrenMap.get(current.predecessor)
-      const siblingIndex = siblings?.indexOf(current) ?? -1
-      if (siblings && siblingIndex !== -1) siblings.splice(siblingIndex, 1)
-      current.predecessor = prev?.uuidv7 ?? '\0'
-      void updateEntryToMaps<T>(crListReplica, current)
-    }
-  }
-
-  crListReplica.cursor = current ?? prev
   crListReplica.size = crListReplica.parentMap.size
 
   while (current) {

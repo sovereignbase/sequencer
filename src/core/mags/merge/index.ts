@@ -2,7 +2,6 @@ import type {
   CRListChange,
   CRListDelta,
   CRListReplica,
-  DoublyLinkedListEntry,
 } from '../../../.types/index.js'
 import {
   snapshotValueToLinkedListValue,
@@ -10,7 +9,7 @@ import {
   flattenAndLinkTrustedState,
   assertListIndices,
   walkToIndex,
-  deleteEntryFromMaps,
+  deleteLinkedEntry,
 } from '../../../.helpers/index.js'
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
 
@@ -33,6 +32,7 @@ export function __merge<T>(
 
   const change: CRListChange<T> = {}
 
+  /**Fill tombstones entry(s)*/
   if (
     Object.hasOwn(crListDelta, 'tombstones') &&
     Array.isArray(crListDelta.tombstones)
@@ -41,54 +41,31 @@ export function __merge<T>(
       if (crListReplica.tombstones.has(tombstone) || !isUuidV7(tombstone))
         continue
       crListReplica.tombstones.add(tombstone)
-      if (crListReplica.parentMap.has(tombstone)) {
-        void deleteEntryFromMaps<T>(
-          crListReplica,
-          crListReplica.parentMap.get(tombstone) as NonNullable<
-            DoublyLinkedListEntry<T>
-          >
-        )
-      }
+      const linkedListEntry = crListReplica.parentMap.get(tombstone)
+      if (linkedListEntry)
+        void deleteLinkedEntry<T>(crListReplica, linkedListEntry)
     }
   }
 
-  /**Hydrate values entry(s)*/
+  /**Fill values entry(s)*/
   if (
     !Object.hasOwn(crListDelta, 'values') ||
     !Array.isArray(crListDelta.values)
   )
-    return change
-  //**BUILD TREE*/
-  let changeStartIndex = crListReplica.size
-  const acceptedIdentifiers = new Set<string>()
+    return crListReplica
+  //**attach valid ones to tree*/
   for (const valueEntry of crListDelta.values) {
     const linkedListEntry = snapshotValueToLinkedListValue<T>(
       valueEntry,
       crListReplica
     )
     if (!linkedListEntry) continue
-    acceptedIdentifiers.add(linkedListEntry.uuidv7)
     void updateEntryToMaps<T>(crListReplica, linkedListEntry)
   }
   //**flatten tree in to doubly linked list */
   void flattenAndLinkTrustedState<T>(crListReplica)
   //**write indices*/
   void assertListIndices<T>(crListReplica)
-
-  for (const uuidv7 of acceptedIdentifiers) {
-    const linkedListEntry = crListReplica.parentMap.get(uuidv7)
-    if (linkedListEntry && linkedListEntry.index < changeStartIndex)
-      changeStartIndex = linkedListEntry.index
-  }
-
-  if (changeStartIndex >= crListReplica.size) return change
-
-  void walkToIndex<T>(changeStartIndex, crListReplica)
-  let cursor = crListReplica.cursor
-  while (cursor) {
-    change[cursor.index] = cursor.value
-    cursor = cursor.next
-  }
 
   return change
 }

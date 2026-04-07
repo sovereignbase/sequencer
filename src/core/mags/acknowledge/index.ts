@@ -1,6 +1,6 @@
 import type { CRListAck, CRListReplica } from '../../../.types/index.js'
 
-export function acknowledge<T>(
+export function __acknowledge<T>(
   crListReplica: CRListReplica<T>
 ): CRListAck | false {
   const frontier = Array.from(crListReplica.tombstones.values())

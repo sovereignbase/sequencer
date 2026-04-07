@@ -11,10 +11,11 @@ export function snapshotValueToLinkedListValue<T>(
   if (
     !isUuidV7(valueEntry.uuidv7) ||
     crListReplica.tombstones.has(valueEntry.uuidv7) ||
-    !(!isUuidV7(valueEntry.predecessor) || valueEntry.predecessor !== '\0') ||
+    crListReplica.parentMap.has(valueEntry.uuidv7) ||
+    !(!isUuidV7(valueEntry.predecessor) && valueEntry.predecessor !== '\0') ||
     crListReplica.tombstones.has(
       valueEntry.predecessor
-    ) /**This never happends in regular usage so it is malicious and should just be dropped*/
+    ) /**These never happends in regular usage so they are products of malicious behaviour and should just be dropped*/
   )
     return undefined
 

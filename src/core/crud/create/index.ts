@@ -19,8 +19,11 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
     size: 0,
     cursor: undefined,
     tombstones: new Set<string>(),
-    parentMap: new Map<string, DoublyLinkedListEntry<T>>(),
-    childrenMap: new Map<string, Array<DoublyLinkedListEntry<T>>>(),
+    parentMap: new Map<string, NonNullable<DoublyLinkedListEntry<T>>>(),
+    childrenMap: new Map<
+      string,
+      Array<NonNullable<DoublyLinkedListEntry<T>>>
+    >(),
   }
   if (!snapshot || prototype(snapshot) !== 'record') return crListReplica
 
@@ -40,13 +43,23 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
   if (!Object.hasOwn(snapshot, 'values')) return crListReplica
   //**BUILD TREE*/
   for (const valueEntry of snapshot.values) {
-    const linkedListEntry = snapshotValueToLinkedListValue(valueEntry)
+    const linkedListEntry = snapshotValueToLinkedListValue<T>(
+      valueEntry,
+      crListReplica
+    )
     if (!linkedListEntry) continue
+    crListReplica.parentMap.set(linkedListEntry.uuidv7, linkedListEntry)
+    if (!crListReplica.childrenMap.has(linkedListEntry.predecessor)) {
+      crListReplica.childrenMap.set(linkedListEntry.predecessor, [])
+    }
+    crListReplica.childrenMap
+      .get(linkedListEntry.predecessor)
+      ?.push(linkedListEntry)
   }
   //**flatten tree in to doubly linked list */
-  flattenAndLinkTrustedState(crListReplica)
+  void flattenAndLinkTrustedState<T>(crListReplica)
   //**write indices*/
-  assertListIndices(crListReplica)
+  void assertListIndices<T>(crListReplica)
 
   return crListReplica
 }

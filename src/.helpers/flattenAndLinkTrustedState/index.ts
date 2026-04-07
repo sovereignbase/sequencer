@@ -2,16 +2,18 @@ import type {
   CRListReplica,
   DoublyLinkedListEntry,
 } from '../../.types/index.js'
-export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
+export function flattenAndLinkTrustedState<T>(
+  crListReplica: CRListReplica<T>
+): void {
   crListReplica.size = 0
   const resolvedSiblingPredecessors = new Set<string>()
-  for (const entry of Object.values(crListReplica.parentMap)) {
+  for (const entry of crListReplica.parentMap.values()) {
     if (!entry) continue
     const predecessorIdentifier = entry.predecessor
     const isRootPredecessor = predecessorIdentifier === '\0'
     const predecessor = isRootPredecessor
       ? undefined
-      : crListReplica.parentMap[predecessorIdentifier]
+      : crListReplica.parentMap.get(predecessorIdentifier)
 
     if (
       !isRootPredecessor &&
@@ -19,19 +21,10 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
     )
       continue
 
-    let siblings = crListReplica.childrenMap[predecessorIdentifier] as Array<
-      NonNullable<DoublyLinkedListEntry<T>>
-    >
+    const siblings = crListReplica.childrenMap.get(predecessorIdentifier)
 
-    if (!Array.isArray(siblings)) continue
-
-    siblings = siblings.map((sibling) => {
-      return crListReplica.parentMap[sibling.uuidv7]
-    }) as Array<NonNullable<DoublyLinkedListEntry<T>>>
-
-    siblings = siblings.filter((sibling) => sibling)
-
-    if (resolvedSiblingPredecessors.has(predecessorIdentifier)) continue
+    if (!siblings || resolvedSiblingPredecessors.has(predecessorIdentifier))
+      continue
 
     siblings.sort((a, b) => a.uuidv7.localeCompare(b.uuidv7))
 
@@ -48,7 +41,7 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
         prev = sibling
 
         while (prev.next && !siblingSet.has(prev.next)) {
-          prev = prev.next as NonNullable<DoublyLinkedListEntry<T>>
+          prev = prev.next
         }
 
         if (next) {
@@ -69,5 +62,5 @@ export function flattenAndLinkValues<T>(crListReplica: CRListReplica<T>): void {
     resolvedSiblingPredecessors.add(predecessorIdentifier)
     crListReplica.cursor = entry
   }
-  crListReplica.size = Object.keys(crListReplica.parentMap).length
+  crListReplica.size = crListReplica.parentMap.size
 }

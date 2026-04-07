@@ -5,6 +5,7 @@ import {
   deleteEntryFromMaps,
   walkToIndex,
   moveEntryToPredecessor,
+  insertBetween,
 } from '../../../.helpers/index.js'
 import { v7 as uuidv7 } from 'uuid'
 import {
@@ -59,11 +60,12 @@ export function __update<T>(
 
       linkedListEntry.predecessor = entryToOverwrite.predecessor
       linkedListEntry.index = entryToOverwrite.index
-      linkedListEntry.next = entryToOverwrite.next
-      linkedListEntry.prev = entryToOverwrite.prev
-      if (entryToOverwrite.prev) entryToOverwrite.prev.next = linkedListEntry
+      insertBetween<T>(
+        entryToOverwrite.prev,
+        linkedListEntry,
+        entryToOverwrite.next
+      )
       if (entryToOverwrite.next) {
-        entryToOverwrite.next.prev = linkedListEntry
         if (entryToOverwrite.next.predecessor === entryToOverwrite.uuidv7) {
           void moveEntryToPredecessor<T>(
             crListReplica,
@@ -100,11 +102,8 @@ export function __update<T>(
         listIndex === crListReplica.size ? undefined : crListReplica.cursor.next
       linkedListEntry.index = crListReplica.cursor.index + 1
       linkedListEntry.predecessor = crListReplica.cursor.uuidv7
-      linkedListEntry.next = next
-      linkedListEntry.prev = crListReplica.cursor
-      crListReplica.cursor.next = linkedListEntry
+      insertBetween<T>(crListReplica.cursor, linkedListEntry, next)
       if (next) {
-        next.prev = linkedListEntry
         if (next.predecessor === crListReplica.cursor.uuidv7) {
           void moveEntryToPredecessor<T>(
             crListReplica,
@@ -136,10 +135,7 @@ export function __update<T>(
       const prev = crListReplica.cursor.prev
       linkedListEntry.index = crListReplica.cursor.index
       linkedListEntry.predecessor = prev?.uuidv7 ?? '\0'
-      linkedListEntry.next = crListReplica.cursor
-      linkedListEntry.prev = prev
-      if (prev) prev.next = linkedListEntry
-      crListReplica.cursor.prev = linkedListEntry
+      insertBetween<T>(prev, linkedListEntry, crListReplica.cursor)
       if (crListReplica.cursor.predecessor === linkedListEntry.predecessor) {
         void moveEntryToPredecessor<T>(
           crListReplica,

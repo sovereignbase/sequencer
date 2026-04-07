@@ -2,6 +2,7 @@ import type {
   CRListReplica,
   DoublyLinkedListEntry,
 } from '../../.types/index.js'
+import { insertBetween } from '../insertBetween/index.js'
 export function flattenAndLinkTrustedState<T>(
   crListReplica: CRListReplica<T>
 ): void {
@@ -9,6 +10,7 @@ export function flattenAndLinkTrustedState<T>(
   const resolvedSiblingPredecessors = new Set<string>()
   const orphanRootSiblings: Array<NonNullable<DoublyLinkedListEntry<T>>> = []
   for (const entry of crListReplica.parentMap.values()) {
+    if (!entry) continue
     entry.prev = undefined
     entry.next = undefined
   }
@@ -60,8 +62,7 @@ export function flattenAndLinkTrustedState<T>(
       const sibling = siblings[index]
       const next = siblings[index + 1]
 
-      sibling.prev = prev
-      if (prev) prev.next = sibling
+      insertBetween<T>(prev, sibling, sibling.next)
       prev = sibling
 
       while (prev.next && !siblingSet.has(prev.next)) {

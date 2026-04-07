@@ -5,29 +5,31 @@ import {
   DoublyLinkedListEntry,
 } from '../../../.types/index.js'
 import {
-  flattenAndLinkValues,
+  flattenAndLinkTrustedState,
   assertListIndices,
+  snapshotValueToLinkedListValue,
 } from '../../../.helpers/index.js'
 
+/**
+ * Time:  O(n log n + t)
+ * Space: O(n + t)
+ */
 export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
   const crListReplica: CRListReplica<T> = {
     size: 0,
     cursor: undefined,
     tombstones: new Set<string>(),
-    parentMap: {},
-    childrenMap: {},
+    parentMap: new Map<string, DoublyLinkedListEntry<T>>(),
+    childrenMap: new Map<string, Array<DoublyLinkedListEntry<T>>>(),
   }
   if (!snapshot || prototype(snapshot) !== 'record') return crListReplica
-  const [cloned, copiedSnapshot] = safeStructuredClone(snapshot)
-
-  if (!cloned || !copiedSnapshot) return crListReplica
 
   /**Hydrate tombstones entry(s)*/
   if (
-    Object.hasOwn(copiedSnapshot, 'tombstones') &&
-    Array.isArray(copiedSnapshot.tombstones)
+    Object.hasOwn(snapshot, 'tombstones') &&
+    Array.isArray(snapshot.tombstones)
   ) {
-    for (const tombstone of copiedSnapshot.tombstones) {
+    for (const tombstone of snapshot.tombstones) {
       if (crListReplica.tombstones.has(tombstone) || !isUuidV7(tombstone))
         continue
       crListReplica.tombstones.add(tombstone)
@@ -35,26 +37,14 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
   }
 
   /**Hydrate values entry(s)*/
-  if (!Object.hasOwn(copiedSnapshot, 'values')) return crListReplica
+  if (!Object.hasOwn(snapshot, 'values')) return crListReplica
   //**BUILD TREE*/
-  const values = copiedSnapshot.values
-
-  if (
-    !Object.hasOwn(values, 'parentMap') ||
-    !Object.hasOwn(values, 'childrenMap')
-  )
-    return crListReplica
-
-  crListReplica.parentMap = values.parentMap as Record<
-    string,
-    DoublyLinkedListEntry<T>
-  >
-  crListReplica.childrenMap = values.childrenMap as Record<
-    string,
-    Array<DoublyLinkedListEntry<T>>
-  >
+  for (const valueEntry of snapshot.values) {
+    const linkedListEntry = snapshotValueToLinkedListValue(valueEntry)
+    if (!linkedListEntry) continue
+  }
   //**flatten tree in to doubly linked list */
-  flattenAndLinkValues(crListReplica)
+  flattenAndLinkTrustedState(crListReplica)
   //**write indices*/
   assertListIndices(crListReplica)
 

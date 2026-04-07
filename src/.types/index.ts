@@ -15,8 +15,8 @@ export type CRListReplica<T> = {
   size: number
   cursor: DoublyLinkedListEntry<T>
   tombstones: Set<string>
-  parentMap: Record<string, DoublyLinkedListEntry<T>>
-  childrenMap: Record<string, Array<DoublyLinkedListEntry<T>>>
+  parentMap: Map<string, DoublyLinkedListEntry<T>>
+  childrenMap: Map<string, Array<DoublyLinkedListEntry<T>>>
 }
 /****/
 export type CRListSnapshotValueEntry<T> = {
@@ -26,10 +26,7 @@ export type CRListSnapshotValueEntry<T> = {
 }
 /****/
 export type CRListSnapshot<T> = {
-  values: {
-    parentMap: Record<string, CRListSnapshotValueEntry<T>>
-    childrenMap: Record<string, Array<CRListSnapshotValueEntry<T>>>
-  }
+  values: Array<CRListSnapshotValueEntry<T>>
   tombstones: Array<string>
 }
 /****/

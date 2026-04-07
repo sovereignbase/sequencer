@@ -10,7 +10,9 @@ export function flattenAndLinkTrustedState<T>(
   for (const entry of crListReplica.parentMap.values()) {
     if (!entry) continue
     const predecessorIdentifier = entry.predecessor
-    const isRootPredecessor = predecessorIdentifier === '\0'
+    const isRootPredecessor =
+      predecessorIdentifier === '\0' ||
+      crListReplica.tombstones.has(predecessorIdentifier)
     const predecessor = isRootPredecessor
       ? undefined
       : crListReplica.parentMap.get(predecessorIdentifier)

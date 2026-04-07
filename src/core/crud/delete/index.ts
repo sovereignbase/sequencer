@@ -5,23 +5,30 @@ import {
 } from '../../../.helpers/index.js'
 import { CRListError } from '../../../.errors/class.js'
 import type {
+  CRListChange,
+  CRListDelta,
   CRListReplica,
   DoublyLinkedListEntry,
 } from '../../../.types/index.js'
 
 /**
- * Time complexity: O(d + r + k), worst case O(n)
+ * Time complexity: O(d + qk + r), worst case O(n^2)
  * - d = distance from cursor to target index
+ * - q = amount of deleted nodes
  * - r = amount of nodes after the deleted range whose indexes must be shifted
- * - k = sibling bucket size when predecessor bucket is updated
+ * - k = sibling bucket size when deleted entries are removed from buckets
  *
- * Space complexity: O(1)
+ * Space complexity: O(q + r)
  */
 export function __delete<T>(
   crListReplica: CRListReplica<T>,
   startIndex?: number,
   endIndex?: number
-): void {
+): { change: CRListChange<T>; delta: CRListDelta<T> } | false {
+  const result: { change: CRListChange<T>; delta: CRListDelta<T> } = {
+    change: {},
+    delta: { values: [], tombstones: [] },
+  }
   const listIndex = startIndex ?? 0
   const targetEndIndex = endIndex ?? crListReplica.size
   if (
@@ -31,10 +38,10 @@ export function __delete<T>(
   )
     throw new CRListError('INDEX_OUT_OF_BOUNDS')
   const deleteCount = Math.min(targetEndIndex, crListReplica.size) - listIndex
-  if (deleteCount <= 0) return
+  if (deleteCount <= 0) return false
 
   void walkToIndex<T>(listIndex, crListReplica)
-  if (!crListReplica.cursor) return
+  if (!crListReplica.cursor) return false
 
   const prev: DoublyLinkedListEntry<T> = crListReplica.cursor.prev
   let current: DoublyLinkedListEntry<T> = crListReplica.cursor
@@ -43,6 +50,7 @@ export function __delete<T>(
   while (current && deleted < deleteCount) {
     const next: DoublyLinkedListEntry<T> = current.next
     crListReplica.tombstones.add(current.uuidv7)
+    result.delta.tombstones?.push(current.uuidv7)
     void deleteEntryFromMaps<T>(crListReplica, current)
     current.prev = undefined
     current.next = undefined
@@ -67,6 +75,9 @@ export function __delete<T>(
 
   while (current) {
     current.index -= deleted
+    result.change[current.index] = current.value
     current = current.next
   }
+
+  return result
 }

@@ -8,6 +8,7 @@ import {
   updateEntryToMaps,
   flattenAndLinkTrustedState,
   assertListIndices,
+  walkToIndex,
 } from '../../../.helpers/index.js'
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
 
@@ -37,18 +38,36 @@ export function __merge<T>(
   )
     return change
   //**BUILD TREE*/
+  let changeStartIndex = crListReplica.size
+  const acceptedIdentifiers = new Set<string>()
   for (const valueEntry of crListDelta.values) {
     const linkedListEntry = snapshotValueToLinkedListValue<T>(
       valueEntry,
       crListReplica
     )
     if (!linkedListEntry) continue
+    acceptedIdentifiers.add(linkedListEntry.uuidv7)
     void updateEntryToMaps<T>(crListReplica, linkedListEntry)
   }
   //**flatten tree in to doubly linked list */
   void flattenAndLinkTrustedState<T>(crListReplica)
   //**write indices*/
   void assertListIndices<T>(crListReplica)
+
+  for (const uuidv7 of acceptedIdentifiers) {
+    const linkedListEntry = crListReplica.parentMap.get(uuidv7)
+    if (linkedListEntry && linkedListEntry.index < changeStartIndex)
+      changeStartIndex = linkedListEntry.index
+  }
+
+  if (changeStartIndex >= crListReplica.size) return change
+
+  void walkToIndex<T>(changeStartIndex, crListReplica)
+  let cursor = crListReplica.cursor
+  while (cursor) {
+    change[cursor.index] = cursor.value
+    cursor = cursor.next
+  }
 
   return change
 }

@@ -23,7 +23,7 @@ export function walkToIndex<T>(
   const direction =
     crListReplica.cursor.index > targetIndex ? 'backward' : 'forward'
   const walk = walker[direction]
-  while (crListReplica?.cursor?.index !== targetIndex) {
+  while (crListReplica.cursor && crListReplica.cursor.index !== targetIndex) {
     crListReplica.cursor = walk<T>(crListReplica.cursor)
   }
 }

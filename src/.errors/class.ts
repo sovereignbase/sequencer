@@ -10,7 +10,7 @@ export type CRListErrorCode =
   | 'LIST_INTEGRITY_VIOLATION'
 
 /**
- * Represents a typed OO-Struct runtime error.
+ * Represents a typed CRList runtime error.
  */
 export class CRListError extends Error {
   /**
@@ -19,7 +19,7 @@ export class CRListError extends Error {
   readonly code: CRListErrorCode
 
   /**
-   * Creates a typed OO-Struct error.
+   * Creates a typed CRList error.
    *
    * @param code - The semantic error code.
    * @param message - An optional human-readable detail message.

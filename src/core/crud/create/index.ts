@@ -12,7 +12,7 @@ import {
 } from '../../../.helpers/index.js'
 
 /**
- * Time complexity: O(n log n + t + c), worst case O(n log n + c)
+ * Time complexity: O(n log n + t + c), worst case O(n log n + t + c)
  * - n = snapshot value entry count
  * - t = snapshot tombstone count
  * - c = cloned value payload

@@ -15,11 +15,12 @@ import {
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
 
 /**
- * Time complexity: O(n log n + v + tk + c), worst case O(n log n + n^2 + c)
+ * Time complexity: O(n log n + v + t + m*k + c), worst case O(n log n + (v + t)n + c)
  * - n = replica value entry count after merge
  * - v = delta value entry count
  * - t = delta tombstone count
- * - k = sibling bucket size when deleted entries are removed from buckets
+ * - m = entries moved between predecessor buckets
+ * - k = sibling bucket size when entries are removed from buckets
  * - c = cloned delta value payload size
  *
  * Space complexity: O(n + v + t + c)

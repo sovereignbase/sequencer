@@ -36,27 +36,21 @@ export function flattenAndLinkTrustedState<T>(
       const next = siblings[index + 1]
 
       sibling.prev = prev
-      if (prev !== undefined) {
-        prev.next = sibling
-        prev = sibling
+      if (prev) prev.next = sibling
+      prev = sibling
 
-        while (prev.next && !siblingSet.has(prev.next)) {
-          prev = prev.next
-        }
+      while (prev.next && !siblingSet.has(prev.next)) {
+        prev = prev.next
+      }
 
-        if (next) {
-          prev.next = next
-          next.prev = prev
-        } else if (predecessorNext && !siblingSet.has(predecessorNext)) {
-          prev.next = predecessorNext
-          predecessorNext.prev = prev
-        } else {
-          prev.next = undefined
-        }
+      if (next) {
+        prev.next = next
+        next.prev = prev
+      } else if (predecessorNext && !siblingSet.has(predecessorNext)) {
+        prev.next = predecessorNext
+        predecessorNext.prev = prev
       } else {
-        sibling.next = next
-        if (next) next.prev = sibling
-        prev = sibling
+        prev.next = undefined
       }
     }
     resolvedSiblingPredecessors.add(predecessorIdentifier)

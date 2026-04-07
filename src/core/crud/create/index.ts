@@ -12,8 +12,12 @@ import {
 } from '../../../.helpers/index.js'
 
 /**
- * Time:  O(n log n + t + c)
- * Space: O(n + t)
+ * Time complexity: O(n log n + t + c)
+ * - n = snapshot value entry count
+ * - t = snapshot tombstone count
+ * - c = cloned value payload
+ *
+ * Space complexity: O(n + t + c)
  */
 export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
   const crListReplica: CRListReplica<T> = {

@@ -10,9 +10,11 @@ import type {
 } from '../../../.types/index.js'
 
 /**
- * Time complexity: O(d + m), worst case O(n)
+ * Time complexity: O(d + r + k), worst case O(n)
  * - d = distance from cursor to target index
- * - m = amount of nodes after the deleted node whose indexes must be shifted
+ * - r = amount of nodes after the deleted range whose indexes must be shifted
+ * - k = sibling bucket size when predecessor bucket is updated
+ *
  * Space complexity: O(1)
  */
 export function __delete<T>(

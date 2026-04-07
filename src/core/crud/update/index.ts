@@ -13,6 +13,7 @@ import { CRListReplica, DoublyLinkedListEntry } from '../../../.types/index.js'
  * - r = amount of nodes after the inserted node whose indexes must be shifted
  * - k = sibling bucket size when predecessor bucket is updated
  * - c = cloned value payload size
+ *
  * Space complexity: O(c)
  */
 export function __update<T>(

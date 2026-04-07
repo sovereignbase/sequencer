@@ -4,6 +4,8 @@ import { CRListReplica } from '../../../.types/index.js'
 /**
  * Time complexity: O(d), worst case O(n)
  * - d = distance from cursor to target index
+ * - n = list size
+ *
  * Space complexity: O(1)
  */
 export function __read<T>(

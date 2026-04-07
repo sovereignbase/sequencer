@@ -27,7 +27,7 @@ export function __update<T>(
   const linkedListEntry: NonNullable<DoublyLinkedListEntry<T>> = {
     uuidv7: v7,
     value: copiedValue,
-    predecessor: '\n',
+    predecessor: '\0',
     index: 0,
     next: undefined,
     prev: undefined,

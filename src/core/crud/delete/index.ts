@@ -3,6 +3,7 @@ import {
   updateEntryToMaps,
   walkToIndex,
 } from '../../../.helpers/index.js'
+import { CRListError } from '../../../.errors/class.js'
 import type {
   CRListReplica,
   DoublyLinkedListEntry,
@@ -21,6 +22,12 @@ export function __delete<T>(
 ): void {
   const listIndex = startIndex ?? 0
   const targetEndIndex = endIndex ?? crListReplica.size
+  if (
+    listIndex < 0 ||
+    targetEndIndex < listIndex ||
+    listIndex > crListReplica.size
+  )
+    throw new CRListError('INDEX_OUT_OF_BOUNDS')
   const deleteCount = Math.min(targetEndIndex, crListReplica.size) - listIndex
   if (deleteCount <= 0) return
 

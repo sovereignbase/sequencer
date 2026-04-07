@@ -21,7 +21,7 @@ export function __update<T>(
   crListReplica: CRListReplica<T>,
   mode: 'overwrite' | 'before' | 'after'
 ): void {
-  if (listIndex > crListReplica.size)
+  if (listIndex < 0 || listIndex > crListReplica.size)
     throw new CRListError('INDEX_OUT_OF_BOUNDS')
 
   const [cloned, copiedValue] = safeStructuredClone(listValue)

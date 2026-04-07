@@ -8,6 +8,7 @@ import {
   flattenAndLinkTrustedState,
   assertListIndices,
   snapshotValueToLinkedListValue,
+  updateEntryToMaps,
 } from '../../../.helpers/index.js'
 
 /**
@@ -49,13 +50,7 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
       crListReplica
     )
     if (!linkedListEntry) continue
-    crListReplica.parentMap.set(linkedListEntry.uuidv7, linkedListEntry)
-    if (!crListReplica.childrenMap.has(linkedListEntry.predecessor)) {
-      crListReplica.childrenMap.set(linkedListEntry.predecessor, [])
-    }
-    crListReplica.childrenMap
-      .get(linkedListEntry.predecessor)
-      ?.push(linkedListEntry)
+    void updateEntryToMaps<T>(crListReplica, linkedListEntry)
   }
   //**flatten tree in to doubly linked list */
   void flattenAndLinkTrustedState<T>(crListReplica)

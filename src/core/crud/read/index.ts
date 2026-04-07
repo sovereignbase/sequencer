@@ -1,5 +1,5 @@
 import { walkToIndex } from '../../../.helpers/index.js'
-import { DoublyLinkedListEntry } from '../../../.types/index.js'
+import { CRListReplica, DoublyLinkedListEntry } from '../../../.types/index.js'
 
 /**
  * Time complexity: O(d), worst case O(n)
@@ -7,13 +7,12 @@ import { DoublyLinkedListEntry } from '../../../.types/index.js'
  * Space complexity: O(1)
  */
 export function __read<T>(
-  cursor: DoublyLinkedListEntry<T>,
-  listLength: number,
-  targetIndex: number
+  targetIndex: number,
+  crListReplica: CRListReplica<T>
 ): T | undefined {
   try {
-    const entry = walkToIndex<T>(cursor, listLength, targetIndex)
-    return entry?.value
+    void walkToIndex<T>(targetIndex, crListReplica)
+    return crListReplica?.cursor?.value
   } catch {
     return undefined
   }

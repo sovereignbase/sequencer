@@ -1,4 +1,8 @@
-import type { DoublyLinkedListEntry } from '../../.types/index.ts'
+import type {
+  CRListReplica,
+  DoublyLinkedListEntry,
+} from '../../.types/index.js'
+import { CRListError } from '../../.errors/class.js'
 
 const walker = {
   forward<T>(cursor: DoublyLinkedListEntry<T>) {
@@ -9,18 +13,17 @@ const walker = {
   },
 }
 export function walkToIndex<T>(
-  cursor: DoublyLinkedListEntry<T>,
-  listLength: number,
-  targetIndex: number
-): DoublyLinkedListEntry<T> {
-  if (targetIndex < 0 || targetIndex >= listLength)
-    throw new Error('out of bounds')
-  if (!cursor) throw new Error('empty')
-  const direction = cursor.index > targetIndex ? 'backward' : 'forward'
+  targetIndex: number,
+  crListReplica: CRListReplica<T>
+): void {
+  if (targetIndex < 0 || targetIndex >= crListReplica.size)
+    throw new CRListError('INDEX_OUT_OF_BOUNDS', 'Index out of bounds')
+  if (!crListReplica.cursor)
+    throw new CRListError('LIST_EMPTY', 'List is empty')
+  const direction =
+    crListReplica.cursor.index > targetIndex ? 'backward' : 'forward'
   const walk = walker[direction]
-  while (cursor.index !== targetIndex) {
-    cursor = walk<T>(cursor)
-    if (!cursor) throw new Error('broken list')
+  while (crListReplica?.cursor?.index !== targetIndex) {
+    crListReplica.cursor = walk<T>(crListReplica.cursor)
   }
-  return cursor
 }

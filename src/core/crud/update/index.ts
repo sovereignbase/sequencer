@@ -74,7 +74,7 @@ export function __update<T>(
     return
   }
 
-  if (listIndex !== 0 && listIndex !== crListReplica.size) {
+  if (listIndex !== crListReplica.size) {
     void walkToIndex<T>(listIndex, crListReplica)
     if (!crListReplica.cursor) return
     linkedListEntry.index = listIndex
@@ -82,11 +82,39 @@ export function __update<T>(
     switch (mode) {
       case 'after': {
         const thisNext = crListReplica.cursor.next
+        linkedListEntry.index = crListReplica.cursor.index + 1
         linkedListEntry.predecessor = crListReplica.cursor.uuidv7
         linkedListEntry.next = thisNext
         linkedListEntry.prev = crListReplica.cursor
+        crListReplica.cursor.next = linkedListEntry
+        if (thisNext) thisNext.prev = linkedListEntry
+        void updateEntryToMaps<T>(crListReplica, linkedListEntry)
+        crListReplica.cursor = linkedListEntry
+        let cursor: DoublyLinkedListEntry<T> = linkedListEntry.next
+        while (cursor) {
+          cursor.index++
+          cursor = cursor.next
+        }
+        crListReplica.size = crListReplica.parentMap.size
+        break
       }
       case 'before': {
+        const thisPrev = crListReplica.cursor.prev
+        linkedListEntry.index = crListReplica.cursor.index
+        linkedListEntry.predecessor = thisPrev?.uuidv7 ?? '\0'
+        linkedListEntry.next = crListReplica.cursor
+        linkedListEntry.prev = thisPrev
+        if (thisPrev) thisPrev.next = linkedListEntry
+        crListReplica.cursor.prev = linkedListEntry
+        void updateEntryToMaps<T>(crListReplica, linkedListEntry)
+        crListReplica.cursor = linkedListEntry
+        let cursor: DoublyLinkedListEntry<T> = linkedListEntry.next
+        while (cursor) {
+          cursor.index++
+          cursor = cursor.next
+        }
+        crListReplica.size = crListReplica.parentMap.size
+        break
       }
     }
   }

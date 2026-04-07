@@ -31,3 +31,48 @@ export type CRListSnapshot<T> = {
 }
 /****/
 export type CRListDelta<T> = Partial<CRListSnapshot<T>>
+/****/
+export type CRListChange<T> = Record<number, T>
+/****/
+export type CRListAck = string
+/****/
+//CORE
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+//CLASS
+
+/***/
+
+/**
+ * Maps OO-Struct event names to their event payload shapes.
+ */
+export type CRListEventMap<T extends Record<string, unknown>> = {
+  /** STATE / PROJECTION */
+  snapshot: CRListSnapshot<T>
+  change: CRListChange<T>
+
+  /** GOSSIP / PROTOCOL */
+  delta: CRListDelta<T>
+  ack: CRListAck
+}
+
+/**
+ * Represents a strongly typed OO-Struct event listener.
+ */
+export type CRListEventListener<
+  T extends Record<string, unknown>,
+  K extends keyof CRListEventMap<T>,
+> =
+  | ((event: CustomEvent<CRListEventMap<T>[K]>) => void)
+  | { handleEvent(event: CustomEvent<CRListEventMap<T>[K]>): void }
+
+/**
+ * Resolves an event name to its corresponding listener type.
+ */
+export type CRListEventListenerFor<
+  T extends Record<string, unknown>,
+  K extends string,
+> = K extends keyof CRListEventMap<T>
+  ? CRListEventListener<T, K>
+  : EventListenerOrEventListenerObject

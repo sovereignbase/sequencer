@@ -1,5 +1,5 @@
 import { walkToIndex } from '../../../.helpers/index.js'
-import { CRListReplica, DoublyLinkedListEntry } from '../../../.types/index.js'
+import { CRListReplica } from '../../../.types/index.js'
 
 /**
  * Time complexity: O(d), worst case O(n)

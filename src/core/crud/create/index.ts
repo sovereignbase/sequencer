@@ -1,4 +1,4 @@
-import { isUuidV7, safeStructuredClone, prototype } from '@sovereignbase/utils'
+import { isUuidV7, prototype } from '@sovereignbase/utils'
 import {
   CRListSnapshot,
   CRListReplica,
@@ -11,7 +11,7 @@ import {
 } from '../../../.helpers/index.js'
 
 /**
- * Time:  O(n log n + t)
+ * Time:  O(n log n + t + c)
  * Space: O(n + t)
  */
 export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
@@ -40,7 +40,8 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
   }
 
   /**Hydrate values entry(s)*/
-  if (!Object.hasOwn(snapshot, 'values')) return crListReplica
+  if (!Object.hasOwn(snapshot, 'values') || !Array.isArray(snapshot.values))
+    return crListReplica
   //**BUILD TREE*/
   for (const valueEntry of snapshot.values) {
     const linkedListEntry = snapshotValueToLinkedListValue<T>(

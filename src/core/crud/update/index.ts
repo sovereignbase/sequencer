@@ -4,6 +4,7 @@ import {
   updateEntryToMaps,
   deleteEntryFromMaps,
   walkToIndex,
+  moveEntryToPredecessor,
 } from '../../../.helpers/index.js'
 import { v7 as uuidv7 } from 'uuid'
 import {
@@ -64,15 +65,10 @@ export function __update<T>(
       if (entryToOverwrite.next) {
         entryToOverwrite.next.prev = linkedListEntry
         if (entryToOverwrite.next.predecessor === entryToOverwrite.uuidv7) {
-          const siblings = crListReplica.childrenMap.get(
-            entryToOverwrite.next.predecessor
-          )
-          const siblingIndex = siblings?.indexOf(entryToOverwrite.next) ?? -1
-          if (siblings && siblingIndex !== -1) siblings.splice(siblingIndex, 1)
-          entryToOverwrite.next.predecessor = linkedListEntry.uuidv7
-          void updateEntryToMaps<T>(
+          void moveEntryToPredecessor<T>(
             crListReplica,
             entryToOverwrite.next,
+            linkedListEntry.uuidv7,
             result.delta
           )
         }
@@ -110,11 +106,12 @@ export function __update<T>(
       if (next) {
         next.prev = linkedListEntry
         if (next.predecessor === crListReplica.cursor.uuidv7) {
-          const siblings = crListReplica.childrenMap.get(next.predecessor)
-          const siblingIndex = siblings?.indexOf(next) ?? -1
-          if (siblings && siblingIndex !== -1) siblings.splice(siblingIndex, 1)
-          next.predecessor = linkedListEntry.uuidv7
-          void updateEntryToMaps<T>(crListReplica, next, result.delta)
+          void moveEntryToPredecessor<T>(
+            crListReplica,
+            next,
+            linkedListEntry.uuidv7,
+            result.delta
+          )
         }
       }
       void updateEntryToMaps<T>(crListReplica, linkedListEntry, result.delta)
@@ -144,15 +141,10 @@ export function __update<T>(
       if (prev) prev.next = linkedListEntry
       crListReplica.cursor.prev = linkedListEntry
       if (crListReplica.cursor.predecessor === linkedListEntry.predecessor) {
-        const siblings = crListReplica.childrenMap.get(
-          crListReplica.cursor.predecessor
-        )
-        const siblingIndex = siblings?.indexOf(crListReplica.cursor) ?? -1
-        if (siblings && siblingIndex !== -1) siblings.splice(siblingIndex, 1)
-        crListReplica.cursor.predecessor = linkedListEntry.uuidv7
-        void updateEntryToMaps<T>(
+        void moveEntryToPredecessor<T>(
           crListReplica,
           crListReplica.cursor,
+          linkedListEntry.uuidv7,
           result.delta
         )
       }

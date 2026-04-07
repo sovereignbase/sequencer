@@ -5,3 +5,4 @@ export { snapshotValueToLinkedListValue } from './snapshotValueToLinkedListValue
 export { updateEntryToMaps } from './updateEntryToMaps/index.js'
 export { deleteEntryFromMaps } from './deleteEntryFromMaps/index.js'
 export { deleteLinkedEntry } from './deleteLinkedEntry/index.js'
+export { moveEntryToPredecessor } from './moveEntryToPredecessor/index.js'

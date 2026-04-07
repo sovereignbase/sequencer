@@ -10,6 +10,7 @@ import {
   flattenAndLinkTrustedState,
   assertListIndices,
   deleteLinkedEntry,
+  moveEntryToPredecessor,
 } from '../../../.helpers/index.js'
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
 
@@ -71,11 +72,11 @@ export function __merge<T>(
       )
         continue
       if (existingEntry.predecessor >= valueEntry.predecessor) continue
-      const siblings = crListReplica.childrenMap.get(existingEntry.predecessor)
-      const siblingIndex = siblings?.indexOf(existingEntry) ?? -1
-      if (siblings && siblingIndex !== -1) siblings.splice(siblingIndex, 1)
-      existingEntry.predecessor = valueEntry.predecessor
-      void updateEntryToMaps<T>(crListReplica, existingEntry)
+      void moveEntryToPredecessor<T>(
+        crListReplica,
+        existingEntry,
+        valueEntry.predecessor
+      )
       void newVals.push(existingEntry)
       continue
     }

@@ -1,7 +1,4 @@
-import {
-  deleteLinkedEntry,
-  walkToIndex,
-} from '../../../.helpers/index.js'
+import { deleteLinkedEntry, walkToIndex } from '../../../.helpers/index.js'
 import { CRListError } from '../../../.errors/class.js'
 import type {
   CRListChange,

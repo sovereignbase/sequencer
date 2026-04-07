@@ -22,7 +22,9 @@ export async function runCRListSuite(api, options = {}) {
     const actualJson = JSON.stringify(actual)
     const expectedJson = JSON.stringify(expected)
     if (actualJson !== expectedJson)
-      throw new Error(message || `expected ${actualJson} to equal ${expectedJson}`)
+      throw new Error(
+        message || `expected ${actualJson} to equal ${expectedJson}`
+      )
   }
 
   async function withTimeout(promise, ms, name) {
@@ -179,7 +181,9 @@ export async function runCRListSuite(api, options = {}) {
       api.__merge(replica, deltas[deltaIndex])
       if (deltaIndex % 3 === 0) {
         if (verboseMerges)
-          console.log(`${label}: replay order=${orderIndex} delta=${deltaIndex}`)
+          console.log(
+            `${label}: replay order=${orderIndex} delta=${deltaIndex}`
+          )
         api.__merge(replica, deltas[deltaIndex])
       }
     }
@@ -207,11 +211,15 @@ export async function runCRListSuite(api, options = {}) {
 
   function collectStressDeltas(replicas, rounds) {
     const deltas = []
-    const rand = random(0xC0FFEE)
+    const rand = random(0xc0ffee)
     let serial = 0
 
     for (let round = 0; round < rounds; round++) {
-      for (let replicaIndex = 0; replicaIndex < replicas.length; replicaIndex++) {
+      for (
+        let replicaIndex = 0;
+        replicaIndex < replicas.length;
+        replicaIndex++
+      ) {
         const replica = replicas[replicaIndex]
         const roll = rand()
         const id = `r${replicaIndex}-${round}-${serial++}`
@@ -235,7 +243,8 @@ export async function runCRListSuite(api, options = {}) {
         }
 
         const start = Math.floor(rand() * replica.size)
-        const deleteLength = 1 + Math.floor(rand() * Math.min(3, replica.size - start))
+        const deleteLength =
+          1 + Math.floor(rand() * Math.min(3, replica.size - start))
         deltas.push(applyDelete(replica, start, start + deleteLength).delta)
       }
     }
@@ -270,7 +279,9 @@ export async function runCRListSuite(api, options = {}) {
     assertChangeIds(applyUpdate(replica, 0, 'c', 'before').change, { 0: 'c' })
     assertLiveIds(replica, ['c', 'a', 'b'])
 
-    assertChangeIds(applyUpdate(replica, 1, 'd', 'overwrite').change, { 1: 'd' })
+    assertChangeIds(applyUpdate(replica, 1, 'd', 'overwrite').change, {
+      1: 'd',
+    })
     assertLiveIds(replica, ['c', 'd', 'b'])
 
     assertChangeIds(applyDelete(replica, 1, 3).change, {
@@ -292,81 +303,105 @@ export async function runCRListSuite(api, options = {}) {
       tombstones: shuffled(snapshot.tombstones, 456),
     })
 
-    assertJsonEqual(liveIds(rebuilt), liveIds(replica), 'snapshot order changed live view')
+    assertJsonEqual(
+      liveIds(rebuilt),
+      liveIds(replica),
+      'snapshot order changed live view'
+    )
   })
 
-  await runTest('merge is idempotent for duplicate insert and delete deltas', () => {
-    const source = api.__create()
-    const target = api.__create()
+  await runTest(
+    'merge is idempotent for duplicate insert and delete deltas',
+    () => {
+      const source = api.__create()
+      const target = api.__create()
 
-    const insert = applyUpdate(source, 0, 'inserted', 'after').delta
-    assertChangeIds(api.__merge(target, insert), { 0: 'inserted' })
-    assertEqual(api.__merge(target, insert), false, 'duplicate insert changed target')
-    assertLiveIds(target, ['inserted'])
+      const insert = applyUpdate(source, 0, 'inserted', 'after').delta
+      assertChangeIds(api.__merge(target, insert), { 0: 'inserted' })
+      assertEqual(
+        api.__merge(target, insert),
+        false,
+        'duplicate insert changed target'
+      )
+      assertLiveIds(target, ['inserted'])
 
-    const remove = applyDelete(source, 0, 1).delta
-    assertChangeIds(api.__merge(target, remove), { 0: undefined })
-    assertEqual(api.__merge(target, remove), false, 'duplicate delete changed target')
-    assertLiveIds(target, [])
-  })
+      const remove = applyDelete(source, 0, 1).delta
+      assertChangeIds(api.__merge(target, remove), { 0: undefined })
+      assertEqual(
+        api.__merge(target, remove),
+        false,
+        'duplicate delete changed target'
+      )
+      assertLiveIds(target, [])
+    }
+  )
 
   if (includeStress) {
-    await runTest('replicas converge after shuffled async delta delivery', () => {
-      const base = seededReplica(6)
-      const replicas = Array.from({ length: 5 }, () => cloneReplica(base))
-      const deltas = collectStressDeltas(replicas, stressRounds)
+    await runTest(
+      'replicas converge after shuffled async delta delivery',
+      () => {
+        const base = seededReplica(6)
+        const replicas = Array.from({ length: 5 }, () => cloneReplica(base))
+        const deltas = collectStressDeltas(replicas, stressRounds)
 
-      for (let index = 0; index < replicas.length; index++) {
-        mergeDeltas(replicas[index], deltas, 10_000 + index, {
-          label: `replica-${index}`,
-          verboseMerges: verbose,
-        })
+        for (let index = 0; index < replicas.length; index++) {
+          mergeDeltas(replicas[index], deltas, 10_000 + index, {
+            label: `replica-${index}`,
+            verboseMerges: verbose,
+          })
+        }
+
+        assertReplicasConverged(replicas)
       }
+    )
 
-      assertReplicasConverged(replicas)
-    })
+    await runTest(
+      'replicas converge across shuffled delivery with restarts',
+      () => {
+        const base = seededReplica(6)
+        const replicas = Array.from({ length: 5 }, () => cloneReplica(base))
+        const deltas = collectStressDeltas(replicas, stressRounds)
+        const restartedReplicas = replicas.map((replica, index) =>
+          mergeDeltasWithRestarts(replica, deltas, 20_000 + index, {
+            label: `restart-replica-${index}`,
+            verboseMerges: verbose,
+          })
+        )
 
-    await runTest('replicas converge across shuffled delivery with restarts', () => {
-      const base = seededReplica(6)
-      const replicas = Array.from({ length: 5 }, () => cloneReplica(base))
-      const deltas = collectStressDeltas(replicas, stressRounds)
-      const restartedReplicas = replicas.map((replica, index) =>
-        mergeDeltasWithRestarts(replica, deltas, 20_000 + index, {
-          label: `restart-replica-${index}`,
-          verboseMerges: verbose,
-        })
-      )
+        assertReplicasConverged(restartedReplicas)
+      }
+    )
 
-      assertReplicasConverged(restartedReplicas)
-    })
+    await runTest(
+      'concurrent insert after concurrently deleted predecessor converges',
+      () => {
+        const base = seededReplica(1)
+        const deleteFirst = cloneReplica(base)
+        const insertAfterFirst = cloneReplica(base)
+        const deleteThenInsert = cloneReplica(base)
+        const insertThenDelete = cloneReplica(base)
 
-    await runTest('concurrent insert after concurrently deleted predecessor converges', () => {
-      const base = seededReplica(1)
-      const deleteFirst = cloneReplica(base)
-      const insertAfterFirst = cloneReplica(base)
-      const deleteThenInsert = cloneReplica(base)
-      const insertThenDelete = cloneReplica(base)
+        const deleteDelta = applyDelete(deleteFirst, 0, 1).delta
+        const insertDelta = applyUpdate(
+          insertAfterFirst,
+          0,
+          'after-deleted',
+          'after'
+        ).delta
 
-      const deleteDelta = applyDelete(deleteFirst, 0, 1).delta
-      const insertDelta = applyUpdate(
-        insertAfterFirst,
-        0,
-        'after-deleted',
-        'after'
-      ).delta
+        api.__merge(deleteThenInsert, deleteDelta)
+        api.__merge(deleteThenInsert, insertDelta)
 
-      api.__merge(deleteThenInsert, deleteDelta)
-      api.__merge(deleteThenInsert, insertDelta)
+        api.__merge(insertThenDelete, insertDelta)
+        api.__merge(insertThenDelete, deleteDelta)
 
-      api.__merge(insertThenDelete, insertDelta)
-      api.__merge(insertThenDelete, deleteDelta)
-
-      assertJsonEqual(
-        liveIds(deleteThenInsert),
-        liveIds(insertThenDelete),
-        'delta order changed live view'
-      )
-    })
+        assertJsonEqual(
+          liveIds(deleteThenInsert),
+          liveIds(insertThenDelete),
+          'delta order changed live view'
+        )
+      }
+    )
   }
 
   return results

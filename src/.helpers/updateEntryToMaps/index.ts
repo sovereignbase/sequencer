@@ -9,12 +9,14 @@ export function updateEntryToMaps<T>(
   deltaBuf?: CRListDelta<T>
 ): void {
   crListReplica.parentMap.set(linkedListEntry.uuidv7, linkedListEntry)
-  if (!crListReplica.childrenMap.has(linkedListEntry.predecessor)) {
-    crListReplica.childrenMap.set(linkedListEntry.predecessor, [])
+  const siblings = crListReplica.childrenMap.get(linkedListEntry.predecessor)
+  if (siblings) {
+    siblings.push(linkedListEntry)
+  } else {
+    crListReplica.childrenMap.set(linkedListEntry.predecessor, [
+      linkedListEntry,
+    ])
   }
-  crListReplica.childrenMap
-    .get(linkedListEntry.predecessor)
-    ?.push(linkedListEntry)
   if (deltaBuf && !Array.isArray(deltaBuf.values)) deltaBuf.values = []
   if (deltaBuf?.values)
     deltaBuf.values.push({

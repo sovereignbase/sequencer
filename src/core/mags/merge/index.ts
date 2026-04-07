@@ -15,7 +15,8 @@ import {
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
 
 /**
- * Time complexity: O(n log n + v + t + m*k + c), worst case O(n log n + (v + t)n + c)
+ * Time complexity: O(v + t + c) for tail-append deltas; otherwise O(n log n + v + t + m*k + c)
+ * Worst case: O(n log n + (v + t)n + c)
  * - n = replica value entry count after merge
  * - v = delta value entry count
  * - t = delta tombstone count
@@ -33,6 +34,7 @@ export function __merge<T>(
   const newVals: Array<NonNullable<DoublyLinkedListEntry<T>>> = []
   const newTombsIndices: Array<number> = []
   const change: CRListChange<T> = {}
+  let needsRelink = false
 
   /**Fill tombstones entry(s)*/
   if (
@@ -47,6 +49,7 @@ export function __merge<T>(
       if (linkedListEntry) {
         void newTombsIndices.push(linkedListEntry.index)
         void deleteLinkedEntry<T>(crListReplica, linkedListEntry)
+        needsRelink = true
       }
     }
   }
@@ -78,6 +81,7 @@ export function __merge<T>(
         existingEntry,
         valueEntry.predecessor
       )
+      needsRelink = true
       void newVals.push(existingEntry)
       continue
     }
@@ -86,13 +90,35 @@ export function __merge<T>(
       crListReplica
     )
     if (!linkedListEntry) continue
-    void newVals.push(linkedListEntry)
+    const predecessor =
+      linkedListEntry.predecessor === '\0'
+        ? undefined
+        : crListReplica.parentMap.get(linkedListEntry.predecessor)
     void updateEntryToMaps<T>(crListReplica, linkedListEntry)
+    void newVals.push(linkedListEntry)
+    if (!needsRelink && linkedListEntry.predecessor === '\0') {
+      if (crListReplica.size === 0) {
+        crListReplica.cursor = linkedListEntry
+        crListReplica.size = crListReplica.parentMap.size
+      } else {
+        needsRelink = true
+      }
+    } else if (!needsRelink && predecessor && !predecessor.next) {
+      linkedListEntry.prev = predecessor
+      linkedListEntry.index = predecessor.index + 1
+      predecessor.next = linkedListEntry
+      crListReplica.cursor = linkedListEntry
+      crListReplica.size = crListReplica.parentMap.size
+    } else {
+      needsRelink = true
+    }
   }
-  //**flatten tree in to doubly linked list */
-  void flattenAndLinkTrustedState<T>(crListReplica)
-  //**write indices*/
-  void assertListIndices<T>(crListReplica)
+  if (needsRelink) {
+    //**flatten tree in to doubly linked list */
+    void flattenAndLinkTrustedState<T>(crListReplica)
+    //**write indices*/
+    void assertListIndices<T>(crListReplica)
+  }
 
   if (newTombsIndices.length === 0 && newVals.length === 0) return false
 

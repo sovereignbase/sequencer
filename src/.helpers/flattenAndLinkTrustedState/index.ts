@@ -53,10 +53,28 @@ export function flattenAndLinkTrustedState<T>(
 
     if (!siblings) continue
 
-    siblings.sort((a, b) => a.uuidv7.localeCompare(b.uuidv7))
+    if (siblings.length > 1)
+      siblings.sort((a, b) => a.uuidv7.localeCompare(b.uuidv7))
 
     let prev: DoublyLinkedListEntry<T> = predecessor
     const predecessorNext = prev?.next
+    if (siblings.length === 1) {
+      const sibling = siblings[0]
+      insertBetween<T>(prev, sibling, sibling.next)
+      prev = sibling
+      while (prev.next && prev.next !== sibling) {
+        prev = prev.next
+      }
+      if (predecessorNext && predecessorNext !== sibling) {
+        prev.next = predecessorNext
+        predecessorNext.prev = prev
+      } else {
+        prev.next = undefined
+      }
+      resolvedSiblingPredecessors.add(predecessorIdentifier)
+      crListReplica.cursor = entry
+      continue
+    }
     const siblingSet = new Set(siblings)
     for (let index = 0; index < siblings.length; index++) {
       const sibling = siblings[index]

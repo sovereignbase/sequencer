@@ -2,6 +2,7 @@ import type {
   CRListChange,
   CRListDelta,
   CRListReplica,
+  DoublyLinkedListEntry,
 } from '../../../.types/index.js'
 import {
   snapshotValueToLinkedListValue,
@@ -27,8 +28,8 @@ export function __merge<T>(
   crListDelta: CRListDelta<T>
 ): CRListChange<T> | false {
   if (!crListDelta || prototype(crListDelta) !== 'record') return false
-  const newVals = []
-  const newTombsIndices = []
+  const newVals: Array<NonNullable<DoublyLinkedListEntry<T>>> = []
+  const newTombsIndices: Array<number> = []
   const change: CRListChange<T> = {}
 
   /**Fill tombstones entry(s)*/

@@ -8,7 +8,6 @@ import {
   updateEntryToMaps,
   flattenAndLinkTrustedState,
   assertListIndices,
-  walkToIndex,
   deleteLinkedEntry,
 } from '../../../.helpers/index.js'
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
@@ -54,8 +53,14 @@ export function __merge<T>(
   if (
     !Object.hasOwn(crListDelta, 'values') ||
     !Array.isArray(crListDelta.values)
-  )
-    return false
+  ) {
+    if (newTombsIndices.length === 0) return false
+    void assertListIndices<T>(crListReplica)
+    for (const index of newTombsIndices) {
+      change[index] = undefined
+    }
+    return change
+  }
   //**attach valid ones to tree*/
   for (const valueEntry of crListDelta.values) {
     const linkedListEntry = snapshotValueToLinkedListValue<T>(
@@ -70,6 +75,8 @@ export function __merge<T>(
   void flattenAndLinkTrustedState<T>(crListReplica)
   //**write indices*/
   void assertListIndices<T>(crListReplica)
+
+  if (newTombsIndices.length === 0 && newVals.length === 0) return false
 
   for (const index of newTombsIndices) {
     change[index] = undefined

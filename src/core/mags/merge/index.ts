@@ -29,7 +29,8 @@ export function __merge<T>(
   crListDelta: CRListDelta<T>
 ): CRListChange<T> | false {
   if (!crListDelta || prototype(crListDelta) !== 'record') return false
-
+  const newVals = []
+  const newTombsIndices = []
   const change: CRListChange<T> = {}
 
   /**Fill tombstones entry(s)*/
@@ -42,8 +43,10 @@ export function __merge<T>(
         continue
       crListReplica.tombstones.add(tombstone)
       const linkedListEntry = crListReplica.parentMap.get(tombstone)
-      if (linkedListEntry)
+      if (linkedListEntry) {
+        void newTombsIndices.push(linkedListEntry.index)
         void deleteLinkedEntry<T>(crListReplica, linkedListEntry)
+      }
     }
   }
 
@@ -60,12 +63,20 @@ export function __merge<T>(
       crListReplica
     )
     if (!linkedListEntry) continue
+    void newVals.push(linkedListEntry)
     void updateEntryToMaps<T>(crListReplica, linkedListEntry)
   }
   //**flatten tree in to doubly linked list */
   void flattenAndLinkTrustedState<T>(crListReplica)
   //**write indices*/
   void assertListIndices<T>(crListReplica)
+
+  for (const index of newTombsIndices) {
+    change[index] = undefined
+  }
+  for (const val of newVals) {
+    change[val.index] = val.value
+  }
 
   return change
 }

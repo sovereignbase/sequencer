@@ -12,6 +12,15 @@ import {
 } from '../../../.helpers/index.js'
 
 /**
+ * Creates a local CRList replica from an optional snapshot.
+ *
+ * Invalid snapshot records are ignored. Accepted values are cloned, indexed by
+ * UUIDv7, linked through their predecessor buckets, and exposed as a live
+ * doubly-linked list.
+ *
+ * @param snapshot Optional serializable CRList state.
+ * @returns A hydrated CRList replica.
+ *
  * Time complexity: O(n log n + t + c), worst case O(n log n + t + c)
  * - n = snapshot value entry count
  * - t = snapshot tombstone count

@@ -15,6 +15,18 @@ import {
   DoublyLinkedListEntry,
 } from '../../../.types/index.js'
 /**
+ * Applies a local value mutation to the replica live view.
+ *
+ * The update can replace the target entry, insert before it, or insert after it.
+ * The returned delta is suitable for gossip, and the returned change is a
+ * minimal UI patch for the local mutation.
+ *
+ * @param listIndex Target index in the live list.
+ * @param listValue Value to insert or overwrite.
+ * @param crListReplica Replica to mutate.
+ * @param mode Mutation mode relative to `listIndex`.
+ * @returns A local change and gossip delta, or `false` if no mutation occurred.
+ *
  * Time complexity: O(d + r + k + c), worst case O(n + c)
  * - d = distance from cursor to target index
  * - r = amount of nodes after the inserted node whose indexes must be shifted

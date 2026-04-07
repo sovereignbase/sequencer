@@ -15,11 +15,22 @@ import {
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
 
 /**
- * Time complexity: O(v + t + c) for tail-append deltas; otherwise O(n log n + v + t + m*k + c)
+ * Merges a remote CRList delta into the local replica.
+ *
+ * Accepted tombstones update the local live view and accepted values are attached
+ * to the predecessor tree. Tail-append deltas are linked incrementally; deltas
+ * that can affect ordering fall back to deterministic relinking.
+ *
+ * @param crListReplica Replica to mutate.
+ * @param crListDelta Remote gossip delta.
+ * @returns A minimal local change patch, or `false` when the delta is ignored.
+ *
+ * Time complexity: O(v + t + c) for tail-append deltas; O(n + t + qk) for tombstone-only deletes; otherwise O(n log n + v + t + m*k + c)
  * Worst case: O(n log n + (v + t)n + c)
  * - n = replica value entry count after merge
  * - v = delta value entry count
  * - t = delta tombstone count
+ * - q = amount of live entries deleted by tombstones
  * - m = entries moved between predecessor buckets
  * - k = sibling bucket size when entries are removed from buckets
  * - c = cloned delta value payload size

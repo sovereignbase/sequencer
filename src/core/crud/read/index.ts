@@ -2,6 +2,15 @@ import { walkToIndex } from '../../../.helpers/index.js'
 import { CRListReplica } from '../../../.types/index.js'
 
 /**
+ * Reads the value at an index in the replica live view.
+ *
+ * The replica cursor is moved as part of the lookup. Out-of-bounds and empty
+ * list reads resolve to `undefined` instead of throwing.
+ *
+ * @param targetIndex Index in the live list.
+ * @param crListReplica Replica to read from.
+ * @returns The value at `targetIndex`, or `undefined` when no value is present.
+ *
  * Time complexity: O(d), worst case O(n)
  * - d = distance from cursor to target index
  * - n = list size

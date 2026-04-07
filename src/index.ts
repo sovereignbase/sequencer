@@ -5,3 +5,11 @@ export {
   __garbageCollect,
   __snapshot,
 } from './core/mags/index.js'
+export type {
+  CRListAck,
+  CRListChange,
+  CRListDelta,
+  CRListReplica,
+  CRListSnapshot,
+} from './.types/index.js'
+export type { CRListErrorCode } from './.errors/class.js'

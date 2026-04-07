@@ -18,16 +18,19 @@ export function deleteLinkedEntry<T>(
   if (prev) prev.next = next
   if (next) {
     next.prev = prev
-    if (next.predecessor === linkedListEntry.uuidv7) {
-      const siblings = crListReplica.childrenMap.get(next.predecessor)
-      const siblingIndex = siblings?.indexOf(next) ?? -1
-      if (siblings && siblingIndex !== -1) siblings.splice(siblingIndex, 1)
-      next.predecessor = prev?.uuidv7 ?? '\0'
-      if (!crListReplica.childrenMap.has(next.predecessor)) {
-        crListReplica.childrenMap.set(next.predecessor, [])
-      }
-      crListReplica.childrenMap.get(next.predecessor)?.push(next)
+  }
+  const children = crListReplica.childrenMap.get(linkedListEntry.uuidv7)
+  if (children) {
+    const predecessor = prev?.uuidv7 ?? '\0'
+    if (!crListReplica.childrenMap.has(predecessor)) {
+      crListReplica.childrenMap.set(predecessor, [])
     }
+    const siblings = crListReplica.childrenMap.get(predecessor)
+    for (const child of children) {
+      child.predecessor = predecessor
+      siblings?.push(child)
+    }
+    crListReplica.childrenMap.delete(linkedListEntry.uuidv7)
   }
   void deleteEntryFromMaps<T>(crListReplica, linkedListEntry)
   if (crListReplica.cursor === linkedListEntry)

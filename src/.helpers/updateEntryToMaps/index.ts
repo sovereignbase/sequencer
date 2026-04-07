@@ -2,7 +2,7 @@ import type {
   CRListReplica,
   DoublyLinkedListEntry,
 } from '../../.types/index.js'
-export function writeTrustedEntryToMaps<T>(
+export function updateEntryToMaps<T>(
   crListReplica: CRListReplica<T>,
   linkedListEntry: NonNullable<DoublyLinkedListEntry<T>>
 ): void {

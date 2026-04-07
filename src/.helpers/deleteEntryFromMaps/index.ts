@@ -10,5 +10,5 @@ export function deleteEntryFromMaps<T>(
   const siblings = crListReplica.childrenMap.get(linkedListEntry.predecessor)
   if (!Array.isArray(siblings)) return
   const index = siblings.indexOf(linkedListEntry)
-  siblings.splice(index, index)
+  if (index !== -1) siblings.splice(index, 1)
 }

@@ -2,6 +2,7 @@ import type {
   CRListChange,
   CRListDelta,
   CRListReplica,
+  DoublyLinkedListEntry,
 } from '../../../.types/index.js'
 import {
   snapshotValueToLinkedListValue,
@@ -9,6 +10,7 @@ import {
   flattenAndLinkTrustedState,
   assertListIndices,
   walkToIndex,
+  deleteEntryFromMaps,
 } from '../../../.helpers/index.js'
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
 
@@ -39,6 +41,14 @@ export function __merge<T>(
       if (crListReplica.tombstones.has(tombstone) || !isUuidV7(tombstone))
         continue
       crListReplica.tombstones.add(tombstone)
+      if (crListReplica.parentMap.has(tombstone)) {
+        void deleteEntryFromMaps<T>(
+          crListReplica,
+          crListReplica.parentMap.get(tombstone) as NonNullable<
+            DoublyLinkedListEntry<T>
+          >
+        )
+      }
     }
   }
 

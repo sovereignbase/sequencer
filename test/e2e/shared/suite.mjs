@@ -1,35 +1,8 @@
-const TEST_TIMEOUT_MS = 5000
-const COMPRESS_TIMEOUT_MS = 1500
+const TEST_TIMEOUT_MS = 10_000
 
-export async function runBytecodecSuite(api, options = {}) {
-  const { label = 'runtime' } = options
-  const runtimeGlobals = options.runtimeGlobals ?? globalThis
+export async function runCRListSuite(api, options = {}) {
+  const { label = 'runtime', stressRounds = 24, includeStress = true } = options
   const results = { label, ok: true, errors: [], tests: [] }
-  /** update to current package */
-  const {
-    Bytes,
-    concat,
-    equals,
-    fromBase64String,
-    fromBase64UrlString,
-    fromCompressed,
-    fromBigInt,
-    fromHex,
-    fromJSON,
-    fromString,
-    fromZ85String,
-    toArrayBuffer,
-    toBase64String,
-    toBase64UrlString,
-    toBigInt,
-    toBufferSource,
-    toCompressed,
-    toHex,
-    toJSON,
-    toString,
-    toUint8Array,
-    toZ85String,
-  } = api
 
   function assert(condition, message) {
     if (!condition) throw new Error(message || 'assertion failed')
@@ -40,44 +13,11 @@ export async function runBytecodecSuite(api, options = {}) {
       throw new Error(message || `expected ${actual} to equal ${expected}`)
   }
 
-  function assertArrayEqual(actual, expected, message) {
-    const actualArray = Array.from(actual)
-    if (actualArray.length !== expected.length)
-      throw new Error(message || 'array length mismatch')
-    for (let index = 0; index < expected.length; index++) {
-      if (actualArray[index] !== expected[index])
-        throw new Error(message || 'array content mismatch')
-    }
-  }
-
   function assertJsonEqual(actual, expected, message) {
-    assertEqual(
-      JSON.stringify(actual),
-      JSON.stringify(expected),
-      message || 'json mismatch'
-    )
-  }
-
-  function assertThrows(fn, match) {
-    let threw = false
-    try {
-      fn()
-    } catch (error) {
-      threw = true
-      if (match && !match.test(String(error))) throw error
-    }
-    if (!threw) throw new Error('expected function to throw')
-  }
-
-  async function assertRejects(fn, match) {
-    let threw = false
-    try {
-      await fn()
-    } catch (error) {
-      threw = true
-      if (match && !match.test(String(error))) throw error
-    }
-    if (!threw) throw new Error('expected promise to reject')
+    const actualJson = JSON.stringify(actual)
+    const expectedJson = JSON.stringify(expected)
+    if (actualJson !== expectedJson)
+      throw new Error(message || `expected ${actualJson} to equal ${expectedJson}`)
   }
 
   async function withTimeout(promise, ms, name) {
@@ -101,289 +41,261 @@ export async function runBytecodecSuite(api, options = {}) {
     }
   }
 
-  function isNodeLikeRuntime() {
-    return (
-      typeof runtimeGlobals.process !== 'undefined' &&
-      !!runtimeGlobals.process?.versions?.node
+  function value(id) {
+    return { id, payload: { text: `value:${id}` } }
+  }
+
+  function valueIds(values) {
+    return values.map((entry) => entry?.id)
+  }
+
+  function liveView(replica) {
+    const view = []
+    for (let index = 0; index < replica.size; index++) {
+      view.push(api.__read(index, replica))
+    }
+    return view
+  }
+
+  function liveIds(replica) {
+    return valueIds(liveView(replica))
+  }
+
+  function assertLiveIds(replica, expected, message) {
+    assertJsonEqual(liveIds(replica), expected, message)
+  }
+
+  function assertChangeIds(change, expected) {
+    assertJsonEqual(
+      Object.keys(change).sort((a, b) => Number(a) - Number(b)),
+      Object.keys(expected).sort((a, b) => Number(a) - Number(b)),
+      'change keys mismatch'
+    )
+    for (const [key, expectedValue] of Object.entries(expected)) {
+      assert(Object.hasOwn(change, key), `change missing key ${key}`)
+      const actualValue = change[key]
+      if (expectedValue === undefined) {
+        assert(actualValue === undefined, `expected change[${key}] undefined`)
+      } else {
+        assertEqual(actualValue?.id, expectedValue, `change[${key}] mismatch`)
+      }
+    }
+  }
+
+  function applyUpdate(replica, index, id, mode) {
+    const result = api.__update(index, value(id), replica, mode)
+    assert(result, `update returned false for ${mode}:${index}:${id}`)
+    return result
+  }
+
+  function applyDelete(replica, start, end) {
+    const result = api.__delete(replica, start, end)
+    assert(result, `delete returned false for ${start}:${end}`)
+    return result
+  }
+
+  function cloneReplica(replica) {
+    return api.__create(api.__snapshot(replica))
+  }
+
+  function seededReplica(size) {
+    const replica = api.__create()
+    for (let index = 0; index < size; index++) {
+      applyUpdate(replica, replica.size, `base-${index}`, 'after')
+    }
+    return replica
+  }
+
+  function random(seed) {
+    let state = seed >>> 0
+    return () => {
+      state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0
+      return state / 0x1_0000_0000
+    }
+  }
+
+  function shuffled(values, seed) {
+    const next = values.slice()
+    const rand = random(seed)
+    for (let index = next.length - 1; index > 0; index--) {
+      const other = Math.floor(rand() * (index + 1))
+      ;[next[index], next[other]] = [next[other], next[index]]
+    }
+    return next
+  }
+
+  function shuffledIndices(length, seed) {
+    return shuffled(
+      Array.from({ length }, (_, index) => index),
+      seed
     )
   }
 
-  const base64Payload = Uint8Array.from([104, 101, 108, 108, 111])
-  const utf8Text = 'h\u00e9llo \u2713 rocket \ud83d\ude80'
-  const jsonValue = { ok: true, count: 3, list: ['x', { y: 1 }], nil: null }
-  const compressionPayload = fromString('compress me please')
+  function assertReplicasConverged(replicas) {
+    const expected = liveIds(replicas[0])
+    for (let index = 1; index < replicas.length; index++) {
+      assertJsonEqual(
+        liveIds(replicas[index]),
+        expected,
+        `replica ${index} diverged`
+      )
+    }
+  }
+
+  function mergeDeltas(replica, deltas, seed) {
+    const order = shuffledIndices(deltas.length, seed)
+    for (const deltaIndex of order) {
+      api.__merge(replica, deltas[deltaIndex])
+      if (deltaIndex % 3 === 0) api.__merge(replica, deltas[deltaIndex])
+    }
+  }
+
+  function collectStressDeltas(replicas, rounds) {
+    const deltas = []
+    const rand = random(0xC0FFEE)
+    let serial = 0
+
+    for (let round = 0; round < rounds; round++) {
+      for (let replicaIndex = 0; replicaIndex < replicas.length; replicaIndex++) {
+        const replica = replicas[replicaIndex]
+        const roll = rand()
+        const id = `r${replicaIndex}-${round}-${serial++}`
+
+        if (replica.size === 0 || roll < 0.42) {
+          const mode = replica.size === 0 || rand() < 0.5 ? 'after' : 'before'
+          const index =
+            replica.size === 0
+              ? 0
+              : mode === 'after'
+                ? Math.floor(rand() * (replica.size + 1))
+                : Math.floor(rand() * replica.size)
+          deltas.push(applyUpdate(replica, index, id, mode).delta)
+          continue
+        }
+
+        if (roll < 0.7) {
+          const index = Math.floor(rand() * replica.size)
+          deltas.push(applyUpdate(replica, index, id, 'overwrite').delta)
+          continue
+        }
+
+        const start = Math.floor(rand() * replica.size)
+        const deleteLength = 1 + Math.floor(rand() * Math.min(3, replica.size - start))
+        deltas.push(applyDelete(replica, start, start + deleteLength).delta)
+      }
+    }
+
+    return deltas
+  }
 
   await runTest('exports shape', () => {
-    assert(typeof Bytes === 'function', 'Bytes export missing')
-    for (const fn of [
-      fromBase64String,
-      toBase64String,
-      fromBase64UrlString,
-      toBase64UrlString,
-      fromHex,
-      toHex,
-      fromZ85String,
-      toZ85String,
-      fromString,
-      toString,
-      fromBigInt,
-      toBigInt,
-      fromJSON,
-      toJSON,
-      toCompressed,
-      fromCompressed,
-      toBufferSource,
-      toArrayBuffer,
-      toUint8Array,
-      concat,
-      equals,
+    for (const name of [
+      '__create',
+      '__read',
+      '__update',
+      '__delete',
+      '__merge',
+      '__snapshot',
+      '__acknowledge',
+      '__garbageCollect',
     ]) {
-      assert(typeof fn === 'function', 'expected function export')
+      assert(typeof api[name] === 'function', `missing ${name}`)
     }
   })
 
-  await runTest('toBase64String', () => {
-    const encoded = toBase64String(base64Payload)
-    assertEqual(encoded, 'aGVsbG8=')
+  await runTest('crud live view and minimum change semantics', () => {
+    const replica = api.__create()
 
-    const view = new DataView(base64Payload.buffer, 1, 3)
-    assertEqual(toBase64String(view), 'ZWxs')
+    assertChangeIds(applyUpdate(replica, 0, 'a', 'after').change, { 0: 'a' })
+    assertLiveIds(replica, ['a'])
+
+    assertChangeIds(applyUpdate(replica, 0, 'b', 'after').change, { 1: 'b' })
+    assertLiveIds(replica, ['a', 'b'])
+
+    assertChangeIds(applyUpdate(replica, 0, 'c', 'before').change, { 0: 'c' })
+    assertLiveIds(replica, ['c', 'a', 'b'])
+
+    assertChangeIds(applyUpdate(replica, 1, 'd', 'overwrite').change, { 1: 'd' })
+    assertLiveIds(replica, ['c', 'd', 'b'])
+
+    assertChangeIds(applyDelete(replica, 1, 3).change, {
+      1: undefined,
+      2: undefined,
+    })
+    assertLiveIds(replica, ['c'])
   })
 
-  await runTest('fromBase64String', () => {
-    const decoded = fromBase64String('aGVsbG8=')
-    assertArrayEqual(decoded, base64Payload)
+  await runTest('snapshot hydrate is independent of value order', () => {
+    const replica = seededReplica(8)
+    applyUpdate(replica, 2, 'before-2', 'before')
+    applyUpdate(replica, 4, 'after-4', 'after')
+    applyUpdate(replica, 3, 'overwrite-3', 'overwrite')
+
+    const snapshot = api.__snapshot(replica)
+    const rebuilt = api.__create({
+      values: shuffled(snapshot.values, 123),
+      tombstones: shuffled(snapshot.tombstones, 456),
+    })
+
+    assertJsonEqual(liveIds(rebuilt), liveIds(replica), 'snapshot order changed live view')
   })
 
-  await runTest('toBase64UrlString', () => {
-    const encoded = toBase64UrlString(base64Payload)
-    assertEqual(encoded, 'aGVsbG8')
+  await runTest('merge is idempotent for duplicate insert and delete deltas', () => {
+    const source = api.__create()
+    const target = api.__create()
+
+    const insert = applyUpdate(source, 0, 'inserted', 'after').delta
+    assertChangeIds(api.__merge(target, insert), { 0: 'inserted' })
+    assertEqual(api.__merge(target, insert), false, 'duplicate insert changed target')
+    assertLiveIds(target, ['inserted'])
+
+    const remove = applyDelete(source, 0, 1).delta
+    assertChangeIds(api.__merge(target, remove), { 0: undefined })
+    assertEqual(api.__merge(target, remove), false, 'duplicate delete changed target')
+    assertLiveIds(target, [])
   })
 
-  await runTest('fromBase64UrlString', () => {
-    const decoded = fromBase64UrlString('aGVsbG8')
-    assertArrayEqual(decoded, base64Payload)
-    assertThrows(() => fromBase64UrlString('a'), /Invalid base64url length/)
-  })
+  if (includeStress) {
+    await runTest('replicas converge after shuffled async delta delivery', () => {
+      const base = seededReplica(6)
+      const replicas = Array.from({ length: 5 }, () => cloneReplica(base))
+      const deltas = collectStressDeltas(replicas, stressRounds)
 
-  await runTest('toHex', () => {
-    assertEqual(toHex(base64Payload), '68656c6c6f')
+      for (let index = 0; index < replicas.length; index++) {
+        mergeDeltas(replicas[index], deltas, 10_000 + index)
+      }
 
-    const view = new DataView(base64Payload.buffer, 1, 3)
-    assertEqual(toHex(view), '656c6c')
-  })
+      assertReplicasConverged(replicas)
+    })
 
-  await runTest('fromHex', () => {
-    const decoded = fromHex('68656C6C6F')
-    assertArrayEqual(decoded, base64Payload)
-    assertThrows(() => fromHex('6g'), /Invalid hex character at index 1/)
-  })
+    await runTest('concurrent insert after concurrently deleted predecessor converges', () => {
+      const base = seededReplica(1)
+      const deleteFirst = cloneReplica(base)
+      const insertAfterFirst = cloneReplica(base)
+      const deleteThenInsert = cloneReplica(base)
+      const insertThenDelete = cloneReplica(base)
 
-  await runTest('toZ85String', () => {
-    const payload = Uint8Array.from([
-      0x86, 0x4f, 0xd2, 0x6f, 0xb5, 0x59, 0xf7, 0x5b,
-    ])
-    assertEqual(toZ85String(payload), 'HelloWorld')
-    assertThrows(
-      () => toZ85String(base64Payload),
-      /Z85 input length must be divisible by 4/
-    )
-  })
+      const deleteDelta = applyDelete(deleteFirst, 0, 1).delta
+      const insertDelta = applyUpdate(
+        insertAfterFirst,
+        0,
+        'after-deleted',
+        'after'
+      ).delta
 
-  await runTest('fromZ85String', () => {
-    const decoded = fromZ85String('HelloWorld')
-    assertArrayEqual(decoded, [0x86, 0x4f, 0xd2, 0x6f, 0xb5, 0x59, 0xf7, 0x5b])
-    assertThrows(
-      () => fromZ85String('Hell~'),
-      /Invalid Z85 character at index 4/
-    )
-  })
+      api.__merge(deleteThenInsert, deleteDelta)
+      api.__merge(deleteThenInsert, insertDelta)
 
-  await runTest('fromString', () => {
-    const bytes = fromString(utf8Text)
-    assertEqual(toString(bytes), utf8Text)
-  })
+      api.__merge(insertThenDelete, insertDelta)
+      api.__merge(insertThenDelete, deleteDelta)
 
-  await runTest('toString', () => {
-    const ascii = fromString('abcd')
-    const text = toString(ascii)
-    assertEqual(text, 'abcd')
-
-    const bytes = fromString(utf8Text)
-    assertEqual(toString(bytes), utf8Text)
-
-    const view = new DataView(ascii.buffer, 1, 2)
-    assertEqual(toString(view), 'bc')
-  })
-
-  await runTest('bigint helpers', () => {
-    const value = 0x1234567890abcdefn
-    const encoded = fromBigInt(value)
-    assertArrayEqual(encoded, [0x12, 0x34, 0x56, 0x78, 0x90, 0xab, 0xcd, 0xef])
-    assertEqual(toBigInt(encoded), value)
-    assertEqual(toBigInt([]), 0n)
-    assertThrows(() => fromBigInt(-1n), /expects an unsigned bigint/)
-  })
-
-  await runTest('fromJSON', () => {
-    const bytes = fromJSON(jsonValue)
-    assertJsonEqual(toJSON(bytes), jsonValue)
-  })
-
-  await runTest('toJSON', () => {
-    assertJsonEqual(
-      toJSON('{"ok":true,"count":3,"list":["x",{"y":1}],"nil":null}'),
-      jsonValue
-    )
-  })
-
-  await runTest('toUint8Array', () => {
-    const source = new Uint8Array([10, 20, 30, 40])
-    const view = new DataView(source.buffer, 1, 2)
-    const normalized = toUint8Array(view)
-    source[1] = 99
-    source[2] = 88
-
-    assertArrayEqual(normalized, [20, 30])
-  })
-
-  await runTest('toArrayBuffer', () => {
-    const source = new Uint8Array([10, 20, 30, 40])
-    const view = new DataView(source.buffer, 1, 2)
-    const copiedBuffer = toArrayBuffer(view)
-    source[1] = 99
-    source[2] = 88
-    assertArrayEqual(new Uint8Array(copiedBuffer), [20, 30])
-  })
-
-  await runTest('toBufferSource', () => {
-    const source = new Uint8Array([10, 20, 30, 40])
-    const view = new DataView(source.buffer, 1, 2)
-    const bufferSource = toBufferSource(view)
-    source[1] = 99
-    source[2] = 88
-    assert(ArrayBuffer.isView(bufferSource), 'expected ArrayBufferView')
-    assertArrayEqual(bufferSource, [20, 30])
-  })
-
-  await runTest('SharedArrayBuffer support', () => {
-    const SharedArrayBufferCtor = runtimeGlobals.SharedArrayBuffer
-    if (typeof SharedArrayBufferCtor === 'undefined') return
-    const shared = new SharedArrayBufferCtor(4)
-    const view = new Uint8Array(shared)
-    view.set([5, 6, 7, 8])
-    const normalized = toUint8Array(shared)
-    const copiedBuffer = toArrayBuffer(shared)
-    const copiedSource = toBufferSource(shared)
-    view[1] = 99
-    assertArrayEqual(normalized, [5, 6, 7, 8])
-    assertArrayEqual(new Uint8Array(copiedBuffer), [5, 6, 7, 8])
-    assertArrayEqual(copiedSource, [5, 6, 7, 8])
-  })
-
-  await runTest('concat', () => {
-    const left = Uint8Array.from([1, 2, 3])
-    const right = [4, 5]
-    const buffer = new Uint8Array([6, 7]).buffer
-    const view = new DataView(new Uint8Array([8, 9, 10, 11]).buffer, 1, 2)
-
-    const merged = concat([left, right, buffer, view])
-    assertArrayEqual(merged, [1, 2, 3, 4, 5, 6, 7, 9, 10])
-  })
-
-  await runTest('equals', () => {
-    const merged = Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 9, 10])
-    assertEqual(equals(merged, merged.slice()), true)
-    assertEqual(equals(merged, [1, 2, 3]), false)
-  })
-
-  await runTest('toCompressed', async () => {
-    const nodeLike = isNodeLikeRuntime()
-
-    if (!nodeLike && typeof runtimeGlobals.CompressionStream === 'undefined') {
-      await assertRejects(
-        () => toCompressed(compressionPayload),
-        /gzip compression not available/
+      assertJsonEqual(
+        liveIds(deleteThenInsert),
+        liveIds(insertThenDelete),
+        'delta order changed live view'
       )
-      return
-    }
-
-    const compressed = await withTimeout(
-      toCompressed(compressionPayload),
-      COMPRESS_TIMEOUT_MS,
-      'toCompressed'
-    )
-    assert(compressed instanceof Uint8Array, 'expected Uint8Array result')
-    assert(compressed.length > 0, 'expected compressed bytes')
-  })
-
-  await runTest('fromCompressed', async () => {
-    const nodeLike = isNodeLikeRuntime()
-
-    if (!nodeLike && typeof runtimeGlobals.CompressionStream === 'undefined') {
-      await assertRejects(
-        () => toCompressed(compressionPayload),
-        /gzip compression not available/
-      )
-      return
-    }
-
-    const compressed = await withTimeout(
-      toCompressed(compressionPayload),
-      COMPRESS_TIMEOUT_MS,
-      'toCompressed for fromCompressed'
-    )
-
-    if (
-      !nodeLike &&
-      typeof runtimeGlobals.DecompressionStream === 'undefined'
-    ) {
-      await assertRejects(
-        () => fromCompressed(compressed),
-        /gzip decompression not available/
-      )
-      return
-    }
-
-    const restored = await withTimeout(
-      fromCompressed(compressed),
-      COMPRESS_TIMEOUT_MS,
-      'fromCompressed'
-    )
-    assertArrayEqual(restored, compressionPayload)
-  })
-
-  await runTest('Bytes wrapper', async () => {
-    const payload = Uint8Array.from([1, 2, 3, 4])
-
-    const base64 = Bytes.toBase64String(payload)
-    assertEqual(base64, 'AQIDBA==')
-    assertArrayEqual(Bytes.fromBase64String(base64), [1, 2, 3, 4])
-
-    const encoded = Bytes.toBase64UrlString(payload)
-    assertArrayEqual(Bytes.fromBase64UrlString(encoded), [1, 2, 3, 4])
-
-    const hex = Bytes.toHex(payload)
-    assertEqual(hex, '01020304')
-    assertArrayEqual(Bytes.fromHex(hex), [1, 2, 3, 4])
-
-    const z85 = Bytes.toZ85String(payload)
-    assertArrayEqual(Bytes.fromZ85String(z85), [1, 2, 3, 4])
-
-    const text = 'bytes wrapper'
-    assertEqual(Bytes.toString(Bytes.fromString(text)), text)
-
-    const bigint = 0x01020304n
-    assertArrayEqual(Bytes.fromBigInt(bigint), [1, 2, 3, 4])
-    assertEqual(Bytes.toBigInt(payload), bigint)
-
-    const value = { wrapper: true, items: [1, 2, 3] }
-    assertJsonEqual(Bytes.toJSON(Bytes.fromJSON(value)), value)
-
-    const joined = Bytes.concat([payload, [5, 6]])
-    assertArrayEqual(joined, [1, 2, 3, 4, 5, 6])
-    assertEqual(Bytes.equals(payload, [1, 2, 3, 4]), true)
-  })
+    })
+  }
 
   return results
 }

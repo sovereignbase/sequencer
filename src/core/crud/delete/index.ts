@@ -46,9 +46,10 @@ export function __delete<T>(
   let deleted = 0
 
   while (current && deleted < deleteCount) {
+    const next: DoublyLinkedListEntry<T> = current.next
     result.change[current.index] = undefined
     void deleteLinkedEntry<T>(crListReplica, current, result.delta)
-    current = crListReplica.cursor
+    current = next
     deleted++
   }
 

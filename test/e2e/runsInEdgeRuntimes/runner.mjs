@@ -4,7 +4,7 @@ import { EdgeRuntime } from 'edge-runtime'
 import {
   ensurePassing,
   printResults,
-  runBytecodecSuite,
+  runCRListSuite,
 } from '../shared/suite.mjs'
 
 const root = process.cwd()
@@ -38,7 +38,7 @@ function toExecutableEdgeEsm(bundleCode) {
   const sourceMapComment = exportMatch[2] ? `${exportMatch[2]}\n` : ''
   return (
     bundleCode.slice(0, exportMatch.index) +
-    `globalThis.__bytecodecEsmExports = {\n  ${exportEntries}\n};\n` +
+    `globalThis.__crListEsmExports = {\n  ${exportEntries}\n};\n` +
     sourceMapComment
   )
 }
@@ -47,7 +47,7 @@ const runtime = new EdgeRuntime()
 const moduleCode = await readFile(esmDistPath, 'utf8')
 runtime.evaluate(toExecutableEdgeEsm(moduleCode))
 
-const results = await runBytecodecSuite(runtime.context.__bytecodecEsmExports, {
+const results = await runCRListSuite(runtime.context.__crListEsmExports, {
   label: 'edge-runtime esm',
   runtimeGlobals: runtime.context,
 })

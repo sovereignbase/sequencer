@@ -276,6 +276,7 @@ function printTable(rows) {
     ['n', (row) => formatNumber(row.n)],
     ['ops', (row) => formatNumber(row.ops)],
     ['ms', (row) => formatNumber(row.ms)],
+    ['ms/op', (row) => formatNumber(row.msPerOp)],
     ['ops/sec', (row) => formatNumber(row.opsPerSecond)],
   ]
   const widths = columns.map(([header, getter]) =>
@@ -300,6 +301,7 @@ const rows = BENCHMARKS.map((definition) => {
     ...definition,
     ops: result.ops,
     ms: result.ms,
+    msPerOp: result.ms / result.ops,
     opsPerSecond: result.ops / (result.ms / 1_000),
   }
 })

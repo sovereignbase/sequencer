@@ -127,12 +127,7 @@ export class CRList<T> {
     return this.state.size
   }
   prepend(value: T, beforeIndex?: number): void {
-    const result = __update<T>(
-      beforeIndex ? beforeIndex : 0,
-      [value],
-      this.state,
-      'before'
-    )
+    const result = __update<T>(beforeIndex ?? 0, [value], this.state, 'before')
     if (!result) return
     const { delta, change } = result
     if (delta)
@@ -146,7 +141,7 @@ export class CRList<T> {
   }
   append(value: T, afterIndex?: number): void {
     const result = __update<T>(
-      afterIndex ? afterIndex : 0,
+      afterIndex ?? this.state.size,
       [value],
       this.state,
       'after'

@@ -10,7 +10,7 @@ import {
 } from '../dist/index.js'
 import { v7 as uuidv7 } from 'uuid'
 
-const RUN_TIMES = 1_000
+const RUN_TIMES = 250
 const LIST_SIZE = 5_000
 
 const BENCHMARKS = [

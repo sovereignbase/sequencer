@@ -71,6 +71,12 @@ export function __update<T>(
     switch (mode) {
       case 'overwrite': {
         if (listIndex === crListReplica.size) {
+          if (crListReplica.size === 0) {
+            crListReplica.cursor = linkedListEntry
+            void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
+            change[linkedListEntry.index] = linkedListEntry.value
+            break
+          }
           void walkToIndex<T>(crListReplica.size - 1, crListReplica)
           if (!crListReplica.cursor) return false
           linkedListEntry.index = crListReplica.cursor.index + 1
@@ -78,7 +84,6 @@ export function __update<T>(
           insertBetween<T>(crListReplica.cursor, linkedListEntry, undefined)
           void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
           crListReplica.cursor = linkedListEntry
-          crListReplica.size = crListReplica.parentMap.size
           change[linkedListEntry.index] = linkedListEntry.value
           break
         }
@@ -117,7 +122,6 @@ export function __update<T>(
         if (crListReplica.size === 0 && listIndex === 0) {
           crListReplica.cursor = linkedListEntry
           void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
-          crListReplica.size = crListReplica.parentMap.size
           change[linkedListEntry.index] = linkedListEntry.value
           break
         }
@@ -154,8 +158,9 @@ export function __update<T>(
         if (crListReplica.size === 0 && listIndex === 0) {
           crListReplica.cursor = linkedListEntry
           void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
-          crListReplica.size = crListReplica.parentMap.size
           change[linkedListEntry.index] = linkedListEntry.value
+          mode = 'after'
+          listIndex = linkedListEntry.index - 1
           break
         }
         void walkToIndex<T>(listIndex, crListReplica)
@@ -176,10 +181,13 @@ export function __update<T>(
         void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
         crListReplica.cursor = linkedListEntry
         change[linkedListEntry.index] = linkedListEntry.value
+        mode = 'after'
+        listIndex = linkedListEntry.index - 1
 
         break
       }
     }
+    crListReplica.size = crListReplica.parentMap.size
     listIndex++
   }
   if (mode !== 'overwrite')
@@ -187,6 +195,5 @@ export function __update<T>(
       shiftCursor.index += listValues.length
       shiftCursor = shiftCursor.next
     }
-  crListReplica.size = crListReplica.parentMap.size
   return { change, delta }
 }

@@ -71,12 +71,7 @@ export class CRList<T> {
         const listIndex = indexFromPropertyKey(index)
         if (listIndex === undefined) return false
         try {
-          const result = __update(
-            listIndex,
-            [value],
-            target.state,
-            listIndex === target.size ? 'after' : 'overwrite'
-          )
+          const result = __update(listIndex, [value], target.state, 'overwrite')
           if (!result) return false
           const { delta, change } = result
           if (delta)

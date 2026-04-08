@@ -2,6 +2,8 @@ import { CRList } from './dist/index.js'
 
 const list = new CRList()
 
+list[0] = 'kakkaa'
+
 list.append('moi')
 list.prepend('moikka')
 

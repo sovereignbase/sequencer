@@ -157,6 +157,7 @@ export function __update<T>(
         break
       }
     }
+    listIndex++
   }
   if (mode !== 'overwrite')
     while (crListReplica.cursor) {

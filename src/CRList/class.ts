@@ -57,7 +57,7 @@ export class CRList<T> {
             listIndex,
             [value],
             target.state,
-            target.size <= 0 ? 'after' : 'overwrite'
+            listIndex === target.size ? 'after' : 'overwrite'
           )
           if (!result) return false
           const { delta, change } = result
@@ -114,6 +114,8 @@ export class CRList<T> {
 
         if (listIndex !== undefined && listIndex < target.size) {
           return {
+            value: __read(listIndex, target.state),
+            writable: true,
             enumerable: true,
             configurable: true,
           }

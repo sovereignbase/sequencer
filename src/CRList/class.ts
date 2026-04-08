@@ -15,11 +15,29 @@ import {
   __snapshot,
 } from '../core/mags/index.js'
 
+/**
+ * A convergent replicated list.
+ *
+ * Numeric property access reads and mutates the live list projection:
+ * `list[0]` reads an entry, `list[0] = value` overwrites an entry, and
+ * `delete list[0]` removes one entry. Local mutations emit `delta` and `change`
+ * events; remote merges emit `change` events.
+ *
+ * @typeParam T - The value type stored in the list.
+ */
 export class CRList<T> {
+  /**
+   * Reads or overwrites an entry in the live list projection by index.
+   */
   [index: number]: T
   declare private readonly state: CRListReplica<T>
   declare private readonly eventTarget: EventTarget
 
+  /**
+   * Creates a replicated list from an optional serializable snapshot.
+   *
+   * @param snapshot - A previously emitted CRList snapshot.
+   */
   constructor(snapshot?: CRListSnapshot<T>) {
     Object.defineProperties(this, {
       state: {
@@ -119,9 +137,20 @@ export class CRList<T> {
       },
     })
   }
+  /**
+   * The current number of live entries.
+   */
   get size(): number {
     return this.state.size
   }
+  /**
+   * Inserts a value before an index.
+   *
+   * If `beforeIndex` is omitted, the value is inserted at the start of the list.
+   *
+   * @param value - The value to insert.
+   * @param beforeIndex - The index to insert before.
+   */
   prepend(value: T, beforeIndex?: number): void {
     const result = __update<T>(beforeIndex ?? 0, [value], this.state, 'before')
     if (!result) return
@@ -135,6 +164,14 @@ export class CRList<T> {
         new CustomEvent('change', { detail: change })
       )
   }
+  /**
+   * Inserts a value after an index.
+   *
+   * If `afterIndex` is omitted, the value is appended at the end of the list.
+   *
+   * @param value - The value to insert.
+   * @param afterIndex - The index to insert after.
+   */
   append(value: T, afterIndex?: number): void {
     const result = __update<T>(
       afterIndex ?? this.state.size,
@@ -153,6 +190,11 @@ export class CRList<T> {
         new CustomEvent('change', { detail: change })
       )
   }
+  /**
+   * Removes the entry at an index.
+   *
+   * @param index - The index to remove.
+   */
   remove(index: number): void {
     const result = __delete(this.state, index, index + 1)
     if (!result) return
@@ -166,6 +208,13 @@ export class CRList<T> {
         new CustomEvent('change', { detail: change })
       )
   }
+  /**
+   * Applies a remote gossip delta to this list.
+   *
+   * Emits a `change` event when the merge changes the live projection.
+   *
+   * @param delta - The remote CRList delta to merge.
+   */
   merge(delta: CRListDelta<T>): void {
     const change = __merge(this.state, delta)
     if (change)
@@ -173,6 +222,9 @@ export class CRList<T> {
         new CustomEvent('change', { detail: change })
       )
   }
+  /**
+   * Emits an acknowledgement frontier for currently retained tombstones.
+   */
   acknowledge(): void {
     const ack = __acknowledge(this.state)
     if (ack)
@@ -180,9 +232,17 @@ export class CRList<T> {
         new CustomEvent('ack', { detail: ack })
       )
   }
+  /**
+   * Garbage-collects tombstones that are covered by acknowledgement frontiers.
+   *
+   * @param frontiers - Replica acknowledgement frontiers.
+   */
   garbageCollect(frontiers: Array<CRListAck>): void {
     void __garbageCollect(frontiers, this.state)
   }
+  /**
+   * Emits the current serializable list snapshot.
+   */
   snapshot(): void {
     const snapshot = __snapshot(this.state)
     if (snapshot)
@@ -227,24 +287,47 @@ export class CRList<T> {
       options
     )
   }
+  /**
+   * Returns a serializable snapshot representation of this list.
+   *
+   * Called automatically by `JSON.stringify`.
+   */
   toJSON(): CRListSnapshot<T> {
     return __snapshot<T>(this.state)
   }
+  /**
+   * Returns this list as a JSON string.
+   */
   toString(): string {
     return JSON.stringify(this)
   }
+  /**
+   * Returns the Node.js console inspection representation.
+   */
   [Symbol.for('nodejs.util.inspect.custom')](): CRListSnapshot<T> {
     return this.toJSON()
   }
+  /**
+   * Returns the Deno console inspection representation.
+   */
   [Symbol.for('Deno.customInspect')](): CRListSnapshot<T> {
     return this.toJSON()
   }
+  /**
+   * Iterates over the current live values in index order.
+   */
   *[Symbol.iterator](): IterableIterator<T> {
     for (let index = 0; index < this.size; index++) {
       const value = this[index]
       yield value
     }
   }
+  /**
+   * Calls a function once for each live value in index order.
+   *
+   * @param callback - Function to call for each value.
+   * @param thisArg - Optional `this` value for the callback.
+   */
   forEach(
     callback: (value: T, index: number, list: this) => void,
     thisArg?: unknown

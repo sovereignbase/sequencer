@@ -21,7 +21,7 @@ import {
  * requested mutation and can patch their own live view from that context.
  *
  * @param listIndex Target index in the live list.
- * @param listValue Value to insert or overwrite.
+ * @param listValues Value to insert or overwrite.
  * @param crListReplica Replica to mutate.
  * @param mode Mutation mode relative to `listIndex`.
  * @returns A gossip delta, or `false` if no mutation occurred.
@@ -36,132 +36,133 @@ import {
  */
 export function __update<T>(
   listIndex: number,
-  listValue: T,
+  listValues: Array<T>,
   crListReplica: CRListReplica<T>,
   mode: 'overwrite' | 'before' | 'after'
 ): CRListDelta<T> | false {
   if (listIndex < 0 || listIndex > crListReplica.size)
     throw new CRListError('INDEX_OUT_OF_BOUNDS')
-
+  if (!Array.isArray(listValues))
+    throw new CRListError(
+      'UPDATE_EXPECTED_AN_ARRAY',
+      '`listValues` must be an Array'
+    )
   const delta: CRListDelta<T> = { values: [], tombstones: [] }
+  for (const listValue of listValues) {
+    const [cloned, copiedValue] = safeStructuredClone(listValue)
 
-  const [cloned, copiedValue] = safeStructuredClone(listValue)
+    if (!cloned) throw new CRListError('VALUE_NOT_CLONEABLE')
 
-  if (!cloned) throw new CRListError('VALUE_NOT_CLONEABLE')
+    const v7 = uuidv7()
 
-  const v7 = uuidv7()
-
-  const linkedListEntry: NonNullable<DoublyLinkedListEntry<T>> = {
-    uuidv7: v7,
-    value: copiedValue,
-    predecessor: '\0',
-    index: 0,
-    next: undefined,
-    prev: undefined,
-  }
-
-  switch (mode) {
-    case 'overwrite': {
-      void walkToIndex<T>(listIndex, crListReplica)
-      if (!crListReplica.cursor) return false
-      const entryToOverwrite = crListReplica.cursor
-
-      linkedListEntry.predecessor = entryToOverwrite.predecessor
-      linkedListEntry.index = entryToOverwrite.index
-      insertBetween<T>(
-        entryToOverwrite.prev,
-        linkedListEntry,
-        entryToOverwrite.next
-      )
-      if (entryToOverwrite.next) {
-        if (entryToOverwrite.next.predecessor === entryToOverwrite.uuidv7) {
-          void moveEntryToPredecessor<T>(
-            crListReplica,
-            entryToOverwrite.next,
-            linkedListEntry.uuidv7,
-            delta
-          )
-        }
-      }
-      void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
-      crListReplica.tombstones.add(entryToOverwrite.uuidv7)
-      delta.tombstones?.push(entryToOverwrite.uuidv7)
-      void deleteEntryFromMaps<T>(crListReplica, entryToOverwrite)
-      entryToOverwrite.next = undefined
-      entryToOverwrite.prev = undefined
-      crListReplica.cursor = linkedListEntry
-      crListReplica.size = crListReplica.parentMap.size
-      break
+    const linkedListEntry: NonNullable<DoublyLinkedListEntry<T>> = {
+      uuidv7: v7,
+      value: copiedValue,
+      predecessor: '\0',
+      index: 0,
+      next: undefined,
+      prev: undefined,
     }
-    case 'after': {
-      if (crListReplica.size === 0 && listIndex === 0) {
-        crListReplica.cursor = linkedListEntry
-        void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
-        crListReplica.size = crListReplica.parentMap.size
-        break
-      }
-      if (listIndex === crListReplica.size) {
-        void walkToIndex<T>(crListReplica.size - 1, crListReplica)
-      } else {
+
+    switch (mode) {
+      case 'overwrite': {
         void walkToIndex<T>(listIndex, crListReplica)
+        if (!crListReplica.cursor) return false
+        const entryToOverwrite = crListReplica.cursor
+
+        linkedListEntry.predecessor = entryToOverwrite.predecessor
+        linkedListEntry.index = entryToOverwrite.index
+        insertBetween<T>(
+          entryToOverwrite.prev,
+          linkedListEntry,
+          entryToOverwrite.next
+        )
+        if (entryToOverwrite.next) {
+          if (entryToOverwrite.next.predecessor === entryToOverwrite.uuidv7) {
+            void moveEntryToPredecessor<T>(
+              crListReplica,
+              entryToOverwrite.next,
+              linkedListEntry.uuidv7,
+              delta
+            )
+          }
+        }
+        void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
+        crListReplica.tombstones.add(entryToOverwrite.uuidv7)
+        delta.tombstones?.push(entryToOverwrite.uuidv7)
+        void deleteEntryFromMaps<T>(crListReplica, entryToOverwrite)
+        entryToOverwrite.next = undefined
+        entryToOverwrite.prev = undefined
+        crListReplica.cursor = linkedListEntry
+        break
       }
-      if (!crListReplica.cursor) return false
-      const next =
-        listIndex === crListReplica.size ? undefined : crListReplica.cursor.next
-      linkedListEntry.index = crListReplica.cursor.index + 1
-      linkedListEntry.predecessor = crListReplica.cursor.uuidv7
-      insertBetween<T>(crListReplica.cursor, linkedListEntry, next)
-      if (next) {
-        if (next.predecessor === crListReplica.cursor.uuidv7) {
+      case 'after': {
+        if (crListReplica.size === 0 && listIndex === 0) {
+          crListReplica.cursor = linkedListEntry
+          void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
+          crListReplica.size = crListReplica.parentMap.size
+          break
+        }
+        if (listIndex === crListReplica.size) {
+          void walkToIndex<T>(crListReplica.size - 1, crListReplica)
+        } else {
+          void walkToIndex<T>(listIndex, crListReplica)
+        }
+        if (!crListReplica.cursor) return false
+        const next =
+          listIndex === crListReplica.size
+            ? undefined
+            : crListReplica.cursor.next
+        linkedListEntry.index = crListReplica.cursor.index + 1
+        linkedListEntry.predecessor = crListReplica.cursor.uuidv7
+        insertBetween<T>(crListReplica.cursor, linkedListEntry, next)
+        if (next) {
+          if (next.predecessor === crListReplica.cursor.uuidv7) {
+            void moveEntryToPredecessor<T>(
+              crListReplica,
+              next,
+              linkedListEntry.uuidv7,
+              delta
+            )
+          }
+        }
+        void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
+        crListReplica.cursor = linkedListEntry
+        break
+      }
+      case 'before': {
+        if (crListReplica.size === 0 && listIndex === 0) {
+          crListReplica.cursor = linkedListEntry
+          void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
+          crListReplica.size = crListReplica.parentMap.size
+          break
+        }
+        void walkToIndex<T>(listIndex, crListReplica)
+        if (!crListReplica.cursor) return false
+        const prev = crListReplica.cursor.prev
+        linkedListEntry.index = crListReplica.cursor.index
+        linkedListEntry.predecessor = prev?.uuidv7 ?? '\0'
+        insertBetween<T>(prev, linkedListEntry, crListReplica.cursor)
+        if (crListReplica.cursor.predecessor === linkedListEntry.predecessor) {
           void moveEntryToPredecessor<T>(
             crListReplica,
-            next,
+            crListReplica.cursor,
             linkedListEntry.uuidv7,
             delta
           )
         }
-      }
-      void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
-      crListReplica.cursor = linkedListEntry
-      let cursor: DoublyLinkedListEntry<T> = linkedListEntry.next
-      while (cursor) {
-        cursor.index++
-        cursor = cursor.next
-      }
-      crListReplica.size = crListReplica.parentMap.size
-      break
-    }
-    case 'before': {
-      if (crListReplica.size === 0 && listIndex === 0) {
-        crListReplica.cursor = linkedListEntry
         void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
-        crListReplica.size = crListReplica.parentMap.size
+        crListReplica.cursor = linkedListEntry
+
         break
       }
-      void walkToIndex<T>(listIndex, crListReplica)
-      if (!crListReplica.cursor) return false
-      const prev = crListReplica.cursor.prev
-      linkedListEntry.index = crListReplica.cursor.index
-      linkedListEntry.predecessor = prev?.uuidv7 ?? '\0'
-      insertBetween<T>(prev, linkedListEntry, crListReplica.cursor)
-      if (crListReplica.cursor.predecessor === linkedListEntry.predecessor) {
-        void moveEntryToPredecessor<T>(
-          crListReplica,
-          crListReplica.cursor,
-          linkedListEntry.uuidv7,
-          delta
-        )
-      }
-      void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
-      crListReplica.cursor = linkedListEntry
-      let cursor: DoublyLinkedListEntry<T> = linkedListEntry.next
-      while (cursor) {
-        cursor.index++
-        cursor = cursor.next
-      }
-      crListReplica.size = crListReplica.parentMap.size
-      break
     }
   }
+  if (mode !== 'overwrite')
+    while (crListReplica.cursor) {
+      crListReplica.cursor.index++
+      crListReplica.cursor = crListReplica.cursor.next
+    }
+  crListReplica.size = crListReplica.parentMap.size
   return delta
 }

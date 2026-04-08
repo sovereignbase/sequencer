@@ -8,6 +8,7 @@ export type CRListErrorCode =
   | 'INDEX_OUT_OF_BOUNDS'
   | 'LIST_EMPTY'
   | 'LIST_INTEGRITY_VIOLATION'
+  | 'UPDATE_EXPECTED_AN_ARRAY'
 
 /**
  * Represents a typed CRList runtime error.

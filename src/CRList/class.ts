@@ -53,7 +53,7 @@ export class CRList<T> {
         try {
           const delta = __update(
             listIndex,
-            value,
+            [value],
             target.state,
             target.size <= 0 ? 'after' : 'overwrite'
           )
@@ -111,7 +111,7 @@ export class CRList<T> {
   prepend(value: T, beforeIndex?: number): void {
     const delta = __update<T>(
       beforeIndex ? beforeIndex : 0,
-      value,
+      [value],
       this.state,
       'before'
     )
@@ -124,7 +124,7 @@ export class CRList<T> {
   append(value: T, afterIndex?: number): void {
     const delta = __update<T>(
       afterIndex ? afterIndex : 0,
-      value,
+      [value],
       this.state,
       'after'
     )

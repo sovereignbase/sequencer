@@ -17,23 +17,24 @@ import {
 /**
  * Applies a local value mutation to the replica live view.
  *
- * The update can replace the target entry, insert before it, or insert after it.
- * The returned delta is suitable for gossip. Local callers already know the
- * requested mutation and can patch their own live view from that context.
+ * The update can replace a range starting at the target entry, insert values
+ * before it, or insert values after it. The returned delta is suitable for
+ * gossip and the returned change describes the local live-view patch.
  *
  * @param listIndex Target index in the live list.
- * @param listValues Value to insert or overwrite.
+ * @param listValues Values to insert or overwrite.
  * @param crListReplica Replica to mutate.
  * @param mode Mutation mode relative to `listIndex`.
  * @returns A local change and gossip delta, or `false` if no mutation occurred.
  *
- * Time complexity: O(d + r + k + c), worst case O(n + c)
+ * Time complexity: O(d + v + r + vk + c), worst case O(vn + c)
  * - d = distance from cursor to target index
- * - r = amount of nodes after the inserted node whose indexes must be shifted
+ * - v = amount of input values
+ * - r = amount of nodes after inserted values whose indexes must be shifted
  * - k = sibling bucket size when predecessor bucket is updated
- * - c = cloned value payload size
+ * - c = cloned value payload size across all input values
  *
- * Space complexity: O(c)
+ * Space complexity: O(v + c)
  */
 export function __update<T>(
   listIndex: number,

@@ -41,7 +41,7 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
   }
   if (!snapshot || prototype(snapshot) !== 'record') return crListReplica
 
-  /**Hydrate tombstones entry(s)*/
+  /** Hydrate tombstone entries. */
   if (
     Object.hasOwn(snapshot, 'tombstones') &&
     Array.isArray(snapshot.tombstones)
@@ -53,10 +53,10 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
     }
   }
 
-  /**Hydrate values entry(s)*/
+  /** Hydrate value entries. */
   if (!Object.hasOwn(snapshot, 'values') || !Array.isArray(snapshot.values))
     return crListReplica
-  //**BUILD TREE*/
+  // Build predecessor tree.
   for (const valueEntry of snapshot.values) {
     const linkedListEntry = snapshotValueToLinkedListValue<T>(
       valueEntry,
@@ -65,9 +65,9 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
     if (!linkedListEntry) continue
     void updateEntryToMaps<T>(crListReplica, linkedListEntry)
   }
-  //**flatten tree in to doubly linked list */
+  // Flatten tree into a doubly linked list.
   void flattenAndLinkTrustedState<T>(crListReplica)
-  //**write indices*/
+  // Write live-view indexes.
   void assertListIndices<T>(crListReplica)
 
   return crListReplica

@@ -96,7 +96,7 @@ export type CRListEventMap<T> = {
 }
 
 /**
- * Represents a strongly typed OO-Struct event listener.
+ * Represents a strongly typed CRList event listener.
  */
 export type CRListEventListener<T, K extends keyof CRListEventMap<T>> =
   | ((event: CustomEvent<CRListEventMap<T>[K]>) => void)

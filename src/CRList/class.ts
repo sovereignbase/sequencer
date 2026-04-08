@@ -19,9 +19,9 @@ import {
  * A convergent replicated list.
  *
  * Numeric property access reads and mutates the live list projection:
- * `list[0]` reads an entry, `list[0] = value` overwrites an entry, and
- * `delete list[0]` removes one entry. Local mutations emit `delta` and `change`
- * events; remote merges emit `change` events.
+ * `list[0]` reads an entry, `list[0] = value` writes an entry, and `delete
+ * list[0]` removes one entry. Local mutations emit `delta` and `change` events;
+ * remote merges emit `change` events.
  *
  * @typeParam T - The value type stored in the list.
  */
@@ -57,13 +57,13 @@ export class CRList<T> {
     return new Proxy(this, {
       get(target, index, receiver) {
         const listIndex = indexFromPropertyKey(index)
-        //for non index Props
+        // Preserve normal property access for non-index keys.
         if (listIndex === undefined) return Reflect.get(target, index, receiver)
         return __read(listIndex, target.state)
       },
       has(target, index) {
         const listIndex = indexFromPropertyKey(index)
-        //for non index Props
+        // Preserve normal property checks for non-index keys.
         if (listIndex === undefined) return Reflect.has(target, index)
         return listIndex >= 0 && listIndex < target.state.size
       },

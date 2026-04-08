@@ -47,7 +47,7 @@ export function __merge<T>(
   const change: CRListChange<T> = {}
   let needsRelink = false
 
-  /**Fill tombstones entry(s)*/
+  /** Apply tombstone entries. */
   if (
     Object.hasOwn(crListDelta, 'tombstones') &&
     Array.isArray(crListDelta.tombstones)
@@ -65,7 +65,7 @@ export function __merge<T>(
     }
   }
 
-  /**Fill values entry(s)*/
+  /** Apply value entries. */
   if (
     !Object.hasOwn(crListDelta, 'values') ||
     !Array.isArray(crListDelta.values)
@@ -77,7 +77,7 @@ export function __merge<T>(
     }
     return change
   }
-  //**attach valid ones to tree*/
+  // Attach accepted values to the predecessor tree.
   for (const valueEntry of crListDelta.values) {
     const existingEntry = crListReplica.parentMap.get(valueEntry.uuidv7)
     if (existingEntry) {
@@ -125,9 +125,9 @@ export function __merge<T>(
     }
   }
   if (needsRelink) {
-    //**flatten tree in to doubly linked list */
+    // Flatten tree into a doubly linked list.
     void flattenAndLinkTrustedState<T>(crListReplica)
-    //**write indices*/
+    // Write live-view indexes.
     void assertListIndices<T>(crListReplica)
   }
 

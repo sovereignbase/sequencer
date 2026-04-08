@@ -194,7 +194,7 @@ Ingress stays tolerant:
 - malformed snapshot values are dropped during hydration
 - invalid UUIDs are ignored
 - duplicate insert and delete deltas are idempotent
-- stale or malicious deltas must not break convergence of the live view
+- stale or malicious deltas do not break convergence of the live view
 
 ### Safety and copying semantics
 

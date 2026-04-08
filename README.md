@@ -16,12 +16,10 @@ Convergent Replicated List (CR-List), a delta CRDT for index-addressable lists.
 
 ## Goals
 
-- Deterministic convergence of the live list projection under shuffled gossip delivery.
-- Simple list-shaped public API with numeric indexing, iteration, and events.
-- Minimal local patches: local mutations emit `delta` and `change`, remote merges emit `change`.
-- Serializable snapshots and deltas for hydration and gossip.
-- Tombstone acknowledgement and garbage collection without breaking live-view convergence.
+- Deterministic convergence of the live list projection under asynchronous gossip delivery.
 - Consistent behavior across Node, browsers, worker, and edge runtimes.
+- Garbage collection without breaking live-view convergence.
+- Event-driven API
 
 ## Installation
 
@@ -33,6 +31,10 @@ pnpm add @sovereignbase/convergent-replicated-list
 yarn add @sovereignbase/convergent-replicated-list
 # or
 bun add @sovereignbase/convergent-replicated-list
+# or
+deno add jsr:@sovereignbase/convergent-replicated-list
+# or
+vlt install jsr:@sovereignbase/convergent-replicated-list
 ```
 
 ## Usage

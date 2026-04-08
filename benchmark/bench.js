@@ -67,6 +67,12 @@ const BENCHMARKS = [
     n: LIST_SIZE,
     ops: RUN_TIMES,
   },
+  {
+    group: 'class',
+    name: 'constructor / hydrate snapshot',
+    n: LIST_SIZE,
+    ops: RUN_TIMES,
+  },
   { group: 'class', name: 'append after tail', n: LIST_SIZE, ops: RUN_TIMES },
   {
     group: 'class',
@@ -358,6 +364,15 @@ function runBenchmark(definition) {
       return time(() => {
         for (const index of order) __merge(target, deltas[index])
         return order.length
+      })
+    }
+    case 'class:constructor / hydrate snapshot': {
+      const snapshot = createSnapshot(definition.n)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          new CRList(snapshot)
+        }
+        return definition.ops
       })
     }
     case 'class:append after tail': {

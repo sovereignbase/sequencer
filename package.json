@@ -3,7 +3,7 @@
   "license": "Apache-2.0",
   "name": "@sovereignbase/convergent-replicated-list",
   "version": "0.0.0",
-  "description": "Convergent Replicated List (CR-List), a delta CRDT.",
+  "description": "Convergent Replicated List (CR-List), a delta CRDT for index-addressable lists.",
   "keywords": [
     "crdt",
     "list",

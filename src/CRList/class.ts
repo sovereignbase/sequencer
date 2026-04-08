@@ -134,6 +134,14 @@ export class CRList<T> {
       )
     }
   }
+  remove(index: number): void {
+    const delta = __delete(this.state, index, index + 1)
+    if (delta) {
+      this.eventTarget.dispatchEvent(
+        new CustomEvent('delta', { detail: delta })
+      )
+    }
+  }
   /**
    * Registers an event listener.
    *

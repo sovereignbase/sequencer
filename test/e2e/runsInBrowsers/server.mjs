@@ -27,6 +27,8 @@ const server = http.createServer(async (req, res) => {
 
   let filePath
   if (pathname.startsWith('/dist/')) filePath = safeResolve(root, pathname)
+  else if (pathname.startsWith('/node_modules/'))
+    filePath = safeResolve(root, pathname)
   else filePath = safeResolve(testRoot, pathname)
 
   if (!filePath) {

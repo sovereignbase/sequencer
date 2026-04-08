@@ -94,6 +94,14 @@ export async function runCRListSuite(api, options = {}) {
     assertJsonEqual(liveIds(replica), expected, message)
   }
 
+  function assertReplicaLiveViewEqual(actualReplica, expectedReplica, message) {
+    assertJsonEqual(
+      liveView(actualReplica),
+      liveView(expectedReplica),
+      message || 'replica live view mismatch'
+    )
+  }
+
   function assertChangeIds(change, expected) {
     assertJsonEqual(
       Object.keys(change).sort((a, b) => Number(a) - Number(b)),
@@ -129,6 +137,20 @@ export async function runCRListSuite(api, options = {}) {
   function applyUpdate(replica, index, id, mode) {
     const result = api.__update(index, [value(id)], replica, mode)
     assert(result, `update returned false for ${mode}:${index}:${id}`)
+    return result
+  }
+
+  function applyUpdateValues(replica, index, ids, mode) {
+    const result = api.__update(
+      index,
+      ids.map((id) => value(id)),
+      replica,
+      mode
+    )
+    assert(
+      result,
+      `update returned false for ${mode}:${index}:${JSON.stringify(ids)}`
+    )
     return result
   }
 
@@ -176,10 +198,10 @@ export async function runCRListSuite(api, options = {}) {
   }
 
   function assertReplicasConverged(replicas) {
-    const expected = liveIds(replicas[0])
+    const expected = liveView(replicas[0])
     for (let index = 1; index < replicas.length; index++) {
       assertJsonEqual(
-        liveIds(replicas[index]),
+        liveView(replicas[index]),
         expected,
         `replica ${index} diverged`
       )
@@ -262,6 +284,79 @@ export async function runCRListSuite(api, options = {}) {
           1 + Math.floor(rand() * Math.min(3, replica.size - start))
         deltas.push(applyDelete(replica, start, start + deleteLength).delta)
       }
+    }
+
+    return deltas
+  }
+
+  function collectAggressiveScenarioDeltas(replicas, rounds, seed) {
+    const deltas = []
+    const rand = random(seed)
+    let serial = 0
+
+    for (let round = 0; round < rounds; round++) {
+      for (
+        let replicaIndex = 0;
+        replicaIndex < replicas.length;
+        replicaIndex++
+      ) {
+        let replica = replicas[replicaIndex]
+        const width = 1 + Math.floor(rand() * 3)
+        const ids = Array.from({ length: width }, () => {
+          const id = `aggr-${seed}-${replicaIndex}-${round}-${serial}`
+          serial++
+          return id
+        })
+        const roll = rand()
+
+        if (replica.size === 0 || roll < 0.35) {
+          const mode =
+            replica.size === 0
+              ? rand() < 0.5
+                ? 'after'
+                : 'overwrite'
+              : rand() < 0.5
+                ? 'after'
+                : 'before'
+          const index =
+            replica.size === 0
+              ? 0
+              : mode === 'after'
+                ? Math.floor(rand() * (replica.size + 1))
+                : Math.floor(rand() * replica.size)
+          deltas.push(applyUpdateValues(replica, index, ids, mode).delta)
+        } else if (roll < 0.7) {
+          const index =
+            replica.size === 0 ? 0 : Math.floor(rand() * (replica.size + 1))
+          deltas.push(applyUpdateValues(replica, index, ids, 'overwrite').delta)
+        } else {
+          const start = Math.floor(rand() * replica.size)
+          const deleteLength =
+            1 + Math.floor(rand() * Math.min(3, replica.size - start))
+          deltas.push(applyDelete(replica, start, start + deleteLength).delta)
+        }
+
+        if (rand() < 0.2) {
+          replica = api.__create(api.__snapshot(replica))
+          replicas[replicaIndex] = replica
+        }
+      }
+    }
+
+    const sampleSnapshot = api.__snapshot(replicas[0])
+    const sampleValue = sampleSnapshot.values[0]
+    deltas.push(undefined)
+    deltas.push(false)
+    deltas.push([])
+    deltas.push({ tombstones: ['not-a-uuid'] })
+    deltas.push({ values: 'not-an-array' })
+    if (sampleValue) {
+      deltas.push({
+        values: [{ ...sampleValue, uuidv7: 'not-a-uuid' }],
+      })
+      deltas.push({
+        values: [{ ...sampleValue, predecessor: 'not-a-uuid' }],
+      })
     }
 
     return deltas
@@ -354,6 +449,100 @@ export async function runCRListSuite(api, options = {}) {
     }
   )
 
+  await runTest(
+    'garbage collect waits for stale peer ack and converges after recovery',
+    () => {
+      const replicaIds = ['replica-a', 'replica-b', 'replica-c']
+      const base = seededReplica(6)
+      const replicas = Array.from({ length: replicaIds.length }, () =>
+        cloneReplica(base)
+      )
+      const ackMaps = replicaIds.map(() => new Map())
+
+      const publishAck = (sourceIndex, targetIndexes) => {
+        const ack = api.__acknowledge(replicas[sourceIndex])
+        if (typeof ack !== 'string') return
+        for (const targetIndex of targetIndexes) {
+          ackMaps[targetIndex].set(replicaIds[sourceIndex], ack)
+        }
+      }
+
+      const gcReplica = (index) => {
+        api.__garbageCollect(
+          [...ackMaps[index].values()].filter(
+            (frontier) => typeof frontier === 'string'
+          ),
+          replicas[index]
+        )
+      }
+
+      const warmupDelete = applyDelete(replicas[0], 0, 1).delta
+      api.__merge(replicas[1], warmupDelete)
+      api.__merge(replicas[2], warmupDelete)
+
+      publishAck(0, [0, 1, 2])
+      publishAck(1, [0, 1, 2])
+      publishAck(2, [0, 1, 2])
+
+      const onlineDelete = applyDelete(replicas[0], 1, 3).delta
+      const onlineInsert = applyUpdateValues(
+        replicas[0],
+        1,
+        ['offline-a', 'offline-b', 'offline-c'],
+        'before'
+      ).delta
+      const onlineOverwrite = applyUpdateValues(
+        replicas[0],
+        replicas[0].size,
+        ['offline-tail'],
+        'overwrite'
+      ).delta
+
+      for (const delta of [onlineDelete, onlineInsert, onlineOverwrite]) {
+        api.__merge(replicas[1], delta)
+      }
+
+      const tombstonesBeforeGc = replicas[0].tombstones.size
+      publishAck(0, [0, 1])
+      publishAck(1, [0, 1])
+      gcReplica(0)
+      gcReplica(1)
+
+      assert(
+        replicas[0].tombstones.size >= tombstonesBeforeGc - 1,
+        'gc advanced past stale peer frontier'
+      )
+
+      for (const delta of [onlineDelete, onlineInsert, onlineOverwrite]) {
+        api.__merge(replicas[2], delta)
+      }
+
+      for (let index = 0; index < replicas.length; index++) {
+        publishAck(index, [0, 1, 2])
+      }
+
+      const tombstonesBeforeFinalGc = replicas.map(
+        (replica) => replica.tombstones.size
+      )
+      for (let index = 0; index < replicas.length; index++) {
+        gcReplica(index)
+      }
+
+      assertReplicasConverged(replicas)
+      for (let index = 0; index < replicas.length; index++) {
+        assert(
+          replicas[index].tombstones.size <= tombstonesBeforeFinalGc[index],
+          `gc failed to compact replica ${index}`
+        )
+        assertReplicaLiveViewEqual(
+          api.__create(api.__snapshot(replicas[index])),
+          replicas[index],
+          `snapshot hydrate diverged after gc for replica ${index}`
+        )
+      }
+    }
+  )
+
   if (includeStress) {
     await runTest(
       'replicas converge after shuffled async delta delivery',
@@ -420,6 +609,47 @@ export async function runCRListSuite(api, options = {}) {
         )
       }
     )
+
+    await runTest('100 aggressive deterministic convergence scenarios', () => {
+      for (let scenario = 0; scenario < 100; scenario++) {
+        const baseSize = scenario % 4
+        const replicaCount = 3 + (scenario % 3)
+        const rounds = 2 + (scenario % 4)
+        const base = seededReplica(baseSize)
+        const sources = Array.from({ length: replicaCount }, () =>
+          cloneReplica(base)
+        )
+        const deltas = collectAggressiveScenarioDeltas(
+          sources,
+          rounds,
+          50_000 + scenario
+        )
+        const targets = Array.from({ length: replicaCount }, () =>
+          cloneReplica(base)
+        )
+
+        for (let index = 0; index < targets.length; index++) {
+          if (scenario % 2 === 0) {
+            mergeDeltas(targets[index], deltas, 60_000 + scenario * 10 + index)
+          } else {
+            targets[index] = mergeDeltasWithRestarts(
+              targets[index],
+              deltas,
+              70_000 + scenario * 10 + index
+            )
+          }
+        }
+
+        assertReplicasConverged(targets)
+        for (let index = 0; index < targets.length; index++) {
+          assertReplicaLiveViewEqual(
+            api.__create(api.__snapshot(targets[index])),
+            targets[index],
+            `scenario ${scenario} hydrate mismatch on replica ${index}`
+          )
+        }
+      }
+    })
   }
 
   return results

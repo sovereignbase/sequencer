@@ -68,7 +68,7 @@ function shuffledIndices(length, seed) {
 function createSeededReplica(size) {
   const replica = __create()
   for (let index = 0; index < size; index++) {
-    const result = __update(replica.size, value(index), replica, 'after')
+    const result = __update(replica.size, [value(index)], replica, 'after')
     if (!result) throw new Error(`seed update failed at ${index}`)
   }
   return replica
@@ -81,9 +81,14 @@ function createSnapshot(size) {
 function collectAppendDeltas(source, amount, offset) {
   const deltas = []
   for (let index = 0; index < amount; index++) {
-    const result = __update(source.size, value(offset + index), source, 'after')
+    const result = __update(
+      source.size,
+      [value(offset + index)],
+      source,
+      'after'
+    )
     if (!result) throw new Error(`append delta failed at ${index}`)
-    deltas.push(result)
+    deltas.push(result.delta)
   }
   return deltas
 }
@@ -95,7 +100,7 @@ function collectMixedDeltas(source, amount, offset) {
     if (index % 4 === 0 && source.size > 0) {
       const deleteIndex = Math.floor(rand() * source.size)
       const result = __delete(source, deleteIndex, deleteIndex + 1)
-      if (result) deltas.push(result)
+      if (result) deltas.push(result.delta)
       continue
     }
 
@@ -104,8 +109,8 @@ function collectMixedDeltas(source, amount, offset) {
       insertAt === source.size || index % 2 === 0 ? 'after' : 'before'
     const listIndex =
       mode === 'after' ? insertAt : Math.min(insertAt, source.size - 1)
-    const result = __update(listIndex, value(offset + index), source, mode)
-    if (result) deltas.push(result)
+    const result = __update(listIndex, [value(offset + index)], source, mode)
+    if (result) deltas.push(result.delta)
   }
   return deltas
 }
@@ -144,7 +149,12 @@ function runBenchmark(definition) {
       const replica = createSeededReplica(definition.n)
       return time(() => {
         for (let index = 0; index < definition.ops; index++) {
-          __update(replica.size, value(definition.n + index), replica, 'after')
+          __update(
+            replica.size,
+            [value(definition.n + index)],
+            replica,
+            'after'
+          )
         }
         return definition.ops
       })
@@ -155,7 +165,7 @@ function runBenchmark(definition) {
         for (let index = 0; index < definition.ops; index++) {
           __update(
             Math.floor(replica.size / 2),
-            value(definition.n + index),
+            [value(definition.n + index)],
             replica,
             'before'
           )
@@ -170,7 +180,7 @@ function runBenchmark(definition) {
         for (let index = 0; index < definition.ops; index++) {
           __update(
             Math.floor(rand() * replica.size),
-            value(definition.n + index),
+            [value(definition.n + index)],
             replica,
             'overwrite'
           )

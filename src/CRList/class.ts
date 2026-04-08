@@ -4,6 +4,8 @@ import type {
   CRListSnapshot,
   CRListEventListenerFor,
   CRListEventMap,
+  CRListDelta,
+  CRListAck,
 } from '../.types/index.js'
 import { __create, __read, __update, __delete } from '../core/crud/index.js'
 import {
@@ -51,16 +53,23 @@ export class CRList<T> {
         const listIndex = indexFromPropertyKey(index)
         if (listIndex === undefined) return false
         try {
-          const delta = __update(
+          const result = __update(
             listIndex,
             [value],
             target.state,
             target.size <= 0 ? 'after' : 'overwrite'
           )
-          if (delta) {
-            target.eventTarget.dispatchEvent(
-              new CustomEvent('delta', { detail: delta })
-            )
+          if (!result) return false
+          const { delta, change } = result
+          if (delta || change) {
+            if (delta)
+              target.eventTarget.dispatchEvent(
+                new CustomEvent('delta', { detail: delta })
+              )
+            if (change)
+              target.eventTarget.dispatchEvent(
+                new CustomEvent('change', { detail: change })
+              )
             return true
           }
           return false
@@ -72,11 +81,20 @@ export class CRList<T> {
         const listIndex = indexFromPropertyKey(index)
         if (listIndex === undefined) return false
         try {
-          const delta = __delete(target.state, listIndex, listIndex + 1)
-          if (delta) {
-            target.eventTarget.dispatchEvent(
-              new CustomEvent('delta', { detail: delta })
-            )
+          const result = __delete(target.state, listIndex, listIndex + 1)
+          if (!result) return false
+          const { delta, change } = result
+          if (delta || change) {
+            if (delta) {
+              target.eventTarget.dispatchEvent(
+                new CustomEvent('delta', { detail: delta })
+              )
+            }
+            if (change) {
+              target.eventTarget.dispatchEvent(
+                new CustomEvent('change', { detail: change })
+              )
+            }
             return true
           }
           return false
@@ -109,38 +127,75 @@ export class CRList<T> {
     return this.state.size
   }
   prepend(value: T, beforeIndex?: number): void {
-    const delta = __update<T>(
+    const result = __update<T>(
       beforeIndex ? beforeIndex : 0,
       [value],
       this.state,
       'before'
     )
-    if (delta) {
+    if (!result) return
+    const { delta, change } = result
+    if (delta)
       this.eventTarget.dispatchEvent(
         new CustomEvent('delta', { detail: delta })
       )
-    }
+    if (change)
+      this.eventTarget.dispatchEvent(
+        new CustomEvent('change', { detail: change })
+      )
   }
   append(value: T, afterIndex?: number): void {
-    const delta = __update<T>(
+    const result = __update<T>(
       afterIndex ? afterIndex : 0,
       [value],
       this.state,
       'after'
     )
-    if (delta) {
+    if (!result) return
+    const { delta, change } = result
+    if (delta)
       this.eventTarget.dispatchEvent(
         new CustomEvent('delta', { detail: delta })
       )
-    }
+    if (change)
+      this.eventTarget.dispatchEvent(
+        new CustomEvent('change', { detail: change })
+      )
   }
   remove(index: number): void {
-    const delta = __delete(this.state, index, index + 1)
-    if (delta) {
+    const result = __delete(this.state, index, index + 1)
+    if (!result) return
+    const { delta, change } = result
+    if (delta)
       this.eventTarget.dispatchEvent(
         new CustomEvent('delta', { detail: delta })
       )
-    }
+    if (change)
+      this.eventTarget.dispatchEvent(
+        new CustomEvent('change', { detail: change })
+      )
+  }
+  merge(delta: CRListDelta<T>) {
+    const change = __merge(this.state, delta)
+    if (change)
+      this.eventTarget.dispatchEvent(
+        new CustomEvent('change', { detail: change })
+      )
+  }
+  acknowledge() {
+    const ack = __acknowledge(this.state)
+    if (ack)
+      this.eventTarget.dispatchEvent(new CustomEvent('ack', { detail: ack }))
+  }
+  garbageCollect(frontiers: Array<CRListAck>) {
+    void __garbageCollect(frontiers, this.state)
+  }
+  snapshot() {
+    const snapshot = __snapshot(this.state)
+    if (snapshot)
+      this.eventTarget.dispatchEvent(
+        new CustomEvent('snapshot', { detail: snapshot })
+      )
   }
   /**
    * Registers an event listener.

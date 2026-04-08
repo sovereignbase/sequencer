@@ -9,6 +9,7 @@ import {
 } from '../../../.helpers/index.js'
 import { v7 as uuidv7 } from 'uuid'
 import {
+  CRListChange,
   CRListDelta,
   CRListReplica,
   DoublyLinkedListEntry,
@@ -24,7 +25,7 @@ import {
  * @param listValues Value to insert or overwrite.
  * @param crListReplica Replica to mutate.
  * @param mode Mutation mode relative to `listIndex`.
- * @returns A gossip delta, or `false` if no mutation occurred.
+ * @returns A local change and gossip delta, or `false` if no mutation occurred.
  *
  * Time complexity: O(d + r + k + c), worst case O(n + c)
  * - d = distance from cursor to target index
@@ -39,7 +40,7 @@ export function __update<T>(
   listValues: Array<T>,
   crListReplica: CRListReplica<T>,
   mode: 'overwrite' | 'before' | 'after'
-): CRListDelta<T> | false {
+): { change: CRListChange<T>; delta: CRListDelta<T> } | false {
   if (listIndex < 0 || listIndex > crListReplica.size)
     throw new CRListError('INDEX_OUT_OF_BOUNDS')
   if (!Array.isArray(listValues))
@@ -48,6 +49,7 @@ export function __update<T>(
       '`listValues` must be an Array'
     )
   if (listValues.length === 0) return false
+  const change: CRListChange<T> = {}
   const delta: CRListDelta<T> = { values: [], tombstones: [] }
   let shiftCursor: DoublyLinkedListEntry<T>
   for (const listValue of listValues) {
@@ -77,6 +79,7 @@ export function __update<T>(
           void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
           crListReplica.cursor = linkedListEntry
           crListReplica.size = crListReplica.parentMap.size
+          change[linkedListEntry.index] = linkedListEntry.value
           break
         }
         void walkToIndex<T>(listIndex, crListReplica)
@@ -107,6 +110,7 @@ export function __update<T>(
         entryToOverwrite.next = undefined
         entryToOverwrite.prev = undefined
         crListReplica.cursor = linkedListEntry
+        change[linkedListEntry.index] = linkedListEntry.value
         break
       }
       case 'after': {
@@ -114,6 +118,7 @@ export function __update<T>(
           crListReplica.cursor = linkedListEntry
           void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
           crListReplica.size = crListReplica.parentMap.size
+          change[linkedListEntry.index] = linkedListEntry.value
           break
         }
         if (listIndex === crListReplica.size) {
@@ -142,6 +147,7 @@ export function __update<T>(
         }
         void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
         crListReplica.cursor = linkedListEntry
+        change[linkedListEntry.index] = linkedListEntry.value
         break
       }
       case 'before': {
@@ -149,6 +155,7 @@ export function __update<T>(
           crListReplica.cursor = linkedListEntry
           void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
           crListReplica.size = crListReplica.parentMap.size
+          change[linkedListEntry.index] = linkedListEntry.value
           break
         }
         void walkToIndex<T>(listIndex, crListReplica)
@@ -168,6 +175,7 @@ export function __update<T>(
         }
         void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
         crListReplica.cursor = linkedListEntry
+        change[linkedListEntry.index] = linkedListEntry.value
 
         break
       }
@@ -180,5 +188,5 @@ export function __update<T>(
       shiftCursor = shiftCursor.next
     }
   crListReplica.size = crListReplica.parentMap.size
-  return delta
+  return { change, delta }
 }

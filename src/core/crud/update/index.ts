@@ -47,7 +47,9 @@ export function __update<T>(
       'UPDATE_EXPECTED_AN_ARRAY',
       '`listValues` must be an Array'
     )
+  if (listValues.length === 0) return false
   const delta: CRListDelta<T> = { values: [], tombstones: [] }
+  let shiftCursor: DoublyLinkedListEntry<T>
   for (const listValue of listValues) {
     const [cloned, copiedValue] = safeStructuredClone(listValue)
 
@@ -66,6 +68,17 @@ export function __update<T>(
 
     switch (mode) {
       case 'overwrite': {
+        if (listIndex === crListReplica.size) {
+          void walkToIndex<T>(crListReplica.size - 1, crListReplica)
+          if (!crListReplica.cursor) return false
+          linkedListEntry.index = crListReplica.cursor.index + 1
+          linkedListEntry.predecessor = crListReplica.cursor.uuidv7
+          insertBetween<T>(crListReplica.cursor, linkedListEntry, undefined)
+          void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
+          crListReplica.cursor = linkedListEntry
+          crListReplica.size = crListReplica.parentMap.size
+          break
+        }
         void walkToIndex<T>(listIndex, crListReplica)
         if (!crListReplica.cursor) return false
         const entryToOverwrite = crListReplica.cursor
@@ -113,6 +126,7 @@ export function __update<T>(
           listIndex === crListReplica.size
             ? undefined
             : crListReplica.cursor.next
+        shiftCursor = next
         linkedListEntry.index = crListReplica.cursor.index + 1
         linkedListEntry.predecessor = crListReplica.cursor.uuidv7
         insertBetween<T>(crListReplica.cursor, linkedListEntry, next)
@@ -140,6 +154,7 @@ export function __update<T>(
         void walkToIndex<T>(listIndex, crListReplica)
         if (!crListReplica.cursor) return false
         const prev = crListReplica.cursor.prev
+        shiftCursor = crListReplica.cursor
         linkedListEntry.index = crListReplica.cursor.index
         linkedListEntry.predecessor = prev?.uuidv7 ?? '\0'
         insertBetween<T>(prev, linkedListEntry, crListReplica.cursor)
@@ -160,9 +175,9 @@ export function __update<T>(
     listIndex++
   }
   if (mode !== 'overwrite')
-    while (crListReplica.cursor) {
-      crListReplica.cursor.index++
-      crListReplica.cursor = crListReplica.cursor.next
+    while (shiftCursor) {
+      shiftCursor.index += listValues.length
+      shiftCursor = shiftCursor.next
     }
   crListReplica.size = crListReplica.parentMap.size
   return delta

@@ -14,7 +14,7 @@ import {
 } from '../core/mags/index.js'
 
 export class CRList<T> {
-  [index: number]: T | undefined
+  [index: number]: T
   declare private readonly state: CRListReplica<T>
   declare private readonly eventTarget: EventTarget
 
@@ -187,6 +187,14 @@ export class CRList<T> {
     for (let index = 0; index < this.size; index++) {
       const value = this[index]
       if (value !== undefined) yield value
+    }
+  }
+  forEach(
+    callback: (value: T, index: number, list: this) => void,
+    thisArg?: unknown
+  ): void {
+    for (let index = 0; index < this.size; index++) {
+      callback.call(thisArg, this[index], index, this)
     }
   }
 }

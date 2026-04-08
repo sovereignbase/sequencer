@@ -16,3 +16,7 @@ for (const value of list) {
 for (const index in list) {
   console.log(`THIS IS: ${index}`)
 }
+
+list.forEach((value, index, list) => {
+  console.log(index, value, list.size)
+})

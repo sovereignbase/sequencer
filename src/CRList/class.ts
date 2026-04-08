@@ -5,14 +5,19 @@ import type {
   CRListEventMap,
 } from '../.types/index.js'
 import { __create, __read, __update, __delete } from '../core/crud/index.js'
-import { __snapshot } from '../core/mags/index.js'
+import {
+  __merge,
+  __acknowledge,
+  __garbageCollect,
+  __snapshot,
+} from '../core/mags/index.js'
 
 export class CRList<T> {
   private readonly state: CRListReplica<T>
   private readonly eventTarget = new EventTarget()
   constructor(snapshot?: CRListSnapshot<T>) {
     this.state = __create(snapshot)
-    new Proxy(this, {
+    return new Proxy(this, {
       get(target, index) {
         return __read(Number(index), target.state)
       },

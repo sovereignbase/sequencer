@@ -63,11 +63,11 @@ export class CRList<T> {
           const { delta, change } = result
           if (delta || change) {
             if (delta)
-              target.eventTarget.dispatchEvent(
+              void target.eventTarget.dispatchEvent(
                 new CustomEvent('delta', { detail: delta })
               )
             if (change)
-              target.eventTarget.dispatchEvent(
+              void target.eventTarget.dispatchEvent(
                 new CustomEvent('change', { detail: change })
               )
             return true
@@ -86,12 +86,12 @@ export class CRList<T> {
           const { delta, change } = result
           if (delta || change) {
             if (delta) {
-              target.eventTarget.dispatchEvent(
+              void target.eventTarget.dispatchEvent(
                 new CustomEvent('delta', { detail: delta })
               )
             }
             if (change) {
-              target.eventTarget.dispatchEvent(
+              void target.eventTarget.dispatchEvent(
                 new CustomEvent('change', { detail: change })
               )
             }
@@ -123,7 +123,7 @@ export class CRList<T> {
       },
     })
   }
-  get size() {
+  get size(): number {
     return this.state.size
   }
   prepend(value: T, beforeIndex?: number): void {
@@ -136,11 +136,11 @@ export class CRList<T> {
     if (!result) return
     const { delta, change } = result
     if (delta)
-      this.eventTarget.dispatchEvent(
+      void this.eventTarget.dispatchEvent(
         new CustomEvent('delta', { detail: delta })
       )
     if (change)
-      this.eventTarget.dispatchEvent(
+      void this.eventTarget.dispatchEvent(
         new CustomEvent('change', { detail: change })
       )
   }
@@ -154,11 +154,11 @@ export class CRList<T> {
     if (!result) return
     const { delta, change } = result
     if (delta)
-      this.eventTarget.dispatchEvent(
+      void this.eventTarget.dispatchEvent(
         new CustomEvent('delta', { detail: delta })
       )
     if (change)
-      this.eventTarget.dispatchEvent(
+      void this.eventTarget.dispatchEvent(
         new CustomEvent('change', { detail: change })
       )
   }
@@ -167,33 +167,35 @@ export class CRList<T> {
     if (!result) return
     const { delta, change } = result
     if (delta)
-      this.eventTarget.dispatchEvent(
+      void this.eventTarget.dispatchEvent(
         new CustomEvent('delta', { detail: delta })
       )
     if (change)
-      this.eventTarget.dispatchEvent(
+      void this.eventTarget.dispatchEvent(
         new CustomEvent('change', { detail: change })
       )
   }
-  merge(delta: CRListDelta<T>) {
+  merge(delta: CRListDelta<T>): void {
     const change = __merge(this.state, delta)
     if (change)
-      this.eventTarget.dispatchEvent(
+      void this.eventTarget.dispatchEvent(
         new CustomEvent('change', { detail: change })
       )
   }
-  acknowledge() {
+  acknowledge(): void {
     const ack = __acknowledge(this.state)
     if (ack)
-      this.eventTarget.dispatchEvent(new CustomEvent('ack', { detail: ack }))
+      void this.eventTarget.dispatchEvent(
+        new CustomEvent('ack', { detail: ack })
+      )
   }
-  garbageCollect(frontiers: Array<CRListAck>) {
+  garbageCollect(frontiers: Array<CRListAck>): void {
     void __garbageCollect(frontiers, this.state)
   }
-  snapshot() {
+  snapshot(): void {
     const snapshot = __snapshot(this.state)
     if (snapshot)
-      this.eventTarget.dispatchEvent(
+      void this.eventTarget.dispatchEvent(
         new CustomEvent('snapshot', { detail: snapshot })
       )
   }

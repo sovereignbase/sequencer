@@ -1,11 +1,12 @@
 import { CRList } from './dist/index.js'
 
 const list = new CRList()
-list.addEventListener('delta', (ev) => {
-  console.log(ev.detail)
-})
 
-list[0] = 'moi'
-list[0] = 'aasi'
+list.append('moi')
+list.prepend('moikka')
 
-console.log(list[0])
+const serialized = JSON.stringify(list)
+
+const list2 = new CRList(JSON.parse(serialized))
+
+console.log(list2)

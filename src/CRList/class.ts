@@ -14,6 +14,7 @@ import {
 } from '../core/mags/index.js'
 
 export class CRList<T> {
+  [index: number]: T | undefined
   declare private readonly state: CRListReplica<T>
   declare private readonly eventTarget: EventTarget
 
@@ -88,6 +89,32 @@ export class CRList<T> {
   get size() {
     return this.state.size
   }
+  prepend(value: T, beforeIndex?: number): void {
+    const delta = __update<T>(
+      beforeIndex ? beforeIndex : 0,
+      value,
+      this.state,
+      'before'
+    )
+    if (delta) {
+      this.eventTarget.dispatchEvent(
+        new CustomEvent('delta', { detail: delta })
+      )
+    }
+  }
+  append(value: T, afterIndex?: number): void {
+    const delta = __update<T>(
+      afterIndex ? afterIndex : 0,
+      value,
+      this.state,
+      'after'
+    )
+    if (delta) {
+      this.eventTarget.dispatchEvent(
+        new CustomEvent('delta', { detail: delta })
+      )
+    }
+  }
   /**
    * Registers an event listener.
    *
@@ -124,5 +151,23 @@ export class CRList<T> {
       listener as EventListenerOrEventListenerObject | null,
       options
     )
+  }
+  toJSON(): CRListSnapshot<T> {
+    return __snapshot<T>(this.state)
+  }
+  toString(): string {
+    return JSON.stringify(this)
+  }
+  [Symbol.for('nodejs.util.inspect.custom')](): CRListSnapshot<T> {
+    return this.toJSON()
+  }
+  [Symbol.for('Deno.customInspect')](): CRListSnapshot<T> {
+    return this.toJSON()
+  }
+  *[Symbol.iterator](): IterableIterator<T> {
+    for (let index = 0; index < this.size; index++) {
+      const value = this[index]
+      if (value !== undefined) yield value
+    }
   }
 }

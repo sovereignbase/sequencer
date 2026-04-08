@@ -85,7 +85,7 @@ export type CRListAck = string
 /**
  * Maps CRList event names to their event payload shapes.
  */
-export type CRListEventMap<T extends Record<string, unknown>> = {
+export type CRListEventMap<T> = {
   /** STATE / PROJECTION */
   snapshot: CRListSnapshot<T>
   change: CRListChange<T>
@@ -98,10 +98,7 @@ export type CRListEventMap<T extends Record<string, unknown>> = {
 /**
  * Represents a strongly typed OO-Struct event listener.
  */
-export type CRListEventListener<
-  T extends Record<string, unknown>,
-  K extends keyof CRListEventMap<T>,
-> =
+export type CRListEventListener<T, K extends keyof CRListEventMap<T>> =
   | ((event: CustomEvent<CRListEventMap<T>[K]>) => void)
   | { handleEvent(event: CustomEvent<CRListEventMap<T>[K]>): void }
 
@@ -109,7 +106,7 @@ export type CRListEventListener<
  * Resolves an event name to its corresponding listener type.
  */
 export type CRListEventListenerFor<
-  T extends Record<string, unknown>,
+  T,
   K extends string,
 > = K extends keyof CRListEventMap<T>
   ? CRListEventListener<T, K>

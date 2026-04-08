@@ -9,7 +9,6 @@ import {
 } from '../../../.helpers/index.js'
 import { v7 as uuidv7 } from 'uuid'
 import {
-  CRListChange,
   CRListDelta,
   CRListReplica,
   DoublyLinkedListEntry,
@@ -18,14 +17,14 @@ import {
  * Applies a local value mutation to the replica live view.
  *
  * The update can replace the target entry, insert before it, or insert after it.
- * The returned delta is suitable for gossip, and the returned change is a
- * minimal UI patch for the local mutation.
+ * The returned delta is suitable for gossip. Local callers already know the
+ * requested mutation and can patch their own live view from that context.
  *
  * @param listIndex Target index in the live list.
  * @param listValue Value to insert or overwrite.
  * @param crListReplica Replica to mutate.
  * @param mode Mutation mode relative to `listIndex`.
- * @returns A local change and gossip delta, or `false` if no mutation occurred.
+ * @returns A gossip delta, or `false` if no mutation occurred.
  *
  * Time complexity: O(d + r + k + c), worst case O(n + c)
  * - d = distance from cursor to target index
@@ -40,14 +39,11 @@ export function __update<T>(
   listValue: T,
   crListReplica: CRListReplica<T>,
   mode: 'overwrite' | 'before' | 'after'
-): { change: CRListChange<T>; delta: CRListDelta<T> } | false {
+): CRListDelta<T> | false {
   if (listIndex < 0 || listIndex > crListReplica.size)
     throw new CRListError('INDEX_OUT_OF_BOUNDS')
 
-  const result: { change: CRListChange<T>; delta: CRListDelta<T> } = {
-    change: {},
-    delta: { values: [], tombstones: [] },
-  }
+  const delta: CRListDelta<T> = { values: [], tombstones: [] }
 
   const [cloned, copiedValue] = safeStructuredClone(listValue)
 
@@ -83,13 +79,13 @@ export function __update<T>(
             crListReplica,
             entryToOverwrite.next,
             linkedListEntry.uuidv7,
-            result.delta
+            delta
           )
         }
       }
-      void updateEntryToMaps<T>(crListReplica, linkedListEntry, result.delta)
+      void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
       crListReplica.tombstones.add(entryToOverwrite.uuidv7)
-      result.delta.tombstones?.push(entryToOverwrite.uuidv7)
+      delta.tombstones?.push(entryToOverwrite.uuidv7)
       void deleteEntryFromMaps<T>(crListReplica, entryToOverwrite)
       entryToOverwrite.next = undefined
       entryToOverwrite.prev = undefined
@@ -100,7 +96,7 @@ export function __update<T>(
     case 'after': {
       if (crListReplica.size === 0 && listIndex === 0) {
         crListReplica.cursor = linkedListEntry
-        void updateEntryToMaps<T>(crListReplica, linkedListEntry, result.delta)
+        void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
         crListReplica.size = crListReplica.parentMap.size
         break
       }
@@ -121,11 +117,11 @@ export function __update<T>(
             crListReplica,
             next,
             linkedListEntry.uuidv7,
-            result.delta
+            delta
           )
         }
       }
-      void updateEntryToMaps<T>(crListReplica, linkedListEntry, result.delta)
+      void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
       crListReplica.cursor = linkedListEntry
       let cursor: DoublyLinkedListEntry<T> = linkedListEntry.next
       while (cursor) {
@@ -138,7 +134,7 @@ export function __update<T>(
     case 'before': {
       if (crListReplica.size === 0 && listIndex === 0) {
         crListReplica.cursor = linkedListEntry
-        void updateEntryToMaps<T>(crListReplica, linkedListEntry, result.delta)
+        void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
         crListReplica.size = crListReplica.parentMap.size
         break
       }
@@ -153,10 +149,10 @@ export function __update<T>(
           crListReplica,
           crListReplica.cursor,
           linkedListEntry.uuidv7,
-          result.delta
+          delta
         )
       }
-      void updateEntryToMaps<T>(crListReplica, linkedListEntry, result.delta)
+      void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
       crListReplica.cursor = linkedListEntry
       let cursor: DoublyLinkedListEntry<T> = linkedListEntry.next
       while (cursor) {
@@ -167,6 +163,5 @@ export function __update<T>(
       break
     }
   }
-  result.change[linkedListEntry.index] = linkedListEntry.value
-  return result
+  return delta
 }

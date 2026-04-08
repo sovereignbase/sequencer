@@ -1,7 +1,6 @@
 import { deleteLinkedEntry, walkToIndex } from '../../../.helpers/index.js'
 import { CRListError } from '../../../.errors/class.js'
 import type {
-  CRListChange,
   CRListDelta,
   CRListReplica,
   DoublyLinkedListEntry,
@@ -17,7 +16,7 @@ import type {
  * @param crListReplica Replica to mutate.
  * @param startIndex Inclusive start index. Defaults to `0`.
  * @param endIndex Exclusive end index. Defaults to the current list size.
- * @returns A local change and gossip delta, or `false` if nothing was deleted.
+ * @returns A gossip delta, or `false` if nothing was deleted.
  *
  * Time complexity: O(d + qk + r), worst case O(n^2)
  * - d = distance from cursor to target index
@@ -31,11 +30,8 @@ export function __delete<T>(
   crListReplica: CRListReplica<T>,
   startIndex?: number,
   endIndex?: number
-): { change: CRListChange<T>; delta: CRListDelta<T> } | false {
-  const result: { change: CRListChange<T>; delta: CRListDelta<T> } = {
-    change: {},
-    delta: { values: [], tombstones: [] },
-  }
+): CRListDelta<T> | false {
+  const delta: CRListDelta<T> = { values: [], tombstones: [] }
   const listIndex = startIndex ?? 0
   const targetEndIndex = endIndex ?? crListReplica.size
   if (
@@ -55,8 +51,7 @@ export function __delete<T>(
 
   while (current && deleted < deleteCount) {
     const next: DoublyLinkedListEntry<T> = current.next
-    result.change[current.index] = undefined
-    void deleteLinkedEntry<T>(crListReplica, current, result.delta)
+    void deleteLinkedEntry<T>(crListReplica, current, delta)
     current = next
     deleted++
   }
@@ -68,5 +63,5 @@ export function __delete<T>(
     current = current.next
   }
 
-  return result
+  return delta
 }

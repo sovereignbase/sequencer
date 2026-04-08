@@ -111,6 +111,21 @@ export async function runCRListSuite(api, options = {}) {
     }
   }
 
+  function assertDeltaIncludesValueIds(delta, expected) {
+    const actual = new Set((delta.values ?? []).map((entry) => entry.value?.id))
+    for (const id of expected) {
+      assert(actual.has(id), `delta missing value id ${id}`)
+    }
+  }
+
+  function assertDeltaTombstoneCount(delta, expected) {
+    assertEqual(
+      delta.tombstones?.length ?? 0,
+      expected,
+      'delta tombstone count mismatch'
+    )
+  }
+
   function applyUpdate(replica, index, id, mode) {
     const result = api.__update(index, value(id), replica, mode)
     assert(result, `update returned false for ${mode}:${index}:${id}`)
@@ -232,20 +247,20 @@ export async function runCRListSuite(api, options = {}) {
               : mode === 'after'
                 ? Math.floor(rand() * (replica.size + 1))
                 : Math.floor(rand() * replica.size)
-          deltas.push(applyUpdate(replica, index, id, mode).delta)
+          deltas.push(applyUpdate(replica, index, id, mode))
           continue
         }
 
         if (roll < 0.7) {
           const index = Math.floor(rand() * replica.size)
-          deltas.push(applyUpdate(replica, index, id, 'overwrite').delta)
+          deltas.push(applyUpdate(replica, index, id, 'overwrite'))
           continue
         }
 
         const start = Math.floor(rand() * replica.size)
         const deleteLength =
           1 + Math.floor(rand() * Math.min(3, replica.size - start))
-        deltas.push(applyDelete(replica, start, start + deleteLength).delta)
+        deltas.push(applyDelete(replica, start, start + deleteLength))
       }
     }
 
@@ -267,27 +282,24 @@ export async function runCRListSuite(api, options = {}) {
     }
   })
 
-  await runTest('crud live view and minimum change semantics', () => {
+  await runTest('crud live view and local delta semantics', () => {
     const replica = api.__create()
 
-    assertChangeIds(applyUpdate(replica, 0, 'a', 'after').change, { 0: 'a' })
+    assertDeltaIncludesValueIds(applyUpdate(replica, 0, 'a', 'after'), ['a'])
     assertLiveIds(replica, ['a'])
 
-    assertChangeIds(applyUpdate(replica, 0, 'b', 'after').change, { 1: 'b' })
+    assertDeltaIncludesValueIds(applyUpdate(replica, 0, 'b', 'after'), ['b'])
     assertLiveIds(replica, ['a', 'b'])
 
-    assertChangeIds(applyUpdate(replica, 0, 'c', 'before').change, { 0: 'c' })
+    assertDeltaIncludesValueIds(applyUpdate(replica, 0, 'c', 'before'), ['c'])
     assertLiveIds(replica, ['c', 'a', 'b'])
 
-    assertChangeIds(applyUpdate(replica, 1, 'd', 'overwrite').change, {
-      1: 'd',
-    })
+    const overwriteDelta = applyUpdate(replica, 1, 'd', 'overwrite')
+    assertDeltaIncludesValueIds(overwriteDelta, ['d'])
+    assertDeltaTombstoneCount(overwriteDelta, 1)
     assertLiveIds(replica, ['c', 'd', 'b'])
 
-    assertChangeIds(applyDelete(replica, 1, 3).change, {
-      1: undefined,
-      2: undefined,
-    })
+    assertDeltaTombstoneCount(applyDelete(replica, 1, 3), 2)
     assertLiveIds(replica, ['c'])
   })
 
@@ -316,7 +328,7 @@ export async function runCRListSuite(api, options = {}) {
       const source = api.__create()
       const target = api.__create()
 
-      const insert = applyUpdate(source, 0, 'inserted', 'after').delta
+      const insert = applyUpdate(source, 0, 'inserted', 'after')
       assertChangeIds(api.__merge(target, insert), { 0: 'inserted' })
       assertEqual(
         api.__merge(target, insert),
@@ -325,7 +337,7 @@ export async function runCRListSuite(api, options = {}) {
       )
       assertLiveIds(target, ['inserted'])
 
-      const remove = applyDelete(source, 0, 1).delta
+      const remove = applyDelete(source, 0, 1)
       assertChangeIds(api.__merge(target, remove), { 0: undefined })
       assertEqual(
         api.__merge(target, remove),
@@ -381,13 +393,13 @@ export async function runCRListSuite(api, options = {}) {
         const deleteThenInsert = cloneReplica(base)
         const insertThenDelete = cloneReplica(base)
 
-        const deleteDelta = applyDelete(deleteFirst, 0, 1).delta
+        const deleteDelta = applyDelete(deleteFirst, 0, 1)
         const insertDelta = applyUpdate(
           insertAfterFirst,
           0,
           'after-deleted',
           'after'
-        ).delta
+        )
 
         api.__merge(deleteThenInsert, deleteDelta)
         api.__merge(deleteThenInsert, insertDelta)

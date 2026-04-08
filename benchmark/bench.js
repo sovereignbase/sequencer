@@ -83,7 +83,7 @@ function collectAppendDeltas(source, amount, offset) {
   for (let index = 0; index < amount; index++) {
     const result = __update(source.size, value(offset + index), source, 'after')
     if (!result) throw new Error(`append delta failed at ${index}`)
-    deltas.push(result.delta)
+    deltas.push(result)
   }
   return deltas
 }
@@ -95,7 +95,7 @@ function collectMixedDeltas(source, amount, offset) {
     if (index % 4 === 0 && source.size > 0) {
       const deleteIndex = Math.floor(rand() * source.size)
       const result = __delete(source, deleteIndex, deleteIndex + 1)
-      if (result) deltas.push(result.delta)
+      if (result) deltas.push(result)
       continue
     }
 
@@ -105,7 +105,7 @@ function collectMixedDeltas(source, amount, offset) {
     const listIndex =
       mode === 'after' ? insertAt : Math.min(insertAt, source.size - 1)
     const result = __update(listIndex, value(offset + index), source, mode)
-    if (result) deltas.push(result.delta)
+    if (result) deltas.push(result)
   }
   return deltas
 }

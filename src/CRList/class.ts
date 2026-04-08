@@ -84,6 +84,25 @@ export class CRList<T> {
           return false
         }
       },
+      ownKeys(target) {
+        return [
+          ...Reflect.ownKeys(target),
+          ...Array.from({ length: target.size }, (_, index) => String(index)),
+        ]
+      },
+
+      getOwnPropertyDescriptor(target, index) {
+        const listIndex = indexFromPropertyKey(index)
+
+        if (listIndex !== undefined && listIndex < target.size) {
+          return {
+            enumerable: true,
+            configurable: true,
+          }
+        }
+
+        return Reflect.getOwnPropertyDescriptor(target, index)
+      },
     })
   }
   get size() {

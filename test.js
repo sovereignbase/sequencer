@@ -9,4 +9,10 @@ const serialized = JSON.stringify(list)
 
 const list2 = new CRList(JSON.parse(serialized))
 
-console.log(list2)
+for (const value of list) {
+  console.log(`THIS IS: ${value}`)
+}
+
+for (const index in list) {
+  console.log(`THIS IS: ${index}`)
+}

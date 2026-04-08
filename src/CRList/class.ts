@@ -39,13 +39,13 @@ export class CRList<T> {
     return new Proxy(this, {
       get(target, index, receiver) {
         const listIndex = indexFromPropertyKey(index)
-        //for non Index Props
+        //for non index Props
         if (listIndex === undefined) return Reflect.get(target, index, receiver)
         return __read(listIndex, target.state)
       },
       has(target, index) {
         const listIndex = indexFromPropertyKey(index)
-        //for non Index Props
+        //for non index Props
         if (listIndex === undefined) return Reflect.has(target, index)
         return listIndex >= 0 && listIndex < target.state.size
       },
@@ -61,18 +61,15 @@ export class CRList<T> {
           )
           if (!result) return false
           const { delta, change } = result
-          if (delta || change) {
-            if (delta)
-              void target.eventTarget.dispatchEvent(
-                new CustomEvent('delta', { detail: delta })
-              )
-            if (change)
-              void target.eventTarget.dispatchEvent(
-                new CustomEvent('change', { detail: change })
-              )
-            return true
-          }
-          return false
+          if (delta)
+            void target.eventTarget.dispatchEvent(
+              new CustomEvent('delta', { detail: delta })
+            )
+          if (change)
+            void target.eventTarget.dispatchEvent(
+              new CustomEvent('change', { detail: change })
+            )
+          return true
         } catch {
           return false
         }
@@ -84,20 +81,17 @@ export class CRList<T> {
           const result = __delete(target.state, listIndex, listIndex + 1)
           if (!result) return false
           const { delta, change } = result
-          if (delta || change) {
-            if (delta) {
-              void target.eventTarget.dispatchEvent(
-                new CustomEvent('delta', { detail: delta })
-              )
-            }
-            if (change) {
-              void target.eventTarget.dispatchEvent(
-                new CustomEvent('change', { detail: change })
-              )
-            }
-            return true
+          if (delta) {
+            void target.eventTarget.dispatchEvent(
+              new CustomEvent('delta', { detail: delta })
+            )
           }
-          return false
+          if (change) {
+            void target.eventTarget.dispatchEvent(
+              new CustomEvent('change', { detail: change })
+            )
+          }
+          return true
         } catch {
           return false
         }
@@ -248,7 +242,7 @@ export class CRList<T> {
   *[Symbol.iterator](): IterableIterator<T> {
     for (let index = 0; index < this.size; index++) {
       const value = this[index]
-      if (value !== undefined) yield value
+      yield value
     }
   }
   forEach(

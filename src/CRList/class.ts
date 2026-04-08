@@ -42,6 +42,7 @@ export class CRList<T> {
       },
       has(target, index) {
         const listIndex = indexFromPropertyKey(index)
+        //for non Index Props
         if (listIndex === undefined) return Reflect.has(target, index)
         return listIndex >= 0 && listIndex < target.state.size
       },

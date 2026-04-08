@@ -19,7 +19,7 @@ export class CRList<T> {
 
   constructor(snapshot?: CRListSnapshot<T>) {
     Object.defineProperties(this, {
-      stateKey: {
+      state: {
         value: __create(snapshot),
         enumerable: false,
         configurable: false,
@@ -49,7 +49,12 @@ export class CRList<T> {
         const listIndex = indexFromPropertyKey(index)
         if (listIndex === undefined) return false
         try {
-          const delta = __update(listIndex, value, target.state, 'overwrite')
+          const delta = __update(
+            listIndex,
+            value,
+            target.state,
+            target.size <= 0 ? 'after' : 'overwrite'
+          )
           if (delta) {
             target.eventTarget.dispatchEvent(
               new CustomEvent('delta', { detail: delta })

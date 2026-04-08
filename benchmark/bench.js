@@ -1,4 +1,5 @@
 import {
+  CRList,
   __acknowledge,
   __create,
   __delete,
@@ -14,29 +15,82 @@ const RUN_TIMES = 250
 const LIST_SIZE = 5_000
 
 const BENCHMARKS = [
-  { group: 'create', name: 'hydrate snapshot', n: LIST_SIZE, ops: RUN_TIMES },
-  { group: 'read', name: 'random indexed reads', n: LIST_SIZE, ops: RUN_TIMES },
-  { group: 'update', name: 'append after tail', n: LIST_SIZE, ops: RUN_TIMES },
   {
-    group: 'update',
-    name: 'insert before middle',
+    group: 'crud',
+    name: 'create / hydrate snapshot',
     n: LIST_SIZE,
     ops: RUN_TIMES,
   },
-  { group: 'update', name: 'overwrite random', n: LIST_SIZE, ops: RUN_TIMES },
   {
-    group: 'delete',
-    name: 'single deletes from middle',
+    group: 'crud',
+    name: 'read / random indexed reads',
     n: LIST_SIZE,
     ops: RUN_TIMES,
   },
-  { group: 'delete', name: 'range deletes', n: LIST_SIZE, ops: RUN_TIMES },
+  {
+    group: 'crud',
+    name: 'update / append after tail',
+    n: LIST_SIZE,
+    ops: RUN_TIMES,
+  },
+  {
+    group: 'crud',
+    name: 'update / insert before middle',
+    n: LIST_SIZE,
+    ops: RUN_TIMES,
+  },
+  {
+    group: 'crud',
+    name: 'update / overwrite random',
+    n: LIST_SIZE,
+    ops: RUN_TIMES,
+  },
+  {
+    group: 'crud',
+    name: 'delete / single deletes from middle',
+    n: LIST_SIZE,
+    ops: RUN_TIMES,
+  },
+  {
+    group: 'crud',
+    name: 'delete / range deletes',
+    n: LIST_SIZE,
+    ops: RUN_TIMES,
+  },
   { group: 'mags', name: 'snapshot', n: LIST_SIZE, ops: RUN_TIMES },
   { group: 'mags', name: 'acknowledge', n: LIST_SIZE, ops: RUN_TIMES },
   { group: 'mags', name: 'garbage collect', n: LIST_SIZE, ops: RUN_TIMES },
   { group: 'mags', name: 'merge ordered deltas', n: LIST_SIZE, ops: RUN_TIMES },
   {
     group: 'mags',
+    name: 'merge shuffled gossip',
+    n: LIST_SIZE,
+    ops: RUN_TIMES,
+  },
+  { group: 'class', name: 'append after tail', n: LIST_SIZE, ops: RUN_TIMES },
+  {
+    group: 'class',
+    name: 'prepend before middle',
+    n: LIST_SIZE,
+    ops: RUN_TIMES,
+  },
+  {
+    group: 'class',
+    name: 'remove from middle',
+    n: LIST_SIZE,
+    ops: RUN_TIMES,
+  },
+  { group: 'class', name: 'snapshot', n: LIST_SIZE, ops: RUN_TIMES },
+  { group: 'class', name: 'acknowledge', n: LIST_SIZE, ops: RUN_TIMES },
+  { group: 'class', name: 'garbage collect', n: LIST_SIZE, ops: RUN_TIMES },
+  {
+    group: 'class',
+    name: 'merge ordered deltas',
+    n: LIST_SIZE,
+    ops: RUN_TIMES,
+  },
+  {
+    group: 'class',
     name: 'merge shuffled gossip',
     n: LIST_SIZE,
     ops: RUN_TIMES,
@@ -72,6 +126,14 @@ function createSeededReplica(size) {
     if (!result) throw new Error(`seed update failed at ${index}`)
   }
   return replica
+}
+
+function createSeededList(size) {
+  const list = new CRList()
+  for (let index = 0; index < size; index++) {
+    list.append(value(index))
+  }
+  return list
 }
 
 function createSnapshot(size) {
@@ -115,6 +177,42 @@ function collectMixedDeltas(source, amount, offset) {
   return deltas
 }
 
+function collectClassAppendDeltas(source, amount, offset) {
+  const deltas = []
+  source.addEventListener('delta', (event) => {
+    deltas.push(event.detail)
+  })
+  for (let index = 0; index < amount; index++) {
+    source.append(value(offset + index))
+  }
+  return deltas
+}
+
+function collectClassMixedDeltas(source, amount, offset) {
+  const deltas = []
+  const rand = random(0xc0ffee)
+  source.addEventListener('delta', (event) => {
+    deltas.push(event.detail)
+  })
+  for (let index = 0; index < amount; index++) {
+    if (index % 4 === 0 && source.size > 0) {
+      source.remove(Math.floor(rand() * source.size))
+      continue
+    }
+
+    if (source.size === 0 || rand() < 0.5) {
+      source.append(value(offset + index), source.size)
+      continue
+    }
+
+    source.prepend(
+      value(offset + index),
+      Math.floor(rand() * Math.max(source.size, 1))
+    )
+  }
+  return deltas
+}
+
 function createTombstoneIds(size) {
   return Array.from({ length: size }, () => uuidv7())
 }
@@ -128,14 +226,14 @@ function time(fn) {
 
 function runBenchmark(definition) {
   switch (`${definition.group}:${definition.name}`) {
-    case 'create:hydrate snapshot': {
+    case 'crud:create / hydrate snapshot': {
       const snapshot = createSnapshot(definition.n)
       return time(() => {
         for (let index = 0; index < definition.ops; index++) __create(snapshot)
         return definition.ops
       })
     }
-    case 'read:random indexed reads': {
+    case 'crud:read / random indexed reads': {
       const replica = createSeededReplica(definition.n)
       const rand = random(0x1234)
       return time(() => {
@@ -145,7 +243,7 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
-    case 'update:append after tail': {
+    case 'crud:update / append after tail': {
       const replica = createSeededReplica(definition.n)
       return time(() => {
         for (let index = 0; index < definition.ops; index++) {
@@ -159,7 +257,7 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
-    case 'update:insert before middle': {
+    case 'crud:update / insert before middle': {
       const replica = createSeededReplica(definition.n)
       return time(() => {
         for (let index = 0; index < definition.ops; index++) {
@@ -173,7 +271,7 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
-    case 'update:overwrite random': {
+    case 'crud:update / overwrite random': {
       const replica = createSeededReplica(definition.n)
       const rand = random(0x5678)
       return time(() => {
@@ -188,7 +286,7 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
-    case 'delete:single deletes from middle': {
+    case 'crud:delete / single deletes from middle': {
       const replica = createSeededReplica(definition.n)
       return time(() => {
         let deleted = 0
@@ -200,7 +298,7 @@ function runBenchmark(definition) {
         return deleted
       })
     }
-    case 'delete:range deletes': {
+    case 'crud:delete / range deletes': {
       const replica = createSeededReplica(definition.n)
       return time(() => {
         let deletedRanges = 0
@@ -259,6 +357,93 @@ function runBenchmark(definition) {
       const order = shuffledIndices(deltas.length, 0xbeef)
       return time(() => {
         for (const index of order) __merge(target, deltas[index])
+        return order.length
+      })
+    }
+    case 'class:append after tail': {
+      const list = createSeededList(definition.n)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          list.append(value(definition.n + index))
+        }
+        return definition.ops
+      })
+    }
+    case 'class:prepend before middle': {
+      const list = createSeededList(definition.n)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          list.prepend(value(definition.n + index), Math.floor(list.size / 2))
+        }
+        return definition.ops
+      })
+    }
+    case 'class:remove from middle': {
+      const list = createSeededList(definition.n)
+      return time(() => {
+        let removed = 0
+        while (removed < definition.ops && list.size > 0) {
+          list.remove(Math.floor(list.size / 2))
+          removed++
+        }
+        return removed
+      })
+    }
+    case 'class:snapshot': {
+      const list = createSeededList(definition.n)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) list.snapshot()
+        return definition.ops
+      })
+    }
+    case 'class:acknowledge': {
+      const list = new CRList({
+        values: [],
+        tombstones: createTombstoneIds(definition.n),
+      })
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          list.acknowledge()
+        }
+        return definition.ops
+      })
+    }
+    case 'class:garbage collect': {
+      const tombstones = createTombstoneIds(definition.n)
+      const frontier = tombstones[tombstones.length - 1]
+      const lists = Array.from(
+        { length: definition.ops },
+        () => new CRList({ values: [], tombstones })
+      )
+      return time(() => {
+        for (const list of lists) list.garbageCollect([frontier])
+        return definition.ops
+      })
+    }
+    case 'class:merge ordered deltas': {
+      const source = createSeededList(definition.n)
+      const target = createSeededList(definition.n)
+      const deltas = collectClassAppendDeltas(
+        source,
+        definition.ops,
+        definition.n
+      )
+      return time(() => {
+        for (const delta of deltas) target.merge(delta)
+        return deltas.length
+      })
+    }
+    case 'class:merge shuffled gossip': {
+      const source = createSeededList(definition.n)
+      const target = createSeededList(definition.n)
+      const deltas = collectClassMixedDeltas(
+        source,
+        definition.ops,
+        definition.n
+      )
+      const order = shuffledIndices(deltas.length, 0xbeef)
+      return time(() => {
+        for (const index of order) target.merge(deltas[index])
         return order.length
       })
     }

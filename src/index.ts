@@ -13,3 +13,4 @@ export type {
   CRListSnapshot,
 } from './.types/index.js'
 export type { CRListErrorCode } from './.errors/class.js'
+export { CRList } from './CRList/class.js'

@@ -1,3 +1,4 @@
+import { indexFromPropertyKey } from '../.helpers/index.js'
 import type {
   CRListReplica,
   CRListSnapshot,
@@ -13,25 +14,42 @@ import {
 } from '../core/mags/index.js'
 
 export class CRList<T> {
-  private readonly state: CRListReplica<T>
-  private readonly eventTarget = new EventTarget()
+  declare private readonly state: CRListReplica<T>
+  declare private readonly eventTarget: EventTarget
+
   constructor(snapshot?: CRListSnapshot<T>) {
-    this.state = __create(snapshot)
+    Object.defineProperties(this, {
+      stateKey: {
+        value: __create(snapshot),
+        enumerable: false,
+        configurable: false,
+        writable: false,
+      },
+      eventTarget: {
+        value: new EventTarget(),
+        enumerable: false,
+        configurable: false,
+        writable: false,
+      },
+    })
+
     return new Proxy(this, {
-      get(target, index) {
-        return __read(Number(index), target.state)
+      get(target, index, receiver) {
+        const listIndex = indexFromPropertyKey(index)
+        //for non Index Props
+        if (listIndex === undefined) return Reflect.get(target, index, receiver)
+        return __read(listIndex, target.state)
       },
       has(target, index) {
-        return Boolean(__read(Number(index), target.state))
+        const listIndex = indexFromPropertyKey(index)
+        if (listIndex === undefined) return Reflect.has(target, index)
+        return listIndex >= 0 && listIndex < target.state.size
       },
       set(target, index, value) {
+        const listIndex = indexFromPropertyKey(index)
+        if (listIndex === undefined) return false
         try {
-          const delta = __update(
-            Number(index),
-            value,
-            target.state,
-            'overwrite'
-          )
+          const delta = __update(listIndex, value, target.state, 'overwrite')
           if (delta) {
             target.eventTarget.dispatchEvent(
               new CustomEvent('delta', { detail: delta })
@@ -44,8 +62,10 @@ export class CRList<T> {
         }
       },
       deleteProperty(target, index) {
+        const listIndex = indexFromPropertyKey(index)
+        if (listIndex === undefined) return false
         try {
-          const delta = __delete(target.state, Number(index), Number(index))
+          const delta = __delete(target.state, listIndex, listIndex + 1)
           if (delta) {
             target.eventTarget.dispatchEvent(
               new CustomEvent('delta', { detail: delta })
@@ -57,26 +77,10 @@ export class CRList<T> {
           return false
         }
       },
-      apply() {
-        return
-      },
-      construct(target) {
-        return new CRList(__snapshot(target.state))
-      },
-      defineProperty() {
-        return false
-      },
-      getOwnPropertyDescriptor() {
-        return
-      },
-      isExtensible() {
-        return false
-      },
-      getPrototypeOf() {},
-      preventExtensions() {
-        return true
-      },
     })
+  }
+  get size() {
+    return this.state.size
   }
   /**
    * Registers an event listener.

@@ -50,7 +50,10 @@ run(
   process.env
 )
 
-const lcov = readFileSync(resolve(process.cwd(), 'coverage', 'lcov.info'), 'utf8')
+const lcov = readFileSync(
+  resolve(process.cwd(), 'coverage', 'lcov.info'),
+  'utf8'
+)
 let sourceFile = ''
 const uncoveredBranches = []
 for (const line of lcov.split(/\r?\n/u)) {

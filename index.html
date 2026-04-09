@@ -764,9 +764,12 @@
               If the local replica retains no <a>tombstones entry</a>, then
               return no <a>acknowledgement</a>.
             </li>
-            <li>Sort the retained tombstones lexicographically.</li>
             <li>
-              Return the lexicographically greatest tombstone as the replica's
+              Iterate the retained tombstones and keep the lexicographically
+              greatest tombstone seen so far.
+            </li>
+            <li>
+              Return that greatest tombstone as the replica's
               <a>acknowledgement</a>.
             </li>
           </ol>

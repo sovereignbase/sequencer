@@ -373,11 +373,18 @@ test('unit: flatten relink branch coverage stays explicit under corrupt buckets'
   relinkTarget.childrenMap.set('m', undefined)
 
   const rootInsert = __create()
-  const rootInsertDelta = __update(0, [{ id: 'remote-root' }], rootInsert, 'after')
+  const rootInsertDelta = __update(
+    0,
+    [{ id: 'remote-root' }],
+    rootInsert,
+    'after'
+  )
   assert(__merge(relinkTarget, rootInsertDelta.delta))
   assert.equal(relinkTarget.size, 2)
   assert.deepEqual(
-    ids(relinkTarget).map((value) => value.id).sort(),
+    ids(relinkTarget)
+      .map((value) => value.id)
+      .sort(),
     ['existing', 'remote-root']
   )
 })

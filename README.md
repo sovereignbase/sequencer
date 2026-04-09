@@ -223,9 +223,7 @@ The intended split is:
 
 Low-level exports can throw `CRListError` with stable error codes:
 
-- `DEFAULTS_NOT_CLONEABLE`
 - `VALUE_NOT_CLONEABLE`
-- `VALUE_TYPE_MISMATCH`
 - `INDEX_OUT_OF_BOUNDS`
 - `LIST_EMPTY`
 - `LIST_INTEGRITY_VIOLATION`
@@ -262,7 +260,7 @@ npm run test
 
 What the current test suite covers:
 
-- Unit coverage on built `dist/**/*.js` with `100%` statements, branches, functions, and lines.
+- Coverage checks on built `dist/**/*.js` together with focused source-coverage tests for helper edge paths.
 - Public `CRList` surface: indexing, iteration, `forEach`, proxy traps, events, JSON/inspect behavior.
 - Core edge paths and malicious ingress handling for `__create`, `__read`, `__update`, `__delete`, `__merge`, `__snapshot`, `__acknowledge`, and `__garbageCollect`.
 - Internal defensive branches under intentionally corrupt in-memory replica state.
@@ -301,27 +299,27 @@ Last measured on Node `v22.14.0` (`win32 x64`):
 
 | group   | scenario                              |     n | ops |       ms | ms/op |    ops/sec |
 | ------- | ------------------------------------- | ----: | --: | -------: | ----: | ---------: |
-| `crud`  | `create / hydrate snapshot`           | 5,000 | 250 | 8,541.40 | 34.17 |      29.27 |
-| `crud`  | `read / random indexed reads`         | 5,000 | 250 |    17.58 |  0.07 |  14,220.30 |
-| `crud`  | `update / append after tail`          | 5,000 | 250 |     3.71 |  0.01 |  67,309.25 |
-| `crud`  | `update / insert before middle`       | 5,000 | 250 |    26.13 |  0.10 |   9,569.38 |
-| `crud`  | `update / overwrite random`           | 5,000 | 250 |    18.04 |  0.07 |  13,859.71 |
-| `crud`  | `delete / single deletes from middle` | 5,000 | 250 |    19.41 |  0.08 |  12,877.04 |
-| `crud`  | `delete / range deletes`              | 5,000 | 250 |     6.31 |  0.03 |  39,635.98 |
-| `mags`  | `snapshot`                            | 5,000 | 250 | 5,382.36 | 21.53 |      46.45 |
-| `mags`  | `acknowledge`                         | 5,000 | 250 |   500.11 |  2.00 |     499.89 |
-| `mags`  | `garbage collect`                     | 5,000 | 250 |   204.62 |  0.82 |   1,221.75 |
-| `mags`  | `merge ordered deltas`                | 5,000 | 250 |    12.35 |  0.05 |  20,239.31 |
-| `mags`  | `merge shuffled gossip`               | 5,000 | 250 |   560.28 |  2.24 |     446.20 |
-| `class` | `constructor / hydrate snapshot`      | 5,000 | 250 | 8,010.41 | 32.04 |      31.21 |
-| `class` | `append after tail`                   | 5,000 | 250 |     2.45 |  0.01 | 102,140.87 |
-| `class` | `prepend before middle`               | 5,000 | 250 |     8.02 |  0.03 |  31,184.90 |
-| `class` | `remove from middle`                  | 5,000 | 250 |    24.46 |  0.10 |  10,220.35 |
-| `class` | `snapshot`                            | 5,000 | 250 | 5,213.99 | 20.86 |      47.95 |
-| `class` | `acknowledge`                         | 5,000 | 250 |   313.81 |  1.26 |     796.65 |
-| `class` | `garbage collect`                     | 5,000 | 250 |   106.11 |  0.42 |   2,355.98 |
-| `class` | `merge ordered deltas`                | 5,000 | 250 |     8.20 |  0.03 |  30,502.31 |
-| `class` | `merge shuffled gossip`               | 5,000 | 250 |   365.12 |  1.46 |     684.70 |
+| `crud`  | `create / hydrate snapshot`           | 5,000 | 250 | 8,817.80 | 35.27 |      28.35 |
+| `crud`  | `read / random indexed reads`         | 5,000 | 250 |    12.59 |  0.05 |  19,854.03 |
+| `crud`  | `update / append after tail`          | 5,000 | 250 |     2.26 |  0.01 | 110,507.01 |
+| `crud`  | `update / insert before middle`       | 5,000 | 250 |    22.27 |  0.09 |  11,224.10 |
+| `crud`  | `update / overwrite random`           | 5,000 | 250 |    13.95 |  0.06 |  17,919.61 |
+| `crud`  | `delete / single deletes from middle` | 5,000 | 250 |    23.21 |  0.09 |  10,772.98 |
+| `crud`  | `delete / range deletes`              | 5,000 | 250 |     6.32 |  0.03 |  39,562.60 |
+| `mags`  | `snapshot`                            | 5,000 | 250 | 5,354.28 | 21.42 |      46.69 |
+| `mags`  | `acknowledge`                         | 5,000 | 250 |    47.24 |  0.19 |   5,291.76 |
+| `mags`  | `garbage collect`                     | 5,000 | 250 |   163.55 |  0.65 |   1,528.59 |
+| `mags`  | `merge ordered deltas`                | 5,000 | 250 |    19.25 |  0.08 |  12,986.74 |
+| `mags`  | `merge shuffled gossip`               | 5,000 | 250 |   485.99 |  1.94 |     514.41 |
+| `class` | `constructor / hydrate snapshot`      | 5,000 | 250 | 8,119.67 | 32.48 |      30.79 |
+| `class` | `append after tail`                   | 5,000 | 250 |     2.87 |  0.01 |  87,232.63 |
+| `class` | `prepend before middle`               | 5,000 | 250 |     7.76 |  0.03 |  32,228.95 |
+| `class` | `remove from middle`                  | 5,000 | 250 |     5.20 |  0.02 |  48,084.32 |
+| `class` | `snapshot`                            | 5,000 | 250 | 5,842.47 | 23.37 |      42.79 |
+| `class` | `acknowledge`                         | 5,000 | 250 |   127.77 |  0.51 |   1,956.68 |
+| `class` | `garbage collect`                     | 5,000 | 250 |   323.20 |  1.29 |     773.51 |
+| `class` | `merge ordered deltas`                | 5,000 | 250 |     8.61 |  0.03 |  29,021.17 |
+| `class` | `merge shuffled gossip`               | 5,000 | 250 |   523.53 |  2.09 |     477.53 |
 
 ## License
 

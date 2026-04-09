@@ -410,23 +410,24 @@
         <a>CR-List replica</a>.
       </p>
       <p>
-        The <dfn>replica values</dfn> is a <a>linked list</a> containing 0 or
-        more <a>values entry</a>(s) tracked by <a>replica state</a>.
+        The <dfn>replica values</dfn> is the set of 0 or more
+        <a>values entry</a>(s) tracked by <a>replica state</a>.
       </p>
       <p>
         A <dfn>values entry</dfn> is a struct consisting of a
         <a>UUIDv7 Identifier</a>, <a>list value</a>, and
         <a>predecessor identifier</a> tracked by <a>replica values</a>. A
-        conforming runtime MAY additionally track local projection members such
-        as <code>prev</code>, <code>next</code>, and <code>index</code>.
+        conforming runtime MAY additionally project those same entries into a
+        local <a>doubly linked list</a> by tracking members such as
+        <code>prev</code>, <code>next</code>, and <code>index</code>.
       </p>
       <p>
         The <dfn>replica tombstones</dfn> is a list of 0 or more overwritten
         <a>tombstones entry</a>(s) tracked by <a>replica state</a>.
       </p>
       <p>
-        A <dfn>tombstones entry</dfn> is a <a>UUIDv7 identifier</a> presenting a
-        <a>list value</a> tracked by <a>replica tombstones</a>.
+        A <dfn>tombstones entry</dfn> is a <a>UUIDv7 identifier</a> representing
+        a deleted <a>list value</a> tracked by <a>replica tombstones</a>.
       </p>
       <p>
         An <dfn>acknowledgement</dfn> is a serializable string containing the
@@ -809,6 +810,13 @@
               to that safe collection boundary.
             </li>
           </ol>
+          <p class="note">
+            This algorithm is only safe when the caller supplies
+            <a>acknowledgement</a>(s) covering every replica whose future
+            convergence must still be preserved. Supplying only a partial
+            frontier set is caller misuse and does not guarantee that an offline
+            replica can later catch up from deltas alone.
+          </p>
         </section>
 
         <section>

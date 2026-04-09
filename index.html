@@ -416,7 +416,9 @@
       <p>
         A <dfn>values entry</dfn> is a struct consisting of a
         <a>UUIDv7 Identifier</a>, <a>list value</a>, and
-        <a>predecessor identifier</a> tracked by <a>replica values</a>.
+        <a>predecessor identifier</a> tracked by <a>replica values</a>. A
+        conforming runtime MAY additionally track local projection members such
+        as <code>prev</code>, <code>next</code>, and <code>index</code>.
       </p>
       <p>
         The <dfn>replica tombstones</dfn> is a list of 0 or more overwritten
@@ -433,8 +435,8 @@
       </p>
       <p>
         An <dfn>acknowledgement frontier</dfn> is the largest
-        <a>tombstones entry</a> resolved by lexicographically sorting
-        <a>replica tombstones</a>.
+        <a>tombstones entry</a> presently retained by
+        <a>replica tombstones</a> under lexicographic comparison.
       </p>
       <p>
         A <dfn>snapshot</dfn> is a <a>serializable object</a> presentation of a
@@ -460,20 +462,20 @@
         every live candidate whose own <a>UUIDv7 identifier</a> is listed in
         <a>replica tombstones</a>. It then clears every live entry's
         <code>prev</code> and <code>next</code> members, sorts the live
-        sibling-bucket keys lexicographically by their
-        <a>predecessor identifier</a>, and repeatedly scans those bucket keys in
-        that order until no new bucket can be resolved. A bucket is immediately
-        resolvable when its predecessor is the root predecessor
-        <code>'\0'</code> or when its predecessor is not presently found in live
-        state; if its predecessor exists in live state, the bucket is resolved
-        only after that predecessor has already been linked into the visible
-        projection. Within each resolved bucket, siblings sharing the same
+        sibling-bucket keys lexicographically by <a>predecessor identifier</a>,
+        and resolves those buckets in repeated passes. A bucket is resolvable
+        when its predecessor is the root predecessor <code>'\0'</code>, when its
+        predecessor is not presently found in live state, or when its
+        predecessor has already been linked into the visible projection.
+      </p>
+      <p>
+        Within a resolved bucket, siblings sharing the same
         <a>predecessor identifier</a> are sorted lexicographically by UUIDv7 and
         linked immediately after their visible predecessor, if any, otherwise at
-        the current visible tail. After linking finishes, the implementation
-        walks to the visible tail and then back toward the head, assigning
-        descending indexes so that the final head-to-tail visible order is
-        zero-based and starts at 0.
+        the current visible tail. After all resolvable buckets have been linked,
+        the implementation walks to the visible tail and then back toward the
+        head, assigning descending indexes so that the final head-to-tail
+        visible order is zero-based and starts at 0.
       </p>
       <p>
         Reads and local mutations MAY reuse a mutable cursor into that linked
@@ -559,22 +561,30 @@
               value is a list, then return the result.
             </li>
             <li>
-              For each listed candidate value entry, attempt to
-              <a>mint a snapshot value entry</a>. If parsing fails, continue.
+              For each listed candidate value entry, run the
+              <a>mint a snapshot value entry</a> algorithm. If minting fails,
+              continue.
             </li>
             <li>
-              For each successfully parsed <a>values entry</a>, add it to the
+              For each successfully minted <a>values entry</a>, add it to the
               live UUID index and to the bucket keyed by its
               <a>predecessor identifier</a>.
             </li>
             <li>
-              Resolve the visible projection by clearing all live
-              <code>prev</code> and <code>next</code> members, sorting the
-              bucket keys lexicographically by <a>predecessor identifier</a>,
-              repeatedly resolving any bucket whose predecessor is the root
-              predecessor, missing from live state, or already linked, sorting
-              each resolved bucket lexicographically by UUIDv7, and linking the
-              resolved siblings into the visible <a>doubly linked list</a>.
+              Clear all live <code>prev</code> and <code>next</code> members.
+            </li>
+            <li>
+              Sort the bucket keys lexicographically by
+              <a>predecessor identifier</a>.
+            </li>
+            <li>
+              For each bucket key in sorted order, if its bucket is resolvable,
+              sort its siblings lexicographically by UUIDv7 and link them into
+              the visible <a>doubly linked list</a>.
+            </li>
+            <li>
+              If at least one new bucket was resolved in that pass, repeat the
+              previous step.
             </li>
             <li>
               Walk to the visible tail and then back toward the head, assigning
@@ -730,11 +740,11 @@
                   to the next listed candidate value entry.
                 </li>
                 <li>
-                  Attempt to <a>mint a snapshot value entry</a>. If parsing
-                  fails, continue.
+                  Run the <a>mint a snapshot value entry</a> algorithm. If it
+                  returns failure, continue.
                 </li>
                 <li>
-                  Add the parsed incoming entry to the live UUID index and to
+                  Add the minted incoming entry to the live UUID index and to
                   the bucket keyed by its <a>predecessor identifier</a>.
                 </li>
               </ol>
@@ -742,13 +752,20 @@
             <li>
               If every accepted incoming entry can be attached as a simple tail
               append, the implementation MAY update the visible projection
-              incrementally. Otherwise it MUST clear all live
-              <code>prev</code> and <code>next</code> members, resolve the
-              predecessor buckets using the same bucket-ordering and
-              predecessor-resolution procedure defined in
-              <a href="#core-model">Core Model</a>, and then assign visible
-              indexes so that the final head-to-tail order is zero-based and
-              starts at 0.
+              incrementally and skip the next three steps.
+            </li>
+            <li>
+              Otherwise, clear all live <code>prev</code> and
+              <code>next</code> members.
+            </li>
+            <li>
+              Otherwise, resolve predecessor buckets using the same sorted-pass
+              bucket-resolution procedure defined in
+              <a href="#core-model">Core Model</a>.
+            </li>
+            <li>
+              Otherwise, assign visible indexes so that the final head-to-tail
+              order is zero-based and starts at 0.
             </li>
             <li>
               Return the minimal visible change patch, or no change if nothing
@@ -798,11 +815,11 @@
           <h4>Snapshot</h4>
           <ol class="algorithm">
             <li>
-              For each current live entry, run
-              <a>shed a live value entry</a>.
+              For each current live entry, run the
+              <a>shed a live value entry</a> algorithm.
             </li>
             <li>
-              Assemble the serialized live entries into the snapshot's
+              Assemble the shed live entries into the snapshot's
               <code>values</code> list.
             </li>
             <li>
@@ -1017,7 +1034,7 @@ dictionary CRListDelta {
               If the local replica already tombstones or already stores the
               candidate <code>uuidv7</code>, then return failure.
             </li>
-            <li>Return the normalized <a>values entry</a>.</li>
+            <li>Return the minted <a>values entry</a>.</li>
           </ol>
         </section>
 
@@ -1028,8 +1045,9 @@ dictionary CRListDelta {
           <p>
             Return a new <a>serializable object</a> whose <code>uuidv7</code>,
             <code>value</code>, and <code>predecessor</code> members equal the
-            list entry, except that the copied <code>value</code> is a detached
-            structured clone.
+            live value entry, after shedding any local projection members such
+            as <code>prev</code>, <code>next</code>, and <code>index</code>. The
+            copied <code>value</code> MUST be a detached structured clone.
           </p>
         </section>
       </section>

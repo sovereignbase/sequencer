@@ -18,7 +18,7 @@ Convergent Replicated List (CR-List), a delta CRDT for an ordered sequence of en
 
 - Deterministic convergence of the live list projection under asynchronous gossip delivery.
 - Consistent behavior across Node, browsers, worker, and edge runtimes.
-- Garbage collection without breaking live-view convergence.
+- Garbage collection possibility without breaking live-view convergence.
 - Event-driven API
 
 ## Installation

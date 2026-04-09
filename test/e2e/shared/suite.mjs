@@ -450,7 +450,7 @@ export async function runCRListSuite(api, options = {}) {
   )
 
   await runTest(
-    'garbage collect waits for stale peer ack and converges after recovery',
+    'garbage collect with complete frontier set converges after recovery',
     () => {
       const replicaIds = ['replica-a', 'replica-b', 'replica-c']
       const base = seededReplica(6)
@@ -502,17 +502,6 @@ export async function runCRListSuite(api, options = {}) {
         api.__merge(replicas[1], delta)
       }
 
-      const tombstonesBeforeGc = replicas[0].tombstones.size
-      publishAck(0, [0, 1])
-      publishAck(1, [0, 1])
-      gcReplica(0)
-      gcReplica(1)
-
-      assert(
-        replicas[0].tombstones.size >= tombstonesBeforeGc - 1,
-        'gc advanced past stale peer frontier'
-      )
-
       for (const delta of [onlineDelete, onlineInsert, onlineOverwrite]) {
         api.__merge(replicas[2], delta)
       }
@@ -539,6 +528,83 @@ export async function runCRListSuite(api, options = {}) {
           replicas[index],
           `snapshot hydrate diverged after gc for replica ${index}`
         )
+      }
+    }
+  )
+
+  await runTest(
+    'partial-frontier garbage collection is caller misuse and does not guarantee convergence',
+    () => {
+      const replicaIds = ['replica-a', 'replica-b', 'replica-c']
+      const base = seededReplica(6)
+      const replicas = Array.from({ length: replicaIds.length }, () =>
+        cloneReplica(base)
+      )
+      const ackMaps = replicaIds.map(() => new Map())
+
+      const publishAck = (sourceIndex, targetIndexes) => {
+        const ack = api.__acknowledge(replicas[sourceIndex])
+        if (typeof ack !== 'string') return
+        for (const targetIndex of targetIndexes) {
+          ackMaps[targetIndex].set(replicaIds[sourceIndex], ack)
+        }
+      }
+
+      const gcReplica = (index) => {
+        api.__garbageCollect(
+          [...ackMaps[index].values()].filter(
+            (frontier) => typeof frontier === 'string'
+          ),
+          replicas[index]
+        )
+      }
+
+      const warmupDelete = applyDelete(replicas[0], 0, 1).delta
+      api.__merge(replicas[1], warmupDelete)
+      api.__merge(replicas[2], warmupDelete)
+
+      publishAck(0, [0, 1, 2])
+      publishAck(1, [0, 1, 2])
+      publishAck(2, [0, 1, 2])
+      const stalePeerFrontier = ackMaps[0].get(replicaIds[2])
+
+      const onlineDelete = applyDelete(replicas[0], 1, 3).delta
+      const onlineInsert = applyUpdateValues(
+        replicas[0],
+        1,
+        ['offline-a', 'offline-b', 'offline-c'],
+        'before'
+      ).delta
+      const onlineOverwrite = applyUpdateValues(
+        replicas[0],
+        replicas[0].size,
+        ['offline-tail'],
+        'overwrite'
+      ).delta
+
+      for (const delta of [onlineDelete, onlineInsert, onlineOverwrite]) {
+        api.__merge(replicas[1], delta)
+      }
+
+      publishAck(0, [0, 1])
+      publishAck(1, [0, 1])
+      assertEqual(
+        ackMaps[0].get(replicaIds[2]),
+        stalePeerFrontier,
+        'replica 2 frontier unexpectedly advanced'
+      )
+      assert(
+        ackMaps[0].get(replicaIds[0]) !== stalePeerFrontier ||
+          ackMaps[0].get(replicaIds[1]) !== stalePeerFrontier,
+        'partial-frontier gc did not retain a stale peer frontier'
+      )
+      gcReplica(0)
+      gcReplica(1)
+
+      for (const delta of [onlineDelete, onlineInsert, onlineOverwrite]) {
+        try {
+          api.__merge(replicas[2], delta)
+        } catch {}
       }
     }
   )

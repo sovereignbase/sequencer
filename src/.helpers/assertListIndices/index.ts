@@ -23,10 +23,6 @@ export function assertListIndices<T>(
   for (let i = 0; i < crListReplica.size; i++) {
     if (!crListReplica.cursor) return
     let dangling = danglingHeads[danglingIndex]
-    if (dangling === crListReplica.cursor) {
-      danglingIndex++
-      dangling = danglingHeads[danglingIndex]
-    }
     if (dangling && dangling.predecessor < crListReplica.cursor.predecessor) {
       dangling.prev = crListReplica.cursor.prev
       if (dangling.prev) dangling.prev.next = dangling

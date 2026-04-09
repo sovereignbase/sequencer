@@ -458,13 +458,22 @@
       <p>
         To resolve the visible projection, a conforming implementation ignores
         every live candidate whose own <a>UUIDv7 identifier</a> is listed in
-        <a>replica tombstones</a>. It then treats the root predecessor
-        <code>'\0'</code> and any predecessor not presently found in live state
-        as one combined root-level sibling set, sorts that set and every other
-        sibling set sharing the same <a>predecessor identifier</a>
-        lexicographically by UUIDv7, links the resulting order into a
-        <a>doubly linked list</a>, and assigns zero-based <a>list index</a>(s)
-        in visible order, starting at 0.
+        <a>replica tombstones</a>. It then clears every live entry's
+        <code>prev</code> and <code>next</code> members, sorts the live
+        sibling-bucket keys lexicographically by their
+        <a>predecessor identifier</a>, and repeatedly scans those bucket keys in
+        that order until no new bucket can be resolved. A bucket is immediately
+        resolvable when its predecessor is the root predecessor
+        <code>'\0'</code> or when its predecessor is not presently found in live
+        state; if its predecessor exists in live state, the bucket is resolved
+        only after that predecessor has already been linked into the visible
+        projection. Within each resolved bucket, siblings sharing the same
+        <a>predecessor identifier</a> are sorted lexicographically by UUIDv7 and
+        linked immediately after their visible predecessor, if any, otherwise at
+        the current visible tail. After linking finishes, the implementation
+        walks to the visible tail and then back toward the head, assigning
+        descending indexes so that the final head-to-tail visible order is
+        zero-based and starts at 0.
       </p>
       <p>
         Reads and local mutations MAY reuse a mutable cursor into that linked
@@ -559,8 +568,18 @@
               <a>predecessor identifier</a>.
             </li>
             <li>
-              Resolve the visible projection as described in
-              <a href="#core-model">Core Model</a>.
+              Resolve the visible projection by clearing all live
+              <code>prev</code> and <code>next</code> members, sorting the
+              bucket keys lexicographically by <a>predecessor identifier</a>,
+              repeatedly resolving any bucket whose predecessor is the root
+              predecessor, missing from live state, or already linked, sorting
+              each resolved bucket lexicographically by UUIDv7, and linking the
+              resolved siblings into the visible <a>doubly linked list</a>.
+            </li>
+            <li>
+              Walk to the visible tail and then back toward the head, assigning
+              descending indexes so that the final visible head-to-tail order is
+              zero-based and starts at 0.
             </li>
             <li>Return the result.</li>
           </ol>
@@ -723,8 +742,13 @@
             <li>
               If every accepted incoming entry can be attached as a simple tail
               append, the implementation MAY update the visible projection
-              incrementally. Otherwise it MUST resolve the visible projection as
-              described in <a href="#core-model">Core Model</a>.
+              incrementally. Otherwise it MUST clear all live
+              <code>prev</code> and <code>next</code> members, resolve the
+              predecessor buckets using the same bucket-ordering and
+              predecessor-resolution procedure defined in
+              <a href="#core-model">Core Model</a>, and then assign visible
+              indexes so that the final head-to-tail order is zero-based and
+              starts at 0.
             </li>
             <li>
               Return the minimal visible change patch, or no change if nothing

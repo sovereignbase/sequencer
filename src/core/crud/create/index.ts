@@ -66,9 +66,9 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
     void updateEntryToMaps<T>(crListReplica, linkedListEntry)
   }
   // Flatten tree into a doubly linked list.
-  const danglingHeads = flattenAndLinkTrustedState<T>(crListReplica)
+  void flattenAndLinkTrustedState<T>(crListReplica)
   // Write live-view indexes.
-  void assertListIndices<T>(crListReplica, Array.from(danglingHeads))
+  void assertListIndices<T>(crListReplica)
 
   return crListReplica
 }

@@ -1,6 +1,6 @@
 const example = {
   size: 3,
-  cursor: snapshot.values[1],
+  cursor: validated.values[1],
   values: new Map([
     [
       '019d71d7-cbe5-7495-aee8-9694273d2306',
@@ -10,7 +10,7 @@ const example = {
         predecessor: '\0',
         index: 0,
         prev: undefined,
-        next: snapshot.values[0],
+        next: validated.values[0],
       },
     ],
     [
@@ -20,8 +20,8 @@ const example = {
         value: 'up',
         predecessor: '019d71d7-cbe4-746c-a5ac-8c2743c46e64',
         index: 1,
-        prev: snapshot.values[2],
-        next: snapshot.values[1],
+        prev: validated.values[2],
+        next: validated.values[1],
       },
     ],
     [
@@ -31,7 +31,7 @@ const example = {
         value: 'dude!',
         predecessor: '019d71d7-cbe5-7495-aee8-8e2721f7cd22',
         index: 2,
-        prev: snapshot.values[0],
+        prev: validated.values[0],
         next: undefined,
       },
     ],

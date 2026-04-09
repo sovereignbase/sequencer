@@ -2,9 +2,7 @@
  * Error codes thrown by {@link CRList}.
  */
 export type CRListErrorCode =
-  | 'DEFAULTS_NOT_CLONEABLE'
   | 'VALUE_NOT_CLONEABLE'
-  | 'VALUE_TYPE_MISMATCH'
   | 'INDEX_OUT_OF_BOUNDS'
   | 'LIST_EMPTY'
   | 'LIST_INTEGRITY_VIOLATION'

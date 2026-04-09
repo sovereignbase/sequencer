@@ -345,12 +345,6 @@
 
     <section id="conformance">
       <p>
-        The key words <em>MUST</em>, <em>MUST NOT</em>, <em>SHOULD</em>,
-        <em>SHOULD NOT</em>, and <em>MAY</em> in this document are to be
-        interpreted as described in BCP 14 [[RFC2119]] [[RFC8174]] when, and
-        only when, they appear in all capitals.
-      </p>
-      <p>
         Unless otherwise stated, data-structure and algorithm terms such as
         <em>list</em>, <em>map</em>, <em>struct</em>, <em>parameters</em>,
         <em>variables</em>, and <em>iterate</em> are used with the meanings
@@ -960,10 +954,9 @@ dictionary CRListDelta {
           <code>EventTarget</code> object as defined by DOM [[DOM]].
         </p>
         <p>
-          This binding is not specified as inheriting from
-          <code>EventTarget</code>. Instead, its listener methods forward to
-          that internal event target, and its local mutations and merges
-          dispatch synthetic events through it.
+          This bindings listener methods forward to that internal event target,
+          and its local mutations and merges dispatch synthetic events through
+          it.
         </p>
         <p>
           The JavaScript binding defines four synthetic event types. Each is a

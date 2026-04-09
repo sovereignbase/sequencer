@@ -94,5 +94,4 @@ export function flattenAndLinkTrustedState<T>(
     crListReplica.cursor = entry
   }
   crListReplica.size = crListReplica.parentMap.size
-  return danglingHeads
 }

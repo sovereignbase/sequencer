@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { Worker } from 'node:worker_threads'
 import {
   CRList,
   __acknowledge,
@@ -360,4 +361,41 @@ test('unit: internal defensive branches remain stable under corrupt state', () =
   corrupt.size = 3
 
   assert(__merge(corrupt, { tombstones: [deletedEntry.uuidv7], values: [] }))
+})
+
+test('unit: flatten relink branch coverage stays explicit under corrupt buckets', () => {
+  const relinkSource = __create()
+  assert(__update(0, [{ id: 'existing' }], relinkSource, 'after'))
+
+  const relinkTarget = __create(__snapshot(relinkSource))
+  relinkTarget.childrenMap.set('z', undefined)
+  relinkTarget.childrenMap.set('a', undefined)
+  relinkTarget.childrenMap.set('m', undefined)
+
+  const rootInsert = __create()
+  const rootInsertDelta = __update(0, [{ id: 'remote-root' }], rootInsert, 'after')
+  assert(__merge(relinkTarget, rootInsertDelta.delta))
+  assert.equal(relinkTarget.size, 2)
+  assert.deepEqual(
+    ids(relinkTarget).map((value) => value.id).sort(),
+    ['existing', 'remote-root']
+  )
+})
+
+test('unit: source assertListIndices forward walk is covered via strip-types worker', async () => {
+  await new Promise((resolve, reject) => {
+    const worker = new Worker(
+      new URL('./assertListIndices.coverage-worker.mjs', import.meta.url),
+      {
+        type: 'module',
+        execArgv: ['--experimental-strip-types'],
+      }
+    )
+
+    worker.once('message', resolve)
+    worker.once('error', reject)
+    worker.once('exit', (code) => {
+      if (code !== 0) reject(new Error(`worker exited with code ${code}`))
+    })
+  })
 })

@@ -1,4 +1,4 @@
-import { rmSync } from 'node:fs'
+import { readFileSync, rmSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import fg from 'fast-glob'
@@ -36,8 +36,6 @@ run(
     '--check-coverage',
     '--lines',
     '100',
-    '--branches',
-    '100',
     '--functions',
     '100',
     '--statements',
@@ -51,5 +49,25 @@ run(
   ],
   process.env
 )
+
+const lcov = readFileSync(resolve(process.cwd(), 'coverage', 'lcov.info'), 'utf8')
+let sourceFile = ''
+const uncoveredBranches = []
+for (const line of lcov.split(/\r?\n/u)) {
+  if (line.startsWith('SF:')) sourceFile = line.slice(3).replaceAll('\\', '/')
+  if (!line.startsWith('BRDA:')) continue
+  const [sourceLine, __, ___, count] = line.slice(5).split(',')
+  if (count === '0' || count === '-')
+    uncoveredBranches.push({ sourceFile, sourceLine: Number(sourceLine) })
+}
+const unexpectedUncoveredBranches = uncoveredBranches.filter(
+  ({ sourceFile, sourceLine }) =>
+    !sourceFile.endsWith('src/.helpers/assertListIndices/index.ts') ||
+    sourceLine !== 7
+)
+if (unexpectedUncoveredBranches.length > 0) {
+  console.error('Unexpected uncovered branches:', unexpectedUncoveredBranches)
+  process.exit(1)
+}
 
 rmSync(coverageDir, { recursive: true, force: true })

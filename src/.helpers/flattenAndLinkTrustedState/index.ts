@@ -6,7 +6,6 @@ import { insertBetween } from '../insertBetween/index.js'
 export function flattenAndLinkTrustedState<T>(
   crListReplica: CRListReplica<T>
 ): Set<NonNullable<DoublyLinkedListEntry<T>>> {
-  crListReplica.size = 0
   crListReplica.cursor = undefined
   const resolvedSiblingPredecessors = new Set<string>()
   const danglingHeads = new Set<NonNullable<DoublyLinkedListEntry<T>>>()

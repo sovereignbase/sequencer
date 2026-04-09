@@ -50,6 +50,7 @@ export function flattenAndLinkTrustedState<T>(
     const predecessorNext = prev?.next
     if (siblings.length === 1) {
       const sibling = siblings[0]
+      if (danglingHeads.has(sibling)) danglingHeads.delete(sibling)
       insertBetween<T>(prev, sibling, sibling.next)
       prev = sibling
       while (prev.next && prev.next !== sibling) {
@@ -69,6 +70,7 @@ export function flattenAndLinkTrustedState<T>(
     for (let index = 0; index < siblings.length; index++) {
       const sibling = siblings[index]
       const next = siblings[index + 1]
+      if (danglingHeads.has(sibling)) danglingHeads.delete(sibling)
 
       insertBetween<T>(prev, sibling, sibling.next)
       prev = sibling

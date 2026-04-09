@@ -462,8 +462,8 @@
         <code>'\0'</code> and any predecessor not presently found in live state
         as root-level anchors, sorts siblings sharing the same
         <a>predecessor identifier</a> lexicographically by UUIDv7, links the
-        resulting order into a <a>doubly linked list</a>, and assigns ascending
-        zero-based <a>list index</a>(s) from the head.
+        resulting order into a <a>doubly linked list</a>, and assigns
+        zero-based <a>list index</a>(s) in visible order, starting at 0.
       </p>
       <p>
         Reads and local mutations MAY reuse a mutable cursor into that linked

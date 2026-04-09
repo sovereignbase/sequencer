@@ -26,7 +26,7 @@ import { prototype, isUuidV7 } from '@sovereignbase/utils'
  * @returns A minimal local change patch, or `false` when the delta is ignored.
  *
  * Time complexity: O(v + t + c) for tail-append deltas; O(n + t + qk) for tombstone-only deletes; otherwise O(n log n + v + t + m*k + c)
- * Worst case: O(n log n + (v + t)n + c)
+ * Worst case: O(n^2 + (v + t)n + c)
  * - n = replica value entry count after merge
  * - v = delta value entry count
  * - t = delta tombstone count

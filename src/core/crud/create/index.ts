@@ -21,7 +21,7 @@ import {
  * @param snapshot Optional serializable CRList state.
  * @returns A hydrated CRList replica.
  *
- * Time complexity: O(n log n + t + c), worst case O(n log n + t + c)
+ * Time complexity: O(n log n + t + c), worst case O(n^2 + t + c)
  * - n = snapshot value entry count
  * - t = snapshot tombstone count
  * - c = cloned value payload

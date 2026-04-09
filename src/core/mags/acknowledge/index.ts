@@ -9,15 +9,18 @@ import type { CRListAck, CRListReplica } from '../../../.types/index.js'
  * @param crListReplica Replica to acknowledge.
  * @returns The acknowledgement frontier, or `false` when there are no tombstones.
  *
- * Time complexity: O(t log t)
+ * Time complexity: O(t)
  * - t = replica tombstone count
  *
- * Space complexity: O(t)
+ * Space complexity: O(1)
  */
 export function __acknowledge<T>(
   crListReplica: CRListReplica<T>
 ): CRListAck | false {
-  const frontier = Array.from(crListReplica.tombstones.values()).sort().pop()
+  let frontier: CRListAck | false = false
+  crListReplica.tombstones.forEach((tombstone) => {
+    if (frontier === false || frontier < tombstone) frontier = tombstone
+  })
   if (typeof frontier === 'string') return frontier
   return false
 }

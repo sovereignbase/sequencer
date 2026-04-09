@@ -1,6 +1,6 @@
 const example = {
   size: 3,
-  cursor: third,
+  cursor: snapshot.values[1],
   values: new Map([
     [
       '019d71d7-cbe5-7495-aee8-9694273d2306',

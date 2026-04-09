@@ -3,9 +3,7 @@ import type {
   DoublyLinkedListEntry,
 } from '../../.types/index.js'
 import { insertBetween } from '../insertBetween/index.js'
-export function flattenAndLinkTrustedState<T>(
-  crListReplica: CRListReplica<T>
-): Set<NonNullable<DoublyLinkedListEntry<T>>> {
+export function flattenAndLinkTrustedState<T>(crListReplica: CRListReplica<T>) {
   crListReplica.cursor = undefined
   const resolvedSiblingPredecessors = new Set<string>()
   const danglingEntries = new Set<NonNullable<DoublyLinkedListEntry<T>>>()

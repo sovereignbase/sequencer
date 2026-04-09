@@ -14,6 +14,7 @@ coverage/
 .nyc_output/
 test-results/
 .c8/
+.coverage-debug/
 
 .env
 .env.*.local

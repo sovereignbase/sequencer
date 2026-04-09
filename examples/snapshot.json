@@ -1,0 +1,20 @@
+{
+  "values": [
+    {
+      "uuidv7": "019d71d7-cbe5-7495-aee8-8e2721f7cd22",
+      "value": "up",
+      "predecessor": "019d71d7-cbe4-746c-a5ac-8c2743c46e64"
+    },
+    {
+      "uuidv7": "019d71d7-cbe5-7495-aee8-92abf1b562ac",
+      "value": "dude!",
+      "predecessor": "019d71d7-cbe5-7495-aee8-8e2721f7cd22"
+    },
+    {
+      "uuidv7": "019d71d7-cbe5-7495-aee8-9694273d2306",
+      "value": "What is",
+      "predecessor": "\u0000"
+    }
+  ],
+  "tombstones": ["019d71d7-cbe4-746c-a5ac-8c2743c46e64"]
+}

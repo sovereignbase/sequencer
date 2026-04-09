@@ -2,9 +2,14 @@ import { CRList } from './dist/index.js'
 
 const list = new CRList()
 
-list[0] = 'up'
+list[0] = 'Whats'
+
+list[1] = 'up'
 
 list.append('dude!')
+
+delete list[0]
+
 list.prepend('What is')
 
 const serialized = JSON.stringify(list)
@@ -22,3 +27,6 @@ for (const index in list) {
 list.forEach((value, index, list) => {
   console.log(index, value, list.size)
 })
+
+console.log(JSON.stringify(list))
+console.log(JSON.stringify([...list]))

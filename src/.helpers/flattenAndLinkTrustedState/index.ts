@@ -5,22 +5,15 @@ import type {
 import { insertBetween } from '../insertBetween/index.js'
 export function flattenAndLinkTrustedState<T>(
   crListReplica: CRListReplica<T>
-): void {
+): Array<NonNullable<DoublyLinkedListEntry<T>>> {
   crListReplica.size = 0
+  crListReplica.cursor = undefined
   const resolvedSiblingPredecessors = new Set<string>()
-  const orphanRootSiblings: Array<NonNullable<DoublyLinkedListEntry<T>>> = []
+  const danglingHeads: Array<NonNullable<DoublyLinkedListEntry<T>>> = []
   for (const entry of crListReplica.parentMap.values()) {
     if (!entry) continue
     entry.prev = undefined
     entry.next = undefined
-  }
-  for (const [predecessorIdentifier, siblings] of crListReplica.childrenMap) {
-    if (
-      predecessorIdentifier === '\0' ||
-      crListReplica.parentMap.has(predecessorIdentifier)
-    )
-      continue
-    orphanRootSiblings.push(...siblings)
   }
   for (const entry of crListReplica.parentMap.values()) {
     if (!entry) continue
@@ -29,7 +22,11 @@ export function flattenAndLinkTrustedState<T>(
       originalPredecessorIdentifier === '\0' ||
       crListReplica.parentMap.has(originalPredecessorIdentifier)
         ? originalPredecessorIdentifier
-        : '\0'
+        : undefined
+    if (predecessorIdentifier === undefined) {
+      danglingHeads.push(entry)
+      continue
+    }
     const isRootPredecessor = predecessorIdentifier === '\0'
     const predecessor = isRootPredecessor
       ? undefined
@@ -43,14 +40,7 @@ export function flattenAndLinkTrustedState<T>(
 
     if (resolvedSiblingPredecessors.has(predecessorIdentifier)) continue
 
-    const siblings =
-      predecessorIdentifier === '\0' && orphanRootSiblings.length > 0
-        ? [
-            ...(crListReplica.childrenMap.get(predecessorIdentifier) ?? []),
-            ...orphanRootSiblings,
-          ]
-        : crListReplica.childrenMap.get(predecessorIdentifier)
-
+    const siblings = crListReplica.childrenMap.get(predecessorIdentifier)
     if (!siblings) continue
 
     if (siblings.length > 1)
@@ -101,4 +91,5 @@ export function flattenAndLinkTrustedState<T>(
     crListReplica.cursor = entry
   }
   crListReplica.size = crListReplica.parentMap.size
+  return danglingHeads
 }

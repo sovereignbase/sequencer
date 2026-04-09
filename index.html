@@ -551,7 +551,7 @@
             </li>
             <li>
               For each listed candidate value entry, attempt to
-              <a>parse a snapshot value entry</a>. If parsing fails, continue.
+              <a>mint a snapshot value entry</a>. If parsing fails, continue.
             </li>
             <li>
               For each successfully parsed <a>values entry</a>, add it to the
@@ -711,7 +711,7 @@
                   to the next listed candidate value entry.
                 </li>
                 <li>
-                  Attempt to <a>parse a snapshot value entry</a>. If parsing
+                  Attempt to <a>mint a snapshot value entry</a>. If parsing
                   fails, continue.
                 </li>
                 <li>
@@ -772,7 +772,7 @@
           <ol class="algorithm">
             <li>
               For each current live entry, run
-              <a>serialize a live entry to a snapshot-serializable object</a>.
+              <a>shed a live value entry</a>.
             </li>
             <li>
               Assemble the serialized live entries into the snapshot's
@@ -963,7 +963,7 @@ dictionary CRListDelta {
         <h3>Auxiliary Algorithms</h3>
 
         <section>
-          <h4><dfn>parse a snapshot value entry</dfn></h4>
+          <h4><dfn>mint a snapshot value entry</dfn></h4>
           <ol class="algorithm">
             <li>
               If the candidate value is not a record, then return failure.
@@ -996,12 +996,12 @@ dictionary CRListDelta {
 
         <section>
           <h4>
-            <dfn>serialize a live entry to a snapshot-serializable object</dfn>
+            <dfn>shed a live value entry</dfn>
           </h4>
           <p>
             Return a new <a>serializable object</a> whose <code>uuidv7</code>,
             <code>value</code>, and <code>predecessor</code> members equal the
-            live entry, except that the copied <code>value</code> is a detached
+            list entry, except that the copied <code>value</code> is a detached
             structured clone.
           </p>
         </section>

@@ -126,9 +126,9 @@ export function __merge<T>(
   }
   if (needsRelink) {
     // Flatten tree into a doubly linked list.
-    void flattenAndLinkTrustedState<T>(crListReplica)
+    const danglingHeads = flattenAndLinkTrustedState<T>(crListReplica)
     // Write live-view indexes.
-    void assertListIndices<T>(crListReplica)
+    void assertListIndices<T>(crListReplica, danglingHeads)
   }
 
   if (newTombsIndices.length === 0 && newVals.length === 0) return false

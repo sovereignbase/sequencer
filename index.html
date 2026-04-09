@@ -382,7 +382,7 @@
         [[DOUBLY_LINKED_LIST]].
       </p>
       <p>
-        a <dfn>serializable object</dfn> is an object that support being
+        a <dfn>serializable object</dfn> is an object that supports being
         serialized, and later deserialized as defined by [[HTML]].
       </p>
       <p>
@@ -433,7 +433,7 @@
       </p>
       <p>
         An <dfn>acknowledgement frontier</dfn> is the largest
-        <a>tombstones entry</a> resolved by lexographically sorting
+        <a>tombstones entry</a> resolved by lexicographically sorting
         <a>replica tombstones</a>.
       </p>
       <p>
@@ -460,10 +460,11 @@
         every live candidate whose own <a>UUIDv7 identifier</a> is listed in
         <a>replica tombstones</a>. It then treats the root predecessor
         <code>'\0'</code> and any predecessor not presently found in live state
-        as root-level anchors, sorts siblings sharing the same
-        <a>predecessor identifier</a> lexicographically by UUIDv7, links the
-        resulting order into a <a>doubly linked list</a>, and assigns
-        zero-based <a>list index</a>(s) in visible order, starting at 0.
+        as one combined root-level sibling set, sorts that set and every other
+        sibling set sharing the same <a>predecessor identifier</a>
+        lexicographically by UUIDv7, links the resulting order into a
+        <a>doubly linked list</a>, and assigns zero-based <a>list index</a>(s)
+        in visible order, starting at 0.
       </p>
       <p>
         Reads and local mutations MAY reuse a mutable cursor into that linked
@@ -480,17 +481,38 @@
 
     <section>
       <h2>Data Structure</h2>
-      <!--JSON examples or something-->
-      <pre
-        class="json"
-        data-include="examples/snapshot.json"
-        data-include-format="text"
-      ></pre>
-      <pre
-        class="json"
-        data-include="examples/indexed.json"
-        data-include-format="text"
-      ></pre>
+      <p>
+        The same logical replica can be viewed through three useful
+        representations: the serializable snapshot used for transport and
+        storage, one possible runtime projection used internally by a binding,
+        and the final consumer-facing visible sequence.
+      </p>
+      <section>
+        <h3>Snapshot</h3>
+        <pre
+          class="json"
+          data-include="examples/snapshot.json"
+          data-include-format="text"
+        ></pre>
+      </section>
+
+      <section>
+        <h3>Runtime</h3>
+        <pre
+          class="js"
+          data-include="examples/runtime.js"
+          data-include-format="text"
+        ></pre>
+      </section>
+
+      <section>
+        <h3>Consumer</h3>
+        <pre
+          class="json"
+          data-include="examples/consumer.json"
+          data-include-format="text"
+        ></pre>
+      </section>
     </section>
 
     <section>
@@ -667,19 +689,36 @@
               any.
             </li>
             <li>
-              For each listed candidate value entry, attempt to
-              <a>parse a snapshot value entry</a>. If parsing fails, continue.
-            </li>
-            <li>
-              If a live entry with the same <a>UUIDv7 identifier</a> already
-              exists locally, adopt the incoming
-              <a>predecessor identifier</a> only when it is lexicographically
-              greater than the local predecessor identifier; otherwise ignore
-              the incoming entry.
-            </li>
-            <li>
-              If the incoming entry is new, add it to the live UUID index and to
-              the bucket keyed by its <a>predecessor identifier</a>.
+              For each listed candidate value entry:
+              <ol>
+                <li>
+                  If the candidate is not a record, does not have its own
+                  <code>uuidv7</code>, <code>value</code>, and
+                  <code>predecessor</code> members, or its
+                  <code>uuidv7</code> or <code>predecessor</code> member is not
+                  valid, continue.
+                </li>
+                <li>
+                  If the local replica already tombstones the candidate
+                  <code>uuidv7</code>, continue.
+                </li>
+                <li>
+                  If a live entry with the same <a>UUIDv7 identifier</a>
+                  already exists locally, adopt the incoming
+                  <a>predecessor identifier</a> only when it is
+                  lexicographically greater than the local predecessor
+                  identifier; otherwise ignore the incoming entry. Then continue
+                  to the next listed candidate value entry.
+                </li>
+                <li>
+                  Attempt to <a>parse a snapshot value entry</a>. If parsing
+                  fails, continue.
+                </li>
+                <li>
+                  Add the parsed incoming entry to the live UUID index and to
+                  the bucket keyed by its <a>predecessor identifier</a>.
+                </li>
+              </ol>
             </li>
             <li>
               If every accepted incoming entry can be attached as a simple tail
@@ -794,13 +833,13 @@ dictionary CRListSnapshotValueEntry {
 };
 
 dictionary CRListSnapshot {
-  required FrozenArray&lt;CRListSnapshotValueEntry&gt; values;
-  required FrozenArray&lt;DOMString&gt; tombstones;
+  required sequence&lt;CRListSnapshotValueEntry&gt; values;
+  required sequence&lt;DOMString&gt; tombstones;
 };
 
 dictionary CRListDelta {
-  FrozenArray&lt;CRListSnapshotValueEntry&gt; values;
-  FrozenArray&lt;DOMString&gt; tombstones;
+  sequence&lt;CRListSnapshotValueEntry&gt; values;
+  sequence&lt;DOMString&gt; tombstones;
 };
         </pre>
         <p>

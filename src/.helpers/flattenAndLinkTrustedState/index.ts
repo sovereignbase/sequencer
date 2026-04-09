@@ -23,7 +23,9 @@ export function flattenAndLinkTrustedState<T>(crListReplica: CRListReplica<T>) {
       if (!siblings) continue
 
       if (siblings.length > 1)
-        siblings.sort((a, b) => a.uuidv7.localeCompare(b.uuidv7))
+        siblings.sort((a, b) =>
+          a.uuidv7 > b.uuidv7 ? 1 : -1
+        )
 
       const predecessor =
         predecessorIdentifier === '\0'
@@ -42,9 +44,6 @@ export function flattenAndLinkTrustedState<T>(crListReplica: CRListReplica<T>) {
         const sibling = siblings[0]
         insertBetween<T>(prev, sibling, sibling.next)
         prev = sibling
-        while (prev.next && prev.next !== sibling) {
-          prev = prev.next
-        }
         if (predecessorNext && predecessorNext !== sibling) {
           prev.next = predecessorNext
           predecessorNext.prev = prev
@@ -63,10 +62,6 @@ export function flattenAndLinkTrustedState<T>(crListReplica: CRListReplica<T>) {
 
         insertBetween<T>(prev, sibling, sibling.next)
         prev = sibling
-
-        while (prev.next && !siblingSet.has(prev.next)) {
-          prev = prev.next
-        }
 
         if (next) {
           prev.next = next

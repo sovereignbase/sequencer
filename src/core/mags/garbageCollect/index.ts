@@ -20,7 +20,7 @@ export function __garbageCollect<T>(
   crListReplica: CRListReplica<T>
 ): void {
   if (!Array.isArray(frontiers)) return
-  const frontier = frontiers.sort((a, b) => a.localeCompare(b)).shift()
+  const frontier = frontiers.sort().shift()
   if (typeof frontier !== 'string') return
   crListReplica.tombstones.forEach((tombstone, __, tombstones) => {
     if (tombstone <= frontier) {

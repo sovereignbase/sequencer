@@ -5,11 +5,11 @@ import type {
 import { insertBetween } from '../insertBetween/index.js'
 export function flattenAndLinkTrustedState<T>(
   crListReplica: CRListReplica<T>
-): Array<NonNullable<DoublyLinkedListEntry<T>>> {
+): Set<NonNullable<DoublyLinkedListEntry<T>>> {
   crListReplica.size = 0
   crListReplica.cursor = undefined
   const resolvedSiblingPredecessors = new Set<string>()
-  const danglingHeads: Array<NonNullable<DoublyLinkedListEntry<T>>> = []
+  const danglingHeads = new Set<NonNullable<DoublyLinkedListEntry<T>>>()
   for (const entry of crListReplica.parentMap.values()) {
     if (!entry) continue
     entry.prev = undefined
@@ -24,7 +24,7 @@ export function flattenAndLinkTrustedState<T>(
         ? originalPredecessorIdentifier
         : undefined
     if (predecessorIdentifier === undefined) {
-      danglingHeads.push(entry)
+      danglingHeads.add(entry)
       continue
     }
     const isRootPredecessor = predecessorIdentifier === '\0'

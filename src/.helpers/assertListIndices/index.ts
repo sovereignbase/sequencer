@@ -30,6 +30,8 @@ export function assertListIndices<T>(
       let children = crListReplica.childrenMap.get(dangling.uuidv7)
       while (children?.length) {
         dangling = children[children.length - 1]
+        i++
+        dangling.index = i
         children = crListReplica.childrenMap.get(dangling.uuidv7)
       }
       crListReplica.cursor.prev = dangling

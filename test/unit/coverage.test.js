@@ -1,6 +1,5 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { Worker } from 'node:worker_threads'
 import {
   CRList,
   __acknowledge,
@@ -389,20 +388,19 @@ test('unit: flatten relink branch coverage stays explicit under corrupt buckets'
   )
 })
 
-test('unit: source assertListIndices forward walk is covered via strip-types worker', async () => {
-  await new Promise((resolve, reject) => {
-    const worker = new Worker(
-      new URL('./assertListIndices.coverage-worker.mjs', import.meta.url),
-      {
-        type: 'module',
-        execArgv: ['--experimental-strip-types'],
-      }
-    )
+test('unit: assertListIndices forward walk is covered through tombstone-only merge', () => {
+  const source = __create()
+  assert(__update(0, [{ id: 'a' }, { id: 'b' }, { id: 'c' }], source, 'after'))
 
-    worker.once('message', resolve)
-    worker.once('error', reject)
-    worker.once('exit', (code) => {
-      if (code !== 0) reject(new Error(`worker exited with code ${code}`))
-    })
-  })
+  const target = __create(__snapshot(source))
+  target.cursor = [...target.parentMap.values()].find((entry) => entry.index === 0)
+
+  const deletion = __delete(source, 0, 1)
+  assert(__merge(target, { tombstones: deletion.delta.tombstones }))
+
+  assert.equal(target.cursor.index, 0)
+  assert.deepEqual(
+    ids(target).map((value) => value.id),
+    ['b', 'c']
+  )
 })

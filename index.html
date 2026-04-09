@@ -6,11 +6,11 @@
     <title>Convergent Replicated List (CR-List)</title>
     <meta
       name="description"
-      content="Specification and reference JavaScript binding for a state-based observed overwrite struct CRDT with fixed keys, UUIDv7 field versions, overwrite tracking, delta propagation, acknowledgement frontiers, and garbage collection."
+      content="Specification and reference JavaScript binding for a convergent replicated list delta CRDT with UUIDv7 entry identities, predecessor ordering, tombstone acknowledgements, and garbage collection."
     />
     <meta
       name="keywords"
-      content="observed overwrite struct, cr-list, crdt, uuidv7, replication, delta, snapshot, acknowledgement, garbage collection, javascript, typescript"
+      content="cr-list, convergent replicated list, crdt, uuidv7, predecessor ordering, delta, snapshot, acknowledgement, garbage collection, javascript, typescript"
     />
     <meta name="author" content="Jori Lehtinen" />
     <meta
@@ -37,7 +37,7 @@
     <meta property="og:title" content="Convergent Replicated List (CR-List)" />
     <meta
       property="og:description"
-      content="Specification and reference JavaScript binding for a state-based observed overwrite struct CRDT with fixed keys, UUIDv7 field versions, overwrite tracking, delta propagation, acknowledgement frontiers, and garbage collection."
+      content="Specification and reference JavaScript binding for a convergent replicated list delta CRDT with UUIDv7 entry identities, predecessor ordering, tombstone acknowledgements, and garbage collection."
     />
     <meta
       property="og:url"
@@ -52,13 +52,13 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Sovereignbase social sharing image for the observed overwrite struct specification."
+      content="Sovereignbase social sharing image for the CR-List specification."
     />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Convergent Replicated List (CR-List)" />
     <meta
       name="twitter:description"
-      content="Specification and reference JavaScript binding for a state-based observed overwrite struct CRDT with fixed keys, UUIDv7 field versions, overwrite tracking, delta propagation, acknowledgement frontiers, and garbage collection."
+      content="Specification and reference JavaScript binding for a convergent replicated list delta CRDT with UUIDv7 entry identities, predecessor ordering, tombstone acknowledgements, and garbage collection."
     />
     <meta
       name="twitter:image"
@@ -66,7 +66,7 @@
     />
     <meta
       name="twitter:image:alt"
-      content="Sovereignbase social sharing image for the observed overwrite struct specification."
+      content="Sovereignbase social sharing image for the CR-List specification."
     />
     <meta name="twitter:creator" content="@jortsupetterson" />
     <script
@@ -187,7 +187,7 @@
             "name": "@sovereignbase/convergent-replicated-list",
             "alternateName": ["convergent-replicated-list", "cr-list"],
             "url": "https://sovereignbase.dev/convergent-replicated-list/",
-            "description": "State-based CRDT for fixed-key object structs with UUIDv7 field versions, overwrite tracking, delta propagation, acknowledgement frontiers, and garbage collection.",
+            "description": "Convergent replicated list delta CRDT with UUIDv7 entry identities, predecessor ordering, tombstone acknowledgements, and garbage collection.",
             "codeRepository": "https://github.com/sovereignbase/convergent-replicated-list",
             "license": "https://www.apache.org/licenses/LICENSE-2.0",
             "programmingLanguage": ["TypeScript", "JavaScript"],
@@ -233,7 +233,7 @@
             "headline": "Convergent Replicated List (CR-List)",
             "name": "Convergent Replicated List (CR-List)",
             "url": "https://sovereignbase.dev/convergent-replicated-list/",
-            "description": "Specification and reference JavaScript binding for a state-based observed overwrite struct CRDT with fixed keys, UUIDv7 field versions, overwrite tracking, delta propagation, acknowledgement frontiers, and garbage collection.",
+            "description": "Specification and reference JavaScript binding for a convergent replicated list delta CRDT with UUIDv7 entry identities, predecessor ordering, tombstone acknowledgements, and garbage collection.",
             "inLanguage": "en",
             "isPartOf": {
               "@id": "https://sovereignbase.dev/convergent-replicated-list/#website"
@@ -262,7 +262,7 @@
             "@id": "https://sovereignbase.dev/convergent-replicated-list/#webpage",
             "url": "https://sovereignbase.dev/convergent-replicated-list/",
             "name": "Convergent Replicated List (CR-List)",
-            "description": "Specification and reference JavaScript binding for a state-based observed overwrite struct CRDT with fixed keys, UUIDv7 field versions, overwrite tracking, delta propagation, acknowledgement frontiers, and garbage collection.",
+            "description": "Specification and reference JavaScript binding for a convergent replicated list delta CRDT with UUIDv7 entry identities, predecessor ordering, tombstone acknowledgements, and garbage collection.",
             "inLanguage": "en",
             "isPartOf": {
               "@id": "https://sovereignbase.dev/convergent-replicated-list/#website"
@@ -386,8 +386,8 @@
         serialized, and later deserialized as defined by [[HTML]].
       </p>
       <p>
-        A <dfn>predecessor identifier</dfn> is an
-        <a>UUIDv7 identifier</a> pointing to what <a>list value</a> a
+        A <dfn>predecessor identifier</dfn> is an <a>UUIDv7 identifier</a> or
+        the root sentinel <code>'\0'</code> pointing to what <a>list value</a> a
         <a>list value</a> comes after.
       </p>
       <p>
@@ -427,8 +427,8 @@
         <a>list value</a> tracked by <a>replica tombstones</a>.
       </p>
       <p>
-        An <dfn>acknowledgement</dfn> is a <a>serializable object</a> struct
-        containing stating an <a>acknowledgement frontier</a> of a single
+        An <dfn>acknowledgement</dfn> is a serializable string containing the
+        current <a>acknowledgement frontier</a> of a single
         <a>CR-List replica</a>.
       </p>
       <p>
@@ -446,26 +446,35 @@
       </p>
     </section>
 
-    <section>
+    <section id="core-model">
       <h2>Core Model</h2>
       <p>
-        Each <a>CR-List replica</a> hydrates <a>replica values</a> into a
-        <a>doubly linked list</a> from <a>replica values</a> assigning them
-        indexes based on ordering inferenced from
-        <a>predecessor identifier</a>(s) ignoring <a>values entry</a>(s) whose
-        <a>UUIDv7 identifier</a> is included in <a>replica tombstones</a>.
+        A <a>CR-List replica</a> stores live <a>values entry</a>(s) indexed by
+        their <a>UUIDv7 identifier</a>, groups them by
+        <a>predecessor identifier</a>, and stores deleted identifiers in
+        <a>replica tombstones</a>. The visible ordered list is a deterministic
+        projection derived from that state.
       </p>
       <p>
-        Operations search their given index by traversing the
-        <a>doubly linked list</a> via a cursor variable in and performing
-        operations at best case O(1) worst case O(n) as only the distance (d) to
-        a next item needs to be iterated over and in some cases an additional
-        iteration to patch an (m) amount of index adjustments needed.
+        To resolve the visible projection, a conforming implementation ignores
+        every live candidate whose own <a>UUIDv7 identifier</a> is listed in
+        <a>replica tombstones</a>. It then treats the root predecessor
+        <code>'\0'</code> and any predecessor not presently found in live state
+        as root-level anchors, sorts siblings sharing the same
+        <a>predecessor identifier</a> lexicographically by UUIDv7, links the
+        resulting order into a <a>doubly linked list</a>, and assigns ascending
+        zero-based <a>list index</a>(s) from the head.
       </p>
       <p>
-        A snapshot input MAY contain malformed or unknown members. The reference
-        binding processes known keys individually and ignores entries that do
-        not parse.
+        Reads and local mutations MAY reuse a mutable cursor into that linked
+        list. This gives best-case O(1) local access when the cursor is already
+        at or near the target index and worst-case O(n) access when a full walk
+        of the visible list is required.
+      </p>
+      <p>
+        A snapshot or delta input MAY contain malformed or unknown members. A
+        conforming implementation processes only the known top-level members and
+        ignores entries that do not successfully parse.
       </p>
     </section>
 
@@ -492,60 +501,136 @@
 
         <section>
           <h4>Create</h4>
-          <p>
-            A create operation constructs a new replica from a
-            <a>default struct</a> and an optional <a>snapshot</a>.
-          </p>
-          <p>
-            If a snapshot record is supplied, the replica attempts to adopt each
-            known field whose incoming value is a
-            <a>well-formed snapshot entry</a>. Unknown or malformed entries are
-            ignored. Any field not adopted from the snapshot is initialized from
-            the default struct with fresh UUIDv7 state.
-          </p>
+          <ol class="algorithm">
+            <li>
+              Let the result be a new empty <a>CR-List replica</a> whose
+              <a>replica values</a> and <a>replica tombstones</a> are empty.
+            </li>
+            <li>
+              If the supplied snapshot is not a record, then return the result.
+            </li>
+            <li>
+              If snapshot has an own <code>tombstones</code> member whose value
+              is a list, then for each listed item:
+              <ol>
+                <li>
+                  If the item is not a valid <a>UUIDv7 identifier</a>, continue.
+                </li>
+                <li>
+                  If the result already retains that
+                  <a>tombstones entry</a>, continue.
+                </li>
+                <li>Add the item to <a>replica tombstones</a>.</li>
+              </ol>
+            </li>
+            <li>
+              If snapshot does not have an own <code>values</code> member whose
+              value is a list, then return the result.
+            </li>
+            <li>
+              For each listed candidate value entry, attempt to
+              <a>parse a snapshot value entry</a>. If parsing fails, continue.
+            </li>
+            <li>
+              For each successfully parsed <a>values entry</a>, add it to the
+              live UUID index and to the bucket keyed by its
+              <a>predecessor identifier</a>.
+            </li>
+            <li>
+              Resolve the visible projection as described in
+              <a href="#core-model">Core Model</a>.
+            </li>
+            <li>Return the result.</li>
+          </ol>
         </section>
 
         <section>
           <h4>Read</h4>
-          <p>
-            A read operation returns the current visible <a>field value</a> for
-            a known <a>field key</a>.
-          </p>
-          <p>
-            The reference binding returns a detached clone rather than the live
-            stored value reference.
-          </p>
+          <ol class="algorithm">
+            <li>
+              If the supplied <a>list index</a> is out of bounds, then return
+              <code>undefined</code>.
+            </li>
+            <li>
+              Walk the current visible <a>doubly linked list</a> using the local
+              cursor until the target index is reached.
+            </li>
+            <li>Return the visible <a>list value</a> at that index.</li>
+          </ol>
         </section>
 
         <section>
           <h4>Update</h4>
-          <p>
-            An update operation MUST mint a fresh <a>UUIDv7 identifier</a> for
-            the target <a>field key</a>, make the previously current UUIDv7 the
-            new predecessor identifier, add that predecessor to the overwrite
-            set, and set the <a>field value</a> to the supplied payload.
-          </p>
-          <p>
-            In the reference binding, the payload MUST be
-            <code>structuredClone</code>-compatible and MUST have the same
-            runtime prototype category as the corresponding default value. Every
-            successful local update creates a new per-field <a>delta</a> and a
-            new per-field change event.
-          </p>
+          <ol class="algorithm">
+            <li>
+              If the supplied <a>list index</a> is less than 0 or greater than
+              the current <a>list length</a>, then fail.
+            </li>
+            <li>If the supplied values input is not a list, then fail.</li>
+            <li>
+              If the supplied values input is empty, then return no change.
+            </li>
+            <li>
+              For each supplied value, attempt to copy it with
+              <code>structuredClone</code>. If copying fails, then fail.
+            </li>
+            <li>
+              For each copied value, mint a fresh <a>UUIDv7 identifier</a> for
+              the inserted visible entry.
+            </li>
+            <li>
+              If the mode is <code>after</code>, insert the copied values in the
+              given order after the target index. If the target index equals the
+              current <a>list length</a>, append at the tail.
+            </li>
+            <li>
+              If the mode is <code>before</code>, insert the copied values in
+              the given order before the target index.
+            </li>
+            <li>
+              If the mode is <code>overwrite</code>, replace the visible range
+              beginning at the target index and extending for the number of
+              supplied values. If the visible list ends first, append the
+              remaining copied values at the tail.
+            </li>
+            <li>
+              Any visible entries replaced by overwrite MUST become new
+              <a>tombstones entry</a>(s).
+            </li>
+            <li>
+              Return a <a>delta</a> describing the inserted values and the new
+              tombstones, together with a visible change patch.
+            </li>
+          </ol>
         </section>
 
         <section>
           <h4>Delete</h4>
-          <p>
-            In the reference binding, <code>delete()</code> resets fields to
-            their default values. It does not remove the <a>field key</a> from
-            the struct shape.
-          </p>
-          <p>
-            If a key is supplied, only that field is reset. If no key is
-            supplied, every field in the <a>default struct</a> is reset. Unknown
-            explicit keys are ignored.
-          </p>
+          <ol class="algorithm">
+            <li>
+              Let the effective start index be the supplied start index, or 0 if
+              it was omitted.
+            </li>
+            <li>
+              Let the effective end index be the supplied end index, or the
+              current <a>list length</a> if it was omitted.
+            </li>
+            <li>If the effective range is invalid, then fail.</li>
+            <li>If the effective range is empty, then return no change.</li>
+            <li>
+              Delete each visible entry in the range
+              <code>[startIndex, endIndex)</code>.
+            </li>
+            <li>
+              Add each deleted entry's <a>UUIDv7 identifier</a> to
+              <a>replica tombstones</a>.
+            </li>
+            <li>
+              Return a <a>delta</a> containing the new tombstones together with
+              a visible change patch that marks the deleted indexes as
+              <code>undefined</code>.
+            </li>
+          </ol>
         </section>
       </section>
 
@@ -554,85 +639,112 @@
 
         <section>
           <h4>Merge</h4>
-          <p>
-            Merge operates over a <a>delta</a> or a full <a>snapshot</a>. A
-            conforming implementation MUST process the incoming state one
-            <a>field key</a> at a time.
-          </p>
-          <p>When merging one incoming field state entry:</p>
           <ol class="algorithm">
-            <li>If the field key is unknown locally, continue.</li>
             <li>
-              If the incoming value does not parse as a valid field state entry
-              for that key, continue.
+              If the supplied candidate is not a record, then return no change.
             </li>
             <li>
-              Merge incoming overwrite knowledge into the local overwrite set
-              before making any winner decision.
+              If the candidate has an own <code>tombstones</code> member whose
+              value is a list, then for each listed item:
+              <ol>
+                <li>
+                  If the item is not a valid <a>UUIDv7 identifier</a>, continue.
+                </li>
+                <li>
+                  If the local replica already retains that
+                  <a>tombstones entry</a>, continue.
+                </li>
+                <li>Add the tombstone to local tombstone state.</li>
+                <li>
+                  If a matching live entry exists, remove it from the visible
+                  projection and mark the merge as requiring relinking.
+                </li>
+              </ol>
             </li>
             <li>
-              If the local overwrite set now contains the incoming UUIDv7,
-              continue.
+              If the candidate does not have an own <code>values</code> member
+              whose value is a list, then return the tombstone-only change, if
+              any.
             </li>
             <li>
-              If the current and incoming entries share the same UUIDv7, then
-              the incoming entry wins only when its predecessor identifier is
-              lexicographically greater. Otherwise the replica MUST mint a fresh
-              local overwrite using the current visible <a>field value</a> and
-              emit that repair state as <a>delta</a>.
+              For each listed candidate value entry, attempt to
+              <a>parse a snapshot value entry</a>. If parsing fails, continue.
             </li>
             <li>
-              Otherwise the incoming entry wins if any of the following is true:
-              its predecessor identifier equals the local current UUIDv7; the
-              local overwrite set already contains the local current UUIDv7; or
-              the incoming UUIDv7 is lexicographically greater than the local
-              current UUIDv7.
+              If a live entry with the same <a>UUIDv7 identifier</a> already
+              exists locally, adopt the incoming
+              <a>predecessor identifier</a> only when it is lexicographically
+              greater than the local predecessor identifier; otherwise ignore
+              the incoming entry.
             </li>
             <li>
-              If the incoming entry does not win, its UUIDv7 MUST be added to
-              the local overwrite set and the local field state MAY be emitted
-              back out as rebuttal <a>delta</a>.
+              If the incoming entry is new, add it to the live UUID index and to
+              the bucket keyed by its <a>predecessor identifier</a>.
+            </li>
+            <li>
+              If every accepted incoming entry can be attached as a simple tail
+              append, the implementation MAY update the visible projection
+              incrementally. Otherwise it MUST resolve the visible projection as
+              described in <a href="#core-model">Core Model</a>.
+            </li>
+            <li>
+              Return the minimal visible change patch, or no change if nothing
+              was adopted.
             </li>
           </ol>
         </section>
 
         <section>
           <h4>Acknowledge</h4>
-          <p>
-            An acknowledge operation emits one acknowledgement frontier per
-            known <a>field key</a>.
-          </p>
-          <p>
-            In the reference binding, the acknowledgement frontier for a field
-            is the lexicographically greatest overwritten UUIDv7 currently known
-            for that field.
-          </p>
+          <ol class="algorithm">
+            <li>
+              If the local replica retains no <a>tombstones entry</a>, then
+              return no <a>acknowledgement</a>.
+            </li>
+            <li>Sort the retained tombstones lexicographically.</li>
+            <li>
+              Return the lexicographically greatest tombstone as the replica's
+              <a>acknowledgement</a>.
+            </li>
+          </ol>
         </section>
 
         <section>
           <h4>Garbage Collect</h4>
-          <p>
-            A garbage-collection operation accepts a list of acknowledgement
-            frontiers and compacts overwrite history that is already dead.
-          </p>
-          <p>
-            In the reference binding, garbage collection determines the smallest
-            acknowledged UUIDv7 per known key and removes overwritten
-            identifiers that are less than or equal to that frontier, except for
-            the current predecessor identifier named by <code>__after</code>.
-          </p>
+          <ol class="algorithm">
+            <li>
+              If the supplied list of <a>acknowledgement</a>(s) is empty, then
+              return.
+            </li>
+            <li>Sort the supplied acknowledgements lexicographically.</li>
+            <li>
+              Let the safe collection boundary be the smallest supplied
+              acknowledgement.
+            </li>
+            <li>
+              Remove every retained <a>tombstones entry</a> less than or equal
+              to that safe collection boundary.
+            </li>
+          </ol>
         </section>
 
         <section>
           <h4>Snapshot</h4>
-          <p>
-            A <a>snapshot</a> MUST contain enough information to recreate the
-            current field state entry for every known <a>field key</a>.
-          </p>
-          <p>
-            A <a>delta</a> MUST use the same per-field state-entry format as a
-            snapshot but MAY include only a subset of keys.
-          </p>
+          <ol class="algorithm">
+            <li>
+              For each current live entry, run
+              <a>serialize a live entry to a snapshot-serializable object</a>.
+            </li>
+            <li>
+              Assemble the serialized live entries into the snapshot's
+              <code>values</code> list.
+            </li>
+            <li>
+              Assemble all retained <a>replica tombstones</a> into the
+              snapshot's <code>tombstones</code> list.
+            </li>
+            <li>Return the resulting <a>snapshot</a>.</li>
+          </ol>
         </section>
       </section>
     </section>
@@ -647,47 +759,77 @@
       <section>
         <h3>API Summary</h3>
         <pre class="idl">
+callback CRListForEachCallback = undefined (any value, unsigned long index, CRList list);
+
 [Exposed=*]
 interface CRList {
-  constructor(object defaults, optional object snapshot);
-  static CRList create(object defaults, optional object snapshot);
-  any read(DOMString key);
-  undefined update(DOMString key, any value);
-  undefined delete(optional DOMString key);
-  undefined merge(object replica);
+  constructor(optional object snapshot = {});
+  readonly attribute unsigned long size;
+  undefined append(any value, optional unsigned long afterIndex);
+  undefined prepend(any value, optional unsigned long beforeIndex);
+  undefined remove(unsigned long index);
+  undefined merge(optional object delta = {});
   undefined acknowledge();
-  undefined garbageCollect(sequence&lt;object&gt; frontiers);
+  undefined garbageCollect(sequence&lt;DOMString&gt; frontiers);
   undefined snapshot();
-  sequence&lt;DOMString&gt; keys();
-  sequence&lt;any&gt; values();
-  sequence&lt;any&gt; entries();
-  undefined addEventListener(DOMString type, any listener, optional any options);
-  undefined removeEventListener(DOMString type, any listener, optional any options);
+  undefined addEventListener(
+    DOMString type,
+    EventListener? listener,
+    optional (AddEventListenerOptions or boolean) options = {}
+  );
+  undefined removeEventListener(
+    DOMString type,
+    EventListener? listener,
+    optional (EventListenerOptions or boolean) options = {}
+  );
+  undefined forEach(CRListForEachCallback callback, optional any thisArg);
+  object toJSON();
+  iterable&lt;any&gt;;
 };
 
-dictionary CRListSnapshotEntry {
+dictionary CRListSnapshotValueEntry {
   required DOMString uuidv7;
-  required DOMString after;
   required any value;
-  required FrozenArray&lt;DOMString&gt; overwrites;
+  required DOMString predecessor;
+};
+
+dictionary CRListSnapshot {
+  required FrozenArray&lt;CRListSnapshotValueEntry&gt; values;
+  required FrozenArray&lt;DOMString&gt; tombstones;
+};
+
+dictionary CRListDelta {
+  FrozenArray&lt;CRListSnapshotValueEntry&gt; values;
+  FrozenArray&lt;DOMString&gt; tombstones;
 };
         </pre>
         <p>
-          Snapshot and delta payloads are plain JavaScript objects keyed by
-          known fields. Change payloads are plain JavaScript objects keyed by
-          changed fields, and acknowledgement payloads are plain JavaScript
-          objects keyed by acknowledged fields.
+          The binding additionally exposes numeric property access through a
+          JavaScript <code>Proxy</code>. Reading <code>list[i]</code> returns
+          the visible value at index <var>i</var>. Writing
+          <code>list[i] = value</code>
+          performs an overwrite-style local mutation, and
+          <code>delete list[i]</code> removes one visible entry.
         </p>
         <p>
-          The actual field-entry payload member names are
-          <code>__uuidv7</code>, <code>__after</code>, <code>__value</code>, and
-          <code>__overwrites</code>. The Web IDL above uses IDL-safe member
-          names because dictionary members cannot use the double-underscore
-          form.
+          The constructor and <a data-link-for="CRList">merge()</a> methods are
+          typed as taking generic objects in the coarse Web IDL summary above so
+          that the IDL matches the permissive JavaScript ingress behavior. The
+          expected object shapes are <code>CRListSnapshot</code> and
+          <code>CRListDelta</code> as defined by the dictionaries above.
         </p>
         <p>
-          The Web IDL above is a coarse binding summary. The precise key- and
-          value-level behavior is defined by the prose and algorithms below.
+          The root predecessor is represented by the null character
+          <code>'\0'</code>, which serializes to <code>"\u0000"</code> in JSON.
+        </p>
+        <p>
+          <code>JSON.stringify(list)</code> serializes the binding through its
+          current <a>snapshot</a>, and <code>for...of</code> iterates the
+          current visible values in index order.
+        </p>
+        <p>
+          The binding also exposes a JavaScript <code>toString()</code> method
+          whose return value is the JSON string form of the current snapshot.
         </p>
       </section>
 
@@ -698,21 +840,24 @@ dictionary CRListSnapshotEntry {
           <code>code</code> attribute for local API misuse.
         </p>
         <dl>
-          <dt><code>DEFAULTS_NOT_CLONEABLE</code></dt>
-          <dd>
-            Thrown when constructor defaults are not supported by
-            <code>structuredClone</code>.
-          </dd>
           <dt><code>VALUE_NOT_CLONEABLE</code></dt>
           <dd>
-            Thrown when <a data-link-for="CRList">update()</a> receives a value
-            that is not supported by <code>structuredClone</code>.
+            Thrown when a local update receives a value that is not supported by
+            <code>structuredClone</code>.
           </dd>
-          <dt><code>VALUE_TYPE_MISMATCH</code></dt>
+          <dt><code>INDEX_OUT_OF_BOUNDS</code></dt>
           <dd>
-            Thrown when <a data-link-for="CRList">update()</a> receives a value
-            whose runtime prototype category does not match the corresponding
-            default field value.
+            Thrown when a local indexed mutation targets an invalid live range.
+          </dd>
+          <dt><code>UPDATE_EXPECTED_AN_ARRAY</code></dt>
+          <dd>
+            Thrown by the core update algorithm when its value input is not a
+            list.
+          </dd>
+          <dt><code>LIST_INTEGRITY_VIOLATION</code></dt>
+          <dd>
+            Thrown when snapshot serialization detects impossible internal list
+            state.
           </dd>
         </dl>
       </section>
@@ -737,22 +882,21 @@ dictionary CRListSnapshotEntry {
         <dl>
           <dt><dfn>delta event</dfn></dt>
           <dd>
-            A <code>CustomEvent</code> whose <code>detail</code> is a per-field
-            <a>delta</a>. The binding dispatches this event for local overwrites
-            and for merge-time repair or rebuttal state that should be
-            upstreamed.
+            A <code>CustomEvent</code> whose <code>detail</code> is a
+            <a>delta</a>. The binding dispatches this event for local visible
+            mutations that produce gossip material.
           </dd>
           <dt><dfn>change event</dfn></dt>
           <dd>
             A <code>CustomEvent</code> whose <code>detail</code> maps changed
-            keys to their new visible values.
+            list indexes to their new visible values, or to
+            <code>undefined</code> when an entry was removed.
           </dd>
           <dt><dfn>ack event</dfn></dt>
           <dd>
-            A <code>CustomEvent</code> whose <code>detail</code> maps known keys
-            to their current acknowledgement frontier values produced when
-            <a data-link-for="CRList">acknowledge()</a>
-            is invoked.
+            A <code>CustomEvent</code> whose <code>detail</code> is the current
+            <a>acknowledgement frontier</a> produced when
+            <a data-link-for="CRList">acknowledge()</a> is invoked.
           </dd>
           <dt><dfn>snapshot event</dfn></dt>
           <dd>
@@ -763,14 +907,16 @@ dictionary CRListSnapshotEntry {
           </dd>
         </dl>
         <p>
-          <a data-link-for="CRList">update()</a> and
-          <a data-link-for="CRList">delete()</a> MUST dispatch
+          Numeric writes, numeric deletes,
+          <a data-link-for="CRList">append()</a>,
+          <a data-link-for="CRList">prepend()</a>, and
+          <a data-link-for="CRList">remove()</a> MUST dispatch
           <a>delta event</a> before <a>change event</a>. A merge MUST dispatch
-          <a>delta event</a> only when it produces egress delta material and
-          MUST dispatch <a>change event</a> only when visible field values
-          change. <a data-link-for="CRList">acknowledge()</a> MUST dispatch
-          <a>ack event</a>, and <a data-link-for="CRList">snapshot()</a> MUST
-          dispatch <a>snapshot event</a>.
+          only <a>change event</a> when the visible live projection changes.
+          <a data-link-for="CRList">acknowledge()</a> MUST dispatch
+          <a>ack event</a> when a frontier exists, and
+          <a data-link-for="CRList">snapshot()</a> MUST dispatch a
+          <a>snapshot event</a>.
         </p>
       </section>
 
@@ -778,377 +924,169 @@ dictionary CRListSnapshotEntry {
         <h3>Auxiliary Algorithms</h3>
 
         <section>
-          <h4><dfn>parse a snapshot entry</dfn></h4>
+          <h4><dfn>parse a snapshot value entry</dfn></h4>
           <ol class="algorithm">
             <li>
               If the candidate value is not a record, then return failure.
             </li>
             <li>
-              If the candidate value does not have its own <code>__value</code>
-              member, then return failure.
+              If the candidate value does not have its own <code>uuidv7</code>,
+              <code>value</code>, or <code>predecessor</code> member, then
+              return failure.
             </li>
             <li>
-              If the candidate value's <code>__uuidv7</code> member is not a
-              valid <a>UUIDv7 identifier</a>, then return failure.
+              If the candidate value's <code>uuidv7</code> member is not a valid
+              <a>UUIDv7 identifier</a>, then return failure.
             </li>
             <li>
-              If the candidate value's <code>__after</code> member is not a
-              valid <a>UUIDv7 identifier</a>, then return failure.
+              If the candidate value's <code>predecessor</code> member is
+              neither a valid <a>UUIDv7 identifier</a> nor <code>'\0'</code>,
+              then return failure.
             </li>
             <li>
-              If the candidate value's <code>__overwrites</code> member is not a
-              list, then return failure.
-            </li>
-            <li>
-              If the candidate value's <code>__value</code> member cannot be
+              If the candidate value's <code>value</code> member cannot be
               copied with <code>structuredClone</code>, then return failure.
             </li>
             <li>
-              If the cloned candidate value does not have the same runtime
-              prototype category as the corresponding default value, then return
-              failure.
+              If the local replica already tombstones or already stores the
+              candidate <code>uuidv7</code>, then return failure.
             </li>
-            <li>Let <var>overwrites</var> be a new empty set.</li>
-            <li>
-              For each listed overwrite, ignore non-UUIDv7 values and the
-              candidate's own <code>__uuidv7</code>; add the rest to
-              <var>overwrites</var>.
-            </li>
-            <li>
-              If <var>overwrites</var> does not contain <code>__after</code>,
-              then return failure.
-            </li>
-            <li>Return the normalized field entry.</li>
+            <li>Return the normalized <a>values entry</a>.</li>
           </ol>
         </section>
 
         <section>
-          <h4><dfn>serialize a state entry</dfn></h4>
+          <h4>
+            <dfn>serialize a live entry to a snapshot-serializable object</dfn>
+          </h4>
           <p>
-            Return a new snapshot entry whose scalar members equal the field
-            entry, whose <code>__value</code> member is a detached structured
-            clone of the current field value, and whose
-            <code>__overwrites</code> is a list created from the overwrite set
-            in iteration order.
+            Return a new <a>serializable object</a> whose <code>uuidv7</code>,
+            <code>value</code>, and <code>predecessor</code> members equal the
+            live entry, except that the copied <code>value</code> is a detached
+            structured clone.
           </p>
         </section>
       </section>
 
       <section>
-        <h3>Algorithms</h3>
+        <h3>Methods</h3>
 
-        <section>
-          <h4>CRUD</h4>
-
-          <section data-dfn-for="CRList">
-            <h5><dfn class="lint-ignore">Constructor</dfn></h5>
-            <ol class="algorithm">
-              <li>
-                Attempt to copy <var>defaults</var> with
-                <code>structuredClone</code>.
-              </li>
-              <li>
-                If copying fails, throw <code>CRListError</code> with code
-                <code>DEFAULTS_NOT_CLONEABLE</code>.
-              </li>
-              <li>Store the cloned defaults as the <a>default struct</a>.</li>
-              <li>Initialize live state and state entries as empty objects.</li>
-              <li>
-                If <var>snapshot</var> is a record, then for each field key in
-                the default struct attempt to <a>parse a snapshot entry</a> from
-                the matching incoming value. If parsing succeeds, adopt that
-                entry.
-              </li>
-              <li>
-                For every field key not adopted from the incoming snapshot, set
-                the live value to the default value and create a fresh current
-                field entry with a fresh <code>__uuidv7</code>, a fresh
-                synthetic root in <code>__after</code>, and an overwrite set
-                containing only that synthetic root.
-              </li>
-            </ol>
-          </section>
-
-          <section data-dfn-for="CRList">
-            <h5><dfn class="lint-ignore">create()</dfn></h5>
-            <p>
-              Return a new <code>CRList</code> constructed from the arguments.
-            </p>
-          </section>
-
-          <section data-dfn-for="CRList">
-            <h5><dfn class="lint-ignore">read()</dfn></h5>
-            <p>
-              Return a detached structured clone of the current visible value
-              for key.
-            </p>
-          </section>
-
-          <section data-dfn-for="CRList">
-            <h5><dfn>update()</dfn></h5>
-            <ol class="algorithm">
-              <li>
-                Attempt to copy the supplied value with
-                <code>structuredClone</code>.
-              </li>
-              <li>
-                If copying fails, throw <code>CRListError</code> with code
-                <code>VALUE_NOT_CLONEABLE</code>.
-              </li>
-              <li>
-                If the copied value does not have the same runtime prototype
-                category as the corresponding default value, throw
-                <code>CRListError</code> with code
-                <code>VALUE_TYPE_MISMATCH</code>.
-              </li>
-              <li>Let <var>delta</var> be a new empty <a>delta</a>.</li>
-              <li>Let <var>changes</var> be a new empty changes object.</li>
-              <li>
-                Mint a fresh UUIDv7 for key, move the previous UUIDv7 into
-                <code>__after</code> and <code>__overwrites</code>, and set the
-                field's current value to the copied payload.
-              </li>
-              <li>
-                Set <var>delta</var>[key] to the result of
-                <a>serialize a state entry</a> on the current field entry.
-              </li>
-              <li>
-                Set <var>changes</var>[key] to a detached structured clone of
-                the copied payload.
-              </li>
-              <li>
-                Dispatch a <a>delta event</a> whose detail is <var>delta</var>.
-              </li>
-              <li>
-                Dispatch a <a>change event</a> whose detail is
-                <var>changes</var>.
-              </li>
-            </ol>
-          </section>
-
-          <section data-dfn-for="CRList">
-            <h5><dfn>delete()</dfn></h5>
-            <ol class="algorithm">
-              <li>Let <var>delta</var> be a new empty <a>delta</a>.</li>
-              <li>Let <var>changes</var> be a new empty changes object.</li>
-              <li>
-                If key is not <code>undefined</code> and is unknown in the
-                default struct, then return.
-              </li>
-              <li>
-                If key is provided, overwrite that field with its default value
-                and record the result in <var>delta</var> and
-                <var>changes</var>.
-              </li>
-              <li>
-                Otherwise, for each field in the default struct, overwrite that
-                field with its default value and record the results in
-                <var>delta</var> and <var>changes</var>.
-              </li>
-              <li>
-                Dispatch a <a>delta event</a> whose detail is <var>delta</var>.
-              </li>
-              <li>
-                Dispatch a <a>change event</a> whose detail is
-                <var>changes</var>.
-              </li>
-            </ol>
-          </section>
+        <section data-dfn-for="CRList">
+          <h5><dfn class="export">Constructor</dfn></h5>
+          <p>
+            Construct a new binding whose internal state is the result of the
+            core create algorithm applied to the optional <a>snapshot</a>.
+          </p>
         </section>
 
-        <section>
-          <h4>MAGS</h4>
-
-          <section data-dfn-for="CRList">
-            <h5><dfn class="lint-ignore">merge()</dfn></h5>
-            <ol class="algorithm">
-              <li>If replica is null, not an object, or a list, return.</li>
-              <li>Let outgoing delta and changes be empty objects.</li>
-              <li>
-                Let <var>hasDelta</var> and <var>hasChange</var> be false.
-              </li>
-              <li>
-                For each own key in the incoming replica:
-                <ol>
-                  <li>If the key is unknown locally, continue.</li>
-                  <li>
-                    Parse the candidate entry. If parsing fails, continue.
-                  </li>
-                  <li>Let <var>target</var> be the local field state entry.</li>
-                  <li>
-                    Let <var>current</var> be a copy of <var>target</var>.
-                  </li>
-                  <li>
-                    Let <var>frontier</var> be the lexicographically greatest
-                    identifier currently in <var>target</var>'s overwrite set,
-                    or the empty string if the set is empty.
-                  </li>
-                  <li>
-                    For each overwrite in the candidate overwrite set, if the
-                    overwrite is less than or equal to <var>frontier</var> or is
-                    already present locally, continue; otherwise add it to
-                    <var>target</var>'s overwrite set.
-                  </li>
-                  <li>
-                    If <var>target</var>'s overwrite set now contains the
-                    candidate UUIDv7, continue.
-                  </li>
-                  <li>
-                    If <var>current</var> and the candidate share the same UUID,
-                    then:
-                    <ol>
-                      <li>
-                        If <var>current</var>'s predecessor identifier is
-                        lexicographically less than the candidate predecessor
-                        identifier, then adopt the candidate value and
-                        predecessor, add that predecessor to the overwrite set,
-                        update live state, write a detached clone into outgoing
-                        changes, set <var>hasChange</var> to true, and continue.
-                      </li>
-                      <li>
-                        Otherwise, mint a fresh local overwrite using the
-                        current visible value, place the resulting serialized
-                        entry in outgoing delta, set <var>hasDelta</var> to
-                        true, and continue.
-                      </li>
-                    </ol>
-                  </li>
-                  <li>
-                    Otherwise, if any of the following is true, adopt the
-                    candidate: the local current UUID equals the candidate
-                    predecessor identifier; the local overwrite set already
-                    contains the local current UUID; or the candidate UUID is
-                    lexicographically greater than the local current UUID.
-                  </li>
-                  <li>
-                    When the candidate is adopted, set the target UUID, value,
-                    and predecessor to the candidate values; add the candidate
-                    predecessor and previous local current UUID to the overwrite
-                    set; update live state; write a detached clone into outgoing
-                    changes; set <var>hasChange</var> to true; and continue.
-                  </li>
-                  <li>
-                    Otherwise add the candidate UUID to the local overwrite set,
-                    place the serialized local state entry in outgoing delta,
-                    and set <var>hasDelta</var> to true.
-                  </li>
-                </ol>
-              </li>
-              <li>
-                If <var>hasDelta</var> is true, dispatch <a>delta event</a>.
-              </li>
-              <li>
-                If <var>hasChange</var> is true, dispatch <a>change event</a>.
-              </li>
-            </ol>
-          </section>
-
-          <section data-dfn-for="CRList">
-            <h5><dfn class="lint-ignore">acknowledge()</dfn></h5>
-            <ol class="algorithm">
-              <li>Let <var>ack</var> be a new empty acknowledgement object.</li>
-              <li>
-                For each local field state entry, compute the lexicographically
-                greatest overwritten identifier presently known for that field.
-              </li>
-              <li>
-                Set the corresponding key in <var>ack</var> to that identifier.
-              </li>
-              <li>
-                Dispatch an <a>ack event</a> whose detail is <var>ack</var>.
-              </li>
-            </ol>
-          </section>
-
-          <section data-dfn-for="CRList">
-            <h5><dfn class="lint-ignore">garbageCollect()</dfn></h5>
-            <ol class="algorithm">
-              <li>
-                If <var>frontiers</var> is not a list or is empty, return.
-              </li>
-              <li>
-                Let <var>smallestAcknowledgementsPerKey</var> be a new empty
-                acknowledgement object.
-              </li>
-              <li>
-                For each frontier in <var>frontiers</var>, and for each own
-                entry in that frontier:
-                <ol>
-                  <li>If the key is unknown locally, continue.</li>
-                  <li>
-                    If the value is not a valid <a>UUIDv7 identifier</a>,
-                    continue.
-                  </li>
-                  <li>
-                    If there is already a stored acknowledgement for that key
-                    and it is less than or equal to the incoming value,
-                    continue.
-                  </li>
-                  <li>
-                    Otherwise replace the stored acknowledgement for that key
-                    with the incoming value.
-                  </li>
-                </ol>
-              </li>
-              <li>
-                For each acknowledged key in
-                <var>smallestAcknowledgementsPerKey</var>, remove every
-                overwritten identifier in the local field state entry that is
-                less than or equal to the stored acknowledgement, except the
-                field's current predecessor identifier.
-              </li>
-            </ol>
-          </section>
-
-          <section data-dfn-for="CRList">
-            <h5><dfn class="lint-ignore">snapshot()</dfn></h5>
-            <p>
-              Run <a>serialize a state entry</a> on every current field entry,
-              assemble the results into a full <a>snapshot</a>, and dispatch a
-              <a>snapshot event</a>. The method returns <code>undefined</code>.
-            </p>
-          </section>
+        <section data-dfn-for="CRList">
+          <h5><dfn class="export">size</dfn></h5>
+          <p>Return the current <a>list length</a>.</p>
         </section>
 
-        <section>
-          <h4>Additional</h4>
-
-          <section data-dfn-for="CRList">
-            <h5><dfn class="lint-ignore">keys()</dfn></h5>
-            <p>Return the known field keys from live state.</p>
-          </section>
-
-          <section data-dfn-for="CRList">
-            <h5><dfn class="lint-ignore">values()</dfn></h5>
-            <p>
-              Return detached structured clones of the current visible field
-              values.
-            </p>
-          </section>
-
-          <section data-dfn-for="CRList">
-            <h5><dfn class="lint-ignore">entries()</dfn></h5>
-            <p>
-              Return key-value pairs where each value is a detached structured
-              clone of the current visible field value.
-            </p>
-          </section>
+        <section data-dfn-for="CRList">
+          <h5><dfn class="export">indexed property access</dfn></h5>
+          <p>
+            Reading <code>list[i]</code> returns the current visible
+            <a>list value</a> at index <var>i</var>, or
+            <code>undefined</code> when the index is out of bounds. Writing
+            <code>list[i] = value</code> runs a one-value local overwrite
+            mutation at that index and appends when <var>i</var> equals the
+            current <a>list length</a>. Deleting
+            <code>delete list[i]</code> deletes the single-item visible range
+            <code>[i, i + 1)</code>.
+          </p>
         </section>
 
-        <section>
-          <h4>EventTarget</h4>
+        <section data-dfn-for="CRList">
+          <h5><dfn class="export">append()</dfn></h5>
+          <p>
+            Insert one visible value after the supplied index. If no index is
+            supplied, append at the current tail.
+          </p>
+        </section>
 
-          <section data-dfn-for="CRList">
-            <h5>
-              <dfn class="lint-ignore">addEventListener()</dfn> and
-              <dfn class="lint-ignore">removeEventListener()</dfn>
-            </h5>
-            <p>
-              Forward listener registration and listener removal to the
-              binding's internal <code>EventTarget</code> object using the
-              provided type, listener, and options values.
-            </p>
-          </section>
+        <section data-dfn-for="CRList">
+          <h5><dfn class="export">prepend()</dfn></h5>
+          <p>
+            Insert one visible value before the supplied index. If no index is
+            supplied, insert at the current head.
+          </p>
+        </section>
+
+        <section data-dfn-for="CRList">
+          <h5><dfn class="export">remove()</dfn></h5>
+          <p>Delete the single visible entry at the supplied index.</p>
+        </section>
+
+        <section data-dfn-for="CRList">
+          <h5><dfn class="export">merge()</dfn></h5>
+          <p>
+            Merge the supplied <a>delta</a> into the internal replica and, if
+            the visible list changes, dispatch a <a>change event</a> whose
+            detail is the minimal visible patch.
+          </p>
+        </section>
+
+        <section data-dfn-for="CRList">
+          <h5><dfn class="export">acknowledge()</dfn></h5>
+          <p>
+            Compute the current <a>acknowledgement frontier</a> and dispatch an
+            <a>ack event</a> when a frontier exists.
+          </p>
+        </section>
+
+        <section data-dfn-for="CRList">
+          <h5><dfn class="export">garbageCollect()</dfn></h5>
+          <p>
+            Run the core garbage-collection algorithm with the supplied list of
+            acknowledgement frontiers.
+          </p>
+        </section>
+
+        <section data-dfn-for="CRList">
+          <h5><dfn class="export">snapshot()</dfn></h5>
+          <p>
+            Create the current full <a>snapshot</a> and dispatch a
+            <a>snapshot event</a>. The method returns <code>undefined</code>.
+          </p>
+        </section>
+
+        <section data-dfn-for="CRList">
+          <h5><dfn class="export">@@iterator</dfn></h5>
+          <p>
+            Iterate the current visible <a>list value</a>(s) in ascending
+            <a>list index</a> order.
+          </p>
+        </section>
+
+        <section data-dfn-for="CRList">
+          <h5><dfn class="export">forEach()</dfn></h5>
+          <p>
+            Call the supplied callback once for each visible
+            <a>list value</a> in ascending <a>list index</a> order, passing
+            value, index, and the list object.
+          </p>
+        </section>
+
+        <section data-dfn-for="CRList">
+          <h5><dfn class="export">toJSON()</dfn></h5>
+          <p>
+            Return the same serialized shape as <a>snapshot</a>. This is the
+            value used by <code>JSON.stringify</code>.
+          </p>
+        </section>
+
+        <section data-dfn-for="CRList">
+          <h5>
+            <dfn class="export">addEventListener()</dfn> and
+            <dfn class="export">removeEventListener()</dfn>
+          </h5>
+          <p>
+            Forward listener registration and listener removal to the binding's
+            internal <code>EventTarget</code> object using the provided type,
+            listener, and options values.
+          </p>
         </section>
       </section>
     </section>

@@ -5,7 +5,7 @@
 
 # convergent-replicated-list
 
-Convergent Replicated List (CR-List), a delta CRDT for index-addressable lists.
+Convergent Replicated List (CR-List), a delta CRDT for an ordered sequence of entries.
 
 ## Compatibility
 
@@ -211,7 +211,7 @@ Ingress stays tolerant:
 - The convergence target is the live list projection, not internal cursor placement.
 - Stable `predecessor` anchors determine deterministic ordering together with UUIDv7 sorting when placement cannot be resolved from a live predecessor chain.
 - Tombstones remain until acknowledgement frontiers make them safe to collect.
-- Garbage collection must not change the converged live projection for replicas that later catch up from delta or snapshot state.
+- Garbage collection does not change the converged live projection for replicas that later catch up from delta or snapshot state.
 
 ## Tests
 

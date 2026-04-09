@@ -8,9 +8,11 @@ export function flattenAndLinkTrustedState<T>(
 ): Set<NonNullable<DoublyLinkedListEntry<T>>> {
   crListReplica.cursor = undefined
   const resolvedSiblingPredecessors = new Set<string>()
-  const danglingHeads = new Set<NonNullable<DoublyLinkedListEntry<T>>>()
+  const danglingEntries = new Set<NonNullable<DoublyLinkedListEntry<T>>>()
   for (const entry of crListReplica.parentMap.values()) {
     if (!entry) continue
+    if (crListReplica.tombstones.has(entry.predecessor))
+      danglingEntries.add(entry)
     entry.prev = undefined
     entry.next = undefined
   }

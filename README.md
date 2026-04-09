@@ -260,7 +260,7 @@ npm run test
 
 What the current test suite covers:
 
-- Coverage checks on built `dist/**/*.js` together with focused source-coverage tests for helper edge paths.
+- Coverage on built `dist/**/*.js`: `100%` statements, `99.67%` branches, `100%` functions, and `100%` lines, together with focused source-coverage tests for helper edge paths.
 - Public `CRList` surface: indexing, iteration, `forEach`, proxy traps, events, JSON/inspect behavior.
 - Core edge paths and malicious ingress handling for `__create`, `__read`, `__update`, `__delete`, `__merge`, `__snapshot`, `__acknowledge`, and `__garbageCollect`.
 - Internal defensive branches under intentionally corrupt in-memory replica state.

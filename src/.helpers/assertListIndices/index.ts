@@ -25,13 +25,16 @@ export function assertListIndices<T>(
     const dangling = danglingHeads[danglingIndex]
     if (dangling && dangling.predecessor < crListReplica.cursor.predecessor) {
       dangling.prev = crListReplica.cursor.prev
+      if (dangling.prev) dangling.prev.next = dangling
       crListReplica.cursor.prev = dangling
       dangling.next = crListReplica.cursor
       dangling.index = i
       danglingIndex++
       continue
     }
+
     crListReplica.cursor.index = i
+    if (crListReplica.cursor.next === undefined) break
     crListReplica.cursor = crListReplica.cursor.next
   }
 }

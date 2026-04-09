@@ -12,7 +12,7 @@ export function flattenAndLinkTrustedState<T>(crListReplica: CRListReplica<T>) {
     entry.next = undefined
   }
   const keys = [...crListReplica.childrenMap.keys()].sort((a, b) =>
-    a < b ? -1 : a > b ? 1 : 0
+    a > b ? 1 : -1
   )
   let hasProgress = true
   while (hasProgress) {
@@ -23,9 +23,7 @@ export function flattenAndLinkTrustedState<T>(crListReplica: CRListReplica<T>) {
       if (!siblings) continue
 
       if (siblings.length > 1)
-        siblings.sort((a, b) =>
-          a.uuidv7 > b.uuidv7 ? 1 : -1
-        )
+        siblings.sort((a, b) => (a.uuidv7 > b.uuidv7 ? 1 : -1))
 
       const predecessor =
         predecessorIdentifier === '\0'

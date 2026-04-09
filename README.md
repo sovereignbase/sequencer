@@ -176,6 +176,47 @@ alice.garbageCollect([...frontiers.values()])
 bob.garbageCollect([...frontiers.values()])
 ```
 
+### Advanced exports
+
+If you need to build your own ordered-sequence CRDT binding instead of using the
+high-level `CRList` class, the package also exports the core CRUD and MAGS
+functions together with the replica and payload types.
+
+Those low-level exports let you build custom list abstractions, protocol
+wrappers, or framework-specific bindings while preserving the same convergence
+rules as the default `CRList` binding.
+
+```ts
+import {
+  __create,
+  __update,
+  __merge,
+  __snapshot,
+  type CRListDelta,
+  type CRListSnapshot,
+} from '@sovereignbase/convergent-replicated-list'
+
+const replica = __create<string>()
+const local = __update(0, ['hello', 'world'], replica, 'after')
+
+if (local) {
+  const outgoing: CRListDelta<string> = local.delta
+  const remoteChange = __merge(replica, outgoing)
+
+  console.log(remoteChange)
+}
+
+const snapshot: CRListSnapshot<string> = __snapshot(replica)
+console.log(snapshot)
+```
+
+The intended split is:
+
+- `__create`, `__read`, `__update`, `__delete` for local replica mutations.
+- `__merge`, `__acknowledge`, `__garbageCollect`, `__snapshot` for gossip,
+  compaction, and serialization.
+- `CRList` when you want the default event-driven class API.
+
 ## Runtime behavior
 
 ### Validation and errors

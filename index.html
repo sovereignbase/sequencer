@@ -954,9 +954,9 @@ dictionary CRListDelta {
           <code>EventTarget</code> object as defined by DOM [[DOM]].
         </p>
         <p>
-          This bindings listener methods forward to that internal event target,
-          and its local mutations and merges dispatch synthetic events through
-          it.
+          The binding forwards addEventListener() and removeEventListener() to
+          that internal event target. Local mutations and merges dispatch
+          synthetic events through the same target.
         </p>
         <p>
           The JavaScript binding defines four synthetic event types. Each is a

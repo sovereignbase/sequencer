@@ -9,6 +9,7 @@
     "list",
     "replicated",
     "convergent",
+    "local-first",
     "distributed-systems",
     "delta-sync",
     "gossip",

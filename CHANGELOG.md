@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.0.1...v1.0.2) (2026-04-11)
+
+
+### Bug Fixes
+
+* returns copies instead so mutations to value reads do not corrupt replica. ([26f1107](https://github.com/sovereignbase/convergent-replicated-list/commit/26f1107d894f7815a19b4fa1a9d92c077c41464b))
+
 ## [1.0.1](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.0.0...v1.0.1) (2026-04-11)
 
 

@@ -1,13 +1,13 @@
 import type {
   CRListDelta,
-  CRListReplica,
-  DoublyLinkedListEntry,
+  CRListState,
+  CRListStateEntry,
 } from '../../.types/index.js'
 import { deleteEntryFromMaps } from '../deleteEntryFromMaps/index.js'
 
 export function deleteLinkedEntry<T>(
-  crListReplica: CRListReplica<T>,
-  linkedListEntry: NonNullable<DoublyLinkedListEntry<T>>,
+  crListReplica: CRListState<T>,
+  linkedListEntry: NonNullable<CRListStateEntry<T>>,
   deltaBuf?: CRListDelta<T>
 ): void {
   const prev = linkedListEntry.prev

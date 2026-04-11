@@ -1,8 +1,8 @@
 import { isUuidV7, prototype } from '@sovereignbase/utils'
 import {
   CRListSnapshot,
-  CRListReplica,
-  DoublyLinkedListEntry,
+  CRListState,
+  CRListStateEntry,
 } from '../../../.types/index.js'
 import {
   flattenAndLinkTrustedState,
@@ -28,16 +28,13 @@ import {
  *
  * Space complexity: O(n + t + c)
  */
-export function __create<T>(snapshot?: CRListSnapshot<T>): CRListReplica<T> {
-  const crListReplica: CRListReplica<T> = {
+export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
+  const crListReplica: CRListState<T> = {
     size: 0,
     cursor: undefined,
     tombstones: new Set<string>(),
-    parentMap: new Map<string, NonNullable<DoublyLinkedListEntry<T>>>(),
-    childrenMap: new Map<
-      string,
-      Array<NonNullable<DoublyLinkedListEntry<T>>>
-    >(),
+    parentMap: new Map<string, NonNullable<CRListStateEntry<T>>>(),
+    childrenMap: new Map<string, Array<NonNullable<CRListStateEntry<T>>>>(),
   }
   if (!snapshot || prototype(snapshot) !== 'record') return crListReplica
 

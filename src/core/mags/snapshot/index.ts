@@ -1,5 +1,5 @@
 import { CRListError } from '../../../.errors/class.js'
-import { CRListReplica, CRListSnapshot } from '../../../.types/index.js'
+import { CRListState, CRListSnapshot } from '../../../.types/index.js'
 
 /**
  * Creates a full serializable CRList snapshot from the current replica state.
@@ -18,7 +18,7 @@ import { CRListReplica, CRListSnapshot } from '../../../.types/index.js'
  * Space complexity: O(n + t + c)
  */
 export function __snapshot<T>(
-  crListReplica: CRListReplica<T>
+  crListReplica: CRListState<T>
 ): CRListSnapshot<T> {
   return {
     values: Array.from(crListReplica.parentMap.values()).map(

@@ -4,7 +4,7 @@
  * The `predecessor` field is the stable ordering anchor used for convergence;
  * `prev` and `next` are local projection links for indexed reads and mutations.
  */
-export type DoublyLinkedListEntry<T> =
+export type CRListStateEntry<T> =
   | {
       /** Stable UUIDv7 identity for this entry. */
       uuidv7: string
@@ -15,11 +15,12 @@ export type DoublyLinkedListEntry<T> =
       /** Current zero-based index in the local live view. */
       index: number
       /** Previous live entry in the local projection. */
-      prev: DoublyLinkedListEntry<T> | undefined
+      prev: CRListStateEntry<T> | undefined
       /** Next live entry in the local projection. */
-      next: DoublyLinkedListEntry<T> | undefined
+      next: CRListStateEntry<T> | undefined
     }
   | undefined
+
 /**
  * Mutable CRList replica state.
  *
@@ -28,22 +29,23 @@ export type DoublyLinkedListEntry<T> =
  * UUIDv7 entries until they are garbage collected through acknowledgement
  * frontiers.
  */
-export type CRListReplica<T> = {
+export type CRListState<T> = {
   /** Number of live entries in the local projection. */
   size: number
   /** Current live entry used as the walking cursor. */
-  cursor: DoublyLinkedListEntry<T>
+  cursor: CRListStateEntry<T>
   /** Deleted UUIDv7 entries retained for gossip and convergence. */
   tombstones: Set<string>
   /** Live entries by UUIDv7. */
-  parentMap: Map<string, DoublyLinkedListEntry<T>>
+  parentMap: Map<string, CRListStateEntry<T>>
   /** Live entries grouped by stable predecessor identifier. */
-  childrenMap: Map<string, Array<NonNullable<DoublyLinkedListEntry<T>>>>
+  childrenMap: Map<string, Array<NonNullable<CRListStateEntry<T>>>>
 }
+
 /**
  * Serializable value entry used by snapshots and deltas.
  */
-export type CRListSnapshotValueEntry<T> = {
+export type CRListSnapshotEntry<T> = {
   /** Stable UUIDv7 identity for this entry. */
   uuidv7: string
   /** User payload for this entry. */
@@ -51,19 +53,17 @@ export type CRListSnapshotValueEntry<T> = {
   /** Stable predecessor UUIDv7, or `'\0'` for root-level entries. */
   predecessor: string
 }
+
 /**
  * Full serializable CRList state.
  */
 export type CRListSnapshot<T> = {
   /** Serializable live values. */
-  values: Array<CRListSnapshotValueEntry<T>>
+  values: Array<CRListSnapshotEntry<T>>
   /** Retained deleted UUIDv7 entries. */
   tombstones: Array<string>
 }
-/**
- * Partial CRList state gossiped between replicas.
- */
-export type CRListDelta<T> = Partial<CRListSnapshot<T>>
+
 /**
  * Minimal local live-view patch keyed by list index.
  *
@@ -71,16 +71,16 @@ export type CRListDelta<T> = Partial<CRListSnapshot<T>>
  * value was inserted or replaced at the index.
  */
 export type CRListChange<T> = Record<number, T | undefined>
+
 /**
+ * Partial CRList state gossiped between replicas.
+ */
+export type CRListDelta<T> = Partial<CRListSnapshot<T>>
+
+/*
  * Tombstone acknowledgement frontier.
  */
 export type CRListAck = string
-
-//CORE
-//////////////////////////////////////////////////
-//////////////////////////////////////////////////
-//////////////////////////////////////////////////
-//CLASS
 
 /**
  * Maps CRList event names to their event payload shapes.

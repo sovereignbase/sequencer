@@ -1,14 +1,14 @@
 import type {
   CRListDelta,
-  CRListReplica,
-  DoublyLinkedListEntry,
+  CRListState,
+  CRListStateEntry,
 } from '../../.types/index.js'
 import { deleteEntryFromMaps } from '../deleteEntryFromMaps/index.js'
 import { updateEntryToMaps } from '../updateEntryToMaps/index.js'
 
 export function moveEntryToPredecessor<T>(
-  crListReplica: CRListReplica<T>,
-  linkedListEntry: NonNullable<DoublyLinkedListEntry<T>>,
+  crListReplica: CRListState<T>,
+  linkedListEntry: NonNullable<CRListStateEntry<T>>,
   predecessor: string,
   deltaBuf?: CRListDelta<T>
 ): void {

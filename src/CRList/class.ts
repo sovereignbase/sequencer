@@ -1,6 +1,6 @@
 import { indexFromPropertyKey } from '../.helpers/index.js'
 import type {
-  CRListReplica,
+  CRListState,
   CRListSnapshot,
   CRListEventListenerFor,
   CRListEventMap,
@@ -30,7 +30,7 @@ export class CRList<T> {
    * Reads or overwrites an entry in the live list projection by index.
    */
   [index: number]: T
-  declare private readonly state: CRListReplica<T>
+  declare private readonly state: CRListState<T>
   declare private readonly eventTarget: EventTarget
 
   /**

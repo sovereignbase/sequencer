@@ -1,9 +1,6 @@
-import type {
-  CRListReplica,
-  DoublyLinkedListEntry,
-} from '../../.types/index.js'
+import type { CRListState, CRListStateEntry } from '../../.types/index.js'
 import { insertBetween } from '../insertBetween/index.js'
-export function flattenAndLinkTrustedState<T>(crListReplica: CRListReplica<T>) {
+export function flattenAndLinkTrustedState<T>(crListReplica: CRListState<T>) {
   crListReplica.cursor = undefined
   const resolvedSiblingPredecessors = new Set<string>()
   for (const entry of crListReplica.parentMap.values()) {
@@ -36,7 +33,7 @@ export function flattenAndLinkTrustedState<T>(crListReplica: CRListReplica<T>) {
         crListReplica.cursor !== predecessor
       )
         continue
-      let prev: DoublyLinkedListEntry<T> = predecessor ?? crListReplica.cursor
+      let prev: CRListStateEntry<T> = predecessor ?? crListReplica.cursor
       const predecessorNext = predecessor?.next
       if (siblings.length === 1) {
         const sibling = siblings[0]

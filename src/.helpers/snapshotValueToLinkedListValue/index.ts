@@ -1,13 +1,13 @@
 import type {
-  CRListReplica,
-  CRListSnapshotValueEntry,
-  DoublyLinkedListEntry,
+  CRListState,
+  CRListSnapshotEntry,
+  CRListStateEntry,
 } from '../../.types/index.js'
 import { isUuidV7, safeStructuredClone } from '@sovereignbase/utils'
 export function snapshotValueToLinkedListValue<T>(
-  valueEntry: CRListSnapshotValueEntry<T>,
-  crListReplica: CRListReplica<T>
-): DoublyLinkedListEntry<T> {
+  valueEntry: CRListSnapshotEntry<T>,
+  crListReplica: CRListState<T>
+): CRListStateEntry<T> {
   if (
     !isUuidV7(valueEntry.uuidv7) ||
     crListReplica.tombstones.has(valueEntry.uuidv7) ||

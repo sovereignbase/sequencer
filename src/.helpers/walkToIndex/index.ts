@@ -1,12 +1,9 @@
-import type {
-  CRListReplica,
-  DoublyLinkedListEntry,
-} from '../../.types/index.js'
+import type { CRListState } from '../../.types/index.js'
 import { CRListError } from '../../.errors/class.js'
 
 export function walkToIndex<T>(
   targetIndex: number,
-  crListReplica: CRListReplica<T>
+  crListReplica: CRListState<T>
 ): void {
   if (targetIndex < 0 || targetIndex >= crListReplica.size)
     throw new CRListError('INDEX_OUT_OF_BOUNDS', 'Index out of bounds')

@@ -1,8 +1,8 @@
 import type {
   CRListChange,
   CRListDelta,
-  CRListReplica,
-  DoublyLinkedListEntry,
+  CRListState,
+  CRListStateEntry,
 } from '../../../.types/index.js'
 import {
   snapshotValueToLinkedListValue,
@@ -38,11 +38,11 @@ import { prototype, isUuidV7 } from '@sovereignbase/utils'
  * Space complexity: O(n + v + t + c)
  */
 export function __merge<T>(
-  crListReplica: CRListReplica<T>,
+  crListReplica: CRListState<T>,
   crListDelta: CRListDelta<T>
 ): CRListChange<T> | false {
   if (!crListDelta || prototype(crListDelta) !== 'record') return false
-  const newVals: Array<NonNullable<DoublyLinkedListEntry<T>>> = []
+  const newVals: Array<NonNullable<CRListStateEntry<T>>> = []
   const newTombsIndices: Array<number> = []
   const change: CRListChange<T> = {}
   let needsRelink = false

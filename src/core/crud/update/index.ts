@@ -11,8 +11,8 @@ import { v7 as uuidv7 } from 'uuid'
 import {
   CRListChange,
   CRListDelta,
-  CRListReplica,
-  DoublyLinkedListEntry,
+  CRListState,
+  CRListStateEntry,
 } from '../../../.types/index.js'
 /**
  * Applies a local value mutation to the replica live view.
@@ -39,7 +39,7 @@ import {
 export function __update<T>(
   listIndex: number,
   listValues: Array<T>,
-  crListReplica: CRListReplica<T>,
+  crListReplica: CRListState<T>,
   mode: 'overwrite' | 'before' | 'after'
 ): { change: CRListChange<T>; delta: CRListDelta<T> } | false {
   if (listIndex < 0 || listIndex > crListReplica.size)
@@ -52,7 +52,7 @@ export function __update<T>(
   if (listValues.length === 0) return false
   const change: CRListChange<T> = {}
   const delta: CRListDelta<T> = { values: [], tombstones: [] }
-  let shiftCursor: DoublyLinkedListEntry<T>
+  let shiftCursor: CRListStateEntry<T>
   for (const listValue of listValues) {
     const [cloned, copiedValue] = safeStructuredClone(listValue)
 
@@ -60,7 +60,7 @@ export function __update<T>(
 
     const v7 = uuidv7()
 
-    const linkedListEntry: NonNullable<DoublyLinkedListEntry<T>> = {
+    const linkedListEntry: NonNullable<CRListStateEntry<T>> = {
       uuidv7: v7,
       value: copiedValue,
       predecessor: '\0',

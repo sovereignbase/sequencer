@@ -1,11 +1,11 @@
 import type {
-  CRListReplica,
-  DoublyLinkedListEntry,
+  CRListState,
+  CRListStateEntry,
   CRListDelta,
 } from '../../.types/index.js'
 export function updateEntryToMaps<T>(
-  crListReplica: CRListReplica<T>,
-  linkedListEntry: NonNullable<DoublyLinkedListEntry<T>>,
+  crListReplica: CRListState<T>,
+  linkedListEntry: NonNullable<CRListStateEntry<T>>,
   deltaBuf?: CRListDelta<T>
 ): void {
   crListReplica.parentMap.set(linkedListEntry.uuidv7, linkedListEntry)

@@ -1,5 +1,5 @@
 import { walkToIndex } from '../../../.helpers/index.js'
-import { CRListReplica } from '../../../.types/index.js'
+import { CRListState } from '../../../.types/index.js'
 
 /**
  * Reads the value at an index in the replica live view.
@@ -19,7 +19,7 @@ import { CRListReplica } from '../../../.types/index.js'
  */
 export function __read<T>(
   targetIndex: number,
-  crListReplica: CRListReplica<T>
+  crListReplica: CRListState<T>
 ): T | undefined {
   try {
     void walkToIndex<T>(targetIndex, crListReplica)

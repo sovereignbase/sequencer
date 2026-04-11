@@ -1,10 +1,7 @@
-import type {
-  CRListReplica,
-  DoublyLinkedListEntry,
-} from '../../.types/index.js'
+import type { CRListState, CRListStateEntry } from '../../.types/index.js'
 export function deleteEntryFromMaps<T>(
-  crListReplica: CRListReplica<T>,
-  linkedListEntry: NonNullable<DoublyLinkedListEntry<T>>
+  crListReplica: CRListState<T>,
+  linkedListEntry: NonNullable<CRListStateEntry<T>>
 ): void {
   crListReplica.parentMap.delete(linkedListEntry.uuidv7)
   const siblings = crListReplica.childrenMap.get(linkedListEntry.predecessor)

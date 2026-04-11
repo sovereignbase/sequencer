@@ -3,8 +3,8 @@ import { CRListError } from '../../../.errors/class.js'
 import type {
   CRListChange,
   CRListDelta,
-  CRListReplica,
-  DoublyLinkedListEntry,
+  CRListState,
+  CRListStateEntry,
 } from '../../../.types/index.js'
 
 /**
@@ -28,7 +28,7 @@ import type {
  * Space complexity: O(q)
  */
 export function __delete<T>(
-  crListReplica: CRListReplica<T>,
+  crListReplica: CRListState<T>,
   startIndex?: number,
   endIndex?: number
 ): { change: CRListChange<T>; delta: CRListDelta<T> } | false {
@@ -48,11 +48,11 @@ export function __delete<T>(
   void walkToIndex<T>(listIndex, crListReplica)
   if (!crListReplica.cursor) return false
 
-  let current: DoublyLinkedListEntry<T> = crListReplica.cursor
+  let current: CRListStateEntry<T> = crListReplica.cursor
   let deleted = 0
 
   while (current && deleted < deleteCount) {
-    const next: DoublyLinkedListEntry<T> = current.next
+    const next: CRListStateEntry<T> = current.next
     change[current.index] = undefined
     void deleteLinkedEntry<T>(crListReplica, current, delta)
     current = next

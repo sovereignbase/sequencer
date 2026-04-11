@@ -1,4 +1,4 @@
-import { CRListAck, CRListReplica } from '../../../.types/index.js'
+import { CRListAck, CRListState } from '../../../.types/index.js'
 
 /**
  * Removes tombstones acknowledged by all supplied frontiers.
@@ -17,7 +17,7 @@ import { CRListAck, CRListReplica } from '../../../.types/index.js'
  */
 export function __garbageCollect<T>(
   frontiers: Array<CRListAck>,
-  crListReplica: CRListReplica<T>
+  crListReplica: CRListState<T>
 ): void {
   if (!Array.isArray(frontiers)) return
   const frontier = frontiers.sort().shift()

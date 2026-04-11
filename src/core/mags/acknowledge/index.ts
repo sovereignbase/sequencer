@@ -1,4 +1,4 @@
-import type { CRListAck, CRListReplica } from '../../../.types/index.js'
+import type { CRListAck, CRListState } from '../../../.types/index.js'
 
 /**
  * Returns the replica tombstone acknowledgement frontier.
@@ -15,7 +15,7 @@ import type { CRListAck, CRListReplica } from '../../../.types/index.js'
  * Space complexity: O(1)
  */
 export function __acknowledge<T>(
-  crListReplica: CRListReplica<T>
+  crListReplica: CRListState<T>
 ): CRListAck | false {
   let frontier: CRListAck | false = false
   crListReplica.tombstones.forEach((tombstone) => {

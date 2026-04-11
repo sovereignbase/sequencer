@@ -1,9 +1,9 @@
-import type { DoublyLinkedListEntry } from '../../.types/index.js'
+import type { CRListStateEntry } from '../../.types/index.js'
 
 export function insertBetween<T>(
-  prev: DoublyLinkedListEntry<T>,
-  linkedListEntry: NonNullable<DoublyLinkedListEntry<T>>,
-  next: DoublyLinkedListEntry<T>
+  prev: CRListStateEntry<T>,
+  linkedListEntry: NonNullable<CRListStateEntry<T>>,
+  next: CRListStateEntry<T>
 ): void {
   linkedListEntry.prev = prev
   linkedListEntry.next = next

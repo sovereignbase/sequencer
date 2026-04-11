@@ -1,6 +1,6 @@
-import type { CRListReplica } from '../../.types/index.js'
+import type { CRListState } from '../../.types/index.js'
 
-export function assertListIndices<T>(crListReplica: CRListReplica<T>): void {
+export function assertListIndices<T>(crListReplica: CRListState<T>): void {
   if (!crListReplica.cursor) return
   let index = crListReplica.size
   while (crListReplica.cursor.next)

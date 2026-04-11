@@ -2,7 +2,7 @@
   "type": "module",
   "license": "Apache-2.0",
   "name": "@sovereignbase/convergent-replicated-list",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Convergent Replicated List (CR-List), a delta CRDT for an ordered sequence of entries.",
   "keywords": [
     "crdt",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.0.0...v1.0.1) (2026-04-11)
+
+
+### Bug Fixes
+
+* alinged type surface with other cr classes.. ([ffbd0ee](https://github.com/sovereignbase/convergent-replicated-list/commit/ffbd0eec50a6d9864a819f738a0d62dbb1802610))
+
 ## 1.0.0 (2026-04-09)
 
 

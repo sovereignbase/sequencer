@@ -19,15 +19,19 @@ import {
  * A convergent replicated list.
  *
  * Numeric property access reads and mutates the live list projection:
- * `list[0]` reads an entry, `list[0] = value` writes an entry, and `delete
- * list[0]` removes one entry. Local mutations emit `delta` and `change` events;
- * remote merges emit `change` events.
+ * `list[0]` reads a detached copy of an entry, `list[0] = value` writes an
+ * entry, and `delete list[0]` removes one entry. Iteration and `forEach()`
+ * likewise expose detached copies rather than mutable references into the
+ * replica state. Local mutations emit `delta` and `change` events; remote
+ * merges emit `change` events.
  *
  * @typeParam T - The value type stored in the list.
  */
 export class CRList<T> {
   /**
    * Reads or overwrites an entry in the live list projection by index.
+   *
+   * Reads return detached copies.
    */
   [index: number]: T
   declare private readonly state: CRListState<T>
@@ -309,7 +313,7 @@ export class CRList<T> {
     return this.toJSON()
   }
   /**
-   * Iterates over the current live values in index order.
+   * Iterates over detached copies of the current live values in index order.
    */
   *[Symbol.iterator](): IterableIterator<T> {
     for (let index = 0; index < this.size; index++) {
@@ -318,9 +322,12 @@ export class CRList<T> {
     }
   }
   /**
-   * Calls a function once for each live value in index order.
+   * Calls a function once for each live value copy in index order.
    *
-   * @param callback - Function to call for each value.
+   * Callback values are detached copies, so mutating them does not mutate the
+   * list.
+   *
+   * @param callback - Function to call for each value copy.
    * @param thisArg - Optional `this` value for the callback.
    */
   forEach(

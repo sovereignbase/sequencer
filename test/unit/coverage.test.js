@@ -393,7 +393,9 @@ test('unit: assertListIndices forward walk is covered through tombstone-only mer
   assert(__update(0, [{ id: 'a' }, { id: 'b' }, { id: 'c' }], source, 'after'))
 
   const target = __create(__snapshot(source))
-  target.cursor = [...target.parentMap.values()].find((entry) => entry.index === 0)
+  target.cursor = [...target.parentMap.values()].find(
+    (entry) => entry.index === 0
+  )
 
   const deletion = __delete(source, 0, 1)
   assert(__merge(target, { tombstones: deletion.delta.tombstones }))

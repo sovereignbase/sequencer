@@ -4,12 +4,15 @@ import { CRListState } from '../../../.types/index.js'
 /**
  * Reads the value at an index in the replica live view.
  *
- * The replica cursor is moved as part of the lookup. Out-of-bounds and empty
- * list reads resolve to `undefined` instead of throwing.
+ * The replica cursor is moved as part of the lookup. Successful reads return a
+ * detached structured clone of the visible value, so mutating the returned
+ * value does not mutate the replica itself. Out-of-bounds and empty list reads
+ * resolve to `undefined` instead of throwing.
  *
  * @param targetIndex Index in the live list.
  * @param crListReplica Replica to read from.
- * @returns The value at `targetIndex`, or `undefined` when no value is present.
+ * @returns A detached copy of the value at `targetIndex`, or `undefined` when
+ * no value is present.
  *
  * Time complexity: O(d), worst case O(n)
  * - d = distance from cursor to target index
@@ -23,7 +26,7 @@ export function __read<T>(
 ): T | undefined {
   try {
     void walkToIndex<T>(targetIndex, crListReplica)
-    return crListReplica?.cursor?.value
+    return structuredClone(crListReplica?.cursor?.value)
   } catch {
     return undefined
   }

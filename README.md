@@ -145,6 +145,10 @@ list.forEach((value, index, target) => {
 console.log([...restored]) // ['What is', 'up', 'dude!']
 ```
 
+Numeric reads, `for...of`, and `forEach()` return detached copies of visible
+values. Mutating those returned values does not mutate the underlying replica
+state.
+
 ### Acknowledgements and garbage collection
 
 ```ts
@@ -243,6 +247,7 @@ Ingress stays tolerant:
 - Deltas are serializable gossip payloads.
 - `change` is a minimal index-keyed local patch.
 - `toJSON()` returns a detached serializable snapshot.
+- Numeric reads, `for...of`, and `forEach()` expose detached copies of visible values rather than mutable references into replica state.
 - `for...of`, `forEach()`, numeric indexing, `append()`, `prepend()`, `remove()`, `merge()`, `snapshot()`, `acknowledge()`, and `garbageCollect()` all operate on the live list projection.
 
 ### Convergence and compaction

@@ -45,7 +45,7 @@ export class CRList<T> {
   constructor(snapshot?: CRListSnapshot<T>) {
     Object.defineProperties(this, {
       state: {
-        value: __create(snapshot),
+        value: __create<T>(snapshot),
         enumerable: false,
         configurable: false,
         writable: false,
@@ -131,7 +131,7 @@ export class CRList<T> {
             configurable: true,
           }
         }
-
+        // Preserve normal property checks for non-index keys.
         return Reflect.getOwnPropertyDescriptor(target, index)
       },
     })
@@ -243,7 +243,7 @@ export class CRList<T> {
    * Emits the current serializable list snapshot.
    */
   snapshot(): void {
-    const snapshot = __snapshot(this.state)
+    const snapshot = __snapshot<T>(this.state)
     if (snapshot)
       void this.eventTarget.dispatchEvent(
         new CustomEvent('snapshot', { detail: snapshot })

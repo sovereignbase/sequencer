@@ -137,7 +137,7 @@ export function __merge<T>(
     change[index] = undefined
   }
   for (const val of newVals) {
-    change[val.index] = val.value
+    change[val.index] = structuredClone(val.value)
   }
 
   return change

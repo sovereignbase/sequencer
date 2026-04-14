@@ -116,6 +116,43 @@ test('unit: CRList public surface and events', () => {
   list.remove(0)
 })
 
+test('unit: change event payloads are detached from replica state', () => {
+  const mutateChangePayload = (event) => {
+    for (const key of Object.keys(event.detail)) {
+      const value = event.detail[key]
+      if (!value) continue
+      value.meta.label = `mutated-${key}`
+      event.detail[key] = { id: `replaced-${key}`, meta: { label: 'replaced' } }
+    }
+  }
+
+  const list = new CRList()
+
+  list.addEventListener('change', mutateChangePayload)
+
+  list.append({ id: 'local', meta: { label: 'original-local' } })
+
+  assert.deepEqual(list[0], {
+    id: 'local',
+    meta: { label: 'original-local' },
+  })
+
+  const remote = new CRList()
+
+  remote.append({ id: 'remote', meta: { label: 'original-remote' } })
+
+  const merged = new CRList()
+
+  merged.addEventListener('change', mutateChangePayload)
+
+  merged.merge(remote.toJSON())
+
+  assert.deepEqual(merged[0], {
+    id: 'remote',
+    meta: { label: 'original-remote' },
+  })
+})
+
 test('unit: core edge paths and malicious inputs', () => {
   const empty = __create()
   assert.equal(__read(0, empty), undefined)

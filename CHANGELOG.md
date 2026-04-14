@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.0.3...v1.0.4) (2026-04-14)
+
+
+### Bug Fixes
+
+* added fixes and tests to ensure mutation safety of change event payloads. ([e6c547a](https://github.com/sovereignbase/convergent-replicated-list/commit/e6c547a01f82462dae8734eda57f20a43d5150b8))
+
 ## [1.0.3](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.0.2...v1.0.3) (2026-04-12)
 
 

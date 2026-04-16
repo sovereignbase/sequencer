@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.7](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.0.6...v1.0.7) (2026-04-16)
+
+
+### Bug Fixes
+
+* Removed problematic 'appendace of an already existing value to change event' in __merge relink path. ([a177786](https://github.com/sovereignbase/convergent-replicated-list/commit/a177786af4bff1e8d2ac8ebd74dcc3926e2a233f))
+
 ## [1.0.6](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.0.5...v1.0.6) (2026-04-16)
 
 

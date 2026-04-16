@@ -7,6 +7,10 @@
 
 Convergent Replicated List (CR-List), a delta CRDT for an ordered sequence of entries.
 
+Read the specification:
+
+- https://sovereignbase.dev/convergent-replicated-list
+
 ## Compatibility
 
 - Runtimes: Node >= 20, modern browsers, Bun, Deno, Cloudflare Workers, Edge Runtime.
@@ -127,8 +131,8 @@ list[0] = 'up'
 list.append('dude!')
 list.prepend('What is')
 
-const serialized = JSON.stringify(list)
-const restored = new CRList<string>(JSON.parse(serialized))
+const snapshotJson = JSON.stringify(list)
+const restored = new CRList<string>(JSON.parse(snapshotJson))
 
 for (const value of list) {
   console.log(value)
@@ -144,6 +148,11 @@ list.forEach((value, index, target) => {
 
 console.log([...restored]) // ['What is', 'up', 'dude!']
 ```
+
+This example assumes your list values are JSON-compatible. For general
+`structuredClone`-compatible values such as `Date`, `Map`, or `BigInt`, persist
+snapshots with a structured-clone-capable store or an application-level codec
+instead of plain `JSON.stringify` / `JSON.parse`.
 
 Numeric reads, `for...of`, and `forEach()` return detached copies of visible
 values. Mutating those returned values does not mutate the underlying replica
@@ -200,17 +209,18 @@ import {
   type CRListSnapshot,
 } from '@sovereignbase/convergent-replicated-list'
 
-const replica = __create<string>()
-const local = __update(0, ['hello', 'world'], replica, 'after')
+const source = __create<string>()
+const target = __create<string>()
+const local = __update(0, ['hello', 'world'], source, 'after')
 
 if (local) {
   const outgoing: CRListDelta<string> = local.delta
-  const remoteChange = __merge(replica, outgoing)
+  const remoteChange = __merge(target, outgoing)
 
   console.log(remoteChange)
 }
 
-const snapshot: CRListSnapshot<string> = __snapshot(replica)
+const snapshot: CRListSnapshot<string> = __snapshot(target)
 console.log(snapshot)
 ```
 
@@ -243,10 +253,13 @@ Ingress stays tolerant:
 
 ### Safety and copying semantics
 
-- Snapshots are serializable full-state payloads.
-- Deltas are serializable gossip payloads intended to be forwarded as-is.
+- Snapshots are detached structured-clone full-state payloads.
+- Deltas are detached structured-clone gossip payloads intended to be forwarded
+  as-is.
 - `change` is a minimal index-keyed local patch.
-- `toJSON()` returns a detached serializable snapshot.
+- `toJSON()` returns a detached structured-clone snapshot.
+- `JSON.stringify()` and `toString()` are only reliable when list values are
+  JSON-compatible.
 - Numeric reads, `for...of`, and `forEach()` expose detached copies of visible values rather than mutable references into replica state.
 - `for...of`, `forEach()`, numeric indexing, `append()`, `prepend()`, `remove()`, `merge()`, `snapshot()`, `acknowledge()`, and `garbageCollect()` all operate on the live list projection.
 

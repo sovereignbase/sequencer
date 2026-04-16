@@ -4,10 +4,9 @@
 export { CRList } from './CRList/class.js'
 
 /**
- * The public CR-List error code union.
+ * The public CR-List error class and code union.
  */
-export type { CRListErrorCode } from './.errors/class.js'
-
+export { CRListError, type CRListErrorCode } from './.errors/class.js'
 /**
  * Public CR-List types.
  */

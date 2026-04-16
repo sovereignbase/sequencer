@@ -39,7 +39,7 @@ export class CRList<T> {
   declare private readonly eventTarget: EventTarget
 
   /**
-   * Creates a replicated list from an optional serializable snapshot.
+   * Creates a replicated list from an optional detached structured-clone-compatible snapshot.
    *
    * @param snapshot - A previously emitted CRList snapshot.
    */
@@ -243,7 +243,7 @@ export class CRList<T> {
     void __garbageCollect(frontiers, this.state)
   }
   /**
-   * Emits the current serializable list snapshot.
+   * Emits the current detached structured-clone-compatible list snapshot.
    */
   snapshot(): void {
     const snapshot = __snapshot<T>(this.state)
@@ -290,7 +290,7 @@ export class CRList<T> {
     )
   }
   /**
-   * Returns a serializable snapshot representation of this list.
+   * Returns a detached structured-clone-compatible snapshot of this list.
    *
    * Called automatically by `JSON.stringify`.
    */
@@ -298,7 +298,9 @@ export class CRList<T> {
     return __snapshot<T>(this.state)
   }
   /**
-   * Returns this list as a JSON string.
+   * Attempts to return this list snapshot as a JSON string.
+   *
+   * This can fail when list values are not JSON-compatible.
    */
   toString(): string {
     return JSON.stringify(this)

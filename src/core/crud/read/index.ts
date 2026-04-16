@@ -9,9 +9,9 @@ import { CRListState } from '../../../.types/index.js'
  * value does not mutate the replica itself. Out-of-bounds and empty list reads
  * resolve to `undefined` instead of throwing.
  *
- * @param targetIndex Index in the live list.
- * @param crListReplica Replica to read from.
- * @returns A detached copy of the value at `targetIndex`, or `undefined` when
+ * @param targetIndex - Index in the live list.
+ * @param crListReplica - Replica to read from.
+ * @returns - A detached copy of the value at `targetIndex`, or `undefined` when
  * no value is present.
  *
  * Time complexity: O(d), worst case O(n)

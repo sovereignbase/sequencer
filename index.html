@@ -376,8 +376,8 @@
         [[DOUBLY_LINKED_LIST]].
       </p>
       <p>
-        a <dfn>serializable object</dfn> is an object that supports being
-        serialized, and later deserialized as defined by [[HTML]].
+        a <dfn>serializable object</dfn> is an object that supports
+        serialization and later deserialization as defined by [[HTML]].
       </p>
       <p>
         A <dfn>predecessor identifier</dfn> is an <a>UUIDv7 identifier</a> or
@@ -434,8 +434,8 @@
         <a>replica tombstones</a> under lexicographic comparison.
       </p>
       <p>
-        A <dfn>snapshot</dfn> is a <a>serializable object</a> presentation of a
-        <a>replica state</a>.
+        A <dfn>snapshot</dfn> is a detached structured-clone-compatible object
+        presentation of a <a>replica state</a>.
       </p>
       <p>
         A <dfn>delta</dfn> is a partial <a>snapshot</a> containing only the
@@ -489,9 +489,9 @@
       <h2>Data Structure</h2>
       <p>
         The same logical replica can be viewed through three useful
-        representations: the serializable snapshot used for transport and
-        storage, one possible runtime projection used internally by a binding,
-        and the final consumer-facing visible sequence.
+        representations: the detached structured-clone snapshot used for
+        transport and storage, one possible runtime projection used internally
+        by a binding, and the final consumer-facing visible sequence.
       </p>
       <section>
         <h3>Snapshot</h3>
@@ -558,7 +558,7 @@
             <li>
               For each listed candidate value entry, run the
               <a>transform a snapshot entry to a state entry</a> algorithm. If
-              minting fails, continue.
+              transforming fails, continue.
             </li>
             <li>
               For each successfully minted <a>values entry</a>, add it to the
@@ -825,7 +825,7 @@
               <a>transform a state entry to a snapshot entry</a> algorithm.
             </li>
             <li>
-              Assemble the shed live entries into the snapshot's
+              Assemble the transformed live entries into the snapshot's
               <code>values</code> list.
             </li>
             <li>
@@ -873,6 +873,7 @@ interface CRList {
   );
   undefined forEach(CRListForEachCallback callback, optional any thisArg);
   object toJSON();
+  stringifier DOMString ();
   iterable&lt;any&gt;;
 };
 
@@ -911,13 +912,12 @@ dictionary CRListDelta {
           <code>'\0'</code>, which serializes to <code>"\u0000"</code> in JSON.
         </p>
         <p>
-          <code>JSON.stringify(list)</code> serializes the binding through its
-          current <a>snapshot</a>, and <code>for...of</code> iterates detached
-          copies of the current visible values in index order.
-        </p>
-        <p>
-          The binding also exposes a JavaScript <code>toString()</code> method
-          whose return value is the JSON string form of the current snapshot.
+          When the current <a>snapshot</a> is JSON-compatible,
+          <code>JSON.stringify(list)</code> serializes the binding through that
+          snapshot. <code>for...of</code> iterates detached copies of the
+          current visible values in index order, and
+          <code>toString()</code> attempts to return the JSON string form of the
+          current snapshot.
         </p>
       </section>
 
@@ -1165,8 +1165,18 @@ dictionary CRListDelta {
         <section data-dfn-for="CRList">
           <h5><dfn class="export">toJSON()</dfn></h5>
           <p>
-            Return the same serialized shape as <a>snapshot</a>. This is the
-            value used by <code>JSON.stringify</code>.
+            Return the same detached structured-clone shape as
+            <a>snapshot</a>. This is the value used by
+            <code>JSON.stringify</code>.
+          </p>
+        </section>
+
+        <section data-dfn-for="CRList">
+          <h5><dfn class="export">toString()</dfn></h5>
+          <p>
+            Attempt to return the JSON string form of the current
+            <a>snapshot</a>. This can fail when list values are not
+            JSON-compatible.
           </p>
         </section>
 

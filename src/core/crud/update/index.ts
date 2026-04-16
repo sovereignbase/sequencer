@@ -21,11 +21,11 @@ import {
  * before it, or insert values after it. The returned delta is suitable for
  * gossip and the returned change describes the local live-view patch.
  *
- * @param listIndex Target index in the live list.
- * @param listValues Values to insert or overwrite.
- * @param crListReplica Replica to mutate.
- * @param mode Mutation mode relative to `listIndex`.
- * @returns A local change and gossip delta, or `false` if no mutation occurred.
+ * @param listIndex - Target index in the live list.
+ * @param listValues - Values to insert or overwrite.
+ * @param crListReplica - Replica to mutate.
+ * @param mode - Mutation mode relative to `listIndex`.
+ * @returns - A local change and gossip delta, or `false` if no mutation occurred.
  *
  * Time complexity: O(d + v + r + vk + c), worst case O(vn + c)
  * - d = distance from cursor to target index

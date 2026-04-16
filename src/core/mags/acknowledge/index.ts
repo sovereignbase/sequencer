@@ -6,8 +6,8 @@ import type { CRListAck, CRListState } from '../../../.types/index.js'
  * The frontier is the greatest tombstone identifier currently retained by the
  * replica. Peers can use it as input for tombstone garbage collection.
  *
- * @param crListReplica Replica to acknowledge.
- * @returns The acknowledgement frontier, or `false` when there are no tombstones.
+ * @param crListReplica - Replica to acknowledge.
+ * @returns - The acknowledgement frontier, or `false` when there are no tombstones.
  *
  * Time complexity: O(t)
  * - t = replica tombstone count

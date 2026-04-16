@@ -18,8 +18,8 @@ import {
  * UUIDv7, linked through their predecessor buckets, and exposed as a live
  * doubly-linked list.
  *
- * @param snapshot Optional serializable CRList state.
- * @returns A hydrated CRList replica.
+ * @param snapshot - Optional detached structured-clone-compatible CRList snapshot.
+ * @returns - A hydrated CRList replica.
  *
  * Time complexity: O(n log n + t + c), worst case O(n^2 + t + c)
  * - n = snapshot value entry count

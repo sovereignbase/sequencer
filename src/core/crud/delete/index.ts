@@ -14,10 +14,10 @@ import type {
  * from `startIndex` onward are deleted. With both indexes, the deleted range is
  * `[startIndex, endIndex)`.
  *
- * @param crListReplica Replica to mutate.
- * @param startIndex Inclusive start index. Defaults to `0`.
- * @param endIndex Exclusive end index. Defaults to the current list size.
- * @returns A local change and gossip delta, or `false` if nothing was deleted.
+ * @param crListReplica - Replica to mutate.
+ * @param startIndex - Inclusive start index. Defaults to `0`.
+ * @param endIndex - Exclusive end index. Defaults to the current list size.
+ * @returns - A local change and gossip delta, or `false` if nothing was deleted.
  *
  * Time complexity: O(d + qk + r), worst case O(n^2)
  * - d = distance from cursor to target index

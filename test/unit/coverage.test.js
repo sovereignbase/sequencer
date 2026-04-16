@@ -315,6 +315,20 @@ test('unit: merge, acknowledge, and garbage collection edge paths', () => {
   __garbageCollect([ack], target)
 })
 
+test('unit: nullish snapshot and delta entries are ignored', () => {
+  assert.deepEqual(__create({ values: [null, undefined], tombstones: [] }), {
+    size: 0,
+    cursor: undefined,
+    tombstones: new Set(),
+    parentMap: new Map(),
+    childrenMap: new Map(),
+  })
+
+  const target = __create()
+  assert.equal(__merge(target, { values: [null, undefined] }), false)
+  assert.deepEqual(__snapshot(target), { values: [], tombstones: [] })
+})
+
 test('unit: internal defensive branches remain stable under corrupt state', () => {
   const originalIsArray = Array.isArray
 

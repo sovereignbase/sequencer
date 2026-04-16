@@ -79,6 +79,7 @@ export function __merge<T>(
   }
   // Attach accepted values to the predecessor tree.
   for (const valueEntry of crListDelta.values) {
+    if (valueEntry === null || valueEntry === undefined) continue
     const existingEntry = crListReplica.parentMap.get(valueEntry.uuidv7)
     if (existingEntry) {
       if (

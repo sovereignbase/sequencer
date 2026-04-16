@@ -244,7 +244,7 @@ Ingress stays tolerant:
 ### Safety and copying semantics
 
 - Snapshots are serializable full-state payloads.
-- Deltas are serializable gossip payloads.
+- Deltas are serializable gossip payloads intended to be forwarded as-is.
 - `change` is a minimal index-keyed local patch.
 - `toJSON()` returns a detached serializable snapshot.
 - Numeric reads, `for...of`, and `forEach()` expose detached copies of visible values rather than mutable references into replica state.

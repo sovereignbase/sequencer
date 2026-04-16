@@ -8,6 +8,7 @@ export function transformSnapshotEntryToStateEntry<T>(
   valueEntry: CRListSnapshotEntry<T>,
   crListReplica: CRListState<T>
 ): CRListStateEntry<T> {
+  if (valueEntry === null || valueEntry === undefined) return undefined
   if (
     !isUuidV7(valueEntry.uuidv7) ||
     crListReplica.tombstones.has(valueEntry.uuidv7) ||

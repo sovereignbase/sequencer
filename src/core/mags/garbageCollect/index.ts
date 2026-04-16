@@ -1,3 +1,4 @@
+import { isUuidV7 } from '@sovereignbase/utils'
 import { CRListAck, CRListState } from '../../../.types/index.js'
 
 /**
@@ -23,7 +24,7 @@ export function __garbageCollect<T>(
   const frontier = frontiers.sort().shift()
   if (typeof frontier !== 'string') return
   crListReplica.tombstones.forEach((tombstone, __, tombstones) => {
-    if (tombstone <= frontier) {
+    if (isUuidV7(tombstone) && tombstone <= frontier) {
       tombstones.delete(tombstone)
     }
   })

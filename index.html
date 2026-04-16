@@ -719,7 +719,7 @@
               For each listed candidate value entry:
               <ol>
                 <li>
-                  If the candidate is not a record, does not have its own
+                  If the candidate is not a record, does not expose
                   <code>uuidv7</code>, <code>value</code>, and
                   <code>predecessor</code> members, or its
                   <code>uuidv7</code> or <code>predecessor</code> member is not
@@ -937,6 +937,11 @@ dictionary CRListDelta {
           <dd>
             Thrown when a local indexed mutation targets an invalid live range.
           </dd>
+          <dt><code>LIST_EMPTY</code></dt>
+          <dd>
+            Thrown when a local indexed operation requires a live entry but the
+            visible list is empty.
+          </dd>
           <dt><code>UPDATE_EXPECTED_AN_ARRAY</code></dt>
           <dd>
             Thrown by the core update algorithm when its value input is not a
@@ -975,9 +980,9 @@ dictionary CRListDelta {
           </dd>
           <dt><dfn>change event</dfn></dt>
           <dd>
-            A <code>CustomEvent</code> whose <code>detail</code> maps changed
-            list indexes to their new visible values, or to
-            <code>undefined</code> when an entry was removed.
+            A <code>CustomEvent</code> whose <code>detail</code> is a sparse
+            visible patch: inserted or overwritten indexes map to their visible
+            values, and deleted indexes map to <code>undefined</code>.
           </dd>
           <dt><dfn>ack event</dfn></dt>
           <dd>
@@ -1017,7 +1022,7 @@ dictionary CRListDelta {
               If the candidate value is not a record, then return failure.
             </li>
             <li>
-              If the candidate value does not have its own <code>uuidv7</code>,
+              If the candidate value does not expose <code>uuidv7</code>,
               <code>value</code>, or <code>predecessor</code> member, then
               return failure.
             </li>

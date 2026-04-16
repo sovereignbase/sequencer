@@ -1,7 +1,7 @@
 export { assertListIndices } from './assertListIndices/index.js'
 export { walkToIndex } from './walkToIndex/index.js'
 export { flattenAndLinkTrustedState } from './flattenAndLinkTrustedState/index.js'
-export { snapshotValueToLinkedListValue } from './snapshotValueToLinkedListValue/index.js'
+export { transformSnapshotEntryToStateEntry } from './transformSnapshotEntryToStateEntry/index.js'
 export { updateEntryToMaps } from './updateEntryToMaps/index.js'
 export { deleteEntryFromMaps } from './deleteEntryFromMaps/index.js'
 export { deleteLinkedEntry } from './deleteLinkedEntry/index.js'

@@ -4,7 +4,7 @@ import type {
   CRListStateEntry,
 } from '../../.types/index.js'
 import { isUuidV7, safeStructuredClone } from '@sovereignbase/utils'
-export function snapshotValueToLinkedListValue<T>(
+export function transformSnapshotEntryToStateEntry<T>(
   valueEntry: CRListSnapshotEntry<T>,
   crListReplica: CRListState<T>
 ): CRListStateEntry<T> {

@@ -7,7 +7,7 @@ import {
 import {
   flattenAndLinkTrustedState,
   assertListIndices,
-  snapshotValueToLinkedListValue,
+  transformSnapshotEntryToStateEntry,
   updateEntryToMaps,
 } from '../../../.helpers/index.js'
 
@@ -55,7 +55,7 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
     return crListReplica
   // Build predecessor tree.
   for (const valueEntry of snapshot.values) {
-    const linkedListEntry = snapshotValueToLinkedListValue<T>(
+    const linkedListEntry = transformSnapshotEntryToStateEntry<T>(
       valueEntry,
       crListReplica
     )

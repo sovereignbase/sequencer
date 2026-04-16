@@ -557,8 +557,8 @@
             </li>
             <li>
               For each listed candidate value entry, run the
-              <a>mint a snapshot value entry</a> algorithm. If minting fails,
-              continue.
+              <a>transform a snapshot entry to a state entry</a> algorithm. If
+              minting fails, continue.
             </li>
             <li>
               For each successfully minted <a>values entry</a>, add it to the
@@ -738,8 +738,9 @@
                   to the next listed candidate value entry.
                 </li>
                 <li>
-                  Run the <a>mint a snapshot value entry</a> algorithm. If it
-                  returns failure, continue.
+                  Run the
+                  <a>transform a snapshot entry to a state entry</a> algorithm.
+                  If it returns failure, continue.
                 </li>
                 <li>
                   Add the minted incoming entry to the live UUID index and to
@@ -821,7 +822,7 @@
           <ol class="algorithm">
             <li>
               For each current live entry, run the
-              <a>shed a live value entry</a> algorithm.
+              <a>transform a state entry to a snapshot entry</a> algorithm.
             </li>
             <li>
               Assemble the shed live entries into the snapshot's
@@ -893,10 +894,10 @@ dictionary CRListDelta {
         </pre>
         <p>
           The binding additionally exposes numeric property access through a
-          JavaScript <code>Proxy</code>. Reading <code>list[i]</code> returns
-          a detached copy of the visible value at index <var>i</var>. Writing
-          <code>list[i] = value</code> performs an overwrite-style local mutation, and
-          <code>delete list[i]</code> removes one visible entry.
+          JavaScript <code>Proxy</code>. Reading <code>list[i]</code> returns a
+          detached copy of the visible value at index <var>i</var>. Writing
+          <code>list[i] = value</code> performs an overwrite-style local
+          mutation, and <code>delete list[i]</code> removes one visible entry.
         </p>
         <p>
           The constructor and <a data-link-for="CRList">merge()</a> methods are
@@ -1010,7 +1011,7 @@ dictionary CRListDelta {
         <h3>Auxiliary Algorithms</h3>
 
         <section>
-          <h4><dfn>mint a snapshot value entry</dfn></h4>
+          <h4><dfn>transform a snapshot entry to a state entry</dfn></h4>
           <ol class="algorithm">
             <li>
               If the candidate value is not a record, then return failure.
@@ -1037,18 +1038,18 @@ dictionary CRListDelta {
               If the local replica already tombstones or already stores the
               candidate <code>uuidv7</code>, then return failure.
             </li>
-            <li>Return the minted <a>values entry</a>.</li>
+            <li>Return the transformed <a>values entry</a>.</li>
           </ol>
         </section>
 
         <section>
           <h4>
-            <dfn>shed a live value entry</dfn>
+            <dfn>transform a state entry to a snapshot entry</dfn>
           </h4>
           <p>
             Return a new <a>serializable object</a> whose <code>uuidv7</code>,
             <code>value</code>, and <code>predecessor</code> members equal the
-            live value entry, after shedding any local projection members such
+            live value entry, after removing any local projection members such
             as <code>prev</code>, <code>next</code>, and <code>index</code>. The
             copied <code>value</code> MUST be a detached structured clone.
           </p>
@@ -1151,8 +1152,8 @@ dictionary CRListDelta {
           <h5><dfn class="export">forEach()</dfn></h5>
           <p>
             Call the supplied callback once for each visible
-            <a>list value</a> copy in ascending <a>list index</a> order,
-            passing value, index, and the list object.
+            <a>list value</a> copy in ascending <a>list index</a> order, passing
+            value, index, and the list object.
           </p>
         </section>
 

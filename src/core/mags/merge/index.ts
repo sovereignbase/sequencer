@@ -5,7 +5,7 @@ import type {
   CRListStateEntry,
 } from '../../../.types/index.js'
 import {
-  snapshotValueToLinkedListValue,
+  transformSnapshotEntryToStateEntry,
   updateEntryToMaps,
   flattenAndLinkTrustedState,
   assertListIndices,
@@ -96,7 +96,7 @@ export function __merge<T>(
       void newVals.push(existingEntry)
       continue
     }
-    const linkedListEntry = snapshotValueToLinkedListValue<T>(
+    const linkedListEntry = transformSnapshotEntryToStateEntry<T>(
       valueEntry,
       crListReplica
     )

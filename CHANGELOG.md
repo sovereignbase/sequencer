@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.5](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.0.4...v1.0.5) (2026-04-16)
+
+
+### Bug Fixes
+
+* Clarified documentation and other fixes. ([7cf90a5](https://github.com/sovereignbase/convergent-replicated-list/commit/7cf90a5507ec737c83668dfd6e872cad08f968ca))
+
 ## [1.0.4](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.0.3...v1.0.4) (2026-04-14)
 
 

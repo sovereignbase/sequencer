@@ -1,4 +1,5 @@
 import { indexFromPropertyKey } from '../.helpers/index.js'
+import { CRListError } from '../.errors/class.js'
 import type {
   CRListState,
   CRListSnapshot,
@@ -87,7 +88,8 @@ export class CRList<T> {
               new CustomEvent('change', { detail: change })
             )
           return true
-        } catch {
+        } catch (error) {
+          if (error instanceof CRListError) throw error
           return false
         }
       },
@@ -109,7 +111,8 @@ export class CRList<T> {
             )
           }
           return true
-        } catch {
+        } catch (error) {
+          if (error instanceof CRListError) throw error
           return false
         }
       },

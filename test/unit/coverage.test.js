@@ -59,13 +59,15 @@ test('unit: CRList public surface and events', () => {
 
   assert.equal(Reflect.set(list, 'not-index', { id: 'bad' }), false)
   assert.equal(Reflect.set(list, '-1', { id: 'bad' }), false)
-  assert.equal(
-    Reflect.set(list, '0', () => undefined),
-    false
-  )
+  assert.throws(() => Reflect.set(list, '0', () => undefined), /VALUE_NOT_CLONEABLE/)
+  assert.throws(() => {
+    Reflect.deleteProperty(list, '99')
+  }, /INDEX_OUT_OF_BOUNDS/)
+  assert.throws(() => {
+    delete list[99]
+  }, /INDEX_OUT_OF_BOUNDS/)
   assert.equal(Reflect.get(list, '9007199254740992'), undefined)
   assert.equal(Reflect.deleteProperty(list, 'not-index'), false)
-  assert.equal(Reflect.deleteProperty(list, '99'), false)
 
   delete list[2]
   assert.equal(list.size, 2)
@@ -108,6 +110,18 @@ test('unit: CRList public surface and events', () => {
   falseResultList.append({ id: 'no-append' }, 1)
   falseResultState.cursor = falseResultEntry
   falseResultList.remove(1)
+  const throwingSetList = new CRList()
+  throwingSetList.append({ id: 'set-throw' })
+  Object.getOwnPropertyDescriptor(throwingSetList, 'eventTarget').value.dispatchEvent = () => {
+    throw new Error('listener-set')
+  }
+  assert.equal(Reflect.set(throwingSetList, '0', { id: 'set-catch' }), false)
+  const throwingDeleteList = new CRList()
+  throwingDeleteList.append({ id: 'delete-throw' })
+  Object.getOwnPropertyDescriptor(throwingDeleteList, 'eventTarget').value.dispatchEvent = () => {
+    throw new Error('listener-delete')
+  }
+  assert.equal(Reflect.deleteProperty(throwingDeleteList, '0'), false)
 
   const remote = new CRList()
   remote.append({ id: 'remote' })

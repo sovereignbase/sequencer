@@ -307,12 +307,6 @@ What the current test suite covers:
 npm run bench
 ```
 
-The benchmark runner currently uses:
-
-- `LIST_SIZE = 5_000`
-- `RUN_TIMES = 250`
-- output columns: `group`, `scenario`, `n`, `ops`, `ms`, `ms/op`, `ops/sec`
-
 Last measured on Node `v22.14.0` (`win32 x64`):
 
 | group   | scenario                              |     n | ops |       ms | ms/op |    ops/sec |

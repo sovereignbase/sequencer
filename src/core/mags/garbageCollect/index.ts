@@ -21,10 +21,14 @@ export function __garbageCollect<T>(
   crListReplica: CRListState<T>
 ): void {
   if (!Array.isArray(frontiers)) return
-  const frontier = frontiers.sort().shift()
-  if (typeof frontier !== 'string') return
+  let smallest = ''
+  frontiers.sort()
+  while (smallest === '') {
+    const v7 = frontiers.shift()
+    if (isUuidV7(v7)) smallest = v7
+  }
   crListReplica.tombstones.forEach((tombstone, __, tombstones) => {
-    if (isUuidV7(tombstone) && tombstone <= frontier) {
+    if (tombstone <= smallest) {
       tombstones.delete(tombstone)
     }
   })

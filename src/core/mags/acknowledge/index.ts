@@ -17,10 +17,10 @@ import type { CRListAck, CRListState } from '../../../.types/index.js'
 export function __acknowledge<T>(
   crListReplica: CRListState<T>
 ): CRListAck | false {
-  let frontier: CRListAck | false = false
+  let largest: CRListAck | false = false
   crListReplica.tombstones.forEach((tombstone) => {
-    if (frontier === false || frontier < tombstone) frontier = tombstone
+    if (largest === false || largest < tombstone) largest = tombstone
   })
-  if (typeof frontier === 'string') return frontier
+  if (typeof largest === 'string') return largest
   return false
 }

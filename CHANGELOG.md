@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.0.5...v1.0.6) (2026-04-16)
+
+
+### Bug Fixes
+
+* Removed stupid and useless AI written notation from readme. ([bf0a74a](https://github.com/sovereignbase/convergent-replicated-list/commit/bf0a74a0bfa223b0dee85ff74aa49a10f4526570))
+
 ## [1.0.5](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.0.4...v1.0.5) (2026-04-16)
 
 

@@ -94,7 +94,6 @@ export function __merge<T>(
         valueEntry.predecessor
       )
       needsRelink = true
-      void newVals.push(existingEntry)
       continue
     }
     const linkedListEntry = transformSnapshotEntryToStateEntry<T>(

@@ -4,8 +4,9 @@ import { CRListAck, CRListState } from '../../../.types/index.js'
 /**
  * Removes tombstones acknowledged by all supplied frontiers.
  *
- * The minimum frontier is used as the safe collection boundary. Tombstones less
- * than or equal to that boundary are removed from the local replica.
+ * The smallest valid UUIDv7 frontier is used as the safe collection boundary.
+ * Tombstones less than or equal to that boundary are removed from the local
+ * replica.
  *
  * @param frontiers - Acknowledgement frontiers received from peers.
  * @param crListReplica - Replica whose tombstones will be collected.

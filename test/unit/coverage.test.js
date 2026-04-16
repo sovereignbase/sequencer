@@ -167,6 +167,33 @@ test('unit: change event payloads are detached from replica state', () => {
   })
 })
 
+test('unit: merge relink path does not emit duplicate change entries', () => {
+  const source = __create()
+  const list = new CRList()
+  const changes = []
+
+  list.addEventListener('change', (event) => {
+    changes.push(
+      Object.fromEntries(
+        Object.entries(event.detail).map(([key, value]) => [key, value?.id])
+      )
+    )
+  })
+
+  const insert = __update(0, [{ id: 'remote' }], source, 'after').delta
+  const moved = __update(0, [{ id: 'next' }], source, 'after').delta
+
+  list.merge({ values: [{ ...moved.values[0], predecessor: '\0' }] })
+  list.merge({ values: [{ ...moved.values[0] }] })
+  list.merge(insert)
+
+  assert.deepEqual(changes, [{ 0: 'next' }, { 0: 'remote' }])
+  assert.deepEqual(
+    [...list].map((value) => value.id),
+    ['remote', 'next']
+  )
+})
+
 test('unit: core edge paths and malicious inputs', () => {
   const empty = __create()
   assert.equal(__read(0, empty), undefined)
@@ -313,11 +340,16 @@ test('unit: merge, acknowledge, and garbage collection edge paths', () => {
 
   const insert = __update(0, [{ id: 'remote' }], source, 'after').delta
   const moved = __update(0, [{ id: 'next' }], source, 'after').delta
-  assert(
-    __merge(target, { values: [{ ...moved.values[0], predecessor: '\0' }] })
+  assert.deepEqual(
+    __merge(target, { values: [{ ...moved.values[0], predecessor: '\0' }] }),
+    { 0: { id: 'next' } }
   )
-  assert(__merge(target, { values: [{ ...moved.values[0] }] }))
-  assert(__merge(target, insert))
+  assert.equal(__merge(target, { values: [{ ...moved.values[0] }] }), false)
+  assert.deepEqual(__merge(target, insert), { 0: { id: 'remote' } })
+  assert.deepEqual(
+    ids(target).map((value) => value.id),
+    ['remote', 'next']
+  )
   assert.equal(__merge(target, moved), false)
   target.tombstones.add(moved.values[0].uuidv7)
   assert.equal(__merge(target, moved), false)

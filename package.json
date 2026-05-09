@@ -58,10 +58,10 @@
     ]
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.5.0",
-    "@commitlint/config-conventional": "^20.5.0",
+    "@commitlint/cli": "^21.0.0",
+    "@commitlint/config-conventional": "^21.0.0",
     "@playwright/test": "^1.59.1",
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.6.2",
     "c8": "^11.0.0",
     "edge-runtime": "^4.0.1",
     "fast-glob": "^3.3.3",
@@ -70,10 +70,10 @@
     "prettier": "^3.8.3",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
-    "wrangler": "^4.84.1"
+    "wrangler": "4.86.0"
   },
   "dependencies": {
-    "@sovereignbase/utils": "^1.2.1",
+    "@sovereignbase/utils": "^1.2.2",
     "uuid": "^14.0.0"
   },
   "repository": {

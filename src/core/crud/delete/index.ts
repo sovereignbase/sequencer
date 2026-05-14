@@ -55,7 +55,7 @@ export function __delete<T>(
   while (current && deleted < deleteCount) {
     const next: CRListStateEntry<T> = current.next
     change[currentIndex] = undefined
-    crListReplica.index?.delete(currentIndex)
+    void crListReplica.index?.delete(currentIndex)
     void deleteLiveEntry<T>(crListReplica, current, delta)
     current = next
     currentIndex++
@@ -71,7 +71,10 @@ export function __delete<T>(
       : undefined
   crListReplica.index = new Map()
   if (crListReplica.cursor && crListReplica.cursorIndex !== undefined)
-    crListReplica.index.set(crListReplica.cursorIndex, crListReplica.cursor)
+    void crListReplica.index.set(
+      crListReplica.cursorIndex,
+      crListReplica.cursor
+    )
 
   return { change, delta }
 }

@@ -559,9 +559,11 @@ test('unit: flatten relink branch coverage stays explicit under corrupt buckets'
   assert(__update(0, [{ id: 'existing' }], relinkSource, 'after'))
 
   const relinkTarget = __create(__snapshot(relinkSource))
+  relinkTarget.index = undefined
   relinkTarget.childrenMap.set('z', undefined)
   relinkTarget.childrenMap.set('a', undefined)
   relinkTarget.childrenMap.set('m', undefined)
+  relinkTarget.childrenMap.set('detached-corrupt', [undefined])
 
   const rootInsert = __create()
   const rootInsertDelta = __update(
@@ -597,4 +599,12 @@ test('unit: assertListIndices forward walk is covered through tombstone-only mer
     ids(target).map((value) => value.id),
     ['b', 'c']
   )
+
+  const singleSource = __create()
+  assert(__update(0, [{ id: 'single' }], singleSource, 'after'))
+  const singleTarget = __create(__snapshot(singleSource))
+  const singleDeletion = __delete(singleSource, 0, 1)
+  assert(__merge(singleTarget, { tombstones: singleDeletion.delta.tombstones }))
+  assert.equal(singleTarget.cursor, undefined)
+  assert.equal(singleTarget.cursorIndex, undefined)
 })

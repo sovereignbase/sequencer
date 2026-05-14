@@ -15,9 +15,9 @@ export function deleteLiveEntry<T>(
 ): void {
   const prev = linkedListEntry.prev
   const next = linkedListEntry.next
-  crListReplica.tombstones.add(linkedListEntry.uuidv7)
+  void crListReplica.tombstones.add(linkedListEntry.uuidv7)
   if (deltaBuf && !Array.isArray(deltaBuf.tombstones)) deltaBuf.tombstones = []
-  deltaBuf?.tombstones?.push(linkedListEntry.uuidv7)
+  void deltaBuf?.tombstones?.push(linkedListEntry.uuidv7)
   if (prev) prev.next = next
   if (next) {
     next.prev = prev

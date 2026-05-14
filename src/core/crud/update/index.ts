@@ -77,11 +77,15 @@ export function __update<T>(
           if (!crListReplica.cursor) return false
           linkedListEntry.index = (crListReplica.cursorIndex ?? 0) + 1
           linkedListEntry.predecessor = crListReplica.cursor.uuidv7
-          linkEntryBetween<T>(crListReplica.cursor, linkedListEntry, undefined)
+          void linkEntryBetween<T>(
+            crListReplica.cursor,
+            linkedListEntry,
+            undefined
+          )
           void attachEntryToIndexes<T>(crListReplica, linkedListEntry, delta)
           crListReplica.cursor = linkedListEntry
           crListReplica.cursorIndex = linkedListEntry.index
-          crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
+          void crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
           change[linkedListEntry.index] = linkedListEntry.value
           break
         }
@@ -92,7 +96,7 @@ export function __update<T>(
 
         linkedListEntry.predecessor = entryToOverwrite.predecessor
         linkedListEntry.index = actualIndex
-        linkEntryBetween<T>(
+        void linkEntryBetween<T>(
           entryToOverwrite.prev,
           linkedListEntry,
           entryToOverwrite.next
@@ -108,14 +112,14 @@ export function __update<T>(
           }
         }
         void attachEntryToIndexes<T>(crListReplica, linkedListEntry, delta)
-        crListReplica.tombstones.add(entryToOverwrite.uuidv7)
-        delta.tombstones?.push(entryToOverwrite.uuidv7)
+        void crListReplica.tombstones.add(entryToOverwrite.uuidv7)
+        void delta.tombstones?.push(entryToOverwrite.uuidv7)
         void detachEntryFromIndexes<T>(crListReplica, entryToOverwrite)
         entryToOverwrite.next = undefined
         entryToOverwrite.prev = undefined
         crListReplica.cursor = linkedListEntry
         crListReplica.cursorIndex = actualIndex
-        crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
+        void crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
         change[actualIndex] = linkedListEntry.value
         break
       }
@@ -124,7 +128,7 @@ export function __update<T>(
           crListReplica.cursor = linkedListEntry
           crListReplica.cursorIndex = linkedListEntry.index
           void attachEntryToIndexes<T>(crListReplica, linkedListEntry, delta)
-          crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
+          void crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
           change[linkedListEntry.index] = linkedListEntry.value
           break
         }
@@ -141,7 +145,7 @@ export function __update<T>(
             : crListReplica.cursor.next
         linkedListEntry.index = actualIndex + 1
         linkedListEntry.predecessor = crListReplica.cursor.uuidv7
-        linkEntryBetween<T>(crListReplica.cursor, linkedListEntry, next)
+        void linkEntryBetween<T>(crListReplica.cursor, linkedListEntry, next)
         if (next) {
           if (next.predecessor === crListReplica.cursor.uuidv7) {
             void moveEntryToPredecessor<T>(
@@ -156,7 +160,7 @@ export function __update<T>(
         crListReplica.cursor = linkedListEntry
         crListReplica.cursorIndex = linkedListEntry.index
         if (next) crListReplica.index = new Map()
-        crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
+        void crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
         change[linkedListEntry.index] = linkedListEntry.value
         break
       }
@@ -165,7 +169,7 @@ export function __update<T>(
           crListReplica.cursor = linkedListEntry
           crListReplica.cursorIndex = linkedListEntry.index
           void attachEntryToIndexes<T>(crListReplica, linkedListEntry, delta)
-          crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
+          void crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
           change[linkedListEntry.index] = linkedListEntry.value
           mode = 'after'
           listIndex = linkedListEntry.index - 1
@@ -177,7 +181,7 @@ export function __update<T>(
         const prev = crListReplica.cursor.prev
         linkedListEntry.index = actualIndex
         linkedListEntry.predecessor = prev?.uuidv7 ?? '\0'
-        linkEntryBetween<T>(prev, linkedListEntry, crListReplica.cursor)
+        void linkEntryBetween<T>(prev, linkedListEntry, crListReplica.cursor)
         if (crListReplica.cursor.predecessor === linkedListEntry.predecessor) {
           void moveEntryToPredecessor<T>(
             crListReplica,
@@ -190,7 +194,7 @@ export function __update<T>(
         crListReplica.cursor = linkedListEntry
         crListReplica.cursorIndex = actualIndex
         crListReplica.index = new Map()
-        crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
+        void crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
         change[actualIndex] = linkedListEntry.value
         mode = 'after'
         listIndex = linkedListEntry.index - 1

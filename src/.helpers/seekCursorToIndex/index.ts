@@ -21,7 +21,7 @@ export function seekCursorToIndex<T>(
       crListReplica.cursorIndex = targetIndex
       return
     } else {
-      crListReplica.index?.delete(targetIndex)
+      void crListReplica.index?.delete(targetIndex)
     }
   }
   if (!crListReplica.cursor)
@@ -34,6 +34,6 @@ export function seekCursorToIndex<T>(
   }
   if (crListReplica.cursor) {
     crListReplica.cursorIndex = targetIndex
-    crListReplica.index?.set(targetIndex, crListReplica.cursor)
+    void crListReplica.index?.set(targetIndex, crListReplica.cursor)
   }
 }

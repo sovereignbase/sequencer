@@ -73,7 +73,7 @@ export function __merge<T>(
       crListReplica.cursorIndex = linkedListEntry.index
       void attachEntryToIndexes<T>(crListReplica, linkedListEntry)
       crListReplica.size = crListReplica.parentMap.size
-      crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
+      void crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
       return { [linkedListEntry.index]: linkedListEntry.value }
     }
   }
@@ -86,11 +86,11 @@ export function __merge<T>(
     for (const tombstone of crListDelta.tombstones) {
       if (crListReplica.tombstones.has(tombstone) || !isUuidV7(tombstone))
         continue
-      crListReplica.tombstones.add(tombstone)
+      void crListReplica.tombstones.add(tombstone)
       const linkedListEntry = crListReplica.parentMap.get(tombstone)
       if (linkedListEntry) {
         void newTombsIndices.push(linkedListEntry.index)
-        crListReplica.index?.delete(linkedListEntry.index)
+        void crListReplica.index?.delete(linkedListEntry.index)
         void deleteLiveEntry<T>(crListReplica, linkedListEntry)
         needsRelink = true
       }
@@ -142,7 +142,7 @@ export function __merge<T>(
         crListReplica.cursor = linkedListEntry
         crListReplica.cursorIndex = linkedListEntry.index
         crListReplica.size = crListReplica.parentMap.size
-        crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
+        void crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
       } else {
         needsRelink = true
       }
@@ -153,16 +153,14 @@ export function __merge<T>(
       crListReplica.cursor = linkedListEntry
       crListReplica.cursorIndex = linkedListEntry.index
       crListReplica.size = crListReplica.parentMap.size
-      crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
+      void crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
     } else {
       needsRelink = true
     }
   }
   if (needsRelink) {
-    // Flatten tree into a doubly linked list.
+    // Flatten tree into a doubly linked list and write live-view indexes.
     void rebuildLiveProjection<T>(crListReplica)
-    // Write live-view indexes.
-    void rebuildLiveIndex<T>(crListReplica)
   }
 
   if (newTombsIndices.length === 0 && newVals.length === 0) return false

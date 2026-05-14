@@ -2,83 +2,56 @@ import type { CRListState, CRListStateEntry } from '../../.types/index.js'
 import { linkEntryBetween } from '../linkEntryBetween/index.js'
 
 /**
- * Rebuilds the live linked-list projection from predecessor buckets.
+ * Rebuilds the live linked-list projection and index from predecessor buckets.
  *
  * Sibling order is deterministic by UUIDv7, which keeps replicas convergent even
  * when deltas arrive in different orders.
  */
 export function rebuildLiveProjection<T>(crListReplica: CRListState<T>) {
   crListReplica.cursor = undefined
-  const resolvedSiblingPredecessors = new Set<string>()
+  const entries = crListReplica.index ?? new Map()
+  void entries.clear()
   for (const entry of crListReplica.parentMap.values()) {
     if (!entry) continue
     entry.prev = undefined
     entry.next = undefined
   }
-  const keys = [...crListReplica.childrenMap.keys()].sort((a, b) =>
-    a > b ? 1 : -1
-  )
-  let hasProgress = true
-  while (hasProgress) {
-    hasProgress = false
-    for (const predecessorIdentifier of keys) {
-      if (resolvedSiblingPredecessors.has(predecessorIdentifier)) continue
-      const siblings = crListReplica.childrenMap.get(predecessorIdentifier)
-      if (!siblings) continue
+  let previous: CRListStateEntry<T> = undefined
+  let first: CRListStateEntry<T> = undefined
+  let index = 0
+  const appendChildren = (predecessorIdentifier: string): void => {
+    const siblings = crListReplica.childrenMap.get(predecessorIdentifier)
+    if (!siblings) return
+    if (siblings.length > 1)
+      void siblings.sort((a, b) => (a.uuidv7 > b.uuidv7 ? 1 : -1))
 
-      if (siblings.length > 1)
-        siblings.sort((a, b) => (a.uuidv7 > b.uuidv7 ? 1 : -1))
-
-      const predecessor =
-        predecessorIdentifier === '\0'
-          ? undefined
-          : crListReplica.parentMap.get(predecessorIdentifier)
-      if (
-        predecessor &&
-        !predecessor.prev &&
-        !predecessor.next &&
-        crListReplica.cursor !== predecessor
-      )
+    for (const sibling of siblings) {
+      if (!sibling || crListReplica.parentMap.get(sibling.uuidv7) !== sibling)
         continue
-      let prev: CRListStateEntry<T> = predecessor ?? crListReplica.cursor
-      const predecessorNext = predecessor?.next
-      if (siblings.length === 1) {
-        const sibling = siblings[0]
-        linkEntryBetween<T>(prev, sibling, sibling.next)
-        prev = sibling
-        if (predecessorNext && predecessorNext !== sibling) {
-          prev.next = predecessorNext
-          predecessorNext.prev = prev
-        } else {
-          prev.next = undefined
-        }
-        if (!predecessorNext) crListReplica.cursor = prev
-        resolvedSiblingPredecessors.add(predecessorIdentifier)
-        hasProgress = true
-        continue
-      }
-      const siblingSet = new Set(siblings)
-      for (let index = 0; index < siblings.length; index++) {
-        const sibling = siblings[index]
-        const next = siblings[index + 1]
-
-        linkEntryBetween<T>(prev, sibling, sibling.next)
-        prev = sibling
-
-        if (next) {
-          prev.next = next
-          next.prev = prev
-        } else if (predecessorNext && !siblingSet.has(predecessorNext)) {
-          prev.next = predecessorNext
-          predecessorNext.prev = prev
-        } else {
-          prev.next = undefined
-        }
-      }
-      if (!predecessorNext) crListReplica.cursor = prev
-      resolvedSiblingPredecessors.add(predecessorIdentifier)
-      hasProgress = true
+      sibling.index = index
+      index++
+      void linkEntryBetween<T>(previous, sibling, undefined)
+      if (!first) first = sibling
+      previous = sibling
+      void appendChildren(sibling.uuidv7)
     }
   }
+  void appendChildren('\0')
+  const detachedPredecessors: Array<string> = []
+  for (const predecessorIdentifier of crListReplica.childrenMap.keys()) {
+    if (
+      predecessorIdentifier !== '\0' &&
+      !crListReplica.parentMap.get(predecessorIdentifier)
+    )
+      void detachedPredecessors.push(predecessorIdentifier)
+  }
+  if (detachedPredecessors.length > 1)
+    detachedPredecessors.sort((a, b) => (a > b ? 1 : -1))
+  for (const predecessorIdentifier of detachedPredecessors)
+    void appendChildren(predecessorIdentifier)
+  crListReplica.cursor = first
+  crListReplica.cursorIndex = first ? 0 : undefined
+  if (first) void entries.set(0, first)
+  crListReplica.index = entries
   crListReplica.size = crListReplica.parentMap.size
 }

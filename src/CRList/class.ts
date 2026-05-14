@@ -45,7 +45,7 @@ export class CRList<T> {
    * @param snapshot - A previously emitted CRList snapshot.
    */
   constructor(snapshot?: CRListSnapshot<T>) {
-    Object.defineProperties(this, {
+    void Object.defineProperties(this, {
       state: {
         value: __create<T>(snapshot),
         enumerable: false,
@@ -80,8 +80,10 @@ export class CRList<T> {
           const result = __update(listIndex, [value], target.state, 'overwrite')
           if (!result) return false
           const { delta, change } = result
-          if (delta) dispatchCRListEvent(target.eventTarget, 'delta', delta)
-          if (change) dispatchCRListEvent(target.eventTarget, 'change', change)
+          if (delta)
+            void dispatchCRListEvent(target.eventTarget, 'delta', delta)
+          if (change)
+            void dispatchCRListEvent(target.eventTarget, 'change', change)
           return true
         } catch (error) {
           if (error instanceof CRListError) throw error
@@ -95,8 +97,10 @@ export class CRList<T> {
           const result = __delete(target.state, listIndex, listIndex + 1)
           if (!result) return false
           const { delta, change } = result
-          if (delta) dispatchCRListEvent(target.eventTarget, 'delta', delta)
-          if (change) dispatchCRListEvent(target.eventTarget, 'change', change)
+          if (delta)
+            void dispatchCRListEvent(target.eventTarget, 'delta', delta)
+          if (change)
+            void dispatchCRListEvent(target.eventTarget, 'change', change)
           return true
         } catch (error) {
           if (error instanceof CRListError) throw error
@@ -145,8 +149,8 @@ export class CRList<T> {
     const result = __update<T>(beforeIndex ?? 0, [value], this.state, 'before')
     if (!result) return
     const { delta, change } = result
-    if (delta) dispatchCRListEvent(this.eventTarget, 'delta', delta)
-    if (change) dispatchCRListEvent(this.eventTarget, 'change', change)
+    if (delta) void dispatchCRListEvent(this.eventTarget, 'delta', delta)
+    if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
   }
   /**
    * Inserts a value after an index.
@@ -165,8 +169,8 @@ export class CRList<T> {
     )
     if (!result) return
     const { delta, change } = result
-    if (delta) dispatchCRListEvent(this.eventTarget, 'delta', delta)
-    if (change) dispatchCRListEvent(this.eventTarget, 'change', change)
+    if (delta) void dispatchCRListEvent(this.eventTarget, 'delta', delta)
+    if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
   }
   /**
    * Removes the entry at an index.
@@ -177,8 +181,8 @@ export class CRList<T> {
     const result = __delete(this.state, index, index + 1)
     if (!result) return
     const { delta, change } = result
-    if (delta) dispatchCRListEvent(this.eventTarget, 'delta', delta)
-    if (change) dispatchCRListEvent(this.eventTarget, 'change', change)
+    if (delta) void dispatchCRListEvent(this.eventTarget, 'delta', delta)
+    if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
   }
 
   /**
@@ -216,14 +220,14 @@ export class CRList<T> {
    */
   merge(delta: CRListDelta<T>): void {
     const change = __merge(this.state, delta)
-    if (change) dispatchCRListEvent(this.eventTarget, 'change', change)
+    if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
   }
   /**
    * Emits an acknowledgement frontier for currently retained tombstones.
    */
   acknowledge(): void {
     const ack = __acknowledge(this.state)
-    if (ack) dispatchCRListEvent(this.eventTarget, 'ack', ack)
+    if (ack) void dispatchCRListEvent(this.eventTarget, 'ack', ack)
   }
   /**
    * Garbage-collects tombstones that are covered by acknowledgement frontiers.
@@ -241,7 +245,8 @@ export class CRList<T> {
    */
   snapshot(): void {
     const snapshot = __snapshot<T>(this.state)
-    if (snapshot) dispatchCRListEvent(this.eventTarget, 'snapshot', snapshot)
+    if (snapshot)
+      void dispatchCRListEvent(this.eventTarget, 'snapshot', snapshot)
   }
   /**
    * Registers an event listener.
@@ -255,7 +260,7 @@ export class CRList<T> {
     listener: CRListEventListenerFor<T, K> | null,
     options?: boolean | AddEventListenerOptions
   ): void {
-    this.eventTarget.addEventListener(
+    void this.eventTarget.addEventListener(
       type,
       listener as EventListenerOrEventListenerObject | null,
       options
@@ -274,7 +279,7 @@ export class CRList<T> {
     listener: CRListEventListenerFor<T, K> | null,
     options?: boolean | EventListenerOptions
   ): void {
-    this.eventTarget.removeEventListener(
+    void this.eventTarget.removeEventListener(
       type,
       listener as EventListenerOrEventListenerObject | null,
       options
@@ -334,7 +339,7 @@ export class CRList<T> {
     thisArg?: unknown
   ): void {
     for (let index = 0; index < this.size; index++) {
-      callback.call(thisArg, this[index], index, this)
+      void callback.call(thisArg, this[index], index, this)
     }
   }
 }

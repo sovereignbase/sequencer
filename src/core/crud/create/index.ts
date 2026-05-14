@@ -6,7 +6,6 @@ import {
 } from '../../../.types/index.js'
 import {
   rebuildLiveProjection,
-  rebuildLiveIndex,
   materializeSnapshotEntry,
   attachEntryToIndexes,
   linkEntryBetween,
@@ -48,7 +47,7 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
     for (const tombstone of snapshot.tombstones) {
       if (crListReplica.tombstones.has(tombstone) || !isUuidV7(tombstone))
         continue
-      crListReplica.tombstones.add(tombstone)
+      void crListReplica.tombstones.add(tombstone)
     }
   }
 
@@ -70,9 +69,9 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
       linkedListEntry.predecessor === (previous?.uuidv7 ?? '\0')
     ) {
       linkedListEntry.index = crListReplica.parentMap.size - 1
-      linkEntryBetween<T>(previous, linkedListEntry, undefined)
+      void linkEntryBetween<T>(previous, linkedListEntry, undefined)
       previous = linkedListEntry
-      crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
+      void crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
       continue
     }
     canUseLinearProjection = false
@@ -85,10 +84,8 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
     crListReplica.size = crListReplica.parentMap.size
     return crListReplica
   }
-  // Flatten tree into a doubly linked list.
+  // Flatten tree into a doubly linked list and write live-view indexes.
   void rebuildLiveProjection<T>(crListReplica)
-  // Write live-view indexes.
-  void rebuildLiveIndex<T>(crListReplica)
 
   return crListReplica
 }

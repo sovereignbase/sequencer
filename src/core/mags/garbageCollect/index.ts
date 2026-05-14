@@ -22,12 +22,12 @@ export function __garbageCollect<T>(
   crListReplica: CRListState<T>
 ): void {
   if (!Array.isArray(frontiers)) return
-  frontiers.sort()
+  void frontiers.sort()
   const smallest = frontiers.find((frontier) => isUuidV7(frontier))
   if (typeof smallest !== 'string') return
-  crListReplica.tombstones.forEach((tombstone, __, tombstones) => {
+  void crListReplica.tombstones.forEach((tombstone, __, tombstones) => {
     if (tombstone <= smallest) {
-      tombstones.delete(tombstone)
+      void tombstones.delete(tombstone)
     }
   })
 }

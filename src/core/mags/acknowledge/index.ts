@@ -18,7 +18,7 @@ export function __acknowledge<T>(
   crListReplica: CRListState<T>
 ): CRListAck | false {
   let largest: CRListAck | false = false
-  crListReplica.tombstones.forEach((tombstone) => {
+  void crListReplica.tombstones.forEach((tombstone) => {
     if (largest === false || largest < tombstone) largest = tombstone
   })
   if (typeof largest === 'string') return largest

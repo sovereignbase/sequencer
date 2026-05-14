@@ -1,4 +1,10 @@
 import {
+  isMainThread,
+  parentPort,
+  Worker,
+  workerData,
+} from 'node:worker_threads'
+import {
   CRList,
   __acknowledge,
   __create,
@@ -16,6 +22,8 @@ import { Model as JsonJoyModel } from 'json-joy/lib/json-crdt/model/Model.js'
 
 const RUN_TIMES = 250
 const LIST_SIZE = 5_000
+
+const LIBRARIES = ['crlist', 'yjs', 'jsonJoy', 'automerge']
 
 const BENCHMARKS = [
   {
@@ -89,12 +97,7 @@ const BENCHMARKS = [
     n: LIST_SIZE,
     ops: RUN_TIMES,
   },
-  {
-    group: 'class',
-    name: 'remove from middle',
-    n: LIST_SIZE,
-    ops: RUN_TIMES,
-  },
+  { group: 'class', name: 'remove from middle', n: LIST_SIZE, ops: RUN_TIMES },
   { group: 'class', name: 'find near tail', n: LIST_SIZE, ops: RUN_TIMES },
   { group: 'class', name: 'snapshot', n: LIST_SIZE, ops: RUN_TIMES },
   { group: 'class', name: 'acknowledge', n: LIST_SIZE, ops: RUN_TIMES },
@@ -146,9 +149,7 @@ function createSeededReplica(size) {
 
 function createSeededList(size) {
   const list = new CRList()
-  for (let index = 0; index < size; index++) {
-    list.append(value(index))
-  }
+  for (let index = 0; index < size; index++) list.append(value(index))
   return list
 }
 
@@ -208,6 +209,7 @@ function collectAppendDeltas(source, amount, offset) {
 function collectMixedDeltas(source, amount, offset) {
   const deltas = []
   const rand = random(0xc0ffee)
+
   for (let index = 0; index < amount; index++) {
     if (index % 4 === 0 && source.size > 0) {
       const deleteIndex = Math.floor(rand() * source.size)
@@ -224,6 +226,7 @@ function collectMixedDeltas(source, amount, offset) {
     const result = __update(listIndex, [value(offset + index)], source, mode)
     if (result) deltas.push(result.delta)
   }
+
   return deltas
 }
 
@@ -232,18 +235,22 @@ function collectClassAppendDeltas(source, amount, offset) {
   source.addEventListener('delta', (event) => {
     deltas.push(event.detail)
   })
+
   for (let index = 0; index < amount; index++) {
     source.append(value(offset + index))
   }
+
   return deltas
 }
 
 function collectClassMixedDeltas(source, amount, offset) {
   const deltas = []
   const rand = random(0xc0ffee)
+
   source.addEventListener('delta', (event) => {
     deltas.push(event.detail)
   })
+
   for (let index = 0; index < amount; index++) {
     if (index % 4 === 0 && source.size > 0) {
       source.remove(Math.floor(rand() * source.size))
@@ -260,6 +267,7 @@ function collectClassMixedDeltas(source, amount, offset) {
       Math.floor(rand() * Math.max(source.size, 1))
     )
   }
+
   return deltas
 }
 
@@ -268,18 +276,22 @@ function collectYjsAppendUpdates(source, amount, offset) {
   source.doc.on('update', (update) => {
     updates.push(update)
   })
+
   for (let index = 0; index < amount; index++) {
     source.list.push([value(offset + index)])
   }
+
   return updates
 }
 
 function collectYjsMixedUpdates(source, amount, offset) {
   const updates = []
   const rand = random(0xc0ffee)
+
   source.doc.on('update', (update) => {
     updates.push(update)
   })
+
   for (let index = 0; index < amount; index++) {
     if (index % 4 === 0 && source.list.length > 0) {
       source.list.delete(Math.floor(rand() * source.list.length), 1)
@@ -295,21 +307,25 @@ function collectYjsMixedUpdates(source, amount, offset) {
       value(offset + index),
     ])
   }
+
   return updates
 }
 
 function collectJsonJoyAppendPatches(source, amount, offset) {
   const patches = []
+
   for (let index = 0; index < amount; index++) {
     source.list.push(value(offset + index))
     patches.push(source.model.api.flush())
   }
+
   return patches
 }
 
 function collectJsonJoyMixedPatches(source, amount, offset) {
   const patches = []
   const rand = random(0xc0ffee)
+
   for (let index = 0; index < amount; index++) {
     if (index % 4 === 0 && source.list.length() > 0) {
       source.list.del(Math.floor(rand() * source.list.length()), 1)
@@ -328,12 +344,14 @@ function collectJsonJoyMixedPatches(source, amount, offset) {
     ])
     patches.push(source.model.api.flush())
   }
+
   return patches
 }
 
 function collectAutomergeAppendChanges(source, amount, offset) {
   const changes = []
   let doc = source
+
   for (let index = 0; index < amount; index++) {
     const next = Automerge.change(doc, (draft) => {
       draft.list.push(value(offset + index))
@@ -341,6 +359,7 @@ function collectAutomergeAppendChanges(source, amount, offset) {
     changes.push(...Automerge.getChanges(doc, next))
     doc = next
   }
+
   return changes
 }
 
@@ -348,6 +367,7 @@ function collectAutomergeMixedChanges(source, amount, offset) {
   const changes = []
   const rand = random(0xc0ffee)
   let doc = source
+
   for (let index = 0; index < amount; index++) {
     const next = Automerge.change(doc, (draft) => {
       if (index % 4 === 0 && draft.list.length > 0) {
@@ -365,9 +385,11 @@ function collectAutomergeMixedChanges(source, amount, offset) {
         value(offset + index)
       )
     })
+
     changes.push(...Automerge.getChanges(doc, next))
     doc = next
   }
+
   return changes
 }
 
@@ -391,6 +413,7 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:read / random indexed reads': {
       const replica = createSeededReplica(definition.n)
       const rand = random(0x1234)
@@ -403,6 +426,7 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:update / append after tail': {
       const replica = createSeededReplica(definition.n)
       return time(() => {
@@ -417,6 +441,7 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:update / insert before middle': {
       const replica = createSeededReplica(definition.n)
       return time(() => {
@@ -431,6 +456,7 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:update / insert at head': {
       const replica = createSeededReplica(definition.n)
       return time(() => {
@@ -440,6 +466,7 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:update / overwrite random': {
       const replica = createSeededReplica(definition.n)
       const rand = random(0x5678)
@@ -455,6 +482,7 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:delete / single deletes from middle': {
       const replica = createSeededReplica(definition.n)
       return time(() => {
@@ -467,6 +495,7 @@ function runBenchmark(definition) {
         return deleted
       })
     }
+
     case 'crud:delete / range deletes': {
       const replica = createSeededReplica(definition.n)
       return time(() => {
@@ -480,6 +509,7 @@ function runBenchmark(definition) {
         return deletedRanges
       })
     }
+
     case 'mags:snapshot': {
       const replica = createSeededReplica(definition.n)
       return time(() => {
@@ -487,18 +517,19 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'mags:acknowledge': {
       const replica = __create({
         values: [],
         tombstones: createTombstoneIds(definition.n),
       })
       return time(() => {
-        for (let index = 0; index < definition.ops; index++) {
+        for (let index = 0; index < definition.ops; index++)
           __acknowledge(replica)
-        }
         return definition.ops
       })
     }
+
     case 'mags:garbage collect': {
       const tombstones = createTombstoneIds(definition.n)
       const frontier = tombstones[tombstones.length - 1]
@@ -510,6 +541,7 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'mags:merge ordered deltas': {
       const source = createSeededReplica(definition.n)
       const target = __create(__snapshot(source))
@@ -519,6 +551,7 @@ function runBenchmark(definition) {
         return deltas.length
       })
     }
+
     case 'mags:merge shuffled gossip': {
       const source = createSeededReplica(definition.n)
       const target = __create(__snapshot(source))
@@ -529,15 +562,16 @@ function runBenchmark(definition) {
         return order.length
       })
     }
+
     case 'class:constructor / hydrate snapshot': {
       const snapshot = createSnapshot(definition.n)
       return time(() => {
-        for (let index = 0; index < definition.ops; index++) {
+        for (let index = 0; index < definition.ops; index++)
           new CRList(snapshot)
-        }
         return definition.ops
       })
     }
+
     case 'class:append after tail': {
       const list = createSeededList(definition.n)
       return time(() => {
@@ -547,6 +581,7 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'class:prepend before middle': {
       const list = createSeededList(definition.n)
       return time(() => {
@@ -556,6 +591,7 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'class:remove from middle': {
       const list = createSeededList(definition.n)
       return time(() => {
@@ -567,6 +603,7 @@ function runBenchmark(definition) {
         return removed
       })
     }
+
     case 'class:find near tail': {
       const list = createSeededList(definition.n)
       return time(() => {
@@ -576,6 +613,7 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'class:snapshot': {
       const list = createSeededList(definition.n)
       return time(() => {
@@ -583,18 +621,18 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'class:acknowledge': {
       const list = new CRList({
         values: [],
         tombstones: createTombstoneIds(definition.n),
       })
       return time(() => {
-        for (let index = 0; index < definition.ops; index++) {
-          list.acknowledge()
-        }
+        for (let index = 0; index < definition.ops; index++) list.acknowledge()
         return definition.ops
       })
     }
+
     case 'class:garbage collect': {
       const tombstones = createTombstoneIds(definition.n)
       const frontier = tombstones[tombstones.length - 1]
@@ -607,6 +645,7 @@ function runBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'class:merge ordered deltas': {
       const source = createSeededList(definition.n)
       const target = new CRList(source.toJSON())
@@ -620,6 +659,7 @@ function runBenchmark(definition) {
         return deltas.length
       })
     }
+
     case 'class:merge shuffled gossip': {
       const source = createSeededList(definition.n)
       const target = new CRList(source.toJSON())
@@ -634,6 +674,7 @@ function runBenchmark(definition) {
         return order.length
       })
     }
+
     default:
       throw new Error(
         `unknown benchmark: ${definition.group}:${definition.name}`
@@ -654,6 +695,7 @@ function runYjsBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:read / random indexed reads': {
       const { list } = createSeededYjsList(definition.n)
       const rand = random(0x1234)
@@ -666,6 +708,7 @@ function runYjsBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:update / append after tail':
     case 'class:append after tail': {
       const { list } = createSeededYjsList(definition.n)
@@ -676,6 +719,7 @@ function runYjsBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:update / insert before middle':
     case 'class:prepend before middle': {
       const { list } = createSeededYjsList(definition.n)
@@ -688,6 +732,7 @@ function runYjsBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:update / insert at head': {
       const { list } = createSeededYjsList(definition.n)
       return time(() => {
@@ -697,6 +742,7 @@ function runYjsBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:update / overwrite random': {
       const { list } = createSeededYjsList(definition.n)
       const rand = random(0x5678)
@@ -709,6 +755,7 @@ function runYjsBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:delete / single deletes from middle':
     case 'class:remove from middle': {
       const { list } = createSeededYjsList(definition.n)
@@ -721,6 +768,7 @@ function runYjsBenchmark(definition) {
         return deleted
       })
     }
+
     case 'crud:delete / range deletes': {
       const { list } = createSeededYjsList(definition.n)
       return time(() => {
@@ -734,16 +782,17 @@ function runYjsBenchmark(definition) {
         return deletedRanges
       })
     }
+
     case 'mags:snapshot':
     case 'class:snapshot': {
       const { doc } = createSeededYjsList(definition.n)
       return time(() => {
-        for (let index = 0; index < definition.ops; index++) {
+        for (let index = 0; index < definition.ops; index++)
           Y.encodeStateAsUpdate(doc)
-        }
         return definition.ops
       })
     }
+
     case 'class:find near tail': {
       const { list } = createSeededYjsList(definition.n)
       return time(() => {
@@ -755,6 +804,7 @@ function runYjsBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'mags:merge ordered deltas':
     case 'class:merge ordered deltas': {
       const source = createSeededYjsList(definition.n)
@@ -770,6 +820,7 @@ function runYjsBenchmark(definition) {
         return updates.length
       })
     }
+
     case 'mags:merge shuffled gossip':
     case 'class:merge shuffled gossip': {
       const source = createSeededYjsList(definition.n)
@@ -786,6 +837,7 @@ function runYjsBenchmark(definition) {
         return order.length
       })
     }
+
     default:
       return undefined
   }
@@ -797,12 +849,12 @@ function runJsonJoyBenchmark(definition) {
     case 'class:constructor / hydrate snapshot': {
       const snapshot = createJsonJoySnapshot(definition.n)
       return time(() => {
-        for (let index = 0; index < definition.ops; index++) {
+        for (let index = 0; index < definition.ops; index++)
           JsonJoyModel.fromBinary(snapshot)
-        }
         return definition.ops
       })
     }
+
     case 'crud:read / random indexed reads': {
       const { list } = createSeededJsonJoyList(definition.n)
       const rand = random(0x1234)
@@ -815,16 +867,17 @@ function runJsonJoyBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:update / append after tail':
     case 'class:append after tail': {
       const { list } = createSeededJsonJoyList(definition.n)
       return time(() => {
-        for (let index = 0; index < definition.ops; index++) {
+        for (let index = 0; index < definition.ops; index++)
           list.push(value(definition.n + index))
-        }
         return definition.ops
       })
     }
+
     case 'crud:update / insert before middle':
     case 'class:prepend before middle': {
       const { list } = createSeededJsonJoyList(definition.n)
@@ -835,6 +888,7 @@ function runJsonJoyBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:update / insert at head': {
       const { list } = createSeededJsonJoyList(definition.n)
       return time(() => {
@@ -844,6 +898,7 @@ function runJsonJoyBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:update / overwrite random': {
       const { list } = createSeededJsonJoyList(definition.n)
       const rand = random(0x5678)
@@ -857,6 +912,7 @@ function runJsonJoyBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:delete / single deletes from middle':
     case 'class:remove from middle': {
       const { list } = createSeededJsonJoyList(definition.n)
@@ -869,6 +925,7 @@ function runJsonJoyBenchmark(definition) {
         return deleted
       })
     }
+
     case 'crud:delete / range deletes': {
       const { list } = createSeededJsonJoyList(definition.n)
       return time(() => {
@@ -882,16 +939,16 @@ function runJsonJoyBenchmark(definition) {
         return deletedRanges
       })
     }
+
     case 'mags:snapshot':
     case 'class:snapshot': {
       const { model } = createSeededJsonJoyList(definition.n)
       return time(() => {
-        for (let index = 0; index < definition.ops; index++) {
-          model.toBinary()
-        }
+        for (let index = 0; index < definition.ops; index++) model.toBinary()
         return definition.ops
       })
     }
+
     case 'class:find near tail': {
       const { list } = createSeededJsonJoyList(definition.n)
       return time(() => {
@@ -903,6 +960,7 @@ function runJsonJoyBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'mags:merge ordered deltas':
     case 'class:merge ordered deltas': {
       const source = createSeededJsonJoyList(definition.n)
@@ -917,6 +975,7 @@ function runJsonJoyBenchmark(definition) {
         return patches.length
       })
     }
+
     case 'mags:merge shuffled gossip':
     case 'class:merge shuffled gossip': {
       const source = createSeededJsonJoyList(definition.n)
@@ -932,6 +991,7 @@ function runJsonJoyBenchmark(definition) {
         return order.length
       })
     }
+
     default:
       return undefined
   }
@@ -943,12 +1003,12 @@ function runAutomergeBenchmark(definition) {
     case 'class:constructor / hydrate snapshot': {
       const snapshot = createAutomergeSnapshot(definition.n)
       return time(() => {
-        for (let index = 0; index < definition.ops; index++) {
+        for (let index = 0; index < definition.ops; index++)
           Automerge.load(snapshot)
-        }
         return definition.ops
       })
     }
+
     case 'crud:read / random indexed reads': {
       const doc = createSeededAutomergeList(definition.n)
       const rand = random(0x1234)
@@ -961,6 +1021,7 @@ function runAutomergeBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:update / append after tail':
     case 'class:append after tail': {
       let doc = createSeededAutomergeList(definition.n)
@@ -973,6 +1034,7 @@ function runAutomergeBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:update / insert before middle':
     case 'class:prepend before middle': {
       let doc = createSeededAutomergeList(definition.n)
@@ -988,6 +1050,7 @@ function runAutomergeBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:update / insert at head': {
       let doc = createSeededAutomergeList(definition.n)
       return time(() => {
@@ -999,6 +1062,7 @@ function runAutomergeBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:update / overwrite random': {
       let doc = createSeededAutomergeList(definition.n)
       const rand = random(0x5678)
@@ -1013,6 +1077,7 @@ function runAutomergeBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'crud:delete / single deletes from middle':
     case 'class:remove from middle': {
       let doc = createSeededAutomergeList(definition.n)
@@ -1027,6 +1092,7 @@ function runAutomergeBenchmark(definition) {
         return deleted
       })
     }
+
     case 'crud:delete / range deletes': {
       let doc = createSeededAutomergeList(definition.n)
       return time(() => {
@@ -1042,16 +1108,16 @@ function runAutomergeBenchmark(definition) {
         return deletedRanges
       })
     }
+
     case 'mags:snapshot':
     case 'class:snapshot': {
       const doc = createSeededAutomergeList(definition.n)
       return time(() => {
-        for (let index = 0; index < definition.ops; index++) {
-          Automerge.save(doc)
-        }
+        for (let index = 0; index < definition.ops; index++) Automerge.save(doc)
         return definition.ops
       })
     }
+
     case 'class:find near tail': {
       const doc = createSeededAutomergeList(definition.n)
       return time(() => {
@@ -1063,6 +1129,7 @@ function runAutomergeBenchmark(definition) {
         return definition.ops
       })
     }
+
     case 'mags:merge ordered deltas':
     case 'class:merge ordered deltas': {
       const source = createSeededAutomergeList(definition.n)
@@ -1073,12 +1140,12 @@ function runAutomergeBenchmark(definition) {
         definition.n
       )
       return time(() => {
-        for (const change of changes) {
+        for (const change of changes)
           target = Automerge.applyChanges(target, [change])[0]
-        }
         return changes.length
       })
     }
+
     case 'mags:merge shuffled gossip':
     case 'class:merge shuffled gossip': {
       const source = createSeededAutomergeList(definition.n)
@@ -1090,15 +1157,112 @@ function runAutomergeBenchmark(definition) {
       )
       const order = shuffledIndices(changes.length, 0xbeef)
       return time(() => {
-        for (const index of order) {
+        for (const index of order)
           target = Automerge.applyChanges(target, [changes[index]])[0]
-        }
         return order.length
       })
     }
+
     default:
       return undefined
   }
+}
+
+function runLibraryBenchmark(library, definition) {
+  if (library === 'crlist') return runBenchmark(definition)
+  if (library === 'yjs') return runYjsBenchmark(definition)
+  if (library === 'jsonJoy') return runJsonJoyBenchmark(definition)
+  if (library === 'automerge') return runAutomergeBenchmark(definition)
+
+  throw new Error(`unknown library: ${library}`)
+}
+
+function runLibraryBenchmarks(library) {
+  return BENCHMARKS.map((definition) => {
+    const result = runLibraryBenchmark(library, definition)
+
+    return {
+      group: definition.group,
+      name: definition.name,
+      n: definition.n,
+      requestedOps: definition.ops,
+      result,
+    }
+  })
+}
+
+function runWorker(library) {
+  try {
+    const results = runLibraryBenchmarks(library)
+    parentPort.postMessage({ library, results })
+  } catch (error) {
+    parentPort.postMessage({
+      library,
+      error: {
+        message: error.message,
+        stack: error.stack,
+      },
+    })
+  }
+}
+
+function runLibraryWorker(library) {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(new URL(import.meta.url), {
+      type: 'module',
+      workerData: { library },
+    })
+
+    worker.once('message', (message) => {
+      if (message.error) {
+        const error = new Error(
+          `${message.library} failed: ${message.error.message}`
+        )
+        error.stack = message.error.stack
+        reject(error)
+        return
+      }
+
+      resolve(message)
+    })
+
+    worker.once('error', reject)
+
+    worker.once('exit', (code) => {
+      if (code !== 0)
+        reject(new Error(`${library} worker exited with code ${code}`))
+    })
+  })
+}
+
+function combineLibraryResults(messages) {
+  const byLibrary = new Map(
+    messages.map((message) => [message.library, message.results])
+  )
+
+  return BENCHMARKS.map((definition, index) => {
+    const crlist = byLibrary.get('crlist')?.[index]?.result
+    const yjs = byLibrary.get('yjs')?.[index]?.result
+    const jsonJoy = byLibrary.get('jsonJoy')?.[index]?.result
+    const automerge = byLibrary.get('automerge')?.[index]?.result
+
+    if (!crlist) {
+      throw new Error(
+        `missing crlist result: ${definition.group}:${definition.name}`
+      )
+    }
+
+    return {
+      ...definition,
+      ops: crlist.ops,
+      ms: crlist.ms,
+      msPerOp: crlist.ms / crlist.ops,
+      opsPerSecond: crlist.ops / (crlist.ms / 1_000),
+      yjs,
+      jsonJoy,
+      automerge,
+    }
+  })
 }
 
 function formatNumber(number) {
@@ -1130,10 +1294,9 @@ function benchmarkWinner(row) {
 
   if (candidates.length < 2) return 'n/a'
 
-  candidates.sort(
-    ([, leftOpsPerSecond], [, rightOpsPerSecond]) =>
-      rightOpsPerSecond - leftOpsPerSecond
-  )
+  candidates.sort(([, leftOpsPerSecond], [, rightOpsPerSecond]) => {
+    return rightOpsPerSecond - leftOpsPerSecond
+  })
 
   return candidates[0][0]
 }
@@ -1168,13 +1331,16 @@ function printTable(rows) {
     ],
     ['winner', (row) => benchmarkWinner(row)],
   ]
-  const widths = columns.map(([header, getter]) =>
-    Math.max(header.length, ...rows.map((row) => getter(row).length))
-  )
+
+  const widths = columns.map(([header, getter]) => {
+    return Math.max(header.length, ...rows.map((row) => getter(row).length))
+  })
+
   console.log(
     columns.map(([header], index) => pad(header, widths[index])).join('  ')
   )
   console.log(widths.map((width) => '-'.repeat(width)).join('  '))
+
   for (const row of rows) {
     console.log(
       columns
@@ -1184,23 +1350,33 @@ function printTable(rows) {
   }
 }
 
-const rows = BENCHMARKS.map((definition) => {
-  const result = runBenchmark(definition)
-  return {
-    ...definition,
-    ops: result.ops,
-    ms: result.ms,
-    msPerOp: result.ms / result.ops,
-    opsPerSecond: result.ops / (result.ms / 1_000),
-    yjs: runYjsBenchmark(definition),
-    jsonJoy: runJsonJoyBenchmark(definition),
-    automerge: runAutomergeBenchmark(definition),
-  }
-})
+async function main() {
+  console.log('CRList benchmark')
+  console.log(
+    `node=${process.version} platform=${process.platform} arch=${process.arch}`
+  )
+  console.log(`workers=${LIBRARIES.join(', ')}`)
+  console.log('')
 
-console.log('CRList benchmark')
-console.log(
-  `node=${process.version} platform=${process.platform} arch=${process.arch}`
-)
-console.log('')
-printTable(rows)
+  const startedAt = process.hrtime.bigint()
+
+  const messages = await Promise.all(
+    LIBRARIES.map((library) => runLibraryWorker(library))
+  )
+
+  const rows = combineLibraryResults(messages)
+
+  printTable(rows)
+
+  const endedAt = process.hrtime.bigint()
+  const totalMs = Number(endedAt - startedAt) / 1_000_000
+
+  console.log('')
+  console.log(`total wall time: ${formatNumber(totalMs)} ms`)
+}
+
+if (isMainThread) {
+  await main()
+} else {
+  runWorker(workerData.library)
+}

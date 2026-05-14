@@ -313,29 +313,30 @@ npm run bench
 
 Last measured on Node `v22.14.0` (`win32 x64`):
 
-| group   | scenario                              |     n | ops |       ms | ms/op |    ops/sec |
-| ------- | ------------------------------------- | ----: | --: | -------: | ----: | ---------: |
-| `crud`  | `create / hydrate snapshot`           | 5,000 | 250 | 8,817.80 | 35.27 |      28.35 |
-| `crud`  | `read / random indexed reads`         | 5,000 | 250 |    12.59 |  0.05 |  19,854.03 |
-| `crud`  | `update / append after tail`          | 5,000 | 250 |     2.26 |  0.01 | 110,507.01 |
-| `crud`  | `update / insert before middle`       | 5,000 | 250 |    22.27 |  0.09 |  11,224.10 |
-| `crud`  | `update / overwrite random`           | 5,000 | 250 |    13.95 |  0.06 |  17,919.61 |
-| `crud`  | `delete / single deletes from middle` | 5,000 | 250 |    23.21 |  0.09 |  10,772.98 |
-| `crud`  | `delete / range deletes`              | 5,000 | 250 |     6.32 |  0.03 |  39,562.60 |
-| `mags`  | `snapshot`                            | 5,000 | 250 | 5,354.28 | 21.42 |      46.69 |
-| `mags`  | `acknowledge`                         | 5,000 | 250 |    47.24 |  0.19 |   5,291.76 |
-| `mags`  | `garbage collect`                     | 5,000 | 250 |   163.55 |  0.65 |   1,528.59 |
-| `mags`  | `merge ordered deltas`                | 5,000 | 250 |    19.25 |  0.08 |  12,986.74 |
-| `mags`  | `merge shuffled gossip`               | 5,000 | 250 |   485.99 |  1.94 |     514.41 |
-| `class` | `constructor / hydrate snapshot`      | 5,000 | 250 | 8,119.67 | 32.48 |      30.79 |
-| `class` | `append after tail`                   | 5,000 | 250 |     2.87 |  0.01 |  87,232.63 |
-| `class` | `prepend before middle`               | 5,000 | 250 |     7.76 |  0.03 |  32,228.95 |
-| `class` | `remove from middle`                  | 5,000 | 250 |     5.20 |  0.02 |  48,084.32 |
-| `class` | `snapshot`                            | 5,000 | 250 | 5,842.47 | 23.37 |      42.79 |
-| `class` | `acknowledge`                         | 5,000 | 250 |   127.77 |  0.51 |   1,956.68 |
-| `class` | `garbage collect`                     | 5,000 | 250 |   323.20 |  1.29 |     773.51 |
-| `class` | `merge ordered deltas`                | 5,000 | 250 |     8.61 |  0.03 |  29,021.17 |
-| `class` | `merge shuffled gossip`               | 5,000 | 250 |   523.53 |  2.09 |     477.53 |
+| group   | scenario                              |     n | ops |       ms | ms/op |   ops/sec |
+| ------- | ------------------------------------- | ----: | --: | -------: | ----: | --------: |
+| `crud`  | `create / hydrate snapshot`           | 5,000 | 250 | 6,463.06 | 25.85 |     38.68 |
+| `crud`  | `read / random indexed reads`         | 5,000 | 250 |    11.67 |  0.05 | 21,428.33 |
+| `crud`  | `update / append after tail`          | 5,000 | 250 |     4.48 |  0.02 | 55,760.01 |
+| `crud`  | `update / insert before middle`       | 5,000 | 250 |    32.09 |  0.13 |  7,790.39 |
+| `crud`  | `update / overwrite random`           | 5,000 | 250 |    14.57 |  0.06 | 17,157.49 |
+| `crud`  | `delete / single deletes from middle` | 5,000 | 250 |    14.46 |  0.06 | 17,289.91 |
+| `crud`  | `delete / range deletes`              | 5,000 | 250 |     5.72 |  0.02 | 43,702.47 |
+| `mags`  | `snapshot`                            | 5,000 | 250 | 4,393.99 | 17.58 |     56.90 |
+| `mags`  | `acknowledge`                         | 5,000 | 250 |    24.30 |  0.10 | 10,288.24 |
+| `mags`  | `garbage collect`                     | 5,000 | 250 |    92.76 |  0.37 |  2,695.00 |
+| `mags`  | `merge ordered deltas`                | 5,000 | 250 |    10.33 |  0.04 | 24,202.06 |
+| `mags`  | `merge shuffled gossip`               | 5,000 | 250 |   357.05 |  1.43 |    700.19 |
+| `class` | `constructor / hydrate snapshot`      | 5,000 | 250 | 7,271.66 | 29.09 |     34.38 |
+| `class` | `append after tail`                   | 5,000 | 250 |     5.34 |  0.02 | 46,819.99 |
+| `class` | `prepend before middle`               | 5,000 | 250 |    13.33 |  0.05 | 18,756.10 |
+| `class` | `remove from middle`                  | 5,000 | 250 |     4.35 |  0.02 | 57,528.13 |
+| `class` | `find near tail`                      | 5,000 | 250 | 6,267.89 | 25.07 |     39.89 |
+| `class` | `snapshot`                            | 5,000 | 250 | 4,904.97 | 19.62 |     50.97 |
+| `class` | `acknowledge`                         | 5,000 | 250 |    29.89 |  0.12 |  8,362.99 |
+| `class` | `garbage collect`                     | 5,000 | 250 |   108.71 |  0.43 |  2,299.65 |
+| `class` | `merge ordered deltas`                | 5,000 | 250 |     6.13 |  0.02 | 40,753.78 |
+| `class` | `merge shuffled gossip`               | 5,000 | 250 |   400.01 |  1.60 |    624.98 |
 
 ## License
 

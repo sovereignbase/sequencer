@@ -49,8 +49,8 @@ test('unit: CRList public surface and events', () => {
   const found = list.find(
     function (value, index, target) {
       assert.equal(this.marker, true)
-      assert.equal(index, 1)
       assert.equal(target, list)
+      if (value.id === 'x') assert.equal(index, 1)
       return value.id === 'x'
     },
     { marker: true }

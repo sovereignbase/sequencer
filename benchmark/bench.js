@@ -10,6 +10,8 @@ import {
   __update,
 } from '../dist/index.js'
 import { v7 as uuidv7 } from 'uuid'
+import * as Y from 'yjs'
+import { Model as JsonJoyModel } from 'json-joy/lib/json-crdt/model/Model.js'
 
 const RUN_TIMES = 250
 const LIST_SIZE = 5_000
@@ -143,8 +145,32 @@ function createSeededList(size) {
   return list
 }
 
+function createSeededYjsList(size) {
+  const doc = new Y.Doc()
+  const list = doc.getArray('list')
+  list.push(Array.from({ length: size }, (_, index) => value(index)))
+  return { doc, list }
+}
+
+function createSeededJsonJoyList(size) {
+  const model = JsonJoyModel.create()
+  model.api.set(Array.from({ length: size }, (_, index) => value(index)))
+  model.api.flush()
+  return { model, list: model.api.get().asArr() }
+}
+
 function createSnapshot(size) {
   return __snapshot(createSeededReplica(size))
+}
+
+function createYjsSnapshot(size) {
+  const { doc } = createSeededYjsList(size)
+  return Y.encodeStateAsUpdate(doc)
+}
+
+function createJsonJoySnapshot(size) {
+  const { model } = createSeededJsonJoyList(size)
+  return model.toBinary()
 }
 
 function collectAppendDeltas(source, amount, offset) {
@@ -218,6 +244,50 @@ function collectClassMixedDeltas(source, amount, offset) {
     )
   }
   return deltas
+}
+
+function collectYjsAppendUpdates(source, amount, offset) {
+  const updates = []
+  source.doc.on('update', (update) => {
+    updates.push(update)
+  })
+  for (let index = 0; index < amount; index++) {
+    source.list.push([value(offset + index)])
+  }
+  return updates
+}
+
+function collectYjsMixedUpdates(source, amount, offset) {
+  const updates = []
+  const rand = random(0xc0ffee)
+  source.doc.on('update', (update) => {
+    updates.push(update)
+  })
+  for (let index = 0; index < amount; index++) {
+    if (index % 4 === 0 && source.list.length > 0) {
+      source.list.delete(Math.floor(rand() * source.list.length), 1)
+      continue
+    }
+
+    if (source.list.length === 0 || rand() < 0.5) {
+      source.list.push([value(offset + index)])
+      continue
+    }
+
+    source.list.insert(Math.floor(rand() * Math.max(source.list.length, 1)), [
+      value(offset + index),
+    ])
+  }
+  return updates
+}
+
+function collectJsonJoyAppendPatches(source, amount, offset) {
+  const patches = []
+  for (let index = 0; index < amount; index++) {
+    source.list.push(value(offset + index))
+    patches.push(source.model.api.flush())
+  }
+  return patches
 }
 
 function createTombstoneIds(size) {
@@ -479,10 +549,299 @@ function runBenchmark(definition) {
   }
 }
 
+function runYjsBenchmark(definition) {
+  switch (`${definition.group}:${definition.name}`) {
+    case 'crud:create / hydrate snapshot':
+    case 'class:constructor / hydrate snapshot': {
+      const snapshot = createYjsSnapshot(definition.n)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          const doc = new Y.Doc()
+          Y.applyUpdate(doc, snapshot)
+        }
+        return definition.ops
+      })
+    }
+    case 'crud:read / random indexed reads': {
+      const { list } = createSeededYjsList(definition.n)
+      const rand = random(0x1234)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          list.get(Math.floor(rand() * list.length))
+        }
+        return definition.ops
+      })
+    }
+    case 'crud:update / append after tail':
+    case 'class:append after tail': {
+      const { list } = createSeededYjsList(definition.n)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          list.push([value(definition.n + index)])
+        }
+        return definition.ops
+      })
+    }
+    case 'crud:update / insert before middle':
+    case 'class:prepend before middle': {
+      const { list } = createSeededYjsList(definition.n)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          list.insert(Math.floor(list.length / 2), [
+            value(definition.n + index),
+          ])
+        }
+        return definition.ops
+      })
+    }
+    case 'crud:update / overwrite random': {
+      const { list } = createSeededYjsList(definition.n)
+      const rand = random(0x5678)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          const listIndex = Math.floor(rand() * list.length)
+          list.delete(listIndex, 1)
+          list.insert(listIndex, [value(definition.n + index)])
+        }
+        return definition.ops
+      })
+    }
+    case 'crud:delete / single deletes from middle':
+    case 'class:remove from middle': {
+      const { list } = createSeededYjsList(definition.n)
+      return time(() => {
+        let deleted = 0
+        while (deleted < definition.ops && list.length > 0) {
+          list.delete(Math.floor(list.length / 2), 1)
+          deleted++
+        }
+        return deleted
+      })
+    }
+    case 'crud:delete / range deletes': {
+      const { list } = createSeededYjsList(definition.n)
+      return time(() => {
+        let deletedRanges = 0
+        while (deletedRanges < definition.ops && list.length > 0) {
+          const start = Math.floor(list.length / 3)
+          const end = Math.min(list.length, start + 8)
+          list.delete(start, end - start)
+          deletedRanges++
+        }
+        return deletedRanges
+      })
+    }
+    case 'mags:snapshot':
+    case 'class:snapshot': {
+      const { doc } = createSeededYjsList(definition.n)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          Y.encodeStateAsUpdate(doc)
+        }
+        return definition.ops
+      })
+    }
+    case 'class:find near tail': {
+      const { list } = createSeededYjsList(definition.n)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          for (let listIndex = 0; listIndex < list.length; listIndex++) {
+            if (list.get(listIndex).id === definition.n - 1) break
+          }
+        }
+        return definition.ops
+      })
+    }
+    case 'mags:merge ordered deltas':
+    case 'class:merge ordered deltas': {
+      const source = createSeededYjsList(definition.n)
+      const target = new Y.Doc()
+      Y.applyUpdate(target, Y.encodeStateAsUpdate(source.doc))
+      const updates = collectYjsAppendUpdates(
+        source,
+        definition.ops,
+        definition.n
+      )
+      return time(() => {
+        for (const update of updates) Y.applyUpdate(target, update)
+        return updates.length
+      })
+    }
+    case 'mags:merge shuffled gossip':
+    case 'class:merge shuffled gossip': {
+      const source = createSeededYjsList(definition.n)
+      const target = new Y.Doc()
+      Y.applyUpdate(target, Y.encodeStateAsUpdate(source.doc))
+      const updates = collectYjsMixedUpdates(
+        source,
+        definition.ops,
+        definition.n
+      )
+      const order = shuffledIndices(updates.length, 0xbeef)
+      return time(() => {
+        for (const index of order) Y.applyUpdate(target, updates[index])
+        return order.length
+      })
+    }
+    default:
+      return undefined
+  }
+}
+
+function runJsonJoyBenchmark(definition) {
+  switch (`${definition.group}:${definition.name}`) {
+    case 'crud:create / hydrate snapshot':
+    case 'class:constructor / hydrate snapshot': {
+      const snapshot = createJsonJoySnapshot(definition.n)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          JsonJoyModel.fromBinary(snapshot)
+        }
+        return definition.ops
+      })
+    }
+    case 'crud:read / random indexed reads': {
+      const { list } = createSeededJsonJoyList(definition.n)
+      const rand = random(0x1234)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          list.get(Math.floor(rand() * list.length())).view()
+        }
+        return definition.ops
+      })
+    }
+    case 'crud:update / append after tail':
+    case 'class:append after tail': {
+      const { list } = createSeededJsonJoyList(definition.n)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          list.push(value(definition.n + index))
+        }
+        return definition.ops
+      })
+    }
+    case 'crud:update / insert before middle':
+    case 'class:prepend before middle': {
+      const { list } = createSeededJsonJoyList(definition.n)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          list.ins(Math.floor(list.length() / 2), [value(definition.n + index)])
+        }
+        return definition.ops
+      })
+    }
+    case 'crud:update / overwrite random': {
+      const { list } = createSeededJsonJoyList(definition.n)
+      const rand = random(0x5678)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          list.upd(
+            Math.floor(rand() * list.length()),
+            value(definition.n + index)
+          )
+        }
+        return definition.ops
+      })
+    }
+    case 'crud:delete / single deletes from middle':
+    case 'class:remove from middle': {
+      const { list } = createSeededJsonJoyList(definition.n)
+      return time(() => {
+        let deleted = 0
+        while (deleted < definition.ops && list.length() > 0) {
+          list.del(Math.floor(list.length() / 2), 1)
+          deleted++
+        }
+        return deleted
+      })
+    }
+    case 'crud:delete / range deletes': {
+      const { list } = createSeededJsonJoyList(definition.n)
+      return time(() => {
+        let deletedRanges = 0
+        while (deletedRanges < definition.ops && list.length() > 0) {
+          const start = Math.floor(list.length() / 3)
+          const end = Math.min(list.length(), start + 8)
+          list.del(start, end - start)
+          deletedRanges++
+        }
+        return deletedRanges
+      })
+    }
+    case 'mags:snapshot':
+    case 'class:snapshot': {
+      const { model } = createSeededJsonJoyList(definition.n)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          model.toBinary()
+        }
+        return definition.ops
+      })
+    }
+    case 'class:find near tail': {
+      const { list } = createSeededJsonJoyList(definition.n)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          for (let listIndex = 0; listIndex < list.length(); listIndex++) {
+            if (list.get(listIndex).view().id === definition.n - 1) break
+          }
+        }
+        return definition.ops
+      })
+    }
+    case 'mags:merge ordered deltas':
+    case 'class:merge ordered deltas': {
+      const source = createSeededJsonJoyList(definition.n)
+      const target = JsonJoyModel.fromBinary(source.model.toBinary())
+      const patches = collectJsonJoyAppendPatches(
+        source,
+        definition.ops,
+        definition.n
+      )
+      return time(() => {
+        for (const patch of patches) target.applyPatch(patch)
+        return patches.length
+      })
+    }
+    default:
+      return undefined
+  }
+}
+
 function formatNumber(number) {
   return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(
     number
   )
+}
+
+function formatBenchmarkMetric(result, metric) {
+  if (!result) return 'n/a'
+  if (metric === 'msPerOp') return formatNumber(result.ms / result.ops)
+  if (metric === 'opsPerSecond')
+    return formatNumber(result.ops / (result.ms / 1_000))
+  return formatNumber(result[metric])
+}
+
+function resultOpsPerSecond(result) {
+  if (!result) return undefined
+  return result.ops / (result.ms / 1_000)
+}
+
+function benchmarkWinner(row) {
+  const candidates = [
+    ['crlist', row.opsPerSecond],
+    ['yjs', resultOpsPerSecond(row.yjs)],
+    ['json-joy', resultOpsPerSecond(row.jsonJoy)],
+  ].filter(([, opsPerSecond]) => opsPerSecond !== undefined)
+
+  if (candidates.length < 2) return 'n/a'
+
+  candidates.sort(
+    ([, leftOpsPerSecond], [, rightOpsPerSecond]) =>
+      rightOpsPerSecond - leftOpsPerSecond
+  )
+
+  return candidates[0][0]
 }
 
 function pad(value, width) {
@@ -495,9 +854,17 @@ function printTable(rows) {
     ['scenario', (row) => row.name],
     ['n', (row) => formatNumber(row.n)],
     ['ops', (row) => formatNumber(row.ops)],
-    ['ms', (row) => formatNumber(row.ms)],
-    ['ms/op', (row) => formatNumber(row.msPerOp)],
-    ['ops/sec', (row) => formatNumber(row.opsPerSecond)],
+    ['crlist ms', (row) => formatNumber(row.ms)],
+    ['crlist ms/op', (row) => formatNumber(row.msPerOp)],
+    ['crlist ops/sec', (row) => formatNumber(row.opsPerSecond)],
+    ['yjs ms/op', (row) => formatBenchmarkMetric(row.yjs, 'msPerOp')],
+    ['yjs ops/sec', (row) => formatBenchmarkMetric(row.yjs, 'opsPerSecond')],
+    ['json-joy ms/op', (row) => formatBenchmarkMetric(row.jsonJoy, 'msPerOp')],
+    [
+      'json-joy ops/sec',
+      (row) => formatBenchmarkMetric(row.jsonJoy, 'opsPerSecond'),
+    ],
+    ['winner', (row) => benchmarkWinner(row)],
   ]
   const widths = columns.map(([header, getter]) =>
     Math.max(header.length, ...rows.map((row) => getter(row).length))
@@ -523,6 +890,8 @@ const rows = BENCHMARKS.map((definition) => {
     ms: result.ms,
     msPerOp: result.ms / result.ops,
     opsPerSecond: result.ops / (result.ms / 1_000),
+    yjs: runYjsBenchmark(definition),
+    jsonJoy: runJsonJoyBenchmark(definition),
   }
 })
 

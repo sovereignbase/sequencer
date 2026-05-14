@@ -66,12 +66,14 @@
     "edge-runtime": "^4.0.1",
     "fast-glob": "^3.3.3",
     "husky": "^9.1.7",
+    "json-joy": "^18.21.0",
     "playwright": "^1.60.0",
     "prettier": "^3.8.3",
     "tsup": "^8.5.1",
     "typedoc": "^0.28.19",
     "typescript": "^5.9.3",
-    "wrangler": "4.86.0"
+    "wrangler": "4.86.0",
+    "yjs": "^13.6.30"
   },
   "dependencies": {
     "@sovereignbase/utils": "^1.2.2",

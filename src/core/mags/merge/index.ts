@@ -1,6 +1,7 @@
 import type {
   CRListChange,
   CRListDelta,
+  CRListSnapshotEntry,
   CRListState,
   CRListStateEntry,
 } from '../../../.types/index.js'
@@ -45,6 +46,7 @@ export function __merge<T>(
   const newVals: Array<NonNullable<CRListStateEntry<T>>> = []
   const newTombsIndices: Array<number> = []
   const change: CRListChange<T> = {}
+  const deferredMoves: Array<CRListSnapshotEntry<T>> = []
   let needsRelink = false
   if (
     Object.hasOwn(crListDelta, 'values') &&
@@ -90,10 +92,28 @@ export function __merge<T>(
       crListReplica.tombstones.add(tombstone)
       const linkedListEntry = crListReplica.parentMap.get(tombstone)
       if (linkedListEntry) {
-        void newTombsIndices.push(linkedListEntry.index)
+        const removedIndex = linkedListEntry.index
+        const cursorIndex = crListReplica.cursorIndex
+        const next = linkedListEntry.next
+        const prev = linkedListEntry.prev
+        const removedCursor = crListReplica.cursor === linkedListEntry
+        void newTombsIndices.push(removedIndex)
         crListReplica.index?.delete(linkedListEntry.index)
         void deleteLinkedEntry<T>(crListReplica, linkedListEntry)
-        needsRelink = true
+        if (!crListReplica.cursor) {
+          crListReplica.cursorIndex = undefined
+        } else if (removedCursor) {
+          crListReplica.cursorIndex = next
+            ? removedIndex
+            : prev
+              ? removedIndex - 1
+              : undefined
+        } else if (cursorIndex !== undefined && removedIndex < cursorIndex) {
+          crListReplica.cursorIndex = cursorIndex - 1
+        }
+        crListReplica.index = new Map()
+        if (crListReplica.cursor && crListReplica.cursorIndex !== undefined)
+          crListReplica.index.set(crListReplica.cursorIndex, crListReplica.cursor)
       }
     }
   }
@@ -104,7 +124,6 @@ export function __merge<T>(
     !Array.isArray(crListDelta.values)
   ) {
     if (newTombsIndices.length === 0) return false
-    void assertListIndices<T>(crListReplica)
     for (const index of newTombsIndices) {
       change[index] = undefined
     }
@@ -121,12 +140,23 @@ export function __merge<T>(
       )
         continue
       if (existingEntry.predecessor >= valueEntry.predecessor) continue
+      if (
+        valueEntry.predecessor !== '\0' &&
+        !crListReplica.parentMap.has(valueEntry.predecessor) &&
+        crListDelta.values.some(
+          (entry) => entry?.uuidv7 === valueEntry.predecessor
+        )
+      ) {
+        deferredMoves.push(valueEntry)
+        continue
+      }
       void moveEntryToPredecessor<T>(
         crListReplica,
         existingEntry,
         valueEntry.predecessor
       )
-      needsRelink = true
+      if (existingEntry.prev?.uuidv7 !== valueEntry.predecessor)
+        needsRelink = true
       continue
     }
     const linkedListEntry = transformSnapshotEntryToStateEntry<T>(
@@ -138,6 +168,7 @@ export function __merge<T>(
       linkedListEntry.predecessor === '\0'
         ? undefined
         : crListReplica.parentMap.get(linkedListEntry.predecessor)
+    const next = predecessor?.next
     void updateEntryToMaps<T>(crListReplica, linkedListEntry)
     void newVals.push(linkedListEntry)
     if (!needsRelink && linkedListEntry.predecessor === '\0') {
@@ -147,8 +178,42 @@ export function __merge<T>(
         crListReplica.size = crListReplica.parentMap.size
         crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
       } else {
-        needsRelink = true
+        let head = crListReplica.index?.get(0) ?? crListReplica.cursor
+        while (head?.prev) head = head.prev
+        if (
+          head &&
+          crListDelta.values.some(
+            (entry) =>
+              entry?.uuidv7 === head.uuidv7 &&
+              entry.predecessor === linkedListEntry.uuidv7
+          )
+        ) {
+          linkedListEntry.index = 0
+          linkedListEntry.next = head
+          head.prev = linkedListEntry
+          crListReplica.cursor = linkedListEntry
+          crListReplica.cursorIndex = linkedListEntry.index
+          crListReplica.size = crListReplica.parentMap.size
+          crListReplica.index = new Map([[linkedListEntry.index, linkedListEntry]])
+        } else {
+          needsRelink = true
+        }
       }
+    } else if (
+      !needsRelink &&
+      predecessor &&
+      next &&
+      crListReplica.childrenMap.get(linkedListEntry.predecessor)?.length === 1
+    ) {
+      linkedListEntry.index = predecessor.index + 1
+      linkedListEntry.prev = predecessor
+      linkedListEntry.next = next
+      predecessor.next = linkedListEntry
+      next.prev = linkedListEntry
+      crListReplica.cursor = linkedListEntry
+      crListReplica.cursorIndex = linkedListEntry.index
+      crListReplica.size = crListReplica.parentMap.size
+      crListReplica.index = new Map([[linkedListEntry.index, linkedListEntry]])
     } else if (!needsRelink && predecessor && !predecessor.next) {
       linkedListEntry.prev = predecessor
       linkedListEntry.index = crListReplica.size
@@ -157,9 +222,41 @@ export function __merge<T>(
       crListReplica.cursorIndex = linkedListEntry.index
       crListReplica.size = crListReplica.parentMap.size
       crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
-    } else {
+    } else if (
+      !needsRelink &&
+      predecessor &&
+      next &&
+      crListDelta.values.some(
+        (entry) =>
+          entry?.uuidv7 === next.uuidv7 &&
+          entry.predecessor === linkedListEntry.uuidv7
+      )
+    ) {
+      linkedListEntry.index = predecessor.index + 1
+      linkedListEntry.prev = predecessor
+      linkedListEntry.next = next
+      predecessor.next = linkedListEntry
+      next.prev = linkedListEntry
+      crListReplica.cursor = linkedListEntry
+      crListReplica.cursorIndex = linkedListEntry.index
+      crListReplica.size = crListReplica.parentMap.size
+      crListReplica.index = new Map([[linkedListEntry.index, linkedListEntry]])
+      } else {
+        needsRelink = true
+      }
+  }
+  for (const valueEntry of deferredMoves) {
+    const existingEntry = crListReplica.parentMap.get(valueEntry.uuidv7)
+    if (!existingEntry || !crListReplica.parentMap.has(valueEntry.predecessor))
+      continue
+    if (existingEntry.predecessor >= valueEntry.predecessor) continue
+    void moveEntryToPredecessor<T>(
+      crListReplica,
+      existingEntry,
+      valueEntry.predecessor
+    )
+    if (existingEntry.prev?.uuidv7 !== valueEntry.predecessor)
       needsRelink = true
-    }
   }
   if (needsRelink) {
     // Flatten tree into a doubly linked list.

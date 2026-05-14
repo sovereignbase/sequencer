@@ -46,6 +46,27 @@ test('unit: CRList public surface and events', () => {
     ['z', 'x', 'b']
   )
 
+  const found = list.find(
+    function (value, index, target) {
+      assert.equal(this.marker, true)
+      assert.equal(index, 1)
+      assert.equal(target, list)
+      return value.id === 'x'
+    },
+    { marker: true }
+  )
+  assert.equal(found.id, 'x')
+  found.id = 'mutated'
+  assert.equal(list[1].id, 'x')
+  assert.equal(
+    list.find((value) => value.id === 'missing'),
+    undefined
+  )
+  assert.equal(
+    new CRList().find(() => true),
+    undefined
+  )
+
   const forEachIds = []
   list.forEach(
     function (value, index, target) {
@@ -59,7 +80,10 @@ test('unit: CRList public surface and events', () => {
 
   assert.equal(Reflect.set(list, 'not-index', { id: 'bad' }), false)
   assert.equal(Reflect.set(list, '-1', { id: 'bad' }), false)
-  assert.throws(() => Reflect.set(list, '0', () => undefined), /VALUE_NOT_CLONEABLE/)
+  assert.throws(
+    () => Reflect.set(list, '0', () => undefined),
+    /VALUE_NOT_CLONEABLE/
+  )
   assert.throws(() => {
     Reflect.deleteProperty(list, '99')
   }, /INDEX_OUT_OF_BOUNDS/)
@@ -112,13 +136,19 @@ test('unit: CRList public surface and events', () => {
   falseResultList.remove(1)
   const throwingSetList = new CRList()
   throwingSetList.append({ id: 'set-throw' })
-  Object.getOwnPropertyDescriptor(throwingSetList, 'eventTarget').value.dispatchEvent = () => {
+  Object.getOwnPropertyDescriptor(
+    throwingSetList,
+    'eventTarget'
+  ).value.dispatchEvent = () => {
     throw new Error('listener-set')
   }
   assert.equal(Reflect.set(throwingSetList, '0', { id: 'set-catch' }), false)
   const throwingDeleteList = new CRList()
   throwingDeleteList.append({ id: 'delete-throw' })
-  Object.getOwnPropertyDescriptor(throwingDeleteList, 'eventTarget').value.dispatchEvent = () => {
+  Object.getOwnPropertyDescriptor(
+    throwingDeleteList,
+    'eventTarget'
+  ).value.dispatchEvent = () => {
     throw new Error('listener-delete')
   }
   assert.equal(Reflect.deleteProperty(throwingDeleteList, '0'), false)

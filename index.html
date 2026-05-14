@@ -848,6 +848,7 @@
       <section>
         <h3>API Summary</h3>
         <pre class="idl">
+callback CRListFindCallback = any (any value, unsigned long index, CRList list);
 callback CRListForEachCallback = undefined (any value, unsigned long index, CRList list);
 
 [Exposed=*]
@@ -871,6 +872,7 @@ interface CRList {
     EventListener? listener,
     optional (EventListenerOptions or boolean) options = {}
   );
+  any find(CRListFindCallback callback, optional any thisArg);
   undefined forEach(CRListForEachCallback callback, optional any thisArg);
   object toJSON();
   stringifier DOMString ();
@@ -915,7 +917,8 @@ dictionary CRListDelta {
           When the current <a>snapshot</a> is JSON-compatible,
           <code>JSON.stringify(list)</code> serializes the binding through that
           snapshot. <code>for...of</code> iterates detached copies of the
-          current visible values in index order, and
+          current visible values in index order, <a>find()</a> returns the first
+          matching detached visible value copy or <code>undefined</code>, and
           <code>toString()</code> attempts to return the JSON string form of the
           current snapshot.
         </p>
@@ -1150,6 +1153,17 @@ dictionary CRListDelta {
           <p>
             Iterate detached copies of the current visible
             <a>list value</a>(s) in ascending <a>list index</a> order.
+          </p>
+        </section>
+
+        <section data-dfn-for="CRList">
+          <h5><dfn class="export">find()</dfn></h5>
+          <p>
+            Call the supplied callback once for each visible
+            <a>list value</a> copy in ascending <a>list index</a> order, passing
+            value, index, and the list object. Return the first value copy whose
+            callback result is truthy, or <code>undefined</code> when no value
+            matches.
           </p>
         </section>
 

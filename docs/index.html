@@ -1,0 +1,357 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@sovereignbase/convergent-replicated-list</title><link rel="icon" href="https://sovereignbase.dev/sovereignbase_logo.png"/><meta name="description" content="Documentation for @sovereignbase/convergent-replicated-list"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar"><div class="tsd-toolbar-contents container"><a href="index.html" class="title">@sovereignbase/convergent-replicated-list</a><div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/><ul role="listbox" id="tsd-search-results"></ul><div id="tsd-search-status" aria-live="polite" aria-atomic="true"><div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></header><div class="container container-main"><div class="col-content"><div class="tsd-page-title"><h1>@sovereignbase/convergent-replicated-list</h1></div><div class="tsd-panel tsd-typography"><p><a href="https://www.npmjs.com/package/@sovereignbase/convergent-replicated-list"><img src="https://img.shields.io/npm/v/@sovereignbase/convergent-replicated-list" alt="npm version"></a>
+<a href="https://github.com/sovereignbase/convergent-replicated-list/actions/workflows/ci.yaml"><img src="https://github.com/sovereignbase/convergent-replicated-list/actions/workflows/ci.yaml/badge.svg?branch=master" alt="CI"></a>
+<a href="https://codecov.io/gh/sovereignbase/convergent-replicated-list"><img src="https://codecov.io/gh/sovereignbase/convergent-replicated-list/branch/master/graph/badge.svg" alt="codecov"></a>
+<a href="LICENSE"><img src="https://img.shields.io/npm/l/@sovereignbase/convergent-replicated-list" alt="license"></a></p>
+<h1 id="convergent-replicated-list" class="tsd-anchor-link">convergent-replicated-list<a href="#convergent-replicated-list" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p>Convergent Replicated List (CR-List), a delta CRDT for an ordered sequence of entries.</p>
+<p>Read the specification:</p>
+<ul>
+<li><a href="https://sovereignbase.dev/convergent-replicated-list">https://sovereignbase.dev/convergent-replicated-list</a></li>
+</ul>
+<h2 id="compatibility" class="tsd-anchor-link">Compatibility<a href="#compatibility" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li>Runtimes: Node &gt;= 20, modern browsers, Bun, Deno, Cloudflare Workers, Edge Runtime.</li>
+<li>Module format: ESM + CommonJS.</li>
+<li>Required globals / APIs: <code>EventTarget</code>, <code>CustomEvent</code>, <code>structuredClone</code>.</li>
+<li>TypeScript: bundled types.</li>
+</ul>
+<h2 id="goals" class="tsd-anchor-link">Goals<a href="#goals" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li>Deterministic convergence of the live list projection under asynchronous gossip delivery.</li>
+<li>Consistent behavior across Node, browsers, worker, and edge runtimes.</li>
+<li>Garbage collection possibility without breaking live-view convergence.</li>
+<li>Event-driven API</li>
+</ul>
+<h2 id="installation" class="tsd-anchor-link">Installation<a href="#installation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="sh"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">install</span><span class="hl-1"> </span><span class="hl-2">@sovereignbase/convergent-replicated-list</span><br/><span class="hl-3"># or</span><br/><span class="hl-0">pnpm</span><span class="hl-1"> </span><span class="hl-2">add</span><span class="hl-1"> </span><span class="hl-2">@sovereignbase/convergent-replicated-list</span><br/><span class="hl-3"># or</span><br/><span class="hl-0">yarn</span><span class="hl-1"> </span><span class="hl-2">add</span><span class="hl-1"> </span><span class="hl-2">@sovereignbase/convergent-replicated-list</span><br/><span class="hl-3"># or</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">add</span><span class="hl-1"> </span><span class="hl-2">@sovereignbase/convergent-replicated-list</span><br/><span class="hl-3"># or</span><br/><span class="hl-0">deno</span><span class="hl-1"> </span><span class="hl-2">add</span><span class="hl-1"> </span><span class="hl-2">jsr:@sovereignbase/convergent-replicated-list</span><br/><span class="hl-3"># or</span><br/><span class="hl-0">vlt</span><span class="hl-1"> </span><span class="hl-2">install</span><span class="hl-1"> </span><span class="hl-2">jsr:@sovereignbase/convergent-replicated-list</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="usage" class="tsd-anchor-link">Usage<a href="#usage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="copy-paste-example" class="tsd-anchor-link">Copy-paste example<a href="#copy-paste-example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="ts"><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">CRList</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@sovereignbase/convergent-replicated-list&#39;</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">alice</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">CRList</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">&gt;()</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">bob</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">CRList</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">&gt;()</span><br/><br/><span class="hl-5">alice</span><span class="hl-1">.</span><span class="hl-0">addEventListener</span><span class="hl-1">(</span><span class="hl-2">&#39;delta&#39;</span><span class="hl-1">, (</span><span class="hl-5">event</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-5">bob</span><span class="hl-1">.</span><span class="hl-0">merge</span><span class="hl-1">(</span><span class="hl-5">event</span><span class="hl-1">.</span><span class="hl-5">detail</span><span class="hl-1">)</span><br/><span class="hl-1">})</span><br/><br/><span class="hl-5">alice</span><span class="hl-1">.</span><span class="hl-0">append</span><span class="hl-1">(</span><span class="hl-2">&#39;hello&#39;</span><span class="hl-1">)</span><br/><span class="hl-5">alice</span><span class="hl-1">.</span><span class="hl-0">append</span><span class="hl-1">(</span><span class="hl-2">&#39;world&#39;</span><span class="hl-1">)</span><br/><span class="hl-5">alice</span><span class="hl-1">.</span><span class="hl-0">prepend</span><span class="hl-1">(</span><span class="hl-2">&#39;first&#39;</span><span class="hl-1">)</span><br/><br/><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">([...</span><span class="hl-5">alice</span><span class="hl-1">]) </span><span class="hl-3">// [&#39;first&#39;, &#39;hello&#39;, &#39;world&#39;]</span><br/><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">([...</span><span class="hl-5">bob</span><span class="hl-1">]) </span><span class="hl-3">// [&#39;first&#39;, &#39;hello&#39;, &#39;world&#39;]</span><br/><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-5">alice</span><span class="hl-1">[</span><span class="hl-9">1</span><span class="hl-1">]) </span><span class="hl-3">// &#39;hello&#39;</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="hydrating-from-a-snapshot" class="tsd-anchor-link">Hydrating from a snapshot<a href="#hydrating-from-a-snapshot" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="ts"><span class="hl-4">import</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-5">CRList</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-4">type</span><span class="hl-1"> </span><span class="hl-5">CRListSnapshot</span><span class="hl-1">,</span><br/><span class="hl-1">} </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@sovereignbase/convergent-replicated-list&#39;</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">source</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">CRList</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">&gt;()</span><br/><span class="hl-6">let</span><span class="hl-1"> </span><span class="hl-5">snapshot</span><span class="hl-1">!: </span><span class="hl-8">CRListSnapshot</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">&gt;</span><br/><br/><span class="hl-5">source</span><span class="hl-1">.</span><span class="hl-0">addEventListener</span><span class="hl-1">(</span><br/><span class="hl-1">  </span><span class="hl-2">&#39;snapshot&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  (</span><span class="hl-5">event</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-5">snapshot</span><span class="hl-1"> = </span><span class="hl-5">event</span><span class="hl-1">.</span><span class="hl-5">detail</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">  { </span><span class="hl-5">once:</span><span class="hl-1"> </span><span class="hl-6">true</span><span class="hl-1"> }</span><br/><span class="hl-1">)</span><br/><br/><span class="hl-5">source</span><span class="hl-1">.</span><span class="hl-0">append</span><span class="hl-1">(</span><span class="hl-2">&#39;draft&#39;</span><span class="hl-1">)</span><br/><span class="hl-5">source</span><span class="hl-1">.</span><span class="hl-0">append</span><span class="hl-1">(</span><span class="hl-2">&#39;ready&#39;</span><span class="hl-1">)</span><br/><span class="hl-5">source</span><span class="hl-1">.</span><span class="hl-0">snapshot</span><span class="hl-1">()</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">restored</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">CRList</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">&gt;(</span><span class="hl-5">snapshot</span><span class="hl-1">)</span><br/><br/><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">([...</span><span class="hl-5">restored</span><span class="hl-1">]) </span><span class="hl-3">// [&#39;draft&#39;, &#39;ready&#39;]</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="event-channels" class="tsd-anchor-link">Event channels<a href="#event-channels" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="ts"><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">CRList</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@sovereignbase/convergent-replicated-list&#39;</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">list</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">CRList</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">&gt;()</span><br/><br/><span class="hl-5">list</span><span class="hl-1">.</span><span class="hl-0">addEventListener</span><span class="hl-1">(</span><span class="hl-2">&#39;delta&#39;</span><span class="hl-1">, (</span><span class="hl-5">event</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-2">&#39;delta&#39;</span><span class="hl-1">, </span><span class="hl-5">event</span><span class="hl-1">.</span><span class="hl-5">detail</span><span class="hl-1">)</span><br/><span class="hl-1">})</span><br/><br/><span class="hl-5">list</span><span class="hl-1">.</span><span class="hl-0">addEventListener</span><span class="hl-1">(</span><span class="hl-2">&#39;change&#39;</span><span class="hl-1">, (</span><span class="hl-5">event</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-2">&#39;change&#39;</span><span class="hl-1">, </span><span class="hl-5">event</span><span class="hl-1">.</span><span class="hl-5">detail</span><span class="hl-1">)</span><br/><span class="hl-1">})</span><br/><br/><span class="hl-5">list</span><span class="hl-1">.</span><span class="hl-0">addEventListener</span><span class="hl-1">(</span><span class="hl-2">&#39;snapshot&#39;</span><span class="hl-1">, (</span><span class="hl-5">event</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-2">&#39;snapshot&#39;</span><span class="hl-1">, </span><span class="hl-5">event</span><span class="hl-1">.</span><span class="hl-5">detail</span><span class="hl-1">)</span><br/><span class="hl-1">})</span><br/><br/><span class="hl-5">list</span><span class="hl-1">.</span><span class="hl-0">addEventListener</span><span class="hl-1">(</span><span class="hl-2">&#39;ack&#39;</span><span class="hl-1">, (</span><span class="hl-5">event</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-2">&#39;ack&#39;</span><span class="hl-1">, </span><span class="hl-5">event</span><span class="hl-1">.</span><span class="hl-5">detail</span><span class="hl-1">)</span><br/><span class="hl-1">})</span><br/><br/><span class="hl-5">list</span><span class="hl-1">.</span><span class="hl-0">append</span><span class="hl-1">(</span><span class="hl-2">&#39;a&#39;</span><span class="hl-1">)</span><br/><span class="hl-5">list</span><span class="hl-1">[</span><span class="hl-9">0</span><span class="hl-1">] = </span><span class="hl-2">&#39;b&#39;</span><br/><span class="hl-6">delete</span><span class="hl-1"> </span><span class="hl-5">list</span><span class="hl-1">[</span><span class="hl-9">0</span><span class="hl-1">]</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="iteration-and-json-serialization" class="tsd-anchor-link">Iteration and JSON serialization<a href="#iteration-and-json-serialization" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="ts"><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">CRList</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@sovereignbase/convergent-replicated-list&#39;</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">list</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">CRList</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">&gt;()</span><br/><br/><span class="hl-5">list</span><span class="hl-1">[</span><span class="hl-9">0</span><span class="hl-1">] = </span><span class="hl-2">&#39;up&#39;</span><br/><span class="hl-5">list</span><span class="hl-1">.</span><span class="hl-0">append</span><span class="hl-1">(</span><span class="hl-2">&#39;dude!&#39;</span><span class="hl-1">)</span><br/><span class="hl-5">list</span><span class="hl-1">.</span><span class="hl-0">prepend</span><span class="hl-1">(</span><span class="hl-2">&#39;What is&#39;</span><span class="hl-1">)</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">snapshotJson</span><span class="hl-1"> = </span><span class="hl-7">JSON</span><span class="hl-1">.</span><span class="hl-0">stringify</span><span class="hl-1">(</span><span class="hl-5">list</span><span class="hl-1">)</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">restored</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">CRList</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">&gt;(</span><span class="hl-7">JSON</span><span class="hl-1">.</span><span class="hl-0">parse</span><span class="hl-1">(</span><span class="hl-5">snapshotJson</span><span class="hl-1">))</span><br/><br/><span class="hl-4">for</span><span class="hl-1"> (</span><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">value</span><span class="hl-1"> </span><span class="hl-6">of</span><span class="hl-1"> </span><span class="hl-5">list</span><span class="hl-1">) {</span><br/><span class="hl-1">  </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-5">value</span><span class="hl-1">)</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-4">for</span><span class="hl-1"> (</span><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">index</span><span class="hl-1"> </span><span class="hl-6">in</span><span class="hl-1"> </span><span class="hl-5">list</span><span class="hl-1">) {</span><br/><span class="hl-1">  </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-5">index</span><span class="hl-1">)</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-5">list</span><span class="hl-1">.</span><span class="hl-0">forEach</span><span class="hl-1">((</span><span class="hl-5">value</span><span class="hl-1">, </span><span class="hl-5">index</span><span class="hl-1">, </span><span class="hl-5">target</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-5">index</span><span class="hl-1">, </span><span class="hl-5">value</span><span class="hl-1">, </span><span class="hl-5">target</span><span class="hl-1">.</span><span class="hl-5">size</span><span class="hl-1">)</span><br/><span class="hl-1">})</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">found</span><span class="hl-1"> = </span><span class="hl-5">list</span><span class="hl-1">.</span><span class="hl-0">find</span><span class="hl-1">((</span><span class="hl-5">value</span><span class="hl-1">, </span><span class="hl-5">index</span><span class="hl-1">, </span><span class="hl-5">target</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-4">return</span><span class="hl-1"> </span><span class="hl-5">index</span><span class="hl-1"> === </span><span class="hl-9">1</span><span class="hl-1"> &amp;&amp; </span><span class="hl-5">target</span><span class="hl-1">.</span><span class="hl-5">size</span><span class="hl-1"> === </span><span class="hl-9">3</span><span class="hl-1"> &amp;&amp; </span><span class="hl-5">value</span><span class="hl-1"> === </span><span class="hl-2">&#39;up&#39;</span><br/><span class="hl-1">})</span><br/><br/><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-5">found</span><span class="hl-1">) </span><span class="hl-3">// &#39;up&#39;</span><br/><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">([...</span><span class="hl-5">restored</span><span class="hl-1">]) </span><span class="hl-3">// [&#39;What is&#39;, &#39;up&#39;, &#39;dude!&#39;]</span>
+</code><button type="button">Copy</button></pre>
+
+<p>This example assumes your list values are JSON-compatible. For general
+<code>structuredClone</code>-compatible values such as <code>Date</code>, <code>Map</code>, or <code>BigInt</code>, persist
+snapshots with a structured-clone-capable store or an application-level codec
+instead of plain <code>JSON.stringify</code> / <code>JSON.parse</code>.</p>
+<p>Numeric reads, <code>for...of</code>, <code>find()</code>, and <code>forEach()</code> return detached copies of
+visible values. Mutating those returned values does not mutate the underlying
+replica state.</p>
+<h3 id="acknowledgements-and-garbage-collection" class="tsd-anchor-link">Acknowledgements and garbage collection<a href="#acknowledgements-and-garbage-collection" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="ts"><span class="hl-4">import</span><span class="hl-1"> { </span><span class="hl-5">CRList</span><span class="hl-1"> } </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@sovereignbase/convergent-replicated-list&#39;</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">alice</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">CRList</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">&gt;()</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">bob</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">CRList</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">&gt;()</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">frontiers</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">Map</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">, </span><span class="hl-8">string</span><span class="hl-1">&gt;()</span><br/><br/><span class="hl-5">alice</span><span class="hl-1">.</span><span class="hl-0">addEventListener</span><span class="hl-1">(</span><span class="hl-2">&#39;delta&#39;</span><span class="hl-1">, (</span><span class="hl-5">event</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> </span><span class="hl-5">bob</span><span class="hl-1">.</span><span class="hl-0">merge</span><span class="hl-1">(</span><span class="hl-5">event</span><span class="hl-1">.</span><span class="hl-5">detail</span><span class="hl-1">))</span><br/><span class="hl-5">bob</span><span class="hl-1">.</span><span class="hl-0">addEventListener</span><span class="hl-1">(</span><span class="hl-2">&#39;delta&#39;</span><span class="hl-1">, (</span><span class="hl-5">event</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> </span><span class="hl-5">alice</span><span class="hl-1">.</span><span class="hl-0">merge</span><span class="hl-1">(</span><span class="hl-5">event</span><span class="hl-1">.</span><span class="hl-5">detail</span><span class="hl-1">))</span><br/><br/><span class="hl-5">alice</span><span class="hl-1">.</span><span class="hl-0">addEventListener</span><span class="hl-1">(</span><span class="hl-2">&#39;ack&#39;</span><span class="hl-1">, (</span><span class="hl-5">event</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-5">frontiers</span><span class="hl-1">.</span><span class="hl-0">set</span><span class="hl-1">(</span><span class="hl-2">&#39;alice&#39;</span><span class="hl-1">, </span><span class="hl-5">event</span><span class="hl-1">.</span><span class="hl-5">detail</span><span class="hl-1">)</span><br/><span class="hl-1">})</span><br/><br/><span class="hl-5">bob</span><span class="hl-1">.</span><span class="hl-0">addEventListener</span><span class="hl-1">(</span><span class="hl-2">&#39;ack&#39;</span><span class="hl-1">, (</span><span class="hl-5">event</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-5">frontiers</span><span class="hl-1">.</span><span class="hl-0">set</span><span class="hl-1">(</span><span class="hl-2">&#39;bob&#39;</span><span class="hl-1">, </span><span class="hl-5">event</span><span class="hl-1">.</span><span class="hl-5">detail</span><span class="hl-1">)</span><br/><span class="hl-1">})</span><br/><br/><span class="hl-5">alice</span><span class="hl-1">.</span><span class="hl-0">append</span><span class="hl-1">(</span><span class="hl-2">&#39;x&#39;</span><span class="hl-1">)</span><br/><span class="hl-5">alice</span><span class="hl-1">[</span><span class="hl-9">0</span><span class="hl-1">] = </span><span class="hl-2">&#39;y&#39;</span><br/><span class="hl-6">delete</span><span class="hl-1"> </span><span class="hl-5">alice</span><span class="hl-1">[</span><span class="hl-9">0</span><span class="hl-1">]</span><br/><br/><span class="hl-5">alice</span><span class="hl-1">.</span><span class="hl-0">acknowledge</span><span class="hl-1">()</span><br/><span class="hl-5">bob</span><span class="hl-1">.</span><span class="hl-0">acknowledge</span><span class="hl-1">()</span><br/><br/><span class="hl-5">alice</span><span class="hl-1">.</span><span class="hl-0">garbageCollect</span><span class="hl-1">([...</span><span class="hl-5">frontiers</span><span class="hl-1">.</span><span class="hl-0">values</span><span class="hl-1">()])</span><br/><span class="hl-5">bob</span><span class="hl-1">.</span><span class="hl-0">garbageCollect</span><span class="hl-1">([...</span><span class="hl-5">frontiers</span><span class="hl-1">.</span><span class="hl-0">values</span><span class="hl-1">()])</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="advanced-exports" class="tsd-anchor-link">Advanced exports<a href="#advanced-exports" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>If you need to build your own ordered-sequence CRDT binding instead of using the
+high-level <code>CRList</code> class, the package also exports the core CRUD and MAGS
+functions together with the replica and payload types.</p>
+<p>Those low-level exports let you build custom list abstractions, protocol
+wrappers, or framework-specific bindings while preserving the same convergence
+rules as the default <code>CRList</code> binding.</p>
+<pre><code class="ts"><span class="hl-4">import</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-5">__create</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">__update</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">__merge</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">__snapshot</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-4">type</span><span class="hl-1"> </span><span class="hl-5">CRListDelta</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-4">type</span><span class="hl-1"> </span><span class="hl-5">CRListSnapshot</span><span class="hl-1">,</span><br/><span class="hl-1">} </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@sovereignbase/convergent-replicated-list&#39;</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">source</span><span class="hl-1"> = </span><span class="hl-0">__create</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">&gt;()</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">target</span><span class="hl-1"> = </span><span class="hl-0">__create</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">&gt;()</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">local</span><span class="hl-1"> = </span><span class="hl-0">__update</span><span class="hl-1">(</span><span class="hl-9">0</span><span class="hl-1">, [</span><span class="hl-2">&#39;hello&#39;</span><span class="hl-1">, </span><span class="hl-2">&#39;world&#39;</span><span class="hl-1">], </span><span class="hl-5">source</span><span class="hl-1">, </span><span class="hl-2">&#39;after&#39;</span><span class="hl-1">)</span><br/><br/><span class="hl-4">if</span><span class="hl-1"> (</span><span class="hl-5">local</span><span class="hl-1">) {</span><br/><span class="hl-1">  </span><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">outgoing</span><span class="hl-1">: </span><span class="hl-8">CRListDelta</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">&gt; = </span><span class="hl-5">local</span><span class="hl-1">.</span><span class="hl-5">delta</span><br/><span class="hl-1">  </span><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">remoteChange</span><span class="hl-1"> = </span><span class="hl-0">__merge</span><span class="hl-1">(</span><span class="hl-5">target</span><span class="hl-1">, </span><span class="hl-5">outgoing</span><span class="hl-1">)</span><br/><br/><span class="hl-1">  </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-5">remoteChange</span><span class="hl-1">)</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">snapshot</span><span class="hl-1">: </span><span class="hl-8">CRListSnapshot</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">&gt; = </span><span class="hl-0">__snapshot</span><span class="hl-1">(</span><span class="hl-5">target</span><span class="hl-1">)</span><br/><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-5">snapshot</span><span class="hl-1">)</span>
+</code><button type="button">Copy</button></pre>
+
+<p>The intended split is:</p>
+<ul>
+<li><code>__create</code>, <code>__read</code>, <code>__update</code>, <code>__delete</code> for local replica mutations.</li>
+<li><code>__merge</code>, <code>__acknowledge</code>, <code>__garbageCollect</code>, <code>__snapshot</code> for gossip,
+compaction, and serialization.</li>
+<li><code>CRList</code> when you want the default event-driven class API.</li>
+</ul>
+<h2 id="runtime-behavior" class="tsd-anchor-link">Runtime behavior<a href="#runtime-behavior" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="validation-and-errors" class="tsd-anchor-link">Validation and errors<a href="#validation-and-errors" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Low-level exports can throw <code>CRListError</code> with stable error codes:</p>
+<ul>
+<li><code>VALUE_NOT_CLONEABLE</code></li>
+<li><code>INDEX_OUT_OF_BOUNDS</code></li>
+<li><code>LIST_EMPTY</code></li>
+<li><code>LIST_INTEGRITY_VIOLATION</code></li>
+<li><code>UPDATE_EXPECTED_AN_ARRAY</code></li>
+</ul>
+<p>Ingress stays tolerant:</p>
+<ul>
+<li>malformed top-level merge payloads are ignored</li>
+<li>malformed snapshot values are dropped during hydration</li>
+<li>invalid UUIDs are ignored</li>
+<li>duplicate insert and delete deltas are idempotent</li>
+<li>stale or malicious deltas do not break convergence of the live view</li>
+</ul>
+<h3 id="safety-and-copying-semantics" class="tsd-anchor-link">Safety and copying semantics<a href="#safety-and-copying-semantics" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul>
+<li>Snapshots are detached structured-clone full-state payloads.</li>
+<li>Deltas are detached structured-clone gossip payloads intended to be forwarded
+as-is.</li>
+<li><code>change</code> is a minimal index-keyed local patch.</li>
+<li><code>toJSON()</code> returns a detached structured-clone snapshot.</li>
+<li><code>JSON.stringify()</code> and <code>toString()</code> are only reliable when list values are
+JSON-compatible.</li>
+<li>Numeric reads, <code>for...of</code>, <code>find()</code>, and <code>forEach()</code> expose detached copies of visible values rather than mutable references into replica state.</li>
+<li><code>for...of</code>, <code>find()</code>, <code>forEach()</code>, numeric indexing, <code>append()</code>, <code>prepend()</code>, <code>remove()</code>, <code>merge()</code>, <code>snapshot()</code>, <code>acknowledge()</code>, and <code>garbageCollect()</code> all operate on the live list projection.</li>
+</ul>
+<h3 id="convergence-and-compaction" class="tsd-anchor-link">Convergence and compaction<a href="#convergence-and-compaction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul>
+<li>The convergence target is the live list projection, not internal cursor placement.</li>
+<li>Stable <code>predecessor</code> anchors determine deterministic ordering together with UUIDv7 sorting when placement cannot be resolved from a live predecessor chain.</li>
+<li>Tombstones remain until acknowledgement frontiers make them safe to collect.</li>
+<li>Garbage collection does not change the converged live projection for replicas that later catch up from delta or snapshot state.</li>
+</ul>
+<h2 id="tests" class="tsd-anchor-link">Tests<a href="#tests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="sh"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">test</span>
+</code><button type="button">Copy</button></pre>
+
+<p>What the current test suite covers:</p>
+<ul>
+<li>Coverage on built <code>dist/**/*.js</code>: <code>100%</code> statements, <code>100%</code> branches, <code>100%</code> functions, and <code>100%</code> lines, together with focused source-coverage tests for helper edge paths.</li>
+<li>Public <code>CRList</code> surface: indexing, iteration, <code>find</code>, <code>forEach</code>, proxy traps, events, JSON/inspect behavior.</li>
+<li>Core edge paths and malicious ingress handling for <code>__create</code>, <code>__read</code>, <code>__update</code>, <code>__delete</code>, <code>__merge</code>, <code>__snapshot</code>, <code>__acknowledge</code>, and <code>__garbageCollect</code>.</li>
+<li>Internal defensive branches under intentionally corrupt in-memory replica state.</li>
+<li>Integration convergence stress for:
+<ul>
+<li>local CRUD live-view semantics</li>
+<li>snapshot hydration independent of value order</li>
+<li>merge idempotency for duplicate insert/delete deltas</li>
+<li>stale-peer acknowledgement and garbage collection recovery</li>
+<li>shuffled asynchronous gossip delivery</li>
+<li>shuffled delivery with replica restarts</li>
+<li>concurrent insert after concurrently deleted predecessor</li>
+<li><code>100</code> aggressive deterministic convergence scenarios</li>
+</ul>
+</li>
+<li>End-to-end runtime matrix for:
+<ul>
+<li>Node ESM</li>
+<li>Node CJS</li>
+<li>Bun ESM</li>
+<li>Bun CJS</li>
+<li>Deno ESM</li>
+<li>Cloudflare Workers ESM</li>
+<li>Edge Runtime ESM</li>
+<li>Browsers via Playwright: Chromium, Firefox, WebKit, mobile Chrome, mobile Safari</li>
+</ul>
+</li>
+</ul>
+<h2 id="benchmarks" class="tsd-anchor-link">Benchmarks<a href="#benchmarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="sh"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">bench</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Last measured on Node <code>v22.14.0</code> (<code>win32 x64</code>):</p>
+<table>
+<thead>
+<tr>
+<th>group</th>
+<th>scenario</th>
+<th style="text-align:right">n</th>
+<th style="text-align:right">ops</th>
+<th style="text-align:right">ms</th>
+<th style="text-align:right">ms/op</th>
+<th style="text-align:right">ops/sec</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>crud</code></td>
+<td><code>create / hydrate snapshot</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">8,817.80</td>
+<td style="text-align:right">35.27</td>
+<td style="text-align:right">28.35</td>
+</tr>
+<tr>
+<td><code>crud</code></td>
+<td><code>read / random indexed reads</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">12.59</td>
+<td style="text-align:right">0.05</td>
+<td style="text-align:right">19,854.03</td>
+</tr>
+<tr>
+<td><code>crud</code></td>
+<td><code>update / append after tail</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">2.26</td>
+<td style="text-align:right">0.01</td>
+<td style="text-align:right">110,507.01</td>
+</tr>
+<tr>
+<td><code>crud</code></td>
+<td><code>update / insert before middle</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">22.27</td>
+<td style="text-align:right">0.09</td>
+<td style="text-align:right">11,224.10</td>
+</tr>
+<tr>
+<td><code>crud</code></td>
+<td><code>update / overwrite random</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">13.95</td>
+<td style="text-align:right">0.06</td>
+<td style="text-align:right">17,919.61</td>
+</tr>
+<tr>
+<td><code>crud</code></td>
+<td><code>delete / single deletes from middle</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">23.21</td>
+<td style="text-align:right">0.09</td>
+<td style="text-align:right">10,772.98</td>
+</tr>
+<tr>
+<td><code>crud</code></td>
+<td><code>delete / range deletes</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">6.32</td>
+<td style="text-align:right">0.03</td>
+<td style="text-align:right">39,562.60</td>
+</tr>
+<tr>
+<td><code>mags</code></td>
+<td><code>snapshot</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">5,354.28</td>
+<td style="text-align:right">21.42</td>
+<td style="text-align:right">46.69</td>
+</tr>
+<tr>
+<td><code>mags</code></td>
+<td><code>acknowledge</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">47.24</td>
+<td style="text-align:right">0.19</td>
+<td style="text-align:right">5,291.76</td>
+</tr>
+<tr>
+<td><code>mags</code></td>
+<td><code>garbage collect</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">163.55</td>
+<td style="text-align:right">0.65</td>
+<td style="text-align:right">1,528.59</td>
+</tr>
+<tr>
+<td><code>mags</code></td>
+<td><code>merge ordered deltas</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">19.25</td>
+<td style="text-align:right">0.08</td>
+<td style="text-align:right">12,986.74</td>
+</tr>
+<tr>
+<td><code>mags</code></td>
+<td><code>merge shuffled gossip</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">485.99</td>
+<td style="text-align:right">1.94</td>
+<td style="text-align:right">514.41</td>
+</tr>
+<tr>
+<td><code>class</code></td>
+<td><code>constructor / hydrate snapshot</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">8,119.67</td>
+<td style="text-align:right">32.48</td>
+<td style="text-align:right">30.79</td>
+</tr>
+<tr>
+<td><code>class</code></td>
+<td><code>append after tail</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">2.87</td>
+<td style="text-align:right">0.01</td>
+<td style="text-align:right">87,232.63</td>
+</tr>
+<tr>
+<td><code>class</code></td>
+<td><code>prepend before middle</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">7.76</td>
+<td style="text-align:right">0.03</td>
+<td style="text-align:right">32,228.95</td>
+</tr>
+<tr>
+<td><code>class</code></td>
+<td><code>remove from middle</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">5.20</td>
+<td style="text-align:right">0.02</td>
+<td style="text-align:right">48,084.32</td>
+</tr>
+<tr>
+<td><code>class</code></td>
+<td><code>snapshot</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">5,842.47</td>
+<td style="text-align:right">23.37</td>
+<td style="text-align:right">42.79</td>
+</tr>
+<tr>
+<td><code>class</code></td>
+<td><code>acknowledge</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">127.77</td>
+<td style="text-align:right">0.51</td>
+<td style="text-align:right">1,956.68</td>
+</tr>
+<tr>
+<td><code>class</code></td>
+<td><code>garbage collect</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">323.20</td>
+<td style="text-align:right">1.29</td>
+<td style="text-align:right">773.51</td>
+</tr>
+<tr>
+<td><code>class</code></td>
+<td><code>merge ordered deltas</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">8.61</td>
+<td style="text-align:right">0.03</td>
+<td style="text-align:right">29,021.17</td>
+</tr>
+<tr>
+<td><code>class</code></td>
+<td><code>merge shuffled gossip</code></td>
+<td style="text-align:right">5,000</td>
+<td style="text-align:right">250</td>
+<td style="text-align:right">523.53</td>
+<td style="text-align:right">2.09</td>
+<td style="text-align:right">477.53</td>
+</tr>
+</tbody>
+</table>
+<h2 id="license" class="tsd-anchor-link">License<a href="#license" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Apache-2.0</p>
+</div></div><div class="col-sidebar"><div class="page-menu"><div class="tsd-navigation settings"><details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg><h3>Settings</h3></summary><div class="tsd-accordion-details"><div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span><ul id="tsd-filter-options"><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div><div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div><details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg><h3>On This Page</h3></summary><div class="tsd-accordion-details"><a href="#convergent-replicated-list"><span>convergent-<wbr/>replicated-<wbr/>list</span></a><ul><li><a href="#compatibility"><span>Compatibility</span></a></li><li><a href="#goals"><span>Goals</span></a></li><li><a href="#installation"><span>Installation</span></a></li><li><a href="#usage"><span>Usage</span></a></li><li><ul><li><a href="#copy-paste-example"><span>Copy-<wbr/>paste example</span></a></li><li><a href="#hydrating-from-a-snapshot"><span>Hydrating from a snapshot</span></a></li><li><a href="#event-channels"><span>Event channels</span></a></li><li><a href="#iteration-and-json-serialization"><span>Iteration and <wbr/>JSON serialization</span></a></li><li><a href="#acknowledgements-and-garbage-collection"><span>Acknowledgements and garbage collection</span></a></li><li><a href="#advanced-exports"><span>Advanced exports</span></a></li></ul></li><li><a href="#runtime-behavior"><span>Runtime behavior</span></a></li><li><ul><li><a href="#validation-and-errors"><span>Validation and errors</span></a></li><li><a href="#safety-and-copying-semantics"><span>Safety and copying semantics</span></a></li><li><a href="#convergence-and-compaction"><span>Convergence and compaction</span></a></li></ul></li><li><a href="#tests"><span>Tests</span></a></li><li><a href="#benchmarks"><span>Benchmarks</span></a></li><li><a href="#license"><span>License</span></a></li></ul></div></details></div><div class="site-menu"><nav class="tsd-navigation"><a href="modules.html">@sovereignbase/convergent-replicated-list</a><ul class="tsd-small-nested-navigation" id="tsd-nav-container"><li>Loading...</li></ul></nav></div></div></div><footer><p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer><div class="overlay"></div></body></html>

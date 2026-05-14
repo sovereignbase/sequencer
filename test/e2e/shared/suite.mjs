@@ -364,6 +364,7 @@ export async function runCRListSuite(api, options = {}) {
 
   await runTest('exports shape', () => {
     for (const name of [
+      'CRList',
       '__create',
       '__read',
       '__update',
@@ -375,6 +376,37 @@ export async function runCRListSuite(api, options = {}) {
     ]) {
       assert(typeof api[name] === 'function', `missing ${name}`)
     }
+  })
+
+  await runTest('class find matches index-order live values', () => {
+    const list = new api.CRList()
+
+    list.append(value('a'))
+    list.append(value('b'))
+    list.append(value('c'))
+
+    const found = list.find(
+      function (entry, index, target) {
+        assertEqual(this.marker, true, 'find thisArg mismatch')
+        assertEqual(target, list, 'find target mismatch')
+        return index === 1 && entry.id === 'b'
+      },
+      { marker: true }
+    )
+
+    assertEqual(found?.id, 'b', 'find returned wrong value')
+    found.id = 'mutated'
+    assertEqual(list[1].id, 'b', 'find returned mutable replica state')
+    assertEqual(
+      list.find((entry) => entry.id === 'missing'),
+      undefined,
+      'missing find result should be undefined'
+    )
+    assertEqual(
+      new api.CRList().find(() => true),
+      undefined,
+      'empty find result should be undefined'
+    )
   })
 
   await runTest('crud live view and local delta semantics', () => {

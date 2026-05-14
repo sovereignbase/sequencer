@@ -86,6 +86,7 @@ const BENCHMARKS = [
     n: LIST_SIZE,
     ops: RUN_TIMES,
   },
+  { group: 'class', name: 'find near tail', n: LIST_SIZE, ops: RUN_TIMES },
   { group: 'class', name: 'snapshot', n: LIST_SIZE, ops: RUN_TIMES },
   { group: 'class', name: 'acknowledge', n: LIST_SIZE, ops: RUN_TIMES },
   { group: 'class', name: 'garbage collect', n: LIST_SIZE, ops: RUN_TIMES },
@@ -402,6 +403,15 @@ function runBenchmark(definition) {
           removed++
         }
         return removed
+      })
+    }
+    case 'class:find near tail': {
+      const list = createSeededList(definition.n)
+      return time(() => {
+        for (let index = 0; index < definition.ops; index++) {
+          list.find((entry) => entry.id === definition.n - 1)
+        }
+        return definition.ops
       })
     }
     case 'class:snapshot': {

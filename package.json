@@ -39,7 +39,7 @@
   "sideEffects": false,
   "scripts": {
     "format": "prettier . --write",
-    "build": "tsup",
+    "build": "tsup && typedoc",
     "test": "npm run build && node test/run-coverage.mjs && node test/e2e/run.mjs",
     "bench": "npm run build && node benchmark/bench.js",
     "prepare": "husky",
@@ -58,17 +58,18 @@
     ]
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.0.0",
-    "@commitlint/config-conventional": "^21.0.0",
-    "@playwright/test": "^1.59.1",
-    "@types/node": "^25.6.2",
+    "@commitlint/cli": "^21.0.1",
+    "@commitlint/config-conventional": "^21.0.1",
+    "@playwright/test": "^1.60.0",
+    "@types/node": "^25.7.0",
     "c8": "^11.0.0",
     "edge-runtime": "^4.0.1",
     "fast-glob": "^3.3.3",
     "husky": "^9.1.7",
-    "playwright": "^1.59.1",
+    "playwright": "^1.60.0",
     "prettier": "^3.8.3",
     "tsup": "^8.5.1",
+    "typedoc": "^0.28.19",
     "typescript": "^5.9.3",
     "wrangler": "4.86.0"
   },

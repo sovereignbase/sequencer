@@ -1,0 +1,6 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "favicon": "https://sovereignbase.dev/sovereignbase_logo.png",
+  "out": "docs"
+}

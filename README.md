@@ -7,9 +7,8 @@
 
 Convergent Replicated List (CR-List), a delta CRDT for an ordered sequence of entries.
 
-Read the specification:
-
-- https://sovereignbase.dev/convergent-replicated-list
+- [Check the docs](https://sovereignbase.dev/convergent-replicated-list/docs/)
+- [Read the specification](https://sovereignbase.dev/convergent-replicated-list/)
 
 ## Compatibility
 
@@ -146,6 +145,11 @@ list.forEach((value, index, target) => {
   console.log(index, value, target.size)
 })
 
+const found = list.find((value, index, target) => {
+  return index === 1 && target.size === 3 && value === 'up'
+})
+
+console.log(found) // 'up'
 console.log([...restored]) // ['What is', 'up', 'dude!']
 ```
 
@@ -154,9 +158,9 @@ This example assumes your list values are JSON-compatible. For general
 snapshots with a structured-clone-capable store or an application-level codec
 instead of plain `JSON.stringify` / `JSON.parse`.
 
-Numeric reads, `for...of`, and `forEach()` return detached copies of visible
-values. Mutating those returned values does not mutate the underlying replica
-state.
+Numeric reads, `for...of`, `find()`, and `forEach()` return detached copies of
+visible values. Mutating those returned values does not mutate the underlying
+replica state.
 
 ### Acknowledgements and garbage collection
 
@@ -260,8 +264,8 @@ Ingress stays tolerant:
 - `toJSON()` returns a detached structured-clone snapshot.
 - `JSON.stringify()` and `toString()` are only reliable when list values are
   JSON-compatible.
-- Numeric reads, `for...of`, and `forEach()` expose detached copies of visible values rather than mutable references into replica state.
-- `for...of`, `forEach()`, numeric indexing, `append()`, `prepend()`, `remove()`, `merge()`, `snapshot()`, `acknowledge()`, and `garbageCollect()` all operate on the live list projection.
+- Numeric reads, `for...of`, `find()`, and `forEach()` expose detached copies of visible values rather than mutable references into replica state.
+- `for...of`, `find()`, `forEach()`, numeric indexing, `append()`, `prepend()`, `remove()`, `merge()`, `snapshot()`, `acknowledge()`, and `garbageCollect()` all operate on the live list projection.
 
 ### Convergence and compaction
 
@@ -279,7 +283,7 @@ npm run test
 What the current test suite covers:
 
 - Coverage on built `dist/**/*.js`: `100%` statements, `100%` branches, `100%` functions, and `100%` lines, together with focused source-coverage tests for helper edge paths.
-- Public `CRList` surface: indexing, iteration, `forEach`, proxy traps, events, JSON/inspect behavior.
+- Public `CRList` surface: indexing, iteration, `find`, `forEach`, proxy traps, events, JSON/inspect behavior.
 - Core edge paths and malicious ingress handling for `__create`, `__read`, `__update`, `__delete`, `__merge`, `__snapshot`, `__acknowledge`, and `__garbageCollect`.
 - Internal defensive branches under intentionally corrupt in-memory replica state.
 - Integration convergence stress for:

@@ -21,10 +21,10 @@ import {
  *
  * Numeric property access reads and mutates the live list projection:
  * `list[0]` reads a detached copy of an entry, `list[0] = value` writes an
- * entry, and `delete list[0]` removes one entry. Iteration and `forEach()`
- * likewise expose detached copies rather than mutable references into the
- * replica state. Local mutations emit `delta` and `change` events; remote
- * merges emit `change` events.
+ * entry, and `delete list[0]` removes one entry. Iteration, `find()`, and
+ * `forEach()` likewise expose detached copies rather than mutable references
+ * into the replica state. Local mutations emit `delta` and `change` events;
+ * remote merges emit `change` events.
  *
  * @typeParam T - The value type stored in the list.
  */
@@ -211,13 +211,23 @@ export class CRList<T> {
       )
   }
 
+  /**
+   * Returns the first live value copy matching a predicate in index order.
+   *
+   * Predicate values are detached copies, so mutating them does not mutate the
+   * list.
+   *
+   * @param predicate - Function to test each value copy.
+   * @param thisArg - Optional `this` value for the predicate.
+   */
   find(
-    predicate: (value: T, index: number, list: this) => unknown
+    predicate: (this: unknown, value: T, index: number, list: this) => unknown,
+    thisArg?: unknown
   ): T | undefined {
     let index = 0
 
     for (const value of this) {
-      if (predicate(value, index, this)) return value
+      if (predicate.call(thisArg, value, index, this)) return value
       index++
     }
 

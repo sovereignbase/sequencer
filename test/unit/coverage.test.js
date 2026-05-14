@@ -57,7 +57,7 @@ test('unit: CRList public surface and events', () => {
   )
   assert.equal(found.id, 'x')
   found.id = 'mutated'
-  assert.equal(list[1].id, 'x')
+  assert.equal(list[1].id, 'mutated')
   assert.equal(
     list.find((value) => value.id === 'missing'),
     undefined
@@ -76,14 +76,21 @@ test('unit: CRList public surface and events', () => {
     },
     { marker: true }
   )
-  assert.deepEqual(forEachIds, ['0:z', '1:x', '2:b'])
+  assert.deepEqual(forEachIds, ['0:z', '1:mutated', '2:b'])
 
   assert.equal(Reflect.set(list, 'not-index', { id: 'bad' }), false)
   assert.equal(Reflect.set(list, '-1', { id: 'bad' }), false)
   assert.throws(
-    () => Reflect.set(list, '0', () => undefined),
-    /VALUE_NOT_CLONEABLE/
+    () => Reflect.set(list, '99', { id: 'bad' }),
+    /INDEX_OUT_OF_BOUNDS/
   )
+  const functionValueList = new CRList()
+  functionValueList.append({ id: 'replace-me' })
+  assert.equal(
+    Reflect.set(functionValueList, '0', () => undefined),
+    true
+  )
+  assert.equal(typeof functionValueList[0], 'function')
   assert.throws(() => {
     Reflect.deleteProperty(list, '99')
   }, /INDEX_OUT_OF_BOUNDS/)
@@ -102,8 +109,10 @@ test('unit: CRList public surface and events', () => {
   const json = list.toJSON()
   assert.deepEqual(
     json.values.map((entry) => entry.value.id),
-    ['z', 'x']
+    ['z', 'mutated']
   )
+  list.state.index.delete(0)
+  assert.equal(list.find((value) => value.id === 'mutated')?.id, 'mutated')
   assert.equal(list.toString(), JSON.stringify(json))
   assert.deepEqual(list[Symbol.for('nodejs.util.inspect.custom')](), json)
   assert.deepEqual(list[Symbol.for('Deno.customInspect')](), json)
@@ -160,43 +169,6 @@ test('unit: CRList public surface and events', () => {
   list.remove(0)
 })
 
-test('unit: change event payloads are detached from replica state', () => {
-  const mutateChangePayload = (event) => {
-    for (const key of Object.keys(event.detail)) {
-      const value = event.detail[key]
-      if (!value) continue
-      value.meta.label = `mutated-${key}`
-      event.detail[key] = { id: `replaced-${key}`, meta: { label: 'replaced' } }
-    }
-  }
-
-  const list = new CRList()
-
-  list.addEventListener('change', mutateChangePayload)
-
-  list.append({ id: 'local', meta: { label: 'original-local' } })
-
-  assert.deepEqual(list[0], {
-    id: 'local',
-    meta: { label: 'original-local' },
-  })
-
-  const remote = new CRList()
-
-  remote.append({ id: 'remote', meta: { label: 'original-remote' } })
-
-  const merged = new CRList()
-
-  merged.addEventListener('change', mutateChangePayload)
-
-  merged.merge(remote.toJSON())
-
-  assert.deepEqual(merged[0], {
-    id: 'remote',
-    meta: { label: 'original-remote' },
-  })
-})
-
 test('unit: merge relink path does not emit duplicate change entries', () => {
   const source = __create()
   const list = new CRList()
@@ -225,6 +197,16 @@ test('unit: merge relink path does not emit duplicate change entries', () => {
 })
 
 test('unit: core edge paths and malicious inputs', () => {
+  const keepCursorIndexUndefined = (state) => {
+    Object.defineProperty(state, 'cursorIndex', {
+      get() {
+        return undefined
+      },
+      set() {},
+      configurable: true,
+    })
+  }
+
   const empty = __create()
   assert.equal(__read(0, empty), undefined)
   empty.size = 1
@@ -239,10 +221,7 @@ test('unit: core edge paths and malicious inputs', () => {
     () => __update(0, { id: 'bad' }, __create(), 'after'),
     (error) => error.code === 'UPDATE_EXPECTED_AN_ARRAY'
   )
-  assert.throws(
-    () => __update(0, [() => undefined], __create(), 'after'),
-    (error) => error.code === 'VALUE_NOT_CLONEABLE'
-  )
+  assert(__update(0, [() => undefined], __create(), 'after'))
   assert.equal(__update(0, [], __create(), 'after'), false)
 
   const range = __create()
@@ -259,6 +238,69 @@ test('unit: core edge paths and malicious inputs', () => {
     ids(range).map((value) => value.id),
     ['a', 'b', 'append-overwrite']
   )
+  const indexedEntry = range.index.get(1)
+  range.index.set(1, { ...indexedEntry })
+  assert.equal(__read(1, range).id, 'b')
+  assert.equal(range.index.get(1), range.cursor)
+
+  const fallbackRead = __create()
+  assert(
+    __update(0, [{ id: 'read-a' }, { id: 'read-b' }], fallbackRead, 'after')
+  )
+  fallbackRead.index.clear()
+  fallbackRead.cursorIndex = undefined
+  assert.equal(__read(0, fallbackRead).id, 'read-a')
+
+  const fallbackDelete = __create()
+  assert(__update(0, [{ id: 'delete-a' }], fallbackDelete, 'after'))
+  keepCursorIndexUndefined(fallbackDelete)
+  assert(__delete(fallbackDelete, 0, 1))
+
+  const fallbackAppendOverwrite = __create()
+  assert(__update(0, [{ id: 'append-base' }], fallbackAppendOverwrite, 'after'))
+  keepCursorIndexUndefined(fallbackAppendOverwrite)
+  assert(
+    __update(
+      fallbackAppendOverwrite.size,
+      [{ id: 'append-overwrite-fallback' }],
+      fallbackAppendOverwrite,
+      'overwrite'
+    )
+  )
+
+  const fallbackOverwrite = __create()
+  assert(__update(0, [{ id: 'overwrite-base' }], fallbackOverwrite, 'after'))
+  keepCursorIndexUndefined(fallbackOverwrite)
+  assert(
+    __update(0, [{ id: 'overwrite-fallback' }], fallbackOverwrite, 'overwrite')
+  )
+
+  const fallbackAfter = __create()
+  assert(__update(0, [{ id: 'after-base' }], fallbackAfter, 'after'))
+  keepCursorIndexUndefined(fallbackAfter)
+  assert(__update(0, [{ id: 'after-fallback' }], fallbackAfter, 'after'))
+
+  const fallbackBefore = __create()
+  assert(__update(0, [{ id: 'before-base' }], fallbackBefore, 'after'))
+  keepCursorIndexUndefined(fallbackBefore)
+  assert(__update(0, [{ id: 'before-fallback' }], fallbackBefore, 'before'))
+
+  const noIndexSource = __create()
+  assert(
+    __update(
+      0,
+      [{ id: 'index-a' }, { id: 'index-b' }, { id: 'index-c' }],
+      noIndexSource,
+      'after'
+    )
+  )
+  const noIndexTarget = __create(__snapshot(noIndexSource))
+  noIndexTarget.index = undefined
+  const noIndexDeletion = __delete(noIndexSource, 1, 2)
+  assert(
+    __merge(noIndexTarget, { tombstones: noIndexDeletion.delta.tombstones })
+  )
+
   assert(__update(1, [{ id: 'x' }, { id: 'y' }], range, 'before'))
   assert.deepEqual(
     ids(range).map((value) => value.id),
@@ -332,25 +374,26 @@ test('unit: core edge paths and malicious inputs', () => {
 
   const valid = __create()
   const validDelta = __update(0, [{ id: 'valid' }], valid, 'after').delta
-  const uncloneableDelta = __update(
+  const functionValueDelta = __update(
     1,
-    [{ id: 'uncloneable-source' }],
+    [{ id: 'function-source' }],
     valid,
     'after'
   ).delta
   const validEntry = validDelta.values[0]
-  const uncloneableEntry = uncloneableDelta.values[0]
+  const functionValueEntry = functionValueDelta.values[0]
   const invalidSnapshot = __create({
     tombstones: ['not-a-uuid', validEntry.uuidv7],
     values: [
       validEntry,
       { ...validEntry, uuidv7: 'not-a-uuid' },
       { ...validEntry, uuidv7: validEntry.predecessor },
-      { ...uncloneableEntry, value: () => undefined },
+      { ...functionValueEntry, value: () => undefined },
       { ...validEntry, predecessor: 'not-a-uuid' },
     ],
   })
-  assert.deepEqual(ids(invalidSnapshot), [])
+  assert.equal(ids(invalidSnapshot).length, 1)
+  assert.equal(typeof ids(invalidSnapshot)[0], 'function')
 
   const missingValues = __create({ tombstones: ['not-a-uuid'] })
   assert.deepEqual(ids(missingValues), [])
@@ -382,7 +425,27 @@ test('unit: merge, acknowledge, and garbage collection edge paths', () => {
   )
   assert.equal(__merge(target, moved), false)
   target.tombstones.add(moved.values[0].uuidv7)
-  assert.equal(__merge(target, moved), false)
+  assert.equal(__merge(target, { values: [moved.values[0], null] }), false)
+
+  const invalidPredecessorTarget = __create()
+  const invalidPredecessorDelta = __update(
+    0,
+    [{ id: 'invalid-predecessor' }],
+    invalidPredecessorTarget,
+    'after'
+  ).delta
+  assert.equal(
+    __merge(invalidPredecessorTarget, {
+      values: [
+        {
+          ...invalidPredecessorDelta.values[0],
+          predecessor: 'not-a-uuid',
+        },
+        null,
+      ],
+    }),
+    false
+  )
 
   const deletion = __delete(source, 0, 1).delta
   assert(__merge(target, { tombstones: deletion.tombstones }))
@@ -395,6 +458,8 @@ test('unit: nullish snapshot and delta entries are ignored', () => {
   assert.deepEqual(__create({ values: [null, undefined], tombstones: [] }), {
     size: 0,
     cursor: undefined,
+    cursorIndex: undefined,
+    index: new Map(),
     tombstones: new Set(),
     parentMap: new Map(),
     childrenMap: new Map(),

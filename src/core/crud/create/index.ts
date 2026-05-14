@@ -80,7 +80,9 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
   }
   if (canUseLinearProjection) {
     crListReplica.cursor = previous
-    crListReplica.cursorIndex = crListReplica.parentMap.size - 1
+    crListReplica.cursorIndex = previous
+      ? crListReplica.parentMap.size - 1
+      : undefined
     crListReplica.size = crListReplica.parentMap.size
     return crListReplica
   }

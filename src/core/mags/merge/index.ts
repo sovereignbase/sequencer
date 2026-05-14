@@ -46,6 +46,38 @@ export function __merge<T>(
   const newTombsIndices: Array<number> = []
   const change: CRListChange<T> = {}
   let needsRelink = false
+  if (
+    Object.hasOwn(crListDelta, 'values') &&
+    Array.isArray(crListDelta.values) &&
+    crListDelta.values.length === 1 &&
+    (!Object.hasOwn(crListDelta, 'tombstones') ||
+      (Array.isArray(crListDelta.tombstones) &&
+        crListDelta.tombstones.length === 0))
+  ) {
+    const linkedListEntry = transformSnapshotEntryToStateEntry<T>(
+      crListDelta.values[0],
+      crListReplica
+    )
+    if (!linkedListEntry) return false
+    const predecessor =
+      linkedListEntry.predecessor === '\0'
+        ? undefined
+        : crListReplica.parentMap.get(linkedListEntry.predecessor)
+    if (
+      (linkedListEntry.predecessor === '\0' && crListReplica.size === 0) ||
+      (predecessor && !predecessor.next)
+    ) {
+      linkedListEntry.prev = predecessor
+      linkedListEntry.index = crListReplica.size
+      if (predecessor) predecessor.next = linkedListEntry
+      crListReplica.cursor = linkedListEntry
+      crListReplica.cursorIndex = linkedListEntry.index
+      void updateEntryToMaps<T>(crListReplica, linkedListEntry)
+      crListReplica.size = crListReplica.parentMap.size
+      crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
+      return { [linkedListEntry.index]: linkedListEntry.value }
+    }
+  }
 
   /** Apply tombstone entries. */
   if (

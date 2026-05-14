@@ -210,6 +210,14 @@ export class CRList<T> {
         new CustomEvent('change', { detail: change })
       )
   }
+  find(predicate: (item: T) => boolean): T | false {
+    if (!this.state.cursor) throw new CRListError('LIST_EMPTY')
+    for (const item of this) {
+      if (predicate(item)) return item
+      continue
+    }
+    return false
+  }
   /**
    * Applies a remote gossip delta to this list.
    *

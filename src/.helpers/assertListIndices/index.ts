@@ -3,6 +3,7 @@ import type { CRListState } from '../../.types/index.js'
 export function assertListIndices<T>(crListReplica: CRListState<T>): void {
   if (!crListReplica.cursor) {
     crListReplica.index?.clear()
+    crListReplica.cursorIndex = undefined
     return
   }
   let index = crListReplica.size
@@ -19,4 +20,5 @@ export function assertListIndices<T>(crListReplica: CRListState<T>): void {
     crListReplica.cursor = crListReplica.cursor.prev
   }
   crListReplica.index = entries
+  crListReplica.cursorIndex = 0
 }

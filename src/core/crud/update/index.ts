@@ -51,7 +51,6 @@ export function __update<T>(
   if (listValues.length === 0) return false
   const change: CRListChange<T> = {}
   const delta: CRListDelta<T> = { values: [], tombstones: [] }
-  let shiftCursor: CRListStateEntry<T>
   for (const listValue of listValues) {
     const v7 = uuidv7()
 
@@ -69,6 +68,7 @@ export function __update<T>(
         if (listIndex === crListReplica.size) {
           if (crListReplica.size === 0) {
             crListReplica.cursor = linkedListEntry
+            crListReplica.cursorIndex = linkedListEntry.index
             void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
             crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
             change[linkedListEntry.index] = linkedListEntry.value
@@ -76,11 +76,12 @@ export function __update<T>(
           }
           void walkToIndex<T>(crListReplica.size - 1, crListReplica)
           if (!crListReplica.cursor) return false
-          linkedListEntry.index = crListReplica.cursor.index + 1
+          linkedListEntry.index = (crListReplica.cursorIndex ?? 0) + 1
           linkedListEntry.predecessor = crListReplica.cursor.uuidv7
           insertBetween<T>(crListReplica.cursor, linkedListEntry, undefined)
           void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
           crListReplica.cursor = linkedListEntry
+          crListReplica.cursorIndex = linkedListEntry.index
           crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
           change[linkedListEntry.index] = linkedListEntry.value
           break
@@ -88,9 +89,10 @@ export function __update<T>(
         void walkToIndex<T>(listIndex, crListReplica)
         if (!crListReplica.cursor) return false
         const entryToOverwrite = crListReplica.cursor
+        const actualIndex = crListReplica.cursorIndex ?? listIndex
 
         linkedListEntry.predecessor = entryToOverwrite.predecessor
-        linkedListEntry.index = entryToOverwrite.index
+        linkedListEntry.index = actualIndex
         insertBetween<T>(
           entryToOverwrite.prev,
           linkedListEntry,
@@ -113,13 +115,15 @@ export function __update<T>(
         entryToOverwrite.next = undefined
         entryToOverwrite.prev = undefined
         crListReplica.cursor = linkedListEntry
+        crListReplica.cursorIndex = actualIndex
         crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
-        change[linkedListEntry.index] = linkedListEntry.value
+        change[actualIndex] = linkedListEntry.value
         break
       }
       case 'after': {
         if (crListReplica.size === 0 && listIndex === 0) {
           crListReplica.cursor = linkedListEntry
+          crListReplica.cursorIndex = linkedListEntry.index
           void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
           crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
           change[linkedListEntry.index] = linkedListEntry.value
@@ -131,12 +135,12 @@ export function __update<T>(
           void walkToIndex<T>(listIndex, crListReplica)
         }
         if (!crListReplica.cursor) return false
+        const actualIndex = crListReplica.cursorIndex ?? listIndex
         const next =
           listIndex === crListReplica.size
             ? undefined
             : crListReplica.cursor.next
-        shiftCursor = next
-        linkedListEntry.index = crListReplica.cursor.index + 1
+        linkedListEntry.index = actualIndex + 1
         linkedListEntry.predecessor = crListReplica.cursor.uuidv7
         insertBetween<T>(crListReplica.cursor, linkedListEntry, next)
         if (next) {
@@ -151,6 +155,8 @@ export function __update<T>(
         }
         void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
         crListReplica.cursor = linkedListEntry
+        crListReplica.cursorIndex = linkedListEntry.index
+        if (next) crListReplica.index = new Map()
         crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
         change[linkedListEntry.index] = linkedListEntry.value
         break
@@ -158,6 +164,7 @@ export function __update<T>(
       case 'before': {
         if (crListReplica.size === 0 && listIndex === 0) {
           crListReplica.cursor = linkedListEntry
+          crListReplica.cursorIndex = linkedListEntry.index
           void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
           crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
           change[linkedListEntry.index] = linkedListEntry.value
@@ -167,9 +174,9 @@ export function __update<T>(
         }
         void walkToIndex<T>(listIndex, crListReplica)
         if (!crListReplica.cursor) return false
+        const actualIndex = crListReplica.cursorIndex ?? listIndex
         const prev = crListReplica.cursor.prev
-        shiftCursor = crListReplica.cursor
-        linkedListEntry.index = crListReplica.cursor.index
+        linkedListEntry.index = actualIndex
         linkedListEntry.predecessor = prev?.uuidv7 ?? '\0'
         insertBetween<T>(prev, linkedListEntry, crListReplica.cursor)
         if (crListReplica.cursor.predecessor === linkedListEntry.predecessor) {
@@ -182,8 +189,10 @@ export function __update<T>(
         }
         void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
         crListReplica.cursor = linkedListEntry
+        crListReplica.cursorIndex = actualIndex
+        crListReplica.index = new Map()
         crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
-        change[linkedListEntry.index] = linkedListEntry.value
+        change[actualIndex] = linkedListEntry.value
         mode = 'after'
         listIndex = linkedListEntry.index - 1
 
@@ -193,10 +202,5 @@ export function __update<T>(
     crListReplica.size = crListReplica.parentMap.size
     listIndex++
   }
-  if (mode !== 'overwrite')
-    while (shiftCursor) {
-      shiftCursor.index += listValues.length
-      shiftCursor = shiftCursor.next
-    }
   return { change, delta }
 }

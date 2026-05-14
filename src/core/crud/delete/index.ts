@@ -50,25 +50,28 @@ export function __delete<T>(
 
   let current: CRListStateEntry<T> = crListReplica.cursor
   let deleted = 0
+  let currentIndex = crListReplica.cursorIndex ?? listIndex
 
   while (current && deleted < deleteCount) {
     const next: CRListStateEntry<T> = current.next
-    change[current.index] = undefined
-    crListReplica.index?.delete(current.index)
+    change[currentIndex] = undefined
+    crListReplica.index?.delete(currentIndex)
     void deleteLinkedEntry<T>(crListReplica, current, delta)
     current = next
+    currentIndex++
     deleted++
   }
 
   crListReplica.size = crListReplica.parentMap.size
-  const firstShiftedEntry = current
-
-  while (current) {
-    current.index -= deleted
-    current = current.next
-  }
-  if (firstShiftedEntry)
-    crListReplica.index?.set(firstShiftedEntry.index, firstShiftedEntry)
+  crListReplica.cursor = current ?? crListReplica.cursor
+  crListReplica.cursorIndex = current
+    ? listIndex
+    : crListReplica.cursor
+      ? Math.max(0, crListReplica.size - 1)
+      : undefined
+  crListReplica.index = new Map()
+  if (crListReplica.cursor && crListReplica.cursorIndex !== undefined)
+    crListReplica.index.set(crListReplica.cursorIndex, crListReplica.cursor)
 
   return { change, delta }
 }

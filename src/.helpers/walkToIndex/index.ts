@@ -11,20 +11,22 @@ export function walkToIndex<T>(
   if (indexedEntry) {
     if (crListReplica.parentMap.get(indexedEntry.uuidv7) === indexedEntry) {
       crListReplica.cursor = indexedEntry
-      if (indexedEntry.index !== targetIndex) {
-        crListReplica.index?.delete(targetIndex)
-        crListReplica.index?.set(indexedEntry.index, indexedEntry)
-      }
+      crListReplica.cursorIndex = targetIndex
+      return
     } else {
       crListReplica.index?.delete(targetIndex)
     }
   }
   if (!crListReplica.cursor)
     throw new CRListError('LIST_EMPTY', 'List is empty')
-  const direction = crListReplica.cursor.index > targetIndex ? 'prev' : 'next'
-  while (crListReplica.cursor && crListReplica.cursor.index !== targetIndex) {
+  let cursorIndex = crListReplica.cursorIndex ?? crListReplica.cursor.index
+  const direction = cursorIndex > targetIndex ? 'prev' : 'next'
+  while (crListReplica.cursor && cursorIndex !== targetIndex) {
     crListReplica.cursor = crListReplica.cursor[direction]
+    cursorIndex += direction === 'next' ? 1 : -1
   }
-  if (crListReplica.cursor)
+  if (crListReplica.cursor) {
+    crListReplica.cursorIndex = targetIndex
     crListReplica.index?.set(targetIndex, crListReplica.cursor)
+  }
 }

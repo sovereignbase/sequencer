@@ -34,6 +34,8 @@ export type CRListState<T> = {
   size: number
   /** Current live entry used as the walking cursor. */
   cursor: CRListStateEntry<T>
+  /** Current zero-based index of `cursor`. */
+  cursorIndex?: number
   /** Opportunistic live-entry cache keyed by observed zero-based index. */
   index?: Map<number, NonNullable<CRListStateEntry<T>>>
   /** Deleted UUIDv7 entries retained for gossip and convergence. */

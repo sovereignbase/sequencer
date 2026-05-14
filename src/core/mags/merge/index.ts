@@ -111,6 +111,7 @@ export function __merge<T>(
     if (!needsRelink && linkedListEntry.predecessor === '\0') {
       if (crListReplica.size === 0) {
         crListReplica.cursor = linkedListEntry
+        crListReplica.cursorIndex = linkedListEntry.index
         crListReplica.size = crListReplica.parentMap.size
         crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
       } else {
@@ -118,9 +119,10 @@ export function __merge<T>(
       }
     } else if (!needsRelink && predecessor && !predecessor.next) {
       linkedListEntry.prev = predecessor
-      linkedListEntry.index = predecessor.index + 1
+      linkedListEntry.index = crListReplica.size
       predecessor.next = linkedListEntry
       crListReplica.cursor = linkedListEntry
+      crListReplica.cursorIndex = linkedListEntry.index
       crListReplica.size = crListReplica.parentMap.size
       crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
     } else {

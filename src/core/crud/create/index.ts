@@ -33,6 +33,7 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
   const crListReplica: CRListState<T> = {
     size: 0,
     cursor: undefined,
+    cursorIndex: undefined,
     index: new Map(),
     tombstones: new Set<string>(),
     parentMap: new Map<string, NonNullable<CRListStateEntry<T>>>(),
@@ -79,6 +80,7 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
   }
   if (canUseLinearProjection) {
     crListReplica.cursor = previous
+    crListReplica.cursorIndex = crListReplica.parentMap.size - 1
     crListReplica.size = crListReplica.parentMap.size
     return crListReplica
   }

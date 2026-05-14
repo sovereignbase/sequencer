@@ -22,6 +22,7 @@ export function deleteLinkedEntry<T>(
   void deleteEntryFromMaps<T>(crListReplica, linkedListEntry)
   if (crListReplica.cursor === linkedListEntry)
     crListReplica.cursor = next ?? prev
+  if (!crListReplica.cursor) crListReplica.cursorIndex = undefined
   linkedListEntry.prev = undefined
   linkedListEntry.next = undefined
   crListReplica.size = crListReplica.parentMap.size

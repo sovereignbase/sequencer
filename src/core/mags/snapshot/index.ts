@@ -26,7 +26,7 @@ export function __snapshot<T>(
         if (!linkedListEntry) throw new CRListError('LIST_INTEGRITY_VIOLATION')
         return {
           uuidv7: linkedListEntry.uuidv7,
-          value: structuredClone(linkedListEntry.value),
+          value: linkedListEntry.value,
           predecessor: linkedListEntry.predecessor,
         }
       }

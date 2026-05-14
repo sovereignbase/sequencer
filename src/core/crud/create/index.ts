@@ -9,6 +9,7 @@ import {
   assertListIndices,
   transformSnapshotEntryToStateEntry,
   updateEntryToMaps,
+  insertBetween,
 } from '../../../.helpers/index.js'
 
 /**
@@ -54,6 +55,8 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
   if (!Object.hasOwn(snapshot, 'values') || !Array.isArray(snapshot.values))
     return crListReplica
   // Build predecessor tree.
+  let canUseLinearProjection = true
+  let previous: CRListStateEntry<T> = undefined
   for (const valueEntry of snapshot.values) {
     const linkedListEntry = transformSnapshotEntryToStateEntry<T>(
       valueEntry,
@@ -61,6 +64,21 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
     )
     if (!linkedListEntry) continue
     void updateEntryToMaps<T>(crListReplica, linkedListEntry)
+    if (
+      canUseLinearProjection &&
+      linkedListEntry.predecessor === (previous?.uuidv7 ?? '\0')
+    ) {
+      linkedListEntry.index = crListReplica.parentMap.size - 1
+      insertBetween<T>(previous, linkedListEntry, undefined)
+      previous = linkedListEntry
+      continue
+    }
+    canUseLinearProjection = false
+  }
+  if (canUseLinearProjection) {
+    crListReplica.cursor = previous
+    crListReplica.size = crListReplica.parentMap.size
+    return crListReplica
   }
   // Flatten tree into a doubly linked list.
   void flattenAndLinkTrustedState<T>(crListReplica)

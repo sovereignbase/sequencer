@@ -1,5 +1,4 @@
 import { CRListError } from '../../../.errors/class.js'
-import { safeStructuredClone } from '@sovereignbase/utils'
 import {
   updateEntryToMaps,
   deleteEntryFromMaps,
@@ -54,15 +53,11 @@ export function __update<T>(
   const delta: CRListDelta<T> = { values: [], tombstones: [] }
   let shiftCursor: CRListStateEntry<T>
   for (const listValue of listValues) {
-    const [cloned, copiedValue] = safeStructuredClone(listValue)
-
-    if (!cloned) throw new CRListError('VALUE_NOT_CLONEABLE')
-
     const v7 = uuidv7()
 
     const linkedListEntry: NonNullable<CRListStateEntry<T>> = {
       uuidv7: v7,
-      value: copiedValue,
+      value: listValue,
       predecessor: '\0',
       index: 0,
       next: undefined,
@@ -85,7 +80,7 @@ export function __update<T>(
           insertBetween<T>(crListReplica.cursor, linkedListEntry, undefined)
           void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
           crListReplica.cursor = linkedListEntry
-          change[linkedListEntry.index] = structuredClone(linkedListEntry.value)
+          change[linkedListEntry.index] = linkedListEntry.value
           break
         }
         void walkToIndex<T>(listIndex, crListReplica)
@@ -116,14 +111,14 @@ export function __update<T>(
         entryToOverwrite.next = undefined
         entryToOverwrite.prev = undefined
         crListReplica.cursor = linkedListEntry
-        change[linkedListEntry.index] = structuredClone(linkedListEntry.value)
+        change[linkedListEntry.index] = linkedListEntry.value
         break
       }
       case 'after': {
         if (crListReplica.size === 0 && listIndex === 0) {
           crListReplica.cursor = linkedListEntry
           void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
-          change[linkedListEntry.index] = structuredClone(linkedListEntry.value)
+          change[linkedListEntry.index] = linkedListEntry.value
           break
         }
         if (listIndex === crListReplica.size) {
@@ -152,14 +147,14 @@ export function __update<T>(
         }
         void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
         crListReplica.cursor = linkedListEntry
-        change[linkedListEntry.index] = structuredClone(linkedListEntry.value)
+        change[linkedListEntry.index] = linkedListEntry.value
         break
       }
       case 'before': {
         if (crListReplica.size === 0 && listIndex === 0) {
           crListReplica.cursor = linkedListEntry
           void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
-          change[linkedListEntry.index] = structuredClone(linkedListEntry.value)
+          change[linkedListEntry.index] = linkedListEntry.value
           mode = 'after'
           listIndex = linkedListEntry.index - 1
           break
@@ -181,7 +176,7 @@ export function __update<T>(
         }
         void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
         crListReplica.cursor = linkedListEntry
-        change[linkedListEntry.index] = structuredClone(linkedListEntry.value)
+        change[linkedListEntry.index] = linkedListEntry.value
         mode = 'after'
         listIndex = linkedListEntry.index - 1
 

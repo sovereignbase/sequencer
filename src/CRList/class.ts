@@ -224,10 +224,13 @@ export class CRList<T> {
     predicate: (this: unknown, value: T, index: number, list: this) => unknown,
     thisArg?: unknown
   ): T | undefined {
+    let linkedListEntry = this.state.cursor
+    while (linkedListEntry?.prev) linkedListEntry = linkedListEntry.prev
     let index = 0
-
-    for (const value of this) {
-      if (predicate.call(thisArg, value, index, this)) return value
+    while (linkedListEntry) {
+      if (predicate.call(thisArg, linkedListEntry.value, index, this))
+        return linkedListEntry.value
+      linkedListEntry = linkedListEntry.next
       index++
     }
 

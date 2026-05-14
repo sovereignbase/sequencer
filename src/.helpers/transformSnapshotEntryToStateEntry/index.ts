@@ -3,7 +3,7 @@ import type {
   CRListSnapshotEntry,
   CRListStateEntry,
 } from '../../.types/index.js'
-import { isUuidV7, safeStructuredClone } from '@sovereignbase/utils'
+import { isUuidV7 } from '@sovereignbase/utils'
 export function transformSnapshotEntryToStateEntry<T>(
   valueEntry: CRListSnapshotEntry<T>,
   crListReplica: CRListState<T>
@@ -19,12 +19,9 @@ export function transformSnapshotEntryToStateEntry<T>(
   )
     return undefined
 
-  const [cloned, copiedValue] = safeStructuredClone(valueEntry.value)
-
-  if (!cloned) return undefined
   return {
     uuidv7: valueEntry.uuidv7,
-    value: copiedValue,
+    value: valueEntry.value,
     predecessor: valueEntry.predecessor,
     index: 0,
     next: undefined,

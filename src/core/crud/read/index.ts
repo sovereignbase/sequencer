@@ -26,7 +26,7 @@ export function __read<T>(
 ): T | undefined {
   try {
     void walkToIndex<T>(targetIndex, crListReplica)
-    return structuredClone(crListReplica?.cursor?.value)
+    return crListReplica.cursor?.value
   } catch {
     return undefined
   }

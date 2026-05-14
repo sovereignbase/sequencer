@@ -313,30 +313,30 @@ npm run bench
 
 Last measured on Node `v22.14.0` (`win32 x64`):
 
-| group   | scenario                              |     n | ops |       ms | ms/op |   ops/sec |
-| ------- | ------------------------------------- | ----: | --: | -------: | ----: | --------: |
-| `crud`  | `create / hydrate snapshot`           | 5,000 | 250 | 6,463.06 | 25.85 |     38.68 |
-| `crud`  | `read / random indexed reads`         | 5,000 | 250 |    11.67 |  0.05 | 21,428.33 |
-| `crud`  | `update / append after tail`          | 5,000 | 250 |     4.48 |  0.02 | 55,760.01 |
-| `crud`  | `update / insert before middle`       | 5,000 | 250 |    32.09 |  0.13 |  7,790.39 |
-| `crud`  | `update / overwrite random`           | 5,000 | 250 |    14.57 |  0.06 | 17,157.49 |
-| `crud`  | `delete / single deletes from middle` | 5,000 | 250 |    14.46 |  0.06 | 17,289.91 |
-| `crud`  | `delete / range deletes`              | 5,000 | 250 |     5.72 |  0.02 | 43,702.47 |
-| `mags`  | `snapshot`                            | 5,000 | 250 | 4,393.99 | 17.58 |     56.90 |
-| `mags`  | `acknowledge`                         | 5,000 | 250 |    24.30 |  0.10 | 10,288.24 |
-| `mags`  | `garbage collect`                     | 5,000 | 250 |    92.76 |  0.37 |  2,695.00 |
-| `mags`  | `merge ordered deltas`                | 5,000 | 250 |    10.33 |  0.04 | 24,202.06 |
-| `mags`  | `merge shuffled gossip`               | 5,000 | 250 |   357.05 |  1.43 |    700.19 |
-| `class` | `constructor / hydrate snapshot`      | 5,000 | 250 | 7,271.66 | 29.09 |     34.38 |
-| `class` | `append after tail`                   | 5,000 | 250 |     5.34 |  0.02 | 46,819.99 |
-| `class` | `prepend before middle`               | 5,000 | 250 |    13.33 |  0.05 | 18,756.10 |
-| `class` | `remove from middle`                  | 5,000 | 250 |     4.35 |  0.02 | 57,528.13 |
-| `class` | `find near tail`                      | 5,000 | 250 | 6,267.89 | 25.07 |     39.89 |
-| `class` | `snapshot`                            | 5,000 | 250 | 4,904.97 | 19.62 |     50.97 |
-| `class` | `acknowledge`                         | 5,000 | 250 |    29.89 |  0.12 |  8,362.99 |
-| `class` | `garbage collect`                     | 5,000 | 250 |   108.71 |  0.43 |  2,299.65 |
-| `class` | `merge ordered deltas`                | 5,000 | 250 |     6.13 |  0.02 | 40,753.78 |
-| `class` | `merge shuffled gossip`               | 5,000 | 250 |   400.01 |  1.60 |    624.98 |
+| group   | scenario                              |     n | ops | crlist ms | crlist ms/op | crlist ops/sec | yjs ms/op | yjs ops/sec | json-joy ms/op | json-joy ops/sec | winner     |
+| ------- | ------------------------------------- | ----: | --: | --------: | -----------: | -------------: | --------: | ----------: | -------------: | ---------------: | ---------- |
+| `crud`  | `create / hydrate snapshot`           | 5,000 | 250 |  5,260.62 |        21.04 |          47.52 |      7.24 |      138.15 |           9.47 |           105.62 | `yjs`      |
+| `crud`  | `read / random indexed reads`         | 5,000 | 250 |     10.46 |         0.04 |      23,897.38 |      0.00 |  383,494.40 |           0.01 |       135,215.53 | `yjs`      |
+| `crud`  | `update / append after tail`          | 5,000 | 250 |      3.43 |         0.01 |      72,824.73 |      0.08 |   13,097.71 |           0.01 |        97,874.17 | `json-joy` |
+| `crud`  | `update / insert before middle`       | 5,000 | 250 |     19.47 |         0.08 |      12,842.58 |      0.02 |   58,644.15 |           0.01 |       104,650.68 | `json-joy` |
+| `crud`  | `update / overwrite random`           | 5,000 | 250 |     12.77 |         0.05 |      19,573.76 |      0.04 |   23,804.54 |           0.02 |        47,827.67 | `json-joy` |
+| `crud`  | `delete / single deletes from middle` | 5,000 | 250 |      9.00 |         0.04 |      27,792.60 |      0.02 |   58,645.52 |           0.05 |        21,442.85 | `yjs`      |
+| `crud`  | `delete / range deletes`              | 5,000 | 250 |      6.88 |         0.03 |      36,337.21 |      0.04 |   26,594.33 |           0.14 |         7,011.64 | `crlist`   |
+| `mags`  | `snapshot`                            | 5,000 | 250 |  3,559.39 |        14.24 |          70.24 |      3.94 |      253.99 |           8.53 |           117.19 | `yjs`      |
+| `mags`  | `acknowledge`                         | 5,000 | 250 |     23.24 |         0.09 |      10,759.03 |     `n/a` |       `n/a` |          `n/a` |            `n/a` | `n/a`      |
+| `mags`  | `garbage collect`                     | 5,000 | 250 |     84.17 |         0.34 |       2,970.07 |     `n/a` |       `n/a` |          `n/a` |            `n/a` | `n/a`      |
+| `mags`  | `merge ordered deltas`                | 5,000 | 250 |      5.69 |         0.02 |      43,902.78 |      0.03 |   30,247.67 |           0.01 |       123,043.61 | `json-joy` |
+| `mags`  | `merge shuffled gossip`               | 5,000 | 250 |    296.31 |         1.19 |         843.71 |      0.43 |    2,314.03 |          `n/a` |            `n/a` | `yjs`      |
+| `class` | `constructor / hydrate snapshot`      | 5,000 | 250 |  5,747.69 |        22.99 |          43.50 |      7.35 |      136.07 |           9.56 |           104.59 | `yjs`      |
+| `class` | `append after tail`                   | 5,000 | 250 |      4.16 |         0.02 |      60,109.16 |      0.01 |   75,133.74 |           0.01 |       168,440.91 | `json-joy` |
+| `class` | `prepend before middle`               | 5,000 | 250 |      8.67 |         0.03 |      28,825.09 |      0.01 |  107,749.33 |           0.01 |       166,911.47 | `json-joy` |
+| `class` | `remove from middle`                  | 5,000 | 250 |      4.18 |         0.02 |      59,841.54 |      0.01 |   88,655.63 |           0.03 |        32,358.27 | `yjs`      |
+| `class` | `find near tail`                      | 5,000 | 250 |  4,725.12 |        18.90 |          52.91 |      0.19 |    5,268.23 |           2.18 |           459.41 | `yjs`      |
+| `class` | `snapshot`                            | 5,000 | 250 |  3,915.17 |        15.66 |          63.85 |      3.90 |      256.50 |           8.33 |           120.11 | `yjs`      |
+| `class` | `acknowledge`                         | 5,000 | 250 |     20.46 |         0.08 |      12,216.81 |     `n/a` |       `n/a` |          `n/a` |            `n/a` | `n/a`      |
+| `class` | `garbage collect`                     | 5,000 | 250 |     81.15 |         0.32 |       3,080.87 |     `n/a` |       `n/a` |          `n/a` |            `n/a` | `n/a`      |
+| `class` | `merge ordered deltas`                | 5,000 | 250 |      4.98 |         0.02 |      50,151.46 |      0.02 |   45,935.62 |           0.00 |       215,554.41 | `json-joy` |
+| `class` | `merge shuffled gossip`               | 5,000 | 250 |    270.52 |         1.08 |         924.14 |      0.31 |    3,256.09 |          `n/a` |            `n/a` | `yjs`      |
 
 ## License
 

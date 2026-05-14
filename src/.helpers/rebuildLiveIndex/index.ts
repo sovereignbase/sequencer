@@ -1,6 +1,9 @@
 import type { CRListState } from '../../.types/index.js'
 
-export function assertListIndices<T>(crListReplica: CRListState<T>): void {
+/**
+ * Rebuilds the opportunistic index cache from the current live projection.
+ */
+export function rebuildLiveIndex<T>(crListReplica: CRListState<T>): void {
   if (!crListReplica.cursor) {
     crListReplica.index?.clear()
     crListReplica.cursorIndex = undefined

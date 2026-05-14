@@ -3,9 +3,12 @@ import type {
   CRListState,
   CRListStateEntry,
 } from '../../.types/index.js'
-import { deleteEntryFromMaps } from '../deleteEntryFromMaps/index.js'
+import { detachEntryFromIndexes } from '../detachEntryFromIndexes/index.js'
 
-export function deleteLinkedEntry<T>(
+/**
+ * Tombstones a live entry and unlinks it from the local projection.
+ */
+export function deleteLiveEntry<T>(
   crListReplica: CRListState<T>,
   linkedListEntry: NonNullable<CRListStateEntry<T>>,
   deltaBuf?: CRListDelta<T>
@@ -19,7 +22,7 @@ export function deleteLinkedEntry<T>(
   if (next) {
     next.prev = prev
   }
-  void deleteEntryFromMaps<T>(crListReplica, linkedListEntry)
+  void detachEntryFromIndexes<T>(crListReplica, linkedListEntry)
   if (crListReplica.cursor === linkedListEntry)
     crListReplica.cursor = next ?? prev
   if (!crListReplica.cursor) crListReplica.cursorIndex = undefined

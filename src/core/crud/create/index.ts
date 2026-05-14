@@ -5,29 +5,28 @@ import {
   CRListStateEntry,
 } from '../../../.types/index.js'
 import {
-  flattenAndLinkTrustedState,
-  assertListIndices,
-  transformSnapshotEntryToStateEntry,
-  updateEntryToMaps,
-  insertBetween,
+  rebuildLiveProjection,
+  rebuildLiveIndex,
+  materializeSnapshotEntry,
+  attachEntryToIndexes,
+  linkEntryBetween,
 } from '../../../.helpers/index.js'
 
 /**
  * Creates a local CRList replica from an optional snapshot.
  *
- * Invalid snapshot records are ignored. Accepted values are cloned, indexed by
- * UUIDv7, linked through their predecessor buckets, and exposed as a live
- * doubly-linked list.
+ * Invalid snapshot records are ignored. Accepted values are kept by reference,
+ * indexed by UUIDv7, linked through their predecessor buckets, and exposed as a
+ * live doubly-linked list projection.
  *
- * @param snapshot - Optional detached structured-clone-compatible CRList snapshot.
+ * @param snapshot - Optional CRList snapshot.
  * @returns - A hydrated CRList replica.
  *
- * Time complexity: O(n log n + t + c), worst case O(n^2 + t + c)
+ * Time complexity: O(n log n + t), worst case O(n^2 + t)
  * - n = snapshot value entry count
  * - t = snapshot tombstone count
- * - c = cloned value payload
  *
- * Space complexity: O(n + t + c)
+ * Space complexity: O(n + t)
  */
 export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
   const crListReplica: CRListState<T> = {
@@ -60,18 +59,18 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
   let canUseLinearProjection = true
   let previous: CRListStateEntry<T> = undefined
   for (const valueEntry of snapshot.values) {
-    const linkedListEntry = transformSnapshotEntryToStateEntry<T>(
+    const linkedListEntry = materializeSnapshotEntry<T>(
       valueEntry,
       crListReplica
     )
     if (!linkedListEntry) continue
-    void updateEntryToMaps<T>(crListReplica, linkedListEntry)
+    void attachEntryToIndexes<T>(crListReplica, linkedListEntry)
     if (
       canUseLinearProjection &&
       linkedListEntry.predecessor === (previous?.uuidv7 ?? '\0')
     ) {
       linkedListEntry.index = crListReplica.parentMap.size - 1
-      insertBetween<T>(previous, linkedListEntry, undefined)
+      linkEntryBetween<T>(previous, linkedListEntry, undefined)
       previous = linkedListEntry
       crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
       continue
@@ -87,9 +86,9 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
     return crListReplica
   }
   // Flatten tree into a doubly linked list.
-  void flattenAndLinkTrustedState<T>(crListReplica)
+  void rebuildLiveProjection<T>(crListReplica)
   // Write live-view indexes.
-  void assertListIndices<T>(crListReplica)
+  void rebuildLiveIndex<T>(crListReplica)
 
   return crListReplica
 }

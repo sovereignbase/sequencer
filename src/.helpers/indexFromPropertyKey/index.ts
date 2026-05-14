@@ -1,3 +1,6 @@
+/**
+ * Parses a JavaScript property key as a safe non-negative list index.
+ */
 export function indexFromPropertyKey(
   index: string | symbol
 ): number | undefined {

@@ -1,5 +1,9 @@
 import type { CRListState, CRListStateEntry } from '../../.types/index.js'
-export function deleteEntryFromMaps<T>(
+
+/**
+ * Removes a live entry from UUID and predecessor indexes.
+ */
+export function detachEntryFromIndexes<T>(
   crListReplica: CRListState<T>,
   linkedListEntry: NonNullable<CRListStateEntry<T>>
 ): void {

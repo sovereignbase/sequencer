@@ -1,4 +1,4 @@
-import { indexFromPropertyKey } from '../.helpers/index.js'
+import { dispatchCRListEvent, indexFromPropertyKey } from '../.helpers/index.js'
 import { CRListError } from '../.errors/class.js'
 import type {
   CRListState,
@@ -20,11 +20,12 @@ import {
  * A convergent replicated list.
  *
  * Numeric property access reads and mutates the live list projection:
- * `list[0]` reads a detached copy of an entry, `list[0] = value` writes an
+ * `list[0]` reads the live value reference, `list[0] = value` writes an
  * entry, and `delete list[0]` removes one entry. Iteration, `find()`, and
- * `forEach()` likewise expose detached copies rather than mutable references
- * into the replica state. Local mutations emit `delta` and `change` events;
- * remote merges emit `change` events.
+ * `forEach()` expose the same live value references. Mutating returned objects
+ * directly can mutate replica state without producing a CRDT delta, so callers
+ * must isolate values before out-of-band mutation. Local mutations emit `delta`
+ * and `change` events; remote merges emit `change` events.
  *
  * @typeParam T - The value type stored in the list.
  */
@@ -32,14 +33,14 @@ export class CRList<T> {
   /**
    * Reads or overwrites an entry in the live list projection by index.
    *
-   * Reads return detached copies.
+   * Reads return live value references.
    */
   [index: number]: T
   declare private readonly state: CRListState<T>
   declare private readonly eventTarget: EventTarget
 
   /**
-   * Creates a replicated list from an optional detached structured-clone-compatible snapshot.
+   * Creates a replicated list from an optional CRList snapshot.
    *
    * @param snapshot - A previously emitted CRList snapshot.
    */
@@ -79,14 +80,8 @@ export class CRList<T> {
           const result = __update(listIndex, [value], target.state, 'overwrite')
           if (!result) return false
           const { delta, change } = result
-          if (delta)
-            void target.eventTarget.dispatchEvent(
-              new CustomEvent('delta', { detail: delta })
-            )
-          if (change)
-            void target.eventTarget.dispatchEvent(
-              new CustomEvent('change', { detail: change })
-            )
+          if (delta) dispatchCRListEvent(target.eventTarget, 'delta', delta)
+          if (change) dispatchCRListEvent(target.eventTarget, 'change', change)
           return true
         } catch (error) {
           if (error instanceof CRListError) throw error
@@ -100,16 +95,8 @@ export class CRList<T> {
           const result = __delete(target.state, listIndex, listIndex + 1)
           if (!result) return false
           const { delta, change } = result
-          if (delta) {
-            void target.eventTarget.dispatchEvent(
-              new CustomEvent('delta', { detail: delta })
-            )
-          }
-          if (change) {
-            void target.eventTarget.dispatchEvent(
-              new CustomEvent('change', { detail: change })
-            )
-          }
+          if (delta) dispatchCRListEvent(target.eventTarget, 'delta', delta)
+          if (change) dispatchCRListEvent(target.eventTarget, 'change', change)
           return true
         } catch (error) {
           if (error instanceof CRListError) throw error
@@ -139,6 +126,7 @@ export class CRList<T> {
       },
     })
   }
+
   /**
    * The current number of live entries.
    */
@@ -157,14 +145,8 @@ export class CRList<T> {
     const result = __update<T>(beforeIndex ?? 0, [value], this.state, 'before')
     if (!result) return
     const { delta, change } = result
-    if (delta)
-      void this.eventTarget.dispatchEvent(
-        new CustomEvent('delta', { detail: delta })
-      )
-    if (change)
-      void this.eventTarget.dispatchEvent(
-        new CustomEvent('change', { detail: change })
-      )
+    if (delta) dispatchCRListEvent(this.eventTarget, 'delta', delta)
+    if (change) dispatchCRListEvent(this.eventTarget, 'change', change)
   }
   /**
    * Inserts a value after an index.
@@ -183,14 +165,8 @@ export class CRList<T> {
     )
     if (!result) return
     const { delta, change } = result
-    if (delta)
-      void this.eventTarget.dispatchEvent(
-        new CustomEvent('delta', { detail: delta })
-      )
-    if (change)
-      void this.eventTarget.dispatchEvent(
-        new CustomEvent('change', { detail: change })
-      )
+    if (delta) dispatchCRListEvent(this.eventTarget, 'delta', delta)
+    if (change) dispatchCRListEvent(this.eventTarget, 'change', change)
   }
   /**
    * Removes the entry at an index.
@@ -201,23 +177,17 @@ export class CRList<T> {
     const result = __delete(this.state, index, index + 1)
     if (!result) return
     const { delta, change } = result
-    if (delta)
-      void this.eventTarget.dispatchEvent(
-        new CustomEvent('delta', { detail: delta })
-      )
-    if (change)
-      void this.eventTarget.dispatchEvent(
-        new CustomEvent('change', { detail: change })
-      )
+    if (delta) dispatchCRListEvent(this.eventTarget, 'delta', delta)
+    if (change) dispatchCRListEvent(this.eventTarget, 'change', change)
   }
 
   /**
-   * Returns the first live value copy matching a predicate in index order.
+   * Returns the first live value matching a predicate in index order.
    *
-   * Predicate values are detached copies, so mutating them does not mutate the
-   * list.
+   * Predicate values are live references. Mutating them directly can mutate the
+   * list without emitting a delta.
    *
-   * @param predicate - Function to test each value copy.
+   * @param predicate - Function to test each live value.
    * @param thisArg - Optional `this` value for the predicate.
    */
   find(
@@ -246,20 +216,14 @@ export class CRList<T> {
    */
   merge(delta: CRListDelta<T>): void {
     const change = __merge(this.state, delta)
-    if (change)
-      void this.eventTarget.dispatchEvent(
-        new CustomEvent('change', { detail: change })
-      )
+    if (change) dispatchCRListEvent(this.eventTarget, 'change', change)
   }
   /**
    * Emits an acknowledgement frontier for currently retained tombstones.
    */
   acknowledge(): void {
     const ack = __acknowledge(this.state)
-    if (ack)
-      void this.eventTarget.dispatchEvent(
-        new CustomEvent('ack', { detail: ack })
-      )
+    if (ack) dispatchCRListEvent(this.eventTarget, 'ack', ack)
   }
   /**
    * Garbage-collects tombstones that are covered by acknowledgement frontiers.
@@ -270,14 +234,14 @@ export class CRList<T> {
     void __garbageCollect(frontiers, this.state)
   }
   /**
-   * Emits the current detached structured-clone-compatible list snapshot.
+   * Emits the current CRList snapshot.
+   *
+   * Snapshot value payloads are live references. Mutating them can mutate
+   * replica state without emitting a delta.
    */
   snapshot(): void {
     const snapshot = __snapshot<T>(this.state)
-    if (snapshot)
-      void this.eventTarget.dispatchEvent(
-        new CustomEvent('snapshot', { detail: snapshot })
-      )
+    if (snapshot) dispatchCRListEvent(this.eventTarget, 'snapshot', snapshot)
   }
   /**
    * Registers an event listener.
@@ -317,7 +281,10 @@ export class CRList<T> {
     )
   }
   /**
-   * Returns a detached structured-clone-compatible snapshot of this list.
+   * Returns a CRList snapshot of this list.
+   *
+   * Snapshot value payloads are live references. Mutating them can mutate
+   * replica state without emitting a delta.
    *
    * Called automatically by `JSON.stringify`.
    */
@@ -345,7 +312,7 @@ export class CRList<T> {
     return this.toJSON()
   }
   /**
-   * Iterates over detached copies of the current live values in index order.
+   * Iterates over current live values in index order.
    */
   *[Symbol.iterator](): IterableIterator<T> {
     for (let index = 0; index < this.size; index++) {
@@ -354,12 +321,12 @@ export class CRList<T> {
     }
   }
   /**
-   * Calls a function once for each live value copy in index order.
+   * Calls a function once for each live value in index order.
    *
-   * Callback values are detached copies, so mutating them does not mutate the
-   * list.
+   * Callback values are live references. Mutating them directly can mutate the
+   * list without emitting a delta.
    *
-   * @param callback - Function to call for each value copy.
+   * @param callback - Function to call for each live value.
    * @param thisArg - Optional `this` value for the callback.
    */
   forEach(

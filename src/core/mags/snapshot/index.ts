@@ -2,20 +2,20 @@ import { CRListError } from '../../../.errors/class.js'
 import { CRListState, CRListSnapshot } from '../../../.types/index.js'
 
 /**
- * Creates a full detached structured-clone-compatible CRList snapshot from the current replica state.
+ * Creates a full CRList snapshot from the current replica state.
  *
  * The snapshot contains every live value entry and all retained tombstones. Value
- * payloads are cloned so callers cannot mutate the replica through the snapshot.
+ * payloads are live references, so callers must not mutate snapshot values
+ * unless they have first isolated them from replica state.
  *
  * @param crListReplica - Replica to snapshot.
  * @returns - A full snapshot suitable for hydration or transport.
  *
- * Time complexity: O(n + t + c)
+ * Time complexity: O(n + t)
  * - n = replica value entry count
  * - t = replica tombstone count
- * - c = cloned value payload size
  *
- * Space complexity: O(n + t + c)
+ * Space complexity: O(n + t)
  */
 export function __snapshot<T>(
   crListReplica: CRListState<T>

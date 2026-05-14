@@ -1,4 +1,4 @@
-import { deleteLinkedEntry, walkToIndex } from '../../../.helpers/index.js'
+import { deleteLiveEntry, seekCursorToIndex } from '../../../.helpers/index.js'
 import { CRListError } from '../../../.errors/class.js'
 import type {
   CRListChange,
@@ -45,7 +45,7 @@ export function __delete<T>(
   const deleteCount = Math.min(targetEndIndex, crListReplica.size) - listIndex
   if (deleteCount <= 0) return false
 
-  void walkToIndex<T>(listIndex, crListReplica)
+  void seekCursorToIndex<T>(listIndex, crListReplica)
   if (!crListReplica.cursor) return false
 
   let current: CRListStateEntry<T> = crListReplica.cursor
@@ -56,7 +56,7 @@ export function __delete<T>(
     const next: CRListStateEntry<T> = current.next
     change[currentIndex] = undefined
     crListReplica.index?.delete(currentIndex)
-    void deleteLinkedEntry<T>(crListReplica, current, delta)
+    void deleteLiveEntry<T>(crListReplica, current, delta)
     current = next
     currentIndex++
     deleted++

@@ -5,11 +5,11 @@ import type {
   CRListStateEntry,
 } from '../../../.types/index.js'
 import {
-  transformSnapshotEntryToStateEntry,
-  updateEntryToMaps,
-  flattenAndLinkTrustedState,
-  assertListIndices,
-  deleteLinkedEntry,
+  materializeSnapshotEntry,
+  attachEntryToIndexes,
+  rebuildLiveProjection,
+  rebuildLiveIndex,
+  deleteLiveEntry,
   moveEntryToPredecessor,
 } from '../../../.helpers/index.js'
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
@@ -25,17 +25,16 @@ import { prototype, isUuidV7 } from '@sovereignbase/utils'
  * @param crListDelta - Remote gossip delta.
  * @returns - A minimal local change patch, or `false` when the delta is ignored.
  *
- * Time complexity: O(v + t + c) for tail-append deltas; O(n + t + qk) for tombstone-only deletes; otherwise O(n log n + v + t + m*k + c)
- * Worst case: O(n^2 + (v + t)n + c)
+ * Time complexity: O(v + t) for tail-append deltas; O(n + t + qk) for tombstone-only deletes; otherwise O(n log n + v + t + m*k)
+ * Worst case: O(n^2 + (v + t)n)
  * - n = replica value entry count after merge
  * - v = delta value entry count
  * - t = delta tombstone count
  * - q = amount of live entries deleted by tombstones
  * - m = entries moved between predecessor buckets
  * - k = sibling bucket size when entries are removed from buckets
- * - c = cloned delta value payload size
  *
- * Space complexity: O(n + v + t + c)
+ * Space complexity: O(n + v + t)
  */
 export function __merge<T>(
   crListReplica: CRListState<T>,
@@ -54,7 +53,7 @@ export function __merge<T>(
       (Array.isArray(crListDelta.tombstones) &&
         crListDelta.tombstones.length === 0))
   ) {
-    const linkedListEntry = transformSnapshotEntryToStateEntry<T>(
+    const linkedListEntry = materializeSnapshotEntry<T>(
       crListDelta.values[0],
       crListReplica
     )
@@ -72,7 +71,7 @@ export function __merge<T>(
       if (predecessor) predecessor.next = linkedListEntry
       crListReplica.cursor = linkedListEntry
       crListReplica.cursorIndex = linkedListEntry.index
-      void updateEntryToMaps<T>(crListReplica, linkedListEntry)
+      void attachEntryToIndexes<T>(crListReplica, linkedListEntry)
       crListReplica.size = crListReplica.parentMap.size
       crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
       return { [linkedListEntry.index]: linkedListEntry.value }
@@ -92,7 +91,7 @@ export function __merge<T>(
       if (linkedListEntry) {
         void newTombsIndices.push(linkedListEntry.index)
         crListReplica.index?.delete(linkedListEntry.index)
-        void deleteLinkedEntry<T>(crListReplica, linkedListEntry)
+        void deleteLiveEntry<T>(crListReplica, linkedListEntry)
         needsRelink = true
       }
     }
@@ -104,7 +103,7 @@ export function __merge<T>(
     !Array.isArray(crListDelta.values)
   ) {
     if (newTombsIndices.length === 0) return false
-    void assertListIndices<T>(crListReplica)
+    void rebuildLiveIndex<T>(crListReplica)
     for (const index of newTombsIndices) {
       change[index] = undefined
     }
@@ -127,7 +126,7 @@ export function __merge<T>(
       needsRelink = true
       continue
     }
-    const linkedListEntry = transformSnapshotEntryToStateEntry<T>(
+    const linkedListEntry = materializeSnapshotEntry<T>(
       valueEntry,
       crListReplica
     )
@@ -136,7 +135,7 @@ export function __merge<T>(
       linkedListEntry.predecessor === '\0'
         ? undefined
         : crListReplica.parentMap.get(linkedListEntry.predecessor)
-    void updateEntryToMaps<T>(crListReplica, linkedListEntry)
+    void attachEntryToIndexes<T>(crListReplica, linkedListEntry)
     void newVals.push(linkedListEntry)
     if (!needsRelink && linkedListEntry.predecessor === '\0') {
       if (crListReplica.size === 0) {
@@ -161,9 +160,9 @@ export function __merge<T>(
   }
   if (needsRelink) {
     // Flatten tree into a doubly linked list.
-    void flattenAndLinkTrustedState<T>(crListReplica)
+    void rebuildLiveProjection<T>(crListReplica)
     // Write live-view indexes.
-    void assertListIndices<T>(crListReplica)
+    void rebuildLiveIndex<T>(crListReplica)
   }
 
   if (newTombsIndices.length === 0 && newVals.length === 0) return false

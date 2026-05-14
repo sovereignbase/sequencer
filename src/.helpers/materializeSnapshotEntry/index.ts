@@ -4,7 +4,14 @@ import type {
   CRListStateEntry,
 } from '../../.types/index.js'
 import { isUuidV7 } from '@sovereignbase/utils'
-export function transformSnapshotEntryToStateEntry<T>(
+
+/**
+ * Converts a snapshot or delta value entry into local mutable entry state.
+ *
+ * Invalid, deleted, duplicate, or currently unanchored entries are ignored.
+ * Payload values are kept by reference.
+ */
+export function materializeSnapshotEntry<T>(
   valueEntry: CRListSnapshotEntry<T>,
   crListReplica: CRListState<T>
 ): CRListStateEntry<T> {

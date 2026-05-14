@@ -1,6 +1,13 @@
 import type { CRListState, CRListStateEntry } from '../../.types/index.js'
-import { insertBetween } from '../insertBetween/index.js'
-export function flattenAndLinkTrustedState<T>(crListReplica: CRListState<T>) {
+import { linkEntryBetween } from '../linkEntryBetween/index.js'
+
+/**
+ * Rebuilds the live linked-list projection from predecessor buckets.
+ *
+ * Sibling order is deterministic by UUIDv7, which keeps replicas convergent even
+ * when deltas arrive in different orders.
+ */
+export function rebuildLiveProjection<T>(crListReplica: CRListState<T>) {
   crListReplica.cursor = undefined
   const resolvedSiblingPredecessors = new Set<string>()
   for (const entry of crListReplica.parentMap.values()) {
@@ -37,7 +44,7 @@ export function flattenAndLinkTrustedState<T>(crListReplica: CRListState<T>) {
       const predecessorNext = predecessor?.next
       if (siblings.length === 1) {
         const sibling = siblings[0]
-        insertBetween<T>(prev, sibling, sibling.next)
+        linkEntryBetween<T>(prev, sibling, sibling.next)
         prev = sibling
         if (predecessorNext && predecessorNext !== sibling) {
           prev.next = predecessorNext
@@ -55,7 +62,7 @@ export function flattenAndLinkTrustedState<T>(crListReplica: CRListState<T>) {
         const sibling = siblings[index]
         const next = siblings[index + 1]
 
-        insertBetween<T>(prev, sibling, sibling.next)
+        linkEntryBetween<T>(prev, sibling, sibling.next)
         prev = sibling
 
         if (next) {

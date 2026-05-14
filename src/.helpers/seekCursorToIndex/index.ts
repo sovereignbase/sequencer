@@ -1,7 +1,14 @@
 import type { CRListState } from '../../.types/index.js'
 import { CRListError } from '../../.errors/class.js'
 
-export function walkToIndex<T>(
+/**
+ * Moves the replica cursor to a live index.
+ *
+ * A valid cached index entry is used directly. Stale cache entries are dropped
+ * and the cursor walks from its current position, then repairs the cache at the
+ * requested index.
+ */
+export function seekCursorToIndex<T>(
   targetIndex: number,
   crListReplica: CRListState<T>
 ): void {

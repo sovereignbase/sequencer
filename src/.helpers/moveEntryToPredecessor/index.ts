@@ -3,16 +3,19 @@ import type {
   CRListState,
   CRListStateEntry,
 } from '../../.types/index.js'
-import { deleteEntryFromMaps } from '../deleteEntryFromMaps/index.js'
-import { updateEntryToMaps } from '../updateEntryToMaps/index.js'
+import { detachEntryFromIndexes } from '../detachEntryFromIndexes/index.js'
+import { attachEntryToIndexes } from '../attachEntryToIndexes/index.js'
 
+/**
+ * Reattaches an existing live entry to a newer stable predecessor.
+ */
 export function moveEntryToPredecessor<T>(
   crListReplica: CRListState<T>,
   linkedListEntry: NonNullable<CRListStateEntry<T>>,
   predecessor: string,
   deltaBuf?: CRListDelta<T>
 ): void {
-  void deleteEntryFromMaps<T>(crListReplica, linkedListEntry)
+  void detachEntryFromIndexes<T>(crListReplica, linkedListEntry)
   linkedListEntry.predecessor = predecessor
-  void updateEntryToMaps<T>(crListReplica, linkedListEntry, deltaBuf)
+  void attachEntryToIndexes<T>(crListReplica, linkedListEntry, deltaBuf)
 }

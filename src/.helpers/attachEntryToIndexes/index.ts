@@ -3,7 +3,14 @@ import type {
   CRListStateEntry,
   CRListDelta,
 } from '../../.types/index.js'
-export function updateEntryToMaps<T>(
+
+/**
+ * Attaches a live entry to UUID and predecessor indexes.
+ *
+ * When a delta buffer is provided, the same live payload reference is appended
+ * to the outgoing delta.
+ */
+export function attachEntryToIndexes<T>(
   crListReplica: CRListState<T>,
   linkedListEntry: NonNullable<CRListStateEntry<T>>,
   deltaBuf?: CRListDelta<T>

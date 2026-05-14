@@ -47,7 +47,10 @@ export type CRListState<T> = {
 }
 
 /**
- * Serializable value entry used by snapshots and deltas.
+ * Value entry used by snapshots and deltas.
+ *
+ * `value` is a live payload reference. Consumers that mutate values outside
+ * CRList operations must provide their own isolation first.
  */
 export type CRListSnapshotEntry<T> = {
   /** Stable UUIDv7 identity for this entry. */
@@ -59,10 +62,10 @@ export type CRListSnapshotEntry<T> = {
 }
 
 /**
- * Full serializable CRList state.
+ * Full CRList state snapshot.
  */
 export type CRListSnapshot<T> = {
-  /** Serializable live values. */
+  /** Live values with stable CRDT metadata. */
   values: Array<CRListSnapshotEntry<T>>
   /** Retained deleted UUIDv7 entries. */
   tombstones: Array<string>
@@ -78,6 +81,8 @@ export type CRListChange<T> = Record<number, T | undefined>
 
 /**
  * Partial CRList state gossiped between replicas.
+ *
+ * Delta value payloads are live references.
  */
 export type CRListDelta<T> = Partial<CRListSnapshot<T>>
 

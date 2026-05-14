@@ -54,17 +54,21 @@ export function __delete<T>(
   while (current && deleted < deleteCount) {
     const next: CRListStateEntry<T> = current.next
     change[current.index] = undefined
+    crListReplica.index?.delete(current.index)
     void deleteLinkedEntry<T>(crListReplica, current, delta)
     current = next
     deleted++
   }
 
   crListReplica.size = crListReplica.parentMap.size
+  const firstShiftedEntry = current
 
   while (current) {
     current.index -= deleted
     current = current.next
   }
+  if (firstShiftedEntry)
+    crListReplica.index?.set(firstShiftedEntry.index, firstShiftedEntry)
 
   return { change, delta }
 }

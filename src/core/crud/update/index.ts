@@ -70,6 +70,7 @@ export function __update<T>(
           if (crListReplica.size === 0) {
             crListReplica.cursor = linkedListEntry
             void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
+            crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
             change[linkedListEntry.index] = linkedListEntry.value
             break
           }
@@ -80,6 +81,7 @@ export function __update<T>(
           insertBetween<T>(crListReplica.cursor, linkedListEntry, undefined)
           void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
           crListReplica.cursor = linkedListEntry
+          crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
           change[linkedListEntry.index] = linkedListEntry.value
           break
         }
@@ -111,6 +113,7 @@ export function __update<T>(
         entryToOverwrite.next = undefined
         entryToOverwrite.prev = undefined
         crListReplica.cursor = linkedListEntry
+        crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
         change[linkedListEntry.index] = linkedListEntry.value
         break
       }
@@ -118,6 +121,7 @@ export function __update<T>(
         if (crListReplica.size === 0 && listIndex === 0) {
           crListReplica.cursor = linkedListEntry
           void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
+          crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
           change[linkedListEntry.index] = linkedListEntry.value
           break
         }
@@ -147,6 +151,7 @@ export function __update<T>(
         }
         void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
         crListReplica.cursor = linkedListEntry
+        crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
         change[linkedListEntry.index] = linkedListEntry.value
         break
       }
@@ -154,6 +159,7 @@ export function __update<T>(
         if (crListReplica.size === 0 && listIndex === 0) {
           crListReplica.cursor = linkedListEntry
           void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
+          crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
           change[linkedListEntry.index] = linkedListEntry.value
           mode = 'after'
           listIndex = linkedListEntry.index - 1
@@ -176,6 +182,7 @@ export function __update<T>(
         }
         void updateEntryToMaps<T>(crListReplica, linkedListEntry, delta)
         crListReplica.cursor = linkedListEntry
+        crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
         change[linkedListEntry.index] = linkedListEntry.value
         mode = 'after'
         listIndex = linkedListEntry.index - 1

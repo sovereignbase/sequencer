@@ -59,6 +59,7 @@ export function __merge<T>(
       const linkedListEntry = crListReplica.parentMap.get(tombstone)
       if (linkedListEntry) {
         void newTombsIndices.push(linkedListEntry.index)
+        crListReplica.index?.delete(linkedListEntry.index)
         void deleteLinkedEntry<T>(crListReplica, linkedListEntry)
         needsRelink = true
       }
@@ -111,6 +112,7 @@ export function __merge<T>(
       if (crListReplica.size === 0) {
         crListReplica.cursor = linkedListEntry
         crListReplica.size = crListReplica.parentMap.size
+        crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
       } else {
         needsRelink = true
       }
@@ -120,6 +122,7 @@ export function __merge<T>(
       predecessor.next = linkedListEntry
       crListReplica.cursor = linkedListEntry
       crListReplica.size = crListReplica.parentMap.size
+      crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
     } else {
       needsRelink = true
     }

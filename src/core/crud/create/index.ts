@@ -33,6 +33,7 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
   const crListReplica: CRListState<T> = {
     size: 0,
     cursor: undefined,
+    index: new Map(),
     tombstones: new Set<string>(),
     parentMap: new Map<string, NonNullable<CRListStateEntry<T>>>(),
     childrenMap: new Map<string, Array<NonNullable<CRListStateEntry<T>>>>(),
@@ -71,6 +72,7 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
       linkedListEntry.index = crListReplica.parentMap.size - 1
       insertBetween<T>(previous, linkedListEntry, undefined)
       previous = linkedListEntry
+      crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
       continue
     }
     canUseLinearProjection = false

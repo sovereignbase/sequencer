@@ -210,13 +210,15 @@ export class CRList<T> {
         new CustomEvent('change', { detail: change })
       )
   }
+
   find(
     predicate: (value: T, index: number, list: this) => unknown
   ): T | undefined {
-    for (let index = 0; index < this.size; index++) {
-      const value = this[index]
+    let index = 0
 
+    for (const value of this) {
       if (predicate(value, index, this)) return value
+      index++
     }
 
     return undefined

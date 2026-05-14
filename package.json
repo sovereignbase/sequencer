@@ -68,6 +68,7 @@
     "fast-glob": "^3.3.3",
     "husky": "^9.1.7",
     "json-joy": "^18.21.0",
+    "loro-crdt": "^1.12.1",
     "playwright": "^1.60.0",
     "prettier": "^3.8.3",
     "tsup": "^8.5.1",

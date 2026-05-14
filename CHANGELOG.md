@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.0.9...v1.1.0) (2026-05-14)
+
+
+### Features
+
+* add find method to CRList class. ([b4ebd5f](https://github.com/sovereignbase/convergent-replicated-list/commit/b4ebd5ff2de2839910eab7129078a426ab77ac49))
+
 ## [1.0.9](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.0.8...v1.0.9) (2026-05-09)
 
 

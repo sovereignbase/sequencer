@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.1.0...v1.2.0) (2026-05-15)
+
+
+### Features
+
+* optimize ([9ec815a](https://github.com/sovereignbase/convergent-replicated-list/commit/9ec815a82089b1f029998e4b43541b07c7232a01))
+
 ## [1.1.0](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.0.9...v1.1.0) (2026-05-14)
 
 

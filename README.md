@@ -313,31 +313,32 @@ npm run bench
 
 Last measured on Node `v22.14.0` (`win32 x64`):
 
-| group | scenario | n | ops | crlist ms | crlist ms/op | crlist ops/sec | yjs ms/op | yjs ops/sec | json-joy ms/op | json-joy ops/sec | automerge ms/op | automerge ops/sec | winner |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| crud | create / hydrate snapshot | 5,000 | 250 | 2,096.39 | 8.39 | 119.25 | 15.07 | 66.34 | 19.3 | 51.82 | 232.99 | 4.29 | crlist |
-| crud | read / random indexed reads | 5,000 | 250 | 0.35 | 0 | 712,047.85 | 0 | 213,949.51 | 0.01 | 72,573.15 | 0 | 1,487,209.99 | automerge |
-| crud | update / append after tail | 5,000 | 250 | 3.75 | 0.01 | 66,712.92 | 0.04 | 26,447.75 | 0.03 | 34,200.66 | 2.79 | 358 | crlist |
-| crud | update / insert before middle | 5,000 | 250 | 3.97 | 0.02 | 62,962.78 | 0.02 | 47,542.98 | 0.02 | 59,963.54 | 2.77 | 360.61 | crlist |
-| crud | update / insert at head | 5,000 | 250 | 1.53 | 0.01 | 163,302.63 | 0.01 | 77,939.89 | 0.02 | 51,651.83 | 2.58 | 387.17 | crlist |
-| crud | update / overwrite random | 5,000 | 250 | 3.77 | 0.02 | 66,267.3 | 0.07 | 14,168.64 | 0.05 | 19,413.25 | 2.91 | 343.26 | crlist |
-| crud | delete / single deletes from middle | 5,000 | 250 | 1.94 | 0.01 | 129,098.89 | 0.03 | 31,265.24 | 0.13 | 7,665.23 | 0.42 | 2,369.86 | crlist |
-| crud | delete / range deletes | 5,000 | 250 | 5.19 | 0.02 | 48,199.28 | 0.04 | 24,172.81 | 0.25 | 3,945.2 | 0.77 | 1,295.13 | crlist |
-| mags | snapshot | 5,000 | 250 | 65.59 | 0.26 | 3,811.53 | 8.41 | 118.88 | 14.09 | 70.97 | 19.99 | 50.02 | crlist |
-| mags | acknowledge | 5,000 | 250 | 76.25 | 0.31 | 3,278.61 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| mags | garbage collect | 5,000 | 250 | 164.23 | 0.66 | 1,522.22 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| mags | merge ordered deltas | 5,000 | 250 | 4.13 | 0.02 | 60,460.95 | 0.06 | 17,959 | 0.02 | 58,147.65 | 4.68 | 213.68 | crlist |
-| mags | merge shuffled gossip | 5,000 | 250 | 478.37 | 1.91 | 522.61 | 0.64 | 1,555.98 | 0.09 | 11,595.98 | 0.41 | 2,456.81 | json-joy |
-| class | constructor / hydrate snapshot | 5,000 | 250 | 1,886.2 | 7.54 | 132.54 | 12.85 | 77.8 | 18.34 | 54.51 | 211.32 | 4.73 | crlist |
-| class | append after tail | 5,000 | 250 | 3.09 | 0.01 | 80,992.65 | 0.02 | 52,369.18 | 0.02 | 53,936.27 | 2.09 | 479.59 | crlist |
-| class | prepend before middle | 5,000 | 250 | 7.79 | 0.03 | 32,077.6 | 0.01 | 81,163.56 | 0.01 | 80,744.14 | 2.68 | 372.46 | yjs |
-| class | remove from middle | 5,000 | 250 | 1.82 | 0.01 | 137,287.2 | 0.03 | 37,143.24 | 0.03 | 35,865.43 | 0.57 | 1,761.16 | crlist |
-| class | find near tail | 5,000 | 250 | 33.64 | 0.13 | 7,431.54 | 0.44 | 2,276.89 | 5.13 | 195.02 | 0.03 | 38,407.18 | automerge |
-| class | snapshot | 5,000 | 250 | 83.09 | 0.33 | 3,008.93 | 7.99 | 125.19 | 14.86 | 67.28 | 19.63 | 50.93 | crlist |
-| class | acknowledge | 5,000 | 250 | 46.72 | 0.19 | 5,351.54 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| class | garbage collect | 5,000 | 250 | 156.68 | 0.63 | 1,595.56 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| class | merge ordered deltas | 5,000 | 250 | 2.43 | 0.01 | 102,720.03 | 0.04 | 24,436.26 | 0.01 | 79,953.95 | 4.08 | 244.99 | crlist |
-| class | merge shuffled gossip | 5,000 | 250 | 265.96 | 1.06 | 940 | 0.72 | 1,384.5 | 0.01 | 73,120.8 | 0.38 | 2,648.01 | json-joy |
+| group | scenario                            |     n | ops | crlist ms | crlist ms/op | crlist ops/sec | yjs ms/op | yjs ops/sec | json-joy ms/op | json-joy ops/sec | automerge ms/op | automerge ops/sec | winner    |
+| ----- | ----------------------------------- | ----: | --: | --------: | -----------: | -------------: | --------: | ----------: | -------------: | ---------------: | --------------: | ----------------: | --------- |
+| crud  | create / hydrate snapshot           | 5,000 | 250 |  2,096.39 |         8.39 |         119.25 |     15.07 |       66.34 |           19.3 |            51.82 |          232.99 |              4.29 | crlist    |
+| crud  | read / random indexed reads         | 5,000 | 250 |      0.35 |            0 |     712,047.85 |         0 |  213,949.51 |           0.01 |        72,573.15 |               0 |      1,487,209.99 | automerge |
+| crud  | update / append after tail          | 5,000 | 250 |      3.75 |         0.01 |      66,712.92 |      0.04 |   26,447.75 |           0.03 |        34,200.66 |            2.79 |               358 | crlist    |
+| crud  | update / insert before middle       | 5,000 | 250 |      3.97 |         0.02 |      62,962.78 |      0.02 |   47,542.98 |           0.02 |        59,963.54 |            2.77 |            360.61 | crlist    |
+| crud  | update / insert at head             | 5,000 | 250 |      1.53 |         0.01 |     163,302.63 |      0.01 |   77,939.89 |           0.02 |        51,651.83 |            2.58 |            387.17 | crlist    |
+| crud  | update / overwrite random           | 5,000 | 250 |      3.77 |         0.02 |       66,267.3 |      0.07 |   14,168.64 |           0.05 |        19,413.25 |            2.91 |            343.26 | crlist    |
+| crud  | delete / single deletes from middle | 5,000 | 250 |      1.94 |         0.01 |     129,098.89 |      0.03 |   31,265.24 |           0.13 |         7,665.23 |            0.42 |          2,369.86 | crlist    |
+| crud  | delete / range deletes              | 5,000 | 250 |      5.19 |         0.02 |      48,199.28 |      0.04 |   24,172.81 |           0.25 |          3,945.2 |            0.77 |          1,295.13 | crlist    |
+| mags  | snapshot                            | 5,000 | 250 |     65.59 |         0.26 |       3,811.53 |      8.41 |      118.88 |          14.09 |            70.97 |           19.99 |             50.02 | crlist    |
+| mags  | acknowledge                         | 5,000 | 250 |     76.25 |         0.31 |       3,278.61 |       n/a |         n/a |            n/a |              n/a |             n/a |               n/a | n/a       |
+| mags  | garbage collect                     | 5,000 | 250 |    164.23 |         0.66 |       1,522.22 |       n/a |         n/a |            n/a |              n/a |             n/a |               n/a | n/a       |
+| mags  | merge ordered deltas                | 5,000 | 250 |      4.13 |         0.02 |      60,460.95 |      0.06 |      17,959 |           0.02 |        58,147.65 |            4.68 |            213.68 | crlist    |
+| mags  | merge shuffled gossip               | 5,000 | 250 |    478.37 |         1.91 |         522.61 |      0.64 |    1,555.98 |           0.09 |        11,595.98 |            0.41 |          2,456.81 | json-joy  |
+| class | constructor / hydrate snapshot      | 5,000 | 250 |   1,886.2 |         7.54 |         132.54 |     12.85 |        77.8 |          18.34 |            54.51 |          211.32 |              4.73 | crlist    |
+| class | append after tail                   | 5,000 | 250 |      3.09 |         0.01 |      80,992.65 |      0.02 |   52,369.18 |           0.02 |        53,936.27 |            2.09 |            479.59 | crlist    |
+| class | prepend before middle               | 5,000 | 250 |      7.79 |         0.03 |       32,077.6 |      0.01 |   81,163.56 |           0.01 |        80,744.14 |            2.68 |            372.46 | yjs       |
+| class | remove from middle                  | 5,000 | 250 |      1.82 |         0.01 |      137,287.2 |      0.03 |   37,143.24 |           0.03 |        35,865.43 |            0.57 |          1,761.16 | crlist    |
+| class | find near tail                      | 5,000 | 250 |     33.64 |         0.13 |       7,431.54 |      0.44 |    2,276.89 |           5.13 |           195.02 |            0.03 |         38,407.18 | automerge |
+| class | snapshot                            | 5,000 | 250 |     83.09 |         0.33 |       3,008.93 |      7.99 |      125.19 |          14.86 |            67.28 |           19.63 |             50.93 | crlist    |
+| class | acknowledge                         | 5,000 | 250 |     46.72 |         0.19 |       5,351.54 |       n/a |         n/a |            n/a |              n/a |             n/a |               n/a | n/a       |
+| class | garbage collect                     | 5,000 | 250 |    156.68 |         0.63 |       1,595.56 |       n/a |         n/a |            n/a |              n/a |             n/a |               n/a | n/a       |
+| class | merge ordered deltas                | 5,000 | 250 |      2.43 |         0.01 |     102,720.03 |      0.04 |   24,436.26 |           0.01 |        79,953.95 |            4.08 |            244.99 | crlist    |
+| class | merge shuffled gossip               | 5,000 | 250 |    265.96 |         1.06 |            940 |      0.72 |     1,384.5 |           0.01 |         73,120.8 |            0.38 |          2,648.01 | json-joy  |
+
 |
 
 These benchmarks compare the work a JavaScript consumer asks each library to do:
@@ -364,7 +365,7 @@ indexed reads to its WASM-backed document store and lazy proxies, explaining its
 very fast random reads and `find` path; its local writes are slower here because
 each write goes through immutable document changes and change generation.
 
-Analysis by ChatGPT-5.5.
+Analysis made using ChatGPT-5.5.
 
 ## License
 

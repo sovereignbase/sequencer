@@ -12,7 +12,8 @@ export function deleteLiveEntry<T>(
   crListReplica: CRListState<T>,
   linkedListEntry: NonNullable<CRListStateEntry<T>>,
   deltaBuf?: CRListDelta<T>
-): void {
+): boolean {
+  const hasChildren = crListReplica.childrenMap.has(linkedListEntry.uuidv7)
   const prev = linkedListEntry.prev
   const next = linkedListEntry.next
   void crListReplica.tombstones.add(linkedListEntry.uuidv7)
@@ -29,4 +30,5 @@ export function deleteLiveEntry<T>(
   linkedListEntry.prev = undefined
   linkedListEntry.next = undefined
   crListReplica.size = crListReplica.parentMap.size
+  return hasChildren
 }

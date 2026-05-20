@@ -91,8 +91,8 @@ export function __merge<T>(
       if (linkedListEntry) {
         void newTombsIndices.push(linkedListEntry.index)
         void crListReplica.index?.delete(linkedListEntry.index)
-        void deleteLiveEntry<T>(crListReplica, linkedListEntry)
-        needsRelink = true
+        needsRelink =
+          deleteLiveEntry<T>(crListReplica, linkedListEntry) || needsRelink
       }
     }
   }
@@ -103,7 +103,11 @@ export function __merge<T>(
     !Array.isArray(crListDelta.values)
   ) {
     if (newTombsIndices.length === 0) return false
-    void rebuildLiveIndex<T>(crListReplica)
+    if (needsRelink) {
+      void rebuildLiveProjection<T>(crListReplica)
+    } else {
+      void rebuildLiveIndex<T>(crListReplica)
+    }
     for (const index of newTombsIndices) {
       change[index] = undefined
     }

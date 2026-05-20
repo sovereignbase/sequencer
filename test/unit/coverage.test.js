@@ -548,6 +548,7 @@ test('unit: internal defensive branches remain stable under corrupt state', () =
   corrupt.parentMap.set(parentEntry.uuidv7, parentEntry)
   corrupt.parentMap.set(childEntry.uuidv7, childEntry)
   corrupt.parentMap.set(missingParent.uuidv7, undefined)
+  corrupt.childrenMap.set(deletedEntry.uuidv7, [])
   corrupt.cursor = deletedEntry
   corrupt.size = 3
 
@@ -607,4 +608,43 @@ test('unit: assertListIndices forward walk is covered through tombstone-only mer
   assert(__merge(singleTarget, { tombstones: singleDeletion.delta.tombstones }))
   assert.equal(singleTarget.cursor, undefined)
   assert.equal(singleTarget.cursorIndex, undefined)
+
+  const siblingSource = __create()
+  const siblingLeftSource = __create()
+  const siblingRightSource = __create()
+  const siblingLeft = __update(0, [{ id: 'left' }], siblingLeftSource, 'after')
+  const siblingRight = __update(
+    0,
+    [{ id: 'right' }],
+    siblingRightSource,
+    'after'
+  )
+  assert(siblingLeft)
+  assert(siblingRight)
+  assert(__merge(siblingSource, siblingLeft.delta))
+  assert(__merge(siblingSource, siblingRight.delta))
+  const siblingLocal = __create(__snapshot(siblingSource))
+  assert(__delete(siblingLocal, 0, 1))
+  assert.equal(siblingLocal.cursorIndex, 0)
+
+  const rootSources = [__create(), __create(), __create()]
+  const rootDeltas = rootSources.map((rootSource, index) => {
+    const result = __update(0, [{ id: `root-${index}` }], rootSource, 'after')
+    assert(result)
+    return result.delta
+  })
+  const rootSource = __create()
+  const rootTarget = __create()
+  for (const delta of rootDeltas) {
+    assert(__merge(rootSource, delta))
+    assert(__merge(rootTarget, delta))
+  }
+  rootTarget.index = undefined
+  const rootDeletion = __delete(rootSource, 0, 1)
+  assert(__merge(rootTarget, { tombstones: rootDeletion.delta.tombstones }))
+  assert.equal(rootTarget.cursor.index, 0)
+  assert.deepEqual(
+    ids(rootTarget).map((value) => value.id),
+    ids(rootSource).map((value) => value.id)
+  )
 })

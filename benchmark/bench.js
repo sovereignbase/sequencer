@@ -85,6 +85,12 @@ const BENCHMARKS = [
     ops: RUN_TIMES,
   },
   {
+    group: 'mags',
+    name: 'out-of-order write visible convergence',
+    n: LIST_SIZE,
+    ops: RUN_TIMES,
+  },
+  {
     group: 'class',
     name: 'constructor / hydrate snapshot',
     n: LIST_SIZE,
@@ -111,6 +117,12 @@ const BENCHMARKS = [
   {
     group: 'class',
     name: 'merge shuffled gossip',
+    n: LIST_SIZE,
+    ops: RUN_TIMES,
+  },
+  {
+    group: 'class',
+    name: 'out-of-order write visible convergence',
     n: LIST_SIZE,
     ops: RUN_TIMES,
   },
@@ -230,6 +242,26 @@ function collectMixedDeltas(source, amount, offset) {
   return deltas
 }
 
+function collectOutOfOrderDeltas(source, amount, offset) {
+  const writes = []
+  const rand = random(0x0ff1ce)
+
+  for (let index = 0; index < amount; index++) {
+    const id = `latency:${offset + index}`
+    const startedAt = process.hrtime.bigint()
+    const insertAt = Math.floor(rand() * (source.size + 1))
+    const mode =
+      source.size === 0 || insertAt === source.size ? 'after' : 'before'
+    const listIndex =
+      mode === 'after' ? insertAt : Math.min(insertAt, source.size - 1)
+    const result = __update(listIndex, [value(id)], source, mode)
+    if (!result) throw new Error(`out-of-order delta failed at ${index}`)
+    writes.push({ id, startedAt, delta: result.delta })
+  }
+
+  return writes
+}
+
 function collectClassAppendDeltas(source, amount, offset) {
   const deltas = []
   source.addEventListener('delta', (event) => {
@@ -269,6 +301,32 @@ function collectClassMixedDeltas(source, amount, offset) {
   }
 
   return deltas
+}
+
+function collectClassOutOfOrderDeltas(source, amount, offset) {
+  const writes = []
+  const deltas = []
+  const rand = random(0x0ff1ce)
+
+  source.addEventListener('delta', (event) => {
+    deltas.push(event.detail)
+  })
+
+  for (let index = 0; index < amount; index++) {
+    const id = `latency:${offset + index}`
+    const startedAt = process.hrtime.bigint()
+    const insertAt = Math.floor(rand() * (source.size + 1))
+    if (source.size === 0 || insertAt === source.size) {
+      source.append(value(id), insertAt)
+    } else {
+      source.prepend(value(id), Math.min(insertAt, source.size - 1))
+    }
+    const delta = deltas[deltas.length - 1]
+    if (!delta) throw new Error(`out-of-order class delta failed at ${index}`)
+    writes.push({ id, startedAt, delta })
+  }
+
+  return writes
 }
 
 function collectYjsAppendUpdates(source, amount, offset) {
@@ -311,6 +369,32 @@ function collectYjsMixedUpdates(source, amount, offset) {
   return updates
 }
 
+function collectYjsOutOfOrderUpdates(source, amount, offset) {
+  const writes = []
+  const updates = []
+  const rand = random(0x0ff1ce)
+
+  source.doc.on('update', (update) => {
+    updates.push(update)
+  })
+
+  for (let index = 0; index < amount; index++) {
+    const id = `latency:${offset + index}`
+    const startedAt = process.hrtime.bigint()
+    const insertAt = Math.floor(rand() * (source.list.length + 1))
+    if (source.list.length === 0 || insertAt === source.list.length) {
+      source.list.push([value(id)])
+    } else {
+      source.list.insert(insertAt, [value(id)])
+    }
+    const update = updates[updates.length - 1]
+    if (!update) throw new Error(`out-of-order yjs update failed at ${index}`)
+    writes.push({ id, startedAt, update })
+  }
+
+  return writes
+}
+
 function collectJsonJoyAppendPatches(source, amount, offset) {
   const patches = []
 
@@ -346,6 +430,25 @@ function collectJsonJoyMixedPatches(source, amount, offset) {
   }
 
   return patches
+}
+
+function collectJsonJoyOutOfOrderPatches(source, amount, offset) {
+  const writes = []
+  const rand = random(0x0ff1ce)
+
+  for (let index = 0; index < amount; index++) {
+    const id = `latency:${offset + index}`
+    const startedAt = process.hrtime.bigint()
+    const insertAt = Math.floor(rand() * (source.list.length() + 1))
+    if (source.list.length() === 0 || insertAt === source.list.length()) {
+      source.list.push(value(id))
+    } else {
+      source.list.ins(insertAt, [value(id)])
+    }
+    writes.push({ id, startedAt, patch: source.model.api.flush() })
+  }
+
+  return writes
 }
 
 function collectAutomergeAppendChanges(source, amount, offset) {
@@ -391,6 +494,140 @@ function collectAutomergeMixedChanges(source, amount, offset) {
   }
 
   return changes
+}
+
+function collectAutomergeOutOfOrderChanges(source, amount, offset) {
+  const writes = []
+  const rand = random(0x0ff1ce)
+  let doc = source
+
+  for (let index = 0; index < amount; index++) {
+    const id = `latency:${offset + index}`
+    const startedAt = process.hrtime.bigint()
+    const next = Automerge.change(doc, (draft) => {
+      const insertAt = Math.floor(rand() * (draft.list.length + 1))
+      if (draft.list.length === 0 || insertAt === draft.list.length) {
+        draft.list.push(value(id))
+      } else {
+        draft.list.insertAt(insertAt, value(id))
+      }
+    })
+    writes.push({ id, startedAt, changes: Automerge.getChanges(doc, next) })
+    doc = next
+  }
+
+  return writes
+}
+
+function crlistLiveIds(replica) {
+  const ids = []
+  let entry = replica.cursor
+  while (entry?.prev) entry = entry.prev
+  while (entry) {
+    ids.push(entry.value.id)
+    entry = entry.next
+  }
+  return ids
+}
+
+function classLiveIds(list) {
+  return Array.from(list, (entry) => entry.id)
+}
+
+function yjsLiveIds(list) {
+  const ids = []
+  for (let index = 0; index < list.length; index++) ids.push(list.get(index).id)
+  return ids
+}
+
+function jsonJoyLiveIds(list) {
+  const ids = []
+  for (let index = 0; index < list.length(); index++)
+    ids.push(list.get(index).view().id)
+  return ids
+}
+
+function automergeLiveIds(doc) {
+  return doc.list.map((entry) => entry.id)
+}
+
+function sameLiveIds(left, right) {
+  if (left.length !== right.length) return false
+  for (let index = 0; index < left.length; index++)
+    if (left[index] !== right[index]) return false
+  return true
+}
+
+function ensureConvergedResult(result, sourceLiveIds, targetLiveIds, required) {
+  if (!sameLiveIds(sourceLiveIds(), targetLiveIds())) {
+    if (required) throw new Error('source and target live views diverged')
+    return undefined
+  }
+  return result
+}
+
+function measureConvergedDelivery(
+  amount,
+  applyDelivery,
+  sourceLiveIds,
+  targetLiveIds,
+  required = true
+) {
+  try {
+    const result = time(() => {
+      const applied = applyDelivery()
+      return applied ?? amount
+    })
+    return ensureConvergedResult(result, sourceLiveIds, targetLiveIds, required)
+  } catch (error) {
+    if (required) throw error
+    return undefined
+  }
+}
+
+function measureOutOfOrderConvergence(
+  writes,
+  applyWrite,
+  sourceLiveIds,
+  targetLiveIds,
+  requireConvergence = true
+) {
+  const byId = new Map(writes.map((write) => [write.id, write]))
+  const pending = new Set(byId.keys())
+  const order = shuffledIndices(writes.length, 0xbeef)
+  let totalVisibleMs = 0
+
+  try {
+    for (const index of order) {
+      applyWrite(writes[index])
+      const visible = new Set(targetLiveIds())
+      const observedAt = process.hrtime.bigint()
+      for (const id of Array.from(pending)) {
+        if (!visible.has(id)) continue
+        totalVisibleMs +=
+          Number(observedAt - byId.get(id).startedAt) / 1_000_000
+        void pending.delete(id)
+      }
+    }
+  } catch (error) {
+    if (requireConvergence) throw error
+    return undefined
+  }
+
+  const source = sourceLiveIds()
+  const target = targetLiveIds()
+  if (!sameLiveIds(source, target)) {
+    if (requireConvergence)
+      throw new Error('source and target live views diverged')
+    return undefined
+  }
+  if (pending.size > 0) {
+    if (requireConvergence)
+      throw new Error(`writes never became visible: ${Array.from(pending)[0]}`)
+    return undefined
+  }
+
+  return { ms: totalVisibleMs, ops: writes.length }
 }
 
 function createTombstoneIds(size) {
@@ -546,10 +783,16 @@ function runBenchmark(definition) {
       const source = createSeededReplica(definition.n)
       const target = __create(__snapshot(source))
       const deltas = collectAppendDeltas(source, definition.ops, definition.n)
-      return time(() => {
-        for (const delta of deltas) __merge(target, delta)
-        return deltas.length
-      })
+      return measureConvergedDelivery(
+        deltas.length,
+        () => {
+          for (const delta of deltas) __merge(target, delta)
+          return deltas.length
+        },
+        () => crlistLiveIds(source),
+        () => crlistLiveIds(target),
+        false
+      )
     }
 
     case 'mags:merge shuffled gossip': {
@@ -557,10 +800,33 @@ function runBenchmark(definition) {
       const target = __create(__snapshot(source))
       const deltas = collectMixedDeltas(source, definition.ops, definition.n)
       const order = shuffledIndices(deltas.length, 0xbeef)
-      return time(() => {
-        for (const index of order) __merge(target, deltas[index])
-        return order.length
-      })
+      return measureConvergedDelivery(
+        order.length,
+        () => {
+          for (const index of order) __merge(target, deltas[index])
+          return order.length
+        },
+        () => crlistLiveIds(source),
+        () => crlistLiveIds(target),
+        false
+      )
+    }
+
+    case 'mags:out-of-order write visible convergence': {
+      const source = createSeededReplica(definition.n)
+      const target = __create(__snapshot(source))
+      const writes = collectOutOfOrderDeltas(
+        source,
+        definition.ops,
+        definition.n
+      )
+      return measureOutOfOrderConvergence(
+        writes,
+        (write) => __merge(target, write.delta),
+        () => crlistLiveIds(source),
+        () => crlistLiveIds(target),
+        false
+      )
     }
 
     case 'class:constructor / hydrate snapshot': {
@@ -654,10 +920,16 @@ function runBenchmark(definition) {
         definition.ops,
         definition.n
       )
-      return time(() => {
-        for (const delta of deltas) target.merge(delta)
-        return deltas.length
-      })
+      return measureConvergedDelivery(
+        deltas.length,
+        () => {
+          for (const delta of deltas) target.merge(delta)
+          return deltas.length
+        },
+        () => classLiveIds(source),
+        () => classLiveIds(target),
+        false
+      )
     }
 
     case 'class:merge shuffled gossip': {
@@ -669,10 +941,33 @@ function runBenchmark(definition) {
         definition.n
       )
       const order = shuffledIndices(deltas.length, 0xbeef)
-      return time(() => {
-        for (const index of order) target.merge(deltas[index])
-        return order.length
-      })
+      return measureConvergedDelivery(
+        order.length,
+        () => {
+          for (const index of order) target.merge(deltas[index])
+          return order.length
+        },
+        () => classLiveIds(source),
+        () => classLiveIds(target),
+        false
+      )
+    }
+
+    case 'class:out-of-order write visible convergence': {
+      const source = createSeededList(definition.n)
+      const target = new CRList(source.toJSON())
+      const writes = collectClassOutOfOrderDeltas(
+        source,
+        definition.ops,
+        definition.n
+      )
+      return measureOutOfOrderConvergence(
+        writes,
+        (write) => target.merge(write.delta),
+        () => classLiveIds(source),
+        () => classLiveIds(target),
+        false
+      )
     }
 
     default:
@@ -815,10 +1110,16 @@ function runYjsBenchmark(definition) {
         definition.ops,
         definition.n
       )
-      return time(() => {
-        for (const update of updates) Y.applyUpdate(target, update)
-        return updates.length
-      })
+      return measureConvergedDelivery(
+        updates.length,
+        () => {
+          for (const update of updates) Y.applyUpdate(target, update)
+          return updates.length
+        },
+        () => yjsLiveIds(source.list),
+        () => yjsLiveIds(target.getArray('list')),
+        false
+      )
     }
 
     case 'mags:merge shuffled gossip':
@@ -832,10 +1133,36 @@ function runYjsBenchmark(definition) {
         definition.n
       )
       const order = shuffledIndices(updates.length, 0xbeef)
-      return time(() => {
-        for (const index of order) Y.applyUpdate(target, updates[index])
-        return order.length
-      })
+      return measureConvergedDelivery(
+        order.length,
+        () => {
+          for (const index of order) Y.applyUpdate(target, updates[index])
+          return order.length
+        },
+        () => yjsLiveIds(source.list),
+        () => yjsLiveIds(target.getArray('list')),
+        false
+      )
+    }
+
+    case 'mags:out-of-order write visible convergence':
+    case 'class:out-of-order write visible convergence': {
+      const source = createSeededYjsList(definition.n)
+      const target = new Y.Doc()
+      Y.applyUpdate(target, Y.encodeStateAsUpdate(source.doc))
+      const targetList = target.getArray('list')
+      const writes = collectYjsOutOfOrderUpdates(
+        source,
+        definition.ops,
+        definition.n
+      )
+      return measureOutOfOrderConvergence(
+        writes,
+        (write) => Y.applyUpdate(target, write.update),
+        () => yjsLiveIds(source.list),
+        () => yjsLiveIds(targetList),
+        false
+      )
     }
 
     default:
@@ -970,10 +1297,16 @@ function runJsonJoyBenchmark(definition) {
         definition.ops,
         definition.n
       )
-      return time(() => {
-        for (const patch of patches) target.applyPatch(patch)
-        return patches.length
-      })
+      return measureConvergedDelivery(
+        patches.length,
+        () => {
+          for (const patch of patches) target.applyPatch(patch)
+          return patches.length
+        },
+        () => jsonJoyLiveIds(source.list),
+        () => jsonJoyLiveIds(target.api.get().asArr()),
+        false
+      )
     }
 
     case 'mags:merge shuffled gossip':
@@ -986,10 +1319,34 @@ function runJsonJoyBenchmark(definition) {
         definition.n
       )
       const order = shuffledIndices(patches.length, 0xbeef)
-      return time(() => {
-        for (const index of order) target.applyPatch(patches[index])
-        return order.length
-      })
+      return measureConvergedDelivery(
+        order.length,
+        () => {
+          for (const index of order) target.applyPatch(patches[index])
+          return order.length
+        },
+        () => jsonJoyLiveIds(source.list),
+        () => jsonJoyLiveIds(target.api.get().asArr()),
+        false
+      )
+    }
+
+    case 'mags:out-of-order write visible convergence':
+    case 'class:out-of-order write visible convergence': {
+      const source = createSeededJsonJoyList(definition.n)
+      const target = JsonJoyModel.fromBinary(source.model.toBinary())
+      const writes = collectJsonJoyOutOfOrderPatches(
+        source,
+        definition.ops,
+        definition.n
+      )
+      return measureOutOfOrderConvergence(
+        writes,
+        (write) => target.applyPatch(write.patch),
+        () => jsonJoyLiveIds(source.list),
+        () => jsonJoyLiveIds(target.api.get().asArr()),
+        false
+      )
     }
 
     default:
@@ -1139,11 +1496,17 @@ function runAutomergeBenchmark(definition) {
         definition.ops,
         definition.n
       )
-      return time(() => {
-        for (const change of changes)
-          target = Automerge.applyChanges(target, [change])[0]
-        return changes.length
-      })
+      return measureConvergedDelivery(
+        changes.length,
+        () => {
+          for (const change of changes)
+            target = Automerge.applyChanges(target, [change])[0]
+          return changes.length
+        },
+        () => automergeLiveIds(source),
+        () => automergeLiveIds(target),
+        false
+      )
     }
 
     case 'mags:merge shuffled gossip':
@@ -1156,11 +1519,37 @@ function runAutomergeBenchmark(definition) {
         definition.n
       )
       const order = shuffledIndices(changes.length, 0xbeef)
-      return time(() => {
-        for (const index of order)
-          target = Automerge.applyChanges(target, [changes[index]])[0]
-        return order.length
-      })
+      return measureConvergedDelivery(
+        order.length,
+        () => {
+          for (const index of order)
+            target = Automerge.applyChanges(target, [changes[index]])[0]
+          return order.length
+        },
+        () => automergeLiveIds(source),
+        () => automergeLiveIds(target),
+        false
+      )
+    }
+
+    case 'mags:out-of-order write visible convergence':
+    case 'class:out-of-order write visible convergence': {
+      const source = createSeededAutomergeList(definition.n)
+      let target = Automerge.clone(source)
+      const writes = collectAutomergeOutOfOrderChanges(
+        source,
+        definition.ops,
+        definition.n
+      )
+      return measureOutOfOrderConvergence(
+        writes,
+        (write) => {
+          target = Automerge.applyChanges(target, write.changes)[0]
+        },
+        () => automergeLiveIds(source),
+        () => automergeLiveIds(target),
+        false
+      )
     }
 
     default:
@@ -1246,18 +1635,10 @@ function combineLibraryResults(messages) {
     const jsonJoy = byLibrary.get('jsonJoy')?.[index]?.result
     const automerge = byLibrary.get('automerge')?.[index]?.result
 
-    if (!crlist) {
-      throw new Error(
-        `missing crlist result: ${definition.group}:${definition.name}`
-      )
-    }
-
     return {
       ...definition,
-      ops: crlist.ops,
-      ms: crlist.ms,
-      msPerOp: crlist.ms / crlist.ops,
-      opsPerSecond: crlist.ops / (crlist.ms / 1_000),
+      ops: crlist?.ops ?? definition.ops,
+      crlist,
       yjs,
       jsonJoy,
       automerge,
@@ -1286,7 +1667,7 @@ function resultOpsPerSecond(result) {
 
 function benchmarkWinner(row) {
   const candidates = [
-    ['crlist', row.opsPerSecond],
+    ['crlist', resultOpsPerSecond(row.crlist)],
     ['yjs', resultOpsPerSecond(row.yjs)],
     ['json-joy', resultOpsPerSecond(row.jsonJoy)],
     ['automerge', resultOpsPerSecond(row.automerge)],
@@ -1311,9 +1692,12 @@ function printTable(rows) {
     ['scenario', (row) => row.name],
     ['n', (row) => formatNumber(row.n)],
     ['ops', (row) => formatNumber(row.ops)],
-    ['crlist ms', (row) => formatNumber(row.ms)],
-    ['crlist ms/op', (row) => formatNumber(row.msPerOp)],
-    ['crlist ops/sec', (row) => formatNumber(row.opsPerSecond)],
+    ['crlist ms', (row) => formatBenchmarkMetric(row.crlist, 'ms')],
+    ['crlist ms/op', (row) => formatBenchmarkMetric(row.crlist, 'msPerOp')],
+    [
+      'crlist ops/sec',
+      (row) => formatBenchmarkMetric(row.crlist, 'opsPerSecond'),
+    ],
     ['yjs ms/op', (row) => formatBenchmarkMetric(row.yjs, 'msPerOp')],
     ['yjs ops/sec', (row) => formatBenchmarkMetric(row.yjs, 'opsPerSecond')],
     ['json-joy ms/op', (row) => formatBenchmarkMetric(row.jsonJoy, 'msPerOp')],

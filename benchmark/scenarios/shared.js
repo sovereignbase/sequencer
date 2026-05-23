@@ -1,6 +1,6 @@
 import { createPlan, indexFor, insertIndexFor } from '../helpers/plan.js'
 import { random, shuffledIndices } from '../helpers/random.js'
-import { byteSize, sizeResult, time } from '../helpers/timing.js'
+import { time } from '../helpers/timing.js'
 import { idsEqual } from '../helpers/value.js'
 
 export const BATCH_SIZE = 100
@@ -8,10 +8,6 @@ export const LARGE_BATCH_SIZE = 1_000
 
 export function measured(fn) {
   return time(fn)
-}
-
-export function measuredSize(value, ops = 1) {
-  return sizeResult(byteSize(value), ops)
 }
 
 export function positionFromName(name) {

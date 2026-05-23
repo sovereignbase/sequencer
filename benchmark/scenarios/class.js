@@ -5,7 +5,6 @@ import {
   createTombstonedState,
   createValues,
   measured,
-  measuredSize,
   mergeArtifacts,
   mergeArtifactsByOrder,
   maybeGarbageCollect,

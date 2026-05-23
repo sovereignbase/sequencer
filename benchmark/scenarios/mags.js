@@ -1,13 +1,11 @@
 import { createPlan } from '../helpers/plan.js'
 import {
-  BATCH_SIZE,
   LARGE_BATCH_SIZE,
   collectFrontiers,
   createArtifacts,
   createSparseState,
   createTombstonedState,
   measured,
-  measuredSize,
   mergeArtifacts,
   mergeArtifactsByOrder,
   maybeGarbageCollect,
@@ -55,9 +53,6 @@ function snapshotBenchmark(adapter, definition) {
     maybeGarbageCollect(adapter, state)
   }
 
-  if (definition.name.includes('size bytes'))
-    return measuredSize(adapter.snapshot(state))
-
   return measured(() => {
     for (let op = 0; op < definition.ops; op++) adapter.snapshot(state)
     return definition.ops
@@ -92,49 +87,10 @@ function postGcBenchmark(adapter, definition) {
   const state = createTombstonedState(adapter, definition.n, 0.5)
   maybeGarbageCollect(adapter, state)
 
-  if (definition.name.includes('snapshot'))
-    return measuredSize(adapter.snapshot(state))
-
   return measured(() => {
     for (let op = 0; op < definition.ops; op++) adapter.ids(state)
     return definition.ops
   })
-}
-
-function deltaBenchmark(adapter, definition) {
-  const state = adapter.create(definition.n)
-  if (definition.name.includes('batch')) {
-    const type = definition.name.includes('overwrite') ? 'overwrite' : 'insert'
-    const position = definition.name.includes('middle') ? 'middle' : 'tail'
-    const mixed = definition.name.includes('mixed')
-    const operations = createPlan(BATCH_SIZE, definition.n, {
-      idPrefix: 'delta',
-      mixed,
-      position,
-      type,
-    })
-    return measuredSize(
-      createArtifacts(adapter, state, operations).artifacts,
-      BATCH_SIZE
-    )
-  }
-
-  if (definition.name.includes('range delete')) {
-    const operations = createPlan(BATCH_SIZE, definition.n, {
-      position: 'middle',
-      type: 'delete',
-    })
-    return measuredSize(
-      createArtifacts(adapter, state, operations).artifacts,
-      BATCH_SIZE
-    )
-  }
-
-  const result = adapter.change(
-    state,
-    namedOperation(definition.name, definition.n, 'delta:single')
-  )
-  return measuredSize(result.artifact)
 }
 
 function mergeNamedDelta(adapter, definition) {
@@ -440,8 +396,6 @@ export function runMags(adapter, definition) {
     return garbageCollectBenchmark(adapter, definition)
   if (definition.name.startsWith('post-gc'))
     return postGcBenchmark(adapter, definition)
-  if (definition.name.startsWith('delta /'))
-    return deltaBenchmark(adapter, definition)
   if (definition.name.startsWith('merge'))
     return mergeBenchmark(adapter, definition)
   throw new Error(`Unhandled mags benchmark: ${definition.name}`)

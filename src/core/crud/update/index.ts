@@ -4,6 +4,7 @@ import {
   detachEntryFromIndexes,
   seekCursorToIndex,
   linkEntryBetween,
+  deriveRunUuid,
 } from '../../../.helpers/index.js'
 import { v7 as uuidv7 } from 'uuid'
 import {
@@ -50,6 +51,7 @@ export function __update<T>(
   const change: CRListChange<T> = {}
   const delta: CRListDelta<T> = { values: [], tombstones: [] }
   let displacedEntry: NonNullable<CRListStateEntry<T>> | undefined
+  const batchEntries: Array<NonNullable<CRListStateEntry<T>>> = []
   for (const listValue of listValues) {
     const v7 = uuidv7()
 
@@ -224,9 +226,50 @@ export function __update<T>(
         break
       }
     }
+    batchEntries.push(linkedListEntry)
     crListReplica.size = crListReplica.parentMap.size
     listIndex++
   }
+
+  // Convert consecutive chain pairs to runNext, replacing singleton childrenMap
+  // buckets with direct pointers. Saves N-1 array allocations per batch.
+  if (batchEntries.length > 1) {
+    for (let k = 0; k + 1 < batchEntries.length; k++) {
+      const curr = batchEntries[k]
+      const next = batchEntries[k + 1]
+      if (next.predecessor !== curr.uuidv7) continue
+      // The childrenMap bucket for curr.uuidv7 is always a singleton [next]
+      // because curr is a fresh UUID — no other entry can share this predecessor.
+      crListReplica.childrenMap.delete(curr.uuidv7)
+      if (!crListReplica.runNext) crListReplica.runNext = new Map()
+      crListReplica.runNext.set(curr.uuidv7, next)
+    }
+  }
+
+  // Pack a consecutive run into a single delta entry when the generated UUIDs
+  // are sequential (same millisecond — the common case for batch inserts).
+  if (
+    batchEntries.length > 1 &&
+    delta.values &&
+    delta.values.length >= batchEntries.length
+  ) {
+    const first = batchEntries[0]
+    const last = batchEntries[batchEntries.length - 1]
+    if (deriveRunUuid(first.uuidv7, batchEntries.length - 1) === last.uuidv7) {
+      // Replace the N individual delta entries with one run entry.
+      delta.values.splice(
+        delta.values.length - batchEntries.length,
+        batchEntries.length,
+        {
+          uuidv7: first.uuidv7,
+          value: first.value,
+          predecessor: first.predecessor,
+          tail: batchEntries.slice(1).map((e) => e.value),
+        }
+      )
+    }
+  }
+
   if (displacedEntry) {
     const sibs = crListReplica.childrenMap.get(displacedEntry.predecessor)
     if (sibs) sibs.push(displacedEntry)

@@ -30,3 +30,5 @@ list.forEach((value, index, list) => {
 
 console.log(JSON.stringify(list))
 console.log(JSON.stringify([...list]))
+
+import { v7 as uuidv7 } from 'uuid'

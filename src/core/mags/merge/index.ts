@@ -13,6 +13,7 @@ import {
   moveEntryToPredecessor,
   trySpliceSiblingInsert,
   trySpliceReplacement,
+  deriveRunUuid,
 } from '../../../.helpers/index.js'
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
 import { trySpliceInsertedParent } from '../../../.helpers/trySpliceInsertedParent/index.js'
@@ -53,16 +54,28 @@ export function __merge<T>(
   const change: CRListChange<T> = {}
   let tailTombstoneMovedCursor = false
   let needsRelink = false
+  const expandedValues =
+    Object.hasOwn(crListDelta, 'values') && Array.isArray(crListDelta.values)
+      ? crListDelta.values.flatMap((entry) => {
+          if (!entry || !entry.tail || entry.tail.length === 0) return [entry]
+          return [
+            entry,
+            ...entry.tail.map((value, i) => ({
+              uuidv7: deriveRunUuid(entry.uuidv7, i + 1),
+              value,
+              predecessor: deriveRunUuid(entry.uuidv7, i),
+            })),
+          ]
+        })
+      : undefined
   if (
-    Object.hasOwn(crListDelta, 'values') &&
-    Array.isArray(crListDelta.values) &&
-    crListDelta.values.length === 1 &&
+    expandedValues?.length === 1 &&
     (!Object.hasOwn(crListDelta, 'tombstones') ||
       (Array.isArray(crListDelta.tombstones) &&
         crListDelta.tombstones.length === 0))
   ) {
     const linkedListEntry = materializeSnapshotEntry<T>(
-      crListDelta.values[0],
+      expandedValues[0],
       crListReplica
     )
     if (!linkedListEntry) return false
@@ -110,9 +123,8 @@ export function __merge<T>(
 
   /** Apply value entries. */
   if (
-    !Object.hasOwn(crListDelta, 'values') ||
-    !Array.isArray(crListDelta.values) ||
-    (crListDelta.values.length === 0 && tailTombstoneMovedCursor)
+    !expandedValues ||
+    (expandedValues.length === 0 && tailTombstoneMovedCursor)
   ) {
     if (newTombsIndices.length === 0) return false
     if (newTombsIndices.length === 1 && tailTombstoneMovedCursor) {
@@ -135,7 +147,7 @@ export function __merge<T>(
     return change
   }
   // Attach accepted values to the predecessor tree.
-  for (const valueEntry of crListDelta.values) {
+  for (const valueEntry of expandedValues) {
     if (valueEntry === null || valueEntry === undefined) continue
     const existingEntry = crListReplica.parentMap.get(valueEntry.uuidv7)
     if (existingEntry) {

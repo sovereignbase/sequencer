@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.4](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.3.3...v1.3.4) (2026-05-23)
+
+
+### Performance Improvements
+
+* overwrite scenario improvements in bench ([0a71894](https://github.com/sovereignbase/convergent-replicated-list/commit/0a71894f4816616bb34ddabff3c0e2ad959b0e4a))
+
 ## [1.3.3](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.3.2...v1.3.3) (2026-05-23)
 
 

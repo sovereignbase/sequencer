@@ -153,516 +153,3409 @@ JSON-compatible.</li>
 <tr>
 <th>group</th>
 <th>scenario</th>
-<th style="text-align:right">n</th>
-<th style="text-align:right">ops</th>
-<th style="text-align:right">crlist ms</th>
-<th style="text-align:right">crlist ms/op</th>
-<th style="text-align:right">crlist ops/sec</th>
-<th style="text-align:right">yjs ms/op</th>
-<th style="text-align:right">yjs ops/sec</th>
-<th style="text-align:right">json-joy ms/op</th>
-<th style="text-align:right">json-joy ops/sec</th>
-<th style="text-align:right">automerge ms/op</th>
-<th style="text-align:right">automerge ops/sec</th>
+<th>n</th>
+<th>ops</th>
+<th>crlist ms/op</th>
+<th>crlist ops/sec</th>
+<th>yjs ms/op</th>
+<th>yjs ops/sec</th>
+<th>json-joy ms/op</th>
+<th>json-joy ops/sec</th>
+<th>automerge ms/op</th>
+<th>automerge ops/sec</th>
 <th>winner</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>crud</td>
-<td>create / hydrate snapshot</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">1,196.96</td>
-<td style="text-align:right">4.79</td>
-<td style="text-align:right">208.86</td>
-<td style="text-align:right">9.27</td>
-<td style="text-align:right">107.88</td>
-<td style="text-align:right">12.86</td>
-<td style="text-align:right">77.78</td>
-<td style="text-align:right">161.27</td>
-<td style="text-align:right">6.2</td>
+<td>create / empty list</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>619,118.38</td>
+<td>0.16</td>
+<td>6,432.72</td>
+<td>0.02</td>
+<td>41,937.16</td>
+<td>0.31</td>
+<td>3,247.37</td>
 <td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>create / hydrate snapshot</td>
+<td>5,000</td>
+<td>250</td>
+<td>3.78</td>
+<td>264.67</td>
+<td>7</td>
+<td>142.93</td>
+<td>20.98</td>
+<td>47.66</td>
+<td>153.48</td>
+<td>6.52</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>create / hydrate clean snapshot</td>
+<td>5,000</td>
+<td>250</td>
+<td>3.49</td>
+<td>286.87</td>
+<td>6.79</td>
+<td>147.38</td>
+<td>20.6</td>
+<td>48.54</td>
+<td>157.19</td>
+<td>6.36</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>create / hydrate tombstoned snapshot</td>
+<td>5,000</td>
+<td>250</td>
+<td>2.49</td>
+<td>401.13</td>
+<td>3.38</td>
+<td>295.91</td>
+<td>9.61</td>
+<td>104.07</td>
+<td>161.01</td>
+<td>6.21</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>read / head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>2,021,018.59</td>
+<td>0</td>
+<td>644,662.2</td>
+<td>0</td>
+<td>264,466.31</td>
+<td>0</td>
+<td>3,725,782.41</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>read / middle</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>5,446,623.09</td>
+<td>0</td>
+<td>1,705,320.6</td>
+<td>0</td>
+<td>601,250.6</td>
+<td>0</td>
+<td>5,938,242.28</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>read / tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>6,544,502.62</td>
+<td>0</td>
+<td>1,555,693.84</td>
+<td>0</td>
+<td>732,064.42</td>
+<td>0</td>
+<td>8,417,508.42</td>
+<td>automerge</td>
 </tr>
 <tr>
 <td>crud</td>
 <td>read / random indexed reads</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">0.69</td>
-<td style="text-align:right">0</td>
-<td style="text-align:right">359,919.38</td>
-<td style="text-align:right">0</td>
-<td style="text-align:right">250,375.56</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">109,938.43</td>
-<td style="text-align:right">0</td>
-<td style="text-align:right">1,445,922.5</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>445,553.38</td>
+<td>0</td>
+<td>541,359.9</td>
+<td>0.01</td>
+<td>189,753.32</td>
+<td>0</td>
+<td>1,167,678.65</td>
 <td>automerge</td>
 </tr>
 <tr>
 <td>crud</td>
-<td>update / append after tail</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">1.8</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">138,557.89</td>
-<td style="text-align:right">0.02</td>
-<td style="text-align:right">40,340.8</td>
-<td style="text-align:right">0.02</td>
-<td style="text-align:right">44,789.22</td>
-<td style="text-align:right">2</td>
-<td style="text-align:right">498.99</td>
-<td>crlist</td>
+<td>read / sequential indexed reads from head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>738,552.44</td>
+<td>0</td>
+<td>528,541.23</td>
+<td>0</td>
+<td>280,049.29</td>
+<td>0</td>
+<td>1,434,308.66</td>
+<td>automerge</td>
 </tr>
 <tr>
 <td>crud</td>
-<td>update / insert before middle</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">3.07</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">81,425.27</td>
-<td style="text-align:right">0.02</td>
-<td style="text-align:right">55,321.97</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">79,961.62</td>
-<td style="text-align:right">1.92</td>
-<td style="text-align:right">521.5</td>
-<td>crlist</td>
+<td>read / sequential indexed reads from middle</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>2,955,082.74</td>
+<td>0</td>
+<td>1,478,415.14</td>
+<td>0.01</td>
+<td>188,536.95</td>
+<td>0</td>
+<td>7,621,951.22</td>
+<td>automerge</td>
 </tr>
 <tr>
 <td>crud</td>
-<td>update / insert at head</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">2.86</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">87,305.74</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">104,672.58</td>
-<td style="text-align:right">0.02</td>
-<td style="text-align:right">41,149.55</td>
-<td style="text-align:right">1.98</td>
-<td style="text-align:right">504.33</td>
+<td>read / sequential indexed reads from tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>2,790,178.57</td>
+<td>0</td>
+<td>2,049,180.33</td>
+<td>0.01</td>
+<td>191,233.84</td>
+<td>0</td>
+<td>5,995,203.84</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>read / full iteration visible values</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.88</td>
+<td>1,136.42</td>
+<td>0.25</td>
+<td>4,041.79</td>
+<td>2.24</td>
+<td>447.07</td>
+<td>0.07</td>
+<td>14,208.34</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>read / collect visible values to array</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.68</td>
+<td>1,480.69</td>
+<td>0.23</td>
+<td>4,353.3</td>
+<td>3.43</td>
+<td>291.78</td>
+<td>0.09</td>
+<td>11,074.69</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>read / visible sparse over deleted entries</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>3,521,126.76</td>
+<td>0.04</td>
+<td>24,381.68</td>
+<td>0.03</td>
+<td>39,054.57</td>
+<td>0</td>
+<td>9,259,259.26</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>find / head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>830,288.94</td>
+<td>0</td>
+<td>2,014,504.43</td>
+<td>0</td>
+<td>606,060.61</td>
+<td>0</td>
+<td>1,204,238.92</td>
 <td>yjs</td>
 </tr>
 <tr>
 <td>crud</td>
-<td>update / overwrite random</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">5.63</td>
-<td style="text-align:right">0.02</td>
-<td style="text-align:right">44,397.09</td>
-<td style="text-align:right">0.05</td>
-<td style="text-align:right">20,391.02</td>
-<td style="text-align:right">0.03</td>
-<td style="text-align:right">34,526.57</td>
-<td style="text-align:right">2.23</td>
-<td style="text-align:right">448.79</td>
+<td>find / middle</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.21</td>
+<td>4,663.03</td>
+<td>0.11</td>
+<td>8,874.41</td>
+<td>0.83</td>
+<td>1,199.47</td>
+<td>0.01</td>
+<td>75,183.45</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>find / tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.32</td>
+<td>3,113.08</td>
+<td>0.18</td>
+<td>5,684.89</td>
+<td>2.17</td>
+<td>461.28</td>
+<td>0.02</td>
+<td>48,360.58</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>find / missing value</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.35</td>
+<td>2,882.68</td>
+<td>0.2</td>
+<td>4,942.48</td>
+<td>1.91</td>
+<td>522.29</td>
+<td>0.03</td>
+<td>31,130.15</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>append / single after tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>111,992.12</td>
+<td>0.02</td>
+<td>41,503.42</td>
+<td>0.06</td>
+<td>17,050.41</td>
+<td>1.9</td>
+<td>525.84</td>
 <td>crlist</td>
 </tr>
 <tr>
 <td>crud</td>
-<td>delete / single deletes from middle</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">1.77</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">140,924.46</td>
-<td style="text-align:right">0.02</td>
-<td style="text-align:right">56,326.6</td>
-<td style="text-align:right">0.02</td>
-<td style="text-align:right">41,923.1</td>
-<td style="text-align:right">0.33</td>
-<td style="text-align:right">3,034.57</td>
+<td>append / batch after tail</td>
+<td>5,000</td>
+<td>25,000</td>
+<td>0.01</td>
+<td>177,075.14</td>
+<td>0</td>
+<td>512,629.13</td>
+<td>0.01</td>
+<td>104,546.61</td>
+<td>0.18</td>
+<td>5,589.19</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>append / batch after deleted tail</td>
+<td>5,000</td>
+<td>25,000</td>
+<td>0.01</td>
+<td>199,757.89</td>
+<td>0</td>
+<td>626,571.13</td>
+<td>0.01</td>
+<td>126,524.69</td>
+<td>0.18</td>
+<td>5,553.59</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>append / batch after garbage collection</td>
+<td>5,000</td>
+<td>25,000</td>
+<td>0.01</td>
+<td>193,114.47</td>
+<td>0</td>
+<td>626,313.69</td>
+<td>0.01</td>
+<td>135,792.74</td>
+<td>0.18</td>
+<td>5,503.28</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>prepend / single before head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>104,861.37</td>
+<td>0.02</td>
+<td>60,953.31</td>
+<td>0.01</td>
+<td>71,117.69</td>
+<td>1.84</td>
+<td>543.23</td>
 <td>crlist</td>
 </tr>
 <tr>
 <td>crud</td>
-<td>delete / range deletes</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">6.06</td>
-<td style="text-align:right">0.02</td>
-<td style="text-align:right">41,262.98</td>
-<td style="text-align:right">0.02</td>
-<td style="text-align:right">40,741.83</td>
-<td style="text-align:right">0.07</td>
-<td style="text-align:right">13,344.01</td>
-<td style="text-align:right">0.42</td>
-<td style="text-align:right">2,365.95</td>
+<td>prepend / batch before head</td>
+<td>5,000</td>
+<td>25,000</td>
+<td>0.01</td>
+<td>180,872.65</td>
+<td>0</td>
+<td>805,443.51</td>
+<td>0.01</td>
+<td>167,154.42</td>
+<td>0.18</td>
+<td>5,422.77</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>prepend / batch before deleted head</td>
+<td>5,000</td>
+<td>25,000</td>
+<td>0.01</td>
+<td>175,455.46</td>
+<td>0</td>
+<td>879,250.74</td>
+<td>0.01</td>
+<td>168,244.46</td>
+<td>0.18</td>
+<td>5,464.09</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>prepend / batch after garbage collection</td>
+<td>5,000</td>
+<td>25,000</td>
+<td>0.01</td>
+<td>180,204.47</td>
+<td>0</td>
+<td>804,199.85</td>
+<td>0.01</td>
+<td>113,315.99</td>
+<td>0.18</td>
+<td>5,630.86</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / single before head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>149,925.04</td>
+<td>0.02</td>
+<td>64,345.1</td>
+<td>0.01</td>
+<td>106,505.35</td>
+<td>1.95</td>
+<td>512.1</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / single after head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>106,659.84</td>
+<td>0.02</td>
+<td>57,438.25</td>
+<td>0.03</td>
+<td>33,904.74</td>
+<td>1.89</td>
+<td>529.16</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / single before middle</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>91,743.12</td>
+<td>0.02</td>
+<td>54,828.17</td>
+<td>0.06</td>
+<td>17,899.59</td>
+<td>1.77</td>
+<td>566.53</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / single after middle</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>75,034.52</td>
+<td>0.02</td>
+<td>55,616.12</td>
+<td>0.05</td>
+<td>18,242.98</td>
+<td>1.8</td>
+<td>557.08</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / single before tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>103,868.05</td>
+<td>0.03</td>
+<td>29,628.58</td>
+<td>0.05</td>
+<td>20,307.37</td>
+<td>1.98</td>
+<td>504.45</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / single after tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.02</td>
+<td>40,941.99</td>
+<td>0.04</td>
+<td>23,098.74</td>
+<td>0.06</td>
+<td>16,898.97</td>
+<td>1.72</td>
+<td>580.12</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / batch before head</td>
+<td>5,000</td>
+<td>25,000</td>
+<td>0.01</td>
+<td>190,815.95</td>
+<td>0</td>
+<td>833,930.98</td>
+<td>0.01</td>
+<td>125,083.81</td>
+<td>0.19</td>
+<td>5,390.03</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / batch after head</td>
+<td>5,000</td>
+<td>25,000</td>
+<td>0.01</td>
+<td>194,281.59</td>
+<td>0</td>
+<td>797,425.27</td>
+<td>0.01</td>
+<td>175,140.18</td>
+<td>0.18</td>
+<td>5,481.77</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / batch before middle</td>
+<td>5,000</td>
+<td>25,000</td>
+<td>0.01</td>
+<td>176,947.56</td>
+<td>0</td>
+<td>814,839.2</td>
+<td>0.01</td>
+<td>177,036.02</td>
+<td>0.19</td>
+<td>5,401.9</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / batch after middle</td>
+<td>5,000</td>
+<td>25,000</td>
+<td>0.01</td>
+<td>171,807.14</td>
+<td>0</td>
+<td>803,150.92</td>
+<td>0.01</td>
+<td>136,672.67</td>
+<td>0.18</td>
+<td>5,429.65</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / batch before tail</td>
+<td>5,000</td>
+<td>25,000</td>
+<td>0.02</td>
+<td>60,152.82</td>
+<td>0</td>
+<td>720,396.74</td>
+<td>0.01</td>
+<td>145,282.7</td>
+<td>0.19</td>
+<td>5,323.42</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / batch after tail</td>
+<td>5,000</td>
+<td>25,000</td>
+<td>0</td>
+<td>202,196.99</td>
+<td>0</td>
+<td>555,348.23</td>
+<td>0.01</td>
+<td>137,134.48</td>
+<td>0.18</td>
+<td>5,426.49</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / repeated before head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>144,408.5</td>
+<td>0.01</td>
+<td>104,624.4</td>
+<td>0.06</td>
+<td>17,669.47</td>
+<td>1.97</td>
+<td>508.86</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / repeated before middle</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>133,354.67</td>
+<td>0.02</td>
+<td>64,160.14</td>
+<td>0.04</td>
+<td>24,305.12</td>
+<td>1.91</td>
+<td>522.21</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / repeated before tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>140,181.68</td>
+<td>0.01</td>
+<td>85,356.28</td>
+<td>0.04</td>
+<td>25,474.85</td>
+<td>1.82</td>
+<td>548.45</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / random positions</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.02</td>
+<td>40,430.18</td>
+<td>0.03</td>
+<td>32,947.63</td>
+<td>0.07</td>
+<td>13,662.7</td>
+<td>1.75</td>
+<td>572.66</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>insert / alternating head and tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.05</td>
+<td>19,322.92</td>
+<td>0.01</td>
+<td>99,210.29</td>
+<td>0.01</td>
+<td>127,110.03</td>
+<td>1.82</td>
+<td>548.35</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>overwrite / head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>116,991.9</td>
+<td>0.03</td>
+<td>35,726.53</td>
+<td>0.02</td>
+<td>43,321.55</td>
+<td>2.05</td>
+<td>487.93</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>overwrite / middle</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>140,024.64</td>
+<td>0.02</td>
+<td>48,794.77</td>
+<td>0.04</td>
+<td>26,363.24</td>
+<td>1.87</td>
+<td>533.7</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>overwrite / tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>161,728.55</td>
+<td>0.02</td>
+<td>47,509.55</td>
+<td>0.05</td>
+<td>20,563.78</td>
+<td>1.87</td>
+<td>534.19</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>overwrite / random</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>116,392.76</td>
+<td>0.03</td>
+<td>29,532.67</td>
+<td>0.05</td>
+<td>19,893.69</td>
+<td>2.44</td>
+<td>409.49</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>overwrite / same head repeatedly</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>144,919.14</td>
+<td>0.02</td>
+<td>51,678.52</td>
+<td>0.04</td>
+<td>26,170.89</td>
+<td>1.99</td>
+<td>502.3</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>overwrite / same middle repeatedly</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>151,957.21</td>
+<td>0.02</td>
+<td>45,360.53</td>
+<td>0.02</td>
+<td>66,170.83</td>
+<td>1.87</td>
+<td>534.41</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>overwrite / same tail repeatedly</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>184,488.23</td>
+<td>0.02</td>
+<td>47,352.07</td>
+<td>0.01</td>
+<td>68,225.85</td>
+<td>1.83</td>
+<td>547.72</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>overwrite / random visible entries</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>158,538.91</td>
+<td>0.03</td>
+<td>29,289.44</td>
+<td>0.01</td>
+<td>110,619.47</td>
+<td>2.13</td>
+<td>469.95</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>overwrite / after insert</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>145,738.6</td>
+<td>0.02</td>
+<td>48,307.31</td>
+<td>0.01</td>
+<td>83,929.23</td>
+<td>1.94</td>
+<td>516.04</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>overwrite / after delete</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>162,548.76</td>
+<td>0.02</td>
+<td>47,864.3</td>
+<td>0.01</td>
+<td>66,787.78</td>
+<td>1.92</td>
+<td>521.84</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>delete / head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>511,247.44</td>
+<td>0.02</td>
+<td>55,919.65</td>
+<td>0.04</td>
+<td>25,292.12</td>
+<td>0.25</td>
+<td>3,936.34</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>delete / middle</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>452,243.13</td>
+<td>0.01</td>
+<td>69,060.77</td>
+<td>0.04</td>
+<td>24,876.86</td>
+<td>0.28</td>
+<td>3,563.98</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>delete / tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>472,589.79</td>
+<td>0.02</td>
+<td>60,595.78</td>
+<td>0</td>
+<td>244,140.63</td>
+<td>0.28</td>
+<td>3,572.11</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>delete / range from head</td>
+<td>5,000</td>
+<td>5,000</td>
+<td>0</td>
+<td>2,292,736.61</td>
+<td>0</td>
+<td>9,540,164.09</td>
+<td>0</td>
+<td>330,412.49</td>
+<td>0.01</td>
+<td>71,538.23</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>delete / range from middle</td>
+<td>5,000</td>
+<td>5,000</td>
+<td>0</td>
+<td>1,863,307.74</td>
+<td>0</td>
+<td>7,416,196.97</td>
+<td>0.01</td>
+<td>181,807.6</td>
+<td>0.02</td>
+<td>63,173.11</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>delete / range from tail</td>
+<td>5,000</td>
+<td>5,000</td>
+<td>0</td>
+<td>1,356,888.93</td>
+<td>0</td>
+<td>8,957,362.95</td>
+<td>0</td>
+<td>215,768.35</td>
+<td>0.01</td>
+<td>68,991.12</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>delete / every other entry</td>
+<td>5,000</td>
+<td>2,500</td>
+<td>0</td>
+<td>416,375.2</td>
+<td>0.09</td>
+<td>10,614.82</td>
+<td>0.1</td>
+<td>10,101.21</td>
+<td>0.22</td>
+<td>4,492.57</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>delete / all entries from head one by one</td>
+<td>5,000</td>
+<td>5,000</td>
+<td>0</td>
+<td>1,373,475.44</td>
+<td>0.01</td>
+<td>92,293.15</td>
+<td>0.01</td>
+<td>92,873.1</td>
+<td>0.2</td>
+<td>5,073.65</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>delete / all entries from middle outward</td>
+<td>5,000</td>
+<td>5,000</td>
+<td>0</td>
+<td>245,208.62</td>
+<td>0.01</td>
+<td>98,610.77</td>
+<td>0.01</td>
+<td>148,136.3</td>
+<td>0.21</td>
+<td>4,755.54</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>delete / all entries from tail one by one</td>
+<td>5,000</td>
+<td>5,000</td>
+<td>0</td>
+<td>558,490.73</td>
+<td>0.01</td>
+<td>92,367.49</td>
+<td>0</td>
+<td>202,044.69</td>
+<td>0.21</td>
+<td>4,819.97</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>delete / all entries in random order</td>
+<td>5,000</td>
+<td>5,000</td>
+<td>0.13</td>
+<td>7,699.9</td>
+<td>12.82</td>
+<td>77.98</td>
+<td>9.95</td>
+<td>100.54</td>
+<td>0.25</td>
+<td>3,953.54</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>delete / already deleted head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>656,340.25</td>
+<td>0</td>
+<td>230,925.55</td>
+<td>0</td>
+<td>493,680.88</td>
+<td>0.03</td>
+<td>36,303.44</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>delete / already deleted middle</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>1,630,789.3</td>
+<td>0</td>
+<td>259,578.44</td>
+<td>0</td>
+<td>954,927.43</td>
+<td>0.02</td>
+<td>43,608.71</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>delete / already deleted tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>1,739,735.56</td>
+<td>0</td>
+<td>206,202.57</td>
+<td>0</td>
+<td>1,041,232.82</td>
+<td>0.02</td>
+<td>46,450.27</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>mixed / append overwrite delete tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>141,346.75</td>
+<td>0.05</td>
+<td>18,617.26</td>
+<td>0.05</td>
+<td>21,002.23</td>
+<td>1.71</td>
+<td>584.64</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>mixed / prepend overwrite delete head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>203,798.81</td>
+<td>0.03</td>
+<td>34,615.97</td>
+<td>0.06</td>
+<td>16,783.93</td>
+<td>1.63</td>
+<td>615.02</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>mixed / insert overwrite delete middle</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>185,336.2</td>
+<td>0.02</td>
+<td>44,168.05</td>
+<td>0.04</td>
+<td>22,408.46</td>
+<td>1.59</td>
+<td>628.65</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>crud</td>
+<td>mixed / append prepend insert overwrite delete</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>202,823.3</td>
+<td>0.02</td>
+<td>40,513.39</td>
+<td>0.05</td>
+<td>18,816.23</td>
+<td>1.73</td>
+<td>579.36</td>
 <td>crlist</td>
 </tr>
 <tr>
 <td>mags</td>
 <td>snapshot</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">61.55</td>
-<td style="text-align:right">0.25</td>
-<td style="text-align:right">4,061.61</td>
-<td style="text-align:right">5.16</td>
-<td style="text-align:right">193.92</td>
-<td style="text-align:right">10.3</td>
-<td style="text-align:right">97.13</td>
-<td style="text-align:right">15.68</td>
-<td style="text-align:right">63.78</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.13</td>
+<td>7,584.19</td>
+<td>4.48</td>
+<td>223.21</td>
+<td>8.68</td>
+<td>115.22</td>
+<td>15</td>
+<td>66.67</td>
 <td>crlist</td>
 </tr>
 <tr>
 <td>mags</td>
+<td>snapshot / clean state</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.12</td>
+<td>8,247.75</td>
+<td>4.49</td>
+<td>222.84</td>
+<td>10</td>
+<td>100.01</td>
+<td>14.98</td>
+<td>66.75</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>snapshot / tombstoned state 50% deleted</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.08</td>
+<td>12,812.3</td>
+<td>2.37</td>
+<td>422.79</td>
+<td>4.28</td>
+<td>233.9</td>
+<td>18.53</td>
+<td>53.96</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>snapshot / tombstoned state 90% deleted</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.02</td>
+<td>40,446.53</td>
+<td>0.44</td>
+<td>2,260.08</td>
+<td>0.68</td>
+<td>1,477.13</td>
+<td>15.45</td>
+<td>64.74</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>snapshot / after garbage collection</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.07</td>
+<td>15,112.68</td>
+<td>2.22</td>
+<td>450.52</td>
+<td>3.96</td>
+<td>252.47</td>
+<td>15.1</td>
+<td>66.21</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>snapshot / size bytes clean state</td>
+<td>5,000</td>
+<td>1</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>snapshot / size bytes tombstoned state</td>
+<td>5,000</td>
+<td>1</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
 <td>acknowledge</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">44.79</td>
-<td style="text-align:right">0.18</td>
-<td style="text-align:right">5,582.1</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>1,889,644.75</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>acknowledge / clean state</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>7,225,433.53</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>acknowledge / 50% deleted state</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.05</td>
+<td>21,908.68</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>acknowledge / 90% deleted state</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.07</td>
+<td>14,102.94</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
 <td>n/a</td>
 </tr>
 <tr>
 <td>mags</td>
 <td>garbage collect</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">147.13</td>
-<td style="text-align:right">0.59</td>
-<td style="text-align:right">1,699.21</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>1,182,033.1</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>garbage collect / no eligible tombstones</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>5,010,020.04</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>garbage collect / 50% eligible tombstones</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>550,660.79</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>garbage collect / 90% eligible tombstones</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>528,317.84</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>garbage collect / partial frontiers 2 replicas</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>3,355,704.7</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>garbage collect / partial frontiers 10 replicas</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>5,010,020.04</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>post-gc read / full iteration visible values</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.31</td>
+<td>3,209.87</td>
+<td>0.12</td>
+<td>8,505.51</td>
+<td>0.82</td>
+<td>1,217.5</td>
+<td>0.03</td>
+<td>28,588.75</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>post-gc snapshot / size bytes</td>
+<td>5,000</td>
+<td>1</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>delta / append head single op size bytes</td>
+<td>5,000</td>
+<td>1</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>delta / append tail single op size bytes</td>
+<td>5,000</td>
+<td>1</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>delta / prepend head single op size bytes</td>
+<td>5,000</td>
+<td>1</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>delta / insert middle single op size bytes</td>
+<td>5,000</td>
+<td>1</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>delta / overwrite head single op size bytes</td>
+<td>5,000</td>
+<td>1</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>delta / overwrite middle single op size bytes</td>
+<td>5,000</td>
+<td>1</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>delta / overwrite tail single op size bytes</td>
+<td>5,000</td>
+<td>1</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>delta / delete head single op size bytes</td>
+<td>5,000</td>
+<td>1</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>delta / delete middle single op size bytes</td>
+<td>5,000</td>
+<td>1</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>delta / delete tail single op size bytes</td>
+<td>5,000</td>
+<td>1</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>delta / range delete size bytes</td>
+<td>5,000</td>
+<td>100</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>delta / batch append 100 ops size bytes</td>
+<td>5,000</td>
+<td>100</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>delta / batch prepend 100 ops size bytes</td>
+<td>5,000</td>
+<td>100</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>delta / batch insert middle 100 ops size bytes</td>
+<td>5,000</td>
+<td>100</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>delta / batch overwrite 100 ops size bytes</td>
+<td>5,000</td>
+<td>100</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>delta / batch mixed 100 ops size bytes</td>
+<td>5,000</td>
+<td>100</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+<td>n/a</td>
 <td>n/a</td>
 </tr>
 <tr>
 <td>mags</td>
 <td>merge ordered deltas</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">1.69</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">147,658.14</td>
-<td style="text-align:right">0.04</td>
-<td style="text-align:right">27,173.62</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">82,464.71</td>
-<td style="text-align:right">3.68</td>
-<td style="text-align:right">271.46</td>
-<td>crlist</td>
+<td>5,000</td>
+<td>250</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>0.03</td>
+<td>36,391.69</td>
+<td>0.01</td>
+<td>91,001.75</td>
+<td>3.15</td>
+<td>317.71</td>
+<td>json-joy</td>
 </tr>
 <tr>
 <td>mags</td>
 <td>merge shuffled gossip</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">0.59</td>
-<td style="text-align:right">1,685.81</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">0.33</td>
-<td style="text-align:right">3,043.22</td>
+<td>5,000</td>
+<td>250</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>0.9</td>
+<td>1,109.67</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>0.77</td>
+<td>1,295.39</td>
 <td>automerge</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / append head delta into equal replica</td>
+<td>5,000</td>
+<td>1</td>
+<td>0.17</td>
+<td>5,885.82</td>
+<td>0.09</td>
+<td>11,363.64</td>
+<td>0.09</td>
+<td>11,363.64</td>
+<td>3.6</td>
+<td>277.96</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / append tail delta into equal replica</td>
+<td>5,000</td>
+<td>1</td>
+<td>0.03</td>
+<td>34,013.61</td>
+<td>0.03</td>
+<td>31,446.54</td>
+<td>0.02</td>
+<td>65,789.47</td>
+<td>3.95</td>
+<td>253.13</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / prepend head delta into equal replica</td>
+<td>5,000</td>
+<td>1</td>
+<td>0.2</td>
+<td>5,120.33</td>
+<td>0.03</td>
+<td>28,901.73</td>
+<td>0.01</td>
+<td>78,125</td>
+<td>3.55</td>
+<td>281.32</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / insert middle delta into equal replica</td>
+<td>5,000</td>
+<td>1</td>
+<td>0.08</td>
+<td>12,019.23</td>
+<td>0.04</td>
+<td>28,571.43</td>
+<td>0.02</td>
+<td>55,555.56</td>
+<td>3.37</td>
+<td>296.68</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / overwrite head delta into equal replica</td>
+<td>5,000</td>
+<td>1</td>
+<td>0.88</td>
+<td>1,130.33</td>
+<td>0.06</td>
+<td>16,155.09</td>
+<td>0.02</td>
+<td>60,606.06</td>
+<td>3.24</td>
+<td>308.43</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / overwrite middle delta into equal replica</td>
+<td>5,000</td>
+<td>1</td>
+<td>0.83</td>
+<td>1,207</td>
+<td>0.07</td>
+<td>14,662.76</td>
+<td>0.03</td>
+<td>32,573.29</td>
+<td>3.79</td>
+<td>263.81</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / overwrite tail delta into equal replica</td>
+<td>5,000</td>
+<td>1</td>
+<td>0.95</td>
+<td>1,055.85</td>
+<td>0.06</td>
+<td>15,649.45</td>
+<td>0.02</td>
+<td>54,644.81</td>
+<td>3.52</td>
+<td>284</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / delete head delta into equal replica</td>
+<td>5,000</td>
+<td>1</td>
+<td>0.85</td>
+<td>1,182.17</td>
+<td>0.02</td>
+<td>44,247.79</td>
+<td>0.03</td>
+<td>35,460.99</td>
+<td>1.99</td>
+<td>501.86</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / delete middle delta into equal replica</td>
+<td>5,000</td>
+<td>1</td>
+<td>4.16</td>
+<td>240.32</td>
+<td>0.11</td>
+<td>8,944.54</td>
+<td>0.08</td>
+<td>12,422.36</td>
+<td>1.98</td>
+<td>505.13</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / delete tail delta into equal replica</td>
+<td>5,000</td>
+<td>1</td>
+<td>0.81</td>
+<td>1,232.44</td>
+<td>0.02</td>
+<td>42,735.04</td>
+<td>0.01</td>
+<td>76,923.08</td>
+<td>1.77</td>
+<td>565.67</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / duplicate delta ignored</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>904,486.25</td>
+<td>0.04</td>
+<td>25,742.68</td>
+<td>0.01</td>
+<td>111,987.1</td>
+<td>0.04</td>
+<td>24,061.37</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / old delta ignored after merge</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>1,195,028.68</td>
+<td>0.03</td>
+<td>38,259.65</td>
+<td>0</td>
+<td>228,874.85</td>
+<td>0.03</td>
+<td>34,183.36</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / ordered 1,000 append deltas</td>
+<td>5,000</td>
+<td>1,000</td>
+<td>0</td>
+<td>396,919.9</td>
+<td>0.02</td>
+<td>42,123.89</td>
+<td>0.01</td>
+<td>125,585.54</td>
+<td>3.5</td>
+<td>285.91</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / ordered 1,000 prepend deltas</td>
+<td>5,000</td>
+<td>1,000</td>
+<td>0.05</td>
+<td>20,987.59</td>
+<td>0.01</td>
+<td>67,701.14</td>
+<td>0.03</td>
+<td>36,882.4</td>
+<td>3.57</td>
+<td>279.77</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / ordered 1,000 middle insert deltas</td>
+<td>5,000</td>
+<td>1,000</td>
+<td>0.02</td>
+<td>50,105.22</td>
+<td>0.01</td>
+<td>77,533.8</td>
+<td>0.01</td>
+<td>94,353.86</td>
+<td>3.55</td>
+<td>281.65</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / shuffled 1,000 mixed deltas</td>
+<td>5,000</td>
+<td>250</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>1.71</td>
+<td>584.06</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>0.88</td>
+<td>1,137.52</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / reverse ordered 1,000 mixed deltas</td>
+<td>5,000</td>
+<td>250</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>1.44</td>
+<td>694.59</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>0.91</td>
+<td>1,101.05</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / concurrent prepends same head</td>
+<td>5,000</td>
+<td>2</td>
+<td>0.99</td>
+<td>1,007.2</td>
+<td>0.12</td>
+<td>8,616.98</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>11.46</td>
+<td>87.26</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / concurrent appends same tail</td>
+<td>5,000</td>
+<td>2</td>
+<td>0.88</td>
+<td>1,142.14</td>
+<td>0.04</td>
+<td>27,322.4</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>8.28</td>
+<td>120.72</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / concurrent inserts same middle position</td>
+<td>5,000</td>
+<td>2</td>
+<td>0.88</td>
+<td>1,132.89</td>
+<td>0.05</td>
+<td>19,361.08</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>8.4</td>
+<td>119.04</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / concurrent overwrites same head</td>
+<td>5,000</td>
+<td>2</td>
+<td>1.61</td>
+<td>622.96</td>
+<td>0.04</td>
+<td>22,246.94</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>15.69</td>
+<td>63.72</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / concurrent overwrites same middle</td>
+<td>5,000</td>
+<td>2</td>
+<td>4.26</td>
+<td>234.83</td>
+<td>0.05</td>
+<td>18,281.54</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>10.6</td>
+<td>94.33</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / concurrent overwrites same tail</td>
+<td>5,000</td>
+<td>2</td>
+<td>1.6</td>
+<td>623.29</td>
+<td>0.05</td>
+<td>20,429.01</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>8.47</td>
+<td>118.07</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / concurrent deletes same head</td>
+<td>5,000</td>
+<td>2</td>
+<td>0.82</td>
+<td>1,216.99</td>
+<td>0.02</td>
+<td>40,241.45</td>
+<td>0.03</td>
+<td>29,154.52</td>
+<td>7.27</td>
+<td>137.62</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / concurrent deletes same middle</td>
+<td>5,000</td>
+<td>2</td>
+<td>4.79</td>
+<td>208.83</td>
+<td>0.03</td>
+<td>30,030.03</td>
+<td>0.02</td>
+<td>46,403.71</td>
+<td>8.04</td>
+<td>124.41</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / concurrent deletes same tail</td>
+<td>5,000</td>
+<td>2</td>
+<td>0.99</td>
+<td>1,011.68</td>
+<td>0.04</td>
+<td>27,247.96</td>
+<td>0.02</td>
+<td>60,790.27</td>
+<td>14.36</td>
+<td>69.62</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / concurrent overwrite delete same entry</td>
+<td>5,000</td>
+<td>2</td>
+<td>1.44</td>
+<td>694.35</td>
+<td>0.13</td>
+<td>7,770.01</td>
+<td>0.07</td>
+<td>14,306.15</td>
+<td>9.38</td>
+<td>106.63</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / forked replicas rejoin after 250 ops each</td>
+<td>5,000</td>
+<td>500</td>
+<td>0.63</td>
+<td>1,591.03</td>
+<td>0.02</td>
+<td>50,523.42</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>3.15</td>
+<td>317.23</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / 10 replicas gossip convergence</td>
+<td>5,000</td>
+<td>100</td>
+<td>0.96</td>
+<td>1,043.22</td>
+<td>0.01</td>
+<td>79,201.65</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>6.37</td>
+<td>157.03</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>mags</td>
+<td>merge / snapshot merge into stale replica</td>
+<td>5,000</td>
+<td>5,350</td>
+<td>0</td>
+<td>1,105,988.88</td>
+<td>0</td>
+<td>453,393.67</td>
+<td>0.01</td>
+<td>194,718.22</td>
+<td>0.03</td>
+<td>32,046.21</td>
+<td>crlist</td>
 </tr>
 <tr>
 <td>class</td>
 <td>constructor / hydrate snapshot</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">1,518.88</td>
-<td style="text-align:right">6.08</td>
-<td style="text-align:right">164.6</td>
-<td style="text-align:right">9.63</td>
-<td style="text-align:right">103.8</td>
-<td style="text-align:right">11.07</td>
-<td style="text-align:right">90.32</td>
-<td style="text-align:right">205</td>
-<td style="text-align:right">4.88</td>
+<td>5,000</td>
+<td>250</td>
+<td>3.46</td>
+<td>289.15</td>
+<td>9.97</td>
+<td>100.3</td>
+<td>20.4</td>
+<td>49.01</td>
+<td>171.72</td>
+<td>5.82</td>
 <td>crlist</td>
 </tr>
 <tr>
 <td>class</td>
-<td>append after tail</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">2.99</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">83,701.62</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">69,074.13</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">162,834.63</td>
-<td style="text-align:right">2.38</td>
-<td style="text-align:right">419.43</td>
-<td>json-joy</td>
-</tr>
-<tr>
-<td>class</td>
-<td>prepend before middle</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">2.86</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">87,284.41</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">129,125.56</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">128,218.28</td>
-<td style="text-align:right">2.08</td>
-<td style="text-align:right">481.22</td>
+<td>read / head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>1,054,407.42</td>
+<td>0</td>
+<td>3,496,503.5</td>
+<td>0</td>
+<td>1,727,712.51</td>
+<td>0</td>
+<td>2,138,579.98</td>
 <td>yjs</td>
 </tr>
 <tr>
 <td>class</td>
-<td>remove from middle</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">1.99</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">125,514.61</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">76,115.09</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">99,407.53</td>
-<td style="text-align:right">0.37</td>
-<td style="text-align:right">2,673.64</td>
-<td>crlist</td>
+<td>read / middle</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>1,849,112.43</td>
+<td>0</td>
+<td>12,135,922.33</td>
+<td>0</td>
+<td>3,665,689.15</td>
+<td>0</td>
+<td>8,928,571.43</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>class</td>
+<td>read / tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>3,109,452.74</td>
+<td>0</td>
+<td>13,368,983.96</td>
+<td>0</td>
+<td>3,676,470.59</td>
+<td>0</td>
+<td>10,460,251.05</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>class</td>
+<td>find near head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>754,375.38</td>
+<td>0</td>
+<td>1,481,920.57</td>
+<td>0</td>
+<td>950,209.05</td>
+<td>0</td>
+<td>1,653,439.15</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>class</td>
+<td>find near middle</td>
+<td>5,000</td>
+<td>250</td>
+<td>1.16</td>
+<td>864.49</td>
+<td>0.11</td>
+<td>8,820.4</td>
+<td>1.54</td>
+<td>648.62</td>
+<td>0.02</td>
+<td>63,558.24</td>
+<td>automerge</td>
 </tr>
 <tr>
 <td>class</td>
 <td>find near tail</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">119.12</td>
-<td style="text-align:right">0.48</td>
-<td style="text-align:right">2,098.66</td>
-<td style="text-align:right">0.21</td>
-<td style="text-align:right">4,715.35</td>
-<td style="text-align:right">1.71</td>
-<td style="text-align:right">585.14</td>
-<td style="text-align:right">0.02</td>
-<td style="text-align:right">40,475.34</td>
+<td>5,000</td>
+<td>250</td>
+<td>2.43</td>
+<td>411.09</td>
+<td>0.19</td>
+<td>5,260.33</td>
+<td>2.02</td>
+<td>493.88</td>
+<td>0.02</td>
+<td>52,690.37</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>class</td>
+<td>iterate visible values</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.11</td>
+<td>9,108.07</td>
+<td>0.28</td>
+<td>3,617.04</td>
+<td>2.11</td>
+<td>474.94</td>
+<td>0.08</td>
+<td>12,055.22</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>class</td>
+<td>collect visible values to array</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.1</td>
+<td>9,602.46</td>
+<td>0.27</td>
+<td>3,656.45</td>
+<td>2.01</td>
+<td>498.73</td>
+<td>0.08</td>
+<td>13,149.31</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>class</td>
+<td>append / single after tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>102,308.07</td>
+<td>0.03</td>
+<td>37,894.29</td>
+<td>0.03</td>
+<td>33,340.45</td>
+<td>1.95</td>
+<td>512.96</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>class</td>
+<td>append / batch after tail</td>
+<td>5,000</td>
+<td>25,000</td>
+<td>0.01</td>
+<td>157,189.4</td>
+<td>0</td>
+<td>491,913.92</td>
+<td>0.01</td>
+<td>131,910.04</td>
+<td>0.18</td>
+<td>5,511.33</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>class</td>
+<td>prepend / single before head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>121,607.16</td>
+<td>0.02</td>
+<td>59,451.62</td>
+<td>0.01</td>
+<td>132,492.45</td>
+<td>1.9</td>
+<td>526.93</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>class</td>
+<td>prepend / batch before head</td>
+<td>5,000</td>
+<td>25,000</td>
+<td>0.01</td>
+<td>139,432.13</td>
+<td>0</td>
+<td>629,895.87</td>
+<td>0.01</td>
+<td>165,430.46</td>
+<td>0.18</td>
+<td>5,440.24</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>class</td>
+<td>insert / single before middle</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>119,634.4</td>
+<td>0.02</td>
+<td>57,971.01</td>
+<td>0.02</td>
+<td>49,176.78</td>
+<td>1.93</td>
+<td>517.73</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>class</td>
+<td>insert / batch before middle</td>
+<td>5,000</td>
+<td>25,000</td>
+<td>0.01</td>
+<td>124,700.28</td>
+<td>0</td>
+<td>644,399.65</td>
+<td>0.01</td>
+<td>133,547.51</td>
+<td>0.19</td>
+<td>5,340.44</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>class</td>
+<td>overwrite / head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>94,264.92</td>
+<td>0.03</td>
+<td>34,111.53</td>
+<td>0.01</td>
+<td>86,715.23</td>
+<td>2.09</td>
+<td>478.39</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>class</td>
+<td>overwrite / middle</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>107,874.87</td>
+<td>0.04</td>
+<td>27,282.15</td>
+<td>0.01</td>
+<td>91,528.15</td>
+<td>2.04</td>
+<td>490</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>class</td>
+<td>overwrite / tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>135,729.41</td>
+<td>0.03</td>
+<td>39,075.93</td>
+<td>0.01</td>
+<td>94,718.5</td>
+<td>1.91</td>
+<td>522.87</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>class</td>
+<td>overwrite / random</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>116,855.19</td>
+<td>0.04</td>
+<td>25,846.74</td>
+<td>0.01</td>
+<td>101,957.59</td>
+<td>2.2</td>
+<td>455.01</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>class</td>
+<td>remove / head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>308,603.88</td>
+<td>0.02</td>
+<td>48,279.32</td>
+<td>0.03</td>
+<td>39,536.32</td>
+<td>0.34</td>
+<td>2,968.49</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>class</td>
+<td>remove / middle</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>413,154.85</td>
+<td>0.01</td>
+<td>79,925.83</td>
+<td>0.04</td>
+<td>26,544.35</td>
+<td>0.24</td>
+<td>4,216.24</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>class</td>
+<td>remove / tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>406,041.9</td>
+<td>0.02</td>
+<td>46,779.69</td>
+<td>0</td>
+<td>224,497.13</td>
+<td>0.29</td>
+<td>3,440.14</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>class</td>
+<td>remove / range from head</td>
+<td>5,000</td>
+<td>5,000</td>
+<td>0</td>
+<td>455,913.19</td>
+<td>0</td>
+<td>4,474,272.93</td>
+<td>0</td>
+<td>293,835.91</td>
+<td>0.02</td>
+<td>59,014.32</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>class</td>
+<td>remove / range from middle</td>
+<td>5,000</td>
+<td>5,000</td>
+<td>0</td>
+<td>460,205.99</td>
+<td>0</td>
+<td>4,363,001.75</td>
+<td>0</td>
+<td>291,882.17</td>
+<td>0.02</td>
+<td>59,333.8</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>class</td>
+<td>remove / range from tail</td>
+<td>5,000</td>
+<td>5,000</td>
+<td>0</td>
+<td>471,591.34</td>
+<td>0</td>
+<td>4,978,592.05</td>
+<td>0</td>
+<td>292,177.25</td>
+<td>0.02</td>
+<td>64,301.82</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>class</td>
+<td>mixed / append overwrite remove tail</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>147,076.13</td>
+<td>0.03</td>
+<td>38,910.51</td>
+<td>0.01</td>
+<td>143,934.6</td>
+<td>1.31</td>
+<td>765.85</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>class</td>
+<td>mixed / prepend overwrite remove head</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>163,452.11</td>
+<td>0.01</td>
+<td>70,839.59</td>
+<td>0.01</td>
+<td>139,672.61</td>
+<td>1.55</td>
+<td>646.17</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>class</td>
+<td>mixed / insert overwrite remove middle</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>168,022.04</td>
+<td>0.02</td>
+<td>48,537.09</td>
+<td>0.01</td>
+<td>152,318.28</td>
+<td>1.5</td>
+<td>664.59</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>class</td>
+<td>paste / insert 10,000 entries at cursor</td>
+<td>5,000</td>
+<td>10,000</td>
+<td>0.02</td>
+<td>62,175.87</td>
+<td>0</td>
+<td>491,973.45</td>
+<td>0.01</td>
+<td>80,874.28</td>
+<td>0.16</td>
+<td>6,115.81</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>class</td>
+<td>render / join visible entries to string</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.2</td>
+<td>4,977.5</td>
+<td>0.47</td>
+<td>2,114.07</td>
+<td>2.52</td>
+<td>397.25</td>
+<td>0.18</td>
+<td>5,451.16</td>
 <td>automerge</td>
 </tr>
 <tr>
 <td>class</td>
 <td>snapshot</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">62.59</td>
-<td style="text-align:right">0.25</td>
-<td style="text-align:right">3,994.02</td>
-<td style="text-align:right">4.88</td>
-<td style="text-align:right">205.07</td>
-<td style="text-align:right">8.26</td>
-<td style="text-align:right">121.09</td>
-<td style="text-align:right">19.84</td>
-<td style="text-align:right">50.4</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.13</td>
+<td>7,642.46</td>
+<td>4.5</td>
+<td>222.4</td>
+<td>8.45</td>
+<td>118.36</td>
+<td>15.53</td>
+<td>64.4</td>
 <td>crlist</td>
 </tr>
 <tr>
 <td>class</td>
+<td>snapshot / tombstoned state 50% deleted</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.08</td>
+<td>13,166.14</td>
+<td>2.3</td>
+<td>434.39</td>
+<td>3.83</td>
+<td>260.83</td>
+<td>15.29</td>
+<td>65.41</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>class</td>
+<td>snapshot / after garbage collection</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.1</td>
+<td>9,760.29</td>
+<td>0.27</td>
+<td>3,683.1</td>
+<td>1.85</td>
+<td>541.44</td>
+<td>0.07</td>
+<td>14,557.82</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>class</td>
 <td>acknowledge</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">38.72</td>
-<td style="text-align:right">0.15</td>
-<td style="text-align:right">6,456.58</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.06</td>
+<td>15,812.98</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>class</td>
+<td>acknowledge / 50% deleted state</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.04</td>
+<td>25,794.47</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>class</td>
+<td>acknowledge / 90% deleted state</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.08</td>
+<td>12,246.44</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
 <td>n/a</td>
 </tr>
 <tr>
 <td>class</td>
 <td>garbage collect</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">108.65</td>
-<td style="text-align:right">0.43</td>
-<td style="text-align:right">2,301.01</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td>n/a</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.12</td>
+<td>8,025.04</td>
+<td>0.28</td>
+<td>3,622.98</td>
+<td>2.16</td>
+<td>463.21</td>
+<td>0.07</td>
+<td>13,401.02</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>class</td>
+<td>garbage collect / no eligible tombstones</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.1</td>
+<td>9,942.81</td>
+<td>0.35</td>
+<td>2,855.92</td>
+<td>1.99</td>
+<td>503.53</td>
+<td>0.07</td>
+<td>13,780.48</td>
+<td>automerge</td>
+</tr>
+<tr>
+<td>class</td>
+<td>garbage collect / 90% eligible tombstones</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.09</td>
+<td>10,728</td>
+<td>0.35</td>
+<td>2,887.93</td>
+<td>2.03</td>
+<td>493.63</td>
+<td>0.07</td>
+<td>13,656.28</td>
+<td>automerge</td>
 </tr>
 <tr>
 <td>class</td>
 <td>merge ordered deltas</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">1.29</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">193,963.85</td>
-<td style="text-align:right">0.03</td>
-<td style="text-align:right">34,196.92</td>
-<td style="text-align:right">0</td>
-<td style="text-align:right">258,371.23</td>
-<td style="text-align:right">4.92</td>
-<td style="text-align:right">203.07</td>
+<td>5,000</td>
+<td>250</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>0.02</td>
+<td>49,541.25</td>
+<td>0.01</td>
+<td>193,993.95</td>
+<td>2.95</td>
+<td>339.03</td>
 <td>json-joy</td>
 </tr>
 <tr>
 <td>class</td>
 <td>merge shuffled gossip</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">0.45</td>
-<td style="text-align:right">2,221.81</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">0.71</td>
-<td style="text-align:right">1,400.93</td>
+<td>5,000</td>
+<td>250</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>0.54</td>
+<td>1,855.17</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>0.7</td>
+<td>1,433.26</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>class</td>
+<td>merge / duplicate delta ignored</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>846,883.47</td>
+<td>0.03</td>
+<td>29,824.39</td>
+<td>0</td>
+<td>271,326.24</td>
+<td>0.03</td>
+<td>29,651.42</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>class</td>
+<td>merge / concurrent prepends same head</td>
+<td>5,000</td>
+<td>2</td>
+<td>3.15</td>
+<td>317.61</td>
+<td>0.12</td>
+<td>8,536.06</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>10.49</td>
+<td>95.29</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>class</td>
+<td>merge / concurrent appends same tail</td>
+<td>5,000</td>
+<td>2</td>
+<td>0.85</td>
+<td>1,173.85</td>
+<td>0.05</td>
+<td>21,834.06</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>10.78</td>
+<td>92.79</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>class</td>
+<td>merge / concurrent inserts same middle position</td>
+<td>5,000</td>
+<td>2</td>
+<td>0.89</td>
+<td>1,125.37</td>
+<td>0.04</td>
+<td>28,011.2</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>14.89</td>
+<td>67.18</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>class</td>
+<td>merge / forked replicas rejoin after 250 ops each</td>
+<td>5,000</td>
+<td>500</td>
+<td>0.53</td>
+<td>1,875.42</td>
+<td>0.01</td>
+<td>78,566.94</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>3.15</td>
+<td>317.4</td>
 <td>yjs</td>
 </tr>
 <tr>
 <td>latency</td>
-<td>append write to remote visible</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">3.61</td>
-<td style="text-align:right">0.01</td>
-<td style="text-align:right">69,202.24</td>
-<td style="text-align:right">0.07</td>
-<td style="text-align:right">14,698.45</td>
-<td style="text-align:right">0.02</td>
-<td style="text-align:right">54,034.19</td>
-<td style="text-align:right">8.78</td>
-<td style="text-align:right">113.89</td>
-<td>crlist</td>
+<td>append tail write to remote visible</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.38</td>
+<td>2,612.69</td>
+<td>0.27</td>
+<td>3,701.46</td>
+<td>12.89</td>
+<td>77.56</td>
+<td>5.61</td>
+<td>178.31</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>latency</td>
+<td>prepend head write to remote visible</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.06</td>
+<td>15,873.42</td>
+<td>0.04</td>
+<td>28,002.73</td>
+<td>0.03</td>
+<td>35,024.8</td>
+<td>5.78</td>
+<td>173.15</td>
+<td>json-joy</td>
 </tr>
 <tr>
 <td>latency</td>
 <td>middle insert write to remote visible</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">8.29</td>
-<td style="text-align:right">0.03</td>
-<td style="text-align:right">30,168.46</td>
-<td style="text-align:right">0.05</td>
-<td style="text-align:right">19,072.32</td>
-<td style="text-align:right">0.02</td>
-<td style="text-align:right">61,106.77</td>
-<td style="text-align:right">8.26</td>
-<td style="text-align:right">121.13</td>
-<td>json-joy</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.34</td>
+<td>2,966.44</td>
+<td>0.17</td>
+<td>5,906</td>
+<td>4.66</td>
+<td>214.45</td>
+<td>5.69</td>
+<td>175.61</td>
+<td>yjs</td>
 </tr>
 <tr>
 <td>latency</td>
 <td>head insert write to remote visible</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">22.31</td>
-<td style="text-align:right">0.09</td>
-<td style="text-align:right">11,207.6</td>
-<td style="text-align:right">0.05</td>
-<td style="text-align:right">19,615.07</td>
-<td style="text-align:right">0.02</td>
-<td style="text-align:right">43,743</td>
-<td style="text-align:right">8.65</td>
-<td style="text-align:right">115.6</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.06</td>
+<td>17,962.87</td>
+<td>0.03</td>
+<td>35,954.15</td>
+<td>0.04</td>
+<td>22,914.76</td>
+<td>5.71</td>
+<td>175.21</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>latency</td>
+<td>overwrite head write to remote visible</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.8</td>
+<td>1,245.59</td>
+<td>0.05</td>
+<td>22,193.62</td>
+<td>0.03</td>
+<td>31,289.5</td>
+<td>5.74</td>
+<td>174.29</td>
 <td>json-joy</td>
 </tr>
 <tr>
 <td>latency</td>
+<td>overwrite middle write to remote visible</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.98</td>
+<td>1,015.85</td>
+<td>0.18</td>
+<td>5,517.33</td>
+<td>3.59</td>
+<td>278.51</td>
+<td>5.67</td>
+<td>176.41</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>latency</td>
+<td>overwrite tail write to remote visible</td>
+<td>5,000</td>
+<td>250</td>
+<td>1.48</td>
+<td>677.84</td>
+<td>0.28</td>
+<td>3,633.74</td>
+<td>6.9</td>
+<td>144.94</td>
+<td>5.57</td>
+<td>179.56</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>latency</td>
 <td>head delete to remote hidden</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">294.31</td>
-<td style="text-align:right">1.18</td>
-<td style="text-align:right">849.46</td>
-<td style="text-align:right">0.05</td>
-<td style="text-align:right">20,731.06</td>
-<td style="text-align:right">0.06</td>
-<td style="text-align:right">16,273.29</td>
-<td style="text-align:right">3.73</td>
-<td style="text-align:right">267.95</td>
+<td>5,000</td>
+<td>250</td>
+<td>1.28</td>
+<td>780.25</td>
+<td>0.31</td>
+<td>3,211.55</td>
+<td>7.2</td>
+<td>138.91</td>
+<td>2.05</td>
+<td>488.67</td>
 <td>yjs</td>
 </tr>
 <tr>
 <td>latency</td>
 <td>middle delete to remote hidden</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">258.47</td>
-<td style="text-align:right">1.03</td>
-<td style="text-align:right">967.23</td>
-<td style="text-align:right">0.05</td>
-<td style="text-align:right">21,973.39</td>
-<td style="text-align:right">0.06</td>
-<td style="text-align:right">18,026.59</td>
-<td style="text-align:right">3.06</td>
-<td style="text-align:right">326.98</td>
+<td>5,000</td>
+<td>250</td>
+<td>1.2</td>
+<td>829.98</td>
+<td>0.28</td>
+<td>3,533.12</td>
+<td>6.31</td>
+<td>158.53</td>
+<td>2.04</td>
+<td>489.42</td>
 <td>yjs</td>
 </tr>
 <tr>
 <td>latency</td>
 <td>tail delete to remote hidden</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">260.32</td>
-<td style="text-align:right">1.04</td>
-<td style="text-align:right">960.35</td>
-<td style="text-align:right">0.07</td>
-<td style="text-align:right">14,636.4</td>
-<td style="text-align:right">0.04</td>
-<td style="text-align:right">25,885.28</td>
-<td style="text-align:right">2.83</td>
-<td style="text-align:right">353.71</td>
-<td>json-joy</td>
+<td>5,000</td>
+<td>250</td>
+<td>1.25</td>
+<td>801.21</td>
+<td>0.25</td>
+<td>3,987.15</td>
+<td>7.49</td>
+<td>133.53</td>
+<td>2.11</td>
+<td>474.62</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>latency</td>
+<td>append tail write to 10 remotes visible</td>
+<td>5,000</td>
+<td>2,500</td>
+<td>0.52</td>
+<td>1,930.55</td>
+<td>0.25</td>
+<td>4,066.98</td>
+<td>13.15</td>
+<td>76.06</td>
+<td>3.76</td>
+<td>265.63</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>latency</td>
+<td>prepend head write to 10 remotes visible</td>
+<td>5,000</td>
+<td>2,500</td>
+<td>0.07</td>
+<td>13,686.77</td>
+<td>0.01</td>
+<td>88,078.1</td>
+<td>0.01</td>
+<td>78,404.81</td>
+<td>3.84</td>
+<td>260.32</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>latency</td>
+<td>middle insert write to 10 remotes visible</td>
+<td>5,000</td>
+<td>2,500</td>
+<td>0.33</td>
+<td>3,053.83</td>
+<td>0.13</td>
+<td>7,415.43</td>
+<td>4.58</td>
+<td>218.29</td>
+<td>3.82</td>
+<td>261.45</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>latency</td>
+<td>overwrite middle write to 10 remotes visible</td>
+<td>5,000</td>
+<td>2,500</td>
+<td>1.26</td>
+<td>793.24</td>
+<td>0.16</td>
+<td>6,312.96</td>
+<td>3.18</td>
+<td>314.43</td>
+<td>3.79</td>
+<td>263.83</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>latency</td>
+<td>delete middle to 10 remotes hidden</td>
+<td>5,000</td>
+<td>2,500</td>
+<td>1.61</td>
+<td>619.81</td>
+<td>0.27</td>
+<td>3,690.93</td>
+<td>6.45</td>
+<td>155.15</td>
+<td>2.19</td>
+<td>456.93</td>
+<td>yjs</td>
 </tr>
 <tr>
 <td>latency</td>
 <td>out-of-order write delivery to remote visible</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">36.86</td>
-<td style="text-align:right">0.15</td>
-<td style="text-align:right">6,781.7</td>
-<td style="text-align:right">207.42</td>
-<td style="text-align:right">4.82</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">n/a</td>
-<td style="text-align:right">224.72</td>
-<td style="text-align:right">4.45</td>
+<td>5,000</td>
+<td>250</td>
+<td>1.44</td>
+<td>695.11</td>
+<td>89.93</td>
+<td>11.12</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>16.09</td>
+<td>62.15</td>
 <td>crlist</td>
 </tr>
 <tr>
 <td>latency</td>
 <td>out-of-order delete delivery to remote convergence</td>
-<td style="text-align:right">5,000</td>
-<td style="text-align:right">250</td>
-<td style="text-align:right">327.06</td>
-<td style="text-align:right">1.31</td>
-<td style="text-align:right">764.38</td>
-<td style="text-align:right">0.03</td>
-<td style="text-align:right">30,974.71</td>
-<td style="text-align:right">0.12</td>
-<td style="text-align:right">8,192.85</td>
-<td style="text-align:right">1.03</td>
-<td style="text-align:right">968.05</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.72</td>
+<td>1,392.01</td>
+<td>0</td>
+<td>257,307.53</td>
+<td>0.01</td>
+<td>147,327.48</td>
+<td>0.18</td>
+<td>5,542.25</td>
 <td>yjs</td>
+</tr>
+<tr>
+<td>latency</td>
+<td>out-of-order append delivery to convergence</td>
+<td>5,000</td>
+<td>250</td>
+<td>1.26</td>
+<td>793.49</td>
+<td>26.94</td>
+<td>37.11</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>17.93</td>
+<td>55.77</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>latency</td>
+<td>out-of-order prepend delivery to convergence</td>
+<td>5,000</td>
+<td>250</td>
+<td>1.41</td>
+<td>708.91</td>
+<td>28.26</td>
+<td>35.38</td>
+<td>0.1</td>
+<td>9,597.33</td>
+<td>17.59</td>
+<td>56.85</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>latency</td>
+<td>out-of-order middle insert delivery to convergence</td>
+<td>5,000</td>
+<td>250</td>
+<td>1.3</td>
+<td>766.83</td>
+<td>89.08</td>
+<td>11.23</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>18.29</td>
+<td>54.68</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>latency</td>
+<td>out-of-order overwrite delivery to convergence</td>
+<td>5,000</td>
+<td>129</td>
+<td>1.87</td>
+<td>533.8</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>232.79</td>
+<td>4.3</td>
+<td>77.26</td>
+<td>12.94</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>latency</td>
+<td>offline burst 1,000 ops then sync</td>
+<td>5,000</td>
+<td>250</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>0.03</td>
+<td>34,752.03</td>
+<td>0</td>
+<td>258,926.49</td>
+<td>3.23</td>
+<td>309.58</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>latency</td>
+<td>forked replicas mixed ops then converge</td>
+<td>5,000</td>
+<td>500</td>
+<td>0.61</td>
+<td>1,629.87</td>
+<td>0.02</td>
+<td>64,321.92</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>3.19</td>
+<td>313.54</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>latency</td>
+<td>duplicate shuffled gossip to convergence</td>
+<td>5,000</td>
+<td>250</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>0.23</td>
+<td>4,265.54</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>0.44</td>
+<td>2,268.45</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>latency</td>
+<td>remote snapshot hydrate then apply pending deltas</td>
+<td>5,000</td>
+<td>250</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>0.04</td>
+<td>23,499.11</td>
+<td>0.07</td>
+<td>14,719.3</td>
+<td>0.69</td>
+<td>1,443.85</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>local app session</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>76,131.31</td>
+<td>0.02</td>
+<td>62,471.89</td>
+<td>0.01</td>
+<td>136,888.79</td>
+<td>1.4</td>
+<td>712.51</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>read heavy session</td>
+<td>5,000</td>
+<td>250</td>
+<td>0</td>
+<td>1,454,333.92</td>
+<td>0</td>
+<td>4,416,961.13</td>
+<td>0</td>
+<td>414,731.25</td>
+<td>0</td>
+<td>3,132,832.08</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>write heavy session</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>76,149.86</td>
+<td>0.02</td>
+<td>53,949.07</td>
+<td>0.01</td>
+<td>165,859.48</td>
+<td>2.13</td>
+<td>470.12</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>append tail heavy session</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>192,263.32</td>
+<td>0.02</td>
+<td>49,121.7</td>
+<td>0.02</td>
+<td>63,419.58</td>
+<td>1.78</td>
+<td>562.38</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>prepend head heavy session</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>74,520.09</td>
+<td>0.02</td>
+<td>56,368.51</td>
+<td>0.01</td>
+<td>152,671.76</td>
+<td>1.63</td>
+<td>615.2</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>insert middle heavy session</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.02</td>
+<td>65,970.02</td>
+<td>0.02</td>
+<td>56,760.13</td>
+<td>0.01</td>
+<td>157,163.51</td>
+<td>1.65</td>
+<td>607.55</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>overwrite heavy session</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>67,726.82</td>
+<td>0.02</td>
+<td>40,125.83</td>
+<td>0.01</td>
+<td>156,015.98</td>
+<td>1.26</td>
+<td>794.36</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>delete heavy session</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>103,738.74</td>
+<td>0.03</td>
+<td>39,631.58</td>
+<td>0</td>
+<td>213,219.62</td>
+<td>0.28</td>
+<td>3,545.48</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>balanced append prepend insert overwrite delete session</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>74,034.59</td>
+<td>0.01</td>
+<td>75,663.57</td>
+<td>0.01</td>
+<td>150,087.05</td>
+<td>1.39</td>
+<td>717.67</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>random edit session</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.02</td>
+<td>50,088.16</td>
+<td>0.03</td>
+<td>39,302.61</td>
+<td>0.04</td>
+<td>28,194.11</td>
+<td>1.23</td>
+<td>811.57</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>text editing session</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>67,480.03</td>
+<td>0.01</td>
+<td>76,059.51</td>
+<td>0.01</td>
+<td>172,366.24</td>
+<td>1.75</td>
+<td>571.57</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>collaborative offline session</td>
+<td>5,000</td>
+<td>500</td>
+<td>0.63</td>
+<td>1,578.49</td>
+<td>0.02</td>
+<td>47,061.04</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>3.24</td>
+<td>308.43</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>sync and cleanup session</td>
+<td>5,000</td>
+<td>250</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>0.02</td>
+<td>57,146.12</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>3.19</td>
+<td>313.43</td>
+<td>yjs</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>long lived tombstoned session</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>148,880.42</td>
+<td>0.02</td>
+<td>56,497.18</td>
+<td>0.01</td>
+<td>162,358.75</td>
+<td>1.86</td>
+<td>536.32</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>sparse visible session</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>118,956.99</td>
+<td>0.19</td>
+<td>5,382.82</td>
+<td>0.02</td>
+<td>66,593.86</td>
+<td>0.96</td>
+<td>1,044.35</td>
+<td>crlist</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>post-gc edit session</td>
+<td>5,000</td>
+<td>250</td>
+<td>0.01</td>
+<td>160,184.53</td>
+<td>0.02</td>
+<td>41,850.11</td>
+<td>0.01</td>
+<td>164,625.31</td>
+<td>1.61</td>
+<td>621.15</td>
+<td>json-joy</td>
+</tr>
+<tr>
+<td>total wa</td>
+<td>time: 820,335.7 ms</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 </tbody>
 </table>

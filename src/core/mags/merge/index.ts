@@ -11,6 +11,7 @@ import {
   rebuildLiveIndex,
   deleteLiveEntry,
   moveEntryToPredecessor,
+  trySpliceReplacement,
 } from '../../../.helpers/index.js'
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
 import { trySpliceInsertedParent } from '../../../.helpers/trySpliceInsertedParent/index.js'
@@ -49,6 +50,7 @@ export function __merge<T>(
     previousPredecessor: string
   }> = []
   const change: CRListChange<T> = {}
+  let tailTombstoneMovedCursor = false
   let needsRelink = false
   if (
     Object.hasOwn(crListDelta, 'values') &&
@@ -94,9 +96,12 @@ export function __merge<T>(
       void crListReplica.tombstones.add(tombstone)
       const linkedListEntry = crListReplica.parentMap.get(tombstone)
       if (linkedListEntry) {
+        const wasTail = linkedListEntry.next === undefined
+        const wasCursor = crListReplica.cursor === linkedListEntry
         void newTombsIndices.push(linkedListEntry.index)
         void crListReplica.index?.delete(linkedListEntry.index)
         void deleteLiveEntry<T>(crListReplica, linkedListEntry)
+        tailTombstoneMovedCursor = wasTail && wasCursor
         needsRelink = true
       }
     }
@@ -108,6 +113,19 @@ export function __merge<T>(
     !Array.isArray(crListDelta.values)
   ) {
     if (newTombsIndices.length === 0) return false
+    if (newTombsIndices.length === 1 && tailTombstoneMovedCursor) {
+      if (crListReplica.cursor) {
+        crListReplica.cursorIndex = crListReplica.size - 1
+        void crListReplica.index?.set(
+          crListReplica.cursorIndex,
+          crListReplica.cursor
+        )
+      } else {
+        crListReplica.cursorIndex = undefined
+      }
+      change[newTombsIndices[0]] = undefined
+      return change
+    }
     void rebuildLiveIndex<T>(crListReplica)
     for (const index of newTombsIndices) {
       change[index] = undefined
@@ -166,7 +184,15 @@ export function __merge<T>(
     }
   }
   if (needsRelink) {
-    if (!trySpliceInsertedParent<T>(crListReplica, newVals, reparentedVals)) {
+    if (
+      !trySpliceInsertedParent<T>(crListReplica, newVals, reparentedVals) &&
+      !trySpliceReplacement<T>(
+        crListReplica,
+        newVals,
+        reparentedVals,
+        newTombsIndices.length
+      )
+    ) {
       // Flatten tree into a doubly linked list and write live-view indexes.
       void rebuildLiveProjection<T>(crListReplica)
     }

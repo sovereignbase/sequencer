@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.2.0...v1.2.1) (2026-05-23)
+
+
+### Bug Fixes
+
+* snapshot hydration recursion error ([01a7de8](https://github.com/sovereignbase/convergent-replicated-list/commit/01a7de867bad66896e22db3ad6604bbcad8d3c6c))
+
 ## [1.2.0](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.1.0...v1.2.0) (2026-05-15)
 
 

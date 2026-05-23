@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.6](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.3.5...v1.3.6) (2026-05-23)
+
+
+### Performance Improvements
+
+* improve batch speeds with some small degrations elsewhere ([e164c2a](https://github.com/sovereignbase/convergent-replicated-list/commit/e164c2a767f66702296f2e624415483c5ca8d494))
+
 ## [1.3.5](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.3.4...v1.3.5) (2026-05-23)
 
 

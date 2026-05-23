@@ -14,7 +14,6 @@ const results = await runCRListSuite(api, {
   label: 'integration stress',
   stressRounds: Number.parseInt(process.env.CRLIST_STRESS_ROUNDS ?? '5', 10),
   includeStress: true,
-  verbose: true,
 })
 
 printResults(results)

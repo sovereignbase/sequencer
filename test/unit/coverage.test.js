@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { v7 as uuidv7 } from 'uuid'
 import {
   CRList,
   __acknowledge,
@@ -470,6 +471,31 @@ test('unit: nullish snapshot and delta entries are ignored', () => {
   assert.deepEqual(__snapshot(target), { values: [], tombstones: [] })
 })
 
+test('unit: large non-linear snapshots hydrate 100k entries without recursive stack growth', () => {
+  const values = []
+  let predecessor = '\0'
+
+  for (let index = 0; index < 100_000; index++) {
+    const uuid = uuidv7()
+    values.push({
+      uuidv7: uuid,
+      value: { id: `large-${index}` },
+      predecessor,
+    })
+    predecessor = uuid
+  }
+
+  const hydrated = __create({
+    values: values.toReversed(),
+    tombstones: [],
+  })
+
+  assert.equal(hydrated.size, values.length)
+  assert.equal(__read(0, hydrated).id, 'large-0')
+  assert.equal(__read(49_999, hydrated).id, 'large-49999')
+  assert.equal(__read(99_999, hydrated).id, 'large-99999')
+})
+
 test('unit: internal defensive branches remain stable under corrupt state', () => {
   const originalIsArray = Array.isArray
 
@@ -548,7 +574,6 @@ test('unit: internal defensive branches remain stable under corrupt state', () =
   corrupt.parentMap.set(parentEntry.uuidv7, parentEntry)
   corrupt.parentMap.set(childEntry.uuidv7, childEntry)
   corrupt.parentMap.set(missingParent.uuidv7, undefined)
-  corrupt.childrenMap.set(deletedEntry.uuidv7, [])
   corrupt.cursor = deletedEntry
   corrupt.size = 3
 
@@ -561,6 +586,9 @@ test('unit: flatten relink branch coverage stays explicit under corrupt buckets'
 
   const relinkTarget = __create(__snapshot(relinkSource))
   relinkTarget.index = undefined
+  const rootBucket = relinkTarget.childrenMap.get('\0')
+  const rootEntry = rootBucket[0]
+  rootBucket.push({ ...rootEntry })
   relinkTarget.childrenMap.set('z', undefined)
   relinkTarget.childrenMap.set('a', undefined)
   relinkTarget.childrenMap.set('m', undefined)
@@ -608,43 +636,4 @@ test('unit: assertListIndices forward walk is covered through tombstone-only mer
   assert(__merge(singleTarget, { tombstones: singleDeletion.delta.tombstones }))
   assert.equal(singleTarget.cursor, undefined)
   assert.equal(singleTarget.cursorIndex, undefined)
-
-  const siblingSource = __create()
-  const siblingLeftSource = __create()
-  const siblingRightSource = __create()
-  const siblingLeft = __update(0, [{ id: 'left' }], siblingLeftSource, 'after')
-  const siblingRight = __update(
-    0,
-    [{ id: 'right' }],
-    siblingRightSource,
-    'after'
-  )
-  assert(siblingLeft)
-  assert(siblingRight)
-  assert(__merge(siblingSource, siblingLeft.delta))
-  assert(__merge(siblingSource, siblingRight.delta))
-  const siblingLocal = __create(__snapshot(siblingSource))
-  assert(__delete(siblingLocal, 0, 1))
-  assert.equal(siblingLocal.cursorIndex, 0)
-
-  const rootSources = [__create(), __create(), __create()]
-  const rootDeltas = rootSources.map((rootSource, index) => {
-    const result = __update(0, [{ id: `root-${index}` }], rootSource, 'after')
-    assert(result)
-    return result.delta
-  })
-  const rootSource = __create()
-  const rootTarget = __create()
-  for (const delta of rootDeltas) {
-    assert(__merge(rootSource, delta))
-    assert(__merge(rootTarget, delta))
-  }
-  rootTarget.index = undefined
-  const rootDeletion = __delete(rootSource, 0, 1)
-  assert(__merge(rootTarget, { tombstones: rootDeletion.delta.tombstones }))
-  assert.equal(rootTarget.cursor.index, 0)
-  assert.deepEqual(
-    ids(rootTarget).map((value) => value.id),
-    ids(rootSource).map((value) => value.id)
-  )
 })

@@ -1,8 +1,4 @@
-import {
-  deleteLiveEntry,
-  rebuildLiveProjection,
-  seekCursorToIndex,
-} from '../../../.helpers/index.js'
+import { deleteLiveEntry, seekCursorToIndex } from '../../../.helpers/index.js'
 import { CRListError } from '../../../.errors/class.js'
 import type {
   CRListChange,
@@ -55,23 +51,15 @@ export function __delete<T>(
   let current: CRListStateEntry<T> = crListReplica.cursor
   let deleted = 0
   let currentIndex = crListReplica.cursorIndex ?? listIndex
-  let needsProjectionRebuild = false
 
   while (current && deleted < deleteCount) {
     const next: CRListStateEntry<T> = current.next
     change[currentIndex] = undefined
     void crListReplica.index?.delete(currentIndex)
-    needsProjectionRebuild =
-      deleteLiveEntry<T>(crListReplica, current, delta) ||
-      needsProjectionRebuild
+    void deleteLiveEntry<T>(crListReplica, current, delta)
     current = next
     currentIndex++
     deleted++
-  }
-
-  if (needsProjectionRebuild) {
-    void rebuildLiveProjection<T>(crListReplica)
-    return { change, delta }
   }
 
   crListReplica.size = crListReplica.parentMap.size

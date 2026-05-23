@@ -20,20 +20,46 @@ export function rebuildLiveProjection<T>(crListReplica: CRListState<T>) {
   let first: CRListStateEntry<T> = undefined
   let index = 0
   const appendChildren = (predecessorIdentifier: string): void => {
-    const siblings = crListReplica.childrenMap.get(predecessorIdentifier)
-    if (!siblings) return
-    if (siblings.length > 1)
-      void siblings.sort((a, b) => (a.uuidv7 > b.uuidv7 ? 1 : -1))
+    const stack: Array<{
+      predecessorIdentifier: string
+      siblingIndex: number
+      siblings?: Array<NonNullable<CRListStateEntry<T>>>
+    }> = [{ predecessorIdentifier, siblingIndex: 0 }]
 
-    for (const sibling of siblings) {
-      if (!sibling || crListReplica.parentMap.get(sibling.uuidv7) !== sibling)
+    while (stack.length > 0) {
+      const frame = stack[stack.length - 1]
+
+      if (!frame.siblings) {
+        frame.siblings = crListReplica.childrenMap.get(
+          frame.predecessorIdentifier
+        )
+        if (!frame.siblings) {
+          void stack.pop()
+          continue
+        }
+        if (frame.siblings.length > 1)
+          void frame.siblings.sort((a, b) => (a.uuidv7 > b.uuidv7 ? 1 : -1))
+      }
+
+      if (frame.siblingIndex >= frame.siblings.length) {
+        void stack.pop()
         continue
+      }
+
+      const sibling = frame.siblings[frame.siblingIndex]
+      frame.siblingIndex++
+      if (!sibling) continue
+      if (crListReplica.parentMap.get(sibling.uuidv7) !== sibling) continue
+
       sibling.index = index
       index++
       void linkEntryBetween<T>(previous, sibling, undefined)
       if (!first) first = sibling
       previous = sibling
-      void appendChildren(sibling.uuidv7)
+      void stack.push({
+        predecessorIdentifier: sibling.uuidv7,
+        siblingIndex: 0,
+      })
     }
   }
   void appendChildren('\0')

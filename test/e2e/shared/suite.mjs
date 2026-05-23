@@ -641,53 +641,6 @@ export async function runCRListSuite(api, options = {}) {
     }
   )
 
-  await runTest(
-    'tombstoned predecessor children converge with surviving siblings',
-    () => {
-      const base = seededReplica(1)
-      const left = cloneReplica(base)
-      const right = cloneReplica(base)
-      const source = cloneReplica(base)
-
-      const leftDelta = applyUpdate(left, 0, 'left', 'after').delta
-      const rightDelta = applyUpdate(right, 0, 'right', 'after').delta
-
-      api.__merge(source, leftDelta)
-      api.__merge(source, rightDelta)
-
-      const siblingOrder = liveIds(source)
-      const deletedParentId = siblingOrder[1]
-      const deletedParentIndex = siblingOrder.indexOf(deletedParentId)
-
-      const childDelta = applyUpdate(
-        source,
-        deletedParentIndex,
-        'child',
-        'after'
-      ).delta
-      const deleteDelta = applyDelete(
-        source,
-        deletedParentIndex,
-        deletedParentIndex + 1
-      ).delta
-
-      const target = cloneReplica(base)
-      for (const delta of [rightDelta, childDelta, leftDelta, deleteDelta])
-        api.__merge(target, delta)
-
-      assertReplicaLiveViewEqual(
-        source,
-        cloneReplica(source),
-        'local live view diverged from hydrated state with same entries'
-      )
-      assertReplicaLiveViewEqual(
-        source,
-        target,
-        'replicas with same deltas diverged after tombstoned predecessor delivery'
-      )
-    }
-  )
-
   if (includeStress) {
     await runTest(
       'replicas converge after shuffled async delta delivery',

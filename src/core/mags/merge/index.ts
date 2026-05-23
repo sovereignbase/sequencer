@@ -13,6 +13,7 @@ import {
   moveEntryToPredecessor,
 } from '../../../.helpers/index.js'
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
+import { trySpliceInsertedParent } from './trySpliceInsertedParent/index.js'
 
 /**
  * Merges a remote CRList delta into the local replica.
@@ -43,6 +44,10 @@ export function __merge<T>(
   if (!crListDelta || prototype(crListDelta) !== 'record') return false
   const newVals: Array<NonNullable<CRListStateEntry<T>>> = []
   const newTombsIndices: Array<number> = []
+  const reparentedVals: Array<{
+    entry: NonNullable<CRListStateEntry<T>>
+    previousPredecessor: string
+  }> = []
   const change: CRListChange<T> = {}
   let needsRelink = false
   if (
@@ -118,11 +123,13 @@ export function __merge<T>(
       if (valueEntry.predecessor !== '\0' && !isUuidV7(valueEntry.predecessor))
         continue
       if (existingEntry.predecessor >= valueEntry.predecessor) continue
+      const previousPredecessor = existingEntry.predecessor
       void moveEntryToPredecessor<T>(
         crListReplica,
         existingEntry,
         valueEntry.predecessor
       )
+      void reparentedVals.push({ entry: existingEntry, previousPredecessor })
       needsRelink = true
       continue
     }
@@ -159,8 +166,10 @@ export function __merge<T>(
     }
   }
   if (needsRelink) {
-    // Flatten tree into a doubly linked list and write live-view indexes.
-    void rebuildLiveProjection<T>(crListReplica)
+    if (!trySpliceInsertedParent<T>(crListReplica, newVals, reparentedVals)) {
+      // Flatten tree into a doubly linked list and write live-view indexes.
+      void rebuildLiveProjection<T>(crListReplica)
+    }
   }
 
   if (newTombsIndices.length === 0 && newVals.length === 0) return false

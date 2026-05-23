@@ -20,17 +20,17 @@ import { CRListState, CRListSnapshot } from '../../../.types/index.js'
 export function __snapshot<T>(
   crListReplica: CRListState<T>
 ): CRListSnapshot<T> {
+  const values: CRListSnapshot<T>['values'] = []
+  for (const linkedListEntry of crListReplica.parentMap.values()) {
+    if (!linkedListEntry) throw new CRListError('LIST_INTEGRITY_VIOLATION')
+    void values.push({
+      uuidv7: linkedListEntry.uuidv7,
+      value: linkedListEntry.value,
+      predecessor: linkedListEntry.predecessor,
+    })
+  }
   return {
-    values: Array.from(crListReplica.parentMap.values()).map(
-      (linkedListEntry) => {
-        if (!linkedListEntry) throw new CRListError('LIST_INTEGRITY_VIOLATION')
-        return {
-          uuidv7: linkedListEntry.uuidv7,
-          value: linkedListEntry.value,
-          predecessor: linkedListEntry.predecessor,
-        }
-      }
-    ),
+    values,
     tombstones: Array.from(crListReplica.tombstones),
   }
 }

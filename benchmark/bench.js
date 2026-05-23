@@ -54,7 +54,7 @@ const BENCHMARKS = [
   ['latency', 'head delete to remote hidden'],
   ['latency', 'middle delete to remote hidden'],
   ['latency', 'tail delete to remote hidden'],
-  ['latency', 'out-of-order write delivery to remote convergence'],
+  ['latency', 'out-of-order write delivery to remote visible'],
   ['latency', 'out-of-order delete delivery to remote convergence'],
 ].map(([group, name]) => ({ group, name, n: LIST_SIZE, ops: RUN_TIMES }))
 
@@ -413,6 +413,44 @@ function timedTrackedShuffledLatency(operations, write, deliver, reached) {
   return ops === writes.length ? { ms, ops } : undefined
 }
 
+function timedTrackedShuffledVisibility(
+  operations,
+  write,
+  deliver,
+  visibleIds
+) {
+  const writes = operations.map((operation) => ({
+    artifact: undefined,
+    delivered: false,
+    localMs: 0,
+    operation,
+  }))
+  for (const writeRecord of writes) {
+    const start = process.hrtime.bigint()
+    writeRecord.artifact = write(writeRecord.operation)
+    writeRecord.localMs = Number(process.hrtime.bigint() - start) / 1_000_000
+  }
+  const order = shuffledIndices(writes.length, 0xbeef)
+  let ms = 0
+  let ops = 0
+  for (const index of order) {
+    const current = writes[index]
+    current.sentAt = process.hrtime.bigint()
+    deliver(current.artifact)
+    current.delivered = true
+    const end = process.hrtime.bigint()
+    const visible = visibleIds()
+    for (const writeRecord of writes) {
+      if (!writeRecord.delivered || writeRecord.done) continue
+      if (!visible.has(writeRecord.operation.id)) continue
+      writeRecord.done = true
+      ms += writeRecord.localMs + Number(end - writeRecord.sentAt) / 1_000_000
+      ops++
+    }
+  }
+  return ops === writes.length ? { ms, ops } : undefined
+}
+
 function optional(fn) {
   try {
     return fn()
@@ -607,15 +645,35 @@ function runCrlist(definition) {
         () => crlistIds(target)
       )
     }
-    case 'latency:out-of-order write delivery to remote convergence':
+    case 'latency:out-of-order write delivery to remote visible': {
+      const source = createReplica(definition.n)
+      const target = __create(__snapshot(source))
+      const operations = createPlan(definition.ops, definition.n, {
+        idPrefix: 'latency',
+        position: 'random',
+        seed: 0x0ff1ce,
+        type: 'insert',
+      })
+      const result = timedTrackedShuffledVisibility(
+        operations,
+        (operation) => applyCrlist(source, operation),
+        (delta) => __merge(target, delta),
+        () => new Set(crlistIds(target))
+      )
+      return validate(
+        result,
+        () => crlistIds(source),
+        () => crlistIds(target)
+      )
+    }
     case 'latency:out-of-order delete delivery to remote convergence': {
       const source = createReplica(definition.n)
       const target = __create(__snapshot(source))
       const operations = createPlan(definition.ops, definition.n, {
         idPrefix: 'latency',
         position: 'random',
-        seed: definition.name.includes('delete') ? 0xde1e7e : 0x0ff1ce,
-        type: definition.name.includes('delete') ? 'delete' : 'insert',
+        seed: 0xde1e7e,
+        type: 'delete',
       })
       const result = timedTrackedShuffledLatency(
         operations,
@@ -930,7 +988,34 @@ function runYjs(definition) {
         () => yjsIds(targetList)
       )
     }
-    case 'latency:out-of-order write delivery to remote convergence':
+    case 'latency:out-of-order write delivery to remote visible': {
+      const source = createYjs(definition.n)
+      const target = new Y.Doc()
+      Y.applyUpdate(target, Y.encodeStateAsUpdate(source.doc))
+      const targetList = target.getArray('list')
+      const updates = []
+      source.doc.on('update', (update) => updates.push(update))
+      const operations = createPlan(definition.ops, definition.n, {
+        idPrefix: 'latency',
+        position: 'random',
+        seed: 0x0ff1ce,
+        type: 'insert',
+      })
+      const result = timedTrackedShuffledVisibility(
+        operations,
+        (operation) => {
+          applyYjs(source, operation)
+          return updates[updates.length - 1]
+        },
+        (update) => Y.applyUpdate(target, update),
+        () => new Set(yjsIds(targetList))
+      )
+      return validate(
+        result,
+        () => yjsIds(source.list),
+        () => yjsIds(target.getArray('list'))
+      )
+    }
     case 'latency:out-of-order delete delivery to remote convergence': {
       const source = createYjs(definition.n)
       const target = new Y.Doc()
@@ -941,8 +1026,8 @@ function runYjs(definition) {
       const operations = createPlan(definition.ops, definition.n, {
         idPrefix: 'latency',
         position: 'random',
-        seed: definition.name.includes('delete') ? 0xde1e7e : 0x0ff1ce,
-        type: definition.name.includes('delete') ? 'delete' : 'insert',
+        seed: 0xde1e7e,
+        type: 'delete',
       })
       const result = timedTrackedShuffledLatency(
         operations,
@@ -1144,15 +1229,38 @@ function runJsonJoy(definition) {
         () => jsonJoyIds(target.api.get().asArr())
       )
     }
-    case 'latency:out-of-order write delivery to remote convergence':
+    case 'latency:out-of-order write delivery to remote visible': {
+      const source = createJsonJoy(definition.n)
+      const target = JsonJoyModel.fromBinary(source.model.toBinary())
+      const operations = createPlan(definition.ops, definition.n, {
+        idPrefix: 'latency',
+        position: 'random',
+        seed: 0x0ff1ce,
+        type: 'insert',
+      })
+      const result = timedTrackedShuffledVisibility(
+        operations,
+        (operation) => {
+          applyJsonJoy(source, operation)
+          return source.model.api.flush()
+        },
+        (patch) => target.applyPatch(patch),
+        () => new Set(jsonJoyIds(target.api.get().asArr()))
+      )
+      return validate(
+        result,
+        () => jsonJoyIds(source.list),
+        () => jsonJoyIds(target.api.get().asArr())
+      )
+    }
     case 'latency:out-of-order delete delivery to remote convergence': {
       const source = createJsonJoy(definition.n)
       const target = JsonJoyModel.fromBinary(source.model.toBinary())
       const operations = createPlan(definition.ops, definition.n, {
         idPrefix: 'latency',
         position: 'random',
-        seed: definition.name.includes('delete') ? 0xde1e7e : 0x0ff1ce,
-        type: definition.name.includes('delete') ? 'delete' : 'insert',
+        seed: 0xde1e7e,
+        type: 'delete',
       })
       const result = timedTrackedShuffledLatency(
         operations,
@@ -1381,15 +1489,42 @@ function runAutomerge(definition) {
         () => automergeIds(target)
       )
     }
-    case 'latency:out-of-order write delivery to remote convergence':
-    case 'latency:out-of-order delete delivery to remote convergence': {
-      const source = createAutomerge(definition.n)
+    case 'latency:out-of-order write delivery to remote visible': {
+      let source = createAutomerge(definition.n)
       let target = Automerge.clone(source)
       const operations = createPlan(definition.ops, definition.n, {
         idPrefix: 'latency',
         position: 'random',
-        seed: definition.name.includes('delete') ? 0xde1e7e : 0x0ff1ce,
-        type: definition.name.includes('delete') ? 'delete' : 'insert',
+        seed: 0x0ff1ce,
+        type: 'insert',
+      })
+      const result = timedTrackedShuffledVisibility(
+        operations,
+        (operation) => {
+          const next = changeAutomerge(source, operation)
+          const changes = Automerge.getChanges(source, next)
+          source = next
+          return changes
+        },
+        (changes) => {
+          target = Automerge.applyChanges(target, changes)[0]
+        },
+        () => new Set(automergeIds(target))
+      )
+      return validate(
+        result,
+        () => automergeIds(source),
+        () => automergeIds(target)
+      )
+    }
+    case 'latency:out-of-order delete delivery to remote convergence': {
+      let source = createAutomerge(definition.n)
+      let target = Automerge.clone(source)
+      const operations = createPlan(definition.ops, definition.n, {
+        idPrefix: 'latency',
+        position: 'random',
+        seed: 0xde1e7e,
+        type: 'delete',
       })
       const result = timedTrackedShuffledLatency(
         operations,

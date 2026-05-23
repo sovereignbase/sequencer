@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.3.3](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.3.2...v1.3.3) (2026-05-23)
+
+
+### Bug Fixes
+
+* handle tombstoned predecessor ordering in shuffled gossip ([cba5783](https://github.com/sovereignbase/convergent-replicated-list/commit/cba5783e4aade1155358b44e99c9d61dd46fb512))
+* re-push with fingers crossed (maybe github actions work this time) ([0b212a4](https://github.com/sovereignbase/convergent-replicated-list/commit/0b212a4b8cf6e8434b2bc56e7e507ef9c27af0cf))
+
+
+### Performance Improvements
+
+* improve read speed ([b24b3f6](https://github.com/sovereignbase/convergent-replicated-list/commit/b24b3f67765833d0188c7349cda166678e8e63eb))
+
 ## [1.3.2](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.3.1...v1.3.2) (2026-05-23)
 
 

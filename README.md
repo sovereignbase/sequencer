@@ -14,7 +14,7 @@ Convergent Replicated List (CR-List), a delta CRDT for an ordered sequence of en
 
 - Runtimes: Node >= 22, modern browsers, Bun, Deno, Cloudflare Workers, Edge Runtime.
 - Module format: ESM + CommonJS.
-- Required globals / APIs: `EventTarget`, `CustomEvent`, `structuredClone`.
+- Required globals / APIs: `EventTarget`, `CustomEvent`.
 - TypeScript: bundled types.
 
 ## Goals

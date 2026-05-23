@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.7](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.3.6...v1.3.7) (2026-05-23)
+
+
+### Performance Improvements
+
+* improve batch speeds with a next tracker reducing recursive ops ([27c1e2e](https://github.com/sovereignbase/convergent-replicated-list/commit/27c1e2e3cb9565adba6b7d6fc3df443f7eddb830))
+
 ## [1.3.6](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.3.5...v1.3.6) (2026-05-23)
 
 

@@ -4,8 +4,8 @@
 export function indexFromPropertyKey(
   index: string | symbol
 ): number | undefined {
-  if (typeof index !== 'string' || !/^(0|[1-9]\d*)$/.test(index))
-    return undefined
+  if (typeof index !== 'string') return undefined
   const listIndex = Number(index)
-  return Number.isSafeInteger(listIndex) ? listIndex : undefined
+  if (!Number.isSafeInteger(listIndex) || listIndex < 0) return undefined
+  return String(listIndex) === index ? listIndex : undefined
 }

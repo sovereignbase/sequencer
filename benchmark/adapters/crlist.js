@@ -56,7 +56,9 @@ function createClass(size) {
 }
 
 function classIds(list) {
-  return Array.from({ length: list.size }, (_, index) => list[index].id)
+  const result = []
+  list.forEach((entry) => result.push(entry.id))
+  return result
 }
 
 function classInsert(list, index, values, mode = 'before') {

@@ -1,0 +1,52 @@
+Run `npm run bench` once with a 30-minute timeout.
+
+Read the CRList, Yjs, json-joy, and Automerge benchmark implementations.
+
+Verify that the benchmark is fair for all libraries. Each implementation must be benchmarked against the same work and the same observable result.
+
+Then review `src`.
+
+Compare the CRList implementation against the other implementations. Identify where CRList performs worse, what it could do better, and how performance could be improved without weakening convergence.
+
+Work iteratively:
+
+1. Choose one concrete performance improvement target that is not already documented in:
+
+   `C:\Users\jorts\convergent-replicated-list\archives\optimizations` 
+
+2. Reason about and plan the smallest safe change.
+3. Run a targeted benchmark for that area.
+4. Make the change.
+5. Run the targeted tests for that area.
+6. Ignore coverage.
+7. Ensure the convergence invariants pass.
+8. Run the targeted benchmark again.
+9. If the change improves performance, keep it.
+10. If the change does not improve performance, revert it.
+11. Document the idea, rationale, before results, after results, and final rationale in:
+
+   `C:\Users\jorts\convergent-replicated-list\archives\optimizations\{targetDescriptiveName}`
+
+Keep the code readable, small, and consistent with the existing codebase style.
+
+Prefer semantic helper abstractions only when they make the code smaller or clearer.
+
+Prefer reducing total code size where possible.
+
+Do not add large abstractions or unnecessary machinery.
+
+Repeat this process until CRList wins every benchmark while still guaranteeing full real-time convergence in all scenarios.
+
+The performance goal is not only how fast an operation merges into internal state.
+
+The performance goal is the fastest observable consumer experience.
+
+Example:
+
+Actor 1 makes a change. Actor 2 receives it. Actor 2 can then read the updated value as a consumer.
+
+Measure and optimize the time until Actor 2 can read the correct observable state.
+
+If an out-of-order pending path makes the library practically slower because the consumer cannot read the usable state yet, that counts as worse performance, even if the merge operation itself returns quickly.
+
+The goal is to make shared state observable between two or more systems as fast as possible, while still eventually converging correctly and without relying on full snapshots to reach eventual consistency.

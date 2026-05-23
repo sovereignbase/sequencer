@@ -320,9 +320,11 @@ export class CRList<T> {
    * Iterates over current live values in index order.
    */
   *[Symbol.iterator](): IterableIterator<T> {
-    for (let index = 0; index < this.size; index++) {
-      const value = this[index]
-      yield value
+    let linkedListEntry = this.state.index?.get(0) ?? this.state.cursor
+    while (linkedListEntry?.prev) linkedListEntry = linkedListEntry.prev
+    while (linkedListEntry) {
+      yield linkedListEntry.value
+      linkedListEntry = linkedListEntry.next
     }
   }
   /**
@@ -338,8 +340,13 @@ export class CRList<T> {
     callback: (value: T, index: number, list: this) => void,
     thisArg?: unknown
   ): void {
-    for (let index = 0; index < this.size; index++) {
-      void callback.call(thisArg, this[index], index, this)
+    let linkedListEntry = this.state.index?.get(0) ?? this.state.cursor
+    while (linkedListEntry?.prev) linkedListEntry = linkedListEntry.prev
+    let index = 0
+    while (linkedListEntry) {
+      void callback.call(thisArg, linkedListEntry.value, index, this)
+      linkedListEntry = linkedListEntry.next
+      index++
     }
   }
 }

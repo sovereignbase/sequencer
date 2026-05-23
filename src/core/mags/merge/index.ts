@@ -11,6 +11,7 @@ import {
   rebuildLiveIndex,
   deleteLiveEntry,
   moveEntryToPredecessor,
+  trySpliceSiblingInsert,
   trySpliceReplacement,
 } from '../../../.helpers/index.js'
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
@@ -110,7 +111,8 @@ export function __merge<T>(
   /** Apply value entries. */
   if (
     !Object.hasOwn(crListDelta, 'values') ||
-    !Array.isArray(crListDelta.values)
+    !Array.isArray(crListDelta.values) ||
+    (crListDelta.values.length === 0 && tailTombstoneMovedCursor)
   ) {
     if (newTombsIndices.length === 0) return false
     if (newTombsIndices.length === 1 && tailTombstoneMovedCursor) {
@@ -185,6 +187,12 @@ export function __merge<T>(
   }
   if (needsRelink) {
     if (
+      !trySpliceSiblingInsert<T>(
+        crListReplica,
+        newVals,
+        reparentedVals,
+        newTombsIndices.length
+      ) &&
       !trySpliceInsertedParent<T>(crListReplica, newVals, reparentedVals) &&
       !trySpliceReplacement<T>(
         crListReplica,

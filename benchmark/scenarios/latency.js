@@ -94,7 +94,7 @@ function outOfOrderBenchmark(adapter, definition) {
     for (const index of order) {
       target = adapter.merge(target, artifacts[index])
       const op = plan[index]
-      if (op.type === 'delete' || consume(adapter, target, op)) visible++
+      if (consume(adapter, target, op)) visible++
     }
     return visible
   })

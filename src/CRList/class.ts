@@ -173,12 +173,13 @@ export class CRList<T> {
     if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
   }
   /**
-   * Removes the entry at an index.
+   * Removes one or more entries starting at an index.
    *
-   * @param index - The index to remove.
+   * @param index - The first index to remove.
+   * @param count - Number of entries to remove. Defaults to `1`.
    */
-  remove(index: number): void {
-    const result = __delete(this.state, index, index + 1)
+  remove(index: number, count = 1): void {
+    const result = __delete(this.state, index, index + count)
     if (!result) return
     const { delta, change } = result
     if (delta) void dispatchCRListEvent(this.eventTarget, 'delta', delta)

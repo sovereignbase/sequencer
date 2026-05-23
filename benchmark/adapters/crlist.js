@@ -71,8 +71,7 @@ function classInsert(list, index, values, mode = 'before') {
 }
 
 function classRemove(list, index, count = 1) {
-  for (let removed = 0; removed < count && index < list.size; removed++)
-    list.remove(index)
+  list.remove(index, count)
   return list
 }
 

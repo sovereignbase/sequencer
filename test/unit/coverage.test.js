@@ -184,6 +184,28 @@ test('unit: CRList public surface and events', () => {
   list.remove(0)
 })
 
+test('unit: CRList remove deletes a range with one event pair', () => {
+  const list = new CRList()
+  for (const id of ['a', 'b', 'c', 'd', 'e']) list.append({ id })
+
+  const deltas = []
+  const changes = []
+  list.addEventListener('delta', (event) => deltas.push(event.detail))
+  list.addEventListener('change', (event) => changes.push(event.detail))
+
+  list.remove(1, 3)
+
+  assert.equal(list.size, 2)
+  assert.deepEqual(
+    [...list].map((value) => value.id),
+    ['a', 'e']
+  )
+  assert.equal(deltas.length, 1)
+  assert.equal(changes.length, 1)
+  assert.equal(deltas[0].tombstones.length >= 3, true)
+  assert.equal(Object.keys(changes[0]).length, 3)
+})
+
 test('unit: merge relink path does not emit duplicate change entries', () => {
   const source = __create()
   const list = new CRList()
@@ -506,6 +528,65 @@ test('unit: deleting a predecessor re-anchors the first live successor', () => {
     ids(target).map((value) => value.id),
     ids(source).map((value) => value.id)
   )
+})
+
+test('unit: merge treats empty values tail delete as tombstone-only', () => {
+  const source = __create()
+  assert(__update(0, [{ id: 'a' }, { id: 'b' }, { id: 'c' }], source, 'after'))
+  const target = __create(__snapshot(source))
+  assert.equal(target.cursorIndex, 2)
+
+  const deleted = __delete(source, 2, 3)
+  assert(deleted)
+  assert.deepEqual(deleted.delta.values, [])
+  assert.equal(deleted.delta.tombstones.length, 1)
+
+  assert.deepEqual(__merge(target, deleted.delta), { 2: undefined })
+  assert.equal(target.size, 2)
+  assert.equal(target.cursorIndex, 1)
+  assert.equal(target.cursor.value.id, 'b')
+  assert.deepEqual(
+    ids(target).map((value) => value.id),
+    ids(source).map((value) => value.id)
+  )
+})
+
+test('unit: merge splices simple concurrent tail siblings', () => {
+  const base = __create()
+  assert(__update(0, [{ id: 'a' }, { id: 'b' }], base, 'after'))
+  const snapshot = __snapshot(base)
+  const target = __create(snapshot)
+  const left = __create(snapshot)
+  const right = __create(snapshot)
+  const expectedA = __create(snapshot)
+  const expectedB = __create(snapshot)
+
+  const leftDelta = __update(left.size, [{ id: 'left' }], left, 'after').delta
+  const rightDelta = __update(
+    right.size,
+    [{ id: 'right' }],
+    right,
+    'after'
+  ).delta
+
+  assert(__merge(target, leftDelta))
+  const change = __merge(target, rightDelta)
+  assert(change)
+  assert(__merge(expectedA, leftDelta))
+  assert(__merge(expectedA, rightDelta))
+  assert(__merge(expectedB, rightDelta))
+  assert(__merge(expectedB, leftDelta))
+
+  assert.deepEqual(
+    ids(target).map((value) => value.id),
+    ids(expectedA).map((value) => value.id)
+  )
+  assert.deepEqual(
+    ids(expectedA).map((value) => value.id),
+    ids(expectedB).map((value) => value.id)
+  )
+  assert.equal(target.cursor.value.id, 'right')
+  assert.equal(target.index.get(target.cursorIndex), target.cursor)
 })
 
 test('unit: nullish snapshot and delta entries are ignored', () => {

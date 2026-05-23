@@ -13,7 +13,7 @@ import {
   moveEntryToPredecessor,
 } from '../../../.helpers/index.js'
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
-import { trySpliceInsertedParent } from './trySpliceInsertedParent/index.js'
+import { trySpliceInsertedParent } from '../../../.helpers/trySpliceInsertedParent/index.js'
 
 /**
  * Merges a remote CRList delta into the local replica.

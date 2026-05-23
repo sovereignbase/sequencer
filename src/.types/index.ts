@@ -21,6 +21,11 @@ export type CRListStateEntry<T> =
     }
   | undefined
 
+export type CRListReparentedEntry<T> = {
+  entry: NonNullable<CRListStateEntry<T>>
+  previousPredecessor: string
+}
+
 /**
  * Mutable CRList replica state.
  *

@@ -1,10 +1,9 @@
-import type { CRListState, CRListStateEntry } from '../../../../.types/index.js'
-import { linkEntryBetween } from '../../../../.helpers/index.js'
-
-type ReparentedEntry<T> = {
-  entry: NonNullable<CRListStateEntry<T>>
-  previousPredecessor: string
-}
+import type {
+  CRListState,
+  CRListStateEntry,
+  CRListReparentedEntry,
+} from '../../.types/index.js'
+import { linkEntryBetween } from '../../.helpers/index.js'
 
 /**
  * Applies the common single-insert reparent delta without a full projection rebuild.
@@ -12,7 +11,7 @@ type ReparentedEntry<T> = {
 export function trySpliceInsertedParent<T>(
   crListReplica: CRListState<T>,
   insertedEntries: Array<NonNullable<CRListStateEntry<T>>>,
-  reparentedEntries: Array<ReparentedEntry<T>>
+  reparentedEntries: Array<CRListReparentedEntry<T>>
 ): boolean {
   if (insertedEntries.length !== 1 || reparentedEntries.length !== 1)
     return false

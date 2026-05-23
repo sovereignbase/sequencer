@@ -381,9 +381,9 @@ export async function runCRListSuite(api, options = {}) {
   await runTest('class find matches index-order live values', () => {
     const list = new api.CRList()
 
-    list.append(value('a'))
-    list.append(value('b'))
-    list.append(value('c'))
+    list.append([value('a')])
+    list.append([value('b')])
+    list.append([value('c')])
 
     const found = list.find(
       function (entry, index, target) {

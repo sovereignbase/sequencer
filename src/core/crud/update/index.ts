@@ -3,7 +3,6 @@ import {
   attachEntryToIndexes,
   detachEntryFromIndexes,
   seekCursorToIndex,
-  moveEntryToPredecessor,
   linkEntryBetween,
 } from '../../../.helpers/index.js'
 import { v7 as uuidv7 } from 'uuid'
@@ -50,6 +49,7 @@ export function __update<T>(
   if (listValues.length === 0) return false
   const change: CRListChange<T> = {}
   const delta: CRListDelta<T> = { values: [], tombstones: [] }
+  let displacedEntry: NonNullable<CRListStateEntry<T>> | undefined
   for (const listValue of listValues) {
     const v7 = uuidv7()
 
@@ -101,15 +101,27 @@ export function __update<T>(
           linkedListEntry,
           entryToOverwrite.next
         )
-        if (entryToOverwrite.next) {
-          if (entryToOverwrite.next.predecessor === entryToOverwrite.uuidv7) {
-            void moveEntryToPredecessor<T>(
-              crListReplica,
-              entryToOverwrite.next,
-              linkedListEntry.uuidv7,
-              delta
-            )
+        if (entryToOverwrite.next?.predecessor === entryToOverwrite.uuidv7) {
+          const overwriteNext = entryToOverwrite.next
+          const owSibs = crListReplica.childrenMap.get(
+            overwriteNext.predecessor
+          )
+          if (owSibs) {
+            const i = owSibs.indexOf(overwriteNext)
+            if (i !== -1) owSibs.splice(i, 1)
           }
+          overwriteNext.predecessor = linkedListEntry.uuidv7
+          const newSibs = crListReplica.childrenMap.get(linkedListEntry.uuidv7)
+          if (newSibs) newSibs.push(overwriteNext)
+          else
+            crListReplica.childrenMap.set(linkedListEntry.uuidv7, [
+              overwriteNext,
+            ])
+          delta.values?.push({
+            uuidv7: overwriteNext.uuidv7,
+            value: overwriteNext.value,
+            predecessor: overwriteNext.predecessor,
+          })
         }
         void attachEntryToIndexes<T>(crListReplica, linkedListEntry, delta)
         void crListReplica.tombstones.add(entryToOverwrite.uuidv7)
@@ -146,20 +158,24 @@ export function __update<T>(
         linkedListEntry.index = actualIndex + 1
         linkedListEntry.predecessor = crListReplica.cursor.uuidv7
         void linkEntryBetween<T>(crListReplica.cursor, linkedListEntry, next)
-        if (next) {
-          if (next.predecessor === crListReplica.cursor.uuidv7) {
-            void moveEntryToPredecessor<T>(
-              crListReplica,
-              next,
-              linkedListEntry.uuidv7,
-              delta
-            )
+        if (next && next.predecessor === crListReplica.cursor.uuidv7) {
+          if (!displacedEntry) {
+            displacedEntry = next
+            const sibs = crListReplica.childrenMap.get(next.predecessor)
+            if (sibs) {
+              const i = sibs.indexOf(next)
+              if (i !== -1) sibs.splice(i, 1)
+            }
           }
+          displacedEntry.predecessor = linkedListEntry.uuidv7
         }
         void attachEntryToIndexes<T>(crListReplica, linkedListEntry, delta)
         crListReplica.cursor = linkedListEntry
         crListReplica.cursorIndex = linkedListEntry.index
-        if (next) crListReplica.index = new Map()
+        if (next) {
+          if (crListReplica.index) crListReplica.index.clear()
+          else crListReplica.index = new Map()
+        }
         void crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
         change[linkedListEntry.index] = linkedListEntry.value
         break
@@ -183,17 +199,23 @@ export function __update<T>(
         linkedListEntry.predecessor = prev?.uuidv7 ?? '\0'
         void linkEntryBetween<T>(prev, linkedListEntry, crListReplica.cursor)
         if (crListReplica.cursor.predecessor === linkedListEntry.predecessor) {
-          void moveEntryToPredecessor<T>(
-            crListReplica,
-            crListReplica.cursor,
-            linkedListEntry.uuidv7,
-            delta
-          )
+          if (!displacedEntry) {
+            displacedEntry = crListReplica.cursor
+            const sibs = crListReplica.childrenMap.get(
+              crListReplica.cursor.predecessor
+            )
+            if (sibs) {
+              const i = sibs.indexOf(crListReplica.cursor)
+              if (i !== -1) sibs.splice(i, 1)
+            }
+          }
+          displacedEntry.predecessor = linkedListEntry.uuidv7
         }
         void attachEntryToIndexes<T>(crListReplica, linkedListEntry, delta)
         crListReplica.cursor = linkedListEntry
         crListReplica.cursorIndex = actualIndex
-        crListReplica.index = new Map()
+        if (crListReplica.index) crListReplica.index.clear()
+        else crListReplica.index = new Map()
         void crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
         change[actualIndex] = linkedListEntry.value
         mode = 'after'
@@ -204,6 +226,19 @@ export function __update<T>(
     }
     crListReplica.size = crListReplica.parentMap.size
     listIndex++
+  }
+  if (displacedEntry) {
+    const sibs = crListReplica.childrenMap.get(displacedEntry.predecessor)
+    if (sibs) sibs.push(displacedEntry)
+    else
+      crListReplica.childrenMap.set(displacedEntry.predecessor, [
+        displacedEntry,
+      ])
+    delta.values?.push({
+      uuidv7: displacedEntry.uuidv7,
+      value: displacedEntry.value,
+      predecessor: displacedEntry.predecessor,
+    })
   }
   return { change, delta }
 }

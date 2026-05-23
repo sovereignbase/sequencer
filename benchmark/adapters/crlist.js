@@ -51,7 +51,7 @@ function apply(state, operation) {
 
 function createClass(size) {
   const list = new CRList()
-  for (let index = 0; index < size; index++) list.append(value(index))
+  for (let index = 0; index < size; index++) list.append([value(index)])
   return list
 }
 
@@ -62,11 +62,8 @@ function classIds(list) {
 }
 
 function classInsert(list, index, values, mode = 'before') {
-  for (const id of values) {
-    if (mode === 'after') list.append(value(id), index)
-    else list.prepend(value(id), index)
-    index++
-  }
+  if (mode === 'after') list.append(values.map(value), index)
+  else list.prepend(values.map(value), index)
   return list
 }
 
@@ -96,8 +93,8 @@ function classChange(list, operation) {
       list[operation.index] = value(operation.id)
       return
     }
-    if (operation.index >= list.size) list.append(value(operation.id))
-    else list.prepend(value(operation.id), operation.index)
+    if (operation.index >= list.size) list.append([value(operation.id)])
+    else list.prepend([value(operation.id)], operation.index)
   })
   return { state: list, artifact }
 }
@@ -143,10 +140,7 @@ export const crlistAdapter = {
   classInsertBefore: (list, index, values) =>
     classInsert(list, index, values, 'before'),
   classOverwrite: (list, index, values) => {
-    for (const id of values) {
-      list[index] = value(id)
-      index++
-    }
+    list.update(index, values.map(value))
     return list
   },
   classRemove: classRemove,

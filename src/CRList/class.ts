@@ -138,35 +138,48 @@ export class CRList<T> {
     return this.state.size
   }
   /**
-   * Inserts a value before an index.
+   * Inserts values before an index.
    *
-   * If `beforeIndex` is omitted, the value is inserted at the start of the list.
+   * If `beforeIndex` is omitted, values are inserted at the start of the list.
    *
-   * @param value - The value to insert.
+   * @param values - Values to insert.
    * @param beforeIndex - The index to insert before.
    */
-  prepend(value: T, beforeIndex?: number): void {
-    const result = __update<T>(beforeIndex ?? 0, [value], this.state, 'before')
+  prepend(values: Array<T>, beforeIndex?: number): void {
+    const result = __update<T>(beforeIndex ?? 0, values, this.state, 'before')
     if (!result) return
     const { delta, change } = result
     if (delta) void dispatchCRListEvent(this.eventTarget, 'delta', delta)
     if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
   }
   /**
-   * Inserts a value after an index.
+   * Inserts values after an index.
    *
-   * If `afterIndex` is omitted, the value is appended at the end of the list.
+   * If `afterIndex` is omitted, values are appended at the end of the list.
    *
-   * @param value - The value to insert.
+   * @param values - Values to insert.
    * @param afterIndex - The index to insert after.
    */
-  append(value: T, afterIndex?: number): void {
+  append(values: Array<T>, afterIndex?: number): void {
     const result = __update<T>(
       afterIndex ?? this.state.size,
-      [value],
+      values,
       this.state,
       'after'
     )
+    if (!result) return
+    const { delta, change } = result
+    if (delta) void dispatchCRListEvent(this.eventTarget, 'delta', delta)
+    if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
+  }
+  /**
+   * Overwrites entries starting at an index.
+   *
+   * @param index - The index to start overwriting at.
+   * @param values - Values to write.
+   */
+  update(index: number, values: Array<T>): void {
+    const result = __update<T>(index, values, this.state, 'overwrite')
     if (!result) return
     const { delta, change } = result
     if (delta) void dispatchCRListEvent(this.eventTarget, 'delta', delta)

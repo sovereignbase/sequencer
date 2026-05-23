@@ -6,11 +6,11 @@ list[0] = 'Whats'
 
 list[1] = 'up'
 
-list.append('dude!')
+list.append(['dude!'])
 
 delete list[0]
 
-list.prepend('What is')
+list.prepend(['What is'])
 
 const serialized = JSON.stringify(list)
 

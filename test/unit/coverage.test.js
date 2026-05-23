@@ -29,9 +29,9 @@ test('unit: CRList public surface and events', () => {
   )
   list.addEventListener('ack', (event) => events.ack.push(event.detail))
 
-  list.append({ id: 'a' })
-  list.append({ id: 'b' })
-  list.prepend({ id: 'z' })
+  list.append([{ id: 'a' }])
+  list.append([{ id: 'b' }])
+  list.prepend([{ id: 'z' }])
   list[1] = { id: 'x' }
 
   assert.equal(list.size, 3)
@@ -100,7 +100,7 @@ test('unit: CRList public surface and events', () => {
     /INDEX_OUT_OF_BOUNDS/
   )
   const functionValueList = new CRList()
-  functionValueList.append({ id: 'replace-me' })
+  functionValueList.append([{ id: 'replace-me' }])
   assert.equal(
     Reflect.set(functionValueList, '0', () => undefined),
     true
@@ -137,11 +137,11 @@ test('unit: CRList public surface and events', () => {
   assert.equal(events.ack.length, 1)
 
   list.removeEventListener('delta', onDelta)
-  list.append({ id: 'after-remove-listener' })
+  list.append([{ id: 'after-remove-listener' }])
   assert.equal(events.delta.length >= 5, true)
 
   const falseResultList = new CRList()
-  falseResultList.append({ id: 'only' })
+  falseResultList.append([{ id: 'only' }])
   const falseResultState = Object.getOwnPropertyDescriptor(
     falseResultList,
     'state'
@@ -153,13 +153,13 @@ test('unit: CRList public surface and events', () => {
   falseResultState.cursor = falseResultEntry
   assert.equal(Reflect.deleteProperty(falseResultList, '1'), false)
   falseResultState.cursor = falseResultEntry
-  falseResultList.prepend({ id: 'no-prepend' }, 1)
+  falseResultList.prepend([{ id: 'no-prepend' }], 1)
   falseResultState.cursor = falseResultEntry
-  falseResultList.append({ id: 'no-append' }, 1)
+  falseResultList.append([{ id: 'no-append' }], 1)
   falseResultState.cursor = falseResultEntry
   falseResultList.remove(1)
   const throwingSetList = new CRList()
-  throwingSetList.append({ id: 'set-throw' })
+  throwingSetList.append([{ id: 'set-throw' }])
   Object.getOwnPropertyDescriptor(
     throwingSetList,
     'eventTarget'
@@ -168,7 +168,7 @@ test('unit: CRList public surface and events', () => {
   }
   assert.equal(Reflect.set(throwingSetList, '0', { id: 'set-catch' }), false)
   const throwingDeleteList = new CRList()
-  throwingDeleteList.append({ id: 'delete-throw' })
+  throwingDeleteList.append([{ id: 'delete-throw' }])
   Object.getOwnPropertyDescriptor(
     throwingDeleteList,
     'eventTarget'
@@ -178,7 +178,7 @@ test('unit: CRList public surface and events', () => {
   assert.equal(Reflect.deleteProperty(throwingDeleteList, '0'), false)
 
   const remote = new CRList()
-  remote.append({ id: 'remote' })
+  remote.append([{ id: 'remote' }])
   list.merge(remote.toJSON())
   list.merge({ tombstones: ['not-a-uuid'] })
   list.remove(0)
@@ -186,7 +186,7 @@ test('unit: CRList public surface and events', () => {
 
 test('unit: CRList remove deletes a range with one event pair', () => {
   const list = new CRList()
-  for (const id of ['a', 'b', 'c', 'd', 'e']) list.append({ id })
+  for (const id of ['a', 'b', 'c', 'd', 'e']) list.append([{ id }])
 
   const deltas = []
   const changes = []

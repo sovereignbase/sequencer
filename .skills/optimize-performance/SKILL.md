@@ -1,3 +1,9 @@
+# CRList Optimization Skill
+
+Use this skill when optimizing CRList benchmark performance against Yjs, json-joy, and Automerge.
+
+## Baseline
+
 Run `npm run bench` once with a 30-minute timeout.
 
 Read the CRList, Yjs, json-joy, and Automerge benchmark implementations.
@@ -8,11 +14,13 @@ Then review `src`.
 
 Compare the CRList implementation against the other implementations. Identify where CRList performs worse, what it could do better, and how performance could be improved without weakening convergence.
 
-Work iteratively:
+## Optimization Loop
+
+Work iteratively.
 
 1. Choose one concrete performance improvement target that is not already documented in:
 
-   `C:\Users\jorts\convergent-replicated-list\archives\optimizations` 
+   `C:\Users\jorts\convergent-replicated-list\archives\optimizations`
 
 2. Reason about and plan the smallest safe change.
 3. Run a targeted benchmark for that area.
@@ -25,7 +33,11 @@ Work iteratively:
 10. If the change does not improve performance, revert it.
 11. Document the idea, rationale, before results, after results, and final rationale in:
 
-   `C:\Users\jorts\convergent-replicated-list\archives\optimizations\{targetDescriptiveName}`
+`C:\Users\jorts\convergent-replicated-list\archives\optimizations\{targetDescriptiveName}`
+
+Repeat this loop until CRList wins every benchmark while still guaranteeing full real-time convergence in all scenarios.
+
+## Code Constraints
 
 Keep the code readable, small, and consistent with the existing codebase style.
 
@@ -35,7 +47,7 @@ Prefer reducing total code size where possible.
 
 Do not add large abstractions or unnecessary machinery.
 
-Repeat this process until CRList wins every benchmark while still guaranteeing full real-time convergence in all scenarios.
+## Performance Goal
 
 The performance goal is not only how fast an operation merges into internal state.
 

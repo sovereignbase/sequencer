@@ -456,6 +456,46 @@ export async function runCRListSuite(api, options = {}) {
   })
 
   await runTest(
+    'deleted predecessor successor re-anchor survives shuffled gossip and snapshots',
+    () => {
+      const source = seededReplica(4)
+      const target = cloneReplica(source)
+
+      const insertAnchor = applyUpdate(source, 1, 'anchor', 'after').delta
+      const insertDeleted = applyUpdate(
+        source,
+        2,
+        'deleted-parent',
+        'after'
+      ).delta
+      const deleteInserted = applyDelete(source, 3, 4).delta
+
+      for (const delta of [insertDeleted, deleteInserted, insertAnchor]) {
+        api.__merge(target, delta)
+      }
+
+      assertReplicaLiveViewEqual(
+        target,
+        source,
+        'shuffled re-anchor delivery diverged'
+      )
+      assertReplicaLiveViewEqual(
+        api.__create(api.__snapshot(source)),
+        source,
+        'snapshot hydrate lost tombstoned predecessor successor order'
+      )
+      assertReplicaLiveViewEqual(
+        api.__create({
+          values: shuffled(api.__snapshot(source).values, 91),
+          tombstones: shuffled(api.__snapshot(source).tombstones, 92),
+        }),
+        source,
+        'shuffled snapshot hydrate lost re-anchor order'
+      )
+    }
+  )
+
+  await runTest(
     'merge is idempotent for duplicate insert and delete deltas',
     () => {
       const source = api.__create()

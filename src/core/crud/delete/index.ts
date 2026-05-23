@@ -1,5 +1,12 @@
-import { deleteLiveEntry, seekCursorToIndex } from '../../../.helpers/index.js'
+import {
+  attachEntryToIndexes,
+  deleteLiveEntry,
+  linkEntryBetween,
+  moveEntryToPredecessor,
+  seekCursorToIndex,
+} from '../../../.helpers/index.js'
 import { CRListError } from '../../../.errors/class.js'
+import { v7 as uuidv7 } from 'uuid'
 import type {
   CRListChange,
   CRListDelta,
@@ -49,17 +56,43 @@ export function __delete<T>(
   if (!crListReplica.cursor) return false
 
   let current: CRListStateEntry<T> = crListReplica.cursor
+  const predecessor = current.prev?.uuidv7 ?? '\0'
+  const deletedIds = new Set<string>()
   let deleted = 0
   let currentIndex = crListReplica.cursorIndex ?? listIndex
 
   while (current && deleted < deleteCount) {
     const next: CRListStateEntry<T> = current.next
     change[currentIndex] = undefined
+    void deletedIds.add(current.uuidv7)
     void crListReplica.index?.delete(currentIndex)
     void deleteLiveEntry<T>(crListReplica, current, delta)
     current = next
     currentIndex++
     deleted++
+  }
+  if (current && deletedIds.has(current.predecessor)) {
+    const replacement: NonNullable<CRListStateEntry<T>> = {
+      uuidv7: uuidv7(),
+      value: current.value,
+      predecessor,
+      index: listIndex,
+      next: undefined,
+      prev: undefined,
+    }
+    const prev = current.prev
+    const next = current.next
+    void deleteLiveEntry<T>(crListReplica, current, delta)
+    void linkEntryBetween<T>(prev, replacement, next)
+    void attachEntryToIndexes<T>(crListReplica, replacement, delta)
+    if (next?.predecessor === current.uuidv7)
+      void moveEntryToPredecessor<T>(
+        crListReplica,
+        next,
+        replacement.uuidv7,
+        delta
+      )
+    current = replacement
   }
 
   crListReplica.size = crListReplica.parentMap.size

@@ -7,7 +7,7 @@ import { detachEntryFromIndexes } from '../detachEntryFromIndexes/index.js'
 import { attachEntryToIndexes } from '../attachEntryToIndexes/index.js'
 
 /**
- * Reattaches an existing live entry to a newer stable predecessor.
+ * Reattaches an existing live entry to a stable predecessor.
  */
 export function moveEntryToPredecessor<T>(
   crListReplica: CRListState<T>,

@@ -78,9 +78,23 @@ test('unit: CRList public surface and events', () => {
     { marker: true }
   )
   assert.deepEqual(forEachIds, ['0:z', '1:mutated', '2:b'])
+  list.state.index.delete(0)
+  list.state.cursor = list.state.index.get(1)
+  assert.deepEqual(
+    [...list].map((value) => value.id),
+    ['z', 'mutated', 'b']
+  )
+  const fallbackForEachIds = []
+  list.forEach((value) => fallbackForEachIds.push(value.id))
+  assert.deepEqual(fallbackForEachIds, ['z', 'mutated', 'b'])
+  assert.deepEqual([...new CRList()], [])
+  const emptyForEachIds = []
+  new CRList().forEach((value) => emptyForEachIds.push(value.id))
+  assert.deepEqual(emptyForEachIds, [])
 
   assert.equal(Reflect.set(list, 'not-index', { id: 'bad' }), false)
   assert.equal(Reflect.set(list, '-1', { id: 'bad' }), false)
+  assert.equal(Reflect.get(list, '01'), undefined)
   assert.throws(
     () => Reflect.set(list, '99', { id: 'bad' }),
     /INDEX_OUT_OF_BOUNDS/
@@ -455,6 +469,45 @@ test('unit: merge, acknowledge, and garbage collection edge paths', () => {
   __garbageCollect([ack], target)
 })
 
+test('unit: deleting a predecessor re-anchors the first live successor', () => {
+  const source = __create()
+  assert(
+    __update(
+      0,
+      [{ id: 'before' }, { id: 'anchor' }, { id: 'after' }],
+      source,
+      'after'
+    )
+  )
+  const target = __create(__snapshot(source))
+
+  const inserted = __update(
+    source.size - 2,
+    [{ id: 'deleted-parent' }],
+    source,
+    'after'
+  )
+  const removed = __delete(source, source.size - 2, source.size - 1)
+  const reanchored = removed.delta.values.find(
+    (entry) => entry.value.id === 'after'
+  )
+
+  assert(reanchored)
+  assert.equal(removed.delta.tombstones.length, 2)
+  assert.notEqual(reanchored.uuidv7, inserted.delta.values[0].uuidv7)
+  assert.deepEqual(
+    ids(__create(__snapshot(source))).map((value) => value.id),
+    ids(source).map((value) => value.id)
+  )
+
+  assert(__merge(target, inserted.delta))
+  assert(__merge(target, removed.delta))
+  assert.deepEqual(
+    ids(target).map((value) => value.id),
+    ids(source).map((value) => value.id)
+  )
+})
+
 test('unit: nullish snapshot and delta entries are ignored', () => {
   assert.deepEqual(__create({ values: [null, undefined], tombstones: [] }), {
     size: 0,
@@ -611,7 +664,7 @@ test('unit: flatten relink branch coverage stays explicit under corrupt buckets'
   )
 })
 
-test('unit: assertListIndices forward walk is covered through tombstone-only merge', () => {
+test('unit: assertListIndices forward walk is covered through delete merge', () => {
   const source = __create()
   assert(__update(0, [{ id: 'a' }, { id: 'b' }, { id: 'c' }], source, 'after'))
 
@@ -621,7 +674,7 @@ test('unit: assertListIndices forward walk is covered through tombstone-only mer
   )
 
   const deletion = __delete(source, 0, 1)
-  assert(__merge(target, { tombstones: deletion.delta.tombstones }))
+  assert(__merge(target, deletion.delta))
 
   assert.equal(target.cursor.index, 0)
   assert.deepEqual(
@@ -633,7 +686,43 @@ test('unit: assertListIndices forward walk is covered through tombstone-only mer
   assert(__update(0, [{ id: 'single' }], singleSource, 'after'))
   const singleTarget = __create(__snapshot(singleSource))
   const singleDeletion = __delete(singleSource, 0, 1)
-  assert(__merge(singleTarget, { tombstones: singleDeletion.delta.tombstones }))
+  assert(__merge(singleTarget, singleDeletion.delta))
   assert.equal(singleTarget.cursor, undefined)
   assert.equal(singleTarget.cursorIndex, undefined)
+
+  const tailCursorSource = __create()
+  assert(
+    __update(
+      0,
+      [{ id: 'tail-a' }, { id: 'tail-b' }, { id: 'tail-c' }],
+      tailCursorSource,
+      'after'
+    )
+  )
+  const tailCursorTarget = __create(__snapshot(tailCursorSource))
+  tailCursorTarget.cursor = [...tailCursorTarget.parentMap.values()].find(
+    (entry) => entry.value.id === 'tail-c'
+  )
+  const headUuid = [...tailCursorTarget.parentMap.values()].find(
+    (entry) => entry.value.id === 'tail-a'
+  ).uuidv7
+  assert(__merge(tailCursorTarget, { tombstones: [headUuid] }))
+  assert.deepEqual(
+    ids(tailCursorTarget).map((value) => value.id),
+    ['tail-b', 'tail-c']
+  )
+
+  const corruptUuid = uuidv7()
+  const corrupt = __create()
+  corrupt.parentMap.set(corruptUuid, {
+    uuidv7: corruptUuid,
+    value: { id: 'corrupt' },
+    predecessor: '\0',
+    index: 0,
+    prev: undefined,
+    next: undefined,
+  })
+  corrupt.size = 1
+  assert(__merge(corrupt, { tombstones: [corruptUuid] }))
+  assert.equal(corrupt.cursorIndex, undefined)
 })

@@ -46,8 +46,17 @@ export function trySpliceReplacement<T>(
     return false
   }
 
-  if (predecessor?.next !== next) return false
-  if (!predecessor && crListReplica.cursor !== next) return false
+  if (predecessor) {
+    if (predecessor.next !== next) return false
+  } else {
+    let reachable = 0
+    let current: CRListStateEntry<T> = next
+    while (current) {
+      reachable++
+      current = current.next
+    }
+    if (reachable !== crListReplica.parentMap.size - 1) return false
+  }
 
   const expectedIndex = predecessor ? predecessor.index + 1 : 0
   void linkEntryBetween<T>(predecessor, inserted, next)

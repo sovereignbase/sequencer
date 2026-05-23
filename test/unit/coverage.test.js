@@ -551,6 +551,45 @@ test('unit: merge treats empty values tail delete as tombstone-only', () => {
   )
 })
 
+test('unit: merge splices root replacement when successor chain is complete', () => {
+  const source = __create()
+  assert(__update(0, [{ id: 'a' }, { id: 'b' }, { id: 'c' }], source, 'after'))
+  const target = __create(__snapshot(source))
+  assert.equal(target.cursor.value.id, 'c')
+
+  const overwritten = __update(0, [{ id: 'new-head' }], source, 'overwrite')
+  assert(overwritten)
+
+  const change = __merge(target, overwritten.delta)
+
+  assert.deepEqual(change, { 0: { id: 'new-head' } })
+  assert.equal(target.cursor.value.id, 'new-head')
+  assert.equal(target.index.get(0), target.cursor)
+  assert.equal(__read(0, target).id, 'new-head')
+  assert.equal(__read(1, target).id, 'b')
+  assert.deepEqual(
+    ids(target).map((value) => value.id),
+    ['new-head', 'b', 'c']
+  )
+})
+
+test('unit: remote head delete is observable through indexed reads', () => {
+  const source = __create()
+  assert(__update(0, [{ id: 'a' }, { id: 'b' }, { id: 'c' }], source, 'after'))
+  const target = __create(__snapshot(source))
+
+  const deleted = __delete(source, 0, 1)
+  assert(deleted)
+  assert(__merge(target, deleted.delta))
+
+  assert.equal(__read(0, target).id, 'b')
+  assert.equal(__read(1, target).id, 'c')
+  assert.deepEqual(
+    ids(target).map((value) => value.id),
+    ['b', 'c']
+  )
+})
+
 test('unit: merge splices simple concurrent tail siblings', () => {
   const base = __create()
   assert(__update(0, [{ id: 'a' }, { id: 'b' }], base, 'after'))

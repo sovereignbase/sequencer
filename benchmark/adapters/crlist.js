@@ -1,0 +1,155 @@
+import {
+  CRList,
+  __acknowledge,
+  __create,
+  __delete,
+  __garbageCollect,
+  __merge,
+  __read,
+  __snapshot,
+  __update,
+} from '../../dist/index.js'
+import { value } from '../helpers/value.js'
+
+function create(size) {
+  const state = __create()
+  for (let index = 0; index < size; index++)
+    void __update(state.size, [value(index)], state, 'after')
+  return state
+}
+
+function ids(state) {
+  return Array.from(
+    { length: state.size },
+    (_, index) => __read(index, state).id
+  )
+}
+
+function insert(state, index, values, mode = 'before') {
+  const result = __update(index, values.map(value), state, mode)
+  return { state, artifact: result?.delta }
+}
+
+function overwrite(state, index, values) {
+  const result = __update(index, values.map(value), state, 'overwrite')
+  return { state, artifact: result?.delta }
+}
+
+function remove(state, index, count = 1) {
+  const result = __delete(state, index, index + count)
+  return { state, artifact: result?.delta }
+}
+
+function apply(state, operation) {
+  if (operation.type === 'delete') return remove(state, operation.index, 1)
+  if (operation.type === 'overwrite')
+    return overwrite(state, operation.index, [operation.id])
+  const mode = operation.index >= state.size ? 'after' : 'before'
+  const index = mode === 'after' ? state.size : operation.index
+  return insert(state, index, [operation.id], mode)
+}
+
+function createClass(size) {
+  const list = new CRList()
+  for (let index = 0; index < size; index++) list.append(value(index))
+  return list
+}
+
+function classIds(list) {
+  return Array.from({ length: list.size }, (_, index) => list[index].id)
+}
+
+function classInsert(list, index, values, mode = 'before') {
+  for (const id of values) {
+    if (mode === 'after') list.append(value(id), index)
+    else list.prepend(value(id), index)
+    index++
+  }
+  return list
+}
+
+function classRemove(list, index, count = 1) {
+  for (let removed = 0; removed < count && index < list.size; removed++)
+    list.remove(index)
+  return list
+}
+
+function captureClassEvent(list, type, fn) {
+  let detail
+  const listener = (event) => {
+    detail = event.detail
+  }
+  list.addEventListener(type, listener)
+  fn()
+  list.removeEventListener(type, listener)
+  return detail
+}
+
+function classChange(list, operation) {
+  const artifact = captureClassEvent(list, 'delta', () => {
+    if (operation.type === 'delete') {
+      list.remove(operation.index)
+      return
+    }
+    if (operation.type === 'overwrite') {
+      list[operation.index] = value(operation.id)
+      return
+    }
+    if (operation.index >= list.size) list.append(value(operation.id))
+    else list.prepend(value(operation.id), operation.index)
+  })
+  return { state: list, artifact }
+}
+
+export const crlistAdapter = {
+  name: 'crlist',
+  create,
+  empty: () => __create(),
+  size: (state) => state.size,
+  ids,
+  readId: (state, index) => __read(index, state)?.id,
+  snapshot: (state) => __snapshot(state),
+  hydrate: (snapshot) => __create(snapshot),
+  merge: (state, artifact) => {
+    void __merge(state, artifact)
+    return state
+  },
+  append: (state, values) => insert(state, state.size, values, 'after').state,
+  prepend: (state, values) => insert(state, 0, values, 'before').state,
+  insertBefore: (state, index, values) =>
+    insert(state, index, values, 'before').state,
+  insertAfter: (state, index, values) =>
+    insert(state, index, values, 'after').state,
+  overwrite: (state, index, values) => overwrite(state, index, values).state,
+  deleteAt: (state, index) => remove(state, index, 1).state,
+  deleteRange: (state, index, count) => remove(state, index, count).state,
+  change: apply,
+  acknowledge: (state) => __acknowledge(state),
+  garbageCollect: (state, frontiers) => __garbageCollect(frontiers, state),
+  createClass,
+  classSize: (list) => list.size,
+  classIds,
+  classReadId: (list, index) => list[index]?.id,
+  classSnapshot: (list) => list.toJSON(),
+  classHydrate: (snapshot) => new CRList(snapshot),
+  classMerge: (list, artifact) => {
+    list.merge(artifact)
+    return list
+  },
+  classChange,
+  classAppend: (list, values) => classInsert(list, list.size, values, 'after'),
+  classPrepend: (list, values) => classInsert(list, 0, values, 'before'),
+  classInsertBefore: (list, index, values) =>
+    classInsert(list, index, values, 'before'),
+  classOverwrite: (list, index, values) => {
+    for (const id of values) {
+      list[index] = value(id)
+      index++
+    }
+    return list
+  },
+  classRemove: classRemove,
+  classAcknowledge: (list) =>
+    captureClassEvent(list, 'ack', () => list.acknowledge()),
+  classGarbageCollect: (list, frontiers) => list.garbageCollect(frontiers),
+}

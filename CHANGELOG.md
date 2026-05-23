@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.3.1...v1.3.2) (2026-05-23)
+
+
+### Bug Fixes
+
+* readme dep compat info ([641e808](https://github.com/sovereignbase/convergent-replicated-list/commit/641e808f066156471181cbc38bd476573cc939c3))
+
 ## [1.3.1](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.3.0...v1.3.1) (2026-05-23)
 
 

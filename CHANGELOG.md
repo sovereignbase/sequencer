@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.3.0...v1.3.1) (2026-05-23)
+
+
+### Bug Fixes
+
+* have to just get actions to re-run because github is big pile of .... ([bed377d](https://github.com/sovereignbase/convergent-replicated-list/commit/bed377d306e7ee9f19528caba6c57281bd4254a2))
+
 ## [1.3.0](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.2.1...v1.3.0) (2026-05-23)
 
 

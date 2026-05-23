@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.5](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.3.4...v1.3.5) (2026-05-23)
+
+
+### Performance Improvements
+
+* add multi delete capability to the class and scenario optimized insert etc. ([35afdae](https://github.com/sovereignbase/convergent-replicated-list/commit/35afdae5a0f9dd69e0fbb89c994f3651d5e1bec0))
+* use splice replacement helper for root overwrites ([ec55cf0](https://github.com/sovereignbase/convergent-replicated-list/commit/ec55cf036411d20e99746f70ebc0e6bbcfbc1c9e))
+
 ## [1.3.4](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.3.3...v1.3.4) (2026-05-23)
 
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.2.1...v1.3.0) (2026-05-23)
+
+
+### Features
+
+* improve merge performance ([a16988c](https://github.com/sovereignbase/convergent-replicated-list/commit/a16988c1fa39b2f05cdbc90075f9fb8166880b59))
+
+
+### Performance Improvements
+
+* speed remote insert visibility ([e0e0a3b](https://github.com/sovereignbase/convergent-replicated-list/commit/e0e0a3b99087d20185b61beb98ecd1fa99591224))
+
 ## [1.2.1](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.2.0...v1.2.1) (2026-05-23)
 
 

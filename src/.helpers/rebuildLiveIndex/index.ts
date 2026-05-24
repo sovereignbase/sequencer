@@ -1,4 +1,4 @@
-import type { CRListState } from '../../.types/index.js'
+import type { CRListState } from '../../.types/type.js'
 
 /**
  * Rebuilds the opportunistic index cache from the current live projection.

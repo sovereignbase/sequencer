@@ -1,3 +1,4 @@
+import { Bytes } from '@sovereignbase/bytecodec'
 import { CRList } from './dist/index.js'
 
 const list = new CRList()
@@ -32,3 +33,9 @@ console.log(JSON.stringify(list))
 console.log(JSON.stringify([...list]))
 
 import { v7 as uuidv7 } from 'uuid'
+
+const buf = new Uint8Array(16)
+
+void uuidv7(undefined, buf)
+
+console.log(Bytes.toBigInt(buf)) //2151377452784983022899348246979706560n

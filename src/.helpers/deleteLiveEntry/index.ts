@@ -2,7 +2,7 @@ import type {
   CRListDelta,
   CRListState,
   CRListStateEntry,
-} from '../../.types/index.js'
+} from '../../.types/type.js'
 import { detachEntryFromIndexes } from '../detachEntryFromIndexes/index.js'
 
 /**

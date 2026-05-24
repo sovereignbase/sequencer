@@ -1,4 +1,4 @@
-import type { CRListStateEntry } from '../../.types/index.js'
+import type { CRListStateEntry } from '../../.types/type.js'
 
 /**
  * Links a live entry between optional neighboring projection entries.

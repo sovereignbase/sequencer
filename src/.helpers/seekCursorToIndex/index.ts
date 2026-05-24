@@ -1,4 +1,4 @@
-import type { CRListState } from '../../.types/index.js'
+import type { CRListState } from '../../.types/type.js'
 import { CRListError } from '../../.errors/class.js'
 
 /**
@@ -14,14 +14,14 @@ export function seekCursorToIndex<T>(
 ): void {
   if (targetIndex < 0 || targetIndex >= crListReplica.size)
     throw new CRListError('INDEX_OUT_OF_BOUNDS', 'Index out of bounds')
-  const indexedEntry = crListReplica.index?.get(targetIndex)
+  const indexedEntry = crListReplica.cache.get(targetIndex)
   if (indexedEntry) {
-    if (crListReplica.parentMap.get(indexedEntry.uuidv7) === indexedEntry) {
+    if (crListReplica.parentMap.get(indexedEntry.id) === indexedEntry) {
       crListReplica.cursor = indexedEntry
       crListReplica.cursorIndex = targetIndex
       return
     } else {
-      void crListReplica.index?.delete(targetIndex)
+      void crListReplica.cache.delete(targetIndex)
     }
   }
   if (!crListReplica.cursor)
@@ -34,6 +34,6 @@ export function seekCursorToIndex<T>(
   }
   if (crListReplica.cursor) {
     crListReplica.cursorIndex = targetIndex
-    void crListReplica.index?.set(targetIndex, crListReplica.cursor)
+    void crListReplica.cache.set(targetIndex, crListReplica.cursor)
   }
 }

@@ -7,11 +7,11 @@
 export type CRListStateEntry<T> =
   | {
       /** Stable UUIDv7 identity for this entry. */
-      uuidv7: string
+      id: bigint
       /** User payload stored in the list. */
-      value: T
+      values: Array<T>
       /** Stable predecessor UUIDv7, or `'\0'` for root-level entries. */
-      predecessor: string
+      predecessor: bigint
       /** Current zero-based index in the local live view. */
       index: number
       /** Previous live entry in the local projection. */
@@ -21,9 +21,9 @@ export type CRListStateEntry<T> =
     }
   | undefined
 
-export type CRListReparentedEntry<T> = {
+export type CRListReparentedStateEntry<T> = {
   entry: NonNullable<CRListStateEntry<T>>
-  previousPredecessor: string
+  oldPredecessor: bigint
 }
 
 /**
@@ -37,26 +37,24 @@ export type CRListReparentedEntry<T> = {
 export type CRListState<T> = {
   /** Number of live entries in the local projection. */
   size: number
+  /***/
+  head: CRListStateEntry<T>
+  /***/
+  tail: CRListStateEntry<T>
   /** Current live entry used as the walking cursor. */
   cursor: CRListStateEntry<T>
   /** Current zero-based index of `cursor`. */
-  cursorIndex?: number
+  cursorIndex: number
   /** Opportunistic live-entry cache keyed by observed zero-based index. */
-  index?: Map<number, NonNullable<CRListStateEntry<T>>>
-  /** Deleted UUIDv7 entries retained for gossip and convergence. */
+  cache: Map<number, NonNullable<CRListStateEntry<T>>>
+  /** Delete identities of entries retained for gossip and convergence. */
   tombstones: Set<string>
-  /** Live entries by UUIDv7. */
-  parentMap: Map<string, CRListStateEntry<T>>
-  /** Live entries grouped by stable predecessor identifier. */
-  childrenMap: Map<string, Array<NonNullable<CRListStateEntry<T>>>>
-  /**
-   * Direct next-in-run links for consecutive batch-inserted entries.
-   *
-   * Interior chain pairs are stored here instead of as singleton childrenMap
-   * buckets, saving one array allocation per chained entry. rebuildLiveProjection
-   * merges these with childrenMap siblings when traversing the tree.
-   */
-  runNext?: Map<string, NonNullable<CRListStateEntry<T>>>
+  /***/
+  clock: bigint
+  /** Live entries by id. */
+  parentMap: Map<bigint, CRListStateEntry<T>>
+  /** Live entries grouped by predecessor. */
+  childrenMap: Map<bigint, Array<NonNullable<CRListStateEntry<T>>>>
 }
 
 /**
@@ -66,20 +64,12 @@ export type CRListState<T> = {
  * CRList operations must provide their own isolation first.
  */
 export type CRListSnapshotEntry<T> = {
-  /** Stable UUIDv7 identity for this entry. */
-  uuidv7: string
+  /** Stable identity for this entry. */
+  id: string
   /** User payload for this entry. */
   value: T
-  /** Stable predecessor UUIDv7, or `'\0'` for root-level entries. */
+  /** Stable predecessor identity, or `'\0'` for root-level entries. */
   predecessor: string
-  /**
-   * Tail values for a consecutive run starting at `uuidv7`.
-   *
-   * When present, this entry is the head of a run of `1 + tail.length` values
-   * whose UUIDs are derived as `deriveRunUuid(uuidv7, k)` for k = 0…tail.length.
-   * Receivers must expand the run before processing.
-   */
-  tail?: Array<T>
 }
 
 /**

@@ -27,7 +27,7 @@ export type {
   /***/
   CRListDelta,
   CRListAck,
-} from './.types/index.js'
+} from './.types/type.js'
 
 /**
  * Public advanced exports, CR-List primitives.

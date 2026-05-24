@@ -1,6 +1,7 @@
 import {
   attachEntryToIndexes,
   deleteLiveEntry,
+  getEntryId,
   linkEntryBetween,
   moveEntryToPredecessor,
   seekCursorToIndex,
@@ -12,7 +13,7 @@ import type {
   CRListDelta,
   CRListState,
   CRListStateEntry,
-} from '../../../.types/index.js'
+} from '../../../.types/type.js'
 
 /**
  * Deletes a range from the replica live view.
@@ -56,7 +57,7 @@ export function __delete<T>(
   if (!crListReplica.cursor) return false
 
   let current: CRListStateEntry<T> = crListReplica.cursor
-  const predecessor = current.prev?.uuidv7 ?? '\0'
+  const predecessor = current.prev?.id ?? '\0'
   const deletedIds = new Set<string>()
   let deleted = 0
   let currentIndex = crListReplica.cursorIndex ?? listIndex
@@ -64,16 +65,16 @@ export function __delete<T>(
   while (current && deleted < deleteCount) {
     const next: CRListStateEntry<T> = current.next
     change[currentIndex] = undefined
-    void deletedIds.add(current.uuidv7)
-    void crListReplica.index?.delete(currentIndex)
+    void deletedIds.add(current.id.toString())
+    void crListReplica.cache?.delete(currentIndex)
     void deleteLiveEntry<T>(crListReplica, current, delta)
     current = next
     currentIndex++
     deleted++
   }
-  if (current && deletedIds.has(current.predecessor)) {
+  if (current && deletedIds.has(current?.predecessor.toString())) {
     const replacement: NonNullable<CRListStateEntry<T>> = {
-      uuidv7: uuidv7(),
+      id: getEntryId(crListReplica),
       value: current.value,
       predecessor,
       index: listIndex,
@@ -102,9 +103,9 @@ export function __delete<T>(
     : crListReplica.cursor
       ? Math.max(0, crListReplica.size - 1)
       : undefined
-  crListReplica.index = new Map()
+  void crListReplica.cache.clear()
   if (crListReplica.cursor && crListReplica.cursorIndex !== undefined)
-    void crListReplica.index.set(
+    void crListReplica.cache.set(
       crListReplica.cursorIndex,
       crListReplica.cursor
     )

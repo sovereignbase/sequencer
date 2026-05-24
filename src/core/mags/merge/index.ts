@@ -3,7 +3,7 @@ import type {
   CRListDelta,
   CRListState,
   CRListStateEntry,
-} from '../../../.types/index.js'
+} from '../../../.types/type.js'
 import {
   materializeSnapshotEntry,
   attachEntryToIndexes,
@@ -13,7 +13,6 @@ import {
   moveEntryToPredecessor,
   trySpliceSiblingInsert,
   trySpliceReplacement,
-  deriveRunUuid,
 } from '../../../.helpers/index.js'
 import { prototype, isUuidV7 } from '@sovereignbase/utils'
 import { trySpliceInsertedParent } from '../../../.helpers/trySpliceInsertedParent/index.js'
@@ -54,50 +53,6 @@ export function __merge<T>(
   const change: CRListChange<T> = {}
   let tailTombstoneMovedCursor = false
   let needsRelink = false
-  const expandedValues =
-    Object.hasOwn(crListDelta, 'values') && Array.isArray(crListDelta.values)
-      ? crListDelta.values.flatMap((entry) => {
-          if (!entry || !entry.tail || entry.tail.length === 0) return [entry]
-          return [
-            entry,
-            ...entry.tail.map((value, i) => ({
-              uuidv7: deriveRunUuid(entry.uuidv7, i + 1),
-              value,
-              predecessor: deriveRunUuid(entry.uuidv7, i),
-            })),
-          ]
-        })
-      : undefined
-  if (
-    expandedValues?.length === 1 &&
-    (!Object.hasOwn(crListDelta, 'tombstones') ||
-      (Array.isArray(crListDelta.tombstones) &&
-        crListDelta.tombstones.length === 0))
-  ) {
-    const linkedListEntry = materializeSnapshotEntry<T>(
-      expandedValues[0],
-      crListReplica
-    )
-    if (!linkedListEntry) return false
-    const predecessor =
-      linkedListEntry.predecessor === '\0'
-        ? undefined
-        : crListReplica.parentMap.get(linkedListEntry.predecessor)
-    if (
-      (linkedListEntry.predecessor === '\0' && crListReplica.size === 0) ||
-      (predecessor && !predecessor.next)
-    ) {
-      linkedListEntry.prev = predecessor
-      linkedListEntry.index = crListReplica.size
-      if (predecessor) predecessor.next = linkedListEntry
-      crListReplica.cursor = linkedListEntry
-      crListReplica.cursorIndex = linkedListEntry.index
-      void attachEntryToIndexes<T>(crListReplica, linkedListEntry)
-      crListReplica.size = crListReplica.parentMap.size
-      void crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
-      return { [linkedListEntry.index]: linkedListEntry.value }
-    }
-  }
 
   /** Apply tombstone entries. */
   if (
@@ -123,8 +78,9 @@ export function __merge<T>(
 
   /** Apply value entries. */
   if (
-    !expandedValues ||
-    (expandedValues.length === 0 && tailTombstoneMovedCursor)
+    !Object.hasOwn(crListDelta, 'values') ||
+    !Array.isArray(crListDelta.values) ||
+    (crListDelta.values.length === 0 && tailTombstoneMovedCursor)
   ) {
     if (newTombsIndices.length === 0) return false
     if (newTombsIndices.length === 1 && tailTombstoneMovedCursor) {
@@ -147,7 +103,7 @@ export function __merge<T>(
     return change
   }
   // Attach accepted values to the predecessor tree.
-  for (const valueEntry of expandedValues) {
+  for (const valueEntry of crListDelta.values) {
     if (valueEntry === null || valueEntry === undefined) continue
     const existingEntry = crListReplica.parentMap.get(valueEntry.uuidv7)
     if (existingEntry) {

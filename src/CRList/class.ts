@@ -7,7 +7,7 @@ import type {
   CRListEventMap,
   CRListDelta,
   CRListAck,
-} from '../.types/index.js'
+} from '../.types/type.js'
 import { __create, __read, __update, __delete } from '../core/crud/index.js'
 import {
   __merge,

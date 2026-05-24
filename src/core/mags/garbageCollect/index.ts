@@ -1,5 +1,5 @@
 import { isUuidV7 } from '@sovereignbase/utils'
-import { CRListAck, CRListState } from '../../../.types/index.js'
+import { CRListAck, CRListState } from '../../../.types/type.js'
 
 /**
  * Removes tombstones acknowledged by all supplied frontiers.

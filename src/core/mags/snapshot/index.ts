@@ -1,5 +1,5 @@
 import { CRListError } from '../../../.errors/class.js'
-import { CRListState, CRListSnapshot } from '../../../.types/index.js'
+import { CRListState, CRListSnapshot } from '../../../.types/type.js'
 
 /**
  * Creates a full CRList snapshot from the current replica state.
@@ -25,7 +25,7 @@ export function __snapshot<T>(
       (linkedListEntry) => {
         if (!linkedListEntry) throw new CRListError('LIST_INTEGRITY_VIOLATION')
         return {
-          uuidv7: linkedListEntry.uuidv7,
+          id: linkedListEntry.id.toString(),
           value: linkedListEntry.value,
           predecessor: linkedListEntry.predecessor,
         }

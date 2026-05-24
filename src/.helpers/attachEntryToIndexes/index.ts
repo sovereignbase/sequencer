@@ -2,7 +2,7 @@ import type {
   CRListState,
   CRListStateEntry,
   CRListDelta,
-} from '../../.types/index.js'
+} from '../../.types/type.js'
 
 /**
  * Attaches a live entry to UUID and predecessor indexes.

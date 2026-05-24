@@ -1,5 +1,5 @@
 import { seekCursorToIndex } from '../../../.helpers/index.js'
-import { CRListState } from '../../../.types/index.js'
+import { CRListState } from '../../../.types/type.js'
 
 /**
  * Reads the value at an index in the replica live view.

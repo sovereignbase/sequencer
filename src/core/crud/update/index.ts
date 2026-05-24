@@ -4,7 +4,7 @@ import {
   detachEntryFromIndexes,
   seekCursorToIndex,
   linkEntryBetween,
-  deriveRunUuid,
+  getEntryId,
 } from '../../../.helpers/index.js'
 import { v7 as uuidv7 } from 'uuid'
 import {
@@ -12,7 +12,11 @@ import {
   CRListDelta,
   CRListState,
   CRListStateEntry,
-} from '../../../.types/index.js'
+} from '../../../.types/type.js'
+
+import * as modes from "./modes/index.js"
+
+
 /**
  * Applies a local value mutation to the replica live view.
  *
@@ -51,18 +55,17 @@ export function __update<T>(
   const change: CRListChange<T> = {}
   const delta: CRListDelta<T> = { values: [], tombstones: [] }
   let displacedEntry: NonNullable<CRListStateEntry<T>> | undefined
-  const batchEntries: Array<NonNullable<CRListStateEntry<T>>> = []
-  for (const listValue of listValues) {
-    const v7 = uuidv7()
 
     const linkedListEntry: NonNullable<CRListStateEntry<T>> = {
-      uuidv7: v7,
-      value: listValue,
+      id: getEntryId(crListReplica,listValues.length),
+      values: listValues,
       predecessor: '\0',
       index: 0,
       next: undefined,
       prev: undefined,
     }
+
+// replace whit `modes[mode](...args)`
 
     switch (mode) {
       case 'overwrite': {
@@ -71,7 +74,7 @@ export function __update<T>(
             crListReplica.cursor = linkedListEntry
             crListReplica.cursorIndex = linkedListEntry.index
             void attachEntryToIndexes<T>(crListReplica, linkedListEntry, delta)
-            crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
+            crListReplica.cache.set(linkedListEntry.index, linkedListEntry)
             change[linkedListEntry.index] = linkedListEntry.value
             break
           }
@@ -133,7 +136,7 @@ export function __update<T>(
         entryToOverwrite.prev = undefined
         crListReplica.cursor = linkedListEntry
         crListReplica.cursorIndex = actualIndex
-        void crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
+        void crListReplica.cache.set(linkedListEntry.index, linkedListEntry)
         change[actualIndex] = linkedListEntry.value
         break
       }
@@ -175,11 +178,10 @@ export function __update<T>(
         crListReplica.cursor = linkedListEntry
         crListReplica.cursorIndex = linkedListEntry.index
         if (next) {
-          if (crListReplica.index) crListReplica.index.clear()
-          else crListReplica.index = new Map()
-        }
-        void crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
-        change[linkedListEntry.index] = linkedListEntry.value
+          crListReplica.cache.clear()
+          }
+        void crListReplica.cache.set(linkedListEntry.index, linkedListEntry)
+        change[linkedListEntry.index] = linkedListEntry.values
         break
       }
       case 'before': {
@@ -216,9 +218,8 @@ export function __update<T>(
         void attachEntryToIndexes<T>(crListReplica, linkedListEntry, delta)
         crListReplica.cursor = linkedListEntry
         crListReplica.cursorIndex = actualIndex
-        if (crListReplica.index) crListReplica.index.clear()
-        else crListReplica.index = new Map()
-        void crListReplica.index?.set(linkedListEntry.index, linkedListEntry)
+    crListReplica.cache.clear()
+        void crListReplica.cache.set(linkedListEntry.index, linkedListEntry)
         change[actualIndex] = linkedListEntry.value
         mode = 'after'
         listIndex = linkedListEntry.index - 1
@@ -226,48 +227,8 @@ export function __update<T>(
         break
       }
     }
-    batchEntries.push(linkedListEntry)
     crListReplica.size = crListReplica.parentMap.size
     listIndex++
-  }
-
-  // Convert consecutive chain pairs to runNext, replacing singleton childrenMap
-  // buckets with direct pointers. Saves N-1 array allocations per batch.
-  if (batchEntries.length > 1) {
-    for (let k = 0; k + 1 < batchEntries.length; k++) {
-      const curr = batchEntries[k]
-      const next = batchEntries[k + 1]
-      if (next.predecessor !== curr.uuidv7) continue
-      // The childrenMap bucket for curr.uuidv7 is always a singleton [next]
-      // because curr is a fresh UUID — no other entry can share this predecessor.
-      crListReplica.childrenMap.delete(curr.uuidv7)
-      if (!crListReplica.runNext) crListReplica.runNext = new Map()
-      crListReplica.runNext.set(curr.uuidv7, next)
-    }
-  }
-
-  // Pack a consecutive run into a single delta entry when the generated UUIDs
-  // are sequential (same millisecond — the common case for batch inserts).
-  if (
-    batchEntries.length > 1 &&
-    delta.values &&
-    delta.values.length >= batchEntries.length
-  ) {
-    const first = batchEntries[0]
-    const last = batchEntries[batchEntries.length - 1]
-    if (deriveRunUuid(first.uuidv7, batchEntries.length - 1) === last.uuidv7) {
-      // Replace the N individual delta entries with one run entry.
-      delta.values.splice(
-        delta.values.length - batchEntries.length,
-        batchEntries.length,
-        {
-          uuidv7: first.uuidv7,
-          value: first.value,
-          predecessor: first.predecessor,
-          tail: batchEntries.slice(1).map((e) => e.value),
-        }
-      )
-    }
   }
 
   if (displacedEntry) {

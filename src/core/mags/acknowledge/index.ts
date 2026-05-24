@@ -1,4 +1,4 @@
-import type { CRListAck, CRListState } from '../../../.types/index.js'
+import type { CRListAck, CRListState } from '../../../.types/type.js'
 
 /**
  * Returns the replica tombstone acknowledgement frontier.

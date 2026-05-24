@@ -1,4 +1,4 @@
-import type { CRListEventMap } from '../../.types/index.js'
+import type { CRListEventMap } from '../../.types/type.js'
 
 /**
  * Dispatches a typed CRList event payload through an EventTarget.

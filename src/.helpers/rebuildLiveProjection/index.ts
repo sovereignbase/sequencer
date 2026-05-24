@@ -1,4 +1,4 @@
-import type { CRListState, CRListStateEntry } from '../../.types/index.js'
+import type { CRListState, CRListStateEntry } from '../../.types/type.js'
 import { linkEntryBetween } from '../linkEntryBetween/index.js'
 
 /**
@@ -30,19 +30,9 @@ export function rebuildLiveProjection<T>(crListReplica: CRListState<T>) {
       const frame = stack[stack.length - 1]
 
       if (!frame.siblings) {
-        const childrenMapSibs = crListReplica.childrenMap.get(
+        frame.siblings = crListReplica.childrenMap.get(
           frame.predecessorIdentifier
         )
-        const runNextEntry = crListReplica.runNext?.get(
-          frame.predecessorIdentifier
-        )
-        if (childrenMapSibs && runNextEntry) {
-          frame.siblings = [...childrenMapSibs, runNextEntry]
-        } else if (runNextEntry) {
-          frame.siblings = [runNextEntry]
-        } else {
-          frame.siblings = childrenMapSibs
-        }
         if (!frame.siblings) {
           void stack.pop()
           continue

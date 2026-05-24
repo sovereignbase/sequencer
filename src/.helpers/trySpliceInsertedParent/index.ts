@@ -2,7 +2,7 @@ import type {
   CRListState,
   CRListStateEntry,
   CRListReparentedEntry,
-} from '../../.types/index.js'
+} from '../../.types/type.js'
 import { linkEntryBetween } from '../../.helpers/index.js'
 
 /**

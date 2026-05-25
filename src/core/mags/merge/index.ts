@@ -55,9 +55,9 @@ export function __merge<T>(
       )
         continue
       void crListReplica.tombstones.add(tombstone)
-      const tombBigInt = safeBigIntFromString(tombstone)
-      if (tombBigInt === false) continue
-      const deleted = deleteLiveEntryId<T>(crListReplica, tombBigInt)
+      const tombstoneBigInt = safeBigIntFromString(tombstone)
+      if (tombstoneBigInt === false) continue
+      const deleted = deleteLiveEntryId<T>(crListReplica, tombstoneBigInt)
       if (deleted) {
         void newTombstoneIndicies.push(deleted.index)
         void crListReplica.cache.delete(deleted.index)

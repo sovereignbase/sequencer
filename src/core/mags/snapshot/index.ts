@@ -1,4 +1,3 @@
-import { CRListError } from '../../../.errors/class.js'
 import { CRListState, CRListSnapshot } from '../../../.types/type.js'
 
 /**
@@ -14,16 +13,15 @@ export function __snapshot<T>(
   crListReplica: CRListState<T>
 ): CRListSnapshot<T> {
   const values: CRListSnapshot<T>['values'] = []
-  const seen = new Set<bigint>()
-  for (const block of crListReplica.parentMap.values()) {
-    if (!block) throw new CRListError('LIST_INTEGRITY_VIOLATION')
-    if (seen.has(block.id)) continue
-    void seen.add(block.id)
+  let block = crListReplica.cache.get(0) ?? crListReplica.cursor
+  while (block?.prev) block = block.prev
+  while (block) {
     void values.push({
       id: block.id.toString(),
       values: block.values,
       predecessor: block.predecessor.toString(),
     })
+    block = block.next
   }
   return {
     values,

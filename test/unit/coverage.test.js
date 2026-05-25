@@ -412,7 +412,8 @@ test('unit: core edge paths and malicious inputs', () => {
   const corruptSnapshot = __create()
   assert(__update(0, [{ id: 'snapshot' }], corruptSnapshot, 'after'))
   corruptSnapshot.parentMap.set('bad', undefined)
-  assert.throws(() => __snapshot(corruptSnapshot), /LIST_INTEGRITY_VIOLATION/)
+  const corruptSnapshotResult = __snapshot(corruptSnapshot)
+  assert.equal(corruptSnapshotResult.values.length, 1)
 
   const valid = __create()
   const validDelta = __update(0, [{ id: 'valid' }], valid, 'after').delta

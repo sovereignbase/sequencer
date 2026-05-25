@@ -58,10 +58,9 @@ export function trySpliceSiblingInsert<T>(
   if (index === undefined) return false
   void linkEntryBetween<T>(prev, inserted, next)
   let current: CRListStateEntry<T> = inserted
-  const seen = new Set<unknown>()
+  let limit = crListReplica.parentMap.size
   while (current) {
-    if (seen.has(current)) return false
-    void seen.add(current)
+    if (limit-- <= 0) return false
     current.index = index
     index += current.values.length
     current = current.next

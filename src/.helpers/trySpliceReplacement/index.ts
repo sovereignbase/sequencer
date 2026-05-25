@@ -56,10 +56,8 @@ export function trySpliceReplacement<T>(
   } else {
     let reachable = 0
     let current: CRListStateEntry<T> = next
-    const seen = new Set<unknown>()
-    while (current) {
-      if (seen.has(current)) return false
-      void seen.add(current)
+    const limit = crListReplica.parentMap.size
+    while (current && reachable < limit) {
       reachable++
       current = current.next
     }
@@ -76,10 +74,9 @@ export function trySpliceReplacement<T>(
 
   let current: CRListStateEntry<T> = inserted
   let index = expectedIndex
-  const seen = new Set<unknown>()
+  let limit = crListReplica.parentMap.size
   while (current) {
-    if (seen.has(current)) return false
-    void seen.add(current)
+    if (limit-- <= 0) return false
     current.index = index
     index += current.values.length
     current = current.next

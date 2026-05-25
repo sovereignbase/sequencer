@@ -175,9 +175,10 @@ export function __merge<T>(
       }
     } else if (!needsRelink && predecessor && !predecessor.next) {
       liveBlock.prev = predecessor
-      liveBlock.index =
-        getIndexAfterEntryId<T>(crListReplica, liveBlock.predecessor) ??
-        predecessor.index + predecessor.values.length
+      // parentMap already includes liveBlock (attachEntryToIndexes ran above),
+      // so tail index = parentMap.size - values.length, regardless of stale
+      // predecessor.index (which can lag after mid-list inserts on this replica).
+      liveBlock.index = crListReplica.parentMap.size - liveBlock.values.length
       predecessor.next = liveBlock
       crListReplica.cursor = liveBlock
       crListReplica.cursorIndex = liveBlock.index

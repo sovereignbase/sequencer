@@ -8,22 +8,23 @@ import { linkEntryBetween } from '../linkEntryBetween/index.js'
  * even when deltas arrive in different orders.
  */
 export function rebuildLiveProjection<T>(crListReplica: CRListState<T>) {
+  // Reset links via linked-list walk — O(B) not O(N)+Set.
+  // New entries (prev/next already undefined) are skipped naturally.
+  let walkEntry = crListReplica.cache.get(0) ?? crListReplica.cursor
+  while (walkEntry?.prev) walkEntry = walkEntry.prev
+  while (walkEntry) {
+    const next = walkEntry.next
+    walkEntry.prev = undefined
+    walkEntry.next = undefined
+    walkEntry = next
+  }
+
   crListReplica.cursor = undefined
   void crListReplica.cache.clear()
-
-  // Reset links; deduplicate since parentMap has N entries per block
-  const seen = new Set<bigint>()
-  for (const entry of crListReplica.parentMap.values()) {
-    if (!entry || seen.has(entry.id)) continue
-    void seen.add(entry.id)
-    entry.prev = undefined
-    entry.next = undefined
-  }
 
   let previous: CRListStateEntry<T> = undefined
   let first: CRListStateEntry<T> = undefined
   let index = 0
-  const appended = new Set<bigint>()
 
   const appendChildren = (predecessorId: bigint): void => {
     const stack: Array<{
@@ -53,10 +54,11 @@ export function rebuildLiveProjection<T>(crListReplica: CRListState<T>) {
       const sibling = frame.siblings[frame.siblingIndex]
       frame.siblingIndex++
       if (!sibling) continue
-      if (appended.has(sibling.id)) continue
+      // sibling === first covers the first block (prev stays undefined after link).
+      // sibling.prev !== undefined covers all subsequent blocks once linked.
+      if (sibling === first || sibling.prev !== undefined) continue
       if (crListReplica.parentMap.get(sibling.id) !== sibling) continue
 
-      void appended.add(sibling.id)
       sibling.index = index
       index += sibling.values.length
       void linkEntryBetween<T>(previous, sibling, undefined)

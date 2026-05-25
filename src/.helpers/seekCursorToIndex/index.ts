@@ -16,13 +16,9 @@ export function seekCursorToIndex<T>(
     throw new CRListError('INDEX_OUT_OF_BOUNDS', 'Index out of bounds')
   const indexedEntry = crListReplica.cache.get(targetIndex)
   if (indexedEntry) {
-    if (crListReplica.parentMap.get(indexedEntry.id) === indexedEntry) {
-      crListReplica.cursor = indexedEntry
-      crListReplica.cursorIndex = targetIndex
-      return
-    } else {
-      void crListReplica.cache.delete(targetIndex)
-    }
+    crListReplica.cursor = indexedEntry
+    crListReplica.cursorIndex = targetIndex
+    return
   }
   if (!crListReplica.cursor)
     throw new CRListError('LIST_EMPTY', 'List is empty')

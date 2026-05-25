@@ -23,6 +23,7 @@ export function rebuildLiveProjection<T>(crListReplica: CRListState<T>) {
   let previous: CRListStateEntry<T> = undefined
   let first: CRListStateEntry<T> = undefined
   let index = 0
+  const appended = new Set<bigint>()
 
   const appendChildren = (predecessorId: bigint): void => {
     const stack: Array<{
@@ -52,8 +53,10 @@ export function rebuildLiveProjection<T>(crListReplica: CRListState<T>) {
       const sibling = frame.siblings[frame.siblingIndex]
       frame.siblingIndex++
       if (!sibling) continue
+      if (appended.has(sibling.id)) continue
       if (crListReplica.parentMap.get(sibling.id) !== sibling) continue
 
+      void appended.add(sibling.id)
       sibling.index = index
       index += sibling.values.length
       void linkEntryBetween<T>(previous, sibling, undefined)

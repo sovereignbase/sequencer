@@ -8,7 +8,7 @@ Run `npm run bench` once with a 30-minute timeout.
 
 Read the CRList, Yjs, json-joy, and Automerge benchmark implementations.
 
-Verify that the benchmark is fair for all libraries. Each implementation must be benchmarked against the same work and the same observable result.
+Verify that the benchmark is fair for all libraries. Each implementation must be benchmarked against the same work and the same consumer observable result.
 
 Then review `src`.
 
@@ -18,7 +18,7 @@ Compare the CRList implementation against the other implementations. Identify wh
 
 Work iteratively.
 
-1. Choose one concrete performance improvement target that is not already documented in:
+1. Choose one concrete performance improvement target that is not already documented in or you think could work or be better if done differtly from the documented implementation:
 
    `C:\Users\jorts\convergent-replicated-list\archives\optimizations`
 
@@ -39,9 +39,9 @@ Repeat this loop until CRList wins every benchmark while still guaranteeing full
 
 ## Code Constraints
 
-Keep the code readable, small, and consistent with the existing codebase style.
+Keep the code readable, semantic, small, and consistent with the existing codebase style.
 
-Prefer semantic helper abstractions only when they make the code smaller or clearer.
+Prefer semantic helper abstractions only when they make the code clearer.
 
 Prefer reducing total code size where possible.
 
@@ -62,3 +62,5 @@ Measure and optimize the time until Actor 2 can read the correct observable stat
 If an out-of-order pending path makes the library practically slower because the consumer cannot read the usable state yet, that counts as worse performance, even if the merge operation itself returns quickly.
 
 The goal is to make shared state observable between two or more systems as fast as possible, while still eventually converging correctly and without relying on full snapshots to reach eventual consistency.
+
+Continue until CRList wins all benchmarks.

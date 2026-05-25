@@ -2,10 +2,12 @@ import {
   attachEntryToIndexes,
   deleteLiveEntry,
   getEntryId,
+  getEntryTailId,
   linkEntryBetween,
   moveEntryToPredecessor,
   seekCursorToIndex,
   splitBlock,
+  splitCursorAtIndex,
 } from '../../../.helpers/index.js'
 import { CRListError } from '../../../.errors/class.js'
 import type {
@@ -44,23 +46,15 @@ export function __delete<T>(
   void seekCursorToIndex<T>(listIndex, crListReplica)
   if (!crListReplica.cursor) return false
 
-  // If start is mid-block, split so deletion starts at a block boundary
-  if (crListReplica.cursor.index < listIndex) {
-    const [, right] = splitBlock(
-      crListReplica,
-      crListReplica.cursor,
-      listIndex - crListReplica.cursor.index
-    )
-    crListReplica.cursor = right
-    crListReplica.cursorIndex = listIndex
-  }
+  const start = splitCursorAtIndex<T>(crListReplica, listIndex)
+  if (!start) return false
 
-  const predecessorId = crListReplica.cursor.prev?.id ?? 0n
+  const predecessorId = start.prev ? getEntryTailId(start.prev) : 0n
   const deletedIds = new Set<string>()
   let deleted = 0
   let currentIndex = listIndex
 
-  let current: CRListStateEntry<T> = crListReplica.cursor
+  let current: CRListStateEntry<T> = start
 
   while (current && deleted < deleteCount) {
     const remaining = deleteCount - deleted
@@ -119,7 +113,12 @@ export function __delete<T>(
     )
       void deletedIds.add((current.id + BigInt(entryOffset)).toString())
     if (next && deletedIds.has(next.predecessor.toString()))
-      void moveEntryToPredecessor<T>(crListReplica, next, replacement.id, delta)
+      void moveEntryToPredecessor<T>(
+        crListReplica,
+        next,
+        getEntryTailId(replacement),
+        delta
+      )
     current = replacement
   }
 

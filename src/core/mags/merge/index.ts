@@ -10,11 +10,15 @@ import {
   attachEntryToIndexes,
   rebuildLiveProjection,
   rebuildLiveIndex,
-  deleteLiveEntry,
+  deleteLiveEntryId,
+  getEntryTailId,
+  getIndexAfterEntryId,
   moveEntryToPredecessor,
   trySpliceSiblingInsert,
   trySpliceReplacement,
   splitBlock,
+  sliceEntryIntoUnseenBlocks,
+  writeEntryChange,
 } from '../../../.helpers/index.js'
 import {
   isRecord,
@@ -35,9 +39,9 @@ export function __merge<T>(
   crListDelta: CRListDelta<T>
 ): CRListChange<T> | false {
   if (!isRecord(crListDelta)) return false
-  const newVals: Array<NonNullable<CRListStateEntry<T>>> = []
-  const newTombsIndices: Array<number> = []
-  const reparentedVals: Array<CRListReparentedStateEntry<T>> = []
+  const newValues: Array<NonNullable<CRListStateEntry<T>>> = []
+  const newTombstoneIndicies: Array<number> = []
+  const reparentedvalues: Array<CRListReparentedStateEntry<T>> = []
   const change: CRListChange<T> = {}
   let tailTombstoneMovedCursor = false
   let needsRelink = false
@@ -53,28 +57,11 @@ export function __merge<T>(
       void crListReplica.tombstones.add(tombstone)
       const tombBigInt = safeBigIntFromString(tombstone)
       if (tombBigInt === false) continue
-      const linkedListEntry = crListReplica.parentMap.get(tombBigInt)
-      if (linkedListEntry) {
-        const wasCursorOnOriginal = crListReplica.cursor === linkedListEntry
-        let entryToDelete = linkedListEntry
-        if (linkedListEntry.id !== tombBigInt) {
-          const offset = Number(tombBigInt - linkedListEntry.id)
-          const [, right] = splitBlock<T>(
-            crListReplica,
-            linkedListEntry,
-            offset
-          )
-          entryToDelete = right
-        }
-        const wasTail = entryToDelete.next === undefined
-        const wasCursor = crListReplica.cursor === entryToDelete
-        const effectiveWasCursor =
-          wasCursor ||
-          (entryToDelete !== linkedListEntry && wasCursorOnOriginal)
-        void newTombsIndices.push(entryToDelete.index)
-        void crListReplica.cache.delete(entryToDelete.index)
-        void deleteLiveEntry<T>(crListReplica, entryToDelete)
-        tailTombstoneMovedCursor = wasTail && effectiveWasCursor
+      const deleted = deleteLiveEntryId<T>(crListReplica, tombBigInt)
+      if (deleted) {
+        void newTombstoneIndicies.push(deleted.index)
+        void crListReplica.cache.delete(deleted.index)
+        tailTombstoneMovedCursor = deleted.wasTail && deleted.wasCursor
         needsRelink = true
       }
     }
@@ -85,8 +72,8 @@ export function __merge<T>(
     !Array.isArray(crListDelta.values) ||
     (crListDelta.values.length === 0 && tailTombstoneMovedCursor)
   ) {
-    if (newTombsIndices.length === 0) return false
-    if (newTombsIndices.length === 1 && tailTombstoneMovedCursor) {
+    if (newTombstoneIndicies.length === 0) return false
+    if (newTombstoneIndicies.length === 1 && tailTombstoneMovedCursor) {
       if (crListReplica.cursor) {
         crListReplica.cursorIndex = crListReplica.size - 1
         void crListReplica.cache.set(
@@ -96,11 +83,11 @@ export function __merge<T>(
       } else {
         crListReplica.cursorIndex = undefined
       }
-      change[newTombsIndices[0]] = undefined
+      change[newTombstoneIndicies[0]] = undefined
       return change
     }
     void rebuildLiveIndex<T>(crListReplica)
-    for (const index of newTombsIndices) change[index] = undefined
+    for (const index of newTombstoneIndicies) change[index] = undefined
     return change
   }
 
@@ -115,16 +102,36 @@ export function __merge<T>(
 
     if (existingEntry) {
       if (crListReplica.tombstones.has(valueEntry.id)) continue
+      if (!Array.isArray(valueEntry.values) || valueEntry.values.length === 0)
+        continue
       const newPredecessor = uuidV7BigIntStringToBigInt(valueEntry.predecessor)
       if (newPredecessor === false) continue
-      if (existingEntry.predecessor >= newPredecessor) continue
-      const oldPredecessor = existingEntry.predecessor
-      void moveEntryToPredecessor<T>(
-        crListReplica,
-        existingEntry,
-        newPredecessor
+      let entryToMove = existingEntry
+      if (existingEntry.id !== entryId) {
+        const [, right] = splitBlock<T>(
+          crListReplica,
+          existingEntry,
+          Number(entryId - existingEntry.id)
+        )
+        entryToMove = right
+      }
+      if (entryToMove.values.length > valueEntry.values.length) {
+        const [left] = splitBlock<T>(
+          crListReplica,
+          entryToMove,
+          valueEntry.values.length
+        )
+        entryToMove = left
+      }
+      if (entryToMove.predecessor >= newPredecessor) continue
+      if (
+        newPredecessor >= entryToMove.id &&
+        newPredecessor <= getEntryTailId(entryToMove)
       )
-      void reparentedVals.push({ entry: existingEntry, oldPredecessor })
+        continue
+      const oldPredecessor = entryToMove.predecessor
+      void moveEntryToPredecessor<T>(crListReplica, entryToMove, newPredecessor)
+      void reparentedvalues.push({ entry: entryToMove, oldPredecessor })
       needsRelink = true
       continue
     }
@@ -134,45 +141,28 @@ export function __merge<T>(
       crListReplica
     )
     if (!linkedListEntry) continue
-    const predecessor =
-      linkedListEntry.predecessor === 0n
-        ? undefined
-        : crListReplica.parentMap.get(linkedListEntry.predecessor)
-    void attachEntryToIndexes<T>(crListReplica, linkedListEntry)
+    const liveBlocks = sliceEntryIntoUnseenBlocks<T>(
+      crListReplica,
+      linkedListEntry
+    )
+    if (liveBlocks.length === 0) continue
 
-    // Trim any elements that were tombstoned before this block arrived.
-    // Iterate from the end so splits don't shift earlier indices.
-    let liveBlock: NonNullable<CRListStateEntry<T>> | null = linkedListEntry
-    let trimmed = false
-    trimLoop: for (
-      let entryOffset = liveBlock.values.length - 1;
-      entryOffset >= 0;
-      entryOffset--
+    for (const liveBlock of liveBlocks)
+      void attachEntryToIndexes<T>(crListReplica, liveBlock)
+    void newValues.push(...liveBlocks)
+    const liveBlock = liveBlocks[0]
+    if (
+      liveBlocks.length !== 1 ||
+      liveBlock.id !== linkedListEntry.id ||
+      liveBlock.values.length !== linkedListEntry.values.length
     ) {
-      const live = liveBlock as NonNullable<CRListStateEntry<T>>
-      if (
-        !crListReplica.tombstones.has(
-          (live.id + BigInt(entryOffset)).toString()
-        )
-      )
-        continue
-      trimmed = true
-      if (entryOffset) {
-        void deleteLiveEntry<T>(crListReplica, live)
-        liveBlock = null
-        break trimLoop
-      }
-      const [left, right] = splitBlock<T>(crListReplica, live, entryOffset)
-      void deleteLiveEntry<T>(crListReplica, right)
-      liveBlock = left
-    }
-    if (!liveBlock) continue
-
-    void newVals.push(liveBlock)
-    if (trimmed) {
       needsRelink = true
       continue
     }
+    const predecessor =
+      liveBlock.predecessor === 0n
+        ? undefined
+        : crListReplica.parentMap.get(liveBlock.predecessor)
     if (!needsRelink && liveBlock.predecessor === 0n) {
       if (crListReplica.size === 0) {
         liveBlock.index = 0
@@ -185,7 +175,9 @@ export function __merge<T>(
       }
     } else if (!needsRelink && predecessor && !predecessor.next) {
       liveBlock.prev = predecessor
-      liveBlock.index = predecessor.index + predecessor.values.length
+      liveBlock.index =
+        getIndexAfterEntryId<T>(crListReplica, liveBlock.predecessor) ??
+        predecessor.index + predecessor.values.length
       predecessor.next = liveBlock
       crListReplica.cursor = liveBlock
       crListReplica.cursorIndex = liveBlock.index
@@ -200,29 +192,26 @@ export function __merge<T>(
     if (
       !trySpliceSiblingInsert<T>(
         crListReplica,
-        newVals,
-        reparentedVals,
-        newTombsIndices.length
+        newValues,
+        reparentedvalues,
+        newTombstoneIndicies.length
       ) &&
-      !trySpliceInsertedParent<T>(crListReplica, newVals, reparentedVals) &&
+      !trySpliceInsertedParent<T>(crListReplica, newValues, reparentedvalues) &&
       !trySpliceReplacement<T>(
         crListReplica,
-        newVals,
-        reparentedVals,
-        newTombsIndices.length
+        newValues,
+        reparentedvalues,
+        newTombstoneIndicies.length
       )
     ) {
       void rebuildLiveProjection<T>(crListReplica)
     }
   }
 
-  if (newTombsIndices.length === 0 && newVals.length === 0) return false
+  if (newTombstoneIndicies.length === 0 && newValues.length === 0) return false
 
-  for (const index of newTombsIndices) change[index] = undefined
-  for (const val of newVals) {
-    for (let entryOffset = 0; entryOffset < val.values.length; entryOffset++)
-      change[val.index + entryOffset] = val.values[entryOffset]
-  }
+  for (const index of newTombstoneIndicies) change[index] = undefined
+  for (const val of newValues) void writeEntryChange<T>(change, val)
 
   return change
 }

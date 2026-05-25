@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
+import * as bytecodec from '@sovereignbase/bytecodec'
 import * as uuid from 'uuid'
 import * as utils from '@sovereignbase/utils'
 import { EdgeRuntime } from 'edge-runtime'
@@ -42,7 +43,11 @@ function replaceNamedImports(bundleCode, packageName, globalName) {
 
 function toExecutableEdgeEsm(bundleCode) {
   const withoutImports = replaceNamedImports(
-    replaceNamedImports(bundleCode, 'uuid', 'globalThis.__CRLIST_UUID'),
+    replaceNamedImports(
+      replaceNamedImports(bundleCode, 'uuid', 'globalThis.__CRLIST_UUID'),
+      '@sovereignbase/bytecodec',
+      'globalThis.__CRLIST_BYTECODEC'
+    ),
     '@sovereignbase/utils',
     'globalThis.__CRLIST_UTILS'
   )
@@ -74,6 +79,7 @@ function toExecutableEdgeEsm(bundleCode) {
 }
 
 const runtime = new EdgeRuntime()
+runtime.context.__CRLIST_BYTECODEC = bytecodec
 runtime.context.__CRLIST_UUID = uuid
 runtime.context.__CRLIST_UTILS = utils
 runtime.evaluate(`

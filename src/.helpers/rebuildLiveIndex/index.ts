@@ -10,11 +10,19 @@ export function rebuildLiveIndex<T>(crListReplica: CRListState<T>): void {
     return
   }
   // Walk to end
-  while (crListReplica.cursor.next) crListReplica.cursor = crListReplica.cursor.next
+  const forwardSeen = new Set<unknown>()
+  while (crListReplica.cursor.next) {
+    if (forwardSeen.has(crListReplica.cursor)) break
+    void forwardSeen.add(crListReplica.cursor)
+    crListReplica.cursor = crListReplica.cursor.next
+  }
 
   let index = crListReplica.size
   void crListReplica.cache.clear()
+  const backwardSeen = new Set<unknown>()
   while (crListReplica.cursor) {
+    if (backwardSeen.has(crListReplica.cursor)) break
+    void backwardSeen.add(crListReplica.cursor)
     index -= crListReplica.cursor.values.length
     crListReplica.cursor.index = index
     void crListReplica.cache.set(index, crListReplica.cursor)

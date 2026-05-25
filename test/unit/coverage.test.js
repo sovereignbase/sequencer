@@ -708,10 +708,26 @@ test('unit: internal defensive branches remain stable under corrupt state', () =
   }
 
   const corruptSource = __create()
-  const d1 = __update(0, [{ id: 'delete' }], corruptSource, 'after').delta.values[0]
-  const d2 = __update(corruptSource.size, [{ id: 'parent' }], corruptSource, 'after').delta.values[0]
-  const d3 = __update(corruptSource.size, [{ id: 'child' }], corruptSource, 'after').delta.values[0]
-  const d4 = __update(corruptSource.size, [{ id: 'missing-parent' }], corruptSource, 'after').delta.values[0]
+  const d1 = __update(0, [{ id: 'delete' }], corruptSource, 'after').delta
+    .values[0]
+  const d2 = __update(
+    corruptSource.size,
+    [{ id: 'parent' }],
+    corruptSource,
+    'after'
+  ).delta.values[0]
+  const d3 = __update(
+    corruptSource.size,
+    [{ id: 'child' }],
+    corruptSource,
+    'after'
+  ).delta.values[0]
+  const d4 = __update(
+    corruptSource.size,
+    [{ id: 'missing-parent' }],
+    corruptSource,
+    'after'
+  ).delta.values[0]
   const corrupt = __create()
   const deletedEntry = {
     id: BigInt(d1.id),
@@ -807,15 +823,29 @@ test('unit: assertListIndices forward walk is covered through delete merge', () 
 
   const tailCursorSource = __create()
   assert(__update(0, [{ id: 'tail-a' }], tailCursorSource, 'after'))
-  assert(__update(tailCursorSource.size, [{ id: 'tail-b' }], tailCursorSource, 'after'))
-  assert(__update(tailCursorSource.size, [{ id: 'tail-c' }], tailCursorSource, 'after'))
+  assert(
+    __update(
+      tailCursorSource.size,
+      [{ id: 'tail-b' }],
+      tailCursorSource,
+      'after'
+    )
+  )
+  assert(
+    __update(
+      tailCursorSource.size,
+      [{ id: 'tail-c' }],
+      tailCursorSource,
+      'after'
+    )
+  )
   const tailCursorTarget = __create(__snapshot(tailCursorSource))
   tailCursorTarget.cursor = [...tailCursorTarget.parentMap.values()].find(
     (entry) => entry.values?.[0]?.id === 'tail-c'
   )
-  const headUuid = [...tailCursorTarget.parentMap.values()].find(
-    (entry) => entry.values?.[0]?.id === 'tail-a'
-  ).id.toString()
+  const headUuid = [...tailCursorTarget.parentMap.values()]
+    .find((entry) => entry.values?.[0]?.id === 'tail-a')
+    .id.toString()
   assert(__merge(tailCursorTarget, { tombstones: [headUuid] }))
   assert.deepEqual(
     ids(tailCursorTarget).map((value) => value.id),

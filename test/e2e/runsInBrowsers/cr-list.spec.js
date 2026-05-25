@@ -22,18 +22,22 @@ test('CRList browser relink paths do not overflow the call stack', async ({
       const api = await import('/dist/index.js')
       const { v7: uuidv7 } = await import('uuid')
 
+      function uuidV7ToBigIntStr(uuid) {
+        return BigInt(`0x${uuid.replaceAll('-', '')}`).toString()
+      }
+
       function snapshotValues(prefix, rootPredecessor, count) {
         const values = []
         let predecessor = rootPredecessor
 
         for (let index = 0; index < count; index++) {
-          const uuid = uuidv7()
+          const id = uuidV7ToBigIntStr(uuidv7())
           values.push({
-            uuidv7: uuid,
-            value: { id: `${prefix}-${index}` },
+            id,
+            values: [{ id: `${prefix}-${index}` }],
             predecessor,
           })
-          predecessor = uuid
+          predecessor = id
         }
 
         return values
@@ -58,18 +62,18 @@ test('CRList browser relink paths do not overflow the call stack', async ({
 
       const rootHydrationValues = snapshotValues(
         'root-hydration',
-        '\0',
+        '0',
         hydrateCount
       )
       const detachedHydrationValues = snapshotValues(
         'detached-hydration',
-        uuidv7(),
+        uuidV7ToBigIntStr(uuidv7()),
         hydrateCount
       )
-      const rootMergeValues = snapshotValues('root-merge', '\0', mergeCount)
+      const rootMergeValues = snapshotValues('root-merge', '0', mergeCount)
       const detachedMergeValues = snapshotValues(
         'detached-merge',
-        uuidv7(),
+        uuidV7ToBigIntStr(uuidv7()),
         mergeCount
       )
 

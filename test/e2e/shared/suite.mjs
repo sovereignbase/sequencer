@@ -205,7 +205,11 @@ export async function runCRListSuite(api, options = {}) {
     const r0 = replicas[0]
     for (let index = 1; index < replicas.length; index++) {
       const r1 = replicas[index]
-      assertEqual(r1.size, r0.size, `replica ${index} diverged: size ${r1.size} !== ${r0.size}`)
+      assertEqual(
+        r1.size,
+        r0.size,
+        `replica ${index} diverged: size ${r1.size} !== ${r0.size}`
+      )
       for (let i = 0; i < r0.size; i++) {
         assertJsonEqual(
           api.__read(i, r1),

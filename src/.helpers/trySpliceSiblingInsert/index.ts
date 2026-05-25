@@ -3,6 +3,8 @@ import type {
   CRListState,
   CRListStateEntry,
 } from '../../.types/type.js'
+import { getEntryTailId } from '../getEntryTailId/index.js'
+import { getIndexAfterEntryId } from '../getIndexAfterEntryId/index.js'
 import { linkEntryBetween } from '../linkEntryBetween/index.js'
 
 /**
@@ -21,8 +23,10 @@ export function trySpliceSiblingInsert<T>(
   )
     return false
   const inserted = insertedEntries[0]
+  if (inserted.values.length !== 1) return false
   if (inserted.predecessor === 0n) return false
-  if (crListReplica.childrenMap.get(inserted.id)?.length) return false
+  if (crListReplica.childrenMap.get(getEntryTailId(inserted))?.length)
+    return false
 
   const predecessor = crListReplica.parentMap.get(inserted.predecessor)
   const siblings = crListReplica.childrenMap.get(inserted.predecessor)
@@ -37,7 +41,8 @@ export function trySpliceSiblingInsert<T>(
   const previousSibling = siblings[siblingIndex - 1]
   const nextSibling = siblings[siblingIndex + 1]
   if (previousSibling?.id) {
-    if (crListReplica.childrenMap.get(previousSibling.id)?.length) return false
+    if (crListReplica.childrenMap.get(getEntryTailId(previousSibling))?.length)
+      return false
     if (previousSibling.next !== nextSibling) return false
   } else if (predecessor.next !== nextSibling) {
     return false
@@ -47,10 +52,16 @@ export function trySpliceSiblingInsert<T>(
   const next = nextSibling
   if (next && next.prev !== prev) return false
 
+  let index = previousSibling
+    ? previousSibling.index + previousSibling.values.length
+    : getIndexAfterEntryId<T>(crListReplica, inserted.predecessor)
+  if (index === undefined) return false
   void linkEntryBetween<T>(prev, inserted, next)
   let current: CRListStateEntry<T> = inserted
-  let index = prev.index + prev.values.length
+  const seen = new Set<unknown>()
   while (current) {
+    if (seen.has(current)) return false
+    void seen.add(current)
     current.index = index
     index += current.values.length
     current = current.next

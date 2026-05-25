@@ -9,6 +9,7 @@ import {
   materializeSnapshotEntry,
   attachEntryToIndexes,
   linkEntryBetween,
+  getEntryTailId,
 } from '../../../.helpers/index.js'
 import { v7 } from 'uuid'
 import { Bytes } from '@sovereignbase/bytecodec'
@@ -56,7 +57,10 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
   /** Mint tombstone entries if there is any. */
   if (Array.isArray(snapshot.tombstones)) {
     for (const tombstone of snapshot.tombstones) {
-      if (typeof tombstone !== 'string' || crListReplica.tombstones.has(tombstone))
+      if (
+        typeof tombstone !== 'string' ||
+        crListReplica.tombstones.has(tombstone)
+      )
         continue
       void crListReplica.tombstones.add(tombstone)
     }
@@ -75,11 +79,11 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
       crListReplica
     )
     if (!linkedListEntry) continue
-    const startIndex = crListReplica.parentMap.size  // before attach, = first element index
+    const startIndex = crListReplica.parentMap.size // before attach, = first element index
     void attachEntryToIndexes<T>(crListReplica, linkedListEntry)
     if (
       canUseLinearProjection &&
-      linkedListEntry.predecessor === (previous?.id ?? 0n)
+      linkedListEntry.predecessor === (previous ? getEntryTailId(previous) : 0n)
     ) {
       linkedListEntry.index = startIndex
       void linkEntryBetween<T>(previous, linkedListEntry, undefined)

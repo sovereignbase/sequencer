@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(node test/run-coverage.mjs)",
+      "Bash(node -e \"const u = require\\('@sovereignbase/utils'\\); console.log\\(Object.keys\\(u\\)\\)\")",
+      "Bash(npm test *)"
+    ]
+  }
+}

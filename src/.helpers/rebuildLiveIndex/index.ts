@@ -5,23 +5,21 @@ import type { CRListState } from '../../.types/type.js'
  */
 export function rebuildLiveIndex<T>(crListReplica: CRListState<T>): void {
   if (!crListReplica.cursor) {
-    crListReplica.index?.clear()
+    crListReplica.cache.clear()
     crListReplica.cursorIndex = undefined
     return
   }
-  let index = crListReplica.size
-  const entries = crListReplica.index ?? new Map()
-  void entries.clear()
-  while (crListReplica.cursor.next)
-    crListReplica.cursor = crListReplica.cursor.next
+  // Walk to end
+  while (crListReplica.cursor.next) crListReplica.cursor = crListReplica.cursor.next
 
-  while (index >= 1) {
-    index--
+  let index = crListReplica.size
+  void crListReplica.cache.clear()
+  while (crListReplica.cursor) {
+    index -= crListReplica.cursor.values.length
     crListReplica.cursor.index = index
-    void entries.set(index, crListReplica.cursor)
-    if (crListReplica.cursor.prev === undefined) break
+    void crListReplica.cache.set(index, crListReplica.cursor)
+    if (!crListReplica.cursor.prev) break
     crListReplica.cursor = crListReplica.cursor.prev
   }
-  crListReplica.index = entries
   crListReplica.cursorIndex = 0
 }

@@ -3,11 +3,7 @@ import type {
   CRListSnapshotEntry,
   CRListStateEntry,
 } from '../../.types/type.js'
-import {
-  isUuidV7,
-  isRecord,
-  uuidV7BigIntStringToBigInt,
-} from '@sovereignbase/utils'
+import { isRecord, uuidV7BigIntStringToBigInt } from '@sovereignbase/utils'
 
 /**
  * Converts a snapshot or delta value entry into local mutable entry state.
@@ -20,25 +16,23 @@ export function materializeSnapshotEntry<T>(
   crListReplica: CRListState<T>
 ): CRListStateEntry<T> {
   if (!isRecord(valueEntry)) return undefined
+  if (!Array.isArray(valueEntry.values) || valueEntry.values.length === 0)
+    return undefined
 
   if (crListReplica.tombstones.has(valueEntry.id)) return undefined
 
   const bigIntId = uuidV7BigIntStringToBigInt(valueEntry.id)
-
-  if (!bigIntId || crListReplica.parentMap.has(bigIntId)) return undefined
-
-  const bigIntPredecessor = uuidV7BigIntStringToBigInt(valueEntry.predecessor)
-
-  if (
-    bigIntPredecessor &&
-    valueEntry.predecessor !== '\0' &&
-    !crListReplica.tombstones.has(valueEntry.predecessor)
-  )
-    return undefined
+  if (bigIntId === false) return undefined
+  const bigIntPredecessor =
+    valueEntry.predecessor === '0'
+      ? 0n
+      : uuidV7BigIntStringToBigInt(valueEntry.predecessor)
+  if (bigIntPredecessor === false) return undefined
+  if (crListReplica.parentMap.has(bigIntId)) return undefined
 
   return {
     id: bigIntId,
-    value: valueEntry.value,
+    values: valueEntry.values,
     predecessor: bigIntPredecessor,
     index: 0,
     next: undefined,

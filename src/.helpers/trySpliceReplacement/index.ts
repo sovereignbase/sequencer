@@ -1,5 +1,5 @@
 import type {
-  CRListReparentedEntry,
+  CRListReparentedStateEntry,
   CRListState,
   CRListStateEntry,
 } from '../../.types/type.js'
@@ -11,7 +11,7 @@ import { linkEntryBetween } from '../../.helpers/index.js'
 export function trySpliceReplacement<T>(
   crListReplica: CRListState<T>,
   insertedEntries: Array<NonNullable<CRListStateEntry<T>>>,
-  reparentedEntries: Array<CRListReparentedEntry<T>>,
+  reparentedEntries: Array<CRListReparentedStateEntry<T>>,
   tombstoneCount: number
 ): boolean {
   if (
@@ -22,10 +22,10 @@ export function trySpliceReplacement<T>(
     return false
   const inserted = insertedEntries[0]
   const predecessor =
-    inserted.predecessor === '\0'
+    inserted.predecessor === 0n
       ? undefined
       : crListReplica.parentMap.get(inserted.predecessor)
-  if (inserted.predecessor !== '\0' && !predecessor) return false
+  if (inserted.predecessor !== 0n && !predecessor) return false
 
   const siblings = crListReplica.childrenMap.get(inserted.predecessor)
   if (siblings?.length !== 1 || siblings[0] !== inserted) return false
@@ -33,16 +33,16 @@ export function trySpliceReplacement<T>(
   const reparented = reparentedEntries[0]
   const next = reparented?.entry
   if (next) {
-    const children = crListReplica.childrenMap.get(inserted.uuidv7)
+    const children = crListReplica.childrenMap.get(inserted.id)
     if (
-      next.predecessor !== inserted.uuidv7 ||
-      !crListReplica.tombstones.has(reparented.previousPredecessor) ||
+      next.predecessor !== inserted.id ||
+      !crListReplica.tombstones.has(reparented.oldPredecessor.toString()) ||
       children?.length !== 1 ||
       children[0] !== next ||
       next.prev !== predecessor
     )
       return false
-  } else if (crListReplica.childrenMap.get(inserted.uuidv7)?.length) {
+  } else if (crListReplica.childrenMap.get(inserted.id)?.length) {
     return false
   }
 
@@ -55,20 +55,24 @@ export function trySpliceReplacement<T>(
       reachable++
       current = current.next
     }
-    if (reachable !== crListReplica.parentMap.size - 1) return false
+    if (reachable !== crListReplica.parentMap.size - inserted.values.length)
+      return false
   }
 
-  const expectedIndex = predecessor ? predecessor.index + 1 : 0
+  const expectedIndex = predecessor
+    ? predecessor.index + predecessor.values.length
+    : 0
   void linkEntryBetween<T>(predecessor, inserted, next)
 
   let current: CRListStateEntry<T> = inserted
   let index = expectedIndex
   while (current) {
     current.index = index
-    index++
+    index += current.values.length
     current = current.next
   }
-  crListReplica.index = new Map([[inserted.index, inserted]])
+  void crListReplica.cache.clear()
+  void crListReplica.cache.set(inserted.index, inserted)
   crListReplica.cursor = inserted
   crListReplica.cursorIndex = inserted.index
   crListReplica.size = crListReplica.parentMap.size

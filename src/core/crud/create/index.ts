@@ -1,4 +1,4 @@
-import { isUuidV7, isRecord } from '@sovereignbase/utils'
+import { isRecord } from '@sovereignbase/utils'
 import {
   CRListSnapshot,
   CRListState,
@@ -56,7 +56,7 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
   /** Mint tombstone entries if there is any. */
   if (Array.isArray(snapshot.tombstones)) {
     for (const tombstone of snapshot.tombstones) {
-      if (crListReplica.tombstones.has(tombstone) || !isUuidV7(tombstone))
+      if (typeof tombstone !== 'string' || crListReplica.tombstones.has(tombstone))
         continue
       void crListReplica.tombstones.add(tombstone)
     }
@@ -75,24 +75,23 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
       crListReplica
     )
     if (!linkedListEntry) continue
+    const startIndex = crListReplica.parentMap.size  // before attach, = first element index
     void attachEntryToIndexes<T>(crListReplica, linkedListEntry)
     if (
       canUseLinearProjection &&
-      linkedListEntry.predecessor === (previous?.id ?? '\0')
+      linkedListEntry.predecessor === (previous?.id ?? 0n)
     ) {
-      linkedListEntry.index = crListReplica.parentMap.size - 1
+      linkedListEntry.index = startIndex
       void linkEntryBetween<T>(previous, linkedListEntry, undefined)
       previous = linkedListEntry
-      void crListReplica.cache.set(linkedListEntry.index, linkedListEntry)
+      void crListReplica.cache.set(startIndex, linkedListEntry)
       continue
     }
     canUseLinearProjection = false
   }
   if (canUseLinearProjection) {
     crListReplica.cursor = previous
-    crListReplica.cursorIndex = previous
-      ? crListReplica.parentMap.size - 1
-      : undefined
+    crListReplica.cursorIndex = previous ? previous.index : undefined
     crListReplica.size = crListReplica.parentMap.size
     return crListReplica
   }

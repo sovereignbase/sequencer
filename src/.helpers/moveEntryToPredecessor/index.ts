@@ -12,7 +12,7 @@ import { attachEntryToIndexes } from '../attachEntryToIndexes/index.js'
 export function moveEntryToPredecessor<T>(
   crListReplica: CRListState<T>,
   linkedListEntry: NonNullable<CRListStateEntry<T>>,
-  predecessor: string,
+  predecessor: bigint,
   deltaBuf?: CRListDelta<T>
 ): void {
   void detachEntryFromIndexes<T>(crListReplica, linkedListEntry)

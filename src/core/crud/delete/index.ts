@@ -5,9 +5,9 @@ import {
   linkEntryBetween,
   moveEntryToPredecessor,
   seekCursorToIndex,
+  splitBlock,
 } from '../../../.helpers/index.js'
 import { CRListError } from '../../../.errors/class.js'
-import { v7 as uuidv7 } from 'uuid'
 import type {
   CRListChange,
   CRListDelta,
@@ -18,22 +18,10 @@ import type {
 /**
  * Deletes a range from the replica live view.
  *
- * With no indexes, the full list is deleted. With only `startIndex`, all entries
- * from `startIndex` onward are deleted. With both indexes, the deleted range is
- * `[startIndex, endIndex)`.
- *
  * @param crListReplica - Replica to mutate.
  * @param startIndex - Inclusive start index. Defaults to `0`.
  * @param endIndex - Exclusive end index. Defaults to the current list size.
  * @returns - A local change and gossip delta, or `false` if nothing was deleted.
- *
- * Time complexity: O(d + qk + r), worst case O(n^2)
- * - d = distance from cursor to target index
- * - q = amount of deleted nodes
- * - r = amount of nodes after the deleted range whose indexes must be shifted
- * - k = sibling bucket size when deleted entries are removed from buckets
- *
- * Space complexity: O(q)
  */
 export function __delete<T>(
   crListReplica: CRListState<T>,
@@ -56,27 +44,65 @@ export function __delete<T>(
   void seekCursorToIndex<T>(listIndex, crListReplica)
   if (!crListReplica.cursor) return false
 
-  let current: CRListStateEntry<T> = crListReplica.cursor
-  const predecessor = current.prev?.id ?? '\0'
+  // If start is mid-block, split so deletion starts at a block boundary
+  if (crListReplica.cursor.index < listIndex) {
+    const [, right] = splitBlock(
+      crListReplica,
+      crListReplica.cursor,
+      listIndex - crListReplica.cursor.index
+    )
+    crListReplica.cursor = right
+    crListReplica.cursorIndex = listIndex
+  }
+
+  const predecessorId = crListReplica.cursor.prev?.id ?? 0n
   const deletedIds = new Set<string>()
   let deleted = 0
-  let currentIndex = crListReplica.cursorIndex ?? listIndex
+  let currentIndex = listIndex
+
+  let current: CRListStateEntry<T> = crListReplica.cursor
 
   while (current && deleted < deleteCount) {
-    const next: CRListStateEntry<T> = current.next
-    change[currentIndex] = undefined
-    void deletedIds.add(current.id.toString())
-    void crListReplica.cache?.delete(currentIndex)
-    void deleteLiveEntry<T>(crListReplica, current, delta)
-    current = next
-    currentIndex++
-    deleted++
+    const remaining = deleteCount - deleted
+    let blockToDelete: NonNullable<CRListStateEntry<T>>
+
+    if (current.values.length <= remaining) {
+      blockToDelete = current
+      current = current.next
+    } else {
+      // Partial last block: split, delete the first `remaining` elements
+      const [leftPart, rightPart] = splitBlock(
+        crListReplica,
+        current,
+        remaining
+      )
+      blockToDelete = leftPart
+      current = rightPart
+    }
+
+    for (let index = 0; index < blockToDelete.values.length; index++)
+      change[currentIndex + index] = undefined
+
+    for (
+      let entryOffset = 0;
+      entryOffset < blockToDelete.values.length;
+      entryOffset++
+    )
+      void deletedIds.add((blockToDelete.id + BigInt(entryOffset)).toString())
+
+    void crListReplica.cache.delete(currentIndex)
+    void deleteLiveEntry<T>(crListReplica, blockToDelete, delta)
+    deleted += blockToDelete.values.length
+    currentIndex += blockToDelete.values.length
   }
-  if (current && deletedIds.has(current?.predecessor.toString())) {
+
+  // If the block immediately after the deleted range has a deleted predecessor,
+  // delete it and create a re-anchored replacement.
+  if (current && deletedIds.has(current.predecessor.toString())) {
     const replacement: NonNullable<CRListStateEntry<T>> = {
-      id: getEntryId(crListReplica),
-      value: current.value,
-      predecessor,
+      id: getEntryId(crListReplica, current.values.length),
+      values: current.values,
+      predecessor: predecessorId,
       index: listIndex,
       next: undefined,
       prev: undefined,
@@ -86,13 +112,14 @@ export function __delete<T>(
     void deleteLiveEntry<T>(crListReplica, current, delta)
     void linkEntryBetween<T>(prev, replacement, next)
     void attachEntryToIndexes<T>(crListReplica, replacement, delta)
-    if (next?.predecessor === current.uuidv7)
-      void moveEntryToPredecessor<T>(
-        crListReplica,
-        next,
-        replacement.uuidv7,
-        delta
-      )
+    for (
+      let entryOffset = 0;
+      entryOffset < current.values.length;
+      entryOffset++
+    )
+      void deletedIds.add((current.id + BigInt(entryOffset)).toString())
+    if (next && deletedIds.has(next.predecessor.toString()))
+      void moveEntryToPredecessor<T>(crListReplica, next, replacement.id, delta)
     current = replacement
   }
 

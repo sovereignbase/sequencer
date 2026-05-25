@@ -1,26 +1,20 @@
+import { safeBigIntFromString } from '@sovereignbase/utils'
 import type { CRListAck, CRListState } from '../../../.types/type.js'
 
 /**
  * Returns the replica tombstone acknowledgement frontier.
  *
- * The frontier is the greatest tombstone identifier currently retained by the
- * replica. Peers can use it as input for tombstone garbage collection.
- *
  * @param crListReplica - Replica to acknowledge.
  * @returns - The acknowledgement frontier, or `false` when there are no tombstones.
- *
- * Time complexity: O(t)
- * - t = replica tombstone count
- *
- * Space complexity: O(1)
  */
 export function __acknowledge<T>(
   crListReplica: CRListState<T>
 ): CRListAck | false {
-  let largest: CRListAck | false = false
+  let largest: bigint | undefined
   void crListReplica.tombstones.forEach((tombstone) => {
-    if (largest === false || largest < tombstone) largest = tombstone
+    const canditate = safeBigIntFromString(tombstone)
+    if (canditate !== false && (largest === undefined || canditate > largest))
+      largest = canditate
   })
-  if (typeof largest === 'string') return largest
-  return false
+  return largest !== undefined ? largest.toString() : false
 }

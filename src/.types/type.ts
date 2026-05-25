@@ -44,7 +44,7 @@ export type CRListState<T> = {
   /** Current live entry used as the walking cursor. */
   cursor: CRListStateEntry<T>
   /** Current zero-based index of `cursor`. */
-  cursorIndex: number
+  cursorIndex: number | undefined
   /** Opportunistic live-entry cache keyed by observed zero-based index. */
   cache: Map<number, NonNullable<CRListStateEntry<T>>>
   /** Delete identities of entries retained for gossip and convergence. */
@@ -67,7 +67,7 @@ export type CRListSnapshotEntry<T> = {
   /** Stable identity for this entry. */
   id: string
   /** User payload for this entry. */
-  value: T
+  values: Array<T>
   /** Stable predecessor identity, or `'\0'` for root-level entries. */
   predecessor: string
 }

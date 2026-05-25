@@ -212,14 +212,15 @@ export class CRList<T> {
     predicate: (this: unknown, value: T, index: number, list: this) => unknown,
     thisArg?: unknown
   ): T | undefined {
-    let linkedListEntry = this.state.index?.get(0) ?? this.state.cursor
+    let linkedListEntry = this.state.cache.get(0) ?? this.state.cursor
     while (linkedListEntry?.prev) linkedListEntry = linkedListEntry.prev
     let index = 0
     while (linkedListEntry) {
-      if (predicate.call(thisArg, linkedListEntry.value, index, this))
-        return linkedListEntry.value
+      for (const v of linkedListEntry.values) {
+        if (predicate.call(thisArg, v, index, this)) return v
+        index++
+      }
       linkedListEntry = linkedListEntry.next
-      index++
     }
 
     return undefined
@@ -334,10 +335,10 @@ export class CRList<T> {
    * Iterates over current live values in index order.
    */
   *[Symbol.iterator](): IterableIterator<T> {
-    let linkedListEntry = this.state.index?.get(0) ?? this.state.cursor
+    let linkedListEntry = this.state.cache.get(0) ?? this.state.cursor
     while (linkedListEntry?.prev) linkedListEntry = linkedListEntry.prev
     while (linkedListEntry) {
-      yield linkedListEntry.value
+      yield* linkedListEntry.values
       linkedListEntry = linkedListEntry.next
     }
   }
@@ -354,13 +355,15 @@ export class CRList<T> {
     callback: (value: T, index: number, list: this) => void,
     thisArg?: unknown
   ): void {
-    let linkedListEntry = this.state.index?.get(0) ?? this.state.cursor
+    let linkedListEntry = this.state.cache.get(0) ?? this.state.cursor
     while (linkedListEntry?.prev) linkedListEntry = linkedListEntry.prev
     let index = 0
     while (linkedListEntry) {
-      void callback.call(thisArg, linkedListEntry.value, index, this)
+      for (const v of linkedListEntry.values) {
+        void callback.call(thisArg, v, index, this)
+        index++
+      }
       linkedListEntry = linkedListEntry.next
-      index++
     }
   }
 }

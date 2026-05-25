@@ -77,7 +77,7 @@ export async function runCRListSuite(api, options = {}) {
       if (step > limit) throw new Error('next traversal exceeded list limit')
       if (seen.has(cursor)) throw new Error('cycle detected while reading list')
       seen.add(cursor)
-      view.push(cursor.value)
+      for (const v of cursor.values) view.push(v)
     }
     if (view.length !== replica.size)
       throw new Error(
@@ -120,7 +120,11 @@ export async function runCRListSuite(api, options = {}) {
   }
 
   function assertDeltaIncludesValueIds(delta, expected) {
-    const actual = new Set((delta.values ?? []).map((entry) => entry.value?.id))
+    const actual = new Set(
+      (delta.values ?? []).flatMap((entry) =>
+        (entry.values ?? []).map((v) => v?.id)
+      )
+    )
     for (const id of expected) {
       assert(actual.has(id), `delta missing value id ${id}`)
     }
@@ -198,13 +202,17 @@ export async function runCRListSuite(api, options = {}) {
   }
 
   function assertReplicasConverged(replicas) {
-    const expected = liveView(replicas[0])
+    const r0 = replicas[0]
     for (let index = 1; index < replicas.length; index++) {
-      assertJsonEqual(
-        liveView(replicas[index]),
-        expected,
-        `replica ${index} diverged`
-      )
+      const r1 = replicas[index]
+      assertEqual(r1.size, r0.size, `replica ${index} diverged: size ${r1.size} !== ${r0.size}`)
+      for (let i = 0; i < r0.size; i++) {
+        assertJsonEqual(
+          api.__read(i, r1),
+          api.__read(i, r0),
+          `replica ${index} diverged at index ${i}`
+        )
+      }
     }
   }
 
@@ -348,14 +356,14 @@ export async function runCRListSuite(api, options = {}) {
     deltas.push(undefined)
     deltas.push(false)
     deltas.push([])
-    deltas.push({ tombstones: ['not-a-uuid'] })
+    deltas.push({ tombstones: ['not-a-bigint'] })
     deltas.push({ values: 'not-an-array' })
     if (sampleValue) {
       deltas.push({
-        values: [{ ...sampleValue, uuidv7: 'not-a-uuid' }],
+        values: [{ ...sampleValue, id: 'not-a-bigint' }],
       })
       deltas.push({
-        values: [{ ...sampleValue, predecessor: 'not-a-uuid' }],
+        values: [{ ...sampleValue, predecessor: 'not-a-bigint' }],
       })
     }
 

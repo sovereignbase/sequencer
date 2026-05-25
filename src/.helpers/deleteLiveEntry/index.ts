@@ -15,13 +15,18 @@ export function deleteLiveEntry<T>(
 ): void {
   const prev = linkedListEntry.prev
   const next = linkedListEntry.next
-  void crListReplica.tombstones.add(linkedListEntry.uuidv7)
   if (deltaBuf && !Array.isArray(deltaBuf.tombstones)) deltaBuf.tombstones = []
-  void deltaBuf?.tombstones?.push(linkedListEntry.uuidv7)
-  if (prev) prev.next = next
-  if (next) {
-    next.prev = prev
+  for (
+    let entryOffset = 0;
+    entryOffset < linkedListEntry.values.length;
+    entryOffset++
+  ) {
+    const tombId = (linkedListEntry.id + BigInt(entryOffset)).toString()
+    void crListReplica.tombstones.add(tombId)
+    void deltaBuf?.tombstones?.push(tombId)
   }
+  if (prev) prev.next = next
+  if (next) next.prev = prev
   void detachEntryFromIndexes<T>(crListReplica, linkedListEntry)
   if (crListReplica.cursor === linkedListEntry)
     crListReplica.cursor = next ?? prev

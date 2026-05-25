@@ -7,7 +7,14 @@ export function detachEntryFromIndexes<T>(
   crListReplica: CRListState<T>,
   linkedListEntry: NonNullable<CRListStateEntry<T>>
 ): void {
-  void crListReplica.parentMap.delete(linkedListEntry.uuidv7)
+  for (
+    let entryOffset = 0;
+    entryOffset < linkedListEntry.values.length;
+    entryOffset++
+  )
+    void crListReplica.parentMap.delete(
+      linkedListEntry.id + BigInt(entryOffset)
+    )
   const siblings = crListReplica.childrenMap.get(linkedListEntry.predecessor)
   if (siblings) {
     const index = siblings.indexOf(linkedListEntry)

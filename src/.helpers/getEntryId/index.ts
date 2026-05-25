@@ -7,6 +7,6 @@ export function getEntryId<T>(
   const now = crListReplica.clock
   const out = now + 1n
 
-  if (length > 1) crListReplica.clock = now + BigInt(length)
+  if (length >= 1) crListReplica.clock = now + BigInt(length)
   return out
 }

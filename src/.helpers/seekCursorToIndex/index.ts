@@ -26,14 +26,26 @@ export function seekCursorToIndex<T>(
   }
   if (!crListReplica.cursor)
     throw new CRListError('LIST_EMPTY', 'List is empty')
-  let cursorIndex = crListReplica.cursorIndex ?? crListReplica.cursor.index
-  const direction = cursorIndex > targetIndex ? 'prev' : 'next'
-  while (crListReplica.cursor && cursorIndex !== targetIndex) {
-    crListReplica.cursor = crListReplica.cursor[direction]
-    cursorIndex += direction === 'next' ? 1 : -1
-  }
-  if (crListReplica.cursor) {
-    crListReplica.cursorIndex = targetIndex
-    void crListReplica.cache.set(targetIndex, crListReplica.cursor)
+  // blockStart tracks the start element-index of the current cursor block.
+  // cursor.index may be stale after mutations; we fix it lazily as we walk.
+  let blockStart = crListReplica.cursor.index
+  const direction =
+    (crListReplica.cursorIndex ?? blockStart) > targetIndex ? 'prev' : 'next'
+  while (crListReplica.cursor) {
+    crListReplica.cursor.index = blockStart
+    const blockEnd = blockStart + crListReplica.cursor.values.length
+    if (blockStart <= targetIndex && targetIndex < blockEnd) {
+      crListReplica.cursorIndex = targetIndex
+      void crListReplica.cache.set(targetIndex, crListReplica.cursor)
+      return
+    }
+    if (direction === 'next') {
+      blockStart += crListReplica.cursor.values.length
+      crListReplica.cursor = crListReplica.cursor.next
+    } else {
+      const prev = crListReplica.cursor.prev
+      if (prev) blockStart -= prev.values.length
+      crListReplica.cursor = prev
+    }
   }
 }

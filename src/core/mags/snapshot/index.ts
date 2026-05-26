@@ -17,7 +17,7 @@ export function __snapshot<T>(
   while (block?.prev) block = block.prev
   while (block) {
     void values.push({
-      id: block.id.toString(),
+      id: block.idStr,
       values: block.values,
       predecessor: block.predecessor.toString(),
     })

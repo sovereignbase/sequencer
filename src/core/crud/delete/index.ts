@@ -93,8 +93,10 @@ export function __delete<T>(
   // If the block immediately after the deleted range has a deleted predecessor,
   // delete it and create a re-anchored replacement.
   if (current && deletedIds.has(current.predecessor.toString())) {
+    const replacementId = getEntryId(crListReplica, current.values.length)
     const replacement: NonNullable<CRListStateEntry<T>> = {
-      id: getEntryId(crListReplica, current.values.length),
+      id: replacementId,
+      idStr: replacementId.toString(),
       values: current.values,
       predecessor: predecessorId,
       index: listIndex,

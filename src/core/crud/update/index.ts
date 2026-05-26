@@ -39,8 +39,10 @@ export function __update<T>(
   const change: CRListChange<T> = {}
   const delta: CRListDelta<T> = { values: [], tombstones: [] }
 
+  const entryId = getEntryId(crListReplica, listValues.length)
   const linkedListEntry: NonNullable<CRListStateEntry<T>> = {
-    id: getEntryId(crListReplica, listValues.length),
+    id: entryId,
+    idStr: entryId.toString(),
     values: listValues,
     predecessor: 0n,
     index: 0,

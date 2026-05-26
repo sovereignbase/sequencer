@@ -13,7 +13,8 @@ import { isRecord, uuidV7BigIntStringToBigInt } from '@sovereignbase/utils'
  */
 export function materializeSnapshotEntry<T>(
   valueEntry: CRListSnapshotEntry<T>,
-  crListReplica: CRListState<T>
+  crListReplica: CRListState<T>,
+  parsedId?: bigint
 ): CRListStateEntry<T> {
   if (!isRecord(valueEntry)) return undefined
   if (!Array.isArray(valueEntry.values) || valueEntry.values.length === 0)
@@ -21,7 +22,7 @@ export function materializeSnapshotEntry<T>(
 
   if (crListReplica.tombstones.has(valueEntry.id)) return undefined
 
-  const bigIntId = uuidV7BigIntStringToBigInt(valueEntry.id)
+  const bigIntId = parsedId ?? uuidV7BigIntStringToBigInt(valueEntry.id)
   if (bigIntId === false) return undefined
   const bigIntPredecessor =
     valueEntry.predecessor === '0'
@@ -32,6 +33,7 @@ export function materializeSnapshotEntry<T>(
 
   return {
     id: bigIntId,
+    idStr: valueEntry.id,
     values: valueEntry.values,
     predecessor: bigIntPredecessor,
     index: 0,

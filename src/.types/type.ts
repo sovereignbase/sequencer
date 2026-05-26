@@ -8,6 +8,8 @@ export type CRListStateEntry<T> =
   | {
       /** Stable UUIDv7 identity for this entry. */
       id: bigint
+      /** Cached string form of `id` (avoids repeated bigint.toString()). */
+      idStr: string
       /** User payload stored in the list. */
       values: Array<T>
       /** Stable predecessor UUIDv7, or `'\0'` for root-level entries. */

@@ -13,8 +13,10 @@ export function splitBlock<T>(
 ): [NonNullable<CRListStateEntry<T>>, NonNullable<CRListStateEntry<T>>] {
   if (offset <= 0 || offset >= block.values.length) return [block, block]
 
+  const rightId = block.id + BigInt(offset)
   const left: NonNullable<CRListStateEntry<T>> = {
     id: block.id,
+    idStr: block.idStr,
     values: block.values.slice(0, offset),
     predecessor: block.predecessor,
     index: block.index,
@@ -22,9 +24,10 @@ export function splitBlock<T>(
     next: undefined,
   }
   const right: NonNullable<CRListStateEntry<T>> = {
-    id: block.id + BigInt(offset),
+    id: rightId,
+    idStr: rightId.toString(),
     values: block.values.slice(offset),
-    predecessor: block.id + BigInt(offset) - 1n,
+    predecessor: rightId - 1n,
     index: block.index + offset,
     prev: left,
     next: block.next,

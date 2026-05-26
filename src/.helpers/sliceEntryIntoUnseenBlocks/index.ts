@@ -26,6 +26,7 @@ export function sliceEntryIntoUnseenBlocks<T>(
     const blockId = entry.id + BigInt(start)
     void blocks.push({
       id: blockId,
+      idStr: start === 0 ? entry.idStr : blockId.toString(),
       values: entry.values.slice(start, offset),
       predecessor: start === 0 ? entry.predecessor : blockId - 1n,
       index: 0,

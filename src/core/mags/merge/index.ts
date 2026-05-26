@@ -138,7 +138,8 @@ export function __merge<T>(
 
     const linkedListEntry = materializeSnapshotEntry<T>(
       valueEntry,
-      crListReplica
+      crListReplica,
+      entryId
     )
     if (!linkedListEntry) continue
     const liveBlocks = sliceEntryIntoUnseenBlocks<T>(

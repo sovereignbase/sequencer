@@ -92,6 +92,8 @@ export function rebuildLiveProjection<T>(crListReplica: CRListState<T>) {
   for (const predecessorId of detachedPredecessors)
     void appendChildren(predecessorId)
 
+  crListReplica.head = first
+  crListReplica.tail = previous ?? first
   crListReplica.cursor = first
   crListReplica.cursorIndex = first ? 0 : undefined
   if (first) void crListReplica.cache.set(0, first)

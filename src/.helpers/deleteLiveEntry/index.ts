@@ -28,6 +28,8 @@ export function deleteLiveEntry<T>(
   if (prev) prev.next = next
   if (next) next.prev = prev
   void detachEntryFromIndexes<T>(crListReplica, linkedListEntry)
+  if (crListReplica.head === linkedListEntry) crListReplica.head = next
+  if (crListReplica.tail === linkedListEntry) crListReplica.tail = prev
   if (crListReplica.cursor === linkedListEntry)
     crListReplica.cursor = next ?? prev
   if (!crListReplica.cursor) crListReplica.cursorIndex = undefined

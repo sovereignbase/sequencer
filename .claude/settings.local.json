@@ -4,7 +4,14 @@
       "Bash(npm run *)",
       "Bash(node test/run-coverage.mjs)",
       "Bash(node -e \"const u = require\\('@sovereignbase/utils'\\); console.log\\(Object.keys\\(u\\)\\)\")",
-      "Bash(npm test *)"
+      "Bash(npm test *)",
+      "Bash(node --test test/integration/integration.test.js)",
+      "Bash(node --test test/unit/unit.test.js test/unit/coverage.test.js)",
+      "Bash(node -e ' *)",
+      "Bash(CRLIST_STRESS_ROUNDS=1 node --max-old-space-size=256 test/integration/convergence-stress-runner.mjs)",
+      "Bash(node --test test/unit/unit.test.js)",
+      "Bash(node --test test/unit/coverage.test.js)",
+      "Bash(CRLIST_STRESS_ROUNDS=2 node test/integration/convergence-stress-runner.mjs)"
     ]
   }
 }

@@ -35,6 +35,8 @@ export function splitBlock<T>(
   left.next = right
   if (block.prev) block.prev.next = left
   if (block.next) block.next.prev = right
+  if (crListReplica.head === block) crListReplica.head = left
+  if (crListReplica.tail === block) crListReplica.tail = right
 
   for (let entryOffset = 0; entryOffset < block.values.length; entryOffset++)
     void crListReplica.parentMap.delete(block.id + BigInt(entryOffset))

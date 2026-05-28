@@ -71,20 +71,14 @@ export function trySpliceReplacement<T>(
   )
   if (expectedIndex === undefined) return false
   void linkEntryBetween<T>(predecessor, inserted, next)
-
-  let current: CRListStateEntry<T> = inserted
-  let index = expectedIndex
-  let limit = crListReplica.parentMap.size
-  while (current) {
-    if (limit-- <= 0) return false
-    current.index = index
-    index += current.values.length
-    current = current.next
-  }
+  inserted.index = expectedIndex
+  if (next) next.index = expectedIndex + inserted.values.length
+  if (!predecessor) crListReplica.head = inserted
+  if (!next) crListReplica.tail = inserted
   void crListReplica.cache.clear()
-  void crListReplica.cache.set(inserted.index, inserted)
+  void crListReplica.cache.set(expectedIndex, inserted)
   crListReplica.cursor = inserted
-  crListReplica.cursorIndex = inserted.index
+  crListReplica.cursorIndex = expectedIndex
   crListReplica.size = crListReplica.parentMap.size
   return true
 }

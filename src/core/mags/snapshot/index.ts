@@ -14,7 +14,8 @@ export function __snapshot<T>(
   crListReplica: CRListState<T>
 ): CRListSnapshot<T> {
   const values: CRListSnapshot<T>['values'] = []
-  let block = crListReplica.cache.get(0) ?? crListReplica.cursor
+  let block =
+    crListReplica.head ?? crListReplica.cache.get(0) ?? crListReplica.cursor
   while (block?.prev) block = block.prev
   let previous = block?.prev
   while (block) {

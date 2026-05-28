@@ -6,26 +6,17 @@ import type { CRListState } from '../../.types/type.js'
 export function rebuildLiveIndex<T>(crListReplica: CRListState<T>): void {
   if (!crListReplica.cursor) {
     crListReplica.cache.clear()
+    crListReplica.head = undefined
+    crListReplica.tail = undefined
     crListReplica.cursorIndex = undefined
     return
   }
-  // Walk to end
-  let forwardLimit = crListReplica.size
-  while (crListReplica.cursor.next) {
-    if (forwardLimit-- <= 0) break
-    crListReplica.cursor = crListReplica.cursor.next
-  }
-
-  let index = crListReplica.size
-  void crListReplica.cache.clear()
-  let backwardLimit = crListReplica.size
-  while (crListReplica.cursor) {
-    if (backwardLimit-- < 0) break
-    index -= crListReplica.cursor.values.length
-    crListReplica.cursor.index = index
-    void crListReplica.cache.set(index, crListReplica.cursor)
-    if (!crListReplica.cursor.prev) break
+  // Walk backward to head — O(k) where k = current cursor position.
+  while (crListReplica.cursor.prev)
     crListReplica.cursor = crListReplica.cursor.prev
-  }
+  crListReplica.cursor.index = 0
+  crListReplica.head = crListReplica.cursor
+  void crListReplica.cache.clear()
+  void crListReplica.cache.set(0, crListReplica.cursor)
   crListReplica.cursorIndex = 0
 }

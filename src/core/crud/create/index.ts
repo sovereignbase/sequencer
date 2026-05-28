@@ -36,6 +36,8 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
 
   const crListReplica: CRListState<T> = {
     size: 0,
+    head: undefined,
+    tail: undefined,
     /***/
     cursor: undefined,
     cursorIndex: undefined,
@@ -92,6 +94,11 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
     canUseLinearProjection = false
   }
   if (canUseLinearProjection) {
+    // head = first entry linked (the one with startIndex=0), tail = previous (last linked)
+    let head: CRListStateEntry<T> = previous
+    while (head?.prev) head = head.prev
+    crListReplica.head = head ?? undefined
+    crListReplica.tail = previous ?? undefined
     crListReplica.cursor = previous
     crListReplica.cursorIndex = previous ? previous.index : undefined
     crListReplica.size = crListReplica.parentMap.size

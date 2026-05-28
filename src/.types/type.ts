@@ -39,9 +39,13 @@ export type CRListReparentedStateEntry<T> = {
 export type CRListState<T> = {
   /** Number of live entries in the local projection. */
   size: number
+  /** First live entry (index 0). */
+  head: NonNullable<CRListStateEntry<T>> | undefined
+  /** Last live entry (index size-1). */
+  tail: NonNullable<CRListStateEntry<T>> | undefined
   /** Current live entry used as the walking cursor. */
   cursor: CRListStateEntry<T>
-  /** Current zero-based index of `cursor`. */
+  /** Block-start index of `cursor` in the live projection. */
   cursorIndex: number | undefined
   /** Opportunistic live-entry cache keyed by observed zero-based index. */
   cache: Map<number, NonNullable<CRListStateEntry<T>>>

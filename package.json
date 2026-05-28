@@ -38,6 +38,7 @@
   ],
   "sideEffects": false,
   "scripts": {
+    "size": "terser dist/index.js -cm | gzip-size",
     "format": "prettier . --write",
     "build": "tsup && typedoc",
     "test": "npm run build && node test/run-coverage.mjs && node test/e2e/run.mjs",
@@ -67,15 +68,17 @@
     "c8": "^11.0.0",
     "edge-runtime": "^4.0.1",
     "fast-glob": "^3.3.3",
+    "gzip-size-cli": "^5.1.0",
     "husky": "^9.1.7",
     "json-joy": "^18.24.0",
     "playwright": "^1.60.0",
     "prettier": "^3.8.3",
+    "terser": "^5.48.0",
     "tsup": "^8.5.1",
     "typedoc": "^0.28.19",
     "typescript": "^5.9.3",
     "wrangler": "^4.95.0",
-    "yjs": "^13.6.30"
+    "yjs": "^13.6.31"
   },
   "dependencies": {
     "@sovereignbase/bytecodec": "^1.7.0",

@@ -50,7 +50,7 @@ export function __delete<T>(
   if (!start) return false
 
   const predecessorId = start.prev ? getEntryTailId(start.prev) : 0n
-  const deletedIds = new Set<string>()
+  const deletedIds = new Set<bigint>()
   let deleted = 0
   let currentIndex = listIndex
 
@@ -82,7 +82,7 @@ export function __delete<T>(
       entryOffset < blockToDelete.values.length;
       entryOffset++
     )
-      void deletedIds.add((blockToDelete.id + BigInt(entryOffset)).toString())
+      void deletedIds.add(blockToDelete.id + BigInt(entryOffset))
 
     void crListReplica.cache.delete(currentIndex)
     void deleteLiveEntry<T>(crListReplica, blockToDelete, delta)
@@ -92,7 +92,7 @@ export function __delete<T>(
 
   // If the block immediately after the deleted range has a deleted predecessor,
   // delete it and create a re-anchored replacement.
-  if (current && deletedIds.has(current.predecessor.toString())) {
+  if (current && deletedIds.has(current.predecessor)) {
     const replacementId = getEntryId(crListReplica, current.values.length)
     const replacement: NonNullable<CRListStateEntry<T>> = {
       id: replacementId,
@@ -108,13 +108,15 @@ export function __delete<T>(
     void deleteLiveEntry<T>(crListReplica, current, delta)
     void linkEntryBetween<T>(prev, replacement, next)
     void attachEntryToIndexes<T>(crListReplica, replacement, delta)
+    if (!prev) crListReplica.head = replacement
+    if (!next) crListReplica.tail = replacement
     for (
       let entryOffset = 0;
       entryOffset < current.values.length;
       entryOffset++
     )
-      void deletedIds.add((current.id + BigInt(entryOffset)).toString())
-    if (next && deletedIds.has(next.predecessor.toString()))
+      void deletedIds.add(current.id + BigInt(entryOffset))
+    if (next && deletedIds.has(next.predecessor))
       void moveEntryToPredecessor<T>(
         crListReplica,
         next,
@@ -129,7 +131,7 @@ export function __delete<T>(
   crListReplica.cursorIndex = current
     ? listIndex
     : crListReplica.cursor
-      ? Math.max(0, crListReplica.size - 1)
+      ? Math.max(0, crListReplica.size - crListReplica.cursor.values.length)
       : undefined
   void crListReplica.cache.clear()
   if (crListReplica.cursor && crListReplica.cursorIndex !== undefined)

@@ -53,6 +53,7 @@ export function before<T>(
       getEntryTailId(linkedListEntry),
       delta
     )
+  if (!prev) crListReplica.head = linkedListEntry
   crListReplica.cursor = linkedListEntry
   crListReplica.cursorIndex = linkedListEntry.index
 

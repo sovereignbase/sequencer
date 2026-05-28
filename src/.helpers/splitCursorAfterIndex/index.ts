@@ -16,7 +16,7 @@ export function splitCursorAfterIndex<T>(
     return { entry: cursor, next: undefined }
   }
 
-  const offset = listIndex - cursor.index
+  const offset = listIndex - (crListReplica.cursorIndex ?? cursor.index)
   if (offset < cursor.values.length - 1) {
     const [left, right] = splitBlock<T>(crListReplica, cursor, offset + 1)
     return { entry: left, next: right }

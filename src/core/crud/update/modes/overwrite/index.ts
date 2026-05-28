@@ -44,6 +44,7 @@ export function overwrite<T>(
     linkedListEntry.predecessor = getEntryTailId(last)
     void linkEntryBetween<T>(last, linkedListEntry, undefined)
     void attachEntryToIndexes<T>(crListReplica, linkedListEntry, delta)
+    crListReplica.tail = linkedListEntry
     crListReplica.cursor = linkedListEntry
     crListReplica.cursorIndex = linkedListEntry.index
     void crListReplica.cache.set(linkedListEntry.index, linkedListEntry)
@@ -62,7 +63,7 @@ export function overwrite<T>(
   const prev = start.prev
   const predecessor = prev ? getEntryTailId(prev) : 0n
   const deleteLimit = Math.min(length, crListReplica.size - actualIndex)
-  const deletedIds = new Set<string>()
+  const deletedIds = new Set<bigint>()
   let deleted = 0
   let current: CRListStateEntry<T> = start
 
@@ -84,7 +85,7 @@ export function overwrite<T>(
       entryOffset < entryToDelete.values.length;
       entryOffset++
     )
-      void deletedIds.add((entryToDelete.id + BigInt(entryOffset)).toString())
+      void deletedIds.add(entryToDelete.id + BigInt(entryOffset))
     void deleteLiveEntry<T>(crListReplica, entryToDelete, delta)
     deleted += entryToDelete.values.length
   }
@@ -94,7 +95,7 @@ export function overwrite<T>(
 
   void linkEntryBetween<T>(prev, linkedListEntry, current)
   void attachEntryToIndexes<T>(crListReplica, linkedListEntry, delta)
-  if (current && deletedIds.has(current.predecessor.toString()))
+  if (current && deletedIds.has(current.predecessor))
     void moveEntryToPredecessor<T>(
       crListReplica,
       current,
@@ -102,6 +103,8 @@ export function overwrite<T>(
       delta
     )
 
+  if (!prev) crListReplica.head = linkedListEntry
+  if (!current) crListReplica.tail = linkedListEntry
   crListReplica.cursor = linkedListEntry
   crListReplica.cursorIndex = actualIndex
   void crListReplica.cache.clear()

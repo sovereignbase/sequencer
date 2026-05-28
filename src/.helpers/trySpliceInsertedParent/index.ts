@@ -46,27 +46,22 @@ export function trySpliceInsertedParent<T>(
     inserted.predecessor
   )
   if (expectedIndex === undefined) return false
-  if (
-    moved.index !== expectedIndex ||
-    moved.prev !== predecessor ||
-    (predecessor && predecessor.next !== moved)
-  )
+  if (moved.prev !== predecessor || (predecessor && predecessor.next !== moved))
     return false
 
-  void linkEntryBetween<T>(predecessor, inserted, moved)
-  let current: CRListStateEntry<T> = inserted
-  let index = expectedIndex
-  let limit = crListReplica.parentMap.size
-  while (current) {
-    if (limit-- <= 0) return false
-    current.index = index
-    index += current.values.length
-    current = current.next
+  if (moved.next === inserted) {
+    moved.next = inserted.next
+    if (moved.next) moved.next.prev = moved
   }
+  void linkEntryBetween<T>(predecessor, inserted, moved)
+  inserted.index = expectedIndex
+  moved.index = expectedIndex + inserted.values.length
+  if (!predecessor) crListReplica.head = inserted
+  if (!moved.next) crListReplica.tail = moved
   void crListReplica.cache.clear()
-  void crListReplica.cache.set(inserted.index, inserted)
+  void crListReplica.cache.set(expectedIndex, inserted)
   crListReplica.cursor = inserted
-  crListReplica.cursorIndex = inserted.index
+  crListReplica.cursorIndex = expectedIndex
   crListReplica.size = crListReplica.parentMap.size
   return true
 }

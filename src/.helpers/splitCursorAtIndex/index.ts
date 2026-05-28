@@ -10,11 +10,12 @@ export function splitCursorAtIndex<T>(
 ): CRListStateEntry<T> {
   const cursor = crListReplica.cursor
   if (!cursor) return undefined
-  if (cursor.index < listIndex) {
+  const blockStart = crListReplica.cursorIndex ?? cursor.index
+  if (blockStart < listIndex) {
     const [, right] = splitBlock<T>(
       crListReplica,
       cursor,
-      listIndex - cursor.index
+      listIndex - blockStart
     )
     crListReplica.cursor = right
     crListReplica.cursorIndex = listIndex

@@ -24,9 +24,19 @@ export function deleteLiveEntryId<T>(
   const source = crListReplica.parentMap.get(id)
   if (!source) return undefined
 
+  let sourceIndex = -1
+  if (source === crListReplica.head || !source.prev) sourceIndex = 0
+  else if (source === crListReplica.tail || !source.next)
+    sourceIndex = crListReplica.size - source.values.length
+  else if (source === crListReplica.cursor)
+    sourceIndex = crListReplica.cursorIndex ?? -1
+  else if (crListReplica.cache.get(source.index) === source)
+    sourceIndex = source.index
+
   const wasCursorOnSource = crListReplica.cursor === source
   let entryToDelete = source
   const offset = Number(id - source.id)
+  const deletedIndex = sourceIndex === -1 ? -1 : sourceIndex + offset
   if (offset > 0) {
     const [, right] = splitBlock<T>(crListReplica, source, offset)
     entryToDelete = right
@@ -37,7 +47,7 @@ export function deleteLiveEntryId<T>(
   }
 
   const result = {
-    index: entryToDelete.index,
+    index: deletedIndex,
     wasCursor: wasCursorOnSource || crListReplica.cursor === entryToDelete,
     wasTail: entryToDelete.next === undefined,
     entry: entryToDelete,

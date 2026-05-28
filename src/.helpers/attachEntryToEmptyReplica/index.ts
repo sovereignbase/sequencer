@@ -17,6 +17,8 @@ export function attachEntryToEmptyReplica<T>(
   delta: CRListDelta<T>
 ): void {
   entry.index = 0
+  crListReplica.head = entry
+  crListReplica.tail = entry
   crListReplica.cursor = entry
   crListReplica.cursorIndex = 0
   void attachEntryToIndexes<T>(crListReplica, entry, delta)

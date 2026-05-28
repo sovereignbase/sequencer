@@ -29,7 +29,7 @@ export function __read<T>(
     void seekCursorToIndex<T>(targetIndex, crListReplica)
     const cursor = crListReplica.cursor
     if (!cursor) return undefined
-    return cursor.values[targetIndex - cursor.index]
+    return cursor.values[targetIndex - (crListReplica.cursorIndex ?? 0)]
   } catch {
     return undefined
   }

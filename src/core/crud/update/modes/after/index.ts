@@ -54,6 +54,7 @@ export function after<T>(
       getEntryTailId(linkedListEntry),
       delta
     )
+  if (!next) crListReplica.tail = linkedListEntry
   crListReplica.cursor = linkedListEntry
   crListReplica.cursorIndex = linkedListEntry.index
 

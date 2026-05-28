@@ -41,7 +41,7 @@ export function __merge<T>(
   if (!isRecord(crListDelta)) return false
   const newValues: Array<NonNullable<CRListStateEntry<T>>> = []
   const newTombstoneIndicies: Array<number> = []
-  const reparentedvalues: Array<CRListReparentedStateEntry<T>> = []
+  const reparentedValues: Array<CRListReparentedStateEntry<T>> = []
   const change: CRListChange<T> = {}
   let tailTombstoneMovedCursor = false
   let needsRelink = false
@@ -60,7 +60,7 @@ export function __merge<T>(
       const deleted = deleteLiveEntryId<T>(crListReplica, tombstoneBigInt)
       if (deleted) {
         void newTombstoneIndicies.push(deleted.index)
-        void crListReplica.cache.delete(deleted.index)
+        if (deleted.index >= 0) void crListReplica.cache.delete(deleted.index)
         tailTombstoneMovedCursor = deleted.wasTail && deleted.wasCursor
         needsRelink = true
       }
@@ -75,7 +75,8 @@ export function __merge<T>(
     if (newTombstoneIndicies.length === 0) return false
     if (newTombstoneIndicies.length === 1 && tailTombstoneMovedCursor) {
       if (crListReplica.cursor) {
-        crListReplica.cursorIndex = crListReplica.size - 1
+        crListReplica.cursorIndex =
+          crListReplica.size - crListReplica.cursor.values.length
         void crListReplica.cache.set(
           crListReplica.cursorIndex,
           crListReplica.cursor
@@ -131,7 +132,7 @@ export function __merge<T>(
         continue
       const oldPredecessor = entryToMove.predecessor
       void moveEntryToPredecessor<T>(crListReplica, entryToMove, newPredecessor)
-      void reparentedvalues.push({ entry: entryToMove, oldPredecessor })
+      void reparentedValues.push({ entry: entryToMove, oldPredecessor })
       needsRelink = true
       continue
     }
@@ -167,6 +168,8 @@ export function __merge<T>(
     if (!needsRelink && liveBlock.predecessor === 0n) {
       if (crListReplica.size === 0) {
         liveBlock.index = 0
+        crListReplica.head = liveBlock
+        crListReplica.tail = liveBlock
         crListReplica.cursor = liveBlock
         crListReplica.cursorIndex = 0
         crListReplica.size = crListReplica.parentMap.size
@@ -181,6 +184,7 @@ export function __merge<T>(
       // predecessor.index (which can lag after mid-list inserts on this replica).
       liveBlock.index = crListReplica.parentMap.size - liveBlock.values.length
       predecessor.next = liveBlock
+      crListReplica.tail = liveBlock
       crListReplica.cursor = liveBlock
       crListReplica.cursorIndex = liveBlock.index
       crListReplica.size = crListReplica.parentMap.size
@@ -195,19 +199,19 @@ export function __merge<T>(
       !trySpliceSiblingInsert<T>(
         crListReplica,
         newValues,
-        reparentedvalues,
+        reparentedValues,
         newTombstoneIndicies.length
       ) &&
-      !trySpliceInsertedParent<T>(crListReplica, newValues, reparentedvalues) &&
+      !trySpliceInsertedParent<T>(crListReplica, newValues, reparentedValues) &&
       !trySpliceSiblingParentInsert<T>(
         crListReplica,
         newValues,
-        reparentedvalues
+        reparentedValues
       ) &&
       !trySpliceReplacement<T>(
         crListReplica,
         newValues,
-        reparentedvalues,
+        reparentedValues,
         newTombstoneIndicies.length
       )
     ) {

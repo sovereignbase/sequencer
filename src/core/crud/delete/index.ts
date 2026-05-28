@@ -96,7 +96,7 @@ export function __delete<T>(
     const replacementId = getEntryId(crListReplica, current.values.length)
     const replacement: NonNullable<CRListStateEntry<T>> = {
       id: replacementId,
-      idStr: replacementId.toString(),
+      idString: replacementId.toString(),
       values: current.values,
       predecessor: predecessorId,
       index: listIndex,

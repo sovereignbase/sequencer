@@ -312,217 +312,214 @@ npm run bench
 ```
 
 Last measured on Node `v22.14.0` (`win32 x64`):
-
-| group    | scenario                                                | n     | ops    | crlist ms/op | crlist ops/sec | yjs ms/op | yjs ops/sec   | json-joy ms/op | json-joy ops/sec | automerge ms/op | automerge ops/sec | winner    |
-| -------- | ------------------------------------------------------- | ----- | ------ | ------------ | -------------- | --------- | ------------- | -------------- | ---------------- | --------------- | ----------------- | --------- |
-| crud     | create / empty list                                     | 5,000 | 250    | 0.03         | 29,941.91      | 0.15      | 6,736.62      | 0.02           | 44,642.86        | 0.37            | 2,678.04          | json-joy  |
-| crud     | create / hydrate snapshot                               | 5,000 | 250    | 6.1          | 163.97         | 7.63      | 131.1         | 20.03          | 49.93            | 166.56          | 6                 | crlist    |
-| crud     | create / hydrate clean snapshot                         | 5,000 | 250    | 6.25         | 159.88         | 7.1       | 140.75        | 21.24          | 47.08            | 165.47          | 6.04              | crlist    |
-| crud     | create / hydrate tombstoned snapshot                    | 5,000 | 250    | 3.39         | 294.97         | 3.56      | 280.8         | 9.63           | 103.88           | 169.96          | 5.88              | crlist    |
-| crud     | read / head                                             | 5,000 | 250    | 0            | 1,594,387.76   | 0         | 1,025,010.25  | 0              | 242,271.54       | 0               | 3,293,807.64      | automerge |
-| crud     | read / middle                                           | 5,000 | 250    | 0            | 2,510,040.16   | 0         | 2,224,199.29  | 0              | 677,506.78       | 0               | 8,802,816.9       | automerge |
-| crud     | read / tail                                             | 5,000 | 250    | 0            | 4,480,286.74   | 0         | 2,390,057.36  | 0              | 623,596.91       | 0               | 7,716,049.38      | automerge |
-| crud     | read / random indexed reads                             | 5,000 | 250    | 0            | 609,013.4      | 0         | 814,332.25    | 0.01           | 154,952.27       | 0               | 1,208,313.19      | automerge |
-| crud     | read / sequential indexed reads from head               | 5,000 | 250    | 0            | 702,444.51     | 0         | 1,104,728.24  | 0              | 261,834.94       | 0               | 1,255,650.43      | automerge |
-| crud     | read / sequential indexed reads from middle             | 5,000 | 250    | 0            | 2,030,869.21   | 0         | 2,587,991.72  | 0              | 290,258.91       | 0               | 8,710,801.39      | automerge |
-| crud     | read / sequential indexed reads from tail               | 5,000 | 250    | 0            | 2,808,988.76   | 0         | 2,059,308.07  | 0              | 308,109.44       | 0               | 8,250,825.08      | automerge |
-| crud     | read / full iteration visible values                    | 5,000 | 250    | 1.02         | 977.49         | 0.24      | 4,109.02      | 1.81           | 553.41           | 0.08            | 11,987.25         | automerge |
-| crud     | read / collect visible values to array                  | 5,000 | 250    | 1.29         | 774.81         | 0.22      | 4,472.03      | 2.03           | 492.55           | 0.1             | 10,431.01         | automerge |
-| crud     | read / visible sparse over deleted entries              | 5,000 | 250    | 0            | 2,500,000      | 0.04      | 25,064.67     | 0.03           | 36,121.95        | 0               | 9,765,625         | automerge |
-| crud     | find / head                                             | 5,000 | 250    | 0            | 703,234.88     | 0         | 1,882,530.12  | 0              | 543,596.43       | 0               | 1,580,278.13      | yjs       |
-| crud     | find / middle                                           | 5,000 | 250    | 0.44         | 2,296.44       | 0.12      | 8,151.29      | 0.77           | 1,297.47         | 0.01            | 79,531.72         | automerge |
-| crud     | find / tail                                             | 5,000 | 250    | 0.57         | 1,754.33       | 0.22      | 4,580.47      | 1.87           | 535.63           | 0.02            | 42,234.01         | automerge |
-| crud     | find / missing value                                    | 5,000 | 250    | 0.62         | 1,611.3        | 0.23      | 4,417.02      | 1.89           | 528.79           | 0.03            | 32,051.69         | automerge |
-| crud     | append / single after tail                              | 5,000 | 250    | 0.01         | 168,611.32     | 0.03      | 36,596.79     | 0.04           | 23,151.36        | 1.91            | 523.71            | crlist    |
-| crud     | append / batch after tail                               | 5,000 | 25,000 | 0            | 1,010,962.88   | 0         | 486,662.53    | 0.01           | 124,405.09       | 0.19            | 5,334.35          | crlist    |
-| crud     | append / batch after deleted tail                       | 5,000 | 25,000 | 0            | 1,196,097.85   | 0         | 559,169.03    | 0.01           | 151,697.56       | 0.19            | 5,327.63          | crlist    |
-| crud     | append / batch after garbage collection                 | 5,000 | 25,000 | 0            | 1,036,866.84   | 0         | 634,583.8     | 0.01           | 147,132.3        | 0.19            | 5,295.71          | crlist    |
-| crud     | prepend / single before head                            | 5,000 | 250    | 0.01         | 154,064.21     | 0.02      | 60,091.82     | 0.01           | 96,696.84        | 2.03            | 492.03            | crlist    |
-| crud     | prepend / batch before head                             | 5,000 | 25,000 | 0            | 1,139,611.53   | 0         | 749,238.77    | 0.01           | 153,139.92       | 0.19            | 5,172.05          | crlist    |
-| crud     | prepend / batch before deleted head                     | 5,000 | 25,000 | 0            | 1,098,587.22   | 0         | 808,099.09    | 0.01           | 186,746.38       | 0.2             | 5,125.86          | crlist    |
-| crud     | prepend / batch after garbage collection                | 5,000 | 25,000 | 0            | 1,080,753.93   | 0         | 610,484.21    | 0.01           | 191,471.84       | 0.18            | 5,440.08          | crlist    |
-| crud     | insert / single before head                             | 5,000 | 250    | 0.01         | 179,791.44     | 0.01      | 66,744.98     | 0.01           | 120,336.94       | 2.07            | 484.1             | crlist    |
-| crud     | insert / single after head                              | 5,000 | 250    | 0.01         | 127,883.78     | 0.02      | 55,501.29     | 0.04           | 25,453.32        | 1.99            | 502.13            | crlist    |
-| crud     | insert / single before middle                           | 5,000 | 250    | 0.01         | 126,974.45     | 0.02      | 50,537.72     | 0.04           | 24,652.16        | 1.99            | 502.03            | crlist    |
-| crud     | insert / single after middle                            | 5,000 | 250    | 0.01         | 127,642.19     | 0.02      | 52,065.98     | 0.03           | 30,046.27        | 1.93            | 518.75            | crlist    |
-| crud     | insert / single before tail                             | 5,000 | 250    | 0.01         | 78,288.92      | 0.03      | 30,714.42     | 0.04           | 28,442.71        | 2               | 500.38            | crlist    |
-| crud     | insert / single after tail                              | 5,000 | 250    | 0.01         | 143,233.64     | 0.03      | 35,798.16     | 0.03           | 30,642.89        | 2.03            | 491.88            | crlist    |
-| crud     | insert / batch before head                              | 5,000 | 25,000 | 0            | 715,000.72     | 0         | 787,443.74    | 0.01           | 176,125.3        | 0.19            | 5,136.55          | yjs       |
-| crud     | insert / batch after head                               | 5,000 | 25,000 | 0            | 975,099.85     | 0         | 710,586.6     | 0.01           | 183,321.69       | 0.19            | 5,285.98          | crlist    |
-| crud     | insert / batch before middle                            | 5,000 | 25,000 | 0            | 573,460.26     | 0         | 736,494.17    | 0.01           | 189,269.62       | 0.19            | 5,231.79          | yjs       |
-| crud     | insert / batch after middle                             | 5,000 | 25,000 | 0            | 672,779.09     | 0         | 774,334.23    | 0.01           | 163,978.94       | 0.21            | 4,805.59          | yjs       |
-| crud     | insert / batch before tail                              | 5,000 | 25,000 | 0            | 1,171,355.21   | 0         | 648,939.37    | 0.01           | 160,044.66       | 0.19            | 5,246.01          | crlist    |
-| crud     | insert / batch after tail                               | 5,000 | 25,000 | 0            | 1,262,894.15   | 0         | 512,199.57    | 0.01           | 124,984.13       | 0.19            | 5,220.01          | crlist    |
-| crud     | insert / repeated before head                           | 5,000 | 250    | 0            | 210,420        | 0.01      | 88,614.77     | 0.04           | 27,560.66        | 2.07            | 483.25            | crlist    |
-| crud     | insert / repeated before middle                         | 5,000 | 250    | 0.01         | 133,390.25     | 0.01      | 67,892.35     | 0.04           | 27,378.66        | 2.08            | 480.68            | crlist    |
-| crud     | insert / repeated before tail                           | 5,000 | 250    | 0.01         | 123,719.5      | 0.01      | 72,693.44     | 0.03           | 32,166.75        | 1.94            | 515.64            | crlist    |
-| crud     | insert / random positions                               | 5,000 | 250    | 0.01         | 188,864.55     | 0.04      | 28,512.77     | 0.08           | 12,650.99        | 1.95            | 513.49            | crlist    |
-| crud     | insert / alternating head and tail                      | 5,000 | 250    | 0.03         | 33,599.89      | 0.01      | 88,552        | 0.01           | 120,452.9        | 2               | 500.95            | json-joy  |
-| crud     | overwrite / head                                        | 5,000 | 250    | 0.01         | 95,024.52      | 0.03      | 31,778.31     | 0.02           | 53,909.52        | 2.17            | 461.89            | crlist    |
-| crud     | overwrite / middle                                      | 5,000 | 250    | 0.01         | 113,786.35     | 0.02      | 45,006.93     | 0.01           | 96,648.24        | 2.16            | 463.64            | crlist    |
-| crud     | overwrite / tail                                        | 5,000 | 250    | 0.01         | 141,819.83     | 0.02      | 43,489.61     | 0.03           | 29,224.04        | 2               | 500.44            | crlist    |
-| crud     | overwrite / random                                      | 5,000 | 250    | 0.03         | 34,736.21      | 0.03      | 29,050.85     | 0.04           | 25,802.99        | 2.26            | 441.8             | crlist    |
-| crud     | overwrite / same head repeatedly                        | 5,000 | 250    | 0.01         | 137,121.54     | 0.02      | 50,509.13     | 0.04           | 27,673.54        | 2.17            | 460.81            | crlist    |
-| crud     | overwrite / same middle repeatedly                      | 5,000 | 250    | 0.01         | 121,957.17     | 0.02      | 40,778.38     | 0.04           | 26,351.57        | 2.03            | 493.76            | crlist    |
-| crud     | overwrite / same tail repeatedly                        | 5,000 | 250    | 0.01         | 148,703.31     | 0.02      | 48,340.94     | 0.04           | 26,133.95        | 2.01            | 498.67            | crlist    |
-| crud     | overwrite / random visible entries                      | 5,000 | 250    | 0.03         | 32,777.86      | 0.04      | 27,520.61     | 0.04           | 26,447.19        | 2.32            | 430.8             | crlist    |
-| crud     | overwrite / after insert                                | 5,000 | 250    | 0.01         | 88,990.14      | 0.02      | 46,752.57     | 0.05           | 21,581.31        | 2.04            | 490.04            | crlist    |
-| crud     | overwrite / after delete                                | 5,000 | 250    | 0.01         | 101,071.36     | 0.02      | 48,110.23     | 0.01           | 113,188.75       | 2.15            | 465.34            | json-joy  |
-| crud     | delete / head                                           | 5,000 | 250    | 0.01         | 102,796.05     | 0.02      | 49,113.02     | 0.03           | 38,948.7         | 0.26            | 3,899.95          | crlist    |
-| crud     | delete / middle                                         | 5,000 | 250    | 0.01         | 123,866.62     | 0.02      | 62,162.77     | 0.04           | 27,155.91        | 0.27            | 3,747.89          | crlist    |
-| crud     | delete / tail                                           | 5,000 | 250    | 0            | 366,837.86     | 0.02      | 56,919.08     | 0              | 226,346.76       | 0.26            | 3,863.83          | crlist    |
-| crud     | delete / range from head                                | 5,000 | 5,000  | 0            | 668,932.12     | 0         | 8,607,333.45  | 0              | 338,767.16       | 0.02            | 49,555.24         | yjs       |
-| crud     | delete / range from middle                              | 5,000 | 5,000  | 0            | 396,491.84     | 0         | 6,388,143.61  | 0              | 283,416.19       | 0.02            | 59,560.47         | yjs       |
-| crud     | delete / range from tail                                | 5,000 | 5,000  | 0            | 466,087.48     | 0         | 8,420,343.55  | 0              | 256,064.9        | 0.02            | 59,080.98         | yjs       |
-| crud     | delete / every other entry                              | 5,000 | 2,500  | 0.01         | 121,394.58     | 0.09      | 11,172.6      | 0.09           | 10,723.08        | 0.26            | 3,916.06          | crlist    |
-| crud     | delete / all entries from head one by one               | 5,000 | 5,000  | 0.01         | 132,945.13     | 0.01      | 75,542.85     | 0.01           | 119,332.6        | 0.21            | 4,671.64          | crlist    |
-| crud     | delete / all entries from middle outward                | 5,000 | 5,000  | 0.01         | 101,645.85     | 0.01      | 97,803.72     | 0.01           | 167,369.06       | 0.23            | 4,324.83          | json-joy  |
-| crud     | delete / all entries from tail one by one               | 5,000 | 5,000  | 0            | 419,403.27     | 0.01      | 87,849.84     | 0              | 230,600.71       | 0.21            | 4,665.43          | crlist    |
-| crud     | delete / all entries in random order                    | 5,000 | 5,000  | 0.17         | 5,780.96       | 13.19     | 75.81         | 9.37           | 106.74           | 0.27            | 3,694.74          | crlist    |
-| crud     | delete / already deleted head                           | 5,000 | 250    | 0            | 337,427.45     | 0         | 236,764.85    | 0              | 549,450.55       | 0.02            | 41,618.81         | json-joy  |
-| crud     | delete / already deleted middle                         | 5,000 | 250    | 0            | 477,828.75     | 0         | 310,636.18    | 0              | 983,864.62       | 0.03            | 38,743.47         | json-joy  |
-| crud     | delete / already deleted tail                           | 5,000 | 250    | 0            | 2,003,205.13   | 0         | 256,515.49    | 0              | 813,272.61       | 0.03            | 29,725.81         | crlist    |
-| crud     | mixed / append overwrite delete tail                    | 5,000 | 250    | 0.01         | 146,842.88     | 0.04      | 23,510.38     | 0.05           | 21,828.15        | 1.74            | 573.4             | crlist    |
-| crud     | mixed / prepend overwrite delete head                   | 5,000 | 250    | 0.01         | 154,942.67     | 0.02      | 57,209.55     | 0.01           | 104,760.31       | 1.78            | 563.05            | crlist    |
-| crud     | mixed / insert overwrite delete middle                  | 5,000 | 250    | 0.01         | 128,145.98     | 0.02      | 58,222.13     | 0.01           | 137,061.4        | 1.72            | 581.34            | json-joy  |
-| crud     | mixed / append prepend insert overwrite delete          | 5,000 | 250    | 0.01         | 140,884.76     | 0.02      | 51,649.69     | 0.04           | 24,608.24        | 1.73            | 577.94            | crlist    |
-| mags     | snapshot                                                | 5,000 | 250    | 4.44         | 225.3          | 3.76      | 265.74        | 7.85           | 127.41           | 15.82           | 63.21             | yjs       |
-| mags     | snapshot / clean state                                  | 5,000 | 250    | 4.72         | 211.82         | 3.82      | 261.94        | 7.91           | 126.42           | 15.6            | 64.12             | yjs       |
-| mags     | snapshot / tombstoned state 50% deleted                 | 5,000 | 250    | 2.04         | 490.55         | 1.96      | 511.43        | 3.57           | 280.23           | 15.88           | 62.97             | yjs       |
-| mags     | snapshot / tombstoned state 90% deleted                 | 5,000 | 250    | 0.39         | 2,543.27       | 0.38      | 2,630.96      | 0.54           | 1,858.31         | 16.37           | 61.09             | yjs       |
-| mags     | snapshot / after garbage collection                     | 5,000 | 250    | 2.19         | 457.28         | 1.93      | 517.98        | 3.53           | 283.45           | 15.58           | 64.2              | yjs       |
-| mags     | acknowledge                                             | 5,000 | 250    | 0            | 964,134.21     | n/a       | n/a           | n/a            | n/a              | n/a             | n/a               | n/a       |
-| mags     | acknowledge / clean state                               | 5,000 | 250    | 0            | 3,037,667.07   | n/a       | n/a           | n/a            | n/a              | n/a             | n/a               | n/a       |
-| mags     | acknowledge / 50% deleted state                         | 5,000 | 250    | 0.49         | 2,037.02       | n/a       | n/a           | n/a            | n/a              | n/a             | n/a               | n/a       |
-| mags     | acknowledge / 90% deleted state                         | 5,000 | 250    | 0.85         | 1,176.58       | n/a       | n/a           | n/a            | n/a              | n/a             | n/a               | n/a       |
-| mags     | garbage collect                                         | 5,000 | 250    | 0            | 1,266,464.03   | n/a       | n/a           | n/a            | n/a              | n/a             | n/a               | n/a       |
-| mags     | garbage collect / no eligible tombstones                | 5,000 | 250    | 0            | 6,313,131.31   | n/a       | n/a           | n/a            | n/a              | n/a             | n/a               | n/a       |
-| mags     | garbage collect / 50% eligible tombstones               | 5,000 | 250    | 0.01         | 191,688.39     | n/a       | n/a           | n/a            | n/a              | n/a             | n/a               | n/a       |
-| mags     | garbage collect / 90% eligible tombstones               | 5,000 | 250    | 0.01         | 145,628.24     | n/a       | n/a           | n/a            | n/a              | n/a             | n/a               | n/a       |
-| mags     | garbage collect / partial frontiers 2 replicas          | 5,000 | 250    | 0            | 4,655,493.48   | n/a       | n/a           | n/a            | n/a              | n/a             | n/a               | n/a       |
-| mags     | garbage collect / partial frontiers 10 replicas         | 5,000 | 250    | 0            | 5,995,203.84   | n/a       | n/a           | n/a            | n/a              | n/a             | n/a               | n/a       |
-| mags     | post-gc read / full iteration visible values            | 5,000 | 250    | 0.47         | 2,137.94       | 0.11      | 9,475.26      | 0.71           | 1,411.05         | 0.03            | 29,931.52         | automerge |
-| mags     | merge ordered deltas                                    | 5,000 | 250    | 0.24         | 4,247.29       | 0.02      | 53,395.98     | 0.01           | 189,638.17       | 3.38            | 295.69            | json-joy  |
-| mags     | merge shuffled gossip                                   | 5,000 | 250    | 2.39         | 418.29         | 0.77      | 1,304.87      | n/a            | n/a              | 0.77            | 1,298.93          | yjs       |
-| mags     | merge / append head delta into equal replica            | 5,000 | 1      | 0.67         | 1,503.76       | 0.08      | 12,531.33     | 0.05           | 21,505.38        | 3.74            | 267.63            | json-joy  |
-| mags     | merge / append tail delta into equal replica            | 5,000 | 1      | 0.05         | 20,876.83      | 0.03      | 30,120.48     | 0.01           | 94,339.62        | 4.47            | 223.96            | json-joy  |
-| mags     | merge / prepend head delta into equal replica           | 5,000 | 1      | 1.11         | 902.28         | 0.04      | 23,201.86     | 0.01           | 96,153.85        | 3.53            | 283.09            | json-joy  |
-| mags     | merge / insert middle delta into equal replica          | 5,000 | 1      | 0.85         | 1,180.92       | 0.03      | 30,581.04     | 0.02           | 64,935.06        | 3.65            | 274.12            | json-joy  |
-| mags     | merge / overwrite head delta into equal replica         | 5,000 | 1      | 1.79         | 558            | 0.03      | 29,585.8      | 0.01           | 72,463.77        | 3.41            | 293.49            | json-joy  |
-| mags     | merge / overwrite middle delta into equal replica       | 5,000 | 1      | 0.52         | 1,919.75       | 0.04      | 22,421.52     | 0.05           | 19,920.32        | 3.8             | 262.86            | yjs       |
-| mags     | merge / overwrite tail delta into equal replica         | 5,000 | 1      | 0.04         | 24,213.08      | 0.04      | 23,094.69     | 0.01           | 81,967.21        | 3.5             | 286.11            | json-joy  |
-| mags     | merge / delete head delta into equal replica            | 5,000 | 1      | 2.12         | 472.34         | 0.02      | 45,454.55     | 0.02           | 60,606.06        | 2.2             | 454.32            | json-joy  |
-| mags     | merge / delete middle delta into equal replica          | 5,000 | 1      | 0.53         | 1,900.78       | 0.1       | 10,471.2      | 0.06           | 15,822.78        | 1.92            | 522.08            | json-joy  |
-| mags     | merge / delete tail delta into equal replica            | 5,000 | 1      | 0.03         | 37,453.18      | 0.02      | 43,103.45     | 0.01           | 91,743.12        | 2.11            | 474.16            | json-joy  |
-| mags     | merge / duplicate delta ignored                         | 5,000 | 250    | 0            | 568,828.21     | 0.03      | 38,032.07     | 0.01           | 119,337.44       | 0.04            | 27,592.3          | crlist    |
-| mags     | merge / old delta ignored after merge                   | 5,000 | 250    | 0            | 624,375.62     | 0.02      | 41,287.51     | 0              | 267,322.5        | 0.03            | 29,175.95         | crlist    |
-| mags     | merge / ordered 1,000 append deltas                     | 5,000 | 1,000  | 0.01         | 170,861.31     | 0.02      | 52,137.37     | 0              | 244,349.42       | 3.7             | 270.11            | json-joy  |
-| mags     | merge / ordered 1,000 prepend deltas                    | 5,000 | 1,000  | 0.57         | 1,769.27       | 0.01      | 97,510.56     | 0.02           | 51,472.1         | 3.83            | 261.04            | yjs       |
-| mags     | merge / ordered 1,000 middle insert deltas              | 5,000 | 1,000  | 0.25         | 4,052.53       | 0.01      | 99,437.19     | 0.01           | 71,907.79        | 4.45            | 224.51            | yjs       |
-| mags     | merge / shuffled 1,000 mixed deltas                     | 5,000 | 1,000  | 2.69         | 371.3          | 1.35      | 741.92        | n/a            | n/a              | 0.92            | 1,090.99          | automerge |
-| mags     | merge / reverse ordered 1,000 mixed deltas              | 5,000 | 1,000  | 0.62         | 1,622.74       | 1.25      | 802.4         | n/a            | n/a              | 0.94            | 1,060.86          | crlist    |
-| mags     | merge / concurrent prepends same head                   | 5,000 | 2      | 4.2          | 238.11         | 0.1       | 10,362.69     | n/a            | n/a              | 12.21           | 81.88             | yjs       |
-| mags     | merge / concurrent appends same tail                    | 5,000 | 2      | 0.05         | 22,148.39      | 0.03      | 29,154.52     | n/a            | n/a              | 9.64            | 103.78            | yjs       |
-| mags     | merge / concurrent inserts same middle position         | 5,000 | 2      | 3.28         | 304.85         | 0.05      | 20,986.36     | n/a            | n/a              | 15.72           | 63.62             | yjs       |
-| mags     | merge / concurrent overwrites same head                 | 5,000 | 2      | 15.29        | 65.42          | 0.04      | 25,062.66     | n/a            | n/a              | 9.1             | 109.87            | yjs       |
-| mags     | merge / concurrent overwrites same middle               | 5,000 | 2      | 4.89         | 204.35         | 0.05      | 21,276.6      | n/a            | n/a              | 8.95            | 111.77            | yjs       |
-| mags     | merge / concurrent overwrites same tail                 | 5,000 | 2      | 0.04         | 24,242.42      | 0.05      | 19,550.34     | n/a            | n/a              | 15.72           | 63.61             | crlist    |
-| mags     | merge / concurrent deletes same head                    | 5,000 | 2      | 4.79         | 208.89         | 0.02      | 43,859.65     | 0.02           | 47,619.05        | 7.73            | 129.33            | json-joy  |
-| mags     | merge / concurrent deletes same middle                  | 5,000 | 2      | 3.69         | 271            | 0.03      | 38,834.95     | 0.03           | 39,920.16        | 5.56            | 179.98            | json-joy  |
-| mags     | merge / concurrent deletes same tail                    | 5,000 | 2      | 0.02         | 46,728.97      | 0.04      | 25,252.53     | 0.02           | 61,919.5         | 5.95            | 168.12            | json-joy  |
-| mags     | merge / concurrent overwrite delete same entry          | 5,000 | 2      | 3.61         | 277.36         | 0.09      | 11,363.64     | 0.07           | 14,471.78        | 7.21            | 138.79            | json-joy  |
-| mags     | merge / forked replicas rejoin after 250 ops each       | 5,000 | 250    | n/a          | n/a            | 0.01      | 91,886.43     | n/a            | n/a              | 3.34            | 299.09            | yjs       |
-| mags     | merge / 10 replicas gossip convergence                  | 5,000 | 100    | 0.01         | 137,362.64     | 0.01      | 82,372.32     | n/a            | n/a              | 6.89            | 145.22            | crlist    |
-| mags     | merge / snapshot merge into stale replica               | 5,000 | 5,350  | 0            | 390,354.24     | 0         | 487,747.06    | 0.01           | 133,059.42       | 0.04            | 27,915.62         | yjs       |
-| class    | constructor / hydrate snapshot                          | 5,000 | 250    | 6.72         | 148.83         | 7.4       | 135.05        | 19.42          | 51.5             | 182.5           | 5.48              | crlist    |
-| class    | read / head                                             | 5,000 | 250    | 0            | 455,871.63     | 0         | 5,050,505.05  | 0              | 1,299,376.3      | 0               | 2,587,991.72      | yjs       |
-| class    | read / middle                                           | 5,000 | 250    | 0            | 1,361,655.77   | 0         | 14,450,867.05 | 0              | 3,392,130.26     | 0               | 11,312,217.19     | yjs       |
-| class    | read / tail                                             | 5,000 | 250    | 0            | 2,236,135.96   | 0         | 15,432,098.77 | 0              | 3,660,322.11     | 0               | 11,467,889.91     | yjs       |
-| class    | find near head                                          | 5,000 | 250    | 0            | 562,556.26     | 0         | 2,903,600.46  | 0              | 744,269.13       | 0               | 1,736,111.11      | yjs       |
-| class    | find near middle                                        | 5,000 | 250    | 1.82         | 549.9          | 0.09      | 10,699.22     | 0.91           | 1,096.06         | 0.02            | 65,751.41         | automerge |
-| class    | find near tail                                          | 5,000 | 250    | 3.51         | 284.95         | 0.18      | 5,698.75      | 1.87           | 534.35           | 0.02            | 48,161.21         | automerge |
-| class    | iterate visible values                                  | 5,000 | 250    | 0.15         | 6,893.03       | 0.26      | 3,828.99      | 2.49           | 402.34           | 0.1             | 9,701.43          | automerge |
-| class    | collect visible values to array                         | 5,000 | 250    | 0.13         | 7,750.81       | 0.25      | 4,025.86      | 1.64           | 608.55           | 0.12            | 8,499.15          | automerge |
-| class    | append / single after tail                              | 5,000 | 250    | 0.01         | 169,940.86     | 0.06      | 15,953.95     | 0.03           | 28,946.24        | 1.99            | 501.87            | crlist    |
-| class    | append / batch after tail                               | 5,000 | 25,000 | 0            | 1,204,656.72   | 0         | 544,282.85    | 0.01           | 147,984.6        | 0.19            | 5,219.81          | crlist    |
-| class    | prepend / single before head                            | 5,000 | 250    | 0.01         | 134,872.68     | 0.01      | 71,639.4      | 0.04           | 27,651.5         | 2               | 499.8             | crlist    |
-| class    | prepend / batch before head                             | 5,000 | 25,000 | 0            | 1,375,182.9    | 0         | 791,454.82    | 0.01           | 154,734.19       | 0.21            | 4,777.76          | crlist    |
-| class    | insert / single before middle                           | 5,000 | 250    | 0.01         | 156,416.19     | 0.02      | 61,429.59     | 0.01           | 149,414.3        | 2.01            | 498.48            | crlist    |
-| class    | insert / batch before middle                            | 5,000 | 25,000 | 0            | 732,931.49     | 0         | 868,290.72    | 0.01           | 191,236.77       | 0.19            | 5,141.64          | yjs       |
-| class    | overwrite / head                                        | 5,000 | 250    | 0.01         | 107,103.08     | 0.02      | 57,562.57     | 0.01           | 124,421.44       | 2.18            | 458.03            | json-joy  |
-| class    | overwrite / middle                                      | 5,000 | 250    | 0.01         | 113,662.2      | 0.02      | 41,288.19     | 0.01           | 131,919.16       | 2.11            | 474.89            | json-joy  |
-| class    | overwrite / tail                                        | 5,000 | 250    | 0.01         | 143,045.15     | 0.02      | 57,497.7      | 0.01           | 124,576.44       | 2.07            | 484.22            | crlist    |
-| class    | overwrite / random                                      | 5,000 | 250    | 0.03         | 33,021.61      | 0.03      | 30,835.65     | 0.04           | 22,693.64        | 2.33            | 430.07            | crlist    |
-| class    | remove / head                                           | 5,000 | 250    | 0.01         | 94,772.36      | 0.02      | 56,620.01     | 0.04           | 22,672.04        | 0.27            | 3,691.75          | crlist    |
-| class    | remove / middle                                         | 5,000 | 250    | 0.01         | 102,257.85     | 0.01      | 93,321.89     | 0.03           | 32,596.22        | 0.31            | 3,251.71          | crlist    |
-| class    | remove / tail                                           | 5,000 | 250    | 0.01         | 198,664.97     | 0.02      | 65,556.58     | 0              | 288,550.32       | 0.34            | 2,929.9           | json-joy  |
-| class    | remove / range from head                                | 5,000 | 5,000  | 0            | 595,316.05     | 0         | 9,323,140.03  | 0              | 357,079.09       | 0.02            | 56,312.01         | yjs       |
-| class    | remove / range from middle                              | 5,000 | 5,000  | 0            | 588,948.96     | 0         | 8,034,709.95  | 0              | 311,712.92       | 0.02            | 54,552.64         | yjs       |
-| class    | remove / range from tail                                | 5,000 | 5,000  | 0            | 348,252.47     | 0         | 8,689,607.23  | 0              | 335,307.17       | 0.02            | 62,508.91         | yjs       |
-| class    | mixed / append overwrite remove tail                    | 5,000 | 250    | 0.01         | 170,846.72     | 0.02      | 60,744.48     | 0.03           | 31,175.18        | 1.57            | 638.48            | crlist    |
-| class    | mixed / prepend overwrite remove head                   | 5,000 | 250    | 0.01         | 144,241.86     | 0.01      | 82,467.43     | 0.04           | 27,747.56        | 1.56            | 642.52            | crlist    |
-| class    | mixed / insert overwrite remove middle                  | 5,000 | 250    | 0.01         | 107,406.77     | 0.01      | 80,233.64     | 0.01           | 161,770.42       | 1.6             | 624.44            | json-joy  |
-| class    | paste / insert 10,000 entries at cursor                 | 5,000 | 10,000 | 0            | 307,953.83     | 0         | 904,159.13    | 0.01           | 83,810.07        | 0.17            | 5,773.36          | yjs       |
-| class    | render / join visible entries to string                 | 5,000 | 250    | 0.29         | 3,454.37       | 0.35      | 2,876.22      | 2.8            | 356.7            | 0.17            | 5,796.12          | automerge |
-| class    | snapshot                                                | 5,000 | 250    | 4.47         | 223.54         | 3.86      | 258.96        | 8.4            | 119              | 15.57           | 64.21             | yjs       |
-| class    | snapshot / tombstoned state 50% deleted                 | 5,000 | 250    | 2.07         | 483.11         | 2.02      | 494.14        | 4.2            | 238.05           | 15.78           | 63.36             | yjs       |
-| class    | snapshot / after garbage collection                     | 5,000 | 250    | 0.14         | 7,256.96       | 0.26      | 3,853.43      | 2.56           | 390.5            | 0.07            | 13,988.91         | automerge |
-| class    | acknowledge                                             | 5,000 | 250    | 0.45         | 2,247.17       | n/a       | n/a           | n/a            | n/a              | n/a             | n/a               | n/a       |
-| class    | acknowledge / 50% deleted state                         | 5,000 | 250    | 0.51         | 1,961.67       | n/a       | n/a           | n/a            | n/a              | n/a             | n/a               | n/a       |
-| class    | acknowledge / 90% deleted state                         | 5,000 | 250    | 0.82         | 1,223.2        | n/a       | n/a           | n/a            | n/a              | n/a             | n/a               | n/a       |
-| class    | garbage collect                                         | 5,000 | 250    | 0.14         | 6,989.72       | 0.25      | 3,981.92      | 2.14           | 466.76           | 0.08            | 12,642.74         | automerge |
-| class    | garbage collect / no eligible tombstones                | 5,000 | 250    | 0.17         | 5,781.96       | 0.25      | 3,978.14      | 2.22           | 449.94           | 0.08            | 12,763.7          | automerge |
-| class    | garbage collect / 90% eligible tombstones               | 5,000 | 250    | 0.16         | 6,224.19       | 0.25      | 4,040.33      | 2.12           | 470.69           | 0.08            | 12,775.05         | automerge |
-| class    | merge ordered deltas                                    | 5,000 | 250    | 0.23         | 4,264.41       | 0.02      | 65,373.15     | 0              | 250,601.44       | 3.1             | 322.78            | json-joy  |
-| class    | merge shuffled gossip                                   | 5,000 | 250    | 2.31         | 432.54         | 0.41      | 2,440.42      | n/a            | n/a              | 0.72            | 1,382.89          | yjs       |
-| class    | merge / duplicate delta ignored                         | 5,000 | 250    | 0            | 716,332.38     | 0.03      | 35,274.36     | 0              | 314,267.76       | 0.04            | 26,680.9          | crlist    |
-| class    | merge / concurrent prepends same head                   | 5,000 | 2      | 5.99         | 166.9          | 0.08      | 13,037.81     | n/a            | n/a              | 17.05           | 58.65             | yjs       |
-| class    | merge / concurrent appends same tail                    | 5,000 | 2      | 0.04         | 26,560.42      | 0.06      | 15,491.87     | n/a            | n/a              | 9.88            | 101.2             | crlist    |
-| class    | merge / concurrent inserts same middle position         | 5,000 | 2      | 3.09         | 323.46         | 0.05      | 20,242.91     | n/a            | n/a              | 12.36           | 80.89             | yjs       |
-| class    | merge / forked replicas rejoin after 250 ops each       | 5,000 | 500    | 1.63         | 612.79         | 0.01      | 97,416.51     | n/a            | n/a              | 3.32            | 301.24            | yjs       |
-| latency  | append tail write to remote visible                     | 5,000 | 250    | 0.67         | 1,495.5        | 0.24      | 4,099.83      | 11.43          | 87.46            | 6.11            | 163.61            | yjs       |
-| latency  | prepend head write to remote visible                    | 5,000 | 250    | 0.66         | 1,513.64       | 0.03      | 30,079.17     | 0.02           | 58,443.99        | 6.21            | 160.99            | json-joy  |
-| latency  | middle insert write to remote visible                   | 5,000 | 250    | 0.59         | 1,705.6        | 0.13      | 7,690.18      | 4.21           | 237.63           | 5.99            | 167.03            | yjs       |
-| latency  | head insert write to remote visible                     | 5,000 | 250    | 0.53         | 1,896.01       | 0.02      | 41,967.43     | 0.02           | 62,878.85        | 5.94            | 168.49            | json-joy  |
-| latency  | overwrite head write to remote visible                  | 5,000 | 250    | 1.01         | 994.01         | 0.04      | 27,048.08     | 0.04           | 27,526.67        | 6.12            | 163.37            | json-joy  |
-| latency  | overwrite middle write to remote visible                | 5,000 | 250    | 0.59         | 1,707.77       | 0.13      | 7,502.46      | 2.66           | 376.47           | 6.22            | 160.89            | yjs       |
-| latency  | overwrite tail write to remote visible                  | 5,000 | 250    | 0.81         | 1,239.17       | 0.24      | 4,211.38      | 5.67           | 176.45           | 6.04            | 165.51            | yjs       |
-| latency  | head delete to remote hidden                            | 5,000 | 250    | 1.77         | 566.25         | 0.27      | 3,669.14      | 5.5            | 181.96           | 2.31            | 432.74            | yjs       |
-| latency  | middle delete to remote hidden                          | 5,000 | 250    | 1            | 997.33         | 0.27      | 3,674.83      | 5.66           | 176.76           | 2.23            | 447.58            | yjs       |
-| latency  | tail delete to remote hidden                            | 5,000 | 250    | 0.69         | 1,441.41       | 0.24      | 4,199.46      | 5.36           | 186.5            | 2.41            | 414.37            | yjs       |
-| latency  | append tail write to 10 remotes visible                 | 5,000 | 2,500  | 0.92         | 1,084.63       | 0.25      | 3,996.33      | 12.13          | 82.45            | 3.94            | 253.5             | yjs       |
-| latency  | prepend head write to 10 remotes visible                | 5,000 | 2,500  | 0.59         | 1,702.58       | 0.01      | 87,682.99     | 0.01           | 70,725.96        | 4.02            | 248.74            | yjs       |
-| latency  | middle insert write to 10 remotes visible               | 5,000 | 2,500  | 0.68         | 1,465.71       | 0.14      | 7,226.22      | 4.71           | 212.44           | 5.43            | 184.05            | yjs       |
-| latency  | overwrite middle write to 10 remotes visible            | 5,000 | 2,500  | 0.73         | 1,369.86       | 0.14      | 7,093.33      | 3.13           | 319.25           | 5.26            | 189.97            | yjs       |
-| latency  | delete middle to 10 remotes hidden                      | 5,000 | 2,500  | 1.19         | 843.55         | 0.27      | 3,681.9       | 6.44           | 155.32           | 2.76            | 362.16            | yjs       |
-| latency  | out-of-order write delivery to remote visible           | 5,000 | 250    | 4.92         | 203.14         | 76.67     | 13.04         | n/a            | n/a              | 23.43           | 42.69             | crlist    |
-| latency  | out-of-order delete delivery to remote convergence      | 5,000 | 165    | 6.32         | 158.13         | 0.21      | 4,715.36      | 7.61           | 131.34           | 8.87            | 112.69            | yjs       |
-| latency  | out-of-order append delivery to convergence             | 5,000 | 250    | 4.57         | 218.69         | 22.61     | 44.22         | n/a            | n/a              | 28.67           | 34.88             | crlist    |
-| latency  | out-of-order prepend delivery to convergence            | 5,000 | 250    | 4.98         | 200.97         | 22.65     | 44.15         | 0.11           | 9,303.33         | 24.47           | 40.86             | json-joy  |
-| latency  | out-of-order middle insert delivery to convergence      | 5,000 | 250    | 4.27         | 234.29         | 74.17     | 13.48         | n/a            | n/a              | 33.05           | 30.26             | crlist    |
-| latency  | out-of-order overwrite delivery to convergence          | 5,000 | 129    | 6.72         | 148.86         | n/a       | n/a           | 239.52         | 4.18             | 99.44           | 10.06             | crlist    |
-| latency  | offline burst 1,000 ops then sync                       | 5,000 | 1,000  | 0.23         | 4,336.97       | 0.03      | 37,558.54     | 0              | 252,327.72       | 4.78            | 209.17            | json-joy  |
-| latency  | forked replicas mixed ops then converge                 | 5,000 | 250    | n/a          | n/a            | 0.01      | 126,419.05    | n/a            | n/a              | 4.49            | 222.9             | yjs       |
-| latency  | duplicate shuffled gossip to convergence                | 5,000 | 500    | 1.07         | 936.76         | 0.22      | 4,601.07      | n/a            | n/a              | 0.49            | 2,028.45          | yjs       |
-| latency  | remote snapshot hydrate then apply pending deltas       | 5,000 | 250    | 0.04         | 24,265.72      | 0.04      | 24,635.15     | 0.1            | 10,453.91        | 1.33            | 750.5             | yjs       |
-| workload | local app session                                       | 5,000 | 250    | 0.01         | 99,064.83      | 0.02      | 52,633.8      | 0.01           | 140,378.46       | 2.48            | 403.7             | json-joy  |
-| workload | read heavy session                                      | 5,000 | 250    | 0            | 2,076,411.96   | 0         | 4,208,754.21  | 0              | 339,259.06       | 0               | 1,191,611.06      | yjs       |
-| workload | write heavy session                                     | 5,000 | 250    | 0.01         | 120,784.62     | 0.01      | 70,944.12     | 0.01           | 175,413.98       | 2.02            | 493.95            | json-joy  |
-| workload | append tail heavy session                               | 5,000 | 250    | 0            | 288,284.13     | 0.02      | 53,543.51     | 0.01           | 76,960.97        | 2.91            | 344.21            | crlist    |
-| workload | prepend head heavy session                              | 5,000 | 250    | 0.01         | 103,674.21     | 0.01      | 92,363.39     | 0.01           | 124,850.18       | 2.52            | 396.57            | json-joy  |
-| workload | insert middle heavy session                             | 5,000 | 250    | 0.01         | 100,450.02     | 0.01      | 76,949.12     | 0.01           | 131,371.52       | 2.52            | 396.99            | json-joy  |
-| workload | overwrite heavy session                                 | 5,000 | 250    | 0.01         | 96,914.25      | 0.01      | 70,191.2      | 0.01           | 130,391.7        | 1.64            | 609.33            | json-joy  |
-| workload | delete heavy session                                    | 5,000 | 250    | 0.01         | 127,713.92     | 0.02      | 63,067.61     | 0.05           | 19,757.07        | 0.3             | 3,346.58          | crlist    |
-| workload | balanced append prepend insert overwrite delete session | 5,000 | 250    | 0.01         | 100,656.28     | 0.01      | 83,606.45     | 0.01           | 165,060.08       | 2.06            | 484.89            | json-joy  |
-| workload | random edit session                                     | 5,000 | 250    | 0.01         | 66,875.32      | 0.02      | 42,656.29     | 0.04           | 23,414.38        | 2.7             | 369.91            | crlist    |
-| workload | text editing session                                    | 5,000 | 250    | 0.01         | 117,145.4      | 0.01      | 79,557.03     | 0.01           | 160,215.33       | 3.05            | 327.75            | json-joy  |
-| workload | collaborative offline session                           | 5,000 | 250    | n/a          | n/a            | 0.01      | 108,206.37    | n/a            | n/a              | 4.46            | 224.08            | yjs       |
-| workload | sync and cleanup session                                | 5,000 | 252    | 0.17         | 6,009.09       | 0.01      | 86,451.35     | n/a            | n/a              | 4.49            | 222.59            | yjs       |
-| workload | long lived tombstoned session                           | 5,000 | 250    | 0            | 219,298.25     | 0.02      | 62,423.53     | 0.01           | 151,194.44       | 2.93            | 341.64            | crlist    |
-| workload | sparse visible session                                  | 5,000 | 250    | 0.01         | 167,683.95     | 0.14      | 7,038.19      | 0.02           | 41,835.4         | 1.86            | 536.37            | crlist    |
-| workload | post-gc edit session                                    | 5,000 | 250    | 0            | 278,396.44     | 0.02      | 54,689.04     | 0.01           | 169,813.88       | 3.28            | 305.01            | crlist    |
-
-total wall time: 824,106.43 ms
+| group | scenario | n | ops | crlist ms/op | crlist ops/sec | yjs ms/op | yjs ops/sec | json-joy ms/op | json-joy ops/sec | automerge ms/op | automerge ops/sec | winner |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| crud | create / empty list | 5,000 | 250 | 0.03 | 33,825.84 | 0.3 | 3,370.54 | 0.04 | 25,321.33 | 0.98 | 1,020.72 | crlist |
+| crud | create / hydrate snapshot | 5,000 | 250 | 6.77 | 147.61 | 11.86 | 84.33 | 32.12 | 31.13 | 420.16 | 2.38 | crlist |
+| crud | create / hydrate clean snapshot | 5,000 | 250 | 7.19 | 139.17 | 10.92 | 91.61 | 31.22 | 32.03 | 425.32 | 2.35 | crlist |
+| crud | create / hydrate tombstoned snapshot | 5,000 | 250 | 4.12 | 242.47 | 5.59 | 178.97 | 15.38 | 65.03 | 398.45 | 2.51 | crlist |
+| crud | read / head | 5,000 | 250 | 0 | 1,196,172.25 | 0 | 464,684.01 | 0.06 | 17,087.82 | 0 | 1,577,287.07 | automerge |
+| crud | read / middle | 5,000 | 250 | 0 | 3,188,775.51 | 0 | 1,068,376.07 | 0 | 398,089.17 | 0 | 2,429,543.25 | crlist |
+| crud | read / tail | 5,000 | 250 | 0 | 4,595,588.24 | 0 | 760,109.46 | 0 | 527,314.91 | 0 | 4,058,441.56 | crlist |
+| crud | read / random indexed reads | 5,000 | 250 | 0 | 620,039.68 | 0 | 340,367.6 | 0.01 | 106,112.05 | 0 | 504,744.6 | crlist |
+| crud | read / sequential indexed reads from head | 5,000 | 250 | 0 | 953,470.63 | 0 | 441,462.12 | 0.01 | 160,792.38 | 0 | 609,310.26 | crlist |
+| crud | read / sequential indexed reads from middle | 5,000 | 250 | 0 | 2,530,364.37 | 0 | 645,661.16 | 0 | 206,117.57 | 0 | 4,378,283.71 | automerge |
+| crud | read / sequential indexed reads from tail | 5,000 | 250 | 0 | 2,818,489.29 | 0 | 273,074.82 | 0.01 | 126,807 | 0 | 4,325,259.52 | automerge |
+| crud | read / full iteration visible values | 5,000 | 250 | 0.98 | 1,024.63 | 0.4 | 2,478.92 | 3.33 | 300.59 | 0.19 | 5,205.9 | automerge |
+| crud | read / collect visible values to array | 5,000 | 250 | 0.61 | 1,628.68 | 0.36 | 2,769.7 | 2.79 | 358 | 0.19 | 5,345.52 | automerge |
+| crud | read / visible sparse over deleted entries | 5,000 | 250 | 0 | 1,444,251.88 | 0.06 | 15,469.34 | 0.03 | 36,986.63 | 0 | 3,639,010.19 | automerge |
+| crud | find / head | 5,000 | 250 | 0 | 774,473.36 | 0 | 1,248,751.25 | 0 | 544,306.55 | 0 | 690,607.73 | yjs |
+| crud | find / middle | 5,000 | 250 | 0.21 | 4,713.26 | 0.22 | 4,463.37 | 1.06 | 939.04 | 0.04 | 27,567.35 | automerge |
+| crud | find / tail | 5,000 | 250 | 0.31 | 3,193.29 | 0.33 | 3,052.59 | 3.13 | 319.49 | 0.05 | 19,993.76 | automerge |
+| crud | find / missing value | 5,000 | 250 | 0.35 | 2,885.88 | 0.41 | 2,421.55 | 1.84 | 543.32 | 0.08 | 13,032.58 | automerge |
+| crud | append / single after tail | 5,000 | 250 | 0.01 | 113,332.43 | 0.05 | 19,103.36 | 0.05 | 21,824.91 | 4.64 | 215.65 | crlist |
+| crud | append / batch after tail | 5,000 | 25,000 | 0 | 697,951.65 | 0 | 260,545.85 | 0.01 | 79,908.3 | 0.45 | 2,215.33 | crlist |
+| crud | append / batch after deleted tail | 5,000 | 25,000 | 0 | 670,989.63 | 0 | 321,357.83 | 0.01 | 92,770.75 | 0.45 | 2,217 | crlist |
+| crud | append / batch after garbage collection | 5,000 | 25,000 | 0 | 852,270.79 | 0 | 343,319.35 | 0.01 | 80,687.09 | 0.45 | 2,229.82 | crlist |
+| crud | prepend / single before head | 5,000 | 250 | 0.01 | 129,991.68 | 0.03 | 30,669.2 | 0.06 | 16,125.7 | 4.84 | 206.46 | crlist |
+| crud | prepend / batch before head | 5,000 | 25,000 | 0 | 1,141,635.92 | 0 | 446,303.45 | 0.01 | 104,218.43 | 0.45 | 2,209.61 | crlist |
+| crud | prepend / batch before deleted head | 5,000 | 25,000 | 0 | 775,076.03 | 0 | 642,767.71 | 0.01 | 103,399.31 | 0.45 | 2,215.28 | crlist |
+| crud | prepend / batch after garbage collection | 5,000 | 25,000 | 0 | 990,907.43 | 0 | 412,539.21 | 0.01 | 90,553.76 | 0.45 | 2,242.98 | crlist |
+| crud | insert / single before head | 5,000 | 250 | 0.01 | 121,506.68 | 0.03 | 33,473.03 | 0.08 | 12,039.72 | 5.04 | 198.55 | crlist |
+| crud | insert / single after head | 5,000 | 250 | 0.01 | 82,568.2 | 0.04 | 26,982.4 | 0.08 | 12,375.56 | 5.39 | 185.54 | crlist |
+| crud | insert / single before middle | 5,000 | 250 | 0.01 | 79,754.99 | 0.04 | 26,564.94 | 0.07 | 15,265.12 | 4.58 | 218.34 | crlist |
+| crud | insert / single after middle | 5,000 | 250 | 0.01 | 82,429.36 | 0.04 | 26,052.25 | 0.07 | 14,290.94 | 4.53 | 220.71 | crlist |
+| crud | insert / single before tail | 5,000 | 250 | 0.01 | 77,220.08 | 0.04 | 25,792.61 | 0.01 | 70,149.84 | 4.58 | 218.44 | crlist |
+| crud | insert / single after tail | 5,000 | 250 | 0.01 | 98,634.89 | 0.07 | 13,874.32 | 0.01 | 84,095.8 | 4.56 | 219.27 | crlist |
+| crud | insert / batch before head | 5,000 | 25,000 | 0 | 919,614.64 | 0 | 440,818.37 | 0.01 | 89,531.57 | 0.47 | 2,128.5 | crlist |
+| crud | insert / batch after head | 5,000 | 25,000 | 0 | 879,479.63 | 0 | 497,653.07 | 0.01 | 96,483.67 | 0.47 | 2,147.28 | crlist |
+| crud | insert / batch before middle | 5,000 | 25,000 | 0 | 407,363.17 | 0 | 652,961.44 | 0.01 | 109,018.73 | 0.46 | 2,170.18 | yjs |
+| crud | insert / batch after middle | 5,000 | 25,000 | 0 | 418,907.12 | 0 | 546,580.7 | 0.01 | 98,910.6 | 0.46 | 2,163.51 | yjs |
+| crud | insert / batch before tail | 5,000 | 25,000 | 0 | 986,539.65 | 0 | 450,357.13 | 0.01 | 119,441.78 | 0.45 | 2,200.83 | crlist |
+| crud | insert / batch after tail | 5,000 | 25,000 | 0 | 651,652.59 | 0 | 432,904.18 | 0.01 | 87,865.8 | 0.46 | 2,163.91 | crlist |
+| crud | insert / repeated before head | 5,000 | 250 | 0.01 | 139,610.21 | 0.01 | 67,049.29 | 0.01 | 74,001.72 | 4.68 | 213.59 | crlist |
+| crud | insert / repeated before middle | 5,000 | 250 | 0.01 | 95,928.78 | 0.02 | 45,431.42 | 0.01 | 91,605.29 | 4.58 | 218.28 | crlist |
+| crud | insert / repeated before tail | 5,000 | 250 | 0.01 | 83,757.71 | 0.02 | 47,134.24 | 0.01 | 84,834.91 | 4.4 | 227.32 | json-joy |
+| crud | insert / random positions | 5,000 | 250 | 0.01 | 90,625.68 | 0.05 | 19,643.74 | 0.03 | 39,056.4 | 5.1 | 196.19 | crlist |
+| crud | insert / alternating head and tail | 5,000 | 250 | 0.05 | 21,685.76 | 0.02 | 55,456.97 | 0.01 | 115,532.14 | 4.86 | 205.89 | json-joy |
+| crud | overwrite / head | 5,000 | 250 | 0.01 | 82,107.2 | 0.05 | 18,975.33 | 0.09 | 11,389.99 | 5.44 | 183.93 | crlist |
+| crud | overwrite / middle | 5,000 | 250 | 0.02 | 64,457.91 | 0.03 | 29,992.2 | 0.01 | 91,491.31 | 5.11 | 195.57 | json-joy |
+| crud | overwrite / tail | 5,000 | 250 | 0.01 | 93,769.93 | 0.03 | 30,145.54 | 0.03 | 38,513.68 | 4.81 | 207.87 | crlist |
+| crud | overwrite / random | 5,000 | 250 | 0.05 | 21,439.54 | 0.07 | 13,675.1 | 0.05 | 21,827.96 | 5.37 | 186.29 | json-joy |
+| crud | overwrite / same head repeatedly | 5,000 | 250 | 0.01 | 76,665.95 | 0.04 | 26,090.59 | 0.05 | 18,314.08 | 5.02 | 199.34 | crlist |
+| crud | overwrite / same middle repeatedly | 5,000 | 250 | 0.01 | 72,615.31 | 0.05 | 20,761.71 | 0.02 | 63,953.34 | 5.6 | 178.44 | crlist |
+| crud | overwrite / same tail repeatedly | 5,000 | 250 | 0.01 | 79,772.81 | 0.04 | 24,134.54 | 0.01 | 96,625.83 | 4.67 | 214.09 | json-joy |
+| crud | overwrite / random visible entries | 5,000 | 250 | 0.06 | 16,280.71 | 0.07 | 14,201.16 | 0.02 | 50,212.9 | 5.33 | 187.58 | json-joy |
+| crud | overwrite / after insert | 5,000 | 250 | 0.02 | 52,673.72 | 0.04 | 25,452.81 | 0.02 | 58,995.66 | 4.74 | 211.02 | json-joy |
+| crud | overwrite / after delete | 5,000 | 250 | 0.01 | 75,645.25 | 0.04 | 25,985.37 | 0.02 | 63,870.01 | 4.76 | 210.01 | crlist |
+| crud | delete / head | 5,000 | 250 | 0.01 | 79,151.5 | 0.03 | 29,569.35 | 0.06 | 17,371.73 | 0.77 | 1,296.23 | crlist |
+| crud | delete / middle | 5,000 | 250 | 0.01 | 79,516.54 | 0.03 | 36,742.55 | 0.07 | 14,246.96 | 0.68 | 1,461.58 | crlist |
+| crud | delete / tail | 5,000 | 250 | 0 | 317,057.7 | 0.03 | 32,725.51 | 0.01 | 125,018.75 | 0.59 | 1,691.08 | crlist |
+| crud | delete / range from head | 5,000 | 5,000 | 0 | 443,168.12 | 0 | 4,463,488.66 | 0 | 233,187.2 | 0.04 | 24,220.92 | yjs |
+| crud | delete / range from middle | 5,000 | 5,000 | 0 | 266,954.27 | 0 | 3,702,606.64 | 0.01 | 169,900.44 | 0.05 | 21,091.74 | yjs |
+| crud | delete / range from tail | 5,000 | 5,000 | 0 | 302,751.4 | 0 | 4,628,343.98 | 0.01 | 183,455.27 | 0.04 | 25,225.05 | yjs |
+| crud | delete / every other entry | 5,000 | 2,500 | 0.01 | 83,308.06 | 0.18 | 5,439.11 | 0.12 | 8,490.13 | 0.62 | 1,622.56 | crlist |
+| crud | delete / all entries from head one by one | 5,000 | 5,000 | 0.01 | 97,603.83 | 0.02 | 49,614.79 | 0.02 | 65,842.49 | 0.56 | 1,800.32 | crlist |
+| crud | delete / all entries from middle outward | 5,000 | 5,000 | 0.01 | 109,110.75 | 0.02 | 48,441.35 | 0.01 | 88,836.14 | 0.57 | 1,760.14 | crlist |
+| crud | delete / all entries from tail one by one | 5,000 | 5,000 | 0 | 396,350.41 | 0.02 | 43,532.43 | 0.01 | 134,662 | 0.54 | 1,860.69 | crlist |
+| crud | delete / all entries in random order | 5,000 | 5,000 | 0.22 | 4,458.79 | 16.65 | 60.06 | 13.08 | 76.44 | 0.67 | 1,486.95 | crlist |
+| crud | delete / already deleted head | 5,000 | 250 | 0 | 206,868.02 | 0.01 | 186,832.08 | 0 | 228,164.64 | 0.1 | 9,753.97 | json-joy |
+| crud | delete / already deleted middle | 5,000 | 250 | 0 | 250,903.25 | 0 | 259,848.25 | 0 | 452,079.57 | 0.07 | 14,808.5 | json-joy |
+| crud | delete / already deleted tail | 5,000 | 250 | 0 | 1,145,213.01 | 0 | 208,925.29 | 0 | 464,080.19 | 0.07 | 15,263.17 | crlist |
+| crud | mixed / append overwrite delete tail | 5,000 | 250 | 0.01 | 155,356.7 | 0.06 | 16,415.4 | 0.03 | 39,518.19 | 4.18 | 239.51 | crlist |
+| crud | mixed / prepend overwrite delete head | 5,000 | 250 | 0.01 | 179,365.76 | 0.03 | 33,251.76 | 0.09 | 11,525.15 | 4.31 | 231.83 | crlist |
+| crud | mixed / insert overwrite delete middle | 5,000 | 250 | 0.01 | 180,076.35 | 0.03 | 28,891.71 | 0.08 | 12,737.3 | 3.99 | 250.73 | crlist |
+| crud | mixed / append prepend insert overwrite delete | 5,000 | 250 | 0.01 | 161,592.66 | 0.04 | 25,261.71 | 0.02 | 55,858.43 | 4.25 | 235.39 | crlist |
+| mags | snapshot | 5,000 | 250 | 0.38 | 2,605.8 | 4.86 | 205.88 | 19.54 | 51.17 | 40.24 | 24.85 | crlist |
+| mags | snapshot / clean state | 5,000 | 250 | 0.42 | 2,368.86 | 4.9 | 203.92 | 17.51 | 57.12 | 40.89 | 24.45 | crlist |
+| mags | snapshot / tombstoned state 50% deleted | 5,000 | 250 | 0.24 | 4,203.66 | 2.51 | 397.88 | 7.72 | 129.56 | 41.38 | 24.17 | crlist |
+| mags | snapshot / tombstoned state 90% deleted | 5,000 | 250 | 0.08 | 11,805.15 | 0.45 | 2,203.84 | 1.37 | 731.87 | 41.29 | 24.22 | crlist |
+| mags | snapshot / after garbage collection | 5,000 | 250 | 0.15 | 6,794.18 | 3.48 | 287.62 | 8.07 | 123.85 | 44.15 | 22.65 | crlist |
+| mags | acknowledge | 5,000 | 250 | 0 | 643,004.12 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| mags | acknowledge / clean state | 5,000 | 250 | 0 | 3,906,250 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| mags | acknowledge / 50% deleted state | 5,000 | 250 | 0.76 | 1,320.45 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| mags | acknowledge / 90% deleted state | 5,000 | 250 | 1.26 | 793.07 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| mags | garbage collect | 5,000 | 250 | 0 | 808,015.51 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| mags | garbage collect / no eligible tombstones | 5,000 | 250 | 0 | 2,783,964.37 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| mags | garbage collect / 50% eligible tombstones | 5,000 | 250 | 0.01 | 120,761.28 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| mags | garbage collect / 90% eligible tombstones | 5,000 | 250 | 0.01 | 76,492.37 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| mags | garbage collect / partial frontiers 2 replicas | 5,000 | 250 | 0 | 2,238,137.87 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| mags | garbage collect / partial frontiers 10 replicas | 5,000 | 250 | 0 | 2,642,706.13 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| mags | post-gc read / full iteration visible values | 5,000 | 250 | 0.39 | 2,594.66 | 0.18 | 5,611.92 | 1.56 | 641.08 | 0.07 | 13,651.43 | automerge |
+| mags | merge ordered deltas | 5,000 | 250 | 0.07 | 14,624.84 | 0.05 | 18,295.45 | 0.01 | 84,765.88 | 8.19 | 122.15 | json-joy |
+| mags | merge shuffled gossip | 5,000 | 250 | 1.44 | 692.45 | 1.09 | 914.02 | n/a | n/a | 1.95 | 513.75 | yjs |
+| mags | merge / append head delta into equal replica | 5,000 | 1 | 0.64 | 1,550.63 | 0.11 | 9,469.7 | 0.1 | 9,960.16 | 8.68 | 115.26 | json-joy |
+| mags | merge / append tail delta into equal replica | 5,000 | 1 | 0.04 | 22,371.36 | 0.04 | 23,980.82 | 0.03 | 28,901.73 | 8.13 | 123.07 | json-joy |
+| mags | merge / prepend head delta into equal replica | 5,000 | 1 | 0.48 | 2,088.55 | 0.04 | 24,449.88 | 0.02 | 48,780.49 | 8.53 | 117.23 | json-joy |
+| mags | merge / insert middle delta into equal replica | 5,000 | 1 | 0.28 | 3,571.43 | 0.03 | 29,239.77 | 0.06 | 16,863.41 | 8.31 | 120.36 | yjs |
+| mags | merge / overwrite head delta into equal replica | 5,000 | 1 | 0.69 | 1,449.28 | 0.03 | 33,003.3 | 0.04 | 25,641.03 | 8.6 | 116.23 | yjs |
+| mags | merge / overwrite middle delta into equal replica | 5,000 | 1 | 0.24 | 4,128.82 | 0.07 | 15,290.52 | 0.04 | 23,201.86 | 8.43 | 118.59 | json-joy |
+| mags | merge / overwrite tail delta into equal replica | 5,000 | 1 | 0.05 | 18,587.36 | 0.07 | 14,430.01 | 0.03 | 34,013.61 | 8.34 | 119.93 | json-joy |
+| mags | merge / delete head delta into equal replica | 5,000 | 1 | 0.6 | 1,655.63 | 0.04 | 28,490.03 | 0.06 | 15,898.25 | 4.57 | 218.65 | yjs |
+| mags | merge / delete middle delta into equal replica | 5,000 | 1 | 0.28 | 3,531.07 | 0.16 | 6,131.21 | 0.21 | 4,699.25 | 5.66 | 176.68 | yjs |
+| mags | merge / delete tail delta into equal replica | 5,000 | 1 | 0.02 | 43,103.45 | 0.03 | 29,761.9 | 0.04 | 24,271.84 | 4.54 | 220.39 | crlist |
+| mags | merge / duplicate delta ignored | 5,000 | 250 | 0 | 658,761.53 | 0.05 | 21,558.79 | 0.02 | 51,885.52 | 0.1 | 9,554.93 | crlist |
+| mags | merge / old delta ignored after merge | 5,000 | 250 | 0 | 495,049.5 | 0.04 | 23,698.93 | 0.01 | 118,900.41 | 0.09 | 11,280.11 | crlist |
+| mags | merge / ordered 1,000 append deltas | 5,000 | 1,000 | 0.01 | 131,278.39 | 0.04 | 28,534.17 | 0.04 | 25,993.27 | 9.01 | 110.99 | crlist |
+| mags | merge / ordered 1,000 prepend deltas | 5,000 | 1,000 | 0.06 | 17,098.28 | 0.01 | 71,430.1 | 0.04 | 23,579.68 | 9.56 | 104.64 | yjs |
+| mags | merge / ordered 1,000 middle insert deltas | 5,000 | 1,000 | 0.06 | 17,955.19 | 0.02 | 57,381.89 | 0.01 | 112,451.79 | 9.37 | 106.75 | json-joy |
+| mags | merge / shuffled 1,000 mixed deltas | 5,000 | 1,000 | 1.54 | 649.06 | 1.88 | 531.55 | n/a | n/a | 2.43 | 412.13 | crlist |
+| mags | merge / reverse ordered 1,000 mixed deltas | 5,000 | 1,000 | 0.39 | 2,569.2 | 1.53 | 652.15 | n/a | n/a | 2.69 | 371.87 | crlist |
+| mags | merge / concurrent prepends same head | 5,000 | 2 | 1.55 | 645.81 | 0.11 | 9,246.42 | n/a | n/a | 45.41 | 22.02 | yjs |
+| mags | merge / concurrent appends same tail | 5,000 | 2 | 0.06 | 17,346.05 | 0.04 | 25,740.03 | n/a | n/a | 38.33 | 26.09 | yjs |
+| mags | merge / concurrent inserts same middle position | 5,000 | 2 | 1.33 | 750.5 | 0.05 | 19,646.37 | n/a | n/a | 44.92 | 22.26 | yjs |
+| mags | merge / concurrent overwrites same head | 5,000 | 2 | 2.01 | 497.97 | 0.05 | 20,833.33 | n/a | n/a | 39.03 | 25.62 | yjs |
+| mags | merge / concurrent overwrites same middle | 5,000 | 2 | 1.69 | 590.98 | 0.05 | 19,157.09 | n/a | n/a | 39.07 | 25.6 | yjs |
+| mags | merge / concurrent overwrites same tail | 5,000 | 2 | 0.05 | 18,315.02 | 0.06 | 15,612.8 | n/a | n/a | 38.71 | 25.84 | crlist |
+| mags | merge / concurrent deletes same head | 5,000 | 2 | 2.38 | 419.89 | 0.05 | 19,723.87 | 0.04 | 25,510.2 | 30.61 | 32.67 | json-joy |
+| mags | merge / concurrent deletes same middle | 5,000 | 2 | 1.3 | 766.99 | 0.03 | 29,717.68 | 0.05 | 19,960.08 | 19.54 | 51.17 | yjs |
+| mags | merge / concurrent deletes same tail | 5,000 | 2 | 0.02 | 45,045.05 | 0.04 | 23,668.64 | 0.03 | 33,898.31 | 20.4 | 49.03 | crlist |
+| mags | merge / concurrent overwrite delete same entry | 5,000 | 2 | 2.5 | 400.52 | 0.1 | 10,090.82 | 0.11 | 8,818.34 | 26.11 | 38.3 | yjs |
+| mags | merge / forked replicas rejoin after 250 ops each | 5,000 | 500 | 0.04 | 22,687.05 | 0.02 | 49,622.87 | n/a | n/a | 8.43 | 118.68 | yjs |
+| mags | merge / 10 replicas gossip convergence | 5,000 | 100 | 0.01 | 87,374.4 | 0.02 | 40,829.66 | n/a | n/a | 14.87 | 67.24 | crlist |
+| mags | merge / snapshot merge into stale replica | 5,000 | 5,350 | 0 | 396,102.65 | 0 | 341,490.81 | 0.01 | 81,556.49 | 0.09 | 10,824.82 | crlist |
+| class | constructor / hydrate snapshot | 5,000 | 250 | 7.96 | 125.6 | 10.38 | 96.31 | 39.32 | 25.43 | 442.2 | 2.26 | crlist |
+| class | read / head | 5,000 | 250 | 0 | 959,692.9 | 0 | 1,665,556.3 | 0 | 696,184.91 | 0 | 1,145,737.86 | yjs |
+| class | read / middle | 5,000 | 250 | 0 | 1,481,920.57 | 0 | 11,961,722.49 | 0 | 1,865,671.64 | 0 | 5,376,344.09 | yjs |
+| class | read / tail | 5,000 | 250 | 0 | 1,871,257.49 | 0 | 8,532,423.21 | 0 | 1,860,119.05 | 0 | 5,494,505.49 | yjs |
+| class | find near head | 5,000 | 250 | 0 | 401,026.63 | 0 | 2,340,823.97 | 0 | 451,589.6 | 0 | 706,015.25 | yjs |
+| class | find near middle | 5,000 | 250 | 1.43 | 699.66 | 0.12 | 8,280.5 | 1.91 | 524.01 | 0.04 | 27,508.8 | automerge |
+| class | find near tail | 5,000 | 250 | 3.69 | 270.94 | 0.19 | 5,201.33 | 4.99 | 200.2 | 0.05 | 20,917.88 | automerge |
+| class | iterate visible values | 5,000 | 250 | 0.17 | 5,875.74 | 0.43 | 2,320.21 | 3.97 | 251.9 | 0.17 | 5,984.73 | automerge |
+| class | collect visible values to array | 5,000 | 250 | 0.18 | 5,545.87 | 0.47 | 2,137.25 | 3.85 | 259.52 | 0.17 | 6,000.8 | automerge |
+| class | append / single after tail | 5,000 | 250 | 0.01 | 119,961.61 | 0.04 | 27,817.03 | 0.08 | 13,062.2 | 4.38 | 228.31 | crlist |
+| class | append / batch after tail | 5,000 | 25,000 | 0 | 1,026,247.3 | 0 | 332,601.61 | 0.01 | 68,471.67 | 0.44 | 2,279.97 | crlist |
+| class | prepend / single before head | 5,000 | 250 | 0.01 | 184,094.26 | 0.03 | 29,264.41 | 0.03 | 31,794.48 | 4.74 | 210.93 | crlist |
+| class | prepend / batch before head | 5,000 | 25,000 | 0 | 759,989.3 | 0 | 402,816.49 | 0.01 | 82,561.22 | 0.45 | 2,204.26 | crlist |
+| class | insert / single before middle | 5,000 | 250 | 0.01 | 88,737.44 | 0.03 | 31,894.26 | 0.02 | 43,221.94 | 5.46 | 183.26 | crlist |
+| class | insert / batch before middle | 5,000 | 25,000 | 0 | 497,428.3 | 0 | 442,117.14 | 0.01 | 83,843.13 | 0.46 | 2,172.8 | crlist |
+| class | overwrite / head | 5,000 | 250 | 0.05 | 19,586.18 | 0.04 | 25,440.37 | 0.12 | 8,383.86 | 5.76 | 173.74 | yjs |
+| class | overwrite / middle | 5,000 | 250 | 0.02 | 64,278.92 | 0.04 | 22,547.51 | 0.02 | 59,149.2 | 5.04 | 198.52 | crlist |
+| class | overwrite / tail | 5,000 | 250 | 0.01 | 79,266.94 | 0.04 | 27,852.05 | 0.02 | 50,729.49 | 4.82 | 207.54 | crlist |
+| class | overwrite / random | 5,000 | 250 | 0.05 | 19,377.59 | 0.07 | 14,277.15 | 0.02 | 49,795.84 | 5.59 | 178.94 | json-joy |
+| class | remove / head | 5,000 | 250 | 0.02 | 48,765.26 | 0.03 | 36,359.93 | 0.06 | 17,960.03 | 0.75 | 1,325.92 | crlist |
+| class | remove / middle | 5,000 | 250 | 0.02 | 60,441.95 | 0.02 | 51,872.6 | 0.08 | 12,323.22 | 0.82 | 1,213.62 | crlist |
+| class | remove / tail | 5,000 | 250 | 0.01 | 185,514.99 | 0.03 | 38,378.88 | 0.01 | 128,218.28 | 0.61 | 1,629.3 | crlist |
+| class | remove / range from head | 5,000 | 5,000 | 0 | 360,487.67 | 0 | 4,667,662.43 | 0.01 | 162,206.53 | 0.04 | 26,329.83 | yjs |
+| class | remove / range from middle | 5,000 | 5,000 | 0 | 367,528.15 | 0 | 3,942,595.81 | 0.01 | 134,460.29 | 0.04 | 23,520.83 | yjs |
+| class | remove / range from tail | 5,000 | 5,000 | 0 | 460,837.99 | 0 | 4,628,772.45 | 0.01 | 152,030.21 | 0.04 | 25,116.58 | yjs |
+| class | mixed / append overwrite remove tail | 5,000 | 250 | 0.01 | 146,421.46 | 0.03 | 28,946.91 | 0.02 | 54,048.21 | 4.06 | 246.02 | crlist |
+| class | mixed / prepend overwrite remove head | 5,000 | 250 | 0.01 | 163,228 | 0.03 | 37,660.24 | 0.02 | 66,663.11 | 3.75 | 266.42 | crlist |
+| class | mixed / insert overwrite remove middle | 5,000 | 250 | 0.01 | 91,921.9 | 0.03 | 34,521.8 | 0.03 | 38,286.01 | 3.68 | 271.69 | crlist |
+| class | paste / insert 10,000 entries at cursor | 5,000 | 10,000 | 0 | 290,565.91 | 0 | 506,891.19 | 0.03 | 38,237.31 | 0.41 | 2,453.94 | yjs |
+| class | render / join visible entries to string | 5,000 | 250 | 0.44 | 2,278.6 | 0.56 | 1,785.8 | 4.84 | 206.61 | 0.41 | 2,419.04 | automerge |
+| class | snapshot | 5,000 | 250 | 0.3 | 3,368.04 | 5.18 | 193.17 | 16.79 | 59.56 | 41.57 | 24.05 | crlist |
+| class | snapshot / tombstoned state 50% deleted | 5,000 | 250 | 0.23 | 4,425.71 | 2.61 | 382.85 | 7.78 | 128.58 | 40.99 | 24.4 | crlist |
+| class | snapshot / after garbage collection | 5,000 | 250 | 0.23 | 4,384.43 | 0.37 | 2,733.1 | 3.93 | 254.13 | 0.21 | 4,731.71 | automerge |
+| class | acknowledge | 5,000 | 250 | 0.63 | 1,587.93 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| class | acknowledge / 50% deleted state | 5,000 | 250 | 0.77 | 1,296.36 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| class | acknowledge / 90% deleted state | 5,000 | 250 | 1.38 | 724.14 | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| class | garbage collect | 5,000 | 250 | 0.2 | 4,905.94 | 0.32 | 3,106.68 | 3.81 | 262.39 | 0.17 | 5,910.39 | automerge |
+| class | garbage collect / no eligible tombstones | 5,000 | 250 | 0.22 | 4,501.49 | 0.35 | 2,869.75 | 5.12 | 195.14 | 0.17 | 5,874.27 | automerge |
+| class | garbage collect / 90% eligible tombstones | 5,000 | 250 | 0.19 | 5,346.22 | 0.3 | 3,351.27 | 3.63 | 275.39 | 0.17 | 5,817.66 | automerge |
+| class | merge ordered deltas | 5,000 | 250 | 0.06 | 17,887.42 | 0.01 | 80,458.29 | 0.01 | 108,314.2 | 7.97 | 125.4 | json-joy |
+| class | merge shuffled gossip | 5,000 | 250 | 1.33 | 754.33 | 0.64 | 1,559.27 | n/a | n/a | 2.74 | 365.47 | yjs |
+| class | merge / duplicate delta ignored | 5,000 | 250 | 0 | 325,436.08 | 0.03 | 32,111.8 | 0.01 | 83,252.86 | 0.11 | 8,786.82 | crlist |
+| class | merge / concurrent prepends same head | 5,000 | 2 | 1.76 | 568.29 | 0.07 | 14,265.34 | n/a | n/a | 26.99 | 37.05 | yjs |
+| class | merge / concurrent appends same tail | 5,000 | 2 | 0.06 | 15,772.87 | 0.03 | 39,682.54 | n/a | n/a | 26.37 | 37.92 | yjs |
+| class | merge / concurrent inserts same middle position | 5,000 | 2 | 1.34 | 744.1 | 0.04 | 22,624.43 | n/a | n/a | 26.47 | 37.77 | yjs |
+| class | merge / forked replicas rejoin after 250 ops each | 5,000 | 500 | 0.79 | 1,271.75 | 0.02 | 43,054.46 | n/a | n/a | 8.45 | 118.36 | yjs |
+| latency | append tail write to remote visible | 5,000 | 250 | 0.24 | 4,162.11 | 0.5 | 2,010.65 | 26.42 | 37.85 | 15 | 66.67 | crlist |
+| latency | prepend head write to remote visible | 5,000 | 250 | 0.07 | 15,344.48 | 0.06 | 17,175.28 | 0.04 | 25,896.54 | 14.65 | 68.27 | json-joy |
+| latency | middle insert write to remote visible | 5,000 | 250 | 0.43 | 2,322.19 | 0.23 | 4,270.05 | 9.65 | 103.62 | 15.59 | 64.16 | yjs |
+| latency | head insert write to remote visible | 5,000 | 250 | 0.07 | 13,504.61 | 0.03 | 37,021.68 | 0.04 | 24,596.13 | 14.4 | 69.44 | yjs |
+| latency | overwrite head write to remote visible | 5,000 | 250 | 0.27 | 3,766.94 | 0.05 | 21,373.92 | 0.11 | 9,200.65 | 15.13 | 66.11 | yjs |
+| latency | overwrite middle write to remote visible | 5,000 | 250 | 0.68 | 1,464.74 | 0.21 | 4,752.78 | 7.73 | 129.3 | 15.41 | 64.88 | yjs |
+| latency | overwrite tail write to remote visible | 5,000 | 250 | 0.91 | 1,095.03 | 0.39 | 2,582.14 | 12.28 | 81.45 | 14.34 | 69.75 | yjs |
+| latency | head delete to remote hidden | 5,000 | 250 | 0.9 | 1,112.38 | 0.5 | 1,995.86 | 12.3 | 81.31 | 5.47 | 182.81 | yjs |
+| latency | middle delete to remote hidden | 5,000 | 250 | 0.91 | 1,103.05 | 0.4 | 2,479.67 | 12.05 | 82.96 | 5.53 | 180.99 | yjs |
+| latency | tail delete to remote hidden | 5,000 | 250 | 0.24 | 4,174.44 | 0.27 | 3,688.56 | 11.97 | 83.53 | 5.94 | 168.3 | crlist |
+| latency | append tail write to 10 remotes visible | 5,000 | 2,500 | 0.35 | 2,886.65 | 0.28 | 3,556.99 | 28.1 | 35.59 | 9.79 | 102.11 | yjs |
+| latency | prepend head write to 10 remotes visible | 5,000 | 2,500 | 0.13 | 7,916.58 | 0.02 | 56,992.27 | 0.04 | 25,429.63 | 10.51 | 95.15 | yjs |
+| latency | middle insert write to 10 remotes visible | 5,000 | 2,500 | 0.71 | 1,400.71 | 0.2 | 5,009.41 | 10.48 | 95.46 | 10.01 | 99.86 | yjs |
+| latency | overwrite middle write to 10 remotes visible | 5,000 | 2,500 | 0.54 | 1,841.97 | 0.15 | 6,765.32 | 6.63 | 150.86 | 10.15 | 98.5 | yjs |
+| latency | delete middle to 10 remotes hidden | 5,000 | 2,500 | 0.97 | 1,030.54 | 0.3 | 3,288.54 | 13.2 | 75.76 | 4.86 | 205.79 | yjs |
+| latency | out-of-order write delivery to remote visible | 5,000 | 250 | 2.33 | 429 | 87.66 | 11.41 | n/a | n/a | 58.01 | 17.24 | crlist |
+| latency | out-of-order delete delivery to remote convergence | 5,000 | 165 | 3.59 | 278.36 | 0.35 | 2,825.74 | 16.3 | 61.35 | 23.05 | 43.39 | yjs |
+| latency | out-of-order append delivery to convergence | 5,000 | 250 | 2.64 | 379.44 | 38.24 | 26.15 | n/a | n/a | 38.83 | 25.75 | crlist |
+| latency | out-of-order prepend delivery to convergence | 5,000 | 250 | 2.03 | 492.82 | 32.25 | 31.01 | 0.24 | 4,090.47 | 41.27 | 24.23 | json-joy |
+| latency | out-of-order middle insert delivery to convergence | 5,000 | 250 | 2.76 | 361.88 | 105.91 | 9.44 | n/a | n/a | 39.75 | 25.16 | crlist |
+| latency | out-of-order overwrite delivery to convergence | 5,000 | 129 | 4.46 | 224.43 | n/a | n/a | 522.35 | 1.91 | 213.29 | 4.69 | crlist |
+| latency | offline burst 1,000 ops then sync | 5,000 | 1,000 | 0.05 | 20,218.85 | 0.05 | 19,640.08 | 0.01 | 102,341.58 | 8.63 | 115.92 | json-joy |
+| latency | forked replicas mixed ops then converge | 5,000 | 500 | 0.01 | 66,677.34 | 0.01 | 104,718.62 | n/a | n/a | 8.95 | 111.77 | yjs |
+| latency | duplicate shuffled gossip to convergence | 5,000 | 500 | 0.83 | 1,202.81 | 0.41 | 2,466.85 | n/a | n/a | 1.15 | 866.17 | yjs |
+| latency | remote snapshot hydrate then apply pending deltas | 5,000 | 250 | 0.04 | 28,536.53 | 0.06 | 17,727.86 | 0.16 | 6,368.99 | 2.04 | 491.03 | crlist |
+| workload | local app session | 5,000 | 250 | 0.01 | 83,311.12 | 0.01 | 66,721.82 | 0.09 | 10,647.95 | 3.12 | 320.44 | crlist |
+| workload | read heavy session | 5,000 | 250 | 0 | 2,052,545.16 | 0 | 4,355,400.7 | 0.01 | 194,386.13 | 0 | 1,322,751.32 | yjs |
+| workload | write heavy session | 5,000 | 250 | 0.01 | 102,522.04 | 0.02 | 64,812.17 | 0.02 | 45,462.81 | 3.04 | 329.2 | crlist |
+| workload | append tail heavy session | 5,000 | 250 | 0 | 220,341.97 | 0.03 | 38,716.47 | 0.01 | 74,493.44 | 3.83 | 261.36 | crlist |
+| workload | prepend head heavy session | 5,000 | 250 | 0.01 | 85,925.42 | 0.02 | 56,360.89 | 0.02 | 57,851.62 | 4.35 | 229.66 | crlist |
+| workload | insert middle heavy session | 5,000 | 250 | 0.02 | 61,687.27 | 0.02 | 64,201.34 | 0.01 | 72,852.31 | 4.55 | 219.95 | json-joy |
+| workload | overwrite heavy session | 5,000 | 250 | 0.02 | 58,995.66 | 0.02 | 48,805.25 | 0.01 | 70,283.95 | 3.45 | 289.91 | json-joy |
+| workload | delete heavy session | 5,000 | 250 | 0.01 | 71,930.03 | 0.01 | 69,319.28 | 0.02 | 52,884.31 | 0.64 | 1,561.48 | crlist |
+| workload | balanced append prepend insert overwrite delete session | 5,000 | 250 | 0.02 | 57,782.09 | 0.02 | 53,148.52 | 0.01 | 70,557.69 | 3.59 | 278.77 | json-joy |
+| workload | random edit session | 5,000 | 250 | 0.03 | 38,280.74 | 0.03 | 31,760.95 | 0.16 | 6,303.96 | 3.22 | 310.47 | crlist |
+| workload | text editing session | 5,000 | 250 | 0.02 | 60,760.72 | 0.02 | 51,184.41 | 0.01 | 68,534.46 | 4.09 | 244.36 | json-joy |
+| workload | collaborative offline session | 5,000 | 500 | 0.03 | 33,770.78 | 0.02 | 50,769.15 | n/a | n/a | 8.86 | 112.88 | yjs |
+| workload | sync and cleanup session | 5,000 | 252 | 0.06 | 17,887.56 | 0.02 | 57,063.29 | n/a | n/a | 8.38 | 119.3 | yjs |
+| workload | long lived tombstoned session | 5,000 | 250 | 0.01 | 120,001.92 | 0.03 | 36,608.04 | 0.01 | 71,133.87 | 5.11 | 195.59 | crlist |
+| workload | sparse visible session | 5,000 | 250 | 0.01 | 109,237.09 | 0.26 | 3,796.13 | 0.05 | 21,427.04 | 2.73 | 366.82 | crlist |
+| workload | post-gc edit session | 5,000 | 250 | 0.01 | 175,648.14 | 0.04 | 26,331.31 | 0.03 | 38,448.53 | 4.14 | 241.64 | crlist |
 
 ## License
 

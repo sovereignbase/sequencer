@@ -37,8 +37,6 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
   const crListReplica: CRListState<T> = {
     size: 0,
     /***/
-    head: undefined,
-    tail: undefined,
     cursor: undefined,
     cursorIndex: undefined,
     clock: Bytes.toBigInt(buf),

@@ -57,19 +57,19 @@ the new tail block. Both cases match what `rebuildLiveProjection` would compute.
 
 All forked-replica and collaborative benchmarks returned `n/a` (convergence failure):
 
-| Benchmark                                          | CRList Before | Yjs Before |
-| -------------------------------------------------- | ------------: | ---------: |
+| Benchmark                                           | CRList Before | Yjs Before |
+| --------------------------------------------------- | ------------: | ---------: |
 | mags / merge / forked replicas rejoin after 250 ops |           n/a |   17.68 ms |
-| latency / forked replicas mixed ops then converge  |           n/a |    8.14 ms |
-| workload / collaborative offline session           |           n/a |   12.47 ms |
+| latency / forked replicas mixed ops then converge   |           n/a |    8.14 ms |
+| workload / collaborative offline session            |           n/a |   12.47 ms |
 
 ## After Results
 
-| Benchmark                                          | CRList After | Yjs After |
-| -------------------------------------------------- | -----------: | --------: |
+| Benchmark                                           | CRList After | Yjs After |
+| --------------------------------------------------- | -----------: | --------: |
 | mags / merge / forked replicas rejoin after 250 ops |     18.66 ms |  17.68 ms |
-| latency / forked replicas mixed ops then converge  |     13.63 ms |   8.14 ms |
-| workload / collaborative offline session           |      9.77 ms |  12.47 ms |
+| latency / forked replicas mixed ops then converge   |     13.63 ms |   8.14 ms |
+| workload / collaborative offline session            |      9.77 ms |  12.47 ms |
 
 `mags/forked`: within noise of Yjs. `workload/collaborative`: CRList wins.
 `latency/forked`: still behind (complex concurrent pattern).

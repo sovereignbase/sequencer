@@ -9,7 +9,7 @@ export type CRListStateEntry<T> =
       /** Stable UUIDv7 identity for this entry. */
       id: bigint
       /** Cached string form of `id` (avoids repeated bigint.toString()). */
-      idStr: string
+      idString: string
       /** User payload stored in the list. */
       values: Array<T>
       /** Stable predecessor UUIDv7, or `'\0'` for root-level entries. */
@@ -39,10 +39,6 @@ export type CRListReparentedStateEntry<T> = {
 export type CRListState<T> = {
   /** Number of live entries in the local projection. */
   size: number
-  /***/
-  head: CRListStateEntry<T>
-  /***/
-  tail: CRListStateEntry<T>
   /** Current live entry used as the walking cursor. */
   cursor: CRListStateEntry<T>
   /** Current zero-based index of `cursor`. */

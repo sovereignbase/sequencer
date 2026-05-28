@@ -27,7 +27,7 @@ export function attachEntryToIndexes<T>(
   if (deltaBuf) {
     if (!Array.isArray(deltaBuf.values)) deltaBuf.values = []
     void deltaBuf.values.push({
-      id: linkedListEntry.idStr,
+      id: linkedListEntry.idString,
       values,
       predecessor: predecessor.toString(),
     })

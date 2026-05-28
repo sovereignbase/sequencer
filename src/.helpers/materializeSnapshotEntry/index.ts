@@ -33,7 +33,7 @@ export function materializeSnapshotEntry<T>(
 
   return {
     id: bigIntId,
-    idStr: valueEntry.id,
+    idString: valueEntry.id,
     values: valueEntry.values,
     predecessor: bigIntPredecessor,
     index: 0,

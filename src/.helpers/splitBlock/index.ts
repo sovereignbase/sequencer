@@ -16,7 +16,7 @@ export function splitBlock<T>(
   const rightId = block.id + BigInt(offset)
   const left: NonNullable<CRListStateEntry<T>> = {
     id: block.id,
-    idStr: block.idStr,
+    idString: block.idString,
     values: block.values.slice(0, offset),
     predecessor: block.predecessor,
     index: block.index,
@@ -25,7 +25,7 @@ export function splitBlock<T>(
   }
   const right: NonNullable<CRListStateEntry<T>> = {
     id: rightId,
-    idStr: rightId.toString(),
+    idString: rightId.toString(),
     values: block.values.slice(offset),
     predecessor: rightId - 1n,
     index: block.index + offset,

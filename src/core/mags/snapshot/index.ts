@@ -1,4 +1,5 @@
 import { CRListState, CRListSnapshot } from '../../../.types/type.js'
+import { getEntryTailId } from '../../../.helpers/index.js'
 
 /**
  * Creates a full CRList snapshot from the current replica state.
@@ -15,12 +16,22 @@ export function __snapshot<T>(
   const values: CRListSnapshot<T>['values'] = []
   let block = crListReplica.cache.get(0) ?? crListReplica.cursor
   while (block?.prev) block = block.prev
+  let previous = block?.prev
   while (block) {
+    const predecessor =
+      block.predecessor === 0n
+        ? '0'
+        : previous && block.predecessor === getEntryTailId(previous)
+          ? previous.values.length === 1
+            ? previous.idString
+            : block.predecessor.toString()
+          : block.predecessor.toString()
     void values.push({
-      id: block.idStr,
+      id: block.idString,
       values: block.values,
-      predecessor: block.predecessor.toString(),
+      predecessor,
     })
+    previous = block
     block = block.next
   }
   return {

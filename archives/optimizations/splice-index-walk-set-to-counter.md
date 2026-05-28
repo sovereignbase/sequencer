@@ -20,23 +20,23 @@ cycle case (reachable would exceed the limit and not match).
 
 ## Before Results
 
-| Benchmark                                           | CRList Before |  Yjs Before | json-joy Before |
-| --------------------------------------------------- | ------------: | ----------: | --------------: |
-| mags / merge ordered deltas                         |       0.24 ms |     0.05 ms |         0.01 ms |
-| mags / merge / ordered 1,000 prepend deltas         |       0.45 ms |     0.02 ms |         0.02 ms |
-| mags / merge / ordered 1,000 middle insert deltas   |       0.18 ms |     0.03 ms |         0.02 ms |
-| mags / merge / concurrent inserts same middle       |       4.34 ms |     0.06 ms |             n/a |
-| class / merge ordered deltas                        |       0.20 ms |     0.02 ms |         0.01 ms |
+| Benchmark                                         | CRList Before | Yjs Before | json-joy Before |
+| ------------------------------------------------- | ------------: | ---------: | --------------: |
+| mags / merge ordered deltas                       |       0.24 ms |    0.05 ms |         0.01 ms |
+| mags / merge / ordered 1,000 prepend deltas       |       0.45 ms |    0.02 ms |         0.02 ms |
+| mags / merge / ordered 1,000 middle insert deltas |       0.18 ms |    0.03 ms |         0.02 ms |
+| mags / merge / concurrent inserts same middle     |       4.34 ms |    0.06 ms |             n/a |
+| class / merge ordered deltas                      |       0.20 ms |    0.02 ms |         0.01 ms |
 
 ## After Results
 
-| Benchmark                                           | CRList After |  Yjs After | json-joy After |
-| --------------------------------------------------- | -----------: | ---------: | -------------: |
-| mags / merge ordered deltas                         |      0.06 ms |    0.05 ms |        0.01 ms |
-| mags / merge / ordered 1,000 prepend deltas         |      0.05 ms |    0.01 ms |        0.01 ms |
-| mags / merge / ordered 1,000 middle insert deltas   |      0.02 ms |    0.02 ms |        0.02 ms |
-| mags / merge / concurrent inserts same middle       |      4.30 ms |    0.06 ms |            n/a |
-| class / merge ordered deltas                        |      0.04 ms |    0.02 ms |        0.01 ms |
+| Benchmark                                         | CRList After | Yjs After | json-joy After |
+| ------------------------------------------------- | -----------: | --------: | -------------: |
+| mags / merge ordered deltas                       |      0.06 ms |   0.05 ms |        0.01 ms |
+| mags / merge / ordered 1,000 prepend deltas       |      0.05 ms |   0.01 ms |        0.01 ms |
+| mags / merge / ordered 1,000 middle insert deltas |      0.02 ms |   0.02 ms |        0.02 ms |
+| mags / merge / concurrent inserts same middle     |      4.30 ms |   0.06 ms |            n/a |
+| class / merge ordered deltas                      |      0.04 ms |   0.02 ms |        0.01 ms |
 
 `merge ordered deltas`: 4x improvement (0.24→0.06 ms), now matches Yjs.
 `ordered 1,000 prepend deltas`: 9x improvement (0.45→0.05 ms).

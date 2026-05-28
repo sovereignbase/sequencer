@@ -74,7 +74,7 @@
     "tsup": "^8.5.1",
     "typedoc": "^0.28.19",
     "typescript": "^5.9.3",
-    "wrangler": "^4.94.0",
+    "wrangler": "^4.95.0",
     "yjs": "^13.6.30"
   },
   "dependencies": {

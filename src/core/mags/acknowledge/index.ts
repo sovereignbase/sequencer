@@ -1,4 +1,7 @@
-import { safeBigIntFromString } from '@sovereignbase/utils'
+import {
+  safeBigIntFromString,
+  uuidV7BigIntStringToBigInt,
+} from '@sovereignbase/utils'
 import type { CRListAck, CRListState } from '../../../.types/type.js'
 
 /**
@@ -12,9 +15,14 @@ export function __acknowledge<T>(
 ): CRListAck | false {
   let largest: bigint | undefined
   void crListReplica.tombstones.forEach((tombstone) => {
-    const canditate = safeBigIntFromString(tombstone)
-    if (canditate !== false && (largest === undefined || canditate > largest))
-      largest = canditate
+    const canditate = uuidV7BigIntStringToBigInt(tombstone)
+
+    if (canditate === false) {
+      crListReplica.tombstones.delete(tombstone)
+      return
+    }
+
+    if (largest === undefined || canditate > largest) largest = canditate
   })
   return largest !== undefined ? largest.toString() : false
 }

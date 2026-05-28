@@ -216,8 +216,8 @@ export class CRList<T> {
     while (linkedListEntry?.prev) linkedListEntry = linkedListEntry.prev
     let index = 0
     while (linkedListEntry) {
-      for (const v of linkedListEntry.values) {
-        if (predicate.call(thisArg, v, index, this)) return v
+      for (const value of linkedListEntry.values) {
+        if (predicate.call(thisArg, value, index, this)) return value
         index++
       }
       linkedListEntry = linkedListEntry.next
@@ -359,8 +359,8 @@ export class CRList<T> {
     while (linkedListEntry?.prev) linkedListEntry = linkedListEntry.prev
     let index = 0
     while (linkedListEntry) {
-      for (const v of linkedListEntry.values) {
-        void callback.call(thisArg, v, index, this)
+      for (const value of linkedListEntry.values) {
+        void callback.call(thisArg, value, index, this)
         index++
       }
       linkedListEntry = linkedListEntry.next

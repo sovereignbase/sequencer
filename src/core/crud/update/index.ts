@@ -42,7 +42,7 @@ export function __update<T>(
   const entryId = getEntryId(crListReplica, listValues.length)
   const linkedListEntry: NonNullable<CRListStateEntry<T>> = {
     id: entryId,
-    idStr: entryId.toString(),
+    idString: entryId.toString(),
     values: listValues,
     predecessor: 0n,
     index: 0,

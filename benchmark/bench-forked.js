@@ -9,9 +9,24 @@ const LIST_SIZE = 5_000
 const RUN_TIMES = 250
 
 const defs = [
-  { group: 'mags', name: 'merge / forked replicas rejoin after 250 ops each', n: LIST_SIZE, ops: RUN_TIMES },
-  { group: 'latency', name: 'forked replicas mixed ops then converge', n: LIST_SIZE, ops: RUN_TIMES },
-  { group: 'workload', name: 'collaborative offline session', n: LIST_SIZE, ops: RUN_TIMES },
+  {
+    group: 'mags',
+    name: 'merge / forked replicas rejoin after 250 ops each',
+    n: LIST_SIZE,
+    ops: RUN_TIMES,
+  },
+  {
+    group: 'latency',
+    name: 'forked replicas mixed ops then converge',
+    n: LIST_SIZE,
+    ops: RUN_TIMES,
+  },
+  {
+    group: 'workload',
+    name: 'collaborative offline session',
+    n: LIST_SIZE,
+    ops: RUN_TIMES,
+  },
 ]
 
 const adapters = [crlist, yjs]
@@ -27,6 +42,6 @@ for (const def of defs) {
     row[adapter.name] = result
   }
   results.push(row)
-  const fmt = (r) => r == null ? 'n/a' : `${r.ms?.toFixed(2)}ms`
+  const fmt = (r) => (r == null ? 'n/a' : `${r.ms?.toFixed(2)}ms`)
   console.log(`${row.name}: crlist=${fmt(row.crlist)} yjs=${fmt(row.yjs)}`)
 }

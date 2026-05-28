@@ -12,9 +12,9 @@ import {
   rebuildLiveIndex,
   deleteLiveEntryId,
   getEntryTailId,
-  getIndexAfterEntryId,
   moveEntryToPredecessor,
   trySpliceSiblingInsert,
+  trySpliceSiblingParentInsert,
   trySpliceReplacement,
   splitBlock,
   sliceEntryIntoUnseenBlocks,
@@ -199,6 +199,11 @@ export function __merge<T>(
         newTombstoneIndicies.length
       ) &&
       !trySpliceInsertedParent<T>(crListReplica, newValues, reparentedvalues) &&
+      !trySpliceSiblingParentInsert<T>(
+        crListReplica,
+        newValues,
+        reparentedvalues
+      ) &&
       !trySpliceReplacement<T>(
         crListReplica,
         newValues,

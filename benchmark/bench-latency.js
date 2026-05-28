@@ -17,18 +17,25 @@ const defs = [
   'out-of-order write delivery to remote visible',
   'out-of-order append delivery to convergence',
   'remote snapshot hydrate then apply pending deltas',
-].map(name => ({ group: 'latency', name, n: LIST_SIZE, ops: RUN_TIMES }))
+].map((name) => ({ group: 'latency', name, n: LIST_SIZE, ops: RUN_TIMES }))
 
 const adapters = [crlist, yjs]
-const fmt = (r) => r == null ? '  n/a' : `${r.ms?.toFixed(2).padStart(6)}ms`
+const fmt = (r) => (r == null ? '  n/a' : `${r.ms?.toFixed(2).padStart(6)}ms`)
 
 for (const def of defs) {
   const results = {}
   for (const adapter of adapters) {
     results[adapter.name] = runLatency(adapter, def)
   }
-  const winner = results.crlist?.ms != null && results.yjs?.ms != null
-    ? (results.crlist.ms <= results.yjs.ms ? ' ✓' : '  ')
-    : (results.crlist?.ms != null ? ' ✓' : '  ')
-  console.log(`${winner} ${def.name.padEnd(50)} crlist=${fmt(results.crlist)} yjs=${fmt(results.yjs)}`)
+  const winner =
+    results.crlist?.ms != null && results.yjs?.ms != null
+      ? results.crlist.ms <= results.yjs.ms
+        ? ' ✓'
+        : '  '
+      : results.crlist?.ms != null
+        ? ' ✓'
+        : '  '
+  console.log(
+    `${winner} ${def.name.padEnd(50)} crlist=${fmt(results.crlist)} yjs=${fmt(results.yjs)}`
+  )
 }

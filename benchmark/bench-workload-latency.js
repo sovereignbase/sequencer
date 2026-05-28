@@ -14,7 +14,7 @@ const workloadDefs = [
   'text editing session',
   'collaborative offline session',
   'sync and cleanup session',
-].map(name => ({ group: 'workload', name, n: LIST_SIZE, ops: RUN_TIMES }))
+].map((name) => ({ group: 'workload', name, n: LIST_SIZE, ops: RUN_TIMES }))
 
 const latencyDefs = [
   'append tail write to remote visible',
@@ -23,10 +23,11 @@ const latencyDefs = [
   'forked replicas mixed ops then converge',
   'out-of-order append delivery to convergence',
   'duplicate shuffled gossip to convergence',
-].map(name => ({ group: 'latency', name, n: LIST_SIZE, ops: RUN_TIMES }))
+].map((name) => ({ group: 'latency', name, n: LIST_SIZE, ops: RUN_TIMES }))
 
 const adapters = [crlist, yjs]
-const fmt = (r) => r == null ? '     n/a' : `${r.ms?.toFixed(2).padStart(7)}ms`
+const fmt = (r) =>
+  r == null ? '     n/a' : `${r.ms?.toFixed(2).padStart(7)}ms`
 
 function run(defs, runFn) {
   for (const def of defs) {
@@ -36,8 +37,11 @@ function run(defs, runFn) {
     }
     const c = results.crlist?.ms
     const y = results.yjs?.ms
-    const win = c != null && y != null ? (c <= y ? '✓ ' : '  ') : (c != null ? '✓ ' : '  ')
-    console.log(`${win}${def.name.padEnd(52)} crlist=${fmt(results.crlist)} yjs=${fmt(results.yjs)}`)
+    const win =
+      c != null && y != null ? (c <= y ? '✓ ' : '  ') : c != null ? '✓ ' : '  '
+    console.log(
+      `${win}${def.name.padEnd(52)} crlist=${fmt(results.crlist)} yjs=${fmt(results.yjs)}`
+    )
   }
 }
 

@@ -1,4 +1,7 @@
-import { safeBigIntFromString } from '@sovereignbase/utils'
+import {
+  safeBigIntFromString,
+  uuidV7BigIntStringToBigInt,
+} from '@sovereignbase/utils'
 import { CRListAck, CRListState } from '../../../.types/type.js'
 
 /**
@@ -12,16 +15,25 @@ export function __garbageCollect<T>(
   crListReplica: CRListState<T>
 ): void {
   if (!Array.isArray(frontiers)) return
-  const valid = frontiers.filter(
-    (frontier) =>
-      typeof frontier === 'string' && safeBigIntFromString(frontier) !== false
-  )
+  const valid: Array<bigint> = []
+
+  for (const frontier of frontiers) {
+    if (typeof frontier !== 'string') continue
+    const bigint = safeBigIntFromString(frontier)
+
+    if (bigint === false) continue
+
+    void valid.push(bigint)
+  }
+
   if (valid.length === 0) return
-  void valid.sort((a, b) => (BigInt(a) < BigInt(b) ? -1 : 1))
-  const smallestBig = BigInt(valid[0])
+  void valid.sort((a, b) => (a < b ? -1 : 1))
+  const smallestBig = valid[0]
   void crListReplica.tombstones.forEach((tombstone, __, tombstones) => {
-    const canditate = safeBigIntFromString(tombstone)
-    if (canditate !== false && canditate <= smallestBig)
+    const canditate = uuidV7BigIntStringToBigInt(tombstone)
+
+    /** delete malformed and valid acknowledged tombstones */
+    if (canditate === false || canditate <= smallestBig)
       void tombstones.delete(tombstone)
   })
 }

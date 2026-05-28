@@ -4,7 +4,13 @@ Use this skill when optimizing CRList benchmark performance against Yjs, json-jo
 
 ## Baseline
 
-Run `npm run bench` once with a 30-minute timeout.
+Read the current full benchmark table from `README.md` when it is available or
+the user has supplied it. Do not rerun the full benchmark when the user
+explicitly says the current full benchmark is already in `README.md`.
+
+For optimization decisions, use your own targeted before/after benchmark runs
+for the rows touched by the attempted change. The README table is context, not
+the before/after baseline for a local optimization attempt.
 
 Read the CRList, Yjs, json-joy, and Automerge benchmark implementations.
 
@@ -23,15 +29,24 @@ Work iteratively.
    `C:\Users\jorts\convergent-replicated-list\archives\optimizations`
 
 2. Reason about and plan the smallest safe change.
-3. Run a targeted benchmark for that area.
+3. Run targeted benchmarks for that area. Use multiple targeted runs when the
+   benchmark is noisy, when some rows improve and others regress, or when the
+   decision is close. Do not keep or reject a change from a single noisy run
+   unless the outcome is obvious and one-sided.
 4. Make the change.
 5. Run the targeted tests for that area.
 6. Ignore coverage.
 7. Ensure the convergence invariants pass.
-8. Run the targeted benchmark again.
+8. Run the targeted benchmark again. Use the same multi-run rule as the before
+   benchmark when the result is noisy or mixed.
 9. If the change improves performance, keep it.
 10. If the change does not improve performance, revert it.
-11. Document the idea, rationale, before results, after results, and final rationale in:
+11. Evaluate the benchmark result relative to the competing libraries, not only as absolute milliseconds:
+    - Report CRList before → after percentage change.
+    - Report CRList's ratio or percentage gap versus the winning competing library before and after.
+    - Treat a change as worse if it improves absolute CRList milliseconds but increases the relative gap or loses more benchmark rows in the target area.
+
+12. Document the idea, rationale, before results, after results, relative competitor comparison, and final rationale in:
 
 `C:\Users\jorts\convergent-replicated-list\archives\optimizations\{targetDescriptiveName}`
 

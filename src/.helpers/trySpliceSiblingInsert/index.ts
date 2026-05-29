@@ -24,20 +24,37 @@ export function trySpliceSiblingInsert<T>(
     return false
   const inserted = insertedEntries[0]
   if (inserted.values.length !== 1) return false
-  if (inserted.predecessor === 0n) return false
   if (crListReplica.childrenMap.get(getEntryTailId(inserted))?.length)
     return false
 
-  const predecessor = crListReplica.parentMap.get(inserted.predecessor)
+  const predecessor =
+    inserted.predecessor === 0n
+      ? undefined
+      : crListReplica.parentMap.get(inserted.predecessor)
   const siblings = crListReplica.childrenMap.get(inserted.predecessor)
-  if (!predecessor || !siblings || siblings.length < 2) return false
+  if (!siblings || siblings.length < 2) return false
+  if (inserted.predecessor !== 0n && !predecessor) return false
 
   void siblings.sort((a, b) => (a.id > b.id ? 1 : -1))
   const siblingIndex = siblings.indexOf(inserted)
   if (siblingIndex === -1) return false
-  const lastSibling = siblings[siblings.length - 1]
-  if (lastSibling !== inserted && lastSibling.next) return false
-
+  if (inserted.predecessor === 0n) {
+    if (siblingIndex !== 0) return false
+    const next = siblings[1]
+    if (!next || crListReplica.head !== next || next.prev !== undefined)
+      return false
+    void linkEntryBetween<T>(undefined, inserted, next)
+    inserted.index = 0
+    next.index = inserted.values.length
+    crListReplica.head = inserted
+    void crListReplica.cache.clear()
+    void crListReplica.cache.set(0, inserted)
+    crListReplica.cursor = inserted
+    crListReplica.cursorIndex = 0
+    crListReplica.size = crListReplica.parentMap.size
+    return true
+  }
+  if (!predecessor) return false
   const previousSibling = siblings[siblingIndex - 1]
   const nextSibling = siblings[siblingIndex + 1]
   if (previousSibling?.id) {

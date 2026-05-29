@@ -578,6 +578,23 @@ test('unit: merge splices root replacement when successor chain is complete', ()
   )
 })
 
+test('unit: merge splices root replacement without successor', () => {
+  const source = __create()
+  assert(__update(0, [{ id: 'a' }], source, 'after'))
+  const target = __create(__snapshot(source))
+
+  const overwritten = __update(0, [{ id: 'new-head' }], source, 'overwrite')
+  assert(overwritten)
+
+  const change = __merge(target, overwritten.delta)
+
+  assert.deepEqual(change, { 0: { id: 'new-head' } })
+  assert.equal(target.size, 1)
+  assert.equal(target.head.values[0].id, 'new-head')
+  assert.equal(target.tail, target.head)
+  assert.equal(__read(0, target).id, 'new-head')
+})
+
 test('unit: remote head delete is observable through indexed reads', () => {
   const source = __create()
   assert(__update(0, [{ id: 'a' }, { id: 'b' }, { id: 'c' }], source, 'after'))
@@ -631,6 +648,99 @@ test('unit: merge splices simple concurrent tail siblings', () => {
   )
   assert.equal(target.cursor.values[0].id, 'right')
   assert.equal(target.cache.get(target.cursorIndex), target.cursor)
+})
+
+test('unit: merge splices lower root sibling before current head', () => {
+  const base = __create()
+  assert(__update(0, [{ id: 'a' }, { id: 'b' }, { id: 'c' }], base, 'after'))
+  const snapshot = __snapshot(base)
+  const target = __create(snapshot)
+  const left = __create(snapshot)
+  const right = __create(snapshot)
+
+  const leftDelta = __update(0, [{ id: 'left' }], left, 'before').delta
+  const rightDelta = __update(0, [{ id: 'right' }], right, 'before').delta
+  const [higher, lower] =
+    BigInt(leftDelta.values[0].id) > BigInt(rightDelta.values[0].id)
+      ? [leftDelta, rightDelta]
+      : [rightDelta, leftDelta]
+
+  assert(__merge(target, higher))
+  const tail = target.tail
+  tail.index = -123
+  assert(__merge(target, lower))
+  const lowerId = lower.values[0].values[0].id
+  const higherId = higher.values[0].values[0].id
+
+  assert.equal(tail.index, -123)
+  assert.deepEqual(
+    ids(target).map((value) => value.id),
+    [lowerId, higherId, 'a', 'b', 'c']
+  )
+})
+
+test('unit: merge splices lower non-root sibling before existing subtree', () => {
+  const base = __create()
+  assert(__update(0, [{ id: 'a' }, { id: 'b' }, { id: 'c' }], base, 'after'))
+  const snapshot = __snapshot(base)
+  const target = __create(snapshot)
+  const left = __create(snapshot)
+  const right = __create(snapshot)
+
+  const leftDelta = __update(1, [{ id: 'left' }], left, 'before').delta
+  const rightDelta = __update(1, [{ id: 'right' }], right, 'before').delta
+  const [higher, lower] =
+    BigInt(leftDelta.values[0].id) > BigInt(rightDelta.values[0].id)
+      ? [leftDelta, rightDelta]
+      : [rightDelta, leftDelta]
+
+  assert(__merge(target, higher))
+  const tail = target.tail
+  tail.index = -123
+  assert(__merge(target, lower))
+  const lowerId = lower.values[0].values[0].id
+  const higherId = higher.values[0].values[0].id
+
+  assert.equal(tail.index, -123)
+  assert.deepEqual(
+    ids(target).map((value) => value.id),
+    ['a', lowerId, higherId, 'b', 'c']
+  )
+})
+
+test('unit: merge splices sibling parent through tombstoned bridge', () => {
+  const base = __create()
+  assert(
+    __update(
+      0,
+      [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }],
+      base,
+      'after'
+    )
+  )
+  const snapshot = __snapshot(base)
+  const target = __create(snapshot)
+  const overwritten = __create(snapshot)
+  const removed = __create(snapshot)
+
+  const overwriteDelta = __update(
+    1,
+    [{ id: 'overwrite' }],
+    overwritten,
+    'overwrite'
+  ).delta
+  const deleteDelta = __delete(removed, 1, 2).delta
+
+  assert(__merge(target, overwriteDelta))
+  const tail = target.tail
+  tail.index = -123
+  assert(__merge(target, deleteDelta))
+
+  assert.equal(tail.index, -123)
+  assert.deepEqual(
+    ids(target).map((value) => value.id),
+    ['a', 'overwrite', 'c', 'd']
+  )
 })
 
 test('unit: nullish snapshot and delta entries are ignored', () => {

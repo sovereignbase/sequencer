@@ -36,7 +36,11 @@ export function trySpliceSiblingParentInsert<T>(
 
   const previousSibling = siblings[siblingIndex - 1]
   const nextSibling = siblings[siblingIndex + 1]
-  if (reparented.oldPredecessor !== getEntryTailId(previousSibling))
+  const previousSiblingTailId = getEntryTailId(previousSibling)
+  const tombstoneBridge =
+    reparented.oldPredecessor !== previousSiblingTailId &&
+    crListReplica.tombstones.has(reparented.oldPredecessor.toString())
+  if (reparented.oldPredecessor !== previousSiblingTailId && !tombstoneBridge)
     return false
   if (previousSibling.next !== moved || moved.prev !== previousSibling)
     return false

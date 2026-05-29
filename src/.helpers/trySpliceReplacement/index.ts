@@ -51,8 +51,15 @@ export function trySpliceReplacement<T>(
     return false
   }
 
+  let expectedIndex: number | undefined
   if (predecessor) {
     if (predecessor.next !== next) return false
+    expectedIndex = getIndexAfterEntryId<T>(crListReplica, inserted.predecessor)
+  } else if (
+    (next && crListReplica.head === next && next.prev === undefined) ||
+    (!next && crListReplica.head === undefined)
+  ) {
+    expectedIndex = 0
   } else {
     let reachable = 0
     let current: CRListStateEntry<T> = next
@@ -63,12 +70,9 @@ export function trySpliceReplacement<T>(
     }
     if (reachable !== crListReplica.parentMap.size - inserted.values.length)
       return false
+    expectedIndex = 0
   }
 
-  const expectedIndex = getIndexAfterEntryId<T>(
-    crListReplica,
-    inserted.predecessor
-  )
   if (expectedIndex === undefined) return false
   void linkEntryBetween<T>(predecessor, inserted, next)
   inserted.index = expectedIndex

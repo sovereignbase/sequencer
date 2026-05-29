@@ -12,7 +12,7 @@ import {
   getEntryTailId,
 } from '../../../.helpers/index.js'
 import { v7 } from 'uuid'
-import { Bytes } from '@sovereignbase/bytecodec'
+import { toBigInt } from '@sovereignbase/bytecodec'
 
 /**
  * Creates a local CRList replica from an optional snapshot.
@@ -41,7 +41,7 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
     /***/
     cursor: undefined,
     cursorIndex: undefined,
-    clock: Bytes.toBigInt(buf),
+    clock: toBigInt(buf),
     /***/
     cache: new Map<number, NonNullable<CRListStateEntry<T>>>(),
     /***/

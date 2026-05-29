@@ -20,6 +20,14 @@ function ids(state) {
   return result
 }
 
+function find(state, predicate) {
+  for (let index = 0; index < state.list.length(); index++) {
+    const value = state.list.get(index)?.view()
+    if (predicate(value)) return value
+  }
+  return undefined
+}
+
 function snapshot(state) {
   return state.model.toBinary()
 }
@@ -64,6 +72,7 @@ export const jsonJoyAdapter = {
   size: (state) => state.list.length(),
   ids,
   readId: (state, index) => state.list.get(index)?.view().id,
+  find,
   snapshot,
   hydrate,
   merge: (state, artifact) => {

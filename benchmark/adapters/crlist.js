@@ -25,6 +25,21 @@ function ids(state) {
   )
 }
 
+function firstEntry(state) {
+  let entry = state.head ?? state.cache.get(0) ?? state.cursor
+  while (entry?.prev) entry = entry.prev
+  return entry
+}
+
+function find(state, predicate) {
+  let entry = firstEntry(state)
+  while (entry) {
+    for (const value of entry.values) if (predicate(value)) return value
+    entry = entry.next
+  }
+  return undefined
+}
+
 function insert(state, index, values, mode = 'before') {
   const result = __update(index, values.map(value), state, mode)
   return { state, artifact: result?.delta }
@@ -59,6 +74,10 @@ function classIds(list) {
   const result = []
   list.forEach((entry) => result.push(entry.id))
   return result
+}
+
+function classFind(list, predicate) {
+  return list.find(predicate)
 }
 
 function classInsert(list, index, values, mode = 'before') {
@@ -106,6 +125,7 @@ export const crlistAdapter = {
   size: (state) => state.size,
   ids,
   readId: (state, index) => __read(index, state)?.id,
+  find,
   snapshot: (state) => __snapshot(state),
   hydrate: (snapshot) => __create(snapshot),
   merge: (state, artifact) => {
@@ -128,6 +148,7 @@ export const crlistAdapter = {
   classSize: (list) => list.size,
   classIds,
   classReadId: (list, index) => list[index]?.id,
+  classFind,
   classSnapshot: (list) => list.toJSON(),
   classHydrate: (snapshot) => new CRList(snapshot),
   classMerge: (list, artifact) => {

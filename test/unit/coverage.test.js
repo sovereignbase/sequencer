@@ -162,8 +162,18 @@ test('unit: CRList public surface and events', () => {
   falseResultList.append([{ id: 'no-append' }], 1)
   falseResultState.cursor = falseResultEntry
   falseResultList.remove(1)
+  const noListenerList = new CRList()
+  Object.getOwnPropertyDescriptor(
+    noListenerList,
+    'eventTarget'
+  ).value.dispatchEvent = () => {
+    throw new Error('unobserved-dispatch')
+  }
+  noListenerList.append([{ id: 'no-listener' }])
+  assert.equal(noListenerList.size, 1)
   const throwingSetList = new CRList()
   throwingSetList.append([{ id: 'set-throw' }])
+  throwingSetList.addEventListener('change', () => {})
   Object.getOwnPropertyDescriptor(
     throwingSetList,
     'eventTarget'
@@ -173,6 +183,7 @@ test('unit: CRList public surface and events', () => {
   assert.equal(Reflect.set(throwingSetList, '0', { id: 'set-catch' }), false)
   const throwingDeleteList = new CRList()
   throwingDeleteList.append([{ id: 'delete-throw' }])
+  throwingDeleteList.addEventListener('change', () => {})
   Object.getOwnPropertyDescriptor(
     throwingDeleteList,
     'eventTarget'
@@ -705,6 +716,52 @@ test('unit: merge splices lower non-root sibling before existing subtree', () =>
   assert.deepEqual(
     ids(target).map((value) => value.id),
     ['a', lowerId, higherId, 'b', 'c']
+  )
+})
+
+test('unit: merge splices first child before concurrent next sibling', () => {
+  const base = __create()
+  assert(__update(0, [{ id: 'a' }, { id: 'b' }], base, 'after'))
+  const snapshot = __snapshot(base)
+  const left = __create(snapshot)
+  const right = __create(snapshot)
+  const target = __create(snapshot)
+
+  const leftFirst = __update(left.size, [{ id: 'left-0' }], left, 'after').delta
+  const leftSecond = __update(
+    left.size,
+    [{ id: 'left-1' }],
+    left,
+    'after'
+  ).delta
+  const rightFirst = __update(
+    right.size,
+    [{ id: 'right-0' }],
+    right,
+    'after'
+  ).delta
+  const rightSecond = __update(
+    right.size,
+    [{ id: 'right-1' }],
+    right,
+    'after'
+  ).delta
+  const [lowerFirst, lowerSecond, higherFirst] =
+    BigInt(leftFirst.values[0].id) < BigInt(rightFirst.values[0].id)
+      ? [leftFirst, leftSecond, rightFirst]
+      : [rightFirst, rightSecond, leftFirst]
+
+  assert(__merge(target, higherFirst))
+  assert(__merge(target, lowerFirst))
+  assert(__merge(target, lowerSecond))
+
+  const lowerZero = lowerFirst.values[0].values[0].id
+  const lowerOne = lowerSecond.values[0].values[0].id
+  const higherZero = higherFirst.values[0].values[0].id
+
+  assert.deepEqual(
+    ids(target).map((value) => value.id),
+    ['a', 'b', lowerZero, lowerOne, higherZero]
   )
 })
 

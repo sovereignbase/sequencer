@@ -4,6 +4,7 @@ import {
   createArtifacts,
   createTombstonedState,
   createValues,
+  findById,
   measured,
   mergeArtifacts,
   mergeArtifactsByOrder,
@@ -22,6 +23,7 @@ function classOps(adapter) {
     size: adapter.classSize ?? adapter.size,
     ids: adapter.classIds ?? adapter.ids,
     readId: adapter.classReadId ?? adapter.readId,
+    find: adapter.classFind ?? adapter.find,
     snapshot: adapter.classSnapshot ?? adapter.snapshot,
     hydrate: adapter.classHydrate ?? adapter.hydrate,
     merge: adapter.classMerge ?? adapter.merge,
@@ -37,12 +39,6 @@ function classOps(adapter) {
     acknowledge: adapter.classAcknowledge ?? adapter.acknowledge,
     garbageCollect: adapter.classGarbageCollect ?? adapter.garbageCollect,
   }
-}
-
-function findById(ops, state, id) {
-  for (let index = 0; index < ops.size(state); index++)
-    if (ops.readId(state, index) === id) return ops.readId(state, index)
-  return undefined
 }
 
 function readBenchmark(ops, definition) {

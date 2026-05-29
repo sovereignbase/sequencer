@@ -5,6 +5,7 @@ import {
   createSparseState,
   createTombstonedState,
   createValues,
+  findById,
   findIndexById,
   maybeGarbageCollect,
   measured,
@@ -17,12 +18,6 @@ import {
   visibleConvergence,
 } from './shared.js'
 import { random, shuffledIndices } from '../helpers/random.js'
-
-function findById(adapter, state, id) {
-  for (let index = 0; index < adapter.size(state); index++)
-    if (adapter.readId(state, index) === id) return adapter.readId(state, index)
-  return undefined
-}
 
 function hydrateState(adapter, definition, state) {
   const snapshot = adapter.snapshot(state)

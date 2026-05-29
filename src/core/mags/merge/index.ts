@@ -13,6 +13,7 @@ import {
   deleteLiveEntryId,
   getEntryTailId,
   moveEntryToPredecessor,
+  trySpliceChildInsert,
   trySpliceSiblingInsert,
   trySpliceSiblingParentInsert,
   trySpliceReplacement,
@@ -197,6 +198,12 @@ export function __merge<T>(
   if (needsRelink) {
     if (
       !trySpliceSiblingInsert<T>(
+        crListReplica,
+        newValues,
+        reparentedValues,
+        newTombstoneIndicies.length
+      ) &&
+      !trySpliceChildInsert<T>(
         crListReplica,
         newValues,
         reparentedValues,

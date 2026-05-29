@@ -29,6 +29,15 @@ export function findIndexById(adapter, state, id) {
   return -1
 }
 
+export function findById(adapter, state, id) {
+  const found = adapter.find?.(state, (value) => value.id === id)
+  if (found) return found.id
+  const size = adapter.size(state)
+  for (let index = 0; index < size; index++)
+    if (adapter.readId(state, index) === id) return adapter.readId(state, index)
+  return undefined
+}
+
 export function safeIndex(adapter, state, position, seed = 0xdecaf) {
   const size = adapter.size(state)
   if (size === 0) return 0

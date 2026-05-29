@@ -45,6 +45,7 @@ export const automergeAdapter = {
   size: (state) => state.list.length,
   ids: (state) => state.list.map((entry) => entry.id),
   readId: (state, index) => state.list[index]?.id,
+  find: (state, predicate) => state.list.find(predicate),
   snapshot: (state) => Automerge.save(state),
   hydrate: (snapshot) => Automerge.load(snapshot),
   merge: (state, artifact) => Automerge.applyChanges(state, artifact)[0],

@@ -96,5 +96,10 @@ for (const definition of targets) {
       padL(perLib[l] === undefined ? 'n/a' : perLib[l].toFixed(5), 16)
     )
     .join('')
-  console.log(pad(definition.name.replace('merge ', ''), 52) + cells + '  ' + pad(winner, 10))
+  console.log(
+    pad(definition.name.replace('merge ', ''), 52) +
+      cells +
+      '  ' +
+      pad(winner, 10)
+  )
 }

@@ -32,16 +32,16 @@ if (cursor !== undefined && cursorIndex !== undefined) {
 Clean crlist-only A/B, back-to-back rebuilds, median op/s of 41 runs
 (`benchmark/_prof-read-ab.mjs`):
 
-| crud read row                  |   Before |    After |       Change |
-| ------------------------------ | -------: | -------: | -----------: |
-| head                           |   12.89M |   12.38M |          -4% |
-| middle                         |   11.21M |    9.96M |         -11% |
-| tail                           |   12.32M |   11.79M |          -4% |
-| random indexed reads           |    2.12M |    1.29M |     **-39%** |
-| sequential from head           |    6.01M |    4.70M |     **-22%** |
-| sequential from middle         |   12.50M |    9.51M |     **-24%** |
-| sequential from tail           |   10.33M |    8.62M |         -17% |
-| full iteration visible values  |      728 |     1131 |         +55% |
+| crud read row                 | Before |  After |   Change |
+| ----------------------------- | -----: | -----: | -------: |
+| head                          | 12.89M | 12.38M |      -4% |
+| middle                        | 11.21M |  9.96M |     -11% |
+| tail                          | 12.32M | 11.79M |      -4% |
+| random indexed reads          |  2.12M |  1.29M | **-39%** |
+| sequential from head          |  6.01M |  4.70M | **-22%** |
+| sequential from middle        | 12.50M |  9.51M | **-24%** |
+| sequential from tail          | 10.33M |  8.62M |     -17% |
+| full iteration visible values |    728 |   1131 |     +55% |
 
 ## Why It Regresses
 

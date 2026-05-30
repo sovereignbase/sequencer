@@ -50,13 +50,13 @@ block is `lastBlock`, so the change-index computation is `O(1)`.
 crlist measured before vs after; competitor columns are noisy across processes
 and shown only as context).
 
-| Merge scenario (mags)              | CRList before | CRList after | CRList change | Best competitor (after) |
-| ---------------------------------- | ------------: | -----------: | ------------: | ----------------------: |
-| overwrite tail delta               |     0.3611 ms |    0.0390 ms |    89% faster |       json-joy 0.021 ms |
-| delete tail delta                  |     0.2617 ms |    0.0399 ms |    85% faster |       json-joy 0.018 ms |
-| concurrent overwrites same tail    |     0.8464 ms |    0.1483 ms |    82% faster |            yjs 0.064 ms |
-| concurrent deletes same tail       |     0.4578 ms |    0.0171 ms |    96% faster |  json-joy 0.0170 ms (~tie) |
-| concurrent overwrite delete entry  |     0.5397 ms |    0.2300 ms |    57% faster |       json-joy 0.038 ms |
+| Merge scenario (mags)             | CRList before | CRList after | CRList change |   Best competitor (after) |
+| --------------------------------- | ------------: | -----------: | ------------: | ------------------------: |
+| overwrite tail delta              |     0.3611 ms |    0.0390 ms |    89% faster |         json-joy 0.021 ms |
+| delete tail delta                 |     0.2617 ms |    0.0399 ms |    85% faster |         json-joy 0.018 ms |
+| concurrent overwrites same tail   |     0.8464 ms |    0.1483 ms |    82% faster |              yjs 0.064 ms |
+| concurrent deletes same tail      |     0.4578 ms |    0.0171 ms |    96% faster | json-joy 0.0170 ms (~tie) |
+| concurrent overwrite delete entry |     0.5397 ms |    0.2300 ms |    57% faster |         json-joy 0.038 ms |
 
 Rows that were already won or are dominated by other costs (ordered/prepend
 batches, shuffled gossip, concurrent same-head, snapshot merge) held within

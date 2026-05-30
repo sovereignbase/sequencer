@@ -64,20 +64,20 @@ walk before falling back; single isolated middle merges are unchanged.
 endpoint-fast-path build (previous archive); "after" is with the cursor probe.
 Competitor columns are the after-run context (noisy across processes).
 
-| Merge scenario (mags)              | CRList before | CRList after | CRList change | Winner after          |
-| ---------------------------------- | ------------: | -----------: | ------------: | --------------------- |
-| ordered 1,000 middle insert deltas |     0.0292 ms |    0.0054 ms |    82% faster | json-joy 0.0051 (~tie) |
-| concurrent appends same tail       |     0.1497 ms |    0.0346 ms |    77% faster | **crlist** (yjs 0.052) |
-| concurrent overwrites same tail    |     0.1483 ms |    0.0451 ms |    70% faster | **crlist** (yjs 0.060) |
-| forked replicas rejoin 250 ops     |     0.0218 ms |    0.0079 ms |    64% faster | **crlist** (yjs 0.018) |
-| 10 replicas gossip convergence     |     0.0232 ms |    0.0060 ms |    74% faster | **crlist** (yjs 0.019) |
-| shuffled 1,000 mixed deltas        |     2.856 ms  |    2.067 ms  |    28% faster | **crlist** (yjs 2.17)  |
-| reverse 1,000 mixed deltas         |     0.678 ms  |    0.569 ms  |    16% faster | **crlist**             |
-| merge ordered deltas               |     0.0387 ms |    0.0136 ms |    65% faster | json-joy 0.0077        |
-| concurrent overwrites same middle  |     0.2028 ms |    0.1780 ms |    12% faster | yjs 0.063              |
-| concurrent deletes same middle     |     0.2934 ms |    0.2166 ms |    26% faster | json-joy 0.029         |
+| Merge scenario (mags)              | CRList before | CRList after | CRList change | Winner after                |
+| ---------------------------------- | ------------: | -----------: | ------------: | --------------------------- |
+| ordered 1,000 middle insert deltas |     0.0292 ms |    0.0054 ms |    82% faster | json-joy 0.0051 (~tie)      |
+| concurrent appends same tail       |     0.1497 ms |    0.0346 ms |    77% faster | **crlist** (yjs 0.052)      |
+| concurrent overwrites same tail    |     0.1483 ms |    0.0451 ms |    70% faster | **crlist** (yjs 0.060)      |
+| forked replicas rejoin 250 ops     |     0.0218 ms |    0.0079 ms |    64% faster | **crlist** (yjs 0.018)      |
+| 10 replicas gossip convergence     |     0.0232 ms |    0.0060 ms |    74% faster | **crlist** (yjs 0.019)      |
+| shuffled 1,000 mixed deltas        |      2.856 ms |     2.067 ms |    28% faster | **crlist** (yjs 2.17)       |
+| reverse 1,000 mixed deltas         |      0.678 ms |     0.569 ms |    16% faster | **crlist**                  |
+| merge ordered deltas               |     0.0387 ms |    0.0136 ms |    65% faster | json-joy 0.0077             |
+| concurrent overwrites same middle  |     0.2028 ms |    0.1780 ms |    12% faster | yjs 0.063                   |
+| concurrent deletes same middle     |     0.2934 ms |    0.2166 ms |    26% faster | json-joy 0.029              |
 | ordered 1,000 append deltas        |     0.0072 ms |    0.0059 ms |    18% faster | **crlist** (jsonjoy 0.0066) |
-| ordered 1,000 prepend deltas       |     0.0093 ms |    0.0053 ms |    43% faster | **crlist**             |
+| ordered 1,000 prepend deltas       |     0.0093 ms |    0.0053 ms |    43% faster | **crlist**                  |
 
 Net new wins over the pre-optimization baseline: concurrent appends same tail,
 concurrent overwrites same tail, forked replicas rejoin, and 10 replicas gossip

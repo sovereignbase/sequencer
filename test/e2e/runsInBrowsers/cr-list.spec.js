@@ -79,11 +79,11 @@ test('CRList browser relink paths do not overflow the call stack', async ({
 
       const createdRootHydration = api.__create({
         blocks: reversed(rootHydrationValues),
-        deletedIds: [],
+        deletedRuns: [],
       })
       const createdDetachedHydration = api.__create({
         blocks: reversed(detachedHydrationValues),
-        deletedIds: [],
+        deletedRuns: [],
       })
 
       const mergedRoot = api.__create()

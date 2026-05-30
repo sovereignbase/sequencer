@@ -16,15 +16,15 @@ export function deleteBlock<T>(
 ): void {
   const previousBlock = block.previousBlock
   const nextBlock = block.nextBlock
-  const length = block.items.length
+  const blockLength = block.items.length
 
   void markDeletedRange(
     replica.deletedRanges,
     block.id,
-    block.id + BigInt(length) - 1n
+    block.id + BigInt(blockLength - 1)
   )
   if (deltaObject)
-    void (deltaObject.deletedRuns ??= []).push([block.idString, length])
+    void (deltaObject.deletedRuns ??= []).push([block.idString, blockLength])
 
   if (previousBlock) previousBlock.nextBlock = nextBlock
   if (nextBlock) nextBlock.previousBlock = previousBlock
@@ -38,5 +38,5 @@ export function deleteBlock<T>(
   if (!replica.currentBlock) replica.currentBlockIndex = undefined
   block.previousBlock = undefined
   block.nextBlock = undefined
-  replica.size = replica.size - block.items.length
+  replica.size = replica.size - blockLength
 }

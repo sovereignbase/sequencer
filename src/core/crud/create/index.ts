@@ -50,7 +50,11 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
       const start = safeBigIntFromString(run[0])
       const length = run[1]
       if (start === false || typeof length !== 'number' || length < 1) continue
-      void markDeletedRange(replica.deletedRanges, start, start + BigInt(length) - 1n)
+      void markDeletedRange(
+        replica.deletedRanges,
+        start,
+        start + BigInt(length) - 1n
+      )
     }
   }
 

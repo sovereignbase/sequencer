@@ -14,7 +14,10 @@
       "Bash(CRLIST_STRESS_ROUNDS=2 node test/integration/convergence-stress-runner.mjs)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\jorts\\\\convergent-replicated-list\" -Force)",
       "Bash(Select-Object Name, PSIsContainer)",
-      "Bash(node --experimental-vm-modules node_modules/.bin/jest --testPathPattern=\"\\(crud|class|convergence\\)\" --no-coverage)"
+      "Bash(node --experimental-vm-modules node_modules/.bin/jest --testPathPattern=\"\\(crud|class|convergence\\)\" --no-coverage)",
+      "Bash(node benchmark/_prof-read.mjs 21)",
+      "Bash(WITH_AUTOMERGE=1 node benchmark/_prof-read.mjs 9)",
+      "Bash(node benchmark/_prof-read-ab.mjs 41)"
     ]
   }
 }

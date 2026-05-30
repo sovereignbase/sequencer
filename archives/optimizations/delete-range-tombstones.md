@@ -10,12 +10,12 @@ treat this as merged/kept until the test migration and the structural follow-up
 
 CRList loses the range-delete rows to Yjs by ~8–9x:
 
-| row                              | crlist (node24 baseline) | yjs        |
-| -------------------------------- | -----------------------: | ---------: |
-| crud / delete / range from head  |              912,925 o/s | ~8,500,000 |
-| crud / delete / range from middle|              798,709 o/s | ~7,080,000 |
-| crud / delete / range from tail  |              938,897 o/s | ~7,800,000 |
-| class / remove / range from head |            1,257,545 o/s | ~9,200,000 |
+| row                               | crlist (node24 baseline) |        yjs |
+| --------------------------------- | -----------------------: | ---------: |
+| crud / delete / range from head   |              912,925 o/s | ~8,500,000 |
+| crud / delete / range from middle |              798,709 o/s | ~7,080,000 |
+| crud / delete / range from tail   |              938,897 o/s | ~7,800,000 |
+| class / remove / range from head  |            1,257,545 o/s | ~9,200,000 |
 
 The original hypothesis was that the cost was per-item tombstone strings:
 `deleteBlock` did `(block.id + BigInt(off)).toString()` once per deleted item,
@@ -76,14 +76,14 @@ Fixes applied after profiling:
 
 ## Before / After Results (node 24, best of 3, items/sec)
 
-| row                               | before (baseline) | after     | yjs        |
-| --------------------------------- | ----------------: | --------: | ---------: |
-| crud / delete / range from head   |           912,925 | 1,635,965 | ~8,000,000 |
-| crud / delete / range from middle |           798,709 | 1,309,278 | ~6,700,000 |
-| crud / delete / range from tail   |           938,897 | 1,250,625 | ~7,500,000 |
-| class / remove / range from head  |         1,257,545 | 1,725,626 | ~9,400,000 |
-| class / remove / range from middle|         1,010,223 | 1,240,110 | ~7,800,000 |
-| class / remove / range from tail  |           699,761 | 1,335,363 | ~8,000,000 |
+| row                                | before (baseline) |     after |        yjs |
+| ---------------------------------- | ----------------: | --------: | ---------: |
+| crud / delete / range from head    |           912,925 | 1,635,965 | ~8,000,000 |
+| crud / delete / range from middle  |           798,709 | 1,309,278 | ~6,700,000 |
+| crud / delete / range from tail    |           938,897 | 1,250,625 | ~7,500,000 |
+| class / remove / range from head   |         1,257,545 | 1,725,626 | ~9,400,000 |
+| class / remove / range from middle |         1,010,223 | 1,240,110 | ~7,800,000 |
+| class / remove / range from tail   |           699,761 | 1,335,363 | ~8,000,000 |
 
 ~1.7–1.9x on the range rows. Single-entry delete/remove rows (head/middle/tail)
 also improved modestly and crlist already wins them. Still ~5x behind Yjs on the
@@ -91,12 +91,12 @@ range rows — the remaining gap is `detachBlockFromIndexes`.
 
 Delete-loop profile attribution (inspector, build excluded):
 
-| function                | before fast-path | after fast-path |
-| ----------------------- | ---------------: | --------------: |
-| detachBlockFromIndexes  |            30.2% |           39.8% |
-| __delete                |            22.4% |           25.3% |
-| markDeletedRange        |            20.2% |           15.0% |
-| deleteBlock             |            17.0% |            7.6% |
+| function               | before fast-path | after fast-path |
+| ---------------------- | ---------------: | --------------: |
+| detachBlockFromIndexes |            30.2% |           39.8% |
+| \_\_delete             |            22.4% |           25.3% |
+| markDeletedRange       |            20.2% |           15.0% |
+| deleteBlock            |            17.0% |            7.6% |
 
 Total samples 3174 → 2103 (~34% faster loop).
 

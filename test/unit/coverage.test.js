@@ -21,6 +21,10 @@ function uuidV7ToBigIntStr(uuid) {
   return BigInt('0x' + uuid.replace(/-/g, '')).toString()
 }
 
+function deletedRunItemCount(delta) {
+  return (delta.deletedRuns ?? []).reduce((sum, run) => sum + run[1], 0)
+}
+
 test('unit: CRList public surface and events', () => {
   const list = new CRList()
   const events = { delta: [], change: [], snapshot: [], ack: [] }
@@ -186,7 +190,7 @@ test('unit: CRList public surface and events', () => {
   const remote = new CRList()
   remote.append([{ id: 'remote' }])
   list.merge(remote.toJSON())
-  list.merge({ deletedIds: ['not-a-uuid'] })
+  list.merge({ deletedRuns: [['not-a-uuid', 1]] })
   list.remove(0)
 })
 
@@ -208,7 +212,7 @@ test('unit: CRList remove deletes a range with one event pair', () => {
   )
   assert.equal(deltas.length, 1)
   assert.equal(changes.length, 1)
-  assert.equal(deltas[0].deletedIds.length >= 3, true)
+  assert.equal(deletedRunItemCount(deltas[0]) >= 3, true)
   assert.equal(Object.keys(changes[0]).length, 3)
 })
 
@@ -326,7 +330,7 @@ test('unit: core edge paths and malicious inputs', () => {
   noIndexTarget.blocksByIndex = new Map()
   const noIndexDeletion = __delete(noIndexSource, 1, 2)
   assert(
-    __merge(noIndexTarget, { deletedIds: noIndexDeletion.delta.deletedIds })
+    __merge(noIndexTarget, { deletedRuns: noIndexDeletion.delta.deletedRuns })
   )
 
   assert(__update(1, [{ id: 'x' }, { id: 'y' }], range, 'before'))
@@ -412,7 +416,10 @@ test('unit: core edge paths and malicious inputs', () => {
   const validEntry = validDelta.blocks[0]
   const functionValueEntry = functionValueDelta.blocks[0]
   const invalidSnapshot = __create({
-    deletedIds: ['not-a-bigint', validEntry.id],
+    deletedRuns: [
+      ['not-a-bigint', 1],
+      [validEntry.id, 1],
+    ],
     blocks: [
       validEntry,
       { ...validEntry, id: 'not-a-bigint' },
@@ -424,7 +431,7 @@ test('unit: core edge paths and malicious inputs', () => {
   assert.equal(ids(invalidSnapshot).length, 1)
   assert.equal(typeof ids(invalidSnapshot)[0], 'function')
 
-  const missingValues = __create({ deletedIds: ['not-a-uuid'] })
+  const missingValues = __create({ deletedRuns: [['not-a-uuid', 1]] })
   assert.deepEqual(ids(missingValues), [])
 })
 
@@ -433,8 +440,8 @@ test('unit: merge, acknowledge, and garbage collection edge paths', () => {
   const target = __create()
 
   assert.equal(__merge(target, undefined), false)
-  assert.equal(__merge(target, { deletedIds: ['not-a-uuid'] }), false)
-  assert.equal(__merge(target, { deletedIds: [], blocks: [] }), false)
+  assert.equal(__merge(target, { deletedRuns: [['not-a-uuid', 1]] }), false)
+  assert.equal(__merge(target, { deletedRuns: [], blocks: [] }), false)
 
   assert.equal(__acknowledge(target), false)
   __garbageCollect('not-an-array', target)
@@ -453,7 +460,10 @@ test('unit: merge, acknowledge, and garbage collection edge paths', () => {
     ['remote', 'next']
   )
   assert.equal(__merge(target, moved), false)
-  target.deletedIds.add(moved.blocks[0].id)
+  target.deletedRanges.push([
+    BigInt(moved.blocks[0].id),
+    BigInt(moved.blocks[0].id),
+  ])
   assert.equal(__merge(target, { blocks: [moved.blocks[0], null] }), false)
 
   const invalidPredecessorTarget = __create()
@@ -477,7 +487,7 @@ test('unit: merge, acknowledge, and garbage collection edge paths', () => {
   )
 
   const deletion = __delete(source, 0, 1).delta
-  assert(__merge(target, { deletedIds: deletion.deletedIds }))
+  assert(__merge(target, { deletedRuns: deletion.deletedRuns }))
   const ack = __acknowledge(target)
   assert.equal(typeof ack, 'string')
   __garbageCollect([ack], target)
@@ -502,7 +512,7 @@ test('unit: deleting a predecessor re-anchors the first live successor', () => {
   )
 
   assert(reanchored)
-  assert.equal(removed.delta.deletedIds.length, 2)
+  assert.equal(deletedRunItemCount(removed.delta), 2)
   assert.notEqual(reanchored.id, inserted.delta.blocks[0].id)
   assert.deepEqual(
     ids(__create(__snapshot(source))).map((value) => value.id),
@@ -529,7 +539,7 @@ test('unit: merge treats empty values tail delete as tombstone-only', () => {
   const deleted = __delete(source, 2, 3)
   assert(deleted)
   assert(!deleted.delta.blocks?.length)
-  assert.equal(deleted.delta.deletedIds.length, 1)
+  assert.equal(deletedRunItemCount(deleted.delta), 1)
 
   assert.deepEqual(__merge(target, deleted.delta), { 2: undefined })
   assert.equal(target.size, 2)
@@ -781,18 +791,18 @@ test('unit: merge splices sibling parent through tombstoned bridge', () => {
 })
 
 test('unit: nullish snapshot and delta entries are ignored', () => {
-  const empty = __create({ blocks: [null, undefined], deletedIds: [] })
+  const empty = __create({ blocks: [null, undefined], deletedRuns: [] })
   assert.equal(empty.size, 0)
   assert.equal(empty.currentBlock, undefined)
   assert.equal(empty.currentBlockIndex, undefined)
   assert.deepEqual(empty.blocksByIndex, new Map())
-  assert.deepEqual(empty.deletedIds, new Set())
+  assert.deepEqual(empty.deletedRanges, [])
   assert.deepEqual(empty.blocksById, new Map())
   assert.deepEqual(empty.blocksByPreviousBlockId, new Map())
 
   const target = __create()
   assert.equal(__merge(target, { blocks: [null, undefined] }), false)
-  assert.deepEqual(__snapshot(target), { blocks: [], deletedIds: [] })
+  assert.deepEqual(__snapshot(target), { blocks: [], deletedRuns: [] })
 })
 
 test('unit: large non-linear snapshots hydrate 100k entries without recursive stack growth', () => {
@@ -811,7 +821,7 @@ test('unit: large non-linear snapshots hydrate 100k entries without recursive st
 
   const hydrated = __create({
     blocks: values.toReversed(),
-    deletedIds: [],
+    deletedRuns: [],
   })
 
   assert.equal(hydrated.size, values.length)
@@ -911,7 +921,7 @@ test('unit: internal defensive branches remain stable under corrupt state', () =
   corrupt.currentBlockIndex = 0
   corrupt.size = 3
 
-  assert(__merge(corrupt, { deletedIds: [d1.id], blocks: [] }))
+  assert(__merge(corrupt, { deletedRuns: [[d1.id, 1]], blocks: [] }))
 })
 
 test('unit: flatten relink branch coverage stays explicit under corrupt buckets', () => {
@@ -995,7 +1005,7 @@ test('unit: assertListIndices forward walk is covered through delete merge', () 
   const headUuid = [...tailCursorTarget.blocksById.values()]
     .find((entry) => entry.items?.[0]?.id === 'tail-a')
     .id.toString()
-  assert(__merge(tailCursorTarget, { deletedIds: [headUuid] }))
+  assert(__merge(tailCursorTarget, { deletedRuns: [[headUuid, 1]] }))
   assert.deepEqual(
     ids(tailCursorTarget).map((value) => value.id),
     ['tail-b', 'tail-c']
@@ -1012,6 +1022,6 @@ test('unit: assertListIndices forward walk is covered through delete merge', () 
     nextBlock: undefined,
   })
   corrupt.size = 1
-  assert(__merge(corrupt, { deletedIds: [corruptId] }))
+  assert(__merge(corrupt, { deletedRuns: [[corruptId, 1]] }))
   assert.equal(corrupt.currentBlockIndex, undefined)
 })

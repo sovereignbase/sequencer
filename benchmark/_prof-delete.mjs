@@ -4,12 +4,14 @@ function build(n) {
   for (let i = 0; i < n; i++) __update(s.size, [{ id: i }], s, 'after')
   return s
 }
-const N = 5000, CHUNK = 100
+const N = 5000,
+  CHUNK = 100
 // Pre-build a pool of lists (untimed-ish), then delete them all in a tight loop.
 const POOL = 200
 function run() {
   const lists = []
   for (let i = 0; i < POOL; i++) lists.push(build(N))
-  for (const s of lists) while (s.size > 0) __delete(s, 0, Math.min(CHUNK, s.size))
+  for (const s of lists)
+    while (s.size > 0) __delete(s, 0, Math.min(CHUNK, s.size))
 }
 for (let i = 0; i < 12; i++) run()

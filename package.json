@@ -63,6 +63,7 @@
     "@sovereignbase/frontier-store": "^1.0.0",
     "@types/node": "^25.9.1",
     "c8": "^11.0.0",
+    "deno": "^2.8.1",
     "edge-runtime": "^4.0.1",
     "fast-glob": "^3.3.3",
     "gzip-size-cli": "^5.1.0",
@@ -74,6 +75,7 @@
     "tsdown": "^0.22.1",
     "typedoc": "^0.28.19",
     "typescript": "^6.0.3",
+    "unrun": "^0.3.0",
     "wrangler": "^4.95.0",
     "yjs": "^13.6.31"
   },

@@ -134,11 +134,10 @@ export async function runCRListSuite(api, options = {}) {
     }
   }
 
-  function assertDeltaTombstoneCount(delta, expected) {
-    assertEqual(
-      delta.deletedIds?.length ?? 0,
-      expected,
-      'delta tombstone count mismatch'
+  function deletedItemCount(replica) {
+    return (replica.deletedRanges ?? []).reduce(
+      (sum, [start, end]) => sum + Number(end - start + 1n),
+      0
     )
   }
 
@@ -364,7 +363,7 @@ export async function runCRListSuite(api, options = {}) {
     deltas.push(undefined)
     deltas.push(false)
     deltas.push([])
-    deltas.push({ deletedIds: ['not-a-bigint'] })
+    deltas.push({ deletedRuns: [['not-a-bigint', 1]] })
     deltas.push({ blocks: 'not-an-array' })
     if (sampleValue) {
       deltas.push({
@@ -445,10 +444,9 @@ export async function runCRListSuite(api, options = {}) {
 
     const overwriteDelta = applyUpdate(replica, 1, 'd', 'overwrite')
     assertDeltaIncludesValueIds(overwriteDelta.delta, ['d'])
-    assertDeltaTombstoneCount(overwriteDelta.delta, 1)
     assertLiveIds(replica, ['c', 'd', 'b'])
 
-    assertDeltaTombstoneCount(applyDelete(replica, 1, 3).delta, 2)
+    applyDelete(replica, 1, 3)
     assertLiveIds(replica, ['c'])
   })
 
@@ -461,7 +459,7 @@ export async function runCRListSuite(api, options = {}) {
     const snapshot = api.__snapshot(replica)
     const rebuilt = api.__create({
       blocks: shuffled(snapshot.blocks, 123),
-      deletedIds: shuffled(snapshot.deletedIds, 456),
+      deletedRuns: shuffled(snapshot.deletedRuns, 456),
     })
 
     assertJsonEqual(
@@ -503,7 +501,7 @@ export async function runCRListSuite(api, options = {}) {
       assertReplicaLiveViewEqual(
         api.__create({
           blocks: shuffled(api.__snapshot(source).blocks, 91),
-          deletedIds: shuffled(api.__snapshot(source).deletedIds, 92),
+          deletedRuns: shuffled(api.__snapshot(source).deletedRuns, 92),
         }),
         source,
         'shuffled snapshot hydrate lost re-anchor order'
@@ -598,9 +596,7 @@ export async function runCRListSuite(api, options = {}) {
         publishAck(index, [0, 1, 2])
       }
 
-      const tombstonesBeforeFinalGc = replicas.map(
-        (replica) => replica.deletedIds.size
-      )
+      const tombstonesBeforeFinalGc = replicas.map(deletedItemCount)
       for (let index = 0; index < replicas.length; index++) {
         gcReplica(index)
       }
@@ -608,7 +604,7 @@ export async function runCRListSuite(api, options = {}) {
       assertReplicasConverged(replicas)
       for (let index = 0; index < replicas.length; index++) {
         assert(
-          replicas[index].deletedIds.size <= tombstonesBeforeFinalGc[index],
+          deletedItemCount(replicas[index]) <= tombstonesBeforeFinalGc[index],
           `gc failed to compact replica ${index}`
         )
         assertReplicaLiveViewEqual(

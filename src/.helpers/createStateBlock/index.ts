@@ -17,6 +17,7 @@ export function createStateBlock<T>(
   replica: CRListState<T>,
   parsedId?: bigint
 ): CRListStateBlock<T> {
+  // Reject non-record blocks and empty/non-array item payloads.
   if (
     !isRecord(block) ||
     !Array.isArray(block.items) ||
@@ -24,18 +25,24 @@ export function createStateBlock<T>(
   )
     return undefined
 
+  // Use caller-supplied parsed id when available, otherwise parse from string.
   const bigIntId = parsedId ?? uuidV7BigIntStringToBigInt(block.id)
+
+  // Reject malformed ids and ids already known as deleted.
   if (bigIntId === false || isDeleted(replica.deletedRanges, bigIntId))
     return undefined
 
+  // Root anchors are encoded as "0"; all other anchors are UUIDv7 bigint strings.
   const bigIntPreviousBlockId =
     block.previousBlockId === '0'
       ? 0n
       : uuidV7BigIntStringToBigInt(block.previousBlockId)
 
+  // Reject malformed anchors and duplicate first item ids.
   if (bigIntPreviousBlockId === false || replica.blocksById.has(bigIntId))
     return undefined
 
+  // Return a detached local block; linking is performed by callers.
   return {
     id: bigIntId,
     idString: block.id,

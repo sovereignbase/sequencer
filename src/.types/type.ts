@@ -24,8 +24,16 @@ export type CRListStateBlock<T> =
     }
   | undefined
 
+/**
+ * Tracks a live block whose stable parent changed during merge processing.
+ *
+ * The old parent id is retained so splice fast paths can prove that the local
+ * linked projection still matches the expected pre-merge shape.
+ */
 export type CRListReparentedStateBlock<T> = {
+  /** Live block that was reparented. */
   block: NonNullable<CRListStateBlock<T>>
+  /** Stable previousBlock id before the reparent operation. */
   oldPreviousBlockId: bigint
 }
 
@@ -119,8 +127,10 @@ export type CRListChange<T> = Record<number, T | undefined>
  */
 export type CRListDelta<T> = Partial<CRListSnapshot<T>>
 
-/*
- * Deleted acknowledgement frontier (id).
+/**
+ * Deleted acknowledgement frontier.
+ *
+ * The value is the highest deleted item id the replica can prove it has seen.
  */
 export type CRListAck = string
 
@@ -128,12 +138,14 @@ export type CRListAck = string
  * Maps CRList event names to their event payload shapes.
  */
 export type CRListEventMap<T> = {
-  /** STATE / PROJECTION */
+  /** Full replica snapshot event payload. */
   snapshot: CRListSnapshot<T>
+  /** Local live projection patch event payload. */
   change: CRListChange<T>
 
-  /** GOSSIP / PROTOCOL */
+  /** Gossip delta event payload. */
   delta: CRListDelta<T>
+  /** Deleted-id acknowledgement event payload. */
   ack: CRListAck
 }
 

@@ -27,19 +27,28 @@ export function __update<T>(
   replica: CRListState<T>,
   mode: 'overwrite' | 'before' | 'after'
 ): { change: CRListChange<T>; delta: CRListDelta<T> } | false {
+  // All update modes require a target inside or at the end of the live list.
   if (listIndex < 0 || listIndex > replica.size)
     throw new CRListError('INDEX_OUT_OF_BOUNDS')
+
+  // Values must be an array because update modes operate on contiguous blocks.
   if (!Array.isArray(listValues))
     throw new CRListError(
       'UPDATE_EXPECTED_AN_ARRAY',
       '`listValues` must be an Array'
     )
+
+  // Empty writes are semantic no-ops and produce no events or deltas.
   if (listValues.length === 0) return false
 
+  // Change is the local live-view patch; delta is the gossip payload.
   const change: CRListChange<T> = {}
   const delta: CRListDelta<T> = {}
 
+  // Reserve one contiguous id run for the new block's item values.
   const blockId = getBlockStartId(replica, listValues.length)
+
+  // Build a detached block; the selected mode will set anchors and links.
   const block: NonNullable<CRListStateBlock<T>> = {
     id: blockId,
     idString: blockId.toString(),
@@ -49,9 +58,12 @@ export function __update<T>(
     nextBlock: undefined,
   }
 
+  // Delegate placement semantics to the selected mode implementation.
   void modes[mode](listIndex, block, replica, change, delta)
 
+  // If placement produced no visible change, suppress downstream events.
   if (Object.keys(change).length === 0) return false
 
+  // Return both the local patch and the CRDT delta to the caller.
   return { change, delta }
 }

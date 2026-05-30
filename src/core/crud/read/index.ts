@@ -26,11 +26,15 @@ export function __read<T>(
   replica: CRListState<T>
 ): T | undefined {
   try {
+    // Move the cursor onto the block that contains the requested live index.
     void seekCursorToIndex<T>(replica, targetIndex)
+
+    // Convert the absolute list index into an offset inside the cursor block.
     return replica.currentBlock?.items[
       targetIndex - (replica.currentBlockIndex ?? 0)
     ]
   } catch {
+    // Reads intentionally collapse invalid indexes and empty lists to undefined.
     return undefined
   }
 }

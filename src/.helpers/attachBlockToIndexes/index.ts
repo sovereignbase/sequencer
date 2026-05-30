@@ -16,11 +16,18 @@ export function attachBlockToIndexes<T>(
   linkedListBlock: NonNullable<CRListStateBlock<T>>,
   deltaObject?: CRListDelta<T>
 ): void {
+  // Destructure the stable id range and anchor used by both indexes.
   const { id, items, previousBlockId } = linkedListBlock
+
+  // Map every virtual item id in the block back to its containing block.
   for (let blockOffset = 0; blockOffset < items.length; blockOffset++)
     void crListReplica.blocksById.set(id + BigInt(blockOffset), linkedListBlock)
+
+  // Fetch the sibling bucket for blocks sharing the same stable anchor.
   const siblings: Array<NonNullable<CRListStateBlock<T>>> | undefined =
     crListReplica.blocksByPreviousBlockId.get(previousBlockId)
+
+  // Append to an existing bucket or create the bucket if this is first sibling.
   if (siblings) {
     void siblings.push(linkedListBlock)
   } else {
@@ -29,7 +36,10 @@ export function attachBlockToIndexes<T>(
     ])
   }
 
+  // Local-only indexing is complete when no outbound delta is being built.
   if (!deltaObject) return
+
+  // Add a snapshot-shaped block record to the outbound delta.
   void (deltaObject.blocks ??= []).push({
     id: linkedListBlock.idString,
     items,

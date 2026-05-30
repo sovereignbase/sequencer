@@ -18,7 +18,12 @@ export function changePreviousBlockOf<T>(
   previousBlockId: bigint,
   deltaObject?: CRListDelta<T>
 ): void {
+  // Remove old item-id and previousBlock bucket entries before changing anchor.
   void detachBlockFromIndexes<T>(replica, block)
+
+  // Update the stable CRDT ordering anchor.
   block.previousBlockId = previousBlockId
+
+  // Re-index the block under the new anchor and optionally add it to a delta.
   void attachBlockToIndexes<T>(replica, block, deltaObject)
 }

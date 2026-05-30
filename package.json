@@ -28,9 +28,6 @@
     },
     "./package.json": "./package.json"
   },
-  "engines": {
-    "node": ">=22"
-  },
   "files": [
     "dist",
     "LICENSE",
@@ -40,7 +37,7 @@
   "scripts": {
     "size": "terser dist/index.js -cm | gzip-size",
     "format": "prettier . --write",
-    "build": "tsup && typedoc",
+    "build": "tsdown && typedoc",
     "test": "npm run build && node test/run-coverage.mjs && node test/e2e/run.mjs",
     "bench": "npm run build && node benchmark/bench.js",
     "prepare": "husky",
@@ -74,9 +71,9 @@
     "playwright": "^1.60.0",
     "prettier": "^3.8.3",
     "terser": "^5.48.0",
-    "tsup": "^8.5.1",
+    "tsdown": "^0.22.1",
     "typedoc": "^0.28.19",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "wrangler": "^4.95.0",
     "yjs": "^13.6.31"
   },

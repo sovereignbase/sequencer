@@ -3,6 +3,7 @@ import {
   deleteBlock,
   getBlockStartId,
   getBlockEndId,
+  isDeleted,
   linkBlockBetween,
   changePreviousBlockOf,
   seekCursorToIndex,
@@ -48,7 +49,6 @@ export function __delete<T>(
   const previousBlockId = start.previousBlock
     ? getBlockEndId(start.previousBlock)
     : 0n
-  const deletedIds = new Set<bigint>()
   let deleted = 0
   let currentIndex = listIndex
 
@@ -68,25 +68,20 @@ export function __delete<T>(
       current = rightPart
     }
 
-    for (let index = 0; index < blockToDelete.items.length; index++)
+    const blockLength = blockToDelete.items.length
+    for (let index = 0; index < blockLength; index++)
       change[currentIndex + index] = undefined
 
-    for (
-      let itemOffset = 0;
-      itemOffset < blockToDelete.items.length;
-      itemOffset++
-    )
-      void deletedIds.add(blockToDelete.id + BigInt(itemOffset))
-
     void replica.blocksByIndex.delete(currentIndex)
+    // deleteBlock records the tombstone range the re-anchor checks read below.
     void deleteBlock<T>(replica, blockToDelete, delta)
-    deleted += blockToDelete.items.length
-    currentIndex += blockToDelete.items.length
+    deleted += blockLength
+    currentIndex += blockLength
   }
 
   // If the block immediately after the deleted range has a deleted previousBlock,
   // delete it and create a re-anchored replacement.
-  if (current && deletedIds.has(current.previousBlockId)) {
+  if (current && isDeleted(replica.deletedRanges, current.previousBlockId)) {
     const replacementId = getBlockStartId(replica, current.items.length)
     const replacement: NonNullable<CRListStateBlock<T>> = {
       id: replacementId,
@@ -98,14 +93,13 @@ export function __delete<T>(
     }
     const prev = current.previousBlock
     const next = current.nextBlock
+    // deleteBlock records current's tombstone range used by the next check.
     void deleteBlock<T>(replica, current, delta)
     void linkBlockBetween<T>(prev, replacement, next)
     void attachBlockToIndexes<T>(replica, replacement, delta)
     if (!prev) replica.firstBlock = replacement
     if (!next) replica.lastBlock = replacement
-    for (let itemOffset = 0; itemOffset < current.items.length; itemOffset++)
-      void deletedIds.add(current.id + BigInt(itemOffset))
-    if (next && deletedIds.has(next.previousBlockId))
+    if (next && isDeleted(replica.deletedRanges, next.previousBlockId))
       void changePreviousBlockOf<T>(
         replica,
         next,

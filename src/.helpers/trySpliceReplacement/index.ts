@@ -5,6 +5,7 @@ import type {
 } from '../../.types/type.js'
 import { getBlockEndId } from '../getBlockEndId/index.js'
 import { getIndexAfterBlockId } from '../getIndexAfterBlockId/index.js'
+import { isDeleted } from '../deletedRanges/index.js'
 import { linkBlockBetween } from '../linkBlockBetween/index.js'
 
 /**
@@ -43,7 +44,7 @@ export function trySpliceReplacement<T>(
     const children = crListReplica.blocksByPreviousBlockId.get(insertedTailId)
     if (
       next.previousBlockId !== insertedTailId ||
-      !crListReplica.deletedIds.has(reparented.oldPreviousBlockId.toString()) ||
+      !isDeleted(crListReplica.deletedRanges, reparented.oldPreviousBlockId) ||
       children?.length !== 1 ||
       children[0] !== next ||
       next.previousBlock !== previousBlock

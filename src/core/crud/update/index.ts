@@ -51,7 +51,5 @@ export function __update<T>(
 
   void modes[mode](listIndex, block, replica, change, delta)
 
-  if (Object.keys(change).length === 0) return false
-
   return { change, delta }
 }

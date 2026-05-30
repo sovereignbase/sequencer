@@ -1,4 +1,4 @@
-import { isRecord } from '@sovereignbase/utils'
+import { isRecord, safeBigIntFromString } from '@sovereignbase/utils'
 import { toBigInt } from '@sovereignbase/bytecodec'
 import { v7 } from 'uuid'
 import type {
@@ -11,6 +11,7 @@ import {
   createStateBlock,
   getBlockEndId,
   linkBlockBetween,
+  markDeletedRange,
   rebuildLiveProjection,
 } from '../../../.helpers/index.js'
 
@@ -38,14 +39,18 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
       bigint,
       Array<NonNullable<CRListStateBlock<T>>>
     >(),
-    deletedIds: new Set<string>(),
+    deletedRanges: [],
   }
 
   if (!isRecord(snapshot)) return replica
 
-  if (Array.isArray(snapshot.deletedIds)) {
-    for (const deletedId of snapshot.deletedIds) {
-      if (typeof deletedId === 'string') void replica.deletedIds.add(deletedId)
+  if (Array.isArray(snapshot.deletedRuns)) {
+    for (const run of snapshot.deletedRuns) {
+      if (!Array.isArray(run)) continue
+      const start = safeBigIntFromString(run[0])
+      const length = run[1]
+      if (start === false || typeof length !== 'number' || length < 1) continue
+      void markDeletedRange(replica.deletedRanges, start, start + BigInt(length) - 1n)
     }
   }
 

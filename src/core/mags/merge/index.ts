@@ -14,6 +14,8 @@ import {
   getBlockEndId,
   getBlockStartIndex,
   changePreviousBlockOf,
+  isDeleted,
+  markDeletedRange,
   trySpliceChildInsert,
   trySpliceSiblingInsert,
   trySpliceSiblingParentInsert,
@@ -49,21 +51,30 @@ export function __merge<T>(
   let needsRelink = false
 
   /** Apply remote item deletions before linking remote blocks. */
-  if (Array.isArray(delta.deletedIds)) {
-    for (const deletedId of delta.deletedIds) {
-      if (typeof deletedId !== 'string' || replica.deletedIds.has(deletedId))
-        continue
-      void replica.deletedIds.add(deletedId)
-      const deletedBigInt = safeBigIntFromString(deletedId)
-      if (deletedBigInt === false) continue
-      const deleted = deleteItemById<T>(deletedBigInt, replica)
-      if (deleted) {
-        void newDeletedIndexes.push(deleted.index)
-        if (deleted.index >= 0) void replica.blocksByIndex.delete(deleted.index)
-        lastBlockDeleteMovedCurrentBlock =
-          deleted.wasLastBlock && deleted.wasCurrentBlock
-        needsRelink = true
+  if (Array.isArray(delta.deletedRuns)) {
+    for (const run of delta.deletedRuns) {
+      if (!Array.isArray(run)) continue
+      const start = safeBigIntFromString(run[0])
+      const length = run[1]
+      if (start === false || typeof length !== 'number' || length < 1) continue
+      for (let offset = 0; offset < length; offset++) {
+        const id = start + BigInt(offset)
+        if (isDeleted(replica.deletedRanges, id)) continue
+        const deleted = deleteItemById<T>(id, replica)
+        if (deleted) {
+          void newDeletedIndexes.push(deleted.index)
+          if (deleted.index >= 0)
+            void replica.blocksByIndex.delete(deleted.index)
+          lastBlockDeleteMovedCurrentBlock =
+            deleted.wasLastBlock && deleted.wasCurrentBlock
+          needsRelink = true
+        }
       }
+      void markDeletedRange(
+        replica.deletedRanges,
+        start,
+        start + BigInt(length) - 1n
+      )
     }
   }
 
@@ -101,7 +112,7 @@ export function __merge<T>(
     const existingBlock = replica.blocksById.get(blockId)
 
     if (existingBlock) {
-      if (replica.deletedIds.has(snapshotBlock.id)) continue
+      if (isDeleted(replica.deletedRanges, blockId)) continue
       if (
         !Array.isArray(snapshotBlock.items) ||
         snapshotBlock.items.length === 0

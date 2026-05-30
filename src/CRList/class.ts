@@ -80,7 +80,7 @@ export class CRList<T> {
           const result = __update(listIndex, [value], target.state, 'overwrite')
           if (!result) return false
           const { delta, change } = result
-          if (delta.blocks?.length || delta.deletedIds?.length)
+          if (delta.blocks?.length || delta.deletedRuns?.length)
             void dispatchCRListEvent(target.eventTarget, 'delta', delta)
           if (change)
             void dispatchCRListEvent(target.eventTarget, 'change', change)
@@ -97,7 +97,7 @@ export class CRList<T> {
           const result = __delete(target.state, listIndex, listIndex + 1)
           if (!result) return false
           const { delta, change } = result
-          if (delta.blocks?.length || delta.deletedIds?.length)
+          if (delta.blocks?.length || delta.deletedRuns?.length)
             void dispatchCRListEvent(target.eventTarget, 'delta', delta)
           if (change)
             void dispatchCRListEvent(target.eventTarget, 'change', change)
@@ -150,7 +150,7 @@ export class CRList<T> {
     const result = __update<T>(beforeIndex ?? 0, values, this.state, 'before')
     if (!result) return
     const { delta, change } = result
-    if (delta.blocks?.length || delta.deletedIds?.length)
+    if (delta.blocks?.length || delta.deletedRuns?.length)
       void dispatchCRListEvent(this.eventTarget, 'delta', delta)
     if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
   }
@@ -171,7 +171,7 @@ export class CRList<T> {
     )
     if (!result) return
     const { delta, change } = result
-    if (delta.blocks?.length || delta.deletedIds?.length)
+    if (delta.blocks?.length || delta.deletedRuns?.length)
       void dispatchCRListEvent(this.eventTarget, 'delta', delta)
     if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
   }
@@ -185,7 +185,7 @@ export class CRList<T> {
     const result = __update<T>(index, values, this.state, 'overwrite')
     if (!result) return
     const { delta, change } = result
-    if (delta.blocks?.length || delta.deletedIds?.length)
+    if (delta.blocks?.length || delta.deletedRuns?.length)
       void dispatchCRListEvent(this.eventTarget, 'delta', delta)
     if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
   }
@@ -199,7 +199,7 @@ export class CRList<T> {
     const result = __delete(this.state, index, index + count)
     if (!result) return
     const { delta, change } = result
-    if (delta.blocks?.length || delta.deletedIds?.length)
+    if (delta.blocks?.length || delta.deletedRuns?.length)
       void dispatchCRListEvent(this.eventTarget, 'delta', delta)
     if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
   }

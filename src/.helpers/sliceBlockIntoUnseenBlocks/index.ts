@@ -1,4 +1,5 @@
 import type { CRListState, CRListStateBlock } from '../../.types/type.js'
+import { isDeleted } from '../deletedRanges/index.js'
 
 /**
  * Slices a received block into contiguous item-id runs that are still unseen.
@@ -18,7 +19,7 @@ export function sliceBlockIntoUnseenBlocks<T>(
     const isUnseen =
       offset < block.items.length &&
       !replica.blocksById.has(id) &&
-      !replica.deletedIds.has(id.toString())
+      !isDeleted(replica.deletedRanges, id)
 
     if (isUnseen) {
       if (start === undefined) start = offset

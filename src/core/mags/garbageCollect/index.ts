@@ -1,7 +1,4 @@
-import {
-  safeBigIntFromString,
-  uuidV7BigIntStringToBigInt,
-} from '@sovereignbase/utils'
+import { safeBigIntFromString } from '@sovereignbase/utils'
 import { CRListAck, CRListState } from '../../../.types/type.js'
 
 /**
@@ -29,11 +26,14 @@ export function __garbageCollect<T>(
   if (valid.length === 0) return
   void valid.sort((a, b) => (a < b ? -1 : 1))
   const smallestBig = valid[0]
-  void replica.deletedIds.forEach((deletedId, __, deletedIds) => {
-    const canditate = uuidV7BigIntStringToBigInt(deletedId)
 
-    /** Delete malformed ids and ids acknowledged by every supplied frontier. */
-    if (canditate === false || canditate <= smallestBig)
-      void deletedIds.delete(deletedId)
-  })
+  /** Drop whole ranges, then trim the straddling range, of ids acknowledged
+   * by every supplied frontier. Ranges are sorted ascending by start. */
+  const ranges = replica.deletedRanges
+  let removeCount = 0
+  while (removeCount < ranges.length && ranges[removeCount][1] <= smallestBig)
+    removeCount++
+  if (removeCount < ranges.length && ranges[removeCount][0] <= smallestBig)
+    ranges[removeCount][0] = smallestBig + 1n
+  if (removeCount > 0) void ranges.splice(0, removeCount)
 }

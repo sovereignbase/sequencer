@@ -4,6 +4,7 @@ import type {
   CRListStateBlock,
 } from '../../.types/type.js'
 import { isRecord, uuidV7BigIntStringToBigInt } from '@sovereignbase/utils'
+import { isDeleted } from '../deletedRanges/index.js'
 
 /**
  * Converts a snapshot or delta block into local mutable block state.
@@ -19,13 +20,13 @@ export function createStateBlock<T>(
   if (
     !isRecord(block) ||
     !Array.isArray(block.items) ||
-    block.items.length === 0 ||
-    replica.deletedIds.has(block.id)
+    block.items.length === 0
   )
     return undefined
 
   const bigIntId = parsedId ?? uuidV7BigIntStringToBigInt(block.id)
-  if (bigIntId === false) return undefined
+  if (bigIntId === false || isDeleted(replica.deletedRanges, bigIntId))
+    return undefined
 
   const bigIntPreviousBlockId =
     block.previousBlockId === '0'

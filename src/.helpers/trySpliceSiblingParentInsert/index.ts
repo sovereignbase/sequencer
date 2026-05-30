@@ -5,6 +5,7 @@ import type {
 } from '../../.types/type.js'
 import { getBlockEndId } from '../getBlockEndId/index.js'
 import { getBlockStartIndex } from '../getBlockStartIndex/index.js'
+import { isDeleted } from '../deletedRanges/index.js'
 import { linkBlockBetween } from '../linkBlockBetween/index.js'
 
 /**
@@ -42,7 +43,7 @@ export function trySpliceSiblingParentInsert<T>(
   const previousSiblingTailId = getBlockEndId(previousSibling)
   const tombstoneBridge =
     reparented.oldPreviousBlockId !== previousSiblingTailId &&
-    crListReplica.deletedIds.has(reparented.oldPreviousBlockId.toString())
+    isDeleted(crListReplica.deletedRanges, reparented.oldPreviousBlockId)
   if (
     reparented.oldPreviousBlockId !== previousSiblingTailId &&
     !tombstoneBridge

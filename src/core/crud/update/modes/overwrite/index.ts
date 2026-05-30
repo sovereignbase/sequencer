@@ -10,6 +10,7 @@ import {
   deleteBlock,
   getBlockEndId,
   getBlockStartIndex,
+  isDeleted,
   linkBlockBetween,
   changePreviousBlockOf,
   seekCursorToIndex,
@@ -62,7 +63,6 @@ export function overwrite<T>(
   const prev = start.previousBlock
   const previousBlock = prev ? getBlockEndId(prev) : 0n
   const deleteLimit = Math.min(length, replica.size - actualIndex)
-  const deletedIds = new Set<bigint>()
   let deleted = 0
   let current: CRListStateBlock<T> = start
 
@@ -79,12 +79,7 @@ export function overwrite<T>(
       current = right
     }
 
-    for (
-      let itemOffset = 0;
-      itemOffset < blockToDelete.items.length;
-      itemOffset++
-    )
-      void deletedIds.add(blockToDelete.id + BigInt(itemOffset))
+    // deleteBlock records the tombstone range read by the re-anchor check below.
     void deleteBlock<T>(replica, blockToDelete, delta)
     deleted += blockToDelete.items.length
   }
@@ -93,7 +88,7 @@ export function overwrite<T>(
 
   void linkBlockBetween<T>(prev, block, current)
   void attachBlockToIndexes<T>(replica, block, delta)
-  if (current && deletedIds.has(current.previousBlockId))
+  if (current && isDeleted(replica.deletedRanges, current.previousBlockId))
     void changePreviousBlockOf<T>(replica, current, getBlockEndId(block), delta)
 
   if (!prev) replica.firstBlock = block

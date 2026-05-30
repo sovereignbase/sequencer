@@ -15,9 +15,9 @@ export type CRListStateBlock<T> =
       /** Cached string form of `id` (avoids repeated bigint.toString()). */
       idString: string
 
-      /** Next live block in the local projection. */
+      /** Next block in the local projection. */
       nextBlock: CRListStateBlock<T> | undefined
-      /** Previous live block in the local projection. */
+      /** Previous block in the local projection. */
       previousBlock: CRListStateBlock<T> | undefined
       /** Stable previous block or item id, or `0n` for root-level blocks. */
       previousBlockId: bigint
@@ -30,12 +30,21 @@ export type CRListReparentedStateBlock<T> = {
 }
 
 /**
+ * Tombstones stored as sorted, disjoint, non-adjacent inclusive id ranges.
+ *
+ * Each entry is an inclusive `[startId, endId]` span of deleted item ids. A
+ * contiguous delete collapses to a single range instead of one tombstone per
+ * item.
+ */
+export type DeletedRanges = Array<[bigint, bigint]>
+
+/**
  * Mutable CRList replica state.
  *
  * `blocksById` indexes blocks by every contained item id.
  * `blocksByPreviousBlockId` indexes stable ordering buckets for deterministic
- * flattening. `deletedIds` records deleted item ids until they are garbage
- * collected through acknowledgement frontiers.
+ * flattening. `deletedRanges` records deleted item ids as sorted id ranges until
+ * they are garbage collected through acknowledgement frontiers.
  */
 export type CRListState<T> = {
   /** Number of live items in the local projection. */
@@ -60,8 +69,8 @@ export type CRListState<T> = {
   /** Live blocks grouped by previous block or item id. */
   blocksByPreviousBlockId: Map<bigint, Array<NonNullable<CRListStateBlock<T>>>>
 
-  /** Deleted item ids retained for gossip and convergence. */
-  deletedIds: Set<string>
+  /** Deleted item ids retained for gossip and convergence, as sorted id ranges. */
+  deletedRanges: DeletedRanges
 }
 
 /**
@@ -80,13 +89,19 @@ export type CRListSnapshotBlock<T> = {
 }
 
 /**
+ * A run of deleted item ids on the wire: `[startId, length]` covers the ids
+ * `startId .. startId + length - 1`.
+ */
+export type CRListDeletedRun = [string, number]
+
+/**
  * Full CRList state snapshot.
  */
 export type CRListSnapshot<T> = {
   /** Live blocks with stable CRDT metadata. */
   blocks: Array<CRListSnapshotBlock<T>>
-  /** Retained deleted item ids. */
-  deletedIds: Array<string>
+  /** Retained deleted item ids, as contiguous runs. */
+  deletedRuns: Array<CRListDeletedRun>
 }
 
 /**

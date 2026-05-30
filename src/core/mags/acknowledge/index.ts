@@ -1,7 +1,3 @@
-import {
-  safeBigIntFromString,
-  uuidV7BigIntStringToBigInt,
-} from '@sovereignbase/utils'
 import type { CRListAck, CRListState } from '../../../.types/type.js'
 
 /**
@@ -13,16 +9,7 @@ import type { CRListAck, CRListState } from '../../../.types/type.js'
 export function __acknowledge<T>(
   crListReplica: CRListState<T>
 ): CRListAck | false {
-  let largest: bigint | undefined
-  void crListReplica.deletedIds.forEach((deletedId) => {
-    const canditate = uuidV7BigIntStringToBigInt(deletedId)
-
-    if (canditate === false) {
-      crListReplica.deletedIds.delete(deletedId)
-      return
-    }
-
-    if (largest === undefined || canditate > largest) largest = canditate
-  })
-  return largest !== undefined ? largest.toString() : false
+  const ranges = crListReplica.deletedRanges
+  if (ranges.length === 0) return false
+  return ranges[ranges.length - 1][1].toString()
 }

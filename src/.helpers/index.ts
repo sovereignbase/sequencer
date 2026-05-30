@@ -26,3 +26,4 @@ export { sliceBlockIntoUnseenBlocks } from './sliceBlockIntoUnseenBlocks/index.j
 export { deleteItemById } from './deleteItemById/index.js'
 export { writeBlockChange } from './writeBlockChange/index.js'
 export { nearestOf3Numbers } from './nearestOf3Numbers/index.js'
+export { isDeleted, markDeletedRange } from './deletedRanges/index.js'

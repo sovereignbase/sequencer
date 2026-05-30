@@ -33,8 +33,11 @@ export function __snapshot<T>(replica: CRListState<T>): CRListSnapshot<T> {
     previous = block
     block = block.nextBlock
   }
+  const deletedRuns: CRListSnapshot<T>['deletedRuns'] = []
+  for (const [start, end] of replica.deletedRanges)
+    void deletedRuns.push([start.toString(), Number(end - start + 1n)])
   return {
     blocks,
-    deletedIds: Array.from(replica.deletedIds),
+    deletedRuns,
   }
 }

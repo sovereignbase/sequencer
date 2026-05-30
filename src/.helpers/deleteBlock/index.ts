@@ -4,6 +4,7 @@ import type {
   CRListStateBlock,
 } from '../../.types/type.js'
 import { detachBlockFromIndexes } from '../detachBlockFromIndexes/index.js'
+import { markDeletedRange } from '../deletedRanges/index.js'
 
 /**
  * Deletes a state block and unlinks it from the local projection.
@@ -15,15 +16,15 @@ export function deleteBlock<T>(
 ): void {
   const previousBlock = block.previousBlock
   const nextBlock = block.nextBlock
+  const length = block.items.length
 
-  if (deltaObject && !Array.isArray(deltaObject.deletedIds))
-    deltaObject.deletedIds = []
-
-  for (let itemOffset = 0; itemOffset < block.items.length; itemOffset++) {
-    const deletedId = (block.id + BigInt(itemOffset)).toString()
-    void replica.deletedIds.add(deletedId)
-    void deltaObject?.deletedIds?.push(deletedId)
-  }
+  void markDeletedRange(
+    replica.deletedRanges,
+    block.id,
+    block.id + BigInt(length) - 1n
+  )
+  if (deltaObject)
+    void (deltaObject.deletedRuns ??= []).push([block.idString, length])
 
   if (previousBlock) previousBlock.nextBlock = nextBlock
   if (nextBlock) nextBlock.previousBlock = previousBlock

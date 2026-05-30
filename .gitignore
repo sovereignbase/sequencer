@@ -25,3 +25,6 @@ Thumbs.db
 .wrangler/
 
 .c8/
+
+wasm/pkg/
+wasm/target/

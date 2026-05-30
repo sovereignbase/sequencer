@@ -109,7 +109,7 @@ function classChange(list, operation) {
       return
     }
     if (operation.type === 'overwrite') {
-      list[operation.index] = value(operation.id)
+      list.set(operation.index, value(operation.id))
       return
     }
     if (operation.index >= list.size) list.append([value(operation.id)])
@@ -147,7 +147,7 @@ export const crlistAdapter = {
   createClass,
   classSize: (list) => list.size,
   classIds,
-  classReadId: (list, index) => list[index]?.id,
+  classReadId: (list, index) => list.get(index)?.id,
   classFind,
   classSnapshot: (list) => list.toJSON(),
   classHydrate: (snapshot) => new CRList(snapshot),

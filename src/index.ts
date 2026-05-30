@@ -18,10 +18,10 @@ export type {
   CRListEventListenerFor,
   /***/
   CRListState,
-  CRListStateEntry,
+  CRListStateBlock,
   /***/
   CRListSnapshot,
-  CRListSnapshotEntry,
+  CRListSnapshotBlock,
   /***/
   CRListChange,
   /***/

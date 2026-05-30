@@ -20,8 +20,8 @@ import {
  * A convergent replicated list.
  *
  * Numeric property access reads and mutates the live list projection:
- * `list[0]` reads the live value reference, `list[0] = value` writes an
- * entry, and `delete list[0]` removes one entry. Iteration, `find()`, and
+ * `list[0]` reads the live item reference, `list[0] = value` writes an
+ * item, and `delete list[0]` removes one item. Iteration, `find()`, and
  * `forEach()` expose the same live value references. Mutating returned objects
  * directly can mutate replica state without producing a CRDT delta, so callers
  * must isolate values before out-of-band mutation. Local mutations emit `delta`
@@ -31,14 +31,13 @@ import {
  */
 export class CRList<T> {
   /**
-   * Reads or overwrites an entry in the live list projection by index.
+   * Reads or overwrites an item in the live list projection by index.
    *
    * Reads return live value references.
    */
   [index: number]: T
   declare private readonly state: CRListState<T>
   declare private readonly eventTarget: EventTarget
-  declare private readonly eventState: { hasListeners: boolean }
 
   /**
    * Creates a replicated list from an optional CRList snapshot.
@@ -55,12 +54,6 @@ export class CRList<T> {
       },
       eventTarget: {
         value: new EventTarget(),
-        enumerable: false,
-        configurable: false,
-        writable: false,
-      },
-      eventState: {
-        value: { hasListeners: false },
         enumerable: false,
         configurable: false,
         writable: false,
@@ -87,20 +80,10 @@ export class CRList<T> {
           const result = __update(listIndex, [value], target.state, 'overwrite')
           if (!result) return false
           const { delta, change } = result
-          if (delta)
-            void dispatchCRListEvent(
-              target.eventTarget,
-              'delta',
-              delta,
-              target.eventState.hasListeners
-            )
+          if (delta.blocks?.length || delta.deletedIds?.length)
+            void dispatchCRListEvent(target.eventTarget, 'delta', delta)
           if (change)
-            void dispatchCRListEvent(
-              target.eventTarget,
-              'change',
-              change,
-              target.eventState.hasListeners
-            )
+            void dispatchCRListEvent(target.eventTarget, 'change', change)
           return true
         } catch (error) {
           if (error instanceof CRListError) throw error
@@ -114,20 +97,10 @@ export class CRList<T> {
           const result = __delete(target.state, listIndex, listIndex + 1)
           if (!result) return false
           const { delta, change } = result
-          if (delta)
-            void dispatchCRListEvent(
-              target.eventTarget,
-              'delta',
-              delta,
-              target.eventState.hasListeners
-            )
+          if (delta.blocks?.length || delta.deletedIds?.length)
+            void dispatchCRListEvent(target.eventTarget, 'delta', delta)
           if (change)
-            void dispatchCRListEvent(
-              target.eventTarget,
-              'change',
-              change,
-              target.eventState.hasListeners
-            )
+            void dispatchCRListEvent(target.eventTarget, 'change', change)
           return true
         } catch (error) {
           if (error instanceof CRListError) throw error
@@ -164,39 +137,7 @@ export class CRList<T> {
   get size(): number {
     return this.state.size
   }
-  /**
-   * Reads the live value at an index without going through the Proxy.
-   *
-   * @param index - The index to read.
-   */
-  get(index: number): T | undefined {
-    return __read(index, this.state)
-  }
-  /**
-   * Overwrites the entry at an index without going through the Proxy.
-   *
-   * @param index - The index to overwrite.
-   * @param value - The value to write.
-   */
-  set(index: number, value: T): void {
-    const result = __update(index, [value], this.state, 'overwrite')
-    if (!result) return
-    const { delta, change } = result
-    if (delta)
-      void dispatchCRListEvent(
-        this.eventTarget,
-        'delta',
-        delta,
-        this.eventState.hasListeners
-      )
-    if (change)
-      void dispatchCRListEvent(
-        this.eventTarget,
-        'change',
-        change,
-        this.eventState.hasListeners
-      )
-  }
+
   /**
    * Inserts values before an index.
    *
@@ -209,20 +150,9 @@ export class CRList<T> {
     const result = __update<T>(beforeIndex ?? 0, values, this.state, 'before')
     if (!result) return
     const { delta, change } = result
-    if (delta)
-      void dispatchCRListEvent(
-        this.eventTarget,
-        'delta',
-        delta,
-        this.eventState.hasListeners
-      )
-    if (change)
-      void dispatchCRListEvent(
-        this.eventTarget,
-        'change',
-        change,
-        this.eventState.hasListeners
-      )
+    if (delta.blocks?.length || delta.deletedIds?.length)
+      void dispatchCRListEvent(this.eventTarget, 'delta', delta)
+    if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
   }
   /**
    * Inserts values after an index.
@@ -241,20 +171,9 @@ export class CRList<T> {
     )
     if (!result) return
     const { delta, change } = result
-    if (delta)
-      void dispatchCRListEvent(
-        this.eventTarget,
-        'delta',
-        delta,
-        this.eventState.hasListeners
-      )
-    if (change)
-      void dispatchCRListEvent(
-        this.eventTarget,
-        'change',
-        change,
-        this.eventState.hasListeners
-      )
+    if (delta.blocks?.length || delta.deletedIds?.length)
+      void dispatchCRListEvent(this.eventTarget, 'delta', delta)
+    if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
   }
   /**
    * Overwrites entries starting at an index.
@@ -266,20 +185,9 @@ export class CRList<T> {
     const result = __update<T>(index, values, this.state, 'overwrite')
     if (!result) return
     const { delta, change } = result
-    if (delta)
-      void dispatchCRListEvent(
-        this.eventTarget,
-        'delta',
-        delta,
-        this.eventState.hasListeners
-      )
-    if (change)
-      void dispatchCRListEvent(
-        this.eventTarget,
-        'change',
-        change,
-        this.eventState.hasListeners
-      )
+    if (delta.blocks?.length || delta.deletedIds?.length)
+      void dispatchCRListEvent(this.eventTarget, 'delta', delta)
+    if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
   }
   /**
    * Removes one or more entries starting at an index.
@@ -291,20 +199,9 @@ export class CRList<T> {
     const result = __delete(this.state, index, index + count)
     if (!result) return
     const { delta, change } = result
-    if (delta)
-      void dispatchCRListEvent(
-        this.eventTarget,
-        'delta',
-        delta,
-        this.eventState.hasListeners
-      )
-    if (change)
-      void dispatchCRListEvent(
-        this.eventTarget,
-        'change',
-        change,
-        this.eventState.hasListeners
-      )
+    if (delta.blocks?.length || delta.deletedIds?.length)
+      void dispatchCRListEvent(this.eventTarget, 'delta', delta)
+    if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
   }
 
   /**
@@ -320,15 +217,15 @@ export class CRList<T> {
     predicate: (this: unknown, value: T, index: number, list: this) => unknown,
     thisArg?: unknown
   ): T | undefined {
-    let linkedListEntry = this.state.cache.get(0) ?? this.state.cursor
-    while (linkedListEntry?.prev) linkedListEntry = linkedListEntry.prev
+    let block = this.state.blocksByIndex.get(0) ?? this.state.currentBlock
+    while (block?.previousBlock) block = block.previousBlock
     let index = 0
-    while (linkedListEntry) {
-      for (const value of linkedListEntry.values) {
+    while (block) {
+      for (const value of block.items) {
         if (predicate.call(thisArg, value, index, this)) return value
         index++
       }
-      linkedListEntry = linkedListEntry.next
+      block = block.nextBlock
     }
 
     return undefined
@@ -343,29 +240,17 @@ export class CRList<T> {
    */
   merge(delta: CRListDelta<T>): void {
     const change = __merge(this.state, delta)
-    if (change)
-      void dispatchCRListEvent(
-        this.eventTarget,
-        'change',
-        change,
-        this.eventState.hasListeners
-      )
+    if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
   }
   /**
-   * Emits an acknowledgement frontier for currently retained tombstones.
+   * Emits an acknowledgement frontier for currently retained deleted item ids.
    */
   acknowledge(): void {
     const ack = __acknowledge(this.state)
-    if (ack)
-      void dispatchCRListEvent(
-        this.eventTarget,
-        'ack',
-        ack,
-        this.eventState.hasListeners
-      )
+    if (ack) void dispatchCRListEvent(this.eventTarget, 'ack', ack)
   }
   /**
-   * Garbage-collects tombstones that are covered by acknowledgement frontiers.
+   * Garbage-collects deleted item ids covered by acknowledgement frontiers.
    *
    * @param frontiers - Replica acknowledgement frontiers.
    */
@@ -381,12 +266,7 @@ export class CRList<T> {
   snapshot(): void {
     const snapshot = __snapshot<T>(this.state)
     if (snapshot)
-      void dispatchCRListEvent(
-        this.eventTarget,
-        'snapshot',
-        snapshot,
-        this.eventState.hasListeners
-      )
+      void dispatchCRListEvent(this.eventTarget, 'snapshot', snapshot)
   }
   /**
    * Registers an event listener.
@@ -400,7 +280,6 @@ export class CRList<T> {
     listener: CRListEventListenerFor<T, K> | null,
     options?: boolean | AddEventListenerOptions
   ): void {
-    if (listener) this.eventState.hasListeners = true
     void this.eventTarget.addEventListener(
       type,
       listener as EventListenerOrEventListenerObject | null,
@@ -461,11 +340,11 @@ export class CRList<T> {
    * Iterates over current live values in index order.
    */
   *[Symbol.iterator](): IterableIterator<T> {
-    let linkedListEntry = this.state.cache.get(0) ?? this.state.cursor
-    while (linkedListEntry?.prev) linkedListEntry = linkedListEntry.prev
-    while (linkedListEntry) {
-      yield* linkedListEntry.values
-      linkedListEntry = linkedListEntry.next
+    let block = this.state.blocksByIndex.get(0) ?? this.state.currentBlock
+    while (block?.previousBlock) block = block.previousBlock
+    while (block) {
+      yield* block.items
+      block = block.nextBlock
     }
   }
   /**
@@ -481,15 +360,15 @@ export class CRList<T> {
     callback: (value: T, index: number, list: this) => void,
     thisArg?: unknown
   ): void {
-    let linkedListEntry = this.state.cache.get(0) ?? this.state.cursor
-    while (linkedListEntry?.prev) linkedListEntry = linkedListEntry.prev
+    let block = this.state.blocksByIndex.get(0) ?? this.state.currentBlock
+    while (block?.previousBlock) block = block.previousBlock
     let index = 0
-    while (linkedListEntry) {
-      for (const value of linkedListEntry.values) {
+    while (block) {
+      for (const value of block.items) {
         void callback.call(thisArg, value, index, this)
         index++
       }
-      linkedListEntry = linkedListEntry.next
+      block = block.nextBlock
     }
   }
 }

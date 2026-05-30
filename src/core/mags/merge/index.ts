@@ -2,24 +2,25 @@ import type {
   CRListChange,
   CRListDelta,
   CRListState,
-  CRListStateEntry,
-  CRListReparentedStateEntry,
+  CRListStateBlock,
+  CRListReparentedStateBlock,
 } from '../../../.types/type.js'
 import {
-  materializeSnapshotEntry,
-  attachEntryToIndexes,
+  createStateBlock,
+  attachBlockToIndexes,
   rebuildLiveProjection,
-  rebuildLiveIndex,
-  deleteLiveEntryId,
-  getEntryTailId,
-  moveEntryToPredecessor,
+  rebuildBlocksByIndex,
+  deleteItemById,
+  getBlockEndId,
+  getBlockStartIndex,
+  changePreviousBlockOf,
   trySpliceChildInsert,
   trySpliceSiblingInsert,
   trySpliceSiblingParentInsert,
   trySpliceReplacement,
   splitBlock,
-  sliceEntryIntoUnseenBlocks,
-  writeEntryChange,
+  sliceBlockIntoUnseenBlocks,
+  writeBlockChange,
 } from '../../../.helpers/index.js'
 import {
   isRecord,
@@ -31,165 +32,156 @@ import { trySpliceInsertedParent } from '../../../.helpers/trySpliceInsertedPare
 /**
  * Merges a remote CRList delta into the local replica.
  *
- * @param crListReplica - Replica to mutate.
- * @param crListDelta - Remote gossip delta.
+ * @param replica - Replica to mutate.
+ * @param delta - Remote gossip delta.
  * @returns - A minimal local change patch, or `false` when the delta is ignored.
  */
 export function __merge<T>(
-  crListReplica: CRListState<T>,
-  crListDelta: CRListDelta<T>
+  replica: CRListState<T>,
+  delta: CRListDelta<T>
 ): CRListChange<T> | false {
-  if (!isRecord(crListDelta)) return false
-  const newValues: Array<NonNullable<CRListStateEntry<T>>> = []
-  const newTombstoneIndicies: Array<number> = []
-  const reparentedValues: Array<CRListReparentedStateEntry<T>> = []
+  if (!isRecord(delta)) return false
+  const newBlocks: Array<NonNullable<CRListStateBlock<T>>> = []
+  const newDeletedIndexes: Array<number> = []
+  const reparentedBlocks: Array<CRListReparentedStateBlock<T>> = []
   const change: CRListChange<T> = {}
-  let tailTombstoneMovedCursor = false
+  let lastBlockDeleteMovedCurrentBlock = false
   let needsRelink = false
 
-  /** Apply tombstone entries. */
-  if (Array.isArray(crListDelta.tombstones)) {
-    for (const tombstone of crListDelta.tombstones) {
-      if (
-        typeof tombstone !== 'string' ||
-        crListReplica.tombstones.has(tombstone)
-      )
+  /** Apply remote item deletions before linking remote blocks. */
+  if (Array.isArray(delta.deletedIds)) {
+    for (const deletedId of delta.deletedIds) {
+      if (typeof deletedId !== 'string' || replica.deletedIds.has(deletedId))
         continue
-      void crListReplica.tombstones.add(tombstone)
-      const tombstoneBigInt = safeBigIntFromString(tombstone)
-      if (tombstoneBigInt === false) continue
-      const deleted = deleteLiveEntryId<T>(crListReplica, tombstoneBigInt)
+      void replica.deletedIds.add(deletedId)
+      const deletedBigInt = safeBigIntFromString(deletedId)
+      if (deletedBigInt === false) continue
+      const deleted = deleteItemById<T>(deletedBigInt, replica)
       if (deleted) {
-        void newTombstoneIndicies.push(deleted.index)
-        if (deleted.index >= 0) void crListReplica.cache.delete(deleted.index)
-        tailTombstoneMovedCursor = deleted.wasTail && deleted.wasCursor
+        void newDeletedIndexes.push(deleted.index)
+        if (deleted.index >= 0) void replica.blocksByIndex.delete(deleted.index)
+        lastBlockDeleteMovedCurrentBlock =
+          deleted.wasLastBlock && deleted.wasCurrentBlock
         needsRelink = true
       }
     }
   }
 
-  /** Return early */
+  /** Return early when the delta only carried item deletions. */
   if (
-    !Array.isArray(crListDelta.values) ||
-    (crListDelta.values.length === 0 && tailTombstoneMovedCursor)
+    !Array.isArray(delta.blocks) ||
+    (delta.blocks.length === 0 && lastBlockDeleteMovedCurrentBlock)
   ) {
-    if (newTombstoneIndicies.length === 0) return false
-    if (newTombstoneIndicies.length === 1 && tailTombstoneMovedCursor) {
-      if (crListReplica.cursor) {
-        crListReplica.cursorIndex =
-          crListReplica.size - crListReplica.cursor.values.length
-        void crListReplica.cache.set(
-          crListReplica.cursorIndex,
-          crListReplica.cursor
+    if (newDeletedIndexes.length === 0) return false
+    if (newDeletedIndexes.length === 1 && lastBlockDeleteMovedCurrentBlock) {
+      if (replica.currentBlock) {
+        replica.currentBlockIndex =
+          replica.size - replica.currentBlock.items.length
+        void replica.blocksByIndex.set(
+          replica.currentBlockIndex,
+          replica.currentBlock
         )
       } else {
-        crListReplica.cursorIndex = undefined
+        replica.currentBlockIndex = undefined
       }
-      change[newTombstoneIndicies[0]] = undefined
+      change[newDeletedIndexes[0]] = undefined
       return change
     }
-    void rebuildLiveIndex<T>(crListReplica)
-    for (const index of newTombstoneIndicies) change[index] = undefined
+    void rebuildBlocksByIndex<T>(replica)
+    for (const index of newDeletedIndexes) change[index] = undefined
     return change
   }
 
-  /** Apply value entries. */
-  // Attach accepted values to the predecessor tree.
-  for (const valueEntry of crListDelta.values) {
-    if (valueEntry === null || valueEntry === undefined) continue
-    const entryId = uuidV7BigIntStringToBigInt(valueEntry.id)
-    if (entryId === false) continue
+  /** Attach accepted blocks to the previousBlock tree. */
+  for (const snapshotBlock of delta.blocks) {
+    if (snapshotBlock === null || snapshotBlock === undefined) continue
+    const blockId = uuidV7BigIntStringToBigInt(snapshotBlock.id)
+    if (blockId === false) continue
 
-    const existingEntry = crListReplica.parentMap.get(entryId)
+    const existingBlock = replica.blocksById.get(blockId)
 
-    if (existingEntry) {
-      if (crListReplica.tombstones.has(valueEntry.id)) continue
-      if (!Array.isArray(valueEntry.values) || valueEntry.values.length === 0)
-        continue
-      const newPredecessor = uuidV7BigIntStringToBigInt(valueEntry.predecessor)
-      if (newPredecessor === false) continue
-      let entryToMove = existingEntry
-      if (existingEntry.id !== entryId) {
-        const [, right] = splitBlock<T>(
-          crListReplica,
-          existingEntry,
-          Number(entryId - existingEntry.id)
-        )
-        entryToMove = right
-      }
-      if (entryToMove.values.length > valueEntry.values.length) {
-        const [left] = splitBlock<T>(
-          crListReplica,
-          entryToMove,
-          valueEntry.values.length
-        )
-        entryToMove = left
-      }
-      if (entryToMove.predecessor >= newPredecessor) continue
+    if (existingBlock) {
+      if (replica.deletedIds.has(snapshotBlock.id)) continue
       if (
-        newPredecessor >= entryToMove.id &&
-        newPredecessor <= getEntryTailId(entryToMove)
+        !Array.isArray(snapshotBlock.items) ||
+        snapshotBlock.items.length === 0
       )
         continue
-      const oldPredecessor = entryToMove.predecessor
-      void moveEntryToPredecessor<T>(crListReplica, entryToMove, newPredecessor)
-      void reparentedValues.push({ entry: entryToMove, oldPredecessor })
+      const newPreviousBlockId = uuidV7BigIntStringToBigInt(
+        snapshotBlock.previousBlockId
+      )
+      if (newPreviousBlockId === false) continue
+      let blockToMove = existingBlock
+      if (existingBlock.id !== blockId) {
+        const [, right] = splitBlock<T>(
+          replica,
+          existingBlock,
+          Number(blockId - existingBlock.id)
+        )
+        blockToMove = right
+      }
+      if (blockToMove.items.length > snapshotBlock.items.length) {
+        const [left] = splitBlock<T>(
+          replica,
+          blockToMove,
+          snapshotBlock.items.length
+        )
+        blockToMove = left
+      }
+      if (blockToMove.previousBlockId >= newPreviousBlockId) continue
+      if (
+        newPreviousBlockId >= blockToMove.id &&
+        newPreviousBlockId <= getBlockEndId(blockToMove)
+      )
+        continue
+      const oldPreviousBlockId = blockToMove.previousBlockId
+      void changePreviousBlockOf<T>(replica, blockToMove, newPreviousBlockId)
+      void reparentedBlocks.push({ block: blockToMove, oldPreviousBlockId })
       needsRelink = true
       continue
     }
 
-    const linkedListEntry = materializeSnapshotEntry<T>(
-      valueEntry,
-      crListReplica,
-      entryId
-    )
-    if (!linkedListEntry) continue
-    const liveBlocks = sliceEntryIntoUnseenBlocks<T>(
-      crListReplica,
-      linkedListEntry
-    )
+    const block = createStateBlock<T>(snapshotBlock, replica, blockId)
+    if (!block) continue
+    const liveBlocks = sliceBlockIntoUnseenBlocks<T>(block, replica)
     if (liveBlocks.length === 0) continue
 
     for (const liveBlock of liveBlocks)
-      void attachEntryToIndexes<T>(crListReplica, liveBlock)
-    void newValues.push(...liveBlocks)
+      void attachBlockToIndexes<T>(replica, liveBlock)
+    void newBlocks.push(...liveBlocks)
     const liveBlock = liveBlocks[0]
     if (
       liveBlocks.length !== 1 ||
-      liveBlock.id !== linkedListEntry.id ||
-      liveBlock.values.length !== linkedListEntry.values.length
+      liveBlock.id !== block.id ||
+      liveBlock.items.length !== block.items.length
     ) {
       needsRelink = true
       continue
     }
-    const predecessor =
-      liveBlock.predecessor === 0n
+    const previousBlock =
+      liveBlock.previousBlockId === 0n
         ? undefined
-        : crListReplica.parentMap.get(liveBlock.predecessor)
-    if (!needsRelink && liveBlock.predecessor === 0n) {
-      if (crListReplica.size === 0) {
-        liveBlock.index = 0
-        crListReplica.head = liveBlock
-        crListReplica.tail = liveBlock
-        crListReplica.cursor = liveBlock
-        crListReplica.cursorIndex = 0
-        crListReplica.size = crListReplica.parentMap.size
-        void crListReplica.cache.set(0, liveBlock)
+        : replica.blocksById.get(liveBlock.previousBlockId)
+    if (!needsRelink && liveBlock.previousBlockId === 0n) {
+      if (replica.size === 0) {
+        replica.firstBlock = liveBlock
+        replica.lastBlock = liveBlock
+        replica.currentBlock = liveBlock
+        replica.currentBlockIndex = 0
+        replica.size = replica.blocksById.size
+        void replica.blocksByIndex.set(0, liveBlock)
       } else {
         needsRelink = true
       }
-    } else if (!needsRelink && predecessor && !predecessor.next) {
-      liveBlock.prev = predecessor
-      // parentMap already includes liveBlock (attachEntryToIndexes ran above),
-      // so tail index = parentMap.size - values.length, regardless of stale
-      // predecessor.index (which can lag after mid-list inserts on this replica).
-      liveBlock.index = crListReplica.parentMap.size - liveBlock.values.length
-      predecessor.next = liveBlock
-      crListReplica.tail = liveBlock
-      crListReplica.cursor = liveBlock
-      crListReplica.cursorIndex = liveBlock.index
-      crListReplica.size = crListReplica.parentMap.size
-      void crListReplica.cache.set(liveBlock.index, liveBlock)
+    } else if (!needsRelink && previousBlock && !previousBlock.nextBlock) {
+      liveBlock.previousBlock = previousBlock
+      const liveBlockIndex = replica.size
+      previousBlock.nextBlock = liveBlock
+      replica.lastBlock = liveBlock
+      replica.currentBlock = liveBlock
+      replica.currentBlockIndex = liveBlockIndex
+      replica.size = replica.blocksById.size
+      void replica.blocksByIndex.set(liveBlockIndex, liveBlock)
     } else {
       needsRelink = true
     }
@@ -198,38 +190,38 @@ export function __merge<T>(
   if (needsRelink) {
     if (
       !trySpliceSiblingInsert<T>(
-        crListReplica,
-        newValues,
-        reparentedValues,
-        newTombstoneIndicies.length
+        replica,
+        newBlocks,
+        reparentedBlocks,
+        newDeletedIndexes.length
       ) &&
       !trySpliceChildInsert<T>(
-        crListReplica,
-        newValues,
-        reparentedValues,
-        newTombstoneIndicies.length
+        replica,
+        newBlocks,
+        reparentedBlocks,
+        newDeletedIndexes.length
       ) &&
-      !trySpliceInsertedParent<T>(crListReplica, newValues, reparentedValues) &&
-      !trySpliceSiblingParentInsert<T>(
-        crListReplica,
-        newValues,
-        reparentedValues
-      ) &&
+      !trySpliceInsertedParent<T>(replica, newBlocks, reparentedBlocks) &&
+      !trySpliceSiblingParentInsert<T>(replica, newBlocks, reparentedBlocks) &&
       !trySpliceReplacement<T>(
-        crListReplica,
-        newValues,
-        reparentedValues,
-        newTombstoneIndicies.length
+        replica,
+        newBlocks,
+        reparentedBlocks,
+        newDeletedIndexes.length
       )
     ) {
-      void rebuildLiveProjection<T>(crListReplica)
+      void rebuildLiveProjection<T>(replica)
     }
   }
 
-  if (newTombstoneIndicies.length === 0 && newValues.length === 0) return false
+  if (newDeletedIndexes.length === 0 && newBlocks.length === 0) return false
 
-  for (const index of newTombstoneIndicies) change[index] = undefined
-  for (const val of newValues) void writeEntryChange<T>(change, val)
+  for (const index of newDeletedIndexes) change[index] = undefined
+  for (const block of newBlocks) {
+    const blockStartIndex = getBlockStartIndex(replica, block)
+    if (blockStartIndex !== undefined)
+      void writeBlockChange<T>(change, block, blockStartIndex)
+  }
 
   return change
 }

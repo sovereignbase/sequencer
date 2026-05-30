@@ -26,21 +26,21 @@ test('CRList browser relink paths do not overflow the call stack', async ({
         return BigInt(`0x${uuid.replaceAll('-', '')}`).toString()
       }
 
-      function snapshotValues(prefix, rootPredecessor, count) {
-        const values = []
-        let predecessor = rootPredecessor
+      function snapshotValues(prefix, rootPreviousBlockId, count) {
+        const blocks = []
+        let previousBlockId = rootPreviousBlockId
 
         for (let index = 0; index < count; index++) {
           const id = uuidV7ToBigIntStr(uuidv7())
-          values.push({
+          blocks.push({
             id,
-            values: [{ id: `${prefix}-${index}` }],
-            predecessor,
+            items: [{ id: `${prefix}-${index}` }],
+            previousBlockId,
           })
-          predecessor = id
+          previousBlockId = id
         }
 
-        return values
+        return blocks
       }
 
       function assertHydration(prefix, replica, count) {
@@ -78,21 +78,21 @@ test('CRList browser relink paths do not overflow the call stack', async ({
       )
 
       const createdRootHydration = api.__create({
-        values: reversed(rootHydrationValues),
-        tombstones: [],
+        blocks: reversed(rootHydrationValues),
+        deletedIds: [],
       })
       const createdDetachedHydration = api.__create({
-        values: reversed(detachedHydrationValues),
-        tombstones: [],
+        blocks: reversed(detachedHydrationValues),
+        deletedIds: [],
       })
 
       const mergedRoot = api.__create()
       const mergedDetached = api.__create()
       const rootChange = api.__merge(mergedRoot, {
-        values: reversed(rootMergeValues),
+        blocks: reversed(rootMergeValues),
       })
       const detachedChange = api.__merge(mergedDetached, {
-        values: reversed(detachedMergeValues),
+        blocks: reversed(detachedMergeValues),
       })
 
       return {

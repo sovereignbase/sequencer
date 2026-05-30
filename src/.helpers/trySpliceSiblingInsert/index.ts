@@ -1,19 +1,20 @@
 import type {
-  CRListReparentedStateEntry,
+  CRListReparentedStateBlock,
   CRListState,
-  CRListStateEntry,
+  CRListStateBlock,
 } from '../../.types/type.js'
-import { getEntryTailId } from '../getEntryTailId/index.js'
-import { getIndexAfterEntryId } from '../getIndexAfterEntryId/index.js'
-import { linkEntryBetween } from '../linkEntryBetween/index.js'
+import { getBlockEndId } from '../getBlockEndId/index.js'
+import { getIndexAfterBlockId } from '../getIndexAfterBlockId/index.js'
+import { getBlockStartIndex } from '../getBlockStartIndex/index.js'
+import { linkBlockBetween } from '../linkBlockBetween/index.js'
 
 /**
  * Applies a simple concurrent sibling insert without a full projection rebuild.
  */
 export function trySpliceSiblingInsert<T>(
   crListReplica: CRListState<T>,
-  insertedEntries: Array<NonNullable<CRListStateEntry<T>>>,
-  reparentedEntries: Array<CRListReparentedStateEntry<T>>,
+  insertedEntries: Array<NonNullable<CRListStateBlock<T>>>,
+  reparentedEntries: Array<CRListReparentedStateBlock<T>>,
   tombstoneCount: number
 ): boolean {
   if (
@@ -23,70 +24,75 @@ export function trySpliceSiblingInsert<T>(
   )
     return false
   const inserted = insertedEntries[0]
-  if (inserted.values.length !== 1) return false
-  if (crListReplica.childrenMap.get(getEntryTailId(inserted))?.length)
+  if (inserted.items.length !== 1) return false
+  if (
+    crListReplica.blocksByPreviousBlockId.get(getBlockEndId(inserted))?.length
+  )
     return false
 
-  const predecessor =
-    inserted.predecessor === 0n
+  const previousBlock =
+    inserted.previousBlockId === 0n
       ? undefined
-      : crListReplica.parentMap.get(inserted.predecessor)
-  const siblings = crListReplica.childrenMap.get(inserted.predecessor)
+      : crListReplica.blocksById.get(inserted.previousBlockId)
+  const siblings = crListReplica.blocksByPreviousBlockId.get(
+    inserted.previousBlockId
+  )
   if (!siblings || siblings.length < 2) return false
-  if (inserted.predecessor !== 0n && !predecessor) return false
+  if (inserted.previousBlockId !== 0n && !previousBlock) return false
 
   void siblings.sort((a, b) => (a.id > b.id ? 1 : -1))
   const siblingIndex = siblings.indexOf(inserted)
   if (siblingIndex === -1) return false
-  if (inserted.predecessor === 0n) {
+  if (inserted.previousBlockId === 0n) {
     if (siblingIndex !== 0) return false
     const next = siblings[1]
-    if (!next || crListReplica.head !== next || next.prev !== undefined)
+    if (
+      !next ||
+      crListReplica.firstBlock !== next ||
+      next.previousBlock !== undefined
+    )
       return false
-    void linkEntryBetween<T>(undefined, inserted, next)
-    inserted.index = 0
-    next.index = inserted.values.length
-    crListReplica.head = inserted
-    void crListReplica.cache.clear()
-    void crListReplica.cache.set(0, inserted)
-    crListReplica.cursor = inserted
-    crListReplica.cursorIndex = 0
-    crListReplica.size = crListReplica.parentMap.size
+    void linkBlockBetween<T>(undefined, inserted, next)
+    crListReplica.firstBlock = inserted
+    void crListReplica.blocksByIndex.clear()
+    void crListReplica.blocksByIndex.set(0, inserted)
+    crListReplica.currentBlock = inserted
+    crListReplica.currentBlockIndex = 0
+    crListReplica.size = crListReplica.blocksById.size
     return true
   }
-  if (!predecessor) return false
+  if (!previousBlock) return false
   const previousSibling = siblings[siblingIndex - 1]
   const nextSibling = siblings[siblingIndex + 1]
   if (previousSibling?.id) {
-    if (crListReplica.childrenMap.get(getEntryTailId(previousSibling))?.length)
+    if (
+      crListReplica.blocksByPreviousBlockId.get(getBlockEndId(previousSibling))
+        ?.length
+    )
       return false
-    if (previousSibling.next !== nextSibling) return false
-  } else if (predecessor.next !== nextSibling) {
+    if (previousSibling.nextBlock !== nextSibling) return false
+  } else if (previousBlock.nextBlock !== nextSibling) {
     return false
   }
 
-  const prev = previousSibling ?? predecessor
+  const prev = previousSibling ?? previousBlock
   const next = nextSibling
-  if (next && next.prev !== prev) return false
+  if (next && next.previousBlock !== prev) return false
 
   const prevStart = previousSibling
-    ? crListReplica.cursor === previousSibling
-      ? (crListReplica.cursorIndex ?? previousSibling.index)
-      : previousSibling.index
+    ? getBlockStartIndex(crListReplica, previousSibling)
     : undefined
   const index =
     prevStart !== undefined
-      ? prevStart + previousSibling!.values.length
-      : getIndexAfterEntryId<T>(crListReplica, inserted.predecessor)
+      ? prevStart + previousSibling!.items.length
+      : getIndexAfterBlockId<T>(crListReplica, inserted.previousBlockId)
   if (index === undefined) return false
-  void linkEntryBetween<T>(prev, inserted, next)
-  inserted.index = index
-  if (next) next.index = index + inserted.values.length
-  if (!next) crListReplica.tail = inserted
-  void crListReplica.cache.clear()
-  void crListReplica.cache.set(index, inserted)
-  crListReplica.cursor = inserted
-  crListReplica.cursorIndex = index
-  crListReplica.size = crListReplica.parentMap.size
+  void linkBlockBetween<T>(prev, inserted, next)
+  if (!next) crListReplica.lastBlock = inserted
+  void crListReplica.blocksByIndex.clear()
+  void crListReplica.blocksByIndex.set(index, inserted)
+  crListReplica.currentBlock = inserted
+  crListReplica.currentBlockIndex = index
+  crListReplica.size = crListReplica.blocksById.size
   return true
 }

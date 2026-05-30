@@ -1,65 +1,69 @@
-import type { CRListState, CRListStateEntry } from '../../.types/type.js'
+import type { CRListState, CRListStateBlock } from '../../.types/type.js'
 
 /**
- * Splits a block at offset, returning [left, right].
+ * Splits a block at an item offset, returning `[left, right]`.
  *
- * The right block starts at the virtual entry id `block.id + offset`; its
- * predecessor is the left block tail.
+ * The right block starts at the virtual item id `block.id + offset`; its
+ * previousBlock is the left block's last item id.
  */
 export function splitBlock<T>(
   crListReplica: CRListState<T>,
-  block: NonNullable<CRListStateEntry<T>>,
+  block: NonNullable<CRListStateBlock<T>>,
   offset: number
-): [NonNullable<CRListStateEntry<T>>, NonNullable<CRListStateEntry<T>>] {
-  if (offset <= 0 || offset >= block.values.length) return [block, block]
+): [NonNullable<CRListStateBlock<T>>, NonNullable<CRListStateBlock<T>>] {
+  if (offset <= 0 || offset >= block.items.length) return [block, block]
 
   const rightId = block.id + BigInt(offset)
-  const left: NonNullable<CRListStateEntry<T>> = {
+  const left: NonNullable<CRListStateBlock<T>> = {
     id: block.id,
     idString: block.idString,
-    values: block.values.slice(0, offset),
-    predecessor: block.predecessor,
-    index: block.index,
-    prev: block.prev,
-    next: undefined,
+    items: block.items.slice(0, offset),
+    previousBlockId: block.previousBlockId,
+    previousBlock: block.previousBlock,
+    nextBlock: undefined,
   }
-  const right: NonNullable<CRListStateEntry<T>> = {
+  const right: NonNullable<CRListStateBlock<T>> = {
     id: rightId,
     idString: rightId.toString(),
-    values: block.values.slice(offset),
-    predecessor: rightId - 1n,
-    index: block.index + offset,
-    prev: left,
-    next: block.next,
+    items: block.items.slice(offset),
+    previousBlockId: rightId - 1n,
+    previousBlock: left,
+    nextBlock: block.nextBlock,
   }
-  left.next = right
-  if (block.prev) block.prev.next = left
-  if (block.next) block.next.prev = right
-  if (crListReplica.head === block) crListReplica.head = left
-  if (crListReplica.tail === block) crListReplica.tail = right
+  left.nextBlock = right
+  if (block.previousBlock) block.previousBlock.nextBlock = left
+  if (block.nextBlock) block.nextBlock.previousBlock = right
+  if (crListReplica.firstBlock === block) crListReplica.firstBlock = left
+  if (crListReplica.lastBlock === block) crListReplica.lastBlock = right
 
-  for (let entryOffset = 0; entryOffset < block.values.length; entryOffset++)
-    void crListReplica.parentMap.delete(block.id + BigInt(entryOffset))
-  for (let entryOffset = 0; entryOffset < left.values.length; entryOffset++)
-    void crListReplica.parentMap.set(left.id + BigInt(entryOffset), left)
-  for (let entryOffset = 0; entryOffset < right.values.length; entryOffset++)
-    void crListReplica.parentMap.set(right.id + BigInt(entryOffset), right)
+  for (let itemOffset = 0; itemOffset < block.items.length; itemOffset++)
+    void crListReplica.blocksById.delete(block.id + BigInt(itemOffset))
+  for (let itemOffset = 0; itemOffset < left.items.length; itemOffset++)
+    void crListReplica.blocksById.set(left.id + BigInt(itemOffset), left)
+  for (let itemOffset = 0; itemOffset < right.items.length; itemOffset++)
+    void crListReplica.blocksById.set(right.id + BigInt(itemOffset), right)
 
-  const siblings = crListReplica.childrenMap.get(block.predecessor)
+  const siblings = crListReplica.blocksByPreviousBlockId.get(
+    block.previousBlockId
+  )
   if (siblings) {
     const index = siblings.indexOf(block)
     if (index !== -1) siblings[index] = left
   }
 
-  const rightSiblings = crListReplica.childrenMap.get(right.predecessor)
+  const rightSiblings = crListReplica.blocksByPreviousBlockId.get(
+    right.previousBlockId
+  )
   if (rightSiblings) {
     if (!rightSiblings.includes(right)) void rightSiblings.push(right)
   } else {
-    void crListReplica.childrenMap.set(right.predecessor, [right])
+    void crListReplica.blocksByPreviousBlockId.set(right.previousBlockId, [
+      right,
+    ])
   }
 
-  if (crListReplica.cursor === block) crListReplica.cursor = left
-  void crListReplica.cache.clear()
+  if (crListReplica.currentBlock === block) crListReplica.currentBlock = left
+  void crListReplica.blocksByIndex.clear()
 
   return [left, right]
 }

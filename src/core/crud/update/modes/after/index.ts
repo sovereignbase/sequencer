@@ -2,65 +2,57 @@ import type {
   CRListChange,
   CRListDelta,
   CRListState,
-  CRListStateEntry,
+  CRListStateBlock,
 } from '../../../../../.types/type.js'
 import {
-  attachEntryToEmptyReplica,
-  attachEntryToIndexes,
-  getEntryTailId,
-  linkEntryBetween,
-  moveEntryToPredecessor,
+  attachBlockToEmptyReplica,
+  attachBlockToIndexes,
+  getBlockEndId,
+  getBlockStartIndex,
+  linkBlockBetween,
+  changePreviousBlockOf,
   seekCursorToIndex,
   splitCursorAfterIndex,
-  writeEntryChange,
+  writeBlockChange,
 } from '../../../../../.helpers/index.js'
 
 export function after<T>(
   listIndex: number,
-  linkedListEntry: NonNullable<CRListStateEntry<T>>,
-  crListReplica: CRListState<T>,
+  block: NonNullable<CRListStateBlock<T>>,
+  replica: CRListState<T>,
   change: CRListChange<T>,
   delta: CRListDelta<T>
 ): void {
-  if (crListReplica.size === 0 && listIndex === 0) {
-    void attachEntryToEmptyReplica<T>(
-      crListReplica,
-      linkedListEntry,
-      change,
-      delta
-    )
+  if (replica.size === 0 && listIndex === 0) {
+    void attachBlockToEmptyReplica<T>(replica, block, change, delta)
     return
   }
 
-  const seekTo =
-    listIndex === crListReplica.size ? crListReplica.size - 1 : listIndex
-  void seekCursorToIndex<T>(seekTo, crListReplica)
-  if (!crListReplica.cursor) return
+  const seekTo = listIndex === replica.size ? replica.size - 1 : listIndex
+  void seekCursorToIndex<T>(replica, seekTo)
+  if (!replica.currentBlock) return
 
-  const boundary = splitCursorAfterIndex<T>(crListReplica, listIndex)
+  const boundary = splitCursorAfterIndex<T>(replica, listIndex)
   if (!boundary) return
-  const { entry: insertAfter, next } = boundary
+  const { block: insertAfter, next } = boundary
 
-  linkedListEntry.index = insertAfter.index + insertAfter.values.length
-  linkedListEntry.predecessor = getEntryTailId(insertAfter)
+  const insertAfterIndex = getBlockStartIndex(replica, insertAfter)
+  if (insertAfterIndex === undefined) return
+  const insertedIndex = insertAfterIndex + insertAfter.items.length
+  block.previousBlockId = getBlockEndId(insertAfter)
 
-  void linkEntryBetween<T>(insertAfter, linkedListEntry, next)
+  void linkBlockBetween<T>(insertAfter, block, next)
 
-  void attachEntryToIndexes<T>(crListReplica, linkedListEntry, delta)
-  if (next && next.predecessor === linkedListEntry.predecessor)
-    void moveEntryToPredecessor<T>(
-      crListReplica,
-      next,
-      getEntryTailId(linkedListEntry),
-      delta
-    )
-  if (!next) crListReplica.tail = linkedListEntry
-  crListReplica.cursor = linkedListEntry
-  crListReplica.cursorIndex = linkedListEntry.index
+  void attachBlockToIndexes<T>(replica, block, delta)
+  if (next && next.previousBlockId === block.previousBlockId)
+    void changePreviousBlockOf<T>(replica, next, getBlockEndId(block), delta)
+  if (!next) replica.lastBlock = block
+  replica.currentBlock = block
+  replica.currentBlockIndex = insertedIndex
 
-  if (next) void crListReplica.cache.clear()
-  void crListReplica.cache.set(linkedListEntry.index, linkedListEntry)
+  if (next) void replica.blocksByIndex.clear()
+  void replica.blocksByIndex.set(insertedIndex, block)
 
-  void writeEntryChange<T>(change, linkedListEntry)
-  crListReplica.size = crListReplica.parentMap.size
+  void writeBlockChange<T>(change, block, insertedIndex)
+  replica.size = replica.blocksById.size
 }

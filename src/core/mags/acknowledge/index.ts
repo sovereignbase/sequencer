@@ -5,20 +5,20 @@ import {
 import type { CRListAck, CRListState } from '../../../.types/type.js'
 
 /**
- * Returns the replica tombstone acknowledgement frontier.
+ * Returns the replica deleted-id acknowledgement frontier.
  *
  * @param crListReplica - Replica to acknowledge.
- * @returns - The acknowledgement frontier, or `false` when there are no tombstones.
+ * @returns - The acknowledgement frontier, or `false` when there are no deleted ids.
  */
 export function __acknowledge<T>(
   crListReplica: CRListState<T>
 ): CRListAck | false {
   let largest: bigint | undefined
-  void crListReplica.tombstones.forEach((tombstone) => {
-    const canditate = uuidV7BigIntStringToBigInt(tombstone)
+  void crListReplica.deletedIds.forEach((deletedId) => {
+    const canditate = uuidV7BigIntStringToBigInt(deletedId)
 
     if (canditate === false) {
-      crListReplica.tombstones.delete(tombstone)
+      crListReplica.deletedIds.delete(deletedId)
       return
     }
 

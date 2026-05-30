@@ -24,9 +24,9 @@ use indexed reads.
 Own earlier targeted baseline for class find rows, before this correction:
 
 | Benchmark              | CRList before | Yjs before | json-joy before | Automerge before | Winner before |
-| ---------------------- | ------------: | ---------: | --------------: | ----------------: | ------------- |
-| class find near middle |       1.04 ms |    0.14 ms |         0.70 ms |           0.04 ms | Automerge     |
-| class find near tail   |       2.08 ms |    0.25 ms |         1.97 ms |           0.07 ms | Automerge     |
+| ---------------------- | ------------: | ---------: | --------------: | ---------------: | ------------- |
+| class find near middle |       1.04 ms |    0.14 ms |         0.70 ms |          0.04 ms | Automerge     |
+| class find near tail   |       2.08 ms |    0.25 ms |         1.97 ms |          0.07 ms | Automerge     |
 
 The supplied full table had `class find near head` at 712,250 ops/sec for
 CRList versus 2,408,477 ops/sec for Yjs.
@@ -35,11 +35,11 @@ CRList versus 2,408,477 ops/sec for Yjs.
 
 Two targeted runs after the correction:
 
-| Benchmark              | CRList after avg | Yjs after avg | json-joy after avg | Automerge after avg | Relative result |
-| ---------------------- | ---------------: | ------------: | -----------------: | ------------------: | --------------- |
-| class find near head   |  924,216 ops/sec | 12,225,596/s  |        3,850,139/s |         6,607,975/s | CRList improved, still behind |
-| class find near middle |          0.075 ms |       0.125 ms |            0.68 ms |             0.04 ms | CRList beats Yjs/json-joy |
-| class find near tail   |          0.115 ms |       0.20 ms  |            1.74 ms |            0.075 ms | CRList beats Yjs/json-joy |
+| Benchmark              | CRList after avg | Yjs after avg | json-joy after avg | Automerge after avg | Relative result               |
+| ---------------------- | ---------------: | ------------: | -----------------: | ------------------: | ----------------------------- |
+| class find near head   |  924,216 ops/sec |  12,225,596/s |        3,850,139/s |         6,607,975/s | CRList improved, still behind |
+| class find near middle |         0.075 ms |      0.125 ms |            0.68 ms |             0.04 ms | CRList beats Yjs/json-joy     |
+| class find near tail   |         0.115 ms |       0.20 ms |            1.74 ms |            0.075 ms | CRList beats Yjs/json-joy     |
 
 CRList class find middle improved from ~1.04 ms to ~0.075 ms, about 92.8%
 faster. Class find tail improved from ~2.08 ms to ~0.115 ms, about 94.5%

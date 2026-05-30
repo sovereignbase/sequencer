@@ -1,79 +1,86 @@
-import type { CRListState, CRListStateEntry } from '../../.types/type.js'
-import { linkEntryBetween } from '../linkEntryBetween/index.js'
+import type { CRListState, CRListStateBlock } from '../../.types/type.js'
+import { linkBlockBetween } from '../linkBlockBetween/index.js'
 
 /**
- * Rebuilds the live linked-list projection and index from predecessor buckets.
+ * Rebuilds the live linked-list projection and block-start cache from
+ * previousBlock buckets.
  *
  * Sibling order is deterministic by bigint id, which keeps replicas convergent
  * even when deltas arrive in different orders.
  */
-export function rebuildLiveProjection<T>(crListReplica: CRListState<T>) {
+export function rebuildLiveProjection<T>(replica: CRListState<T>) {
   // Reset links via linked-list walk — O(B) not O(N)+Set.
   // New entries (prev/next already undefined) are skipped naturally.
-  let walkEntry = crListReplica.cache.get(0) ?? crListReplica.cursor
-  while (walkEntry?.prev) walkEntry = walkEntry.prev
-  while (walkEntry) {
-    const next = walkEntry.next
-    walkEntry.prev = undefined
-    walkEntry.next = undefined
-    walkEntry = next
+  let cursor = replica.firstBlock
+  while (cursor) {
+    const next = cursor.nextBlock
+    cursor.previousBlock = undefined
+    cursor.nextBlock = undefined
+    cursor = next
   }
 
-  crListReplica.cursor = undefined
-  void crListReplica.cache.clear()
+  replica.currentBlock = undefined
 
-  let previous: CRListStateEntry<T> = undefined
-  let first: CRListStateEntry<T> = undefined
-  let index = 0
+  void replica.blocksByIndex.clear()
 
-  const appendChildren = (predecessorId: bigint): void => {
+  let previousBlock: CRListStateBlock<T> = undefined
+  let firstBlock: CRListStateBlock<T> = undefined
+  let blockStartIndex = 0
+
+  const appendChildren = (previousBlockId: bigint): void => {
     const stack: Array<{
-      predecessorId: bigint
-      siblingIndex: number
-      siblings?: Array<NonNullable<CRListStateEntry<T>>>
-    }> = [{ predecessorId, siblingIndex: 0 }]
+      previousBlockId: bigint
+      siblingBlockIndex: number
+      siblingBlocks?: Array<NonNullable<CRListStateBlock<T>>>
+    }> = [{ previousBlockId, siblingBlockIndex: 0 }]
 
     while (stack.length > 0) {
       const frame = stack[stack.length - 1]
 
-      if (!frame.siblings) {
-        frame.siblings = crListReplica.childrenMap.get(frame.predecessorId)
-        if (!frame.siblings) {
+      if (!frame.siblingBlocks) {
+        frame.siblingBlocks = replica.blocksByPreviousBlockId.get(
+          frame.previousBlockId
+        )
+        if (!frame.siblingBlocks) {
           void stack.pop()
           continue
         }
-        if (frame.siblings.length > 1)
-          void frame.siblings.sort((a, b) => (a.id > b.id ? 1 : -1))
+        if (frame.siblingBlocks.length > 1)
+          void frame.siblingBlocks.sort((a, b) => (a.id > b.id ? 1 : -1))
       }
 
-      if (frame.siblingIndex >= frame.siblings.length) {
+      if (frame.siblingBlockIndex >= frame.siblingBlocks.length) {
         void stack.pop()
         continue
       }
 
-      const sibling = frame.siblings[frame.siblingIndex]
-      frame.siblingIndex++
-      if (!sibling) continue
+      const siblingBlock = frame.siblingBlocks[frame.siblingBlockIndex]
+      frame.siblingBlockIndex++
+      if (!siblingBlock) continue
       // sibling === first covers the first block (prev stays undefined after link).
-      // sibling.prev !== undefined covers all subsequent blocks once linked.
-      if (sibling === first || sibling.prev !== undefined) continue
-      if (crListReplica.parentMap.get(sibling.id) !== sibling) continue
+      // sibling.previousBlock !== undefined covers all subsequent blocks once linked.
+      if (
+        siblingBlock === firstBlock ||
+        siblingBlock.previousBlock !== undefined
+      )
+        continue
+      if (replica.blocksById.get(siblingBlock.id) !== siblingBlock) continue
 
-      sibling.index = index
-      index += sibling.values.length
-      void linkEntryBetween<T>(previous, sibling, undefined)
-      if (!first) first = sibling
-      previous = sibling
+      void linkBlockBetween<T>(previousBlock, siblingBlock, undefined)
+      void replica.blocksByIndex.set(blockStartIndex, siblingBlock)
+      blockStartIndex += siblingBlock.items.length
+      if (!firstBlock) firstBlock = siblingBlock
+      previousBlock = siblingBlock
 
-      // Push children for each element id in this block (handles mid-block insertions)
+      // Push children for each item id in this block (handles mid-block insertions)
       for (
-        let entryOffset = sibling.values.length - 1;
-        entryOffset >= 0;
-        entryOffset--
+        let itemOffset = siblingBlock.items.length - 1;
+        itemOffset >= 0;
+        itemOffset--
       ) {
         void stack.push({
-          predecessorId: sibling.id + BigInt(entryOffset),
-          siblingIndex: 0,
+          previousBlockId: siblingBlock.id + BigInt(itemOffset),
+          siblingBlockIndex: 0,
         })
       }
     }
@@ -81,21 +88,21 @@ export function rebuildLiveProjection<T>(crListReplica: CRListState<T>) {
 
   void appendChildren(0n)
 
-  const detachedPredecessors: Array<bigint> = []
-  for (const predecessorId of crListReplica.childrenMap.keys()) {
-    if (predecessorId !== 0n && !crListReplica.parentMap.get(predecessorId))
-      void detachedPredecessors.push(predecessorId)
+  const detachedPreviousBlocks: Array<bigint> = []
+  for (const previousBlockId of replica.blocksByPreviousBlockId.keys()) {
+    if (previousBlockId !== 0n && !replica.blocksById.get(previousBlockId))
+      void detachedPreviousBlocks.push(previousBlockId)
   }
-  if (detachedPredecessors.length > 1)
-    void detachedPredecessors.sort((a, b) => (a > b ? 1 : -1))
+  if (detachedPreviousBlocks.length > 1)
+    void detachedPreviousBlocks.sort((a, b) => (a > b ? 1 : -1))
 
-  for (const predecessorId of detachedPredecessors)
-    void appendChildren(predecessorId)
+  for (const previousBlockId of detachedPreviousBlocks)
+    void appendChildren(previousBlockId)
 
-  crListReplica.head = first
-  crListReplica.tail = previous ?? first
-  crListReplica.cursor = first
-  crListReplica.cursorIndex = first ? 0 : undefined
-  if (first) void crListReplica.cache.set(0, first)
-  crListReplica.size = crListReplica.parentMap.size
+  replica.firstBlock = firstBlock
+  replica.lastBlock = previousBlock ?? firstBlock
+  replica.currentBlock = firstBlock
+  replica.currentBlockIndex = firstBlock ? 0 : undefined
+  if (firstBlock) void replica.blocksByIndex.set(0, firstBlock)
+  replica.size = replica.blocksById.size
 }

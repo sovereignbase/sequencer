@@ -1,111 +1,90 @@
 import { isRecord } from '@sovereignbase/utils'
-import {
+import { toBigInt } from '@sovereignbase/bytecodec'
+import { v7 } from 'uuid'
+import type {
   CRListSnapshot,
   CRListState,
-  CRListStateEntry,
+  CRListStateBlock,
 } from '../../../.types/type.js'
 import {
+  attachBlockToIndexes,
+  createStateBlock,
+  getBlockEndId,
+  linkBlockBetween,
   rebuildLiveProjection,
-  materializeSnapshotEntry,
-  attachEntryToIndexes,
-  linkEntryBetween,
-  getEntryTailId,
 } from '../../../.helpers/index.js'
-import { v7 } from 'uuid'
-import { toBigInt } from '@sovereignbase/bytecodec'
 
 /**
  * Creates a local CRList replica from an optional snapshot.
  *
- * Invalid snapshot records are ignored. Accepted values are kept by reference,
- * indexed by UUIDv7, linked through their predecessor buckets, and exposed as a
- * live doubly-linked list projection.
- *
- * @param snapshot - Optional CRList snapshot.
- * @returns - A hydrated CRList replica.
- *
- * Time complexity: O(n log n + t), worst case O(n^2 + t)
- * - n = snapshot value entry count
- * - t = snapshot tombstone count
- *
- * Space complexity: O(n + t)
+ * A snapshot stores blocks, but list operations still target items. During
+ * hydration every block is indexed under each contained item id so later
+ * item-level reads, writes, deletes, and merges can find the containing block.
  */
 export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
-  const buf = new Uint8Array(16)
-  void v7(undefined, buf)
+  const clockSeed = new Uint8Array(16)
+  void v7(undefined, clockSeed)
 
-  const crListReplica: CRListState<T> = {
+  const replica: CRListState<T> = {
     size: 0,
-    head: undefined,
-    tail: undefined,
-    /***/
-    cursor: undefined,
-    cursorIndex: undefined,
-    clock: toBigInt(buf),
-    /***/
-    cache: new Map<number, NonNullable<CRListStateEntry<T>>>(),
-    /***/
-    parentMap: new Map<bigint, NonNullable<CRListStateEntry<T>>>(),
-    childrenMap: new Map<bigint, Array<NonNullable<CRListStateEntry<T>>>>(),
-    tombstones: new Set<string>(),
-    /***/
+    clock: toBigInt(clockSeed),
+    firstBlock: undefined,
+    currentBlock: undefined,
+    lastBlock: undefined,
+    currentBlockIndex: undefined,
+    blocksById: new Map<bigint, CRListStateBlock<T>>(),
+    blocksByIndex: new Map<number, NonNullable<CRListStateBlock<T>>>(),
+    blocksByPreviousBlockId: new Map<
+      bigint,
+      Array<NonNullable<CRListStateBlock<T>>>
+    >(),
+    deletedIds: new Set<string>(),
   }
 
-  /**Return fast*/
-  if (!isRecord(snapshot)) return crListReplica
+  if (!isRecord(snapshot)) return replica
 
-  /** Mint tombstone entries if there is any. */
-  if (Array.isArray(snapshot.tombstones)) {
-    for (const tombstone of snapshot.tombstones) {
-      if (
-        typeof tombstone !== 'string' ||
-        crListReplica.tombstones.has(tombstone)
-      )
-        continue
-      void crListReplica.tombstones.add(tombstone)
+  if (Array.isArray(snapshot.deletedIds)) {
+    for (const deletedId of snapshot.deletedIds) {
+      if (typeof deletedId === 'string') void replica.deletedIds.add(deletedId)
     }
   }
 
-  /**Return fast*/
-  if (!Array.isArray(snapshot.values)) return crListReplica
+  if (!Array.isArray(snapshot.blocks) || snapshot.blocks.length === 0)
+    return replica
 
-  /** Mint value entries if there is any. */
-  // Build predecessor tree.
-  let canUseLinearProjection = true
-  let previous: CRListStateEntry<T> = undefined
-  for (const valueEntry of snapshot.values) {
-    const linkedListEntry = materializeSnapshotEntry<T>(
-      valueEntry,
-      crListReplica
-    )
-    if (!linkedListEntry) continue
-    const startIndex = crListReplica.parentMap.size // before attach, = first element index
-    void attachEntryToIndexes<T>(crListReplica, linkedListEntry)
-    if (
-      canUseLinearProjection &&
-      linkedListEntry.predecessor === (previous ? getEntryTailId(previous) : 0n)
-    ) {
-      linkedListEntry.index = startIndex
-      void linkEntryBetween<T>(previous, linkedListEntry, undefined)
-      previous = linkedListEntry
-      void crListReplica.cache.set(startIndex, linkedListEntry)
+  let linear = true
+  let previousBlock: CRListStateBlock<T> = undefined
+  let blockStartIndex = 0
+
+  for (const snapshotBlock of snapshot.blocks) {
+    const block = createStateBlock<T>(snapshotBlock, replica)
+    if (!block) continue
+
+    void attachBlockToIndexes<T>(replica, block)
+
+    const expectedPreviousBlockId = previousBlock
+      ? getBlockEndId(previousBlock)
+      : 0n
+    if (linear && block.previousBlockId === expectedPreviousBlockId) {
+      void linkBlockBetween<T>(previousBlock, block, undefined)
+      if (!replica.firstBlock) replica.firstBlock = block
+      previousBlock = block
+      void replica.blocksByIndex.set(blockStartIndex, block)
+      blockStartIndex += block.items.length
       continue
     }
-    canUseLinearProjection = false
-  }
-  if (canUseLinearProjection) {
-    // head = first entry linked (the one with startIndex=0), tail = previous (last linked)
-    let head: CRListStateEntry<T> = previous
-    while (head?.prev) head = head.prev
-    crListReplica.head = head ?? undefined
-    crListReplica.tail = previous ?? undefined
-    crListReplica.cursor = previous
-    crListReplica.cursorIndex = previous ? previous.index : undefined
-    crListReplica.size = crListReplica.parentMap.size
-    return crListReplica
-  }
-  // Flatten tree into a doubly linked list and write live-view indexes.
-  void rebuildLiveProjection<T>(crListReplica)
 
-  return crListReplica
+    linear = false
+  }
+
+  if (linear) {
+    replica.lastBlock = previousBlock
+    replica.currentBlock = replica.firstBlock
+    replica.currentBlockIndex = replica.firstBlock ? 0 : undefined
+    replica.size = replica.blocksById.size
+    return replica
+  }
+
+  void rebuildLiveProjection<T>(replica)
+  return replica
 }

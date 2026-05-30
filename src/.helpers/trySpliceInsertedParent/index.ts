@@ -1,34 +1,36 @@
 import type {
   CRListState,
-  CRListStateEntry,
-  CRListReparentedStateEntry,
+  CRListStateBlock,
+  CRListReparentedStateBlock,
 } from '../../.types/type.js'
-import { getEntryTailId } from '../getEntryTailId/index.js'
-import { getIndexAfterEntryId } from '../getIndexAfterEntryId/index.js'
-import { linkEntryBetween } from '../linkEntryBetween/index.js'
+import { getBlockEndId } from '../getBlockEndId/index.js'
+import { getIndexAfterBlockId } from '../getIndexAfterBlockId/index.js'
+import { linkBlockBetween } from '../linkBlockBetween/index.js'
 
 /**
  * Applies the common single-insert reparent delta without a full projection rebuild.
  */
 export function trySpliceInsertedParent<T>(
   crListReplica: CRListState<T>,
-  insertedEntries: Array<NonNullable<CRListStateEntry<T>>>,
-  reparentedEntries: Array<CRListReparentedStateEntry<T>>
+  insertedEntries: Array<NonNullable<CRListStateBlock<T>>>,
+  reparentedEntries: Array<CRListReparentedStateBlock<T>>
 ): boolean {
   if (insertedEntries.length !== 1 || reparentedEntries.length !== 1)
     return false
   const inserted = insertedEntries[0]
   const reparented = reparentedEntries[0]
-  const moved = reparented.entry
-  if (inserted.values.length !== 1 || moved.values.length !== 1) return false
-  const insertedTailId = getEntryTailId(inserted)
+  const moved = reparented.block
+  if (inserted.items.length !== 1 || moved.items.length !== 1) return false
+  const insertedTailId = getBlockEndId(inserted)
   if (
-    moved.predecessor !== insertedTailId ||
-    inserted.predecessor !== reparented.oldPredecessor
+    moved.previousBlockId !== insertedTailId ||
+    inserted.previousBlockId !== reparented.oldPreviousBlockId
   )
     return false
-  const siblings = crListReplica.childrenMap.get(inserted.predecessor)
-  const children = crListReplica.childrenMap.get(insertedTailId)
+  const siblings = crListReplica.blocksByPreviousBlockId.get(
+    inserted.previousBlockId
+  )
+  const children = crListReplica.blocksByPreviousBlockId.get(insertedTailId)
   if (
     siblings?.length !== 1 ||
     siblings[0] !== inserted ||
@@ -36,32 +38,33 @@ export function trySpliceInsertedParent<T>(
     children[0] !== moved
   )
     return false
-  const predecessor =
-    inserted.predecessor === 0n
+  const previousBlock =
+    inserted.previousBlockId === 0n
       ? undefined
-      : crListReplica.parentMap.get(inserted.predecessor)
-  if (inserted.predecessor !== 0n && !predecessor) return false
-  const expectedIndex = getIndexAfterEntryId<T>(
+      : crListReplica.blocksById.get(inserted.previousBlockId)
+  if (inserted.previousBlockId !== 0n && !previousBlock) return false
+  const expectedIndex = getIndexAfterBlockId<T>(
     crListReplica,
-    inserted.predecessor
+    inserted.previousBlockId
   )
   if (expectedIndex === undefined) return false
-  if (moved.prev !== predecessor || (predecessor && predecessor.next !== moved))
+  if (
+    moved.previousBlock !== previousBlock ||
+    (previousBlock && previousBlock.nextBlock !== moved)
+  )
     return false
 
-  if (moved.next === inserted) {
-    moved.next = inserted.next
-    if (moved.next) moved.next.prev = moved
+  if (moved.nextBlock === inserted) {
+    moved.nextBlock = inserted.nextBlock
+    if (moved.nextBlock) moved.nextBlock.previousBlock = moved
   }
-  void linkEntryBetween<T>(predecessor, inserted, moved)
-  inserted.index = expectedIndex
-  moved.index = expectedIndex + inserted.values.length
-  if (!predecessor) crListReplica.head = inserted
-  if (!moved.next) crListReplica.tail = moved
-  void crListReplica.cache.clear()
-  void crListReplica.cache.set(expectedIndex, inserted)
-  crListReplica.cursor = inserted
-  crListReplica.cursorIndex = expectedIndex
-  crListReplica.size = crListReplica.parentMap.size
+  void linkBlockBetween<T>(previousBlock, inserted, moved)
+  if (!previousBlock) crListReplica.firstBlock = inserted
+  if (!moved.nextBlock) crListReplica.lastBlock = moved
+  void crListReplica.blocksByIndex.clear()
+  void crListReplica.blocksByIndex.set(expectedIndex, inserted)
+  crListReplica.currentBlock = inserted
+  crListReplica.currentBlockIndex = expectedIndex
+  crListReplica.size = crListReplica.blocksById.size
   return true
 }

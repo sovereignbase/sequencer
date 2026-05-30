@@ -1,10 +1,10 @@
 import {
-  attachEntryToIndexes,
-  deleteLiveEntry,
-  getEntryId,
-  getEntryTailId,
-  linkEntryBetween,
-  moveEntryToPredecessor,
+  attachBlockToIndexes,
+  deleteBlock,
+  getBlockStartId,
+  getBlockEndId,
+  linkBlockBetween,
+  changePreviousBlockOf,
   seekCursorToIndex,
   splitBlock,
   splitCursorAtIndex,
@@ -14,130 +14,119 @@ import type {
   CRListChange,
   CRListDelta,
   CRListState,
-  CRListStateEntry,
+  CRListStateBlock,
 } from '../../../.types/type.js'
 
 /**
  * Deletes a range from the replica live view.
  *
- * @param crListReplica - Replica to mutate.
+ * @param replica - Replica to mutate.
  * @param startIndex - Inclusive start index. Defaults to `0`.
  * @param endIndex - Exclusive end index. Defaults to the current list size.
  * @returns - A local change and gossip delta, or `false` if nothing was deleted.
  */
 export function __delete<T>(
-  crListReplica: CRListState<T>,
+  replica: CRListState<T>,
   startIndex?: number,
   endIndex?: number
 ): { change: CRListChange<T>; delta: CRListDelta<T> } | false {
   const change: CRListChange<T> = {}
-  const delta: CRListDelta<T> = { values: [], tombstones: [] }
+  const delta: CRListDelta<T> = {}
   const listIndex = startIndex ?? 0
-  const targetEndIndex = endIndex ?? crListReplica.size
-  if (
-    listIndex < 0 ||
-    targetEndIndex < listIndex ||
-    listIndex > crListReplica.size
-  )
+  const targetEndIndex = endIndex ?? replica.size
+  if (listIndex < 0 || targetEndIndex < listIndex || listIndex > replica.size)
     throw new CRListError('INDEX_OUT_OF_BOUNDS')
-  const deleteCount = Math.min(targetEndIndex, crListReplica.size) - listIndex
+  const deleteCount = Math.min(targetEndIndex, replica.size) - listIndex
   if (deleteCount <= 0) return false
 
-  void seekCursorToIndex<T>(listIndex, crListReplica)
-  if (!crListReplica.cursor) return false
+  void seekCursorToIndex<T>(replica, listIndex)
+  if (!replica.currentBlock) return false
 
-  const start = splitCursorAtIndex<T>(crListReplica, listIndex)
+  const start = splitCursorAtIndex<T>(replica, listIndex)
   if (!start) return false
 
-  const predecessorId = start.prev ? getEntryTailId(start.prev) : 0n
+  const previousBlockId = start.previousBlock
+    ? getBlockEndId(start.previousBlock)
+    : 0n
   const deletedIds = new Set<bigint>()
   let deleted = 0
   let currentIndex = listIndex
 
-  let current: CRListStateEntry<T> = start
+  let current: CRListStateBlock<T> = start
 
   while (current && deleted < deleteCount) {
     const remaining = deleteCount - deleted
-    let blockToDelete: NonNullable<CRListStateEntry<T>>
+    let blockToDelete: NonNullable<CRListStateBlock<T>>
 
-    if (current.values.length <= remaining) {
+    if (current.items.length <= remaining) {
       blockToDelete = current
-      current = current.next
+      current = current.nextBlock
     } else {
       // Partial last block: split, delete the first `remaining` elements
-      const [leftPart, rightPart] = splitBlock(
-        crListReplica,
-        current,
-        remaining
-      )
+      const [leftPart, rightPart] = splitBlock(replica, current, remaining)
       blockToDelete = leftPart
       current = rightPart
     }
 
-    for (let index = 0; index < blockToDelete.values.length; index++)
+    for (let index = 0; index < blockToDelete.items.length; index++)
       change[currentIndex + index] = undefined
 
     for (
-      let entryOffset = 0;
-      entryOffset < blockToDelete.values.length;
-      entryOffset++
+      let itemOffset = 0;
+      itemOffset < blockToDelete.items.length;
+      itemOffset++
     )
-      void deletedIds.add(blockToDelete.id + BigInt(entryOffset))
+      void deletedIds.add(blockToDelete.id + BigInt(itemOffset))
 
-    void crListReplica.cache.delete(currentIndex)
-    void deleteLiveEntry<T>(crListReplica, blockToDelete, delta)
-    deleted += blockToDelete.values.length
-    currentIndex += blockToDelete.values.length
+    void replica.blocksByIndex.delete(currentIndex)
+    void deleteBlock<T>(replica, blockToDelete, delta)
+    deleted += blockToDelete.items.length
+    currentIndex += blockToDelete.items.length
   }
 
-  // If the block immediately after the deleted range has a deleted predecessor,
+  // If the block immediately after the deleted range has a deleted previousBlock,
   // delete it and create a re-anchored replacement.
-  if (current && deletedIds.has(current.predecessor)) {
-    const replacementId = getEntryId(crListReplica, current.values.length)
-    const replacement: NonNullable<CRListStateEntry<T>> = {
+  if (current && deletedIds.has(current.previousBlockId)) {
+    const replacementId = getBlockStartId(replica, current.items.length)
+    const replacement: NonNullable<CRListStateBlock<T>> = {
       id: replacementId,
       idString: replacementId.toString(),
-      values: current.values,
-      predecessor: predecessorId,
-      index: listIndex,
-      next: undefined,
-      prev: undefined,
+      items: current.items,
+      previousBlockId: previousBlockId,
+      previousBlock: undefined,
+      nextBlock: undefined,
     }
-    const prev = current.prev
-    const next = current.next
-    void deleteLiveEntry<T>(crListReplica, current, delta)
-    void linkEntryBetween<T>(prev, replacement, next)
-    void attachEntryToIndexes<T>(crListReplica, replacement, delta)
-    if (!prev) crListReplica.head = replacement
-    if (!next) crListReplica.tail = replacement
-    for (
-      let entryOffset = 0;
-      entryOffset < current.values.length;
-      entryOffset++
-    )
-      void deletedIds.add(current.id + BigInt(entryOffset))
-    if (next && deletedIds.has(next.predecessor))
-      void moveEntryToPredecessor<T>(
-        crListReplica,
+    const prev = current.previousBlock
+    const next = current.nextBlock
+    void deleteBlock<T>(replica, current, delta)
+    void linkBlockBetween<T>(prev, replacement, next)
+    void attachBlockToIndexes<T>(replica, replacement, delta)
+    if (!prev) replica.firstBlock = replacement
+    if (!next) replica.lastBlock = replacement
+    for (let itemOffset = 0; itemOffset < current.items.length; itemOffset++)
+      void deletedIds.add(current.id + BigInt(itemOffset))
+    if (next && deletedIds.has(next.previousBlockId))
+      void changePreviousBlockOf<T>(
+        replica,
         next,
-        getEntryTailId(replacement),
+        getBlockEndId(replacement),
         delta
       )
     current = replacement
   }
 
-  crListReplica.size = crListReplica.parentMap.size
-  crListReplica.cursor = current ?? crListReplica.cursor
-  crListReplica.cursorIndex = current
+  replica.size = replica.blocksById.size
+  replica.currentBlock = current ?? replica.currentBlock
+  replica.currentBlockIndex = current
     ? listIndex
-    : crListReplica.cursor
-      ? Math.max(0, crListReplica.size - crListReplica.cursor.values.length)
+    : replica.currentBlock
+      ? Math.max(0, replica.size - replica.currentBlock.items.length)
       : undefined
-  void crListReplica.cache.clear()
-  if (crListReplica.cursor && crListReplica.cursorIndex !== undefined)
-    void crListReplica.cache.set(
-      crListReplica.cursorIndex,
-      crListReplica.cursor
+  void replica.blocksByIndex.clear()
+  if (replica.currentBlock && replica.currentBlockIndex !== undefined)
+    void replica.blocksByIndex.set(
+      replica.currentBlockIndex,
+      replica.currentBlock
     )
 
   return { change, delta }

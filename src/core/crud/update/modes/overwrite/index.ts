@@ -2,113 +2,106 @@ import type {
   CRListChange,
   CRListDelta,
   CRListState,
-  CRListStateEntry,
+  CRListStateBlock,
 } from '../../../../../.types/type.js'
 import {
-  attachEntryToEmptyReplica,
-  attachEntryToIndexes,
-  deleteLiveEntry,
-  getEntryTailId,
-  linkEntryBetween,
-  moveEntryToPredecessor,
+  attachBlockToEmptyReplica,
+  attachBlockToIndexes,
+  deleteBlock,
+  getBlockEndId,
+  getBlockStartIndex,
+  linkBlockBetween,
+  changePreviousBlockOf,
   seekCursorToIndex,
   splitBlock,
   splitCursorAtIndex,
-  writeEntryChange,
+  writeBlockChange,
 } from '../../../../../.helpers/index.js'
 
 export function overwrite<T>(
   listIndex: number,
-  linkedListEntry: NonNullable<CRListStateEntry<T>>,
-  crListReplica: CRListState<T>,
+  block: NonNullable<CRListStateBlock<T>>,
+  replica: CRListState<T>,
   change: CRListChange<T>,
   delta: CRListDelta<T>
 ): void {
-  const length = linkedListEntry.values.length
+  const length = block.items.length
 
   // Appending to end: treat like 'after' on the last element
-  if (listIndex === crListReplica.size) {
-    if (crListReplica.size === 0) {
-      void attachEntryToEmptyReplica<T>(
-        crListReplica,
-        linkedListEntry,
-        change,
-        delta
-      )
+  if (listIndex === replica.size) {
+    if (replica.size === 0) {
+      void attachBlockToEmptyReplica<T>(replica, block, change, delta)
       return
     }
-    void seekCursorToIndex<T>(crListReplica.size - 1, crListReplica)
-    if (!crListReplica.cursor) return
-    const last = crListReplica.cursor
-    linkedListEntry.index = last.index + last.values.length
-    linkedListEntry.predecessor = getEntryTailId(last)
-    void linkEntryBetween<T>(last, linkedListEntry, undefined)
-    void attachEntryToIndexes<T>(crListReplica, linkedListEntry, delta)
-    crListReplica.tail = linkedListEntry
-    crListReplica.cursor = linkedListEntry
-    crListReplica.cursorIndex = linkedListEntry.index
-    void crListReplica.cache.set(linkedListEntry.index, linkedListEntry)
-    void writeEntryChange<T>(change, linkedListEntry)
-    crListReplica.size = crListReplica.parentMap.size
+    void seekCursorToIndex<T>(replica, replica.size - 1)
+    if (!replica.currentBlock) return
+    const last = replica.currentBlock
+    const lastIndex = getBlockStartIndex(replica, last)
+    if (lastIndex === undefined) return
+    const insertedIndex = lastIndex + last.items.length
+    block.previousBlockId = getBlockEndId(last)
+    void linkBlockBetween<T>(last, block, undefined)
+    void attachBlockToIndexes<T>(replica, block, delta)
+    replica.lastBlock = block
+    replica.currentBlock = block
+    replica.currentBlockIndex = insertedIndex
+    void replica.blocksByIndex.set(insertedIndex, block)
+    void writeBlockChange<T>(change, block, insertedIndex)
+    replica.size = replica.blocksById.size
     return
   }
 
-  void seekCursorToIndex<T>(listIndex, crListReplica)
-  if (!crListReplica.cursor) return
+  void seekCursorToIndex<T>(replica, listIndex)
+  if (!replica.currentBlock) return
 
-  const start = splitCursorAtIndex<T>(crListReplica, listIndex)
+  const start = splitCursorAtIndex<T>(replica, listIndex)
   if (!start) return
 
-  const actualIndex = start.index
-  const prev = start.prev
-  const predecessor = prev ? getEntryTailId(prev) : 0n
-  const deleteLimit = Math.min(length, crListReplica.size - actualIndex)
+  const actualIndex = getBlockStartIndex(replica, start)
+  if (actualIndex === undefined) return
+  const prev = start.previousBlock
+  const previousBlock = prev ? getBlockEndId(prev) : 0n
+  const deleteLimit = Math.min(length, replica.size - actualIndex)
   const deletedIds = new Set<bigint>()
   let deleted = 0
-  let current: CRListStateEntry<T> = start
+  let current: CRListStateBlock<T> = start
 
   while (current && deleted < deleteLimit) {
     const remaining = deleteLimit - deleted
-    let entryToDelete: NonNullable<CRListStateEntry<T>>
+    let blockToDelete: NonNullable<CRListStateBlock<T>>
 
-    if (current.values.length <= remaining) {
-      entryToDelete = current
-      current = current.next
+    if (current.items.length <= remaining) {
+      blockToDelete = current
+      current = current.nextBlock
     } else {
-      const [left, right] = splitBlock<T>(crListReplica, current, remaining)
-      entryToDelete = left
+      const [left, right] = splitBlock<T>(replica, current, remaining)
+      blockToDelete = left
       current = right
     }
 
     for (
-      let entryOffset = 0;
-      entryOffset < entryToDelete.values.length;
-      entryOffset++
+      let itemOffset = 0;
+      itemOffset < blockToDelete.items.length;
+      itemOffset++
     )
-      void deletedIds.add(entryToDelete.id + BigInt(entryOffset))
-    void deleteLiveEntry<T>(crListReplica, entryToDelete, delta)
-    deleted += entryToDelete.values.length
+      void deletedIds.add(blockToDelete.id + BigInt(itemOffset))
+    void deleteBlock<T>(replica, blockToDelete, delta)
+    deleted += blockToDelete.items.length
   }
 
-  linkedListEntry.predecessor = predecessor
-  linkedListEntry.index = actualIndex
+  block.previousBlockId = previousBlock
 
-  void linkEntryBetween<T>(prev, linkedListEntry, current)
-  void attachEntryToIndexes<T>(crListReplica, linkedListEntry, delta)
-  if (current && deletedIds.has(current.predecessor))
-    void moveEntryToPredecessor<T>(
-      crListReplica,
-      current,
-      getEntryTailId(linkedListEntry),
-      delta
-    )
+  void linkBlockBetween<T>(prev, block, current)
+  void attachBlockToIndexes<T>(replica, block, delta)
+  if (current && deletedIds.has(current.previousBlockId))
+    void changePreviousBlockOf<T>(replica, current, getBlockEndId(block), delta)
 
-  if (!prev) crListReplica.head = linkedListEntry
-  if (!current) crListReplica.tail = linkedListEntry
-  crListReplica.cursor = linkedListEntry
-  crListReplica.cursorIndex = actualIndex
-  void crListReplica.cache.clear()
-  void crListReplica.cache.set(actualIndex, linkedListEntry)
-  void writeEntryChange<T>(change, linkedListEntry)
-  crListReplica.size = crListReplica.parentMap.size
+  if (!prev) replica.firstBlock = block
+  if (!current) replica.lastBlock = block
+  replica.currentBlock = block
+  replica.currentBlockIndex = actualIndex
+  void replica.blocksByIndex.clear()
+  void replica.blocksByIndex.set(actualIndex, block)
+  void writeBlockChange<T>(change, block, actualIndex)
+  replica.size = replica.blocksById.size
 }

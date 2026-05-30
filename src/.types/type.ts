@@ -1,106 +1,111 @@
 /**
- * A live CRList entry stored as a doubly-linked list node.
+ * A live CRList block stored as a local projection node.
  *
- * The `predecessor` field is the stable ordering anchor used for convergence;
- * `prev` and `next` are local projection links for indexed reads and mutations.
+ * A block is an internal batching unit. User-facing operations target items,
+ * and each item inside the block has a virtual id derived from `id + offset`.
+ * `previousBlockId` is the stable CRDT ordering anchor; `previousBlock` and
+ * `nextBlock` are local projection links.
  */
-export type CRListStateEntry<T> =
+export type CRListStateBlock<T> =
   | {
-      /** Stable UUIDv7 identity for this entry. */
+      /** Stable UUIDv7 identity for this block. */
       id: bigint
+      /** User payload items stored in this internal block. */
+      items: Array<T>
       /** Cached string form of `id` (avoids repeated bigint.toString()). */
       idString: string
-      /** User payload stored in the list. */
-      values: Array<T>
-      /** Stable predecessor UUIDv7, or `'\0'` for root-level entries. */
-      predecessor: bigint
-      /** Current zero-based index in the local live view. */
-      index: number
-      /** Previous live entry in the local projection. */
-      prev: CRListStateEntry<T> | undefined
-      /** Next live entry in the local projection. */
-      next: CRListStateEntry<T> | undefined
+
+      /** Next live block in the local projection. */
+      nextBlock: CRListStateBlock<T> | undefined
+      /** Previous live block in the local projection. */
+      previousBlock: CRListStateBlock<T> | undefined
+      /** Stable previous block or item id, or `0n` for root-level blocks. */
+      previousBlockId: bigint
     }
   | undefined
 
-export type CRListReparentedStateEntry<T> = {
-  entry: NonNullable<CRListStateEntry<T>>
-  oldPredecessor: bigint
+export type CRListReparentedStateBlock<T> = {
+  block: NonNullable<CRListStateBlock<T>>
+  oldPreviousBlockId: bigint
 }
 
 /**
  * Mutable CRList replica state.
  *
- * `parentMap` indexes live entries by UUIDv7. `childrenMap` indexes entries by
- * predecessor to support deterministic flattening. `tombstones` records deleted
- * UUIDv7 entries until they are garbage collected through acknowledgement
- * frontiers.
+ * `blocksById` indexes blocks by every contained item id.
+ * `blocksByPreviousBlockId` indexes stable ordering buckets for deterministic
+ * flattening. `deletedIds` records deleted item ids until they are garbage
+ * collected through acknowledgement frontiers.
  */
 export type CRListState<T> = {
-  /** Number of live entries in the local projection. */
+  /** Number of live items in the local projection. */
   size: number
-  /** First live entry (index 0). */
-  head: NonNullable<CRListStateEntry<T>> | undefined
-  /** Last live entry (index size-1). */
-  tail: NonNullable<CRListStateEntry<T>> | undefined
-  /** Current live entry used as the walking cursor. */
-  cursor: CRListStateEntry<T>
-  /** Block-start index of `cursor` in the live projection. */
-  cursorIndex: number | undefined
-  /** Opportunistic live-entry cache keyed by observed zero-based index. */
-  cache: Map<number, NonNullable<CRListStateEntry<T>>>
-  /** Delete identities of entries retained for gossip and convergence. */
-  tombstones: Set<string>
-  /***/
+  /** Monotonic local block id clock. */
   clock: bigint
-  /** Live entries by id. */
-  parentMap: Map<bigint, CRListStateEntry<T>>
-  /** Live entries grouped by predecessor. */
-  childrenMap: Map<bigint, Array<NonNullable<CRListStateEntry<T>>>>
+
+  /** First block (index 0). */
+  firstBlock: CRListStateBlock<T>
+  /** Current block used as the walking cursor. */
+  currentBlock: CRListStateBlock<T>
+  /** Last block in the local projection. */
+  lastBlock: CRListStateBlock<T>
+
+  /** Block-start index of `currentBlock` in the live projection. */
+  currentBlockIndex: number | undefined
+
+  /** Live blocks by contained item id. */
+  blocksById: Map<bigint, CRListStateBlock<T>>
+  /** Opportunistic block-start cache keyed by observed zero-based index. */
+  blocksByIndex: Map<number, NonNullable<CRListStateBlock<T>>>
+  /** Live blocks grouped by previous block or item id. */
+  blocksByPreviousBlockId: Map<bigint, Array<NonNullable<CRListStateBlock<T>>>>
+
+  /** Deleted item ids retained for gossip and convergence. */
+  deletedIds: Set<string>
 }
 
 /**
- * Value entry used by snapshots and deltas.
+ * Block record used by snapshots and deltas.
  *
- * `value` is a live payload reference. Consumers that mutate values outside
+ * `items` are live payload references. Consumers that mutate items outside
  * CRList operations must provide their own isolation first.
  */
-export type CRListSnapshotEntry<T> = {
-  /** Stable identity for this entry. */
+export type CRListSnapshotBlock<T> = {
+  /** Stable identity for this block's first item. */
   id: string
-  /** User payload for this entry. */
-  values: Array<T>
-  /** Stable predecessor identity, or `'\0'` for root-level entries. */
-  predecessor: string
+  /** User payload items stored in this block. */
+  items: Array<T>
+  /** Stable previous block or item id, or `'0'` for root-level blocks. */
+  previousBlockId: string
 }
 
 /**
  * Full CRList state snapshot.
  */
 export type CRListSnapshot<T> = {
-  /** Live values with stable CRDT metadata. */
-  values: Array<CRListSnapshotEntry<T>>
-  /** Retained deleted UUIDv7 entries. */
-  tombstones: Array<string>
+  /** Live blocks with stable CRDT metadata. */
+  blocks: Array<CRListSnapshotBlock<T>>
+  /** Retained deleted item ids. */
+  deletedIds: Array<string>
 }
 
 /**
  * Minimal local live-view patch keyed by list index.
  *
- * `undefined` means an entry was removed at the index. Any other value means a
- * value was inserted or replaced at the index.
+ * `undefined` means an item was removed at the index. Any other value means an
+ * item was inserted or replaced at the index.
  */
 export type CRListChange<T> = Record<number, T | undefined>
 
 /**
  * Partial CRList state gossiped between replicas.
  *
- * Delta value payloads are live references.
+ * Delta item payloads are live references.
  */
 export type CRListDelta<T> = Partial<CRListSnapshot<T>>
 
 /*
- * Tombstone acknowledgement frontier.
+ * Deleted acknowledgement frontier (id).
  */
 export type CRListAck = string
 

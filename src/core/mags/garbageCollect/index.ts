@@ -5,14 +5,14 @@ import {
 import { CRListAck, CRListState } from '../../../.types/type.js'
 
 /**
- * Removes tombstones acknowledged by all supplied frontiers.
+ * Removes deleted item ids acknowledged by all supplied frontiers.
  *
  * @param frontiers - Acknowledgement frontiers received from peers.
- * @param crListReplica - Replica whose tombstones will be collected.
+ * @param replica - Replica whose deleted item ids will be collected.
  */
 export function __garbageCollect<T>(
   frontiers: Array<CRListAck>,
-  crListReplica: CRListState<T>
+  replica: CRListState<T>
 ): void {
   if (!Array.isArray(frontiers)) return
   const valid: Array<bigint> = []
@@ -29,11 +29,11 @@ export function __garbageCollect<T>(
   if (valid.length === 0) return
   void valid.sort((a, b) => (a < b ? -1 : 1))
   const smallestBig = valid[0]
-  void crListReplica.tombstones.forEach((tombstone, __, tombstones) => {
-    const canditate = uuidV7BigIntStringToBigInt(tombstone)
+  void replica.deletedIds.forEach((deletedId, __, deletedIds) => {
+    const canditate = uuidV7BigIntStringToBigInt(deletedId)
 
-    /** delete malformed and valid acknowledged tombstones */
+    /** Delete malformed ids and ids acknowledged by every supplied frontier. */
     if (canditate === false || canditate <= smallestBig)
-      void tombstones.delete(tombstone)
+      void deletedIds.delete(deletedId)
   })
 }

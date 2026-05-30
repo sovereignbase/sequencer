@@ -1,4 +1,4 @@
-import type { CRListState, CRListStateEntry } from '../../.types/type.js'
+import type { CRListState, CRListStateBlock } from '../../.types/type.js'
 import { splitBlock } from '../splitBlock/index.js'
 
 /**
@@ -7,18 +7,19 @@ import { splitBlock } from '../splitBlock/index.js'
 export function splitCursorAtIndex<T>(
   crListReplica: CRListState<T>,
   listIndex: number
-): CRListStateEntry<T> {
-  const cursor = crListReplica.cursor
+): CRListStateBlock<T> {
+  const cursor = crListReplica.currentBlock
   if (!cursor) return undefined
-  const blockStart = crListReplica.cursorIndex ?? cursor.index
+  const blockStart = crListReplica.currentBlockIndex
+  if (blockStart === undefined) return undefined
   if (blockStart < listIndex) {
     const [, right] = splitBlock<T>(
       crListReplica,
       cursor,
       listIndex - blockStart
     )
-    crListReplica.cursor = right
-    crListReplica.cursorIndex = listIndex
+    crListReplica.currentBlock = right
+    crListReplica.currentBlockIndex = listIndex
     return right
   }
   return cursor

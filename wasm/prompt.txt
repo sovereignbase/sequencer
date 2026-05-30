@@ -1,0 +1,41 @@
+Refactor the convergence engine so Rust/Wasm owns the CRDT convergence state, while JavaScript owns all actual JS values, consumer interaction, and network interaction.
+
+Hard rule:
+
+Wasm must only receive:
+
+- `number`
+- `bigint`
+- `externref`
+
+No JSON serialization.
+
+No MsgPack serialization at the JS/Wasm boundary.
+
+No serde hot path.
+
+No object copying.
+
+No JS object materialization inside Wasm.
+
+JavaScript receives snapshots and deltas from the consumer/network. Rust/Wasm is given references to those snapshot/delta/value objects as `externref`, plus the required `id` and `previousId` values as BigInts once.
+
+Wasm converts the BigInt IDs into its own internal representation and keeps the convergence/indexing state. JS does not need to keep BigInt IDs for normal traversal or lookup.
+
+Wasm does the hard part:
+
+- merge ordering
+- predecessor resolution
+- tombstone handling
+- shuffled delta application
+- visible index mapping
+- convergence state
+- deterministic materialization order
+
+JavaScript does the simple part:
+
+- owns the actual values
+- owns consumer API calls
+- owns network I/O
+- asks Wasm for references by numeric index
+- returns those references to the consumer/network

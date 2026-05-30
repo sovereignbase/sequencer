@@ -1,7 +1,7 @@
 import { createPlan } from '../helpers/plan.js'
 import {
   createArtifacts,
-  findIndexById,
+  findById,
   measured,
   mergeArtifacts,
   mergeArtifactsByOrder,
@@ -39,8 +39,9 @@ function latencyOperation(adapter, source, definition, index) {
 }
 
 function consume(adapter, target, op) {
-  if (op.type === 'delete') return findIndexById(adapter, target, op.id) === -1
-  return findIndexById(adapter, target, op.id) >= 0
+  const found = findById(adapter, target, op.id)
+  if (op.type === 'delete') return found === undefined
+  return found !== undefined
 }
 
 function remoteLatency(adapter, definition, remoteCount = 1) {

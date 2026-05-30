@@ -17,59 +17,91 @@ export function splitBlock<T>(
   // The right block starts at the virtual id for the split offset.
   const rightId = block.id + BigInt(offset)
 
-  // Left block keeps the original id, anchor, and previous projection link.
-  const left: NonNullable<CRListStateBlock<T>> = {
-    id: block.id,
-    idString: block.idString,
-    items: block.items.slice(0, offset),
-    previousBlockId: block.previousBlockId,
-    previousBlock: block.previousBlock,
-    nextBlock: undefined,
+  // Keep immutable-looking metadata before mutating the original block.
+  const originalId = block.id
+  const originalIdString = block.idString
+  const originalItems = block.items
+  const originalPreviousBlockId = block.previousBlockId
+  const originalPreviousBlock = block.previousBlock
+  const originalNextBlock = block.nextBlock
+
+  // Update only the smaller side of the item-id index.
+  const keepRight = offset <= originalItems.length - offset
+
+  // Left block is either new or the original object, depending on update cost.
+  let left: NonNullable<CRListStateBlock<T>>
+
+  // Right block is either the original object or a new suffix object.
+  let right: NonNullable<CRListStateBlock<T>>
+
+  if (keepRight) {
+    // Create a new prefix block and keep suffix item-id entries on `block`.
+    left = {
+      id: originalId,
+      idString: originalIdString,
+      items: originalItems.slice(0, offset),
+      previousBlockId: originalPreviousBlockId,
+      previousBlock: originalPreviousBlock,
+      nextBlock: block,
+    }
+
+    // Mutate the original block into the right suffix.
+    block.id = rightId
+    block.idString = rightId.toString()
+    block.items = originalItems.slice(offset)
+    block.previousBlockId = rightId - 1n
+    block.previousBlock = left
+    block.nextBlock = originalNextBlock
+    right = block
+
+    // Only prefix ids need to be repointed away from the original block.
+    for (let itemOffset = 0; itemOffset < left.items.length; itemOffset++)
+      void crListReplica.blocksById.set(left.id + BigInt(itemOffset), left)
+
+    // Replace the original block in its old previousBlock sibling bucket.
+    const siblings = crListReplica.blocksByPreviousBlockId.get(
+      originalPreviousBlockId
+    )
+    if (siblings) {
+      const index = siblings.indexOf(block)
+      if (index !== -1) siblings[index] = left
+    }
+  } else {
+    // Keep prefix item-id entries on the original block.
+    left = block
+
+    // Create a new suffix block for the smaller side.
+    right = {
+      id: rightId,
+      idString: rightId.toString(),
+      items: originalItems.slice(offset),
+      previousBlockId: rightId - 1n,
+      previousBlock: left,
+      nextBlock: originalNextBlock,
+    }
+
+    // Mutate the original block into the left prefix.
+    left.items = originalItems.slice(0, offset)
+    left.nextBlock = right
+
+    // Only suffix ids need to be repointed away from the original block.
+    for (let itemOffset = 0; itemOffset < right.items.length; itemOffset++)
+      void crListReplica.blocksById.set(right.id + BigInt(itemOffset), right)
   }
 
-  // Right block owns the suffix items and anchors after the left block's tail id.
-  const right: NonNullable<CRListStateBlock<T>> = {
-    id: rightId,
-    idString: rightId.toString(),
-    items: block.items.slice(offset),
-    previousBlockId: rightId - 1n,
-    previousBlock: left,
-    nextBlock: block.nextBlock,
-  }
+  // Patch the original previous neighbour to the left block.
+  if (originalPreviousBlock) originalPreviousBlock.nextBlock = left
 
-  // Link the two replacement blocks together.
+  // Patch the original next neighbour back to the right block.
+  if (originalNextBlock) originalNextBlock.previousBlock = right
+
+  // Link the split pair together.
   left.nextBlock = right
-
-  // Patch the original previous neighbour to the left replacement.
-  if (block.previousBlock) block.previousBlock.nextBlock = left
-
-  // Patch the original next neighbour back to the right replacement.
-  if (block.nextBlock) block.nextBlock.previousBlock = right
+  right.previousBlock = left
 
   // Preserve projection endpoints when the original block was an edge.
   if (crListReplica.firstBlock === block) crListReplica.firstBlock = left
   if (crListReplica.lastBlock === block) crListReplica.lastBlock = right
-
-  // Remove all old item-id index entries that pointed at the unsplit block.
-  for (let itemOffset = 0; itemOffset < block.items.length; itemOffset++)
-    void crListReplica.blocksById.delete(block.id + BigInt(itemOffset))
-
-  // Index every left-side item id to the left replacement block.
-  for (let itemOffset = 0; itemOffset < left.items.length; itemOffset++)
-    void crListReplica.blocksById.set(left.id + BigInt(itemOffset), left)
-
-  // Index every right-side item id to the right replacement block.
-  for (let itemOffset = 0; itemOffset < right.items.length; itemOffset++)
-    void crListReplica.blocksById.set(right.id + BigInt(itemOffset), right)
-
-  // Replace the original block in its existing previousBlock sibling bucket.
-  const siblings = crListReplica.blocksByPreviousBlockId.get(
-    block.previousBlockId
-  )
-  if (siblings) {
-    const index = siblings.indexOf(block)
-    if (index !== -1) siblings[index] = left
-  }
 
   // Add the right block to the sibling bucket keyed by its new anchor.
   const rightSiblings = crListReplica.blocksByPreviousBlockId.get(

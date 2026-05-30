@@ -28,7 +28,10 @@ function ids(state) {
 function find(state, predicate) {
   let block = state.firstBlock
   while (block) {
-    for (const item of block.items) if (predicate(item)) return item
+    for (let index = 0; index < block.items.length; index++) {
+      const item = block.items[index]
+      if (predicate(item)) return item
+    }
     block = block.nextBlock
   }
   return undefined
@@ -123,7 +126,7 @@ export const crlistAdapter = {
   snapshot: (state) => __snapshot(state),
   hydrate: (snapshot) => __create(snapshot),
   merge: (state, artifact) => {
-    void __merge(state, artifact)
+    void __merge(state, artifact, false)
     return state
   },
   append: (state, values) => insert(state, state.size, values, 'after').state,

@@ -36,11 +36,13 @@ import { trySpliceInsertedParent } from '../../../.helpers/trySpliceInsertedPare
  *
  * @param replica - Replica to mutate.
  * @param delta - Remote gossip delta.
+ * @param collectChange - Whether to materialize an index-keyed visible patch.
  * @returns - A minimal local change patch, or `false` when the delta is ignored.
  */
 export function __merge<T>(
   replica: CRListState<T>,
-  delta: CRListDelta<T>
+  delta: CRListDelta<T>,
+  collectChange = true
 ): CRListChange<T> | false {
   // Ignore malformed deltas; merge is intentionally tolerant at the boundary.
   if (!isRecord(delta)) return false
@@ -54,8 +56,8 @@ export function __merge<T>(
   // Existing live blocks whose stable previousBlock id changed.
   const reparentedBlocks: Array<CRListReparentedStateBlock<T>> = []
 
-  // Local visible patch that will be emitted if the merge changes projection.
-  const change: CRListChange<T> = {}
+  // Local visible patch is built only when a caller can observe it.
+  const change: CRListChange<T> | undefined = collectChange ? {} : undefined
 
   // Tracks a cursor repair case after deleting the last current block.
   let lastBlockDeleteMovedCurrentBlock = false
@@ -134,9 +136,21 @@ export function __merge<T>(
         // Empty projection has no cursor index.
         replica.currentBlockIndex = undefined
       }
-      // Mark the deleted visible index in the local patch.
+      // Mark the deleted visible index in the local patch when requested.
+      if (!change) return false
       change[newDeletedIndexes[0]] = undefined
       return change
+    }
+
+    // State has been integrated; skip patch materialization when unobserved.
+    if (!change) {
+      // A pure-delete no-change merge only needs a valid read cursor.
+      void replica.blocksByIndex.clear()
+      replica.currentBlock = replica.firstBlock
+      replica.currentBlockIndex = replica.firstBlock ? 0 : undefined
+      if (replica.firstBlock)
+        void replica.blocksByIndex.set(0, replica.firstBlock)
+      return false
     }
 
     // Rebuild cache and projection endpoints for multi-delete pure deltas.
@@ -312,6 +326,9 @@ export function __merge<T>(
 
   // If no local tombstones or live blocks were accepted, the delta was redundant.
   if (newDeletedIndexes.length === 0 && newBlocks.length === 0) return false
+
+  // State has been integrated; skip patch materialization when unobserved.
+  if (!change) return false
 
   // Publish all remote deletions as index removals in the local change patch.
   for (const index of newDeletedIndexes) change[index] = undefined

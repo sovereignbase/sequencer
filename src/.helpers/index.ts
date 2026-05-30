@@ -22,17 +22,11 @@ export { detachBlockFromIndexes } from './detachBlockFromIndexes/index.js'
 /** Deletes a full live block and records its tombstones. */
 export { deleteBlock } from './deleteBlock/index.js'
 
-/** Dispatches typed CRList DOM events. */
-export { dispatchCRListEvent } from './dispatchCRListEvent/index.js'
-
 /** Reparents a block by changing its stable previousBlock id. */
 export { changePreviousBlockOf } from './changePreviousBlockOf/index.js'
 
 /** Links a block between two projection neighbours. */
 export { linkBlockBetween } from './linkBlockBetween/index.js'
-
-/** Parses proxy property keys into list indexes. */
-export { indexFromPropertyKey } from './indexFromPropertyKey/index.js'
 
 /** Fast-path splice for a simple child insert. */
 export { trySpliceChildInsert } from './trySpliceChildInsert/index.js'

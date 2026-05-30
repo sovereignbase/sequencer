@@ -1,4 +1,3 @@
-import { dispatchCRListEvent, indexFromPropertyKey } from '../.helpers/index.js'
 import { CRListError } from '../.errors/class.js'
 import type {
   CRListState,
@@ -38,6 +37,7 @@ export class CRList<T> {
   [index: number]: T
   declare private readonly state: CRListState<T>
   declare private readonly eventTarget: EventTarget
+  declare private readonly observedEventTypes: Set<keyof CRListEventMap<T>>
 
   /**
    * Creates a replicated list from an optional CRList snapshot.
@@ -61,34 +61,43 @@ export class CRList<T> {
         configurable: false,
         writable: false,
       },
+      observedEventTypes: {
+        // This tracks whether dispatch can have observable listener effects.
+        value: new Set<keyof CRListEventMap<T>>(),
+        enumerable: false,
+        configurable: false,
+        writable: false,
+      },
     })
 
     // Proxy numeric property operations into CRList reads, writes, and deletes.
     return new Proxy(this, {
       get(target, index, receiver) {
         // Numeric string keys address live list indexes.
-        const listIndex = indexFromPropertyKey(index)
+        const listIndex = Number(index)
 
         // Preserve normal property access for non-index keys.
-        if (listIndex === undefined) return Reflect.get(target, index, receiver)
+        if (!Number.isSafeInteger(listIndex) || listIndex < 0)
+          return Reflect.get(target, index, receiver)
 
         // Reads expose the live value reference at the requested index.
         return __read(listIndex, target.state)
       },
       has(target, index) {
         // Numeric string keys are checked against live list bounds.
-        const listIndex = indexFromPropertyKey(index)
+        const listIndex = Number(index)
 
         // Preserve normal property checks for non-index keys.
-        if (listIndex === undefined) return Reflect.has(target, index)
+        if (!Number.isSafeInteger(listIndex) || listIndex < 0)
+          return Reflect.has(target, index)
 
         // A live index exists when it falls inside the current size.
         return listIndex >= 0 && listIndex < target.state.size
       },
       set(target, index, value) {
         // Only canonical numeric property keys can write list entries.
-        const listIndex = indexFromPropertyKey(index)
-        if (listIndex === undefined) return false
+        const listIndex = Number(index)
+        if (!Number.isSafeInteger(listIndex) || listIndex < 0) return false
         try {
           // Numeric assignment overwrites exactly one visible list position.
           const result = __update(listIndex, [value], target.state, 'overwrite')
@@ -101,11 +110,10 @@ export class CRList<T> {
 
           // Emit deltas only when blocks or deleted runs were produced.
           if (delta.blocks?.length || delta.deletedRuns?.length)
-            void dispatchCRListEvent(target.eventTarget, 'delta', delta)
+            void target.emitCRListEvent('delta', delta)
 
           // Emit visible change patch when the projection changed.
-          if (change)
-            void dispatchCRListEvent(target.eventTarget, 'change', change)
+          if (change) void target.emitCRListEvent('change', change)
 
           // Returning true tells the proxy assignment succeeded.
           return true
@@ -119,8 +127,8 @@ export class CRList<T> {
       },
       deleteProperty(target, index) {
         // Only canonical numeric property keys can delete list entries.
-        const listIndex = indexFromPropertyKey(index)
-        if (listIndex === undefined) return false
+        const listIndex = Number(index)
+        if (!Number.isSafeInteger(listIndex) || listIndex < 0) return false
         try {
           // Delete exactly one live item at the requested index.
           const result = __delete(target.state, listIndex, listIndex + 1)
@@ -133,11 +141,10 @@ export class CRList<T> {
 
           // Emit deltas only when blocks or deleted runs were produced.
           if (delta.blocks?.length || delta.deletedRuns?.length)
-            void dispatchCRListEvent(target.eventTarget, 'delta', delta)
+            void target.emitCRListEvent('delta', delta)
 
           // Emit visible deletion patch when projection changed.
-          if (change)
-            void dispatchCRListEvent(target.eventTarget, 'change', change)
+          if (change) void target.emitCRListEvent('change', change)
 
           // Returning true tells the proxy delete succeeded.
           return true
@@ -159,7 +166,7 @@ export class CRList<T> {
 
       getOwnPropertyDescriptor(target, index) {
         // Numeric descriptors make live indexes enumerable and writable.
-        const listIndex = indexFromPropertyKey(index)
+        const listIndex = Number(index)
 
         // Return a synthetic data descriptor for live list indexes.
         if (listIndex !== undefined && listIndex < target.size) {
@@ -205,10 +212,10 @@ export class CRList<T> {
 
     // Emit local delta for gossip when data was actually produced.
     if (delta.blocks?.length || delta.deletedRuns?.length)
-      void dispatchCRListEvent(this.eventTarget, 'delta', delta)
+      void this.emitCRListEvent('delta', delta)
 
     // Emit local visible projection patch.
-    if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
+    if (change) void this.emitCRListEvent('change', change)
   }
   /**
    * Inserts values after an index.
@@ -235,10 +242,10 @@ export class CRList<T> {
 
     // Emit local delta for gossip when data was actually produced.
     if (delta.blocks?.length || delta.deletedRuns?.length)
-      void dispatchCRListEvent(this.eventTarget, 'delta', delta)
+      void this.emitCRListEvent('delta', delta)
 
     // Emit local visible projection patch.
-    if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
+    if (change) void this.emitCRListEvent('change', change)
   }
   /**
    * Overwrites entries starting at an index.
@@ -256,12 +263,11 @@ export class CRList<T> {
     // Split primitive result into gossip and visible change payloads.
     const { delta, change } = result
 
-    // Emit local delta for gossip when data was actually produced.
-    if (delta.blocks?.length || delta.deletedRuns?.length)
-      void dispatchCRListEvent(this.eventTarget, 'delta', delta)
+    // Emit local delta for gossip.
+    if (delta) void this.emitCRListEvent('delta', delta)
 
     // Emit local visible projection patch.
-    if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
+    if (change) void this.emitCRListEvent('change', change)
   }
   /**
    * Removes one or more entries starting at an index.
@@ -279,12 +285,11 @@ export class CRList<T> {
     // Split primitive result into gossip and visible change payloads.
     const { delta, change } = result
 
-    // Emit local delta for gossip when data was actually produced.
-    if (delta.blocks?.length || delta.deletedRuns?.length)
-      void dispatchCRListEvent(this.eventTarget, 'delta', delta)
+    // Emit local delta for gossip.
+    if (delta) void this.emitCRListEvent('delta', delta)
 
     // Emit local visible projection patch.
-    if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
+    if (change) void this.emitCRListEvent('change', change)
   }
 
   /**
@@ -309,7 +314,8 @@ export class CRList<T> {
     // Walk live blocks in projection order.
     while (block) {
       // Test every live value in the current block.
-      for (const value of block.items) {
+      for (let offset = 0; offset < block.items.length; offset++) {
+        const value = block.items[offset]
         if (predicate.call(thisArg, value, index, this)) return value
         index++
       }
@@ -330,11 +336,14 @@ export class CRList<T> {
    * @param delta - The remote CRList delta to merge.
    */
   merge(delta: CRListDelta<T>): void {
+    // Build an index-keyed change patch only when a listener can observe it.
+    const collectChange = this.observedEventTypes.has('change')
+
     // Apply the remote delta to local mutable state.
-    const change = __merge(this.state, delta)
+    const change = __merge(this.state, delta, collectChange)
 
     // Remote merges emit only visible projection changes.
-    if (change) void dispatchCRListEvent(this.eventTarget, 'change', change)
+    if (change) void this.emitCRListEvent('change', change)
   }
   /**
    * Emits an acknowledgement frontier for currently retained deleted item ids.
@@ -344,7 +353,7 @@ export class CRList<T> {
     const ack = __acknowledge(this.state)
 
     // Emit only when there is at least one tombstone to acknowledge.
-    if (ack) void dispatchCRListEvent(this.eventTarget, 'ack', ack)
+    if (ack) void this.emitCRListEvent('ack', ack)
   }
   /**
    * Garbage-collects deleted item ids covered by acknowledgement frontiers.
@@ -363,11 +372,7 @@ export class CRList<T> {
    */
   snapshot(): void {
     // Emit a snapshot.
-    void dispatchCRListEvent(
-      this.eventTarget,
-      'snapshot',
-      __snapshot<T>(this.state)
-    )
+    void this.emitCRListEvent('snapshot', __snapshot<T>(this.state))
   }
   /**
    * Registers an event listener.
@@ -381,6 +386,9 @@ export class CRList<T> {
     listener: CRListEventListenerFor<T, K> | null,
     options?: boolean | AddEventListenerOptions
   ): void {
+    // Mark this event type as potentially observable for future dispatches.
+    if (listener) void this.observedEventTypes.add(type)
+
     // Delegate listener registration to the internal EventTarget.
     void this.eventTarget.addEventListener(
       type,
@@ -486,5 +494,23 @@ export class CRList<T> {
       // Continue with the next projection block.
       block = block.nextBlock
     }
+  }
+
+  /**
+   * Dispatches a CRList event only after the event type has been observed.
+   *
+   * Dispatching without listeners is consumer-invisible but expensive in hot
+   * merge loops. The set is monotonic: removing a listener does not clear the
+   * type, which preserves correctness for once/capture listener edge cases.
+   */
+  private emitCRListEvent<K extends keyof CRListEventMap<T>>(
+    type: K,
+    detail: CRListEventMap<T>[K]
+  ): void {
+    // Skip EventTarget work when no listener has ever watched this event type.
+    if (!this.observedEventTypes.has(type)) return
+
+    // Delegate actual event construction and dispatch to the shared helper.
+    void this.eventTarget.dispatchEvent(new CustomEvent(type, { detail }))
   }
 }

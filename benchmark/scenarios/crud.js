@@ -1,6 +1,7 @@
 import {
   BATCH_SIZE,
   applyLocal,
+  coreOps,
   createArtifacts,
   createSparseState,
   createTombstonedState,
@@ -15,6 +16,7 @@ import {
   readSequential,
   safeIndex,
   safeInsertIndex,
+  supports,
   visibleConvergence,
 } from './shared.js'
 import { random, shuffledIndices } from '../helpers/random.js'
@@ -272,23 +274,48 @@ function mixedBenchmark(adapter, definition) {
 }
 
 export function runCrud(adapter, definition) {
+  const ops = coreOps(adapter)
+  if (!ops) return undefined
+  if (
+    !supports(
+      ops,
+      'create',
+      'empty',
+      'size',
+      'ids',
+      'readId',
+      'snapshot',
+      'hydrate',
+      'merge',
+      'append',
+      'prepend',
+      'insertBefore',
+      'insertAfter',
+      'overwrite',
+      'deleteAt',
+      'deleteRange',
+      'change'
+    )
+  )
+    return undefined
+
   if (definition.name.startsWith('create /'))
-    return createBenchmark(adapter, definition)
+    return createBenchmark(ops, definition)
   if (definition.name.startsWith('read /'))
-    return readBenchmark(adapter, definition)
+    return readBenchmark(ops, definition)
   if (definition.name.startsWith('find /'))
-    return findBenchmark(adapter, definition)
+    return findBenchmark(ops, definition)
   if (
     definition.name.startsWith('append /') ||
     definition.name.startsWith('prepend /') ||
     definition.name.startsWith('insert /')
   )
-    return insertBenchmark(adapter, definition)
+    return insertBenchmark(ops, definition)
   if (definition.name.startsWith('overwrite /'))
-    return overwriteBenchmark(adapter, definition)
+    return overwriteBenchmark(ops, definition)
   if (definition.name.startsWith('delete /'))
-    return deleteBenchmark(adapter, definition)
+    return deleteBenchmark(ops, definition)
   if (definition.name.startsWith('mixed /'))
-    return mixedBenchmark(adapter, definition)
+    return mixedBenchmark(ops, definition)
   throw new Error(`Unhandled crud benchmark: ${definition.name}`)
 }

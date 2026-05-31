@@ -6,6 +6,14 @@ import { idsEqual } from '../helpers/value.js'
 export const BATCH_SIZE = 100
 export const LARGE_BATCH_SIZE = 1_000
 
+export function coreOps(adapter) {
+  return adapter.core
+}
+
+export function supports(adapter, ...names) {
+  return names.every((name) => typeof adapter[name] === 'function')
+}
+
 export function measured(fn) {
   return time(fn)
 }

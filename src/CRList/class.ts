@@ -1,4 +1,3 @@
-import { CRListError } from '../.errors/class.js'
 import type {
   CRListState,
   CRListSnapshot,
@@ -18,10 +17,7 @@ import {
 /**
  * A convergent replicated list.
  *
- * Numeric property access reads and mutates the live list projection:
- * `list[0]` reads the live item reference, `list[0] = value` writes an
- * item, and `delete list[0]` removes one item. Iteration, `find()`, and
- * `forEach()` expose the same live value references. Mutating returned objects
+ * Iteration, `find()`, and `forEach()` expose the same live value references. Mutating returned objects
  * directly can mutate replica state without producing a CRDT delta, so callers
  * must isolate values before out-of-band mutation. Local mutations emit `delta`
  * and `change` events; remote merges emit `change` events.
@@ -29,12 +25,6 @@ import {
  * @typeParam T - The value type stored in the list.
  */
 export class CRList<T> {
-  /**
-   * Reads or overwrites an item in the live list projection by index.
-   *
-   * Reads return live value references.
-   */
-  [index: number]: T
   declare private readonly state: CRListState<T>
   declare private readonly eventTarget: EventTarget
   declare private readonly observedEventTypes: Set<keyof CRListEventMap<T>>
@@ -45,7 +35,7 @@ export class CRList<T> {
    * @param snapshot - A previously emitted CRList snapshot.
    */
   constructor(snapshot?: CRListSnapshot<T>) {
-    // Define internal slots as non-enumerable properties so proxy keys stay list-like.
+    // Define internal slots as non-enumerable properties.
     void Object.defineProperties(this, {
       state: {
         // Hydrate mutable replica state from the optional snapshot.
@@ -69,117 +59,6 @@ export class CRList<T> {
         writable: false,
       },
     })
-
-    // Proxy numeric property operations into CRList reads, writes, and deletes.
-    return new Proxy(this, {
-      get(target, index, receiver) {
-        // Numeric string keys address live list indexes.
-        const listIndex = target.listIndexOf(index)
-
-        // Preserve normal property access for non-index keys.
-        if (listIndex === undefined) return Reflect.get(target, index, receiver)
-
-        // Reads expose the live value reference at the requested index.
-        return __read(listIndex, target.state)
-      },
-      has(target, index) {
-        // Numeric string keys are checked against live list bounds.
-        const listIndex = target.listIndexOf(index)
-
-        // Preserve normal property checks for non-index keys.
-        if (listIndex === undefined) return Reflect.has(target, index)
-
-        // A live index exists when it falls inside the current size.
-        return listIndex >= 0 && listIndex < target.state.size
-      },
-      set(target, index, value) {
-        // Only canonical numeric property keys can write list entries.
-        const listIndex = target.listIndexOf(index)
-        if (listIndex === undefined) return false
-        try {
-          // Numeric assignment overwrites exactly one visible list position.
-          const result = __update(listIndex, [value], target.state, 'overwrite')
-
-          // Failed/no-op updates report proxy set failure.
-          if (!result) return false
-
-          // Split the primitive result into gossip and local-view payloads.
-          const { delta, change } = result
-
-          // Emit deltas only when blocks or deleted runs were produced.
-          if (delta.blocks?.length || delta.deletedRuns?.length)
-            void target.emitCRListEvent('delta', delta)
-
-          // Emit visible change patch when the projection changed.
-          if (change) void target.emitCRListEvent('change', change)
-
-          // Returning true tells the proxy assignment succeeded.
-          return true
-        } catch (error) {
-          // Public CRList errors should preserve their typed error contract.
-          if (error instanceof CRListError) throw error
-
-          // Unexpected failures are hidden from the proxy assignment operation.
-          return false
-        }
-      },
-      deleteProperty(target, index) {
-        // Only canonical numeric property keys can delete list entries.
-        const listIndex = target.listIndexOf(index)
-        if (listIndex === undefined) return false
-        try {
-          // Delete exactly one live item at the requested index.
-          const result = __delete(target.state, listIndex, listIndex + 1)
-
-          // Failed/no-op deletes report proxy delete failure.
-          if (!result) return false
-
-          // Split the primitive result into gossip and local-view payloads.
-          const { delta, change } = result
-
-          // Emit deltas only when blocks or deleted runs were produced.
-          if (delta.blocks?.length || delta.deletedRuns?.length)
-            void target.emitCRListEvent('delta', delta)
-
-          // Emit visible deletion patch when projection changed.
-          if (change) void target.emitCRListEvent('change', change)
-
-          // Returning true tells the proxy delete succeeded.
-          return true
-        } catch (error) {
-          // Public CRList errors should preserve their typed error contract.
-          if (error instanceof CRListError) throw error
-
-          // Unexpected failures are hidden from the proxy delete operation.
-          return false
-        }
-      },
-      ownKeys(target) {
-        // Combine ordinary object keys with enumerable live index keys.
-        return [
-          ...Reflect.ownKeys(target),
-          ...Array.from({ length: target.size }, (_, index) => String(index)),
-        ]
-      },
-
-      getOwnPropertyDescriptor(target, index) {
-        // Numeric descriptors make live indexes enumerable and writable.
-        const listIndex = target.listIndexOf(index)
-
-        // Return a synthetic data descriptor for live list indexes.
-        if (listIndex !== undefined && listIndex < target.size) {
-          return {
-            value: __read(listIndex, target.state),
-            writable: true,
-            enumerable: true,
-            configurable: true,
-          }
-        }
-
-        // Preserve normal property checks for non-index keys.
-        return Reflect.getOwnPropertyDescriptor(target, index)
-      },
-    })
   }
 
   /**
@@ -188,6 +67,40 @@ export class CRList<T> {
   get size(): number {
     // Size is stored directly on mutable replica state.
     return this.state.size
+  }
+
+  /**
+   * Reads an item in the live list projection by index.
+   *
+   * Returns a live value reference.
+   *
+   * @param index - The index to read.
+   */
+  get(index: number): T | undefined {
+    return __read(index, this.state)
+  }
+
+  /**
+   * Overwrites entries starting at an index.
+   *
+   * @param index - The index to start overwriting at.
+   * @param values - Values to write.
+   */
+  set(index: number, values: Array<T>): void {
+    // Overwrite values starting at the requested live index.
+    const result = __update<T>(index, values, this.state, 'overwrite')
+
+    // No-op updates do not emit events.
+    if (!result) return
+
+    // Split primitive result into gossip and visible change payloads.
+    const { delta, change } = result
+
+    // Emit local delta for gossip.
+    if (delta) void this.emitCRListEvent('delta', delta)
+
+    // Emit local visible projection patch.
+    if (change) void this.emitCRListEvent('change', change)
   }
 
   /**
@@ -245,35 +158,14 @@ export class CRList<T> {
     // Emit local visible projection patch.
     if (change) void this.emitCRListEvent('change', change)
   }
-  /**
-   * Overwrites entries starting at an index.
-   *
-   * @param index - The index to start overwriting at.
-   * @param values - Values to write.
-   */
-  update(index: number, values: Array<T>): void {
-    // Overwrite values starting at the requested live index.
-    const result = __update<T>(index, values, this.state, 'overwrite')
 
-    // No-op updates do not emit events.
-    if (!result) return
-
-    // Split primitive result into gossip and visible change payloads.
-    const { delta, change } = result
-
-    // Emit local delta for gossip.
-    if (delta) void this.emitCRListEvent('delta', delta)
-
-    // Emit local visible projection patch.
-    if (change) void this.emitCRListEvent('change', change)
-  }
   /**
    * Removes one or more entries starting at an index.
    *
    * @param index - The first index to remove.
    * @param count - Number of entries to remove. Defaults to `1`.
    */
-  remove(index: number, count = 1): void {
+  delete(index: number, count = 1): void {
     // Convert count-based API into the primitive's half-open range.
     const result = __delete(this.state, index, index + count)
 
@@ -339,11 +231,12 @@ export class CRList<T> {
    * @param delta - The remote CRList delta to merge.
    */
   merge(delta: CRListDelta<T>): void {
-    // Build an index-keyed change patch only when a listener can observe it.
-    const collectChange = this.observedEventTypes.has('change')
-
     // Apply the remote delta to local mutable state.
-    const change = __merge(this.state, delta, collectChange)
+    const change = __merge(
+      this.state,
+      delta,
+      this.observedEventTypes.has('change')
+    )
 
     // Remote merges emit only visible projection changes.
     if (change) void this.emitCRListEvent('change', change)
@@ -498,16 +391,6 @@ export class CRList<T> {
       // Continue with the next projection block.
       block = block.nextBlock
     }
-  }
-
-  private listIndexOf(index: string | symbol): number | undefined {
-    if (typeof index !== 'string') return undefined
-    const listIndex = Number(index)
-    return Number.isSafeInteger(listIndex) &&
-      listIndex >= 0 &&
-      index === String(listIndex)
-      ? listIndex
-      : undefined
   }
 
   /**

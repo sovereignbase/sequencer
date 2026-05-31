@@ -411,7 +411,11 @@ export async function runCRListSuite(api, options = {}) {
 
     assertEqual(found?.id, 'b', 'find returned wrong value')
     found.id = 'mutated'
-    assertEqual(list[1].id, 'mutated', 'find should expose live value state')
+    assertEqual(
+      list.get(1).id,
+      'mutated',
+      'find should expose live value state'
+    )
     assertEqual(
       list.find((entry) => entry.id === 'missing'),
       undefined,

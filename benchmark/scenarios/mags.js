@@ -2,6 +2,7 @@ import { createPlan } from '../helpers/plan.js'
 import {
   LARGE_BATCH_SIZE,
   collectFrontiers,
+  coreOps,
   createArtifacts,
   createSparseState,
   createTombstonedState,
@@ -10,6 +11,7 @@ import {
   mergeArtifactsByOrder,
   maybeGarbageCollect,
   shuffledOrder,
+  supports,
   visibleConvergence,
 } from './shared.js'
 
@@ -388,15 +390,32 @@ function mergeBenchmark(adapter, definition) {
 }
 
 export function runMags(adapter, definition) {
+  const ops = coreOps(adapter)
+  if (!ops) return undefined
+  if (
+    !supports(
+      ops,
+      'create',
+      'size',
+      'ids',
+      'snapshot',
+      'hydrate',
+      'merge',
+      'change',
+      'deleteAt'
+    )
+  )
+    return undefined
+
   if (definition.name.startsWith('snapshot'))
-    return snapshotBenchmark(adapter, definition)
+    return snapshotBenchmark(ops, definition)
   if (definition.name.startsWith('acknowledge'))
-    return acknowledgeBenchmark(adapter, definition)
+    return acknowledgeBenchmark(ops, definition)
   if (definition.name.startsWith('garbage collect'))
-    return garbageCollectBenchmark(adapter, definition)
+    return garbageCollectBenchmark(ops, definition)
   if (definition.name.startsWith('post-gc'))
-    return postGcBenchmark(adapter, definition)
+    return postGcBenchmark(ops, definition)
   if (definition.name.startsWith('merge'))
-    return mergeBenchmark(adapter, definition)
+    return mergeBenchmark(ops, definition)
   throw new Error(`Unhandled mags benchmark: ${definition.name}`)
 }

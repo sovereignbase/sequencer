@@ -35,7 +35,7 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "size": "terser dist/index.js -cm | gzip-size",
+    "size": "node benchmark/bundle-size/index.js",
     "format": "prettier . --write",
     "build": "tsdown && typedoc",
     "test": "npm run build && node test/run-coverage.mjs && node test/e2e/run.mjs",

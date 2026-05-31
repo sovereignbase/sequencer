@@ -71,8 +71,50 @@ function apply(state, operation) {
   return insert(state, operation.index, [operation.id])
 }
 
+const core = {
+  create,
+  empty: () => create(0),
+  size: (state) => state.list.length,
+  ids,
+  readId: (state, index) => state.list.get(index)?.id,
+  find,
+  snapshot,
+  hydrate,
+  merge: (state, artifact) => {
+    Y.applyUpdate(state.doc, artifact)
+    return state
+  },
+  append: (state, values) => insert(state, state.list.length, values).state,
+  prepend: (state, values) => insert(state, 0, values).state,
+  insertBefore: (state, index, values) => insert(state, index, values).state,
+  insertAfter: (state, index, values) => insert(state, index + 1, values).state,
+  overwrite: (state, index, values) => overwrite(state, index, values).state,
+  deleteAt: (state, index) => remove(state, index, 1).state,
+  deleteRange: (state, index, count) => remove(state, index, count).state,
+  change: apply,
+}
+
+const classApi = {
+  create,
+  size: (state) => state.list.length,
+  ids,
+  readId: (state, index) => state.list.get(index)?.id,
+  snapshot,
+  hydrate,
+  merge: core.merge,
+  append: core.append,
+  prepend: core.prepend,
+  insertBefore: core.insertBefore,
+  overwrite: core.overwrite,
+  deleteAt: core.deleteAt,
+  deleteRange: core.deleteRange,
+  change: apply,
+}
+
 export const yjsAdapter = {
   name: 'yjs',
+  core,
+  class: classApi,
   create,
   empty: () => create(0),
   size: (state) => state.list.length,

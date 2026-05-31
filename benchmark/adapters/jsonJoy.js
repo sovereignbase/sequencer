@@ -65,8 +65,54 @@ function apply(state, operation) {
   return insert(state, operation.index, [operation.id])
 }
 
+const core = {
+  create,
+  empty: () => create(0),
+  size: (state) => state.list.length(),
+  ids,
+  readId: (state, index) => state.list.get(index)?.view().id,
+  find,
+  snapshot,
+  hydrate,
+  merge: (state, artifact) => {
+    state.model.applyPatch(artifact)
+    return refresh(state)
+  },
+  append: (state, values) => {
+    for (const id of values) state.list.push(value(id))
+    state.model.api.flush()
+    return refresh(state)
+  },
+  prepend: (state, values) => insert(state, 0, values).state,
+  insertBefore: (state, index, values) => insert(state, index, values).state,
+  insertAfter: (state, index, values) => insert(state, index + 1, values).state,
+  overwrite: (state, index, values) => overwrite(state, index, values).state,
+  deleteAt: (state, index) => remove(state, index, 1).state,
+  deleteRange: (state, index, count) => remove(state, index, count).state,
+  change: apply,
+}
+
+const classApi = {
+  create,
+  size: (state) => state.list.length(),
+  ids,
+  readId: (state, index) => state.list.get(index)?.view().id,
+  snapshot,
+  hydrate,
+  merge: core.merge,
+  append: core.append,
+  prepend: core.prepend,
+  insertBefore: core.insertBefore,
+  overwrite: core.overwrite,
+  deleteAt: core.deleteAt,
+  deleteRange: core.deleteRange,
+  change: apply,
+}
+
 export const jsonJoyAdapter = {
   name: 'jsonJoy',
+  core,
+  class: classApi,
   create,
   empty: () => create(0),
   size: (state) => state.list.length(),

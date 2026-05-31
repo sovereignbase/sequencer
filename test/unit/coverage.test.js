@@ -40,16 +40,16 @@ test('unit: CRList public surface and events', () => {
   list.append([{ id: 'a' }])
   list.append([{ id: 'b' }])
   list.prepend([{ id: 'z' }])
-  list[1] = { id: 'x' }
+  list.set(1, [{ id: 'x' }])
 
   assert.equal(list.size, 3)
-  assert.equal(list[0].id, 'z')
-  assert.equal(list[1].id, 'x')
-  assert.equal(list[2].id, 'b')
-  assert.equal(1 in list, true)
+  assert.equal(list.get(0).id, 'z')
+  assert.equal(list.get(1).id, 'x')
+  assert.equal(list.get(2).id, 'b')
+  assert.equal(1 in list, false)
   assert.equal('append' in list, true)
-  assert.deepEqual(Object.keys(list), ['0', '1', '2'])
-  assert.equal(Object.getOwnPropertyDescriptor(list, '1').value.id, 'x')
+  assert.deepEqual(Object.keys(list), [])
+  assert.equal(Object.getOwnPropertyDescriptor(list, '1'), undefined)
   assert.deepEqual(
     [...list].map((value) => value.id),
     ['z', 'x', 'b']
@@ -66,7 +66,7 @@ test('unit: CRList public surface and events', () => {
   )
   assert.equal(found.id, 'x')
   found.id = 'mutated'
-  assert.equal(list[1].id, 'mutated')
+  assert.equal(list.get(1).id, 'mutated')
   assert.equal(
     list.find((value) => value.id === 'missing'),
     undefined
@@ -100,30 +100,13 @@ test('unit: CRList public surface and events', () => {
   new CRList().forEach((value) => emptyForEachIds.push(value.id))
   assert.deepEqual(emptyForEachIds, [])
 
-  assert.equal(Reflect.set(list, 'not-index', { id: 'bad' }), false)
-  assert.equal(Reflect.set(list, '-1', { id: 'bad' }), false)
-  assert.equal(Reflect.get(list, '01'), undefined)
-  assert.throws(
-    () => Reflect.set(list, '99', { id: 'bad' }),
-    /INDEX_OUT_OF_BOUNDS/
-  )
-  const functionValueList = new CRList()
-  functionValueList.append([{ id: 'replace-me' }])
-  assert.equal(
-    Reflect.set(functionValueList, '0', () => undefined),
-    true
-  )
-  assert.equal(typeof functionValueList[0], 'function')
-  assert.throws(() => {
-    Reflect.deleteProperty(list, '99')
-  }, /INDEX_OUT_OF_BOUNDS/)
-  assert.throws(() => {
-    delete list[99]
-  }, /INDEX_OUT_OF_BOUNDS/)
-  assert.equal(Reflect.get(list, '9007199254740992'), undefined)
-  assert.equal(Reflect.deleteProperty(list, 'not-index'), false)
+  assert.equal(list.get(-1), undefined)
+  assert.equal(list.get(99), undefined)
+  const arrayValueList = new CRList()
+  arrayValueList.append([[{ id: 'nested-array-value' }]])
+  assert.deepEqual(arrayValueList.get(0), [{ id: 'nested-array-value' }])
 
-  delete list[2]
+  list.delete(2)
   assert.equal(list.size, 2)
   list.snapshot()
   list.acknowledge()
@@ -157,15 +140,15 @@ test('unit: CRList public surface and events', () => {
   const falseResultEntry = falseResultState.currentBlock
   falseResultState.size = 2
   falseResultEntry.nextBlock = undefined
-  assert.equal(Reflect.set(falseResultList, '1', { id: 'no-set' }), false)
+  falseResultList.set(1, [{ id: 'no-set' }])
   falseResultState.currentBlock = falseResultEntry
-  assert.equal(Reflect.deleteProperty(falseResultList, '1'), false)
+  falseResultList.delete(1)
   falseResultState.currentBlock = falseResultEntry
   falseResultList.prepend([{ id: 'no-prepend' }], 1)
   falseResultState.currentBlock = falseResultEntry
   falseResultList.append([{ id: 'no-append' }], 1)
   falseResultState.currentBlock = falseResultEntry
-  falseResultList.remove(1)
+  falseResultList.delete(1)
   const throwingSetList = new CRList()
   throwingSetList.append([{ id: 'set-throw' }])
   throwingSetList.addEventListener('change', () => {})
@@ -175,7 +158,10 @@ test('unit: CRList public surface and events', () => {
   ).value.dispatchEvent = () => {
     throw new Error('listener-set')
   }
-  assert.equal(Reflect.set(throwingSetList, '0', { id: 'set-catch' }), false)
+  assert.throws(
+    () => throwingSetList.set(0, [{ id: 'set-catch' }]),
+    /listener-set/
+  )
   const throwingDeleteList = new CRList()
   throwingDeleteList.append([{ id: 'delete-throw' }])
   throwingDeleteList.addEventListener('change', () => {})
@@ -185,16 +171,16 @@ test('unit: CRList public surface and events', () => {
   ).value.dispatchEvent = () => {
     throw new Error('listener-delete')
   }
-  assert.equal(Reflect.deleteProperty(throwingDeleteList, '0'), false)
+  assert.throws(() => throwingDeleteList.delete(0), /listener-delete/)
 
   const remote = new CRList()
   remote.append([{ id: 'remote' }])
   list.merge(remote.toJSON())
   list.merge({ deletedRuns: [['not-a-uuid', 1]] })
-  list.remove(0)
+  list.delete(0)
 })
 
-test('unit: CRList remove deletes a range with one event pair', () => {
+test('unit: CRList delete deletes a range with one event pair', () => {
   const list = new CRList()
   for (const id of ['a', 'b', 'c', 'd', 'e']) list.append([{ id }])
 
@@ -203,7 +189,7 @@ test('unit: CRList remove deletes a range with one event pair', () => {
   list.addEventListener('delta', (event) => deltas.push(event.detail))
   list.addEventListener('change', (event) => changes.push(event.detail))
 
-  list.remove(1, 3)
+  list.delete(1, 3)
 
   assert.equal(list.size, 2)
   assert.deepEqual(

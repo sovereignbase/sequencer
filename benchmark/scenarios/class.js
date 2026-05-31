@@ -13,35 +13,18 @@ import {
   positionFromName,
   safeIndex,
   shuffledOrder,
+  supports,
   visibleConvergence,
 } from './shared.js'
 import { random } from '../helpers/random.js'
 
 function classOps(adapter) {
-  return {
-    create: adapter.createClass ?? adapter.create,
-    size: adapter.classSize ?? adapter.size,
-    ids: adapter.classIds ?? adapter.ids,
-    readId: adapter.classReadId ?? adapter.readId,
-    find: adapter.classFind ?? adapter.find,
-    snapshot: adapter.classSnapshot ?? adapter.snapshot,
-    hydrate: adapter.classHydrate ?? adapter.hydrate,
-    merge: adapter.classMerge ?? adapter.merge,
-    change: adapter.classChange ?? adapter.change,
-    append: adapter.classAppend ?? adapter.append,
-    prepend: adapter.classPrepend ?? adapter.prepend,
-    insertBefore: adapter.classInsertBefore ?? adapter.insertBefore,
-    overwrite: adapter.classOverwrite ?? adapter.overwrite,
-    deleteAt: adapter.classRemove ?? adapter.deleteAt,
-    deleteRange:
-      adapter.classRemove ??
-      ((state, index, count) => adapter.deleteRange(state, index, count)),
-    acknowledge: adapter.classAcknowledge ?? adapter.acknowledge,
-    garbageCollect: adapter.classGarbageCollect ?? adapter.garbageCollect,
-  }
+  return adapter.class
 }
 
 function readBenchmark(ops, definition) {
+  if (!supports(ops, 'create', 'size', 'readId')) return undefined
+
   const state = ops.create(definition.n)
   const index = safeIndex(ops, state, positionFromName(definition.name))
   return measured(() => {
@@ -51,6 +34,8 @@ function readBenchmark(ops, definition) {
 }
 
 function findBenchmark(ops, definition) {
+  if (!supports(ops, 'create', 'size', 'readId', 'find')) return undefined
+
   const state = ops.create(definition.n)
   const id = ops.readId(
     state,
@@ -63,6 +48,8 @@ function findBenchmark(ops, definition) {
 }
 
 function iterateBenchmark(ops, definition) {
+  if (!supports(ops, 'create', 'ids')) return undefined
+
   const state = ops.create(definition.n)
   return measured(() => {
     for (let op = 0; op < definition.ops; op++) ops.ids(state)
@@ -71,6 +58,9 @@ function iterateBenchmark(ops, definition) {
 }
 
 function insertBenchmark(ops, definition) {
+  if (!supports(ops, 'create', 'size', 'append', 'prepend', 'insertBefore'))
+    return undefined
+
   let state = ops.create(definition.n)
   const batch = definition.name.includes('batch')
   const amount = batch ? BATCH_SIZE : 1
@@ -94,6 +84,8 @@ function insertBenchmark(ops, definition) {
 }
 
 function overwriteBenchmark(ops, definition) {
+  if (!supports(ops, 'create', 'size', 'overwrite')) return undefined
+
   let state = ops.create(definition.n)
   const fixed = safeIndex(ops, state, positionFromName(definition.name))
   const rand = random(0x6600)
@@ -110,6 +102,8 @@ function overwriteBenchmark(ops, definition) {
 }
 
 function removeBenchmark(ops, definition) {
+  if (!supports(ops, 'create', 'size', 'deleteRange')) return undefined
+
   let state = ops.create(definition.n)
   const range = definition.name.includes('range') ? BATCH_SIZE : 1
   const position = positionFromName(definition.name)
@@ -132,6 +126,20 @@ function removeBenchmark(ops, definition) {
 }
 
 function mixedBenchmark(ops, definition) {
+  if (
+    !supports(
+      ops,
+      'create',
+      'size',
+      'deleteAt',
+      'overwrite',
+      'append',
+      'prepend',
+      'insertBefore'
+    )
+  )
+    return undefined
+
   let state = ops.create(definition.n)
   const position = positionFromName(definition.name)
   return measured(() => {
@@ -156,6 +164,15 @@ function mixedBenchmark(ops, definition) {
 }
 
 function snapshotBenchmark(ops, definition) {
+  if (!supports(ops, 'create', 'snapshot')) return undefined
+  if (definition.name.includes('tombstoned') && !supports(ops, 'deleteAt'))
+    return undefined
+  if (
+    definition.name.includes('garbage collection') &&
+    !supports(ops, 'deleteAt', 'acknowledge', 'garbageCollect')
+  )
+    return undefined
+
   let state = definition.name.includes('tombstoned')
     ? createTombstonedState(ops, definition.n, 0.5)
     : ops.create(definition.n)
@@ -172,7 +189,7 @@ function snapshotBenchmark(ops, definition) {
 }
 
 function acknowledgeBenchmark(ops, definition) {
-  if (!ops.acknowledge) return undefined
+  if (!supports(ops, 'create', 'deleteAt', 'acknowledge')) return undefined
   const state = createTombstonedState(
     ops,
     definition.n,
@@ -185,7 +202,8 @@ function acknowledgeBenchmark(ops, definition) {
 }
 
 function garbageCollectBenchmark(ops, definition) {
-  if (!ops.garbageCollect || !ops.acknowledge) return undefined
+  if (!supports(ops, 'create', 'deleteAt', 'acknowledge', 'garbageCollect'))
+    return undefined
   const state = createTombstonedState(
     ops,
     definition.n,
@@ -204,6 +222,9 @@ function garbageCollectBenchmark(ops, definition) {
 }
 
 function mergePlanBenchmark(ops, definition, order = 'ordered') {
+  if (!supports(ops, 'create', 'hydrate', 'snapshot', 'change', 'merge', 'ids'))
+    return undefined
+
   const source = ops.create(definition.n)
   let target = ops.hydrate(ops.snapshot(source))
   const { state, artifacts } = createArtifacts(
@@ -228,6 +249,9 @@ function mergePlanBenchmark(ops, definition, order = 'ordered') {
 }
 
 function duplicateMergeBenchmark(ops, definition) {
+  if (!supports(ops, 'create', 'hydrate', 'snapshot', 'change', 'merge', 'ids'))
+    return undefined
+
   const source = ops.create(definition.n)
   let target = ops.hydrate(ops.snapshot(source))
   const result = ops.change(source, {
@@ -246,6 +270,9 @@ function duplicateMergeBenchmark(ops, definition) {
 }
 
 function concurrentMergeBenchmark(ops, definition) {
+  if (!supports(ops, 'create', 'hydrate', 'snapshot', 'change', 'merge', 'ids'))
+    return undefined
+
   const snapshot = ops.snapshot(ops.create(definition.n))
   const left = ops.hydrate(snapshot)
   const right = ops.hydrate(snapshot)
@@ -276,6 +303,9 @@ function concurrentMergeBenchmark(ops, definition) {
 }
 
 function forkedBenchmark(ops, definition) {
+  if (!supports(ops, 'create', 'hydrate', 'snapshot', 'change', 'merge', 'ids'))
+    return undefined
+
   const snapshot = ops.snapshot(ops.create(definition.n))
   const leftArtifacts = createArtifacts(
     ops,
@@ -316,7 +346,10 @@ function mergeBenchmark(ops, definition) {
 
 export function runClass(adapter, definition) {
   const ops = classOps(adapter)
+  if (!ops) return undefined
   if (definition.name === 'constructor / hydrate snapshot') {
+    if (!supports(ops, 'create', 'snapshot', 'hydrate')) return undefined
+
     const snapshot = ops.snapshot(ops.create(definition.n))
     return measured(() => {
       for (let op = 0; op < definition.ops; op++) ops.hydrate(snapshot)
@@ -338,15 +371,17 @@ export function runClass(adapter, definition) {
     definition.name.startsWith('paste /')
   )
     return definition.name.startsWith('paste /')
-      ? measured(() => {
-          let state = ops.create(definition.n)
-          state = ops.insertBefore(
-            state,
-            Math.floor(definition.n / 2),
-            createValues(definition.n, 10_000)
-          )
-          return 10_000
-        })
+      ? supports(ops, 'create', 'insertBefore')
+        ? measured(() => {
+            let state = ops.create(definition.n)
+            state = ops.insertBefore(
+              state,
+              Math.floor(definition.n / 2),
+              createValues(definition.n, 10_000)
+            )
+            return 10_000
+          })
+        : undefined
       : insertBenchmark(ops, definition)
   if (definition.name.startsWith('overwrite /'))
     return overwriteBenchmark(ops, definition)
@@ -355,6 +390,8 @@ export function runClass(adapter, definition) {
   if (definition.name.startsWith('mixed /'))
     return mixedBenchmark(ops, definition)
   if (definition.name.startsWith('render /')) {
+    if (!supports(ops, 'create', 'ids')) return undefined
+
     const state = ops.create(definition.n)
     return measured(() => {
       for (let op = 0; op < definition.ops; op++) ops.ids(state).join('')

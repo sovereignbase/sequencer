@@ -2,7 +2,7 @@ Refactor the convergence engine so Rust/Wasm owns the CRDT convergence state, wh
 
 Hard rule:
 
-Wasm must only receive:
+JS<->WASM MUST only exchange:
 
 - `number`
 - `bigint`
@@ -12,7 +12,7 @@ No JSON serialization.
 
 No MsgPack serialization at the JS/Wasm boundary.
 
-No serde hot path.
+No serde.
 
 No object copying.
 
@@ -39,3 +39,15 @@ JavaScript does the simple part:
 - owns network I/O
 - asks Wasm for references by numeric index
 - returns those references to the consumer/network
+
+Start the lazily rewriting utilizing C:\Users\jorts\convergent-replicated-list\.skills\optimize-performance\SKILL.md at every step to verify the benefit.
+
+Ensure test pass and that we win absolutely all benchmarks.
+
+Both externref and number JS<->WASM passes are like a couple of nanoseconds, BigInt is like around 10 nanoseconds but it only happens once and, we already win most of the JS benchmarks so as we expect WASM (RUST) to be way more performant than JS we can just do the exact current typescript implementation of convergence logic but in rust and OPTIMIZED FOR RUST SPECIFICALLY.
+
+So basically semantically the exact same convergence implementation, but for more perfomant runtime, optimized for that runtime.
+
+And basically the idea is that the rust makes "instructions" the JS can complete in O(1) or O(n) based on the convergence rust knows/resolves fastest.
+
+Keep variable, function method, prop names and all semantics and documentation etc style.

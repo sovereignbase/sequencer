@@ -303,7 +303,7 @@ export class CRList<T> {
     predicate: (this: unknown, value: T, index: number, list: this) => unknown,
     thisArg?: unknown
   ): T | undefined {
-    // Start from the first block
+    // Start from the first block.
     let block = this.state.firstBlock
 
     // Track public list index while scanning block items.
@@ -314,7 +314,12 @@ export class CRList<T> {
       // Test every live value in the current block.
       for (let offset = 0; offset < block.items.length; offset++) {
         const value = block.items[offset]
-        if (predicate.call(thisArg, value, index, this)) return value
+        if (
+          thisArg === undefined
+            ? predicate(value, index, this)
+            : predicate.call(thisArg, value, index, this)
+        )
+          return value
         index++
       }
 
@@ -475,7 +480,7 @@ export class CRList<T> {
     callback: (value: T, index: number, list: this) => void,
     thisArg?: unknown
   ): void {
-    // Start from the first block
+    // Start from the first block.
     let block = this.state.firstBlock
 
     // Track public list index while scanning block items.
@@ -485,7 +490,8 @@ export class CRList<T> {
     while (block) {
       // Invoke the callback for every live value in the current block.
       for (const value of block.items) {
-        void callback.call(thisArg, value, index, this)
+        if (thisArg === undefined) void callback(value, index, this)
+        else void callback.call(thisArg, value, index, this)
         index++
       }
 

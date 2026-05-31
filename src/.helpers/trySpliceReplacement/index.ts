@@ -75,12 +75,26 @@ export function trySpliceReplacement<T>(
     return false
   }
 
+  // Projection block that must follow the spliced replacement.
+  let successor: CRListStateBlock<T> = next
+
   // Expected visible start index of the inserted replacement.
   let expectedIndex: number | undefined
 
   // Non-root replacement starts immediately after its live predecessor anchor.
   if (previousBlock) {
-    if (previousBlock.nextBlock !== next) return false
+    if (next) {
+      // A reparented successor must already follow the predecessor locally.
+      if (previousBlock.nextBlock !== next) return false
+    } else {
+      // No reparented successor means this delta overwrote the predecessor's
+      // former successor item. Splice before the current next block only for a
+      // single-item predecessor, where the replacement is provably ordered
+      // directly after that predecessor.
+      if (previousBlock.items.length !== 1) return false
+
+      successor = previousBlock.nextBlock
+    }
     expectedIndex = getIndexAfterBlockId<T>(
       crListReplica,
       inserted.previousBlockId
@@ -116,12 +130,12 @@ export function trySpliceReplacement<T>(
   // The fast path must know the exact visible insertion index.
   if (expectedIndex === undefined) return false
 
-  // Splice inserted replacement between predecessor and optional successor.
-  void linkBlockBetween<T>(previousBlock, inserted, next)
+  // Splice inserted replacement between predecessor and resolved successor.
+  void linkBlockBetween<T>(previousBlock, inserted, successor)
 
   // Update projection endpoints for root or tail replacement.
   if (!previousBlock) crListReplica.firstBlock = inserted
-  if (!next) crListReplica.lastBlock = inserted
+  if (!successor) crListReplica.lastBlock = inserted
 
   // Reset cache and focus cursor on inserted replacement.
   void crListReplica.blocksByIndex.clear()

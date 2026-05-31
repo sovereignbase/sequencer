@@ -593,6 +593,49 @@ test('unit: merge splices root replacement without successor', () => {
   assert.equal(__read(0, target).id, 'new-head')
 })
 
+test('unit: merge splices replacement before detached successor', () => {
+  const base = __create()
+  assert(__update(0, [{ id: 'a' }], base, 'after'))
+  assert(__update(base.size, [{ id: 'b' }], base, 'after'))
+  const snapshot = __snapshot(base)
+  const left = __create(snapshot)
+  const right = __create(snapshot)
+  const targetA = __create(snapshot)
+  const targetB = __create(snapshot)
+
+  const replacementDelta = __update(
+    1,
+    [{ id: 'left-overwrite' }],
+    left,
+    'overwrite'
+  ).delta
+  const successorDelta = __update(
+    right.size,
+    [{ id: 'right-append' }],
+    right,
+    'after'
+  ).delta
+
+  assert(__merge(targetA, successorDelta))
+  assert(__merge(targetA, replacementDelta))
+  assert(__merge(targetB, replacementDelta))
+  assert(__merge(targetB, successorDelta))
+
+  assert.deepEqual(
+    ids(targetA).map((value) => value.id),
+    ['a', 'left-overwrite', 'right-append']
+  )
+  assert.deepEqual(
+    ids(targetA).map((value) => value.id),
+    ids(targetB).map((value) => value.id)
+  )
+
+  const snapshotIds = __snapshot(targetA).blocks.flatMap((block) =>
+    block.items.map((value) => value.id)
+  )
+  assert.deepEqual(snapshotIds, ['a', 'left-overwrite', 'right-append'])
+})
+
 test('unit: remote head delete is observable through indexed reads', () => {
   const source = __create()
   assert(__update(0, [{ id: 'a' }, { id: 'b' }, { id: 'c' }], source, 'after'))

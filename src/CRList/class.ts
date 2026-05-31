@@ -74,30 +74,28 @@ export class CRList<T> {
     return new Proxy(this, {
       get(target, index, receiver) {
         // Numeric string keys address live list indexes.
-        const listIndex = Number(index)
+        const listIndex = target.listIndexOf(index)
 
         // Preserve normal property access for non-index keys.
-        if (!Number.isSafeInteger(listIndex) || listIndex < 0)
-          return Reflect.get(target, index, receiver)
+        if (listIndex === undefined) return Reflect.get(target, index, receiver)
 
         // Reads expose the live value reference at the requested index.
         return __read(listIndex, target.state)
       },
       has(target, index) {
         // Numeric string keys are checked against live list bounds.
-        const listIndex = Number(index)
+        const listIndex = target.listIndexOf(index)
 
         // Preserve normal property checks for non-index keys.
-        if (!Number.isSafeInteger(listIndex) || listIndex < 0)
-          return Reflect.has(target, index)
+        if (listIndex === undefined) return Reflect.has(target, index)
 
         // A live index exists when it falls inside the current size.
         return listIndex >= 0 && listIndex < target.state.size
       },
       set(target, index, value) {
         // Only canonical numeric property keys can write list entries.
-        const listIndex = Number(index)
-        if (!Number.isSafeInteger(listIndex) || listIndex < 0) return false
+        const listIndex = target.listIndexOf(index)
+        if (listIndex === undefined) return false
         try {
           // Numeric assignment overwrites exactly one visible list position.
           const result = __update(listIndex, [value], target.state, 'overwrite')
@@ -127,8 +125,8 @@ export class CRList<T> {
       },
       deleteProperty(target, index) {
         // Only canonical numeric property keys can delete list entries.
-        const listIndex = Number(index)
-        if (!Number.isSafeInteger(listIndex) || listIndex < 0) return false
+        const listIndex = target.listIndexOf(index)
+        if (listIndex === undefined) return false
         try {
           // Delete exactly one live item at the requested index.
           const result = __delete(target.state, listIndex, listIndex + 1)
@@ -166,7 +164,7 @@ export class CRList<T> {
 
       getOwnPropertyDescriptor(target, index) {
         // Numeric descriptors make live indexes enumerable and writable.
-        const listIndex = Number(index)
+        const listIndex = target.listIndexOf(index)
 
         // Return a synthetic data descriptor for live list indexes.
         if (listIndex !== undefined && listIndex < target.size) {
@@ -494,6 +492,16 @@ export class CRList<T> {
       // Continue with the next projection block.
       block = block.nextBlock
     }
+  }
+
+  private listIndexOf(index: string | symbol): number | undefined {
+    if (typeof index !== 'string') return undefined
+    const listIndex = Number(index)
+    return Number.isSafeInteger(listIndex) &&
+      listIndex >= 0 &&
+      index === String(listIndex)
+      ? listIndex
+      : undefined
   }
 
   /**

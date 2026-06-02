@@ -159,6 +159,48 @@ function printTable(rows) {
     )
 }
 
+function winner(rows, metric) {
+  return rows.toSorted((left, right) => left[metric] - right[metric]).at(0)
+}
+
+function printWinners(rows) {
+  const metrics = [
+    ['raw', 'raw'],
+    ['minified', 'minified'],
+    ['gzip', 'gzip'],
+    ['brotli', 'brotli'],
+  ]
+  const winnerRows = metrics.map(([label, metric]) => {
+    const row = winner(rows, metric)
+    return {
+      metric: label,
+      winner: row.library,
+      scope: row.scope,
+      kib: row[metric],
+    }
+  })
+  const columns = [
+    ['metric', (row) => row.metric],
+    ['winner', (row) => row.winner],
+    ['scope', (row) => row.scope],
+    ['KiB', (row) => formatKiB(row.kib)],
+  ]
+  const widths = columns.map(([header, getter]) =>
+    Math.max(header.length, ...winnerRows.map((row) => getter(row).length))
+  )
+  console.log('\nbundle winners (smaller is better)')
+  console.log(
+    columns.map(([header], index) => pad(header, widths[index])).join('  ')
+  )
+  console.log(widths.map((width) => '-'.repeat(width)).join('  '))
+  for (const row of winnerRows)
+    console.log(
+      columns
+        .map(([, getter], index) => pad(getter(row), widths[index]))
+        .join('  ')
+    )
+}
+
 async function measure(entry) {
   await mkdir(workdir, { recursive: true })
   const entryPath = path.join(workdir, `${entry.library}-${entry.scope}.js`)
@@ -209,6 +251,7 @@ async function main() {
     const rows = []
     for (const entry of entries) rows.push(await measure(entry))
     printTable(rows)
+    printWinners(rows)
   } finally {
     await rm(workdir, { recursive: true, force: true })
   }

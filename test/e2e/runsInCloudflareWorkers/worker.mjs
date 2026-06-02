@@ -9,6 +9,7 @@ export default {
     try {
       const results = await runCRListSuite(api, {
         label: 'cloudflare-workers esm',
+        profile: 'runtime',
         runtimeGlobals: globalThis,
       })
 

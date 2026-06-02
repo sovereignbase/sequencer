@@ -64,6 +64,7 @@ export function __merge<T>(
 
   // Flags that projection links must be spliced or fully rebuilt.
   let needsRelink = false
+  let deletedCompetingChildren = false
 
   /** Apply remote item deletions before linking remote blocks. */
   if (Array.isArray(delta.deletedRuns)) {
@@ -85,6 +86,9 @@ export function __merge<T>(
 
         // Already-known tombstones do not need duplicate block work.
         if (isDeleted(replica.deletedRanges, id)) continue
+
+        if ((replica.blocksByPreviousBlockId.get(id)?.length ?? 0) > 1)
+          deletedCompetingChildren = true
 
         // Delete the item from the live projection if it is still present.
         const deleted = deleteItemById<T>(id, replica)
@@ -123,7 +127,11 @@ export function __merge<T>(
     if (newDeletedIndexes.length === 0) return false
 
     // Repair the cursor cheaply when one deleted last/current block moved it.
-    if (newDeletedIndexes.length === 1 && lastBlockDeleteMovedCurrentBlock) {
+    if (
+      newDeletedIndexes.length === 1 &&
+      lastBlockDeleteMovedCurrentBlock &&
+      !deletedCompetingChildren
+    ) {
       if (replica.currentBlock) {
         // The new cursor start is the new tail block start index.
         replica.currentBlockIndex =
@@ -142,19 +150,23 @@ export function __merge<T>(
       return change
     }
 
+    if (deletedCompetingChildren) void rebuildLiveProjection<T>(replica)
+
     // State has been integrated; skip patch materialization when unobserved.
     if (!change) {
       // A pure-delete no-change merge only needs a valid read cursor.
-      void replica.blocksByIndex.clear()
-      replica.currentBlock = replica.firstBlock
-      replica.currentBlockIndex = replica.firstBlock ? 0 : undefined
-      if (replica.firstBlock)
-        void replica.blocksByIndex.set(0, replica.firstBlock)
+      if (!deletedCompetingChildren) {
+        void replica.blocksByIndex.clear()
+        replica.currentBlock = replica.firstBlock
+        replica.currentBlockIndex = replica.firstBlock ? 0 : undefined
+        if (replica.firstBlock)
+          void replica.blocksByIndex.set(0, replica.firstBlock)
+      }
       return false
     }
 
-    // Rebuild cache and projection endpoints for multi-delete pure deltas.
-    void rebuildBlocksByIndex<T>(replica)
+    // Rebuild cache and projection endpoints for pure deltas.
+    if (!deletedCompetingChildren) void rebuildBlocksByIndex<T>(replica)
 
     // Emit every removed visible index as `undefined`.
     for (const index of newDeletedIndexes) change[index] = undefined

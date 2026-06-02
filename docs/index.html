@@ -112,37 +112,73 @@ JSON-compatible.</li>
 <pre><code class="sh"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">test</span>
 </code><button type="button">Copy</button></pre>
 
-<p>What the current test suite covers:</p>
+<p>Current test results:</p>
 <ul>
-<li>Coverage on built <code>dist/**/*.js</code>: <code>100%</code> statements, <code>100%</code> branches, <code>100%</code> functions, and <code>100%</code> lines, together with focused source-coverage tests for helper edge paths.</li>
-<li>Public <code>CRList</code> surface: indexing, iteration, <code>find</code>, <code>forEach</code>, proxy traps, events, JSON/inspect behavior.</li>
-<li>Core edge paths and malicious ingress handling for <code>__create</code>, <code>__read</code>, <code>__update</code>, <code>__delete</code>, <code>__merge</code>, <code>__snapshot</code>, <code>__acknowledge</code>, and <code>__garbageCollect</code>.</li>
-<li>Internal defensive branches under intentionally corrupt in-memory replica state.</li>
-<li>Integration convergence stress for:
-<ul>
-<li>local CRUD live-view semantics</li>
-<li>snapshot hydration independent of value order</li>
-<li>merge idempotency for duplicate insert/delete deltas</li>
-<li>stale-peer acknowledgement and garbage collection recovery</li>
-<li>shuffled asynchronous gossip delivery</li>
-<li>shuffled delivery with replica restarts</li>
-<li>concurrent insert after concurrently deleted predecessor</li>
-<li><code>100</code> aggressive deterministic convergence scenarios</li>
+<li>Total: 160/160 passing.</li>
+<li>Groups: 13.</li>
 </ul>
-</li>
-<li>End-to-end runtime matrix for:
-<ul>
-<li>Node ESM</li>
-<li>Node CJS</li>
-<li>Bun ESM</li>
-<li>Bun CJS</li>
-<li>Deno ESM</li>
-<li>Cloudflare Workers ESM</li>
-<li>Edge Runtime ESM</li>
-<li>Browsers via Playwright: Chromium, Firefox, WebKit, mobile Chrome, mobile Safari</li>
-</ul>
-</li>
-</ul>
+<table>
+<thead>
+<tr>
+<th>group</th>
+<th>result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>unit/public-api</code></td>
+<td>13/13 passing</td>
+</tr>
+<tr>
+<td><code>unit/local-mutations</code></td>
+<td>14/14 passing</td>
+</tr>
+<tr>
+<td><code>unit/live-projection</code></td>
+<td>10/10 passing</td>
+</tr>
+<tr>
+<td><code>unit/merge</code></td>
+<td>20/20 passing</td>
+</tr>
+<tr>
+<td><code>unit/ordering</code></td>
+<td>14/14 passing</td>
+</tr>
+<tr>
+<td><code>unit/tombstones</code></td>
+<td>14/14 passing</td>
+</tr>
+<tr>
+<td><code>unit/snapshots</code></td>
+<td>12/12 passing</td>
+</tr>
+<tr>
+<td><code>unit/acknowledgement-gc</code></td>
+<td>12/12 passing</td>
+</tr>
+<tr>
+<td><code>unit/malformed-ingress</code></td>
+<td>15/15 passing</td>
+</tr>
+<tr>
+<td><code>unit/structural</code></td>
+<td>13/13 passing</td>
+</tr>
+<tr>
+<td><code>integration/convergence</code></td>
+<td>14/14 passing</td>
+</tr>
+<tr>
+<td><code>stress</code></td>
+<td>5/5 passing</td>
+</tr>
+<tr>
+<td><code>runtime/compatibility</code></td>
+<td>4/4 passing</td>
+</tr>
+</tbody>
+</table>
 <h2 id="benchmarks" class="tsd-anchor-link">Benchmarks<a href="#benchmarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <pre><code class="sh"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">bench</span>
 </code><button type="button">Copy</button></pre>

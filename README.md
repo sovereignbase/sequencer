@@ -280,30 +280,26 @@ Ingress stays tolerant:
 npm run test
 ```
 
-What the current test suite covers:
+Current test results:
 
-- Coverage on built `dist/**/*.js`: `100%` statements, `100%` branches, `100%` functions, and `100%` lines, together with focused source-coverage tests for helper edge paths.
-- Public `CRList` surface: indexing, iteration, `find`, `forEach`, proxy traps, events, JSON/inspect behavior.
-- Core edge paths and malicious ingress handling for `__create`, `__read`, `__update`, `__delete`, `__merge`, `__snapshot`, `__acknowledge`, and `__garbageCollect`.
-- Internal defensive branches under intentionally corrupt in-memory replica state.
-- Integration convergence stress for:
-  - local CRUD live-view semantics
-  - snapshot hydration independent of value order
-  - merge idempotency for duplicate insert/delete deltas
-  - stale-peer acknowledgement and garbage collection recovery
-  - shuffled asynchronous gossip delivery
-  - shuffled delivery with replica restarts
-  - concurrent insert after concurrently deleted predecessor
-  - `100` aggressive deterministic convergence scenarios
-- End-to-end runtime matrix for:
-  - Node ESM
-  - Node CJS
-  - Bun ESM
-  - Bun CJS
-  - Deno ESM
-  - Cloudflare Workers ESM
-  - Edge Runtime ESM
-  - Browsers via Playwright: Chromium, Firefox, WebKit, mobile Chrome, mobile Safari
+- Total: 160/160 passing.
+- Groups: 13.
+
+| group                     | result        |
+| ------------------------- | ------------- |
+| `unit/public-api`         | 13/13 passing |
+| `unit/local-mutations`    | 14/14 passing |
+| `unit/live-projection`    | 10/10 passing |
+| `unit/merge`              | 20/20 passing |
+| `unit/ordering`           | 14/14 passing |
+| `unit/tombstones`         | 14/14 passing |
+| `unit/snapshots`          | 12/12 passing |
+| `unit/acknowledgement-gc` | 12/12 passing |
+| `unit/malformed-ingress`  | 15/15 passing |
+| `unit/structural`         | 13/13 passing |
+| `integration/convergence` | 14/14 passing |
+| `stress`                  | 5/5 passing   |
+| `runtime/compatibility`   | 4/4 passing   |
 
 ## Benchmarks
 

@@ -67,6 +67,24 @@ function combineLibraryResults(messages) {
 }
 
 async function main() {
+  // Detect the machine-readable JSON mode used by the README updater.
+  const emitJson = process.argv.includes('--json')
+
+  // In JSON mode, emit only the structured rows and runtime metadata so the
+  // caller can render them; suppress the human-readable console table.
+  if (emitJson) {
+    const rows = combineLibraryResults(await runLibraryWorkers())
+    process.stdout.write(
+      JSON.stringify({
+        node: process.version,
+        platform: process.platform,
+        arch: process.arch,
+        rows,
+      })
+    )
+    return
+  }
+
   console.log('CRList benchmark')
   console.log(
     `node=${process.version} platform=${process.platform} arch=${process.arch}`

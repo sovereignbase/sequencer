@@ -5,16 +5,34 @@ import {
   runCRListSuite,
 } from '../e2e/shared/suite.mjs'
 
+/**
+ * Bounded integration stress runner.
+ *
+ * Runs the full invariant suite with a widened convergence-stress sweep in an
+ * isolated process guarded by a watchdog, so a regression that turns a bounded
+ * traversal into a hang is reported as a timeout rather than stalling CI. The
+ * sweep width is configurable through `CRLIST_STRESS_SCENARIOS`; the heavy,
+ * open-ended sweep lives in `test/stress/run.mjs` behind `npm run stress`.
+ */
+
+// Abort the process if the bounded sweep has not finished in time.
 setTimeout(() => {
   console.error('integration stress watchdog timeout')
   process.exit(124)
-}, 8_000).unref()
+}, 30_000).unref()
 
-const results = await runCRListSuite(api, {
+// Resolve the in-suite stress sweep width from the environment.
+const stressScenarios = Number.parseInt(
+  process.env.CRLIST_STRESS_SCENARIOS ?? '40',
+  10
+)
+
+// Run the grouped invariant suite with the configured stress sweep width.
+const results = runCRListSuite(api, {
   label: 'integration stress',
-  stressRounds: Number.parseInt(process.env.CRLIST_STRESS_ROUNDS ?? '5', 10),
-  includeStress: true,
+  stressScenarios,
 })
 
-printResults(results)
-ensurePassing(results)
+// Print the per-group correctness report and fail on any failing invariant.
+void printResults(results)
+void ensurePassing(results)

@@ -70,3 +70,44 @@ export function printTable(rows) {
 export function formatDuration(ms) {
   return formatNumber(ms)
 }
+
+/**
+ * Renders the benchmark rows as a GitHub-flavored markdown table.
+ *
+ * The columns and formatting match the console table so the README table stays
+ * consistent with `npm run bench` output. This is consumed by the README updater
+ * to inject real measured results into the documentation.
+ *
+ * @param {Array<object>} rows - The combined benchmark rows.
+ * @returns {string} The markdown table.
+ */
+export function markdownTable(rows) {
+  // Define the markdown columns mirroring the console table layout.
+  const columns = [
+    ['group', (row) => row.group],
+    ['scenario', (row) => row.name],
+    ['n', (row) => formatNumber(row.n)],
+    ['ops', (row) => formatNumber(row.ops)],
+    ['crlist ms/op', (row) => formatMetric(row.crlist, 'msPerOp')],
+    ['crlist ops/sec', (row) => formatMetric(row.crlist, 'opsPerSecond')],
+    ['yjs ms/op', (row) => formatMetric(row.yjs, 'msPerOp')],
+    ['yjs ops/sec', (row) => formatMetric(row.yjs, 'opsPerSecond')],
+    ['json-joy ms/op', (row) => formatMetric(row.jsonJoy, 'msPerOp')],
+    ['json-joy ops/sec', (row) => formatMetric(row.jsonJoy, 'opsPerSecond')],
+    ['automerge ms/op', (row) => formatMetric(row.automerge, 'msPerOp')],
+    ['automerge ops/sec', (row) => formatMetric(row.automerge, 'opsPerSecond')],
+    ['winner', winner],
+  ]
+
+  // Build the markdown header row and the separator row.
+  const header = `| ${columns.map(([name]) => name).join(' | ')} |`
+  const separator = `| ${columns.map(() => '---').join(' | ')} |`
+
+  // Build one markdown row per benchmark result.
+  const body = rows.map(
+    (row) => `| ${columns.map(([, getter]) => getter(row)).join(' | ')} |`
+  )
+
+  // Join the header, separator, and body into a single markdown table.
+  return [header, separator, ...body].join('\n')
+}

@@ -14,7 +14,7 @@ for (const [label, api] of [
   ['node esm', esmApi],
   ['node cjs', cjsApi],
 ]) {
-  const results = await runCRListSuite(api, { label })
+  const results = await runCRListSuite(api, { label, profile: 'runtime' })
   printResults(results)
   ensurePassing(results)
 }

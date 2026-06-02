@@ -97,6 +97,7 @@ runtime.evaluate(toExecutableEdgeEsm(moduleCode))
 
 const results = await runCRListSuite(runtime.context.__crListEsmExports, {
   label: 'edge-runtime esm',
+  profile: 'runtime',
   runtimeGlobals: runtime.context,
 })
 printResults(results)

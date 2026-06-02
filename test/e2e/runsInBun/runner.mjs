@@ -13,7 +13,7 @@ for (const [label, api] of [
   ['bun esm', esmApi],
   ['bun cjs', cjsApi],
 ]) {
-  const results = await runCRListSuite(api, { label })
+  const results = await runCRListSuite(api, { label, profile: 'runtime' })
   printResults(results)
   ensurePassing(results)
 }

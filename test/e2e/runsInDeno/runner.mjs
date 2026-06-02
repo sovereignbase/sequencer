@@ -5,7 +5,10 @@ import {
   runCRListSuite,
 } from '../shared/suite.mjs'
 
-const results = await runCRListSuite(api, { label: 'deno esm' })
+const results = await runCRListSuite(api, {
+  label: 'deno esm',
+  profile: 'runtime',
+})
 printResults(results)
 ensurePassing(results)
 /** update to current package */

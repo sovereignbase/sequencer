@@ -1,0 +1,13 @@
+{
+  "name": "@sovereignbase/convergent-replicated-list-wasm",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "configure": "emcmake cmake --preset wasm-release",
+    "build": "cmake --build --preset wasm-release && cmake --install build/wasm-release --prefix dist",
+    "smoke": "node test/smoke.mjs"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

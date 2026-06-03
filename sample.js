@@ -1,41 +1,8 @@
-import { Bytes } from '@sovereignbase/bytecodec'
-import { CRList } from './dist/index.js'
+import createModule from './wasm/dist/crlist_wasm.mjs'
 
-const list = new CRList()
+const wasm = await createModule()
 
-list[0] = 'Whats'
-
-list[1] = 'up'
-
-list.append(['dude!'])
-
-delete list[0]
-
-list.prepend(['What is'])
-
-const serialized = JSON.stringify(list)
-
-const list2 = new CRList(JSON.parse(serialized))
-
-for (const value of list) {
-  console.log(`${value}`)
-}
-
-for (const index in list) {
-  console.log(`${index}`)
-}
-
-list.forEach((value, index, list) => {
-  console.log(index, value, list.size)
-})
-
-console.log(JSON.stringify(list))
-console.log(JSON.stringify([...list]))
-
-import { v7 as uuidv7 } from 'uuid'
-
-const buf = new Uint8Array(16)
-
-void uuidv7(undefined, buf)
-
-console.log(Bytes.toBigInt(buf)) //2151377452784983022899348246979706560n
+console.log(wasm._crlist_add(19, 23))
+console.log(
+  `${wasm._crlist_version_major()}.${wasm._crlist_version_minor()}.${wasm._crlist_version_patch()}`
+)

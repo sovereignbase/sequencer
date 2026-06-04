@@ -121,7 +121,13 @@ export function register({ api, report }) {
       const left = api.__create(snapshot)
       const right = api.__create(snapshot)
       const leftDelta = applyUpdate(api, left, 0, 'left-root', 'before').delta
-      const rightDelta = applyUpdate(api, right, 0, 'right-root', 'before').delta
+      const rightDelta = applyUpdate(
+        api,
+        right,
+        0,
+        'right-root',
+        'before'
+      ).delta
 
       // The lower stable id must sort before the higher at the root.
       const [higher, lower] = byStableId(leftDelta, rightDelta)
@@ -141,25 +147,39 @@ export function register({ api, report }) {
   )
 
   // Concurrent tail inserts must order deterministically.
-  void report.test('concurrent tail inserts are ordered deterministically', () => {
-    // Fork two replicas that both append at the tail.
-    const base = seededReplica(api, 2)
-    const snapshot = api.__snapshot(base)
-    const left = api.__create(snapshot)
-    const right = api.__create(snapshot)
-    const leftDelta = applyUpdate(api, left, left.size, 'left-tail', 'after').delta
-    const rightDelta = applyUpdate(api, right, right.size, 'right-tail', 'after')
-      .delta
+  void report.test(
+    'concurrent tail inserts are ordered deterministically',
+    () => {
+      // Fork two replicas that both append at the tail.
+      const base = seededReplica(api, 2)
+      const snapshot = api.__snapshot(base)
+      const left = api.__create(snapshot)
+      const right = api.__create(snapshot)
+      const leftDelta = applyUpdate(
+        api,
+        left,
+        left.size,
+        'left-tail',
+        'after'
+      ).delta
+      const rightDelta = applyUpdate(
+        api,
+        right,
+        right.size,
+        'right-tail',
+        'after'
+      ).delta
 
-    // Both orders converge identically at the tail.
-    void assertOrderConverges(
-      api,
-      snapshot,
-      leftDelta,
-      rightDelta,
-      'tail inserts'
-    )
-  })
+      // Both orders converge identically at the tail.
+      void assertOrderConverges(
+        api,
+        snapshot,
+        leftDelta,
+        rightDelta,
+        'tail inserts'
+      )
+    }
+  )
 
   // Concurrent non-root sibling inserts must order deterministically.
   void report.test(
@@ -222,7 +242,13 @@ export function register({ api, report }) {
       // Build a parent and a dependent child on a source.
       const source = api.__create()
       const parent = applyUpdate(api, source, 0, 'parent', 'after').delta
-      const child = applyUpdate(api, source, source.size, 'child', 'after').delta
+      const child = applyUpdate(
+        api,
+        source,
+        source.size,
+        'child',
+        'after'
+      ).delta
 
       // Delivering parent then child yields parent-before-child.
       const target = api.__create()
@@ -239,7 +265,13 @@ export function register({ api, report }) {
       // Build a parent and a dependent child on a source.
       const source = api.__create()
       const parent = applyUpdate(api, source, 0, 'parent', 'after').delta
-      const child = applyUpdate(api, source, source.size, 'child', 'after').delta
+      const child = applyUpdate(
+        api,
+        source,
+        source.size,
+        'child',
+        'after'
+      ).delta
 
       // Delivering child first then parent must still relink to parent-child.
       const target = api.__create()
@@ -263,10 +295,20 @@ export function register({ api, report }) {
       const snapshot = api.__snapshot(base)
       const overwriter = api.__create(snapshot)
       const appender = api.__create(snapshot)
-      const replacement = applyUpdate(api, overwriter, 1, 'rewrite', 'overwrite')
-        .delta
-      const successor = applyUpdate(api, appender, appender.size, 'tail', 'after')
-        .delta
+      const replacement = applyUpdate(
+        api,
+        overwriter,
+        1,
+        'rewrite',
+        'overwrite'
+      ).delta
+      const successor = applyUpdate(
+        api,
+        appender,
+        appender.size,
+        'tail',
+        'after'
+      ).delta
 
       // Both delivery orders converge to the same positions.
       const order = assertOrderConverges(
@@ -291,10 +333,20 @@ export function register({ api, report }) {
     const snapshot = api.__snapshot(base)
     const overwriter = api.__create(snapshot)
     const appender = api.__create(snapshot)
-    const rootReplacement = applyUpdate(api, overwriter, 0, 'new-head', 'overwrite')
-      .delta
-    const successor = applyUpdate(api, appender, appender.size, 'tail', 'after')
-      .delta
+    const rootReplacement = applyUpdate(
+      api,
+      overwriter,
+      0,
+      'new-head',
+      'overwrite'
+    ).delta
+    const successor = applyUpdate(
+      api,
+      appender,
+      appender.size,
+      'tail',
+      'after'
+    ).delta
 
     // Both delivery orders converge with the new head at index 0.
     const order = assertOrderConverges(
@@ -312,44 +364,66 @@ export function register({ api, report }) {
   })
 
   // Detached successors must be reattached deterministically.
-  void report.test('detached successors are reattached deterministically', () => {
-    // Seed a source and capture its shared base before any edits.
-    const source = seededReplica(api, 1)
-    const base = api.__snapshot(source)
-    const head = applyUpdate(api, source, 0, 'mid', 'after').delta
-    const successor = applyUpdate(api, source, source.size, 'tail', 'after').delta
+  void report.test(
+    'detached successors are reattached deterministically',
+    () => {
+      // Seed a source and capture its shared base before any edits.
+      const source = seededReplica(api, 1)
+      const base = api.__snapshot(source)
+      const head = applyUpdate(api, source, 0, 'mid', 'after').delta
+      const successor = applyUpdate(
+        api,
+        source,
+        source.size,
+        'tail',
+        'after'
+      ).delta
 
-    // Delivering the successor first leaves it detached until the head arrives.
-    const target = api.__create(base)
-    void api.__merge(target, successor)
-    void api.__merge(target, head)
-    assertDeepEqual(
-      liveIds(target),
-      liveIds(source),
-      'detached successor not reattached deterministically'
-    )
-    assertStructuralIntegrity(api, target, 'after detached successor reattach')
-  })
+      // Delivering the successor first leaves it detached until the head arrives.
+      const target = api.__create(base)
+      void api.__merge(target, successor)
+      void api.__merge(target, head)
+      assertDeepEqual(
+        liveIds(target),
+        liveIds(source),
+        'detached successor not reattached deterministically'
+      )
+      assertStructuralIntegrity(
+        api,
+        target,
+        'after detached successor reattach'
+      )
+    }
+  )
 
   // Tombstoned predecessors must remain valid ordering anchors.
-  void report.test('tombstoned predecessors remain valid ordering anchors', () => {
-    // Seed a source and capture its shared base before any edits.
-    const source = seededReplica(api, 3)
-    const base = api.__snapshot(source)
-    const anchorInsert = applyUpdate(api, source, 1, 'anchored', 'after').delta
-    const anchorDelete = applyDelete(api, source, 1, 2).delta
+  void report.test(
+    'tombstoned predecessors remain valid ordering anchors',
+    () => {
+      // Seed a source and capture its shared base before any edits.
+      const source = seededReplica(api, 3)
+      const base = api.__snapshot(source)
+      const anchorInsert = applyUpdate(
+        api,
+        source,
+        1,
+        'anchored',
+        'after'
+      ).delta
+      const anchorDelete = applyDelete(api, source, 1, 2).delta
 
-    // Deliver insert then delete out of order on a peer; ordering must hold.
-    const peer = api.__create(base)
-    void api.__merge(peer, anchorDelete)
-    void api.__merge(peer, anchorInsert)
-    assertDeepEqual(
-      liveIds(peer),
-      liveIds(source),
-      'tombstoned predecessor failed to anchor its successor'
-    )
-    assertStructuralIntegrity(api, peer, 'after tombstoned anchor')
-  })
+      // Deliver insert then delete out of order on a peer; ordering must hold.
+      const peer = api.__create(base)
+      void api.__merge(peer, anchorDelete)
+      void api.__merge(peer, anchorInsert)
+      assertDeepEqual(
+        liveIds(peer),
+        liveIds(source),
+        'tombstoned predecessor failed to anchor its successor'
+      )
+      assertStructuralIntegrity(api, peer, 'after tombstoned anchor')
+    }
+  )
 
   // Deleting a predecessor must not lose the deterministic successor position.
   void report.test(

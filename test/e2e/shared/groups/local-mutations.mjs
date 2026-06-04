@@ -118,37 +118,43 @@ export function register({ api, report }) {
   })
 
   // Deleting must remove exactly the intended visible range.
-  void report.test('deleting removes exactly the intended visible range', () => {
-    // Seed a list and delete the inclusive visible range [1, 3).
-    const replica = seededReplica(api, 5)
-    void applyDelete(api, replica, 1, 3)
+  void report.test(
+    'deleting removes exactly the intended visible range',
+    () => {
+      // Seed a list and delete the inclusive visible range [1, 3).
+      const replica = seededReplica(api, 5)
+      void applyDelete(api, replica, 1, 3)
 
-    // Only indices 1 and 2 are removed; the endpoints remain.
-    assertLiveIds(
-      replica,
-      ['base-0', 'base-3', 'base-4'],
-      'delete removed the wrong visible range'
-    )
-    assertStructuralIntegrity(api, replica, 'after delete')
-  })
+      // Only indices 1 and 2 are removed; the endpoints remain.
+      assertLiveIds(
+        replica,
+        ['base-0', 'base-3', 'base-4'],
+        'delete removed the wrong visible range'
+      )
+      assertStructuralIntegrity(api, replica, 'after delete')
+    }
+  )
 
   // Local mutations must be reflected in the live projection immediately.
-  void report.test('local mutations update the live projection immediately', () => {
-    // Each mutation's effect must be visible before the next mutation.
-    const replica = api.__create()
+  void report.test(
+    'local mutations update the live projection immediately',
+    () => {
+      // Each mutation's effect must be visible before the next mutation.
+      const replica = api.__create()
 
-    // After the insert the value is immediately visible.
-    void applyUpdate(api, replica, 0, 'a', 'after')
-    assertLiveIds(replica, ['a'], 'insert not visible immediately')
+      // After the insert the value is immediately visible.
+      void applyUpdate(api, replica, 0, 'a', 'after')
+      assertLiveIds(replica, ['a'], 'insert not visible immediately')
 
-    // After the overwrite the replacement is immediately visible.
-    void applyUpdate(api, replica, 0, 'b', 'overwrite')
-    assertLiveIds(replica, ['b'], 'overwrite not visible immediately')
+      // After the overwrite the replacement is immediately visible.
+      void applyUpdate(api, replica, 0, 'b', 'overwrite')
+      assertLiveIds(replica, ['b'], 'overwrite not visible immediately')
 
-    // After the delete the empty projection is immediately visible.
-    void applyDelete(api, replica, 0, 1)
-    assertLiveIds(replica, [], 'delete not visible immediately')
-  })
+      // After the delete the empty projection is immediately visible.
+      void applyDelete(api, replica, 0, 1)
+      assertLiveIds(replica, [], 'delete not visible immediately')
+    }
+  )
 
   // Local mutations must produce deltas that converge a fresh peer.
   void report.test('local mutations produce mergeable deltas', () => {
@@ -171,21 +177,24 @@ export function register({ api, report }) {
   })
 
   // Structural integrity must hold after every kind of local mutation.
-  void report.test('local mutations preserve replica structural integrity', () => {
-    // Apply a representative sequence of every mutation kind.
-    const replica = api.__create()
-    void applyUpdateValues(api, replica, 0, ['a', 'b', 'c'], 'after')
-    assertStructuralIntegrity(api, replica, 'after batch append')
+  void report.test(
+    'local mutations preserve replica structural integrity',
+    () => {
+      // Apply a representative sequence of every mutation kind.
+      const replica = api.__create()
+      void applyUpdateValues(api, replica, 0, ['a', 'b', 'c'], 'after')
+      assertStructuralIntegrity(api, replica, 'after batch append')
 
-    void applyUpdate(api, replica, 1, 'mid', 'before')
-    assertStructuralIntegrity(api, replica, 'after insert-before')
+      void applyUpdate(api, replica, 1, 'mid', 'before')
+      assertStructuralIntegrity(api, replica, 'after insert-before')
 
-    void applyUpdate(api, replica, 0, 'head', 'overwrite')
-    assertStructuralIntegrity(api, replica, 'after overwrite')
+      void applyUpdate(api, replica, 0, 'head', 'overwrite')
+      assertStructuralIntegrity(api, replica, 'after overwrite')
 
-    void applyDelete(api, replica, 2, 4)
-    assertStructuralIntegrity(api, replica, 'after delete')
-  })
+      void applyDelete(api, replica, 2, 4)
+      assertStructuralIntegrity(api, replica, 'after delete')
+    }
+  )
 
   // Empty updates must report no change and leave the replica untouched.
   void report.test('empty updates do not corrupt replica state', () => {

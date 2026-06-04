@@ -122,7 +122,11 @@ export function register({ api, report }) {
       void api.__merge(peer, insert)
 
       // The value must appear exactly once.
-      assertLiveIds(peer, ['only'], 'duplicate insert created a duplicate value')
+      assertLiveIds(
+        peer,
+        ['only'],
+        'duplicate insert created a duplicate value'
+      )
     }
   )
 
@@ -149,7 +153,13 @@ export function register({ api, report }) {
       // Seed two replicas and overwrite a middle value on the source.
       const source = seededReplica(api, 3)
       const peer = cloneReplica(api, source)
-      const overwrite = applyUpdate(api, source, 1, 'rewritten', 'overwrite').delta
+      const overwrite = applyUpdate(
+        api,
+        source,
+        1,
+        'rewritten',
+        'overwrite'
+      ).delta
 
       // Replaying the overwrite leaves a single replacement in place.
       void api.__merge(peer, overwrite)
@@ -240,42 +250,70 @@ export function register({ api, report }) {
   )
 
   // Merge must accept delete information before the matching insert.
-  void report.test('merge accepts delete information before insert information', () => {
-    // Seed a source, capture its shared base, then insert and delete a value.
-    const source = seededReplica(api, 1)
-    const base = api.__snapshot(source)
-    const insert = applyUpdate(api, source, source.size, 'doomed', 'after').delta
-    const remove = applyDelete(api, source, source.size - 1, source.size).delta
+  void report.test(
+    'merge accepts delete information before insert information',
+    () => {
+      // Seed a source, capture its shared base, then insert and delete a value.
+      const source = seededReplica(api, 1)
+      const base = api.__snapshot(source)
+      const insert = applyUpdate(
+        api,
+        source,
+        source.size,
+        'doomed',
+        'after'
+      ).delta
+      const remove = applyDelete(
+        api,
+        source,
+        source.size - 1,
+        source.size
+      ).delta
 
-    // Deliver the delete first, then the insert; the value stays deleted.
-    const peer = api.__create(base)
-    void api.__merge(peer, remove)
-    void api.__merge(peer, insert)
-    assertDeepEqual(
-      liveIds(peer),
-      liveIds(source),
-      'delete-before-insert did not converge'
-    )
-  })
+      // Deliver the delete first, then the insert; the value stays deleted.
+      const peer = api.__create(base)
+      void api.__merge(peer, remove)
+      void api.__merge(peer, insert)
+      assertDeepEqual(
+        liveIds(peer),
+        liveIds(source),
+        'delete-before-insert did not converge'
+      )
+    }
+  )
 
   // Merge must accept insert information after delete information (mirror case).
-  void report.test('merge accepts insert information after delete information', () => {
-    // Seed a source, capture its shared base, then insert and delete a value.
-    const source = seededReplica(api, 1)
-    const base = api.__snapshot(source)
-    const insert = applyUpdate(api, source, source.size, 'doomed', 'after').delta
-    const remove = applyDelete(api, source, source.size - 1, source.size).delta
+  void report.test(
+    'merge accepts insert information after delete information',
+    () => {
+      // Seed a source, capture its shared base, then insert and delete a value.
+      const source = seededReplica(api, 1)
+      const base = api.__snapshot(source)
+      const insert = applyUpdate(
+        api,
+        source,
+        source.size,
+        'doomed',
+        'after'
+      ).delta
+      const remove = applyDelete(
+        api,
+        source,
+        source.size - 1,
+        source.size
+      ).delta
 
-    // Deliver the insert then the delete; the result still converges.
-    const peer = api.__create(base)
-    void api.__merge(peer, insert)
-    void api.__merge(peer, remove)
-    assertDeepEqual(
-      liveIds(peer),
-      liveIds(source),
-      'insert-after-delete did not converge'
-    )
-  })
+      // Deliver the insert then the delete; the result still converges.
+      const peer = api.__create(base)
+      void api.__merge(peer, insert)
+      void api.__merge(peer, remove)
+      assertDeepEqual(
+        liveIds(peer),
+        liveIds(source),
+        'insert-after-delete did not converge'
+      )
+    }
+  )
 
   // A small seeded scenario must converge under shuffled gossip.
   void report.test(

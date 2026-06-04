@@ -86,46 +86,56 @@ export function register({ api, report }) {
     assert(Array.isArray(snapshot.deletedRuns), 'snapshot deletedRuns missing')
 
     // The payload is detached: mutating it must not affect the replica.
-    void snapshot.blocks.push({ id: 'injected', items: [], previousBlockId: '0' })
+    void snapshot.blocks.push({
+      id: 'injected',
+      items: [],
+      previousBlockId: '0',
+    })
     assertEqual(replica.size, 2, 'mutating a snapshot mutated the replica')
   })
 
   // Snapshot hydration must recreate the equivalent live projection.
-  void report.test('snapshot hydration recreates equivalent live projection', () => {
-    // Build a non-trivial projection and hydrate a fresh replica from it.
-    const replica = seededReplica(api, 5)
-    void applyUpdate(api, replica, 2, 'inserted', 'before')
-    void applyDelete(api, replica, 4, 5)
-    const hydrated = api.__create(api.__snapshot(replica))
+  void report.test(
+    'snapshot hydration recreates equivalent live projection',
+    () => {
+      // Build a non-trivial projection and hydrate a fresh replica from it.
+      const replica = seededReplica(api, 5)
+      void applyUpdate(api, replica, 2, 'inserted', 'before')
+      void applyDelete(api, replica, 4, 5)
+      const hydrated = api.__create(api.__snapshot(replica))
 
-    // The hydrated projection must equal the original projection.
-    assertDeepEqual(
-      liveIds(hydrated),
-      liveIds(replica),
-      'hydration changed the live projection'
-    )
-    assertStructuralIntegrity(api, hydrated, 'after equivalent hydration')
-  })
+      // The hydrated projection must equal the original projection.
+      assertDeepEqual(
+        liveIds(hydrated),
+        liveIds(replica),
+        'hydration changed the live projection'
+      )
+      assertStructuralIntegrity(api, hydrated, 'after equivalent hydration')
+    }
+  )
 
   // Snapshot hydration must preserve deterministic ordering.
-  void report.test('snapshot hydration preserves deterministic ordering', () => {
-    // Build a concurrent ordering, converge it, and hydrate.
-    const base = seededReplica(api, 3)
-    const snapshot = api.__snapshot(base)
-    const left = api.__create(snapshot)
-    const right = api.__create(snapshot)
-    const target = api.__create(snapshot)
-    void api.__merge(target, applyUpdate(api, left, 1, 'l', 'before').delta)
-    void api.__merge(target, applyUpdate(api, right, 1, 'r', 'before').delta)
+  void report.test(
+    'snapshot hydration preserves deterministic ordering',
+    () => {
+      // Build a concurrent ordering, converge it, and hydrate.
+      const base = seededReplica(api, 3)
+      const snapshot = api.__snapshot(base)
+      const left = api.__create(snapshot)
+      const right = api.__create(snapshot)
+      const target = api.__create(snapshot)
+      void api.__merge(target, applyUpdate(api, left, 1, 'l', 'before').delta)
+      void api.__merge(target, applyUpdate(api, right, 1, 'r', 'before').delta)
 
-    // The hydrated replica must preserve the converged ordering exactly.
-    const hydrated = api.__create(api.__snapshot(target))
-    assertDeepEqual(
-      liveIds(hydrated),
-      liveIds(target),
-      'hydration changed the deterministic ordering'
-    )
-  })
+      // The hydrated replica must preserve the converged ordering exactly.
+      const hydrated = api.__create(api.__snapshot(target))
+      assertDeepEqual(
+        liveIds(hydrated),
+        liveIds(target),
+        'hydration changed the deterministic ordering'
+      )
+    }
+  )
 
   // Snapshot hydration must preserve tombstone information for convergence.
   void report.test(
@@ -155,27 +165,34 @@ export function register({ api, report }) {
   )
 
   // Snapshot hydration must be independent of snapshot block order.
-  void report.test('snapshot hydration is independent of snapshot block order', () => {
-    // Build a projection with several blocks and a tombstone.
-    const replica = seededReplica(api, 6)
-    void applyUpdate(api, replica, 2, 'inserted', 'before')
-    void applyDelete(api, replica, 4, 5)
-    const snapshot = api.__snapshot(replica)
+  void report.test(
+    'snapshot hydration is independent of snapshot block order',
+    () => {
+      // Build a projection with several blocks and a tombstone.
+      const replica = seededReplica(api, 6)
+      void applyUpdate(api, replica, 2, 'inserted', 'before')
+      void applyDelete(api, replica, 4, 5)
+      const snapshot = api.__snapshot(replica)
 
-    // Hydrating from shuffled blocks and runs yields the same projection.
-    for (const seed of [11, 22, 33]) {
-      const reordered = api.__create({
-        blocks: shuffle(snapshot.blocks, seed),
-        deletedRuns: shuffle(snapshot.deletedRuns, seed + 1),
-      })
-      assertDeepEqual(
-        liveIds(reordered),
-        liveIds(replica),
-        `block order (seed ${seed}) changed the projection`
-      )
-      assertStructuralIntegrity(api, reordered, `reordered hydration seed ${seed}`)
+      // Hydrating from shuffled blocks and runs yields the same projection.
+      for (const seed of [11, 22, 33]) {
+        const reordered = api.__create({
+          blocks: shuffle(snapshot.blocks, seed),
+          deletedRuns: shuffle(snapshot.deletedRuns, seed + 1),
+        })
+        assertDeepEqual(
+          liveIds(reordered),
+          liveIds(replica),
+          `block order (seed ${seed}) changed the projection`
+        )
+        assertStructuralIntegrity(
+          api,
+          reordered,
+          `reordered hydration seed ${seed}`
+        )
+      }
     }
-  })
+  )
 
   // Snapshot hydration must tolerate malformed entries.
   void report.test('snapshot hydration tolerates malformed entries', () => {
@@ -196,7 +213,8 @@ export function register({ api, report }) {
     () => {
       // Build a valid block, then a snapshot mixing it with malformed blocks.
       const source = api.__create()
-      const valid = applyUpdate(api, source, 0, 'valid', 'after').delta.blocks[0]
+      const valid = applyUpdate(api, source, 0, 'valid', 'after').delta
+        .blocks[0]
       const hydrated = api.__create({
         blocks: [
           valid,
@@ -208,7 +226,11 @@ export function register({ api, report }) {
       })
 
       // Only the single valid value survives, and the replica stays consistent.
-      assertDeepEqual(liveIds(hydrated), ['valid'], 'invalid values corrupted state')
+      assertDeepEqual(
+        liveIds(hydrated),
+        ['valid'],
+        'invalid values corrupted state'
+      )
       assertStructuralIntegrity(api, hydrated, 'after mixed-validity hydration')
     }
   )
@@ -226,7 +248,11 @@ export function register({ api, report }) {
 
       // The whole chain hydrates into the correct ordered projection.
       assertEqual(hydrated.size, count, 'large hydration lost values')
-      assertEqual(api.__read(0, hydrated).id, 'big-0', 'large hydration head wrong')
+      assertEqual(
+        api.__read(0, hydrated).id,
+        'big-0',
+        'large hydration head wrong'
+      )
       assertEqual(
         api.__read(count - 1, hydrated).id,
         `big-${count - 1}`,
@@ -264,25 +290,38 @@ export function register({ api, report }) {
 
     // The peer applies the later delta and converges to the source.
     void api.__merge(peer, later)
-    assertDeepEqual(liveIds(peer), liveIds(source), 'snapshot+delta did not converge')
+    assertDeepEqual(
+      liveIds(peer),
+      liveIds(source),
+      'snapshot+delta did not converge'
+    )
   })
 
   // A snapshot roundtrip must preserve future merge correctness.
-  void report.test('snapshot roundtrip preserves future merge correctness', () => {
-    // Build a source, fork a peer, and roundtrip the peer through a snapshot.
-    const source = seededReplica(api, 3)
-    const peer = cloneReplica(api, source)
-    const roundTripped = api.__create(api.__snapshot(peer))
+  void report.test(
+    'snapshot roundtrip preserves future merge correctness',
+    () => {
+      // Build a source, fork a peer, and roundtrip the peer through a snapshot.
+      const source = seededReplica(api, 3)
+      const peer = cloneReplica(api, source)
+      const roundTripped = api.__create(api.__snapshot(peer))
 
-    // A future concurrent delta converges identically on the roundtripped peer.
-    const delta = applyUpdateValues(api, source, 1, ['m0', 'm1'], 'before').delta
-    void api.__merge(roundTripped, delta)
-    assertDeepEqual(
-      liveIds(roundTripped),
-      liveIds(source),
-      'roundtrip broke future merge correctness'
-    )
-  })
+      // A future concurrent delta converges identically on the roundtripped peer.
+      const delta = applyUpdateValues(
+        api,
+        source,
+        1,
+        ['m0', 'm1'],
+        'before'
+      ).delta
+      void api.__merge(roundTripped, delta)
+      assertDeepEqual(
+        liveIds(roundTripped),
+        liveIds(source),
+        'roundtrip broke future merge correctness'
+      )
+    }
+  )
 
   // A snapshot roundtrip must preserve garbage-collection correctness.
   void report.test(

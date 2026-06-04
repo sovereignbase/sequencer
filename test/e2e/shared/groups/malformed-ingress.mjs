@@ -42,7 +42,11 @@ export function register({ api, report }) {
       )
 
     // The projection is untouched.
-    assertDeepEqual(liveIds(replica), before, 'malformed delta changed projection')
+    assertDeepEqual(
+      liveIds(replica),
+      before,
+      'malformed delta changed projection'
+    )
   })
 
   // Malformed top-level snapshot payloads must be ignored or sanitized.
@@ -68,7 +72,11 @@ export function register({ api, report }) {
       false,
       'nullish delta entries were not ignored'
     )
-    assertDeepEqual(liveIds(replica), before, 'nullish entries changed projection')
+    assertDeepEqual(
+      liveIds(replica),
+      before,
+      'nullish entries changed projection'
+    )
   })
 
   // Nullish snapshot entries must be ignored.
@@ -115,7 +123,11 @@ export function register({ api, report }) {
     void api.__merge(replica, {
       blocks: [{ no: 'id' }, 123, 'block', { id: null, items: null }],
     })
-    assertDeepEqual(liveIds(replica), before, 'invalid block shapes changed state')
+    assertDeepEqual(
+      liveIds(replica),
+      before,
+      'invalid block shapes changed state'
+    )
     assertStructuralIntegrity(api, replica, 'after invalid block shapes')
   })
 
@@ -126,7 +138,8 @@ export function register({ api, report }) {
       // Build a valid block and a clone whose id equals its own predecessor id
       // (a self-referential anchor that cannot be linked safely).
       const source = api.__create()
-      const valid = applyUpdate(api, source, 0, 'valid', 'after').delta.blocks[0]
+      const valid = applyUpdate(api, source, 0, 'valid', 'after').delta
+        .blocks[0]
       const replica = api.__create({
         blocks: [valid, { ...valid, id: valid.previousBlockId }],
         deletedRuns: [],
@@ -139,48 +152,63 @@ export function register({ api, report }) {
   )
 
   // Mixed valid and invalid ingress must preserve the valid data.
-  void report.test('mixed valid and invalid ingress preserves valid data', () => {
-    // Build two valid concurrent inserts and surround them with garbage.
-    const left = api.__create()
-    const right = api.__create()
-    const leftDelta = applyUpdate(api, left, 0, 'left', 'after').delta
-    const rightDelta = applyUpdate(api, right, 0, 'right', 'after').delta
+  void report.test(
+    'mixed valid and invalid ingress preserves valid data',
+    () => {
+      // Build two valid concurrent inserts and surround them with garbage.
+      const left = api.__create()
+      const right = api.__create()
+      const leftDelta = applyUpdate(api, left, 0, 'left', 'after').delta
+      const rightDelta = applyUpdate(api, right, 0, 'right', 'after').delta
 
-    // Deliver garbage, a valid delta, garbage, another valid delta, garbage.
-    const replica = api.__create()
-    void api.__merge(replica, undefined)
-    void api.__merge(replica, leftDelta)
-    void api.__merge(replica, { blocks: 'not-an-array' })
-    void api.__merge(replica, rightDelta)
-    void api.__merge(replica, { deletedRuns: [['not-a-bigint', 1]] })
+      // Deliver garbage, a valid delta, garbage, another valid delta, garbage.
+      const replica = api.__create()
+      void api.__merge(replica, undefined)
+      void api.__merge(replica, leftDelta)
+      void api.__merge(replica, { blocks: 'not-an-array' })
+      void api.__merge(replica, rightDelta)
+      void api.__merge(replica, { deletedRuns: [['not-a-bigint', 1]] })
 
-    // Both valid values survive and the replica stays consistent.
-    assertEqual(replica.size, 2, 'mixed ingress dropped valid data')
-    assertStructuralIntegrity(api, replica, 'after mixed ingress')
-  })
+      // Both valid values survive and the replica stays consistent.
+      assertEqual(replica.size, 2, 'mixed ingress dropped valid data')
+      assertStructuralIntegrity(api, replica, 'after mixed ingress')
+    }
+  )
 
   // Malformed ingress must not create visible phantom values.
-  void report.test('malformed ingress cannot create visible phantom values', () => {
-    // Merge malformed payloads into an empty replica.
-    const replica = api.__create()
-    void api.__merge(replica, { blocks: [{ id: 'x', items: [value('phantom')] }] })
-    void api.__merge(replica, { deletedRuns: [['1', 1]] })
+  void report.test(
+    'malformed ingress cannot create visible phantom values',
+    () => {
+      // Merge malformed payloads into an empty replica.
+      const replica = api.__create()
+      void api.__merge(replica, {
+        blocks: [{ id: 'x', items: [value('phantom')] }],
+      })
+      void api.__merge(replica, { deletedRuns: [['1', 1]] })
 
-    // No phantom value becomes visible.
-    assertEqual(replica.size, 0, 'malformed ingress created a phantom value')
-  })
+      // No phantom value becomes visible.
+      assertEqual(replica.size, 0, 'malformed ingress created a phantom value')
+    }
+  )
 
   // Malformed ingress must not delete unrelated visible values.
-  void report.test('malformed ingress cannot delete unrelated visible values', () => {
-    // Seed a known list and target it with malformed tombstones.
-    const replica = seededReplica(api, 3)
-    const before = liveIds(replica)
-    void api.__merge(replica, { deletedRuns: [['not-a-bigint', 5]] })
-    void api.__merge(replica, { deletedRuns: [['999999999999', 100]] })
+  void report.test(
+    'malformed ingress cannot delete unrelated visible values',
+    () => {
+      // Seed a known list and target it with malformed tombstones.
+      const replica = seededReplica(api, 3)
+      const before = liveIds(replica)
+      void api.__merge(replica, { deletedRuns: [['not-a-bigint', 5]] })
+      void api.__merge(replica, { deletedRuns: [['999999999999', 100]] })
 
-    // None of the existing visible values are removed.
-    assertDeepEqual(liveIds(replica), before, 'malformed tombstones deleted values')
-  })
+      // None of the existing visible values are removed.
+      assertDeepEqual(
+        liveIds(replica),
+        before,
+        'malformed tombstones deleted values'
+      )
+    }
+  )
 
   // Malformed ingress must not corrupt the ordering indexes.
   void report.test('malformed ingress cannot corrupt ordering indexes', () => {
@@ -214,28 +242,38 @@ export function register({ api, report }) {
   })
 
   // Malformed ingress must not break acknowledgement generation.
-  void report.test('malformed ingress cannot break acknowledgement generation', () => {
-    // Seed a list, delete a value, then deliver malformed ingress.
-    const replica = seededReplica(api, 3)
-    void api.__merge(replica, { deletedRuns: [['not-a-bigint', 1]] })
-    void api.__delete(replica, 0, 1)
+  void report.test(
+    'malformed ingress cannot break acknowledgement generation',
+    () => {
+      // Seed a list, delete a value, then deliver malformed ingress.
+      const replica = seededReplica(api, 3)
+      void api.__merge(replica, { deletedRuns: [['not-a-bigint', 1]] })
+      void api.__delete(replica, 0, 1)
 
-    // Acknowledgement still returns a valid frontier.
-    const frontier = api.__acknowledge(replica)
-    assertEqual(typeof frontier, 'string', 'acknowledgement generation broke')
-  })
+      // Acknowledgement still returns a valid frontier.
+      const frontier = api.__acknowledge(replica)
+      assertEqual(typeof frontier, 'string', 'acknowledgement generation broke')
+    }
+  )
 
   // Malformed ingress must not make a future valid delta fail.
-  void report.test('malformed ingress cannot make future valid deltas fail', () => {
-    // Bombard an empty replica with malformed ingress.
-    const replica = api.__create()
-    for (const payload of [undefined, { blocks: 'x' }, { deletedRuns: 'y' }])
-      void api.__merge(replica, payload)
+  void report.test(
+    'malformed ingress cannot make future valid deltas fail',
+    () => {
+      // Bombard an empty replica with malformed ingress.
+      const replica = api.__create()
+      for (const payload of [undefined, { blocks: 'x' }, { deletedRuns: 'y' }])
+        void api.__merge(replica, payload)
 
-    // A subsequent valid delta still applies and converges.
-    const source = api.__create()
-    const insert = applyUpdate(api, source, 0, 'after-garbage', 'after').delta
-    assert(api.__merge(replica, insert), 'valid delta failed after garbage')
-    assertDeepEqual(liveIds(replica), ['after-garbage'], 'valid delta did not apply')
-  })
+      // A subsequent valid delta still applies and converges.
+      const source = api.__create()
+      const insert = applyUpdate(api, source, 0, 'after-garbage', 'after').delta
+      assert(api.__merge(replica, insert), 'valid delta failed after garbage')
+      assertDeepEqual(
+        liveIds(replica),
+        ['after-garbage'],
+        'valid delta did not apply'
+      )
+    }
+  )
 }

@@ -132,38 +132,45 @@ export function register({ api, report }) {
   )
 
   // Snapshot hydration must recreate the same live projection.
-  void report.test('snapshot hydration recreates the same live projection', () => {
-    // Build a projection with inserts, overwrites, and deletes.
-    const replica = seededReplica(api, 5)
-    void applyUpdate(api, replica, 2, 'inserted', 'before')
-    void applyUpdate(api, replica, 0, 'rehead', 'overwrite')
-    void applyDelete(api, replica, 4, 5)
+  void report.test(
+    'snapshot hydration recreates the same live projection',
+    () => {
+      // Build a projection with inserts, overwrites, and deletes.
+      const replica = seededReplica(api, 5)
+      void applyUpdate(api, replica, 2, 'inserted', 'before')
+      void applyUpdate(api, replica, 0, 'rehead', 'overwrite')
+      void applyDelete(api, replica, 4, 5)
 
-    // Hydrating a fresh replica from the snapshot reproduces the projection.
-    const hydrated = api.__create(api.__snapshot(replica))
-    assertDeepEqual(
-      liveIds(hydrated),
-      liveIds(replica),
-      'snapshot hydration changed the projection'
-    )
-    assertStructuralIntegrity(api, hydrated, 'after snapshot hydration')
-  })
+      // Hydrating a fresh replica from the snapshot reproduces the projection.
+      const hydrated = api.__create(api.__snapshot(replica))
+      assertDeepEqual(
+        liveIds(hydrated),
+        liveIds(replica),
+        'snapshot hydration changed the projection'
+      )
+      assertStructuralIntegrity(api, hydrated, 'after snapshot hydration')
+    }
+  )
 
   // Garbage collection must not change the live projection.
-  void report.test('garbage collection does not change the live projection', () => {
-    // Build a projection and delete a value to create a tombstone.
-    const replica = seededReplica(api, 4)
-    void applyDelete(api, replica, 1, 2)
-    const before = liveIds(replica)
+  void report.test(
+    'garbage collection does not change the live projection',
+    () => {
+      // Build a projection and delete a value to create a tombstone.
+      const replica = seededReplica(api, 4)
+      void applyDelete(api, replica, 1, 2)
+      const before = liveIds(replica)
 
-    // Acknowledge and garbage-collect using the replica's own frontier.
-    const frontier = api.__acknowledge(replica)
-    if (typeof frontier === 'string') void api.__garbageCollect([frontier], replica)
+      // Acknowledge and garbage-collect using the replica's own frontier.
+      const frontier = api.__acknowledge(replica)
+      if (typeof frontier === 'string')
+        void api.__garbageCollect([frontier], replica)
 
-    // The projection must be unchanged after compaction.
-    assertDeepEqual(liveIds(replica), before, 'gc changed the projection')
-    assertStructuralIntegrity(api, replica, 'after garbage collection')
-  })
+      // The projection must be unchanged after compaction.
+      assertDeepEqual(liveIds(replica), before, 'gc changed the projection')
+      assertStructuralIntegrity(api, replica, 'after garbage collection')
+    }
+  )
 
   // Duplicate delivery must not change the projection after first application.
   void report.test(
@@ -193,46 +200,56 @@ export function register({ api, report }) {
   )
 
   // Malformed ingress must not change the live projection.
-  void report.test('malformed ingress does not change the live projection', () => {
-    // Build a known projection.
-    const replica = seededReplica(api, 3)
-    const before = liveIds(replica)
+  void report.test(
+    'malformed ingress does not change the live projection',
+    () => {
+      // Build a known projection.
+      const replica = seededReplica(api, 3)
+      const before = liveIds(replica)
 
-    // Deliver a series of malformed payloads that must all be ignored.
-    for (const payload of [
-      undefined,
-      false,
-      [],
-      { blocks: 'not-an-array' },
-      { deletedRuns: [['not-a-bigint', 1]] },
-      { blocks: [null, undefined] },
-    ])
-      void api.__merge(replica, payload)
+      // Deliver a series of malformed payloads that must all be ignored.
+      for (const payload of [
+        undefined,
+        false,
+        [],
+        { blocks: 'not-an-array' },
+        { deletedRuns: [['not-a-bigint', 1]] },
+        { blocks: [null, undefined] },
+      ])
+        void api.__merge(replica, payload)
 
-    // The projection and structure must be untouched.
-    assertDeepEqual(liveIds(replica), before, 'malformed ingress changed projection')
-    assertStructuralIntegrity(api, replica, 'after malformed ingress')
-  })
+      // The projection and structure must be untouched.
+      assertDeepEqual(
+        liveIds(replica),
+        before,
+        'malformed ingress changed projection'
+      )
+      assertStructuralIntegrity(api, replica, 'after malformed ingress')
+    }
+  )
 
   // Rehydration after a simulated restart must preserve the projection.
-  void report.test('rehydration after restart preserves the live projection', () => {
-    // Build a projection, then simulate a restart by clone-through-snapshot.
-    const replica = seededReplica(api, 4)
-    void applyUpdate(api, replica, 1, 'mid', 'after')
-    void applyDelete(api, replica, 0, 1)
-    const before = liveIds(replica)
+  void report.test(
+    'rehydration after restart preserves the live projection',
+    () => {
+      // Build a projection, then simulate a restart by clone-through-snapshot.
+      const replica = seededReplica(api, 4)
+      void applyUpdate(api, replica, 1, 'mid', 'after')
+      void applyDelete(api, replica, 0, 1)
+      const before = liveIds(replica)
 
-    // The restarted replica must observe the identical projection.
-    const restarted = cloneReplica(api, replica)
-    assertDeepEqual(
-      liveIds(restarted),
-      before,
-      'restart changed the live projection'
-    )
-    assertDeepEqual(
-      materializedIds(api, restarted),
-      before,
-      'restart changed indexed reads'
-    )
-  })
+      // The restarted replica must observe the identical projection.
+      const restarted = cloneReplica(api, replica)
+      assertDeepEqual(
+        liveIds(restarted),
+        before,
+        'restart changed the live projection'
+      )
+      assertDeepEqual(
+        materializedIds(api, restarted),
+        before,
+        'restart changed indexed reads'
+      )
+    }
+  )
 }

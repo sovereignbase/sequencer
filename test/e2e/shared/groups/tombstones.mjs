@@ -80,7 +80,11 @@ export function register({ api, report }) {
     const peer = api.__create(base)
     void api.__merge(peer, remove)
     void api.__merge(peer, insert)
-    assertDeepEqual(liveIds(peer), liveIds(source), 'predecessor resolution lost')
+    assertDeepEqual(
+      liveIds(peer),
+      liveIds(source),
+      'predecessor resolution lost'
+    )
   })
 
   // Tombstones must preserve successor resolution for later inserts.
@@ -89,7 +93,13 @@ export function register({ api, report }) {
     const source = seededReplica(api, 3)
     const base = api.__snapshot(source)
     const remove = applyDelete(api, source, 2, 3).delta
-    const insert = applyUpdate(api, source, source.size, 'new-tail', 'after').delta
+    const insert = applyUpdate(
+      api,
+      source,
+      source.size,
+      'new-tail',
+      'after'
+    ).delta
 
     // A peer forked from the same base resolves the new tail's anchor.
     const peer = api.__create(base)
@@ -99,18 +109,21 @@ export function register({ api, report }) {
   })
 
   // Tombstones must be idempotent under duplicate delete delivery.
-  void report.test('tombstones are idempotent under duplicate delete delivery', () => {
-    // Seed two replicas and delete a value on the source.
-    const source = seededReplica(api, 3)
-    const peer = cloneReplica(api, source)
-    const remove = applyDelete(api, source, 1, 2).delta
+  void report.test(
+    'tombstones are idempotent under duplicate delete delivery',
+    () => {
+      // Seed two replicas and delete a value on the source.
+      const source = seededReplica(api, 3)
+      const peer = cloneReplica(api, source)
+      const remove = applyDelete(api, source, 1, 2).delta
 
-    // Merging the delete twice deletes exactly one value and is a no-op second.
-    void api.__merge(peer, remove)
-    const second = api.__merge(peer, remove)
-    assertEqual(second, false, 'duplicate delete reported a change')
-    assertLiveIds(peer, liveIds(source), 'duplicate delete diverged')
-  })
+      // Merging the delete twice deletes exactly one value and is a no-op second.
+      void api.__merge(peer, remove)
+      const second = api.__merge(peer, remove)
+      assertEqual(second, false, 'duplicate delete reported a change')
+      assertLiveIds(peer, liveIds(source), 'duplicate delete diverged')
+    }
+  )
 
   // Tombstoned predecessors must anchor a later-arriving live successor.
   void report.test(
@@ -120,7 +133,13 @@ export function register({ api, report }) {
       const source = seededReplica(api, 2)
       const base = api.__snapshot(source)
       const anchor = applyUpdate(api, source, 1, 'anchor', 'after').delta
-      const successor = applyUpdate(api, source, 2, 'after-anchor', 'after').delta
+      const successor = applyUpdate(
+        api,
+        source,
+        2,
+        'after-anchor',
+        'after'
+      ).delta
       const remove = applyDelete(api, source, 1, 2).delta
 
       // Deliver anchor, then its delete, then the successor; ordering holds.
@@ -145,8 +164,13 @@ export function register({ api, report }) {
       const snapshot = api.__snapshot(base)
       const overwriter = api.__create(snapshot)
       const remover = api.__create(snapshot)
-      const overwrite = applyUpdate(api, overwriter, 1, 'overwrite', 'overwrite')
-        .delta
+      const overwrite = applyUpdate(
+        api,
+        overwriter,
+        1,
+        'overwrite',
+        'overwrite'
+      ).delta
       const remove = applyDelete(api, remover, 1, 2).delta
 
       // Deliver the overwrite then the delete; the tombstone bridges siblings.
@@ -163,30 +187,44 @@ export function register({ api, report }) {
   )
 
   // Remote head deletion must be reflected in the live projection.
-  void report.test('remote head deletion is reflected in the live projection', () => {
-    // Seed two replicas and delete the head on the source.
-    const source = seededReplica(api, 3)
-    const peer = cloneReplica(api, source)
-    const remove = applyDelete(api, source, 0, 1).delta
+  void report.test(
+    'remote head deletion is reflected in the live projection',
+    () => {
+      // Seed two replicas and delete the head on the source.
+      const source = seededReplica(api, 3)
+      const peer = cloneReplica(api, source)
+      const remove = applyDelete(api, source, 0, 1).delta
 
-    // The peer reflects the head deletion through indexed reads.
-    void api.__merge(peer, remove)
-    assertLiveIds(peer, ['base-1', 'base-2'], 'remote head deletion not reflected')
-    assertEqual(api.__read(0, peer).id, 'base-1', 'head read not updated')
-  })
+      // The peer reflects the head deletion through indexed reads.
+      void api.__merge(peer, remove)
+      assertLiveIds(
+        peer,
+        ['base-1', 'base-2'],
+        'remote head deletion not reflected'
+      )
+      assertEqual(api.__read(0, peer).id, 'base-1', 'head read not updated')
+    }
+  )
 
   // Remote tail deletion must be reflected in the live projection.
-  void report.test('remote tail deletion is reflected in the live projection', () => {
-    // Seed two replicas and delete the tail on the source.
-    const source = seededReplica(api, 3)
-    const peer = cloneReplica(api, source)
-    const remove = applyDelete(api, source, 2, 3).delta
+  void report.test(
+    'remote tail deletion is reflected in the live projection',
+    () => {
+      // Seed two replicas and delete the tail on the source.
+      const source = seededReplica(api, 3)
+      const peer = cloneReplica(api, source)
+      const remove = applyDelete(api, source, 2, 3).delta
 
-    // The peer reflects the tail deletion through indexed reads.
-    void api.__merge(peer, remove)
-    assertLiveIds(peer, ['base-0', 'base-1'], 'remote tail deletion not reflected')
-    assertEqual(api.__read(1, peer).id, 'base-1', 'tail read not updated')
-  })
+      // The peer reflects the tail deletion through indexed reads.
+      void api.__merge(peer, remove)
+      assertLiveIds(
+        peer,
+        ['base-0', 'base-1'],
+        'remote tail deletion not reflected'
+      )
+      assertEqual(api.__read(1, peer).id, 'base-1', 'tail read not updated')
+    }
+  )
 
   // Tombstone-only deltas must be valid merge payloads.
   void report.test('tombstone-only deltas are valid merge payloads', () => {
@@ -201,25 +239,32 @@ export function register({ api, report }) {
     const peer = api.__create(base)
     const change = api.__merge(peer, { deletedRuns: remove.deletedRuns })
     assert(change, 'tombstone-only delta reported no change')
-    assertDeepEqual(liveIds(peer), liveIds(source), 'tombstone-only delta diverged')
+    assertDeepEqual(
+      liveIds(peer),
+      liveIds(source),
+      'tombstone-only delta diverged'
+    )
   })
 
   // Tombstone-only deltas must not require any visible values.
-  void report.test('tombstone-only deltas do not require visible values', () => {
-    // A tail delete of a single value produces a blocks-free delta.
-    const source = seededReplica(api, 3)
-    const remove = applyDelete(api, source, 2, 3).delta
+  void report.test(
+    'tombstone-only deltas do not require visible values',
+    () => {
+      // A tail delete of a single value produces a blocks-free delta.
+      const source = seededReplica(api, 3)
+      const remove = applyDelete(api, source, 2, 3).delta
 
-    // The delete delta carries no block payload, only deleted runs.
-    assert(
-      !remove.blocks || remove.blocks.length === 0,
-      'tail delete delta unexpectedly carried blocks'
-    )
-    assert(
-      Array.isArray(remove.deletedRuns) && remove.deletedRuns.length >= 1,
-      'tail delete delta carried no deleted runs'
-    )
-  })
+      // The delete delta carries no block payload, only deleted runs.
+      assert(
+        !remove.blocks || remove.blocks.length === 0,
+        'tail delete delta unexpectedly carried blocks'
+      )
+      assert(
+        Array.isArray(remove.deletedRuns) && remove.deletedRuns.length >= 1,
+        'tail delete delta carried no deleted runs'
+      )
+    }
+  )
 
   // Tombstone merging must never create visible values.
   void report.test('tombstone merging does not create visible values', () => {
@@ -248,27 +293,30 @@ export function register({ api, report }) {
   })
 
   // Tombstone merging must remain safe under shuffled gossip.
-  void report.test('tombstone merging remains safe under shuffled gossip', () => {
-    // Seed a source and capture its shared base before producing mixed deltas.
-    const source = seededReplica(api, 3)
-    const base = api.__snapshot(source)
-    const deltas = [
-      applyUpdateValues(api, source, 1, ['x', 'y'], 'before').delta,
-      applyDelete(api, source, 0, 1).delta,
-      applyUpdate(api, source, source.size, 'tail', 'after').delta,
-      applyDelete(api, source, 1, 2).delta,
-    ]
+  void report.test(
+    'tombstone merging remains safe under shuffled gossip',
+    () => {
+      // Seed a source and capture its shared base before producing mixed deltas.
+      const source = seededReplica(api, 3)
+      const base = api.__snapshot(source)
+      const deltas = [
+        applyUpdateValues(api, source, 1, ['x', 'y'], 'before').delta,
+        applyDelete(api, source, 0, 1).delta,
+        applyUpdate(api, source, source.size, 'tail', 'after').delta,
+        applyDelete(api, source, 1, 2).delta,
+      ]
 
-    // Deliver the deltas in several shuffled orders; all converge to the source.
-    for (const seed of [1, 2, 3, 4]) {
-      const peer = api.__create(base)
-      for (const delta of shuffle(deltas, seed)) void api.__merge(peer, delta)
-      assertDeepEqual(
-        liveIds(peer),
-        liveIds(source),
-        `shuffled tombstone gossip (seed ${seed}) diverged`
-      )
-      assertStructuralIntegrity(api, peer, `shuffled tombstone seed ${seed}`)
+      // Deliver the deltas in several shuffled orders; all converge to the source.
+      for (const seed of [1, 2, 3, 4]) {
+        const peer = api.__create(base)
+        for (const delta of shuffle(deltas, seed)) void api.__merge(peer, delta)
+        assertDeepEqual(
+          liveIds(peer),
+          liveIds(source),
+          `shuffled tombstone gossip (seed ${seed}) diverged`
+        )
+        assertStructuralIntegrity(api, peer, `shuffled tombstone seed ${seed}`)
+      }
     }
-  })
+  )
 }

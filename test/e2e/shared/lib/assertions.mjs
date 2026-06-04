@@ -63,7 +63,9 @@ export function assertDeepEqual(actual, expected, message) {
 
   // Compare the encodings and report the difference on mismatch.
   if (actualJson !== expectedJson)
-    throw new Error(message || `expected ${actualJson} to equal ${expectedJson}`)
+    throw new Error(
+      message || `expected ${actualJson} to equal ${expectedJson}`
+    )
 }
 
 /**
@@ -98,7 +100,9 @@ export function assertThrows(fn, matcher, message) {
 
     // A predicate matcher is invoked directly against the thrown error.
     if (!matcher(error))
-      throw new Error(message || `error ${String(error)} did not satisfy matcher`)
+      throw new Error(
+        message || `error ${String(error)} did not satisfy matcher`
+      )
 
     // The predicate accepted the error, so the assertion is satisfied.
     return
@@ -152,7 +156,8 @@ export function liveProjection(replica) {
   if (replica.size === 0) return []
 
   // The head must exist whenever the replica reports a non-zero size.
-  if (!replica.firstBlock) throw new Error('replica reports size but has no head')
+  if (!replica.firstBlock)
+    throw new Error('replica reports size but has no head')
 
   // Bound the traversal so a structural cycle cannot loop forever.
   const traversalLimit = replica.size + (replica.blocksById?.size ?? 0) + 16
@@ -584,7 +589,13 @@ export function assertMergeIdempotent(api, baseSnapshot, delta, label) {
  * @param {object} deltaB - The second delta.
  * @param {string} [label] - A context label prefixed to any failure.
  */
-export function assertMergeCommutative(api, baseSnapshot, deltaA, deltaB, label) {
+export function assertMergeCommutative(
+  api,
+  baseSnapshot,
+  deltaA,
+  deltaB,
+  label
+) {
   // Build a prefix so failures point at the originating invariant.
   const where = label ? `${label}: ` : ''
 

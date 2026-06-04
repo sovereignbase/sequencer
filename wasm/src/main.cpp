@@ -1,29 +1,30 @@
-#include "crlist_wasm/version.hpp"
 
 #include <cstdint>
 
 #include "unordered_map"
 
+#include "./types/types.hpp"
+
+static std::unordered_map<Key, State, KeyHash> instances;
+
 extern "C" {
+std::uint32_t read(std::uint32_t a, std::uint32_t b, std::uint32_t c,
+                   std::uint32_t d, std::uint32_t index) {
+auto it = instances.find(Key{a, b, c, d});
 
-int crlist_version_major() { return crlist_wasm::version_major; }
+if (it == instances.end()) {
+  return 0;
+}
+State& state = it->second;
 
-int crlist_version_minor() { return crlist_wasm::version_minor; }
 
-int crlist_version_patch() { return crlist_wasm::version_patch; }
-
-std::int32_t crlist_add(std::int32_t left, std::int32_t right) {
-  return left + right;
 }
 
-void overwrite(){
+void overwrite() { return; }
+
+void merge(std::uint32_t a, std::uint32_t b, std::uint32_t c, std::uint32_t d,
+           std::uint32_t length) {
+
   return;
 }
-
-void merge(std::int32_t a,std::int32_t b,std::int32_t c,std::int32_t d,std::int32_t length) {
-
-return;
 }
-}
-
-

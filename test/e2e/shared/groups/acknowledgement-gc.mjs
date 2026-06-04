@@ -75,19 +75,22 @@ export function register({ api, report }) {
   })
 
   // Garbage collection must not change the live projection.
-  void report.test('garbage collection does not change the live projection', () => {
-    // Build a list with two tombstones and capture the projection.
-    const replica = seededReplica(api, 5)
-    void applyDelete(api, replica, 0, 1)
-    void applyDelete(api, replica, 2, 3)
-    const before = liveIds(replica)
+  void report.test(
+    'garbage collection does not change the live projection',
+    () => {
+      // Build a list with two tombstones and capture the projection.
+      const replica = seededReplica(api, 5)
+      void applyDelete(api, replica, 0, 1)
+      void applyDelete(api, replica, 2, 3)
+      const before = liveIds(replica)
 
-    // Collect and require the projection and structure to be unchanged.
-    const frontier = api.__acknowledge(replica)
-    void api.__garbageCollect([frontier], replica)
-    assertDeepEqual(liveIds(replica), before, 'gc changed the projection')
-    assertStructuralIntegrity(api, replica, 'after gc')
-  })
+      // Collect and require the projection and structure to be unchanged.
+      const frontier = api.__acknowledge(replica)
+      void api.__garbageCollect([frontier], replica)
+      assertDeepEqual(liveIds(replica), before, 'gc changed the projection')
+      assertStructuralIntegrity(api, replica, 'after gc')
+    }
+  )
 
   // Garbage collection must remove only causally safe tombstone data.
   void report.test(
@@ -187,7 +190,11 @@ export function register({ api, report }) {
       deletedItemCount(replica) >= 1,
       'stale-frontier gc over-collected newer tombstones'
     )
-    assertDeepEqual(liveIds(replica), before, 'stale-frontier gc changed projection')
+    assertDeepEqual(
+      liveIds(replica),
+      before,
+      'stale-frontier gc changed projection'
+    )
   })
 
   // Garbage collection must tolerate malformed frontiers.
@@ -207,19 +214,26 @@ export function register({ api, report }) {
   })
 
   // Garbage collection after restart must preserve the live projection.
-  void report.test('garbage collection after restart preserves live projection', () => {
-    // Build, collect, then restart by hydrating from a fresh snapshot.
-    const replica = seededReplica(api, 4)
-    void applyDelete(api, replica, 1, 2)
-    const before = liveIds(replica)
-    const frontier = api.__acknowledge(replica)
-    void api.__garbageCollect([frontier], replica)
+  void report.test(
+    'garbage collection after restart preserves live projection',
+    () => {
+      // Build, collect, then restart by hydrating from a fresh snapshot.
+      const replica = seededReplica(api, 4)
+      void applyDelete(api, replica, 1, 2)
+      const before = liveIds(replica)
+      const frontier = api.__acknowledge(replica)
+      void api.__garbageCollect([frontier], replica)
 
-    // The restarted replica observes the same projection.
-    const restarted = api.__create(api.__snapshot(replica))
-    assertDeepEqual(liveIds(restarted), before, 'restart after gc changed projection')
-    assertStructuralIntegrity(api, restarted, 'after restart following gc')
-  })
+      // The restarted replica observes the same projection.
+      const restarted = api.__create(api.__snapshot(replica))
+      assertDeepEqual(
+        liveIds(restarted),
+        before,
+        'restart after gc changed projection'
+      )
+      assertStructuralIntegrity(api, restarted, 'after restart following gc')
+    }
+  )
 
   // Partial-frontier collection is caller misuse but must not corrupt the replica.
   void report.test(

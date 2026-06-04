@@ -144,7 +144,11 @@ function deliver(api, target, deltas, seed, mode) {
     const batchSize = Math.max(1, Math.floor(order.length / 4))
 
     // Walk the batches from the last batch to the first to model reordering.
-    for (let batchStart = order.length; batchStart > 0; batchStart -= batchSize) {
+    for (
+      let batchStart = order.length;
+      batchStart > 0;
+      batchStart -= batchSize
+    ) {
       // Deliver the current batch in its shuffled order.
       const from = Math.max(0, batchStart - batchSize)
       for (let cursor = from; cursor < batchStart; cursor++)
@@ -286,7 +290,8 @@ export function runConvergenceScenario(api, config) {
           invariant: `replicas converge after ${mode} delivery`,
           expected: expectedIds,
           actual: actualIds,
-          message: 'delivered projection diverged from the reference projection',
+          message:
+            'delivered projection diverged from the reference projection',
           trace,
         })
 

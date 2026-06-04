@@ -36,42 +36,52 @@ export function register({ api, report }) {
       '__acknowledge',
       '__garbageCollect',
     ])
-      assert(typeof api[name] === 'function', `primitive export ${name} missing`)
+      assert(
+        typeof api[name] === 'function',
+        `primitive export ${name} missing`
+      )
   })
 
   // The class must expose every documented instance method.
-  void report.test('the CRList class exposes the documented API surface', () => {
-    // Construct an instance whose prototype carries the public methods.
-    const list = new api.CRList()
+  void report.test(
+    'the CRList class exposes the documented API surface',
+    () => {
+      // Construct an instance whose prototype carries the public methods.
+      const list = new api.CRList()
 
-    // Each documented method must be callable on the instance.
-    for (const method of [
-      'get',
-      'set',
-      'append',
-      'prepend',
-      'delete',
-      'find',
-      'forEach',
-      'merge',
-      'snapshot',
-      'acknowledge',
-      'garbageCollect',
-      'addEventListener',
-      'removeEventListener',
-      'toJSON',
-      'toString',
-    ])
+      // Each documented method must be callable on the instance.
+      for (const method of [
+        'get',
+        'set',
+        'append',
+        'prepend',
+        'delete',
+        'find',
+        'forEach',
+        'merge',
+        'snapshot',
+        'acknowledge',
+        'garbageCollect',
+        'addEventListener',
+        'removeEventListener',
+        'toJSON',
+        'toString',
+      ])
+        assertEqual(
+          typeof list[method],
+          'function',
+          `CRList method ${method} missing`
+        )
+
+      // The instance must be iterable and report a numeric size.
       assertEqual(
-        typeof list[method],
+        typeof list[Symbol.iterator],
         'function',
-        `CRList method ${method} missing`
+        'CRList not iterable'
       )
-
-    // The instance must be iterable and report a numeric size.
-    assertEqual(typeof list[Symbol.iterator], 'function', 'CRList not iterable')
-    assertEqual(typeof list.size, 'number', 'CRList size is not numeric')
-  })
+      assertEqual(typeof list.size, 'number', 'CRList size is not numeric')
+    }
+  )
 
   // The low-level primitives must accept the documented argument shapes.
   void report.test(
@@ -86,7 +96,11 @@ export function register({ api, report }) {
       assert(update && update.delta, '__update did not return a delta result')
 
       // __read returns the value previously inserted at index 0.
-      assertEqual(api.__read(0, replica)?.id, 'a', '__read did not resolve value')
+      assertEqual(
+        api.__read(0, replica)?.id,
+        'a',
+        '__read did not resolve value'
+      )
 
       // __snapshot returns a detached full-state payload shape.
       const snapshot = api.__snapshot(replica)
@@ -111,7 +125,11 @@ export function register({ api, report }) {
       )
 
       // Reading out of bounds resolves to undefined rather than throwing.
-      assertEqual(api.__read(5, replica), undefined, 'oob read was not undefined')
+      assertEqual(
+        api.__read(5, replica),
+        undefined,
+        'oob read was not undefined'
+      )
 
       // Merging a malformed payload reports no change with a strict `false`.
       assertEqual(
@@ -232,16 +250,19 @@ export function register({ api, report }) {
 
       // Collect the visited values as `index:id` markers in visit order.
       const visited = []
-      void list.forEach(function (entry, index, target) {
-        // The bound `this` value must be the supplied thisArg.
-        assertEqual(this.marker, true, 'forEach thisArg not bound')
+      void list.forEach(
+        function (entry, index, target) {
+          // The bound `this` value must be the supplied thisArg.
+          assertEqual(this.marker, true, 'forEach thisArg not bound')
 
-        // The third argument must be the list under iteration.
-        assertEqual(target, list, 'forEach target argument incorrect')
+          // The third argument must be the list under iteration.
+          assertEqual(target, list, 'forEach target argument incorrect')
 
-        // Record the visit in order.
-        void visited.push(`${index}:${entry.id}`)
-      }, { marker: true })
+          // Record the visit in order.
+          void visited.push(`${index}:${entry.id}`)
+        },
+        { marker: true }
+      )
 
       // The visit order must equal the live projection order.
       assertDeepEqual(
@@ -301,7 +322,10 @@ export function register({ api, report }) {
 
     // Exactly one snapshot must be emitted with the documented shape.
     assertEqual(snapshots.length, 1, 'snapshot event not emitted once')
-    assert(Array.isArray(snapshots[0].blocks), 'snapshot payload missing blocks')
+    assert(
+      Array.isArray(snapshots[0].blocks),
+      'snapshot payload missing blocks'
+    )
     assert(
       Array.isArray(snapshots[0].deletedRuns),
       'snapshot payload missing deletedRuns'
@@ -354,7 +378,11 @@ export function register({ api, report }) {
 
       // An append at index 0 reports an inserted value at index 0.
       void list.append([value('a')])
-      assertDeepEqual(changes.at(-1), { 0: 'a' }, 'append change patch incorrect')
+      assertDeepEqual(
+        changes.at(-1),
+        { 0: 'a' },
+        'append change patch incorrect'
+      )
 
       // A delete at index 0 reports a removal (undefined) at index 0.
       void list.delete(0)

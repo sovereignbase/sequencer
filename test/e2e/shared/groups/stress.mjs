@@ -47,37 +47,46 @@ export function register({ api, report, options }) {
   )
 
   // Replicas must converge across a long repeated randomized sweep (bounded here).
-  void report.test('replicas converge after long repeated randomized scenarios', () => {
-    // Re-run one shape across a band of consecutive seeds to catch rare states.
-    for (let offset = 0; offset < scenarioCount; offset++) {
-      // Each seed in the band must converge for the same scenario shape.
-      void assertScenarioConverges(api, {
-        name: `repeated-${offset}`,
-        seed: 90_000 + offset,
-        replicaCount: 3,
-        rounds: 5,
-        baseSize: 2,
-      })
+  void report.test(
+    'replicas converge after long repeated randomized scenarios',
+    () => {
+      // Re-run one shape across a band of consecutive seeds to catch rare states.
+      for (let offset = 0; offset < scenarioCount; offset++) {
+        // Each seed in the band must converge for the same scenario shape.
+        void assertScenarioConverges(api, {
+          name: `repeated-${offset}`,
+          seed: 90_000 + offset,
+          replicaCount: 3,
+          rounds: 5,
+          baseSize: 2,
+        })
+      }
     }
-  })
+  )
 
   // A passing scenario must report success with its seed and operation count.
-  void report.test('passing stress scenarios report their seed and operation count', () => {
-    // Run a single scenario and inspect its successful result envelope.
-    const result = runConvergenceScenario(api, {
-      name: 'introspection',
-      seed: 4242,
-      replicaCount: 3,
-      rounds: 4,
-      baseSize: 2,
-    })
+  void report.test(
+    'passing stress scenarios report their seed and operation count',
+    () => {
+      // Run a single scenario and inspect its successful result envelope.
+      const result = runConvergenceScenario(api, {
+        name: 'introspection',
+        seed: 4242,
+        replicaCount: 3,
+        rounds: 4,
+        baseSize: 2,
+      })
 
-    // The successful result must carry the reproduction metadata.
-    assert(result.ok, 'introspection scenario unexpectedly failed')
-    assert(result.seed === 4242, 'scenario result lost its seed')
-    assert(typeof result.opCount === 'number', 'scenario result lost its op count')
-    assert(Array.isArray(result.trace), 'scenario result lost its trace')
-  })
+      // The successful result must carry the reproduction metadata.
+      assert(result.ok, 'introspection scenario unexpectedly failed')
+      assert(result.seed === 4242, 'scenario result lost its seed')
+      assert(
+        typeof result.opCount === 'number',
+        'scenario result lost its op count'
+      )
+      assert(Array.isArray(result.trace), 'scenario result lost its trace')
+    }
+  )
 
   // A failed scenario must produce a reproducible seed in its report.
   void report.test('failed stress scenarios produce reproducible seeds', () => {
@@ -87,7 +96,10 @@ export function register({ api, report, options }) {
 
     // The formatted failure must surface the seed and an exact replay command.
     const formatted = formatStressFailure(synthetic)
-    assert(formatted.includes('seed:           987654'), 'report omitted the seed')
+    assert(
+      formatted.includes('seed:           987654'),
+      'report omitted the seed'
+    )
     assert(
       formatted.includes('npm run stress -- --seed 987654'),
       'report omitted the replay command'
@@ -100,7 +112,10 @@ export function register({ api, report, options }) {
     const formatted = formatStressFailure(syntheticFailure())
 
     // The report must include the trace header and the recorded operations.
-    assert(formatted.includes('replayable trace:'), 'report omitted the trace header')
+    assert(
+      formatted.includes('replayable trace:'),
+      'report omitted the trace header'
+    )
     assert(formatted.includes('"op":"insert"'), 'report omitted a trace entry')
     assert(
       formatted.includes('expected projection:') &&
@@ -127,7 +142,14 @@ function syntheticFailure() {
     replicaCount: 3,
     opCount: 2,
     trace: [
-      { round: 0, replica: 0, op: 'insert', mode: 'after', index: 0, ids: ['a'] },
+      {
+        round: 0,
+        replica: 0,
+        op: 'insert',
+        mode: 'after',
+        index: 0,
+        ids: ['a'],
+      },
       { round: 0, replica: 1, op: 'delete', start: 0, end: 1 },
     ],
     failure: {
@@ -141,7 +163,14 @@ function syntheticFailure() {
       actual: [],
       message: 'synthetic divergence for diagnostic contract test',
       trace: [
-        { round: 0, replica: 0, op: 'insert', mode: 'after', index: 0, ids: ['a'] },
+        {
+          round: 0,
+          replica: 0,
+          op: 'insert',
+          mode: 'after',
+          index: 0,
+          ids: ['a'],
+        },
         { round: 0, replica: 1, op: 'delete', start: 0, end: 1 },
       ],
     },

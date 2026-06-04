@@ -78,7 +78,11 @@ export function register({ api, report }) {
   void report.test('head discovery terminates', () => {
     // The head must be reachable and free of a predecessor.
     const replica = exercisedReplica(api)
-    assertEqual(replica.firstBlock.previousBlock, undefined, 'head had a predecessor')
+    assertEqual(
+      replica.firstBlock.previousBlock,
+      undefined,
+      'head had a predecessor'
+    )
     assertStructuralIntegrity(api, replica, 'head discovery')
   })
 
@@ -91,15 +95,18 @@ export function register({ api, report }) {
   })
 
   // Every visible value must be reachable from the live block graph.
-  void report.test('every visible value is reachable from the live block graph', () => {
-    // The projection length equals the size only if every value is reachable.
-    const replica = exercisedReplica(api)
-    assertEqual(
-      liveProjection(replica).length,
-      replica.size,
-      'a visible value was unreachable'
-    )
-  })
+  void report.test(
+    'every visible value is reachable from the live block graph',
+    () => {
+      // The projection length equals the size only if every value is reachable.
+      const replica = exercisedReplica(api)
+      assertEqual(
+        liveProjection(replica).length,
+        replica.size,
+        'a visible value was unreachable'
+      )
+    }
+  )
 
   // Every reachable visible value must appear exactly once.
   void report.test(
@@ -119,7 +126,11 @@ export function register({ api, report }) {
   // Replica size must match the number of reachable visible values.
   void report.test('replica size matches reachable visible values', () => {
     // The integrity check cross-checks size against reachable item count.
-    assertStructuralIntegrity(api, exercisedReplica(api), 'size matches reachable')
+    assertStructuralIntegrity(
+      api,
+      exercisedReplica(api),
+      'size matches reachable'
+    )
   })
 
   // The id indexes must match the stored blocks.
@@ -167,14 +178,17 @@ export function register({ api, report }) {
   )
 
   // Large block graphs must not require recursive traversal.
-  void report.test('large block graphs do not require recursive traversal', () => {
-    // Build a large linear graph through batch appends.
-    const replica = api.__create()
-    const batch = Array.from({ length: 5_000 }, (_, index) => `n-${index}`)
-    void applyUpdateValues(api, replica, 0, batch, 'after')
+  void report.test(
+    'large block graphs do not require recursive traversal',
+    () => {
+      // Build a large linear graph through batch appends.
+      const replica = api.__create()
+      const batch = Array.from({ length: 5_000 }, (_, index) => `n-${index}`)
+      void applyUpdateValues(api, replica, 0, batch, 'after')
 
-    // Walking the whole graph (forward and backward) must complete iteratively.
-    assertEqual(replica.size, 5_000, 'large graph lost values')
-    assertStructuralIntegrity(api, replica, 'after large graph build')
-  })
+      // Walking the whole graph (forward and backward) must complete iteratively.
+      assertEqual(replica.size, 5_000, 'large graph lost values')
+      assertStructuralIntegrity(api, replica, 'after large graph build')
+    }
+  )
 }

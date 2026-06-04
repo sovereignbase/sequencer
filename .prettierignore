@@ -36,3 +36,5 @@ Thumbs.db
 wasm/pkg/
 
 wasm/target/
+
+wasm/build/

@@ -63,7 +63,8 @@ export function createReport(label) {
    */
   function test(name, fn) {
     // A test cannot be registered before a group has begun.
-    if (!activeGroup) throw new Error(`test "${name}" registered before any group`)
+    if (!activeGroup)
+      throw new Error(`test "${name}" registered before any group`)
 
     // Capture the active group id for the flat-list attribution.
     const groupName = activeGroup.name

@@ -171,26 +171,37 @@ export function register({ api, report }) {
     for (const delta of staleDeltas) void api.__merge(recovered, delta)
 
     // The recovered peer converges to the source.
-    assertDeepEqual(liveIds(recovered), liveIds(source), 'stale peer did not recover')
+    assertDeepEqual(
+      liveIds(recovered),
+      liveIds(source),
+      'stale peer did not recover'
+    )
     assertStructuralIntegrity(api, recovered, 'after stale peer recovery')
   })
 
   // Replicas must converge after tombstoned predecessor scenarios.
-  void report.test('replicas converge after tombstoned predecessor scenarios', () => {
-    // Seed a source and capture its shared base before any edits.
-    const source = seededReplica(api, 3)
-    const base = api.__snapshot(source)
-    const anchor = applyUpdate(api, source, 1, 'anchor', 'after').delta
-    const successor = applyUpdate(api, source, 2, 'successor', 'after').delta
-    const remove = applyDelete(api, source, 1, 2).delta
+  void report.test(
+    'replicas converge after tombstoned predecessor scenarios',
+    () => {
+      // Seed a source and capture its shared base before any edits.
+      const source = seededReplica(api, 3)
+      const base = api.__snapshot(source)
+      const anchor = applyUpdate(api, source, 1, 'anchor', 'after').delta
+      const successor = applyUpdate(api, source, 2, 'successor', 'after').delta
+      const remove = applyDelete(api, source, 1, 2).delta
 
-    // Deliver in a hostile order: delete first, then successor, then anchor.
-    const peer = api.__create(base)
-    void api.__merge(peer, remove)
-    void api.__merge(peer, successor)
-    void api.__merge(peer, anchor)
-    assertDeepEqual(liveIds(peer), liveIds(source), 'tombstoned predecessor diverged')
-  })
+      // Deliver in a hostile order: delete first, then successor, then anchor.
+      const peer = api.__create(base)
+      void api.__merge(peer, remove)
+      void api.__merge(peer, successor)
+      void api.__merge(peer, anchor)
+      assertDeepEqual(
+        liveIds(peer),
+        liveIds(source),
+        'tombstoned predecessor diverged'
+      )
+    }
+  )
 
   // Replicas must converge after concurrent delete and insert near one location.
   void report.test(
@@ -236,7 +247,11 @@ export function register({ api, report }) {
     const reverse = api.__create(snapshot)
     void api.__merge(reverse, rightDelta)
     void api.__merge(reverse, leftDelta)
-    assertDeepEqual(liveIds(forward), liveIds(reverse), 'concurrent root edits diverged')
+    assertDeepEqual(
+      liveIds(forward),
+      liveIds(reverse),
+      'concurrent root edits diverged'
+    )
   })
 
   // Replicas must converge after concurrent tail edits.
@@ -246,9 +261,20 @@ export function register({ api, report }) {
     const snapshot = api.__snapshot(base)
     const left = api.__create(snapshot)
     const right = api.__create(snapshot)
-    const leftDelta = applyUpdate(api, left, left.size, 'left-tail', 'after').delta
-    const rightDelta = applyUpdate(api, right, right.size, 'right-tail', 'after')
-      .delta
+    const leftDelta = applyUpdate(
+      api,
+      left,
+      left.size,
+      'left-tail',
+      'after'
+    ).delta
+    const rightDelta = applyUpdate(
+      api,
+      right,
+      right.size,
+      'right-tail',
+      'after'
+    ).delta
 
     // Both delivery orders converge identically at the tail.
     const forward = api.__create(snapshot)
@@ -257,6 +283,10 @@ export function register({ api, report }) {
     const reverse = api.__create(snapshot)
     void api.__merge(reverse, rightDelta)
     void api.__merge(reverse, leftDelta)
-    assertDeepEqual(liveIds(forward), liveIds(reverse), 'concurrent tail edits diverged')
+    assertDeepEqual(
+      liveIds(forward),
+      liveIds(reverse),
+      'concurrent tail edits diverged'
+    )
   })
 }

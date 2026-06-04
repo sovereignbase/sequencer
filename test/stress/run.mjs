@@ -75,7 +75,9 @@ function applyOverrides(config, values) {
   return {
     ...config,
     name: values.scenario ?? config.name,
-    replicaCount: values.replicas ? Number(values.replicas) : config.replicaCount,
+    replicaCount: values.replicas
+      ? Number(values.replicas)
+      : config.replicaCount,
     rounds: values.rounds ? Number(values.rounds) : config.rounds,
     baseSize: values.base ? Number(values.base) : config.baseSize,
   }
@@ -107,7 +109,9 @@ function replaySingle(seed, values) {
   }
 
   // A converged replay prints the operation count and the full trace.
-  console.log(`converged after ${result.opCount} operations across all delivery modes`)
+  console.log(
+    `converged after ${result.opCount} operations across all delivery modes`
+  )
   console.log('operation trace:')
   for (const entry of result.trace) console.log(`  ${JSON.stringify(entry)}`)
   return 0
@@ -165,7 +169,8 @@ function main() {
   const { values } = parseRunnerArgs()
 
   // A specific seed triggers single-scenario replay.
-  if (values.seed !== undefined) return replaySingle(Number(values.seed), values)
+  if (values.seed !== undefined)
+    return replaySingle(Number(values.seed), values)
 
   // Otherwise sweep a band of seeds, sized by CLI or environment.
   const start = values.start

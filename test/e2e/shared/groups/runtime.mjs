@@ -71,20 +71,23 @@ export function register({ api, report, options }) {
   })
 
   // Runtime differences must not change serialization semantics.
-  void report.test('runtime differences do not change serialization semantics', () => {
-    // Build a list and serialize it through the public JSON path.
-    const list = new api.CRList()
-    void list.append([value('a')])
-    void list.append([value('b')])
+  void report.test(
+    'runtime differences do not change serialization semantics',
+    () => {
+      // Build a list and serialize it through the public JSON path.
+      const list = new api.CRList()
+      void list.append([value('a')])
+      void list.append([value('b')])
 
-    // The JSON round-trip must reproduce the projection in this runtime.
-    const restored = new api.CRList(JSON.parse(JSON.stringify(list)))
-    assertDeepEqual(
-      [...restored].map((entry) => entry.id),
-      ['a', 'b'],
-      `${runtimeLabel} changed serialization semantics`
-    )
-  })
+      // The JSON round-trip must reproduce the projection in this runtime.
+      const restored = new api.CRList(JSON.parse(JSON.stringify(list)))
+      assertDeepEqual(
+        [...restored].map((entry) => entry.id),
+        ['a', 'b'],
+        `${runtimeLabel} changed serialization semantics`
+      )
+    }
+  )
 
   // Runtime differences must not change event semantics.
   void report.test('runtime differences do not change event semantics', () => {

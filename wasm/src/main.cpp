@@ -1,30 +1,20 @@
 
 #include <cstdint>
 
-#include "unordered_map"
+#include "./types/type.hpp"
 
-#include "./types/types.hpp"
+#include "./helpers/index.cpp"
 
-static std::unordered_map<Key, State, KeyHash> instances;
+
 
 extern "C" {
-std::uint32_t read(std::uint32_t a, std::uint32_t b, std::uint32_t c,
-                   std::uint32_t d, std::uint32_t index) {
-auto it = instances.find(Key{a, b, c, d});
-
-if (it == instances.end()) {
-  return 0;
-}
-State& state = it->second;
-
-
+std::int32_t read(std::int32_t index, std::int32_t a, std::int32_t b, std::int32_t c, std::int32_t d ) {
+  State* instance = find_instance_by_id(a, b, c, d);
+   seek_current_to_target(index, instance);
+   return instance->index;
 }
 
-void overwrite() { return; }
-
-void merge(std::uint32_t a, std::uint32_t b, std::uint32_t c, std::uint32_t d,
-           std::uint32_t length) {
-
-  return;
+std::int32_t size(std::int32_t a, std::int32_t b, std::int32_t c, std::int32_t d) {
+  return find_instance_by_id(a,b,c,d)->size;
 }
 }

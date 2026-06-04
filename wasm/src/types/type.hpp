@@ -2,8 +2,9 @@
 #include <cstddef>
 #include <cstdint>
 
+
 struct Key {
-  std::uint32_t a, b, c, d;
+  std::int32_t a, b, c, d;
 
   bool operator==(const Key &other) const {
     return a == other.a && b == other.b && c == other.c && d == other.d;
@@ -21,13 +22,14 @@ struct KeyHash {
 
 struct Item {
   Key id;
-  Item *previous;
   Item *next;
+  Item *previous;
+  bool deleted;
 };
 
 struct State {
-  std::uint32_t size;
-  std::uint32_t index;
+  std::int32_t size;
+  std::int32_t index;
   Item *first;
   Item *current;
   Item *last;

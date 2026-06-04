@@ -31,7 +31,7 @@ if(EMSCRIPTEN)
       "-sALLOW_MEMORY_GROWTH=1"
       "-sFILESYSTEM=0"
       "-sDYNAMIC_EXECUTION=0"
-      "-sEXPORTED_FUNCTIONS=['_crlist_version_major','_crlist_version_minor','_crlist_version_patch','_crlist_add','_malloc','_free']"
+      "-sEXPORTED_FUNCTIONS=['_read','_size','_malloc','_free']"
       "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap']"
       "--emit-tsd=${CMAKE_CURRENT_BINARY_DIR}/crlist_wasm.d.mts"
   )

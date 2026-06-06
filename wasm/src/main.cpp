@@ -8,14 +8,8 @@
 #include <emscripten/emscripten.h>
 
 extern "C" {
+// CREATE
 EMSCRIPTEN_KEEPALIVE
-/**
- * @param thisA First part of uuidV7 presented as 32bit unsinged integer.
- * @param thisB Second part of uuidV7 presented as 32bit unsinged integer.
- * @param thisC Third part of uuidV7 presented as 32bit unsinged integer.
- * @param thisD Fourth part of uuidV7 presented as 32bit unsinged integer.
- * @returns Nothing after adding the instances state object to a map.
- */
 void add_instance(std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
                   std::uint32_t thisD) {
   instances.insert({Key{thisA, thisB, thisC, thisD},
@@ -27,6 +21,8 @@ void add_instance(std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
                         nullptr  // last
                     }});
 }
+
+EMSCRIPTEN_KEEPALIVE
 void add_range(std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
                std::uint32_t thisD, std::uint32_t rangeA, std::uint32_t rangeB,
                std::uint32_t rangeC, std::uint32_t rangeD,
@@ -45,42 +41,39 @@ void add_range(std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
   }
 }
 
+// READ
 EMSCRIPTEN_KEEPALIVE
-/**
- * @param thisA First part of uuidV7 presented as 32bit unsinged integer.
- * @param thisB Second part of uuidV7 presented as 32bit unsinged integer.
- * @param thisC Third part of uuidV7 presented as 32bit unsinged integer.
- * @param thisD Fourth part of uuidV7 presented as 32bit unsinged integer.
- * @returns Amount of non-deleted entries.
- */
-std::uint32_t size(std::uint32_t thisA, std::uint32_t thisB,
-                   std::uint32_t thisC, std::uint32_t thisD) {
-  return find_instance_by_id(thisA, thisB, thisC, thisD)->size;
-}
-
-EMSCRIPTEN_KEEPALIVE
-/**
- * @param thisA First part of uuidV7 presented as 32bit unsinged integer.
- * @param thisB Second part of uuidV7 presented as 32bit unsinged integer.
- * @param thisC Third part of uuidV7 presented as 32bit unsinged integer.
- * @param thisD Fourth part of uuidV7 presented as 32bit unsinged integer.
- * @returns Number correlating to a index of an array a consumer holds.
- */
-std::uint32_t consumer_reference_of(std::uint32_t target, std::uint32_t a,
-                                    std::uint32_t b, std::uint32_t c,
-                                    std::uint32_t d) {
+std::uint32_t get_consumer_reference_of(std::uint32_t target, std::uint32_t a,
+                                        std::uint32_t b, std::uint32_t c,
+                                        std::uint32_t d) {
   State *instance = find_instance_by_id(a, b, c, d);
   walk_to_target_range(target, instance);
   return instance->current->consmer_reference +
          distance_of_numbers(instance->index, target);
 }
 EMSCRIPTEN_KEEPALIVE
-void insert(std::uint32_t index, std::uint32_t length, std::uint32_t thisA,
-            std::uint32_t thisB, std::uint32_t thisC, std::uint32_t thisD) {
+std::uint32_t get_live_item_amount(std::uint32_t thisA, std::uint32_t thisB,
+                                   std::uint32_t thisC, std::uint32_t thisD) {
+  return find_instance_by_id(thisA, thisB, thisC, thisD)->size;
+}
+// UPDATE
+EMSCRIPTEN_KEEPALIVE
+void insert_after(std::uint32_t index, std::uint32_t length,
+                  std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
+                  std::uint32_t thisD) {
   State *instance = find_instance_by_id(thisA, thisB, thisC, thisD);
   walk_to_target_range(index, instance);
   return;
 }
+void insert_before(std::uint32_t index, std::uint32_t length,
+                   std::uint32_t thisA, std::uint32_t thisB,
+                   std::uint32_t thisC, std::uint32_t thisD) {
+  State *instance = find_instance_by_id(thisA, thisB, thisC, thisD);
+  walk_to_target_range(index, instance);
+  return;
+}
+void overwrite() {}
+// DELETE
 EMSCRIPTEN_KEEPALIVE
 void remove(std::uint32_t index, std::uint32_t length, std::uint32_t thisA,
             std::uint32_t thisB, std::uint32_t thisC, std::uint32_t thisD) {

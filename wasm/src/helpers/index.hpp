@@ -70,3 +70,32 @@ void walk_to_target_range(std::uint32_t target, State *instance) {
   }
 }
 /////
+void splice_range_into_current_range(std::uint32_t target, Range *range,
+                                     State *instance) {
+  Range *left_range = instance->current;
+  std::uint32_t distance = distance_of_numbers(instance->index, target);
+
+  Range *right_range = new Range{
+      .this_id =
+          {
+              .a = left_range->this_id.a,
+              .b = left_range->this_id.b,
+              .c = left_range->this_id.c,
+              .d = left_range->this_id.d + distance,
+          },
+      .previous_id = left_range->this_id,
+      .deleted = left_range->deleted,
+      .range_length = left_range->range_length - distance,
+      .previous_range = range,
+      .next_range = left_range->next_range,
+  };
+
+  left_range->range_length -= distance;
+
+  range->next_range = right_range;
+  left_range->next_range = range;
+
+  instance->current = range;
+  instance->index += distance;
+}
+////

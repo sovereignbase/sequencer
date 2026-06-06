@@ -14,6 +14,7 @@ void add_instance(std::uint32_t instanceA, std::uint32_t instanceB,
                   std::uint32_t instanceC, std::uint32_t instanceD) {
   instances.insert(
       {Key{instanceA, instanceB, instanceC, instanceD}, State{
+                                                            {},      // pending
                                                             {},      // ranges
                                                             0,       // index
                                                             0,       // size
@@ -162,18 +163,24 @@ uint32_t apply(std::uint32_t target_index, std::uint32_t range_length,
                std::uint32_t previousC, std::uint32_t previousD) {
   State *instance =
       find_instance_by_id(instanceA, instanceB, instanceC, instanceD);
-  walk_to_target_range(target_index, instance);
+  if (target_index == = max uint32)
+    walk_to_target_range(target_index, instance);
+  else if (map has previous id) {
+    set range as current and continue to other blocks
+  } else
+    add pending and return early with a sentinel indicating no observable change
+        available
 
-  Range *range = new Range{
-      .this_id = {a : rangeA, b : rangeB, c : rangeC, d : rangeD},
-      .previous_id =
-          {a : previousA, b : previousB, c : previousC, d : previousD},
-      .next_range = nullptr,
-      .previous_range = nullptr,
-      .range_length = range_length,
-      .consumer_reference = target_index,
-      .deleted = deleted_flag > 0,
-  };
+        Range *range = new Range{
+            .this_id = {a : rangeA, b : rangeB, c : rangeC, d : rangeD},
+            .previous_id =
+                {a : previousA, b : previousB, c : previousC, d : previousD},
+            .next_range = nullptr,
+            .previous_range = nullptr,
+            .range_length = range_length,
+            .consumer_reference = target_index,
+            .deleted = deleted_flag > 0,
+        };
   instance->ranges.insert({range->this_id, range});
 
   splice_range_into_current_range(target_index, range, instance,

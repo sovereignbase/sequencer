@@ -31,6 +31,7 @@ struct Range {
 };
 
 struct State {
+  std::unordered_map<Key, Range *, KeyHash> pending;
   std::unordered_map<Key, Range *, KeyHash> ranges;
   std::uint32_t index;
   std::uint32_t size;

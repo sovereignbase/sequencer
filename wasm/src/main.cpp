@@ -41,6 +41,7 @@ void add_range(std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
   }
 }
 
+// Sort doubly linked list by merge rules
 void resolve_order() {}
 
 // READ

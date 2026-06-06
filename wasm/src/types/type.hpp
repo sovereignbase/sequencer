@@ -20,17 +20,19 @@ struct KeyHash {
   }
 };
 
-struct Item {
+struct Block {
   Key id;
-  Item *next;
-  Item *previous;
+  Block *next;
+  Block *previous;
+  std::int32_t length;
+  std::int32_t js_reference;
   bool deleted;
 };
 
 struct State {
   std::int32_t size;
   std::int32_t index;
-  Item *first;
-  Item *current;
-  Item *last;
+  Block *first;
+  Block *current;
+  Block *last;
 };

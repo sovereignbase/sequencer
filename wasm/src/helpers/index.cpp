@@ -32,9 +32,7 @@ void seek_current_to_target(
         return;
     }
 
-    std::int32_t distance = instance->index > target
-        ? instance->index - target
-        : target - instance->index;
+    std::int32_t distance = std::abs(instance->index - target);
 
     const std::int32_t headDistance = target;
 
@@ -45,12 +43,10 @@ void seek_current_to_target(
     }
 
     const std::int32_t tail = instance->size - 1;
-    const std::int32_t tailDistance = tail > target
-        ? tail - target
-        : target - tail;
+    const std::int32_t tailDistance = std::abs(tail - target);
 
     if (tailDistance < distance) {
-        instance->index = instance->size - 1;
+        instance->index = tail;
         instance->current = instance->last;
     }
 
@@ -59,12 +55,13 @@ void seek_current_to_target(
     }
 
     if (instance->index < target) {
+        
         while (instance->index != target) {
             instance->current = instance->current->next;
             instance->index++;
         }
-
         return;
+
     }
 
     while (instance->index != target) {
@@ -72,3 +69,4 @@ void seek_current_to_target(
         instance->index--;
     }
 }
+

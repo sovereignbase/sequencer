@@ -1,5 +1,10 @@
 import createModule from '../dist/crlist_wasm.mjs'
 
+const deltas = [{}, {}]
+
 const wasm = await createModule()
 
-wasm._size()
+console.log(wasm._size())
+
+for (const delta of deltas) {
+}

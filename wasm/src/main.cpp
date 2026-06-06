@@ -50,7 +50,7 @@ get_consumer_reference_of(std::uint32_t target, std::uint32_t a,
                           std::uint32_t b, std::uint32_t c, std::uint32_t d) {
   State *instance = find_instance_by_id(a, b, c, d);
   walk_to_target_range(target, instance);
-  return instance->current->consmer_reference +
+  return instance->current->consumer_reference +
          distance_of_numbers(instance->index, target);
 }
 EMSCRIPTEN_KEEPALIVE

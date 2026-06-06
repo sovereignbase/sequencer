@@ -25,7 +25,7 @@ struct Range {
   Range *next_range;
   Range *previous_range;
   std::uint32_t range_length;
-  std::uint32_t consmer_reference;
+  std::uint32_t consumer_reference;
   bool deleted;
 };
 

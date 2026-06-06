@@ -66,13 +66,13 @@ EMSCRIPTEN_KEEPALIVE
  * @param thisD Fourth part of uuidV7 presented as 32bit unsinged integer.
  * @returns Number correlating to a index of an array a consumer holds.
  */
-std::uint32_t consumer_reference_of(std::uint32_t index, std::uint32_t a,
+std::uint32_t consumer_reference_of(std::uint32_t target, std::uint32_t a,
                                     std::uint32_t b, std::uint32_t c,
                                     std::uint32_t d) {
   State *instance = find_instance_by_id(a, b, c, d);
-  walk_to_target_range(index, instance);
+  walk_to_target_range(target, instance);
   return instance->current->consmer_reference +
-         distance_of_numbers(instance->index, instance->current->range_length);
+         distance_of_numbers(instance->index, target);
 }
 EMSCRIPTEN_KEEPALIVE
 void insert(std::uint32_t index, std::uint32_t length, std::uint32_t thisA,

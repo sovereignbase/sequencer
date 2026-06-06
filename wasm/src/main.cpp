@@ -31,7 +31,7 @@ void add_range_to(std::uint32_t range_length, std::uint32_t consumer_reference,
                   std::uint32_t rangeB, std::uint32_t rangeC,
                   std::uint32_t rangeD, std::uint32_t previousA,
                   std::uint32_t previousB, std::uint32_t previousC,
-                  std::uint32_t previousD, ) {
+                  std::uint32_t previousD) {
   State *instance =
       find_instance_by_id(instanceA, instanceB, instanceC, instanceD);
 

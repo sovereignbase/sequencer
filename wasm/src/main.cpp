@@ -43,7 +43,7 @@ void add_range_to(std::uint32_t range_length, std::uint32_t consumer_reference,
       .previous_range = instance->current,
       .range_length = range_length,
       .consumer_reference = consumer_reference,
-      .deleted = deleted_flag,
+      .deleted = deleted_flag > 0,
   };
   instance->ranges.insert({range->this_id, range});
 
@@ -56,7 +56,7 @@ void add_range_to(std::uint32_t range_length, std::uint32_t consumer_reference,
   instance->index = instance->size;
   instance->current = range;
   instance->last = range;
-  instance->size += length;
+  instance->size += range_length;
 }
 
 // Sort doubly linked list by merge rules
@@ -150,15 +150,16 @@ std::uint32_t get_live_item_amount(std::uint32_t instanceA,
  * Moves entries to left starting/including target_index to range length
  * @param target_index Inclusive zero-based index.
  * @param range_length Amount of inserted/removed entries
+ * @returns Index where changes started
  */
 EMSCRIPTEN_KEEPALIVE
-void apply(std::uint32_t target_index, std::uint32_t range_length,
-           std::uint32_t deleted_flag, std::uint32_t instanceA,
-           std::uint32_t instanceB, std::uint32_t instanceC,
-           std::uint32_t instanceD, std::uint32_t rangeA, std::uint32_t rangeB,
-           std::uint32_t rangeC, std::uint32_t rangeD, std::uint32_t previousA,
-           std::uint32_t previousB, std::uint32_t previousC,
-           std::uint32_t previousD) {
+uint32_t apply(std::uint32_t target_index, std::uint32_t range_length,
+               std::uint32_t deleted_flag, std::uint32_t instanceA,
+               std::uint32_t instanceB, std::uint32_t instanceC,
+               std::uint32_t instanceD, std::uint32_t rangeA,
+               std::uint32_t rangeB, std::uint32_t rangeC, std::uint32_t rangeD,
+               std::uint32_t previousA, std::uint32_t previousB,
+               std::uint32_t previousC, std::uint32_t previousD) {
   State *instance =
       find_instance_by_id(instanceA, instanceB, instanceC, instanceD);
   walk_to_target_range(target_index, instance);

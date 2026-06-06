@@ -5,7 +5,7 @@
   "scripts": {
     "configure": "emcmake cmake --preset wasm-release",
     "build": "cmake --build --preset wasm-release && cmake --install build/wasm-release --prefix dist",
-    "smoke": "node test/smoke.mjs"
+    "smoke": "node test"
   },
   "devDependencies": {
     "typescript": "5.9.3"

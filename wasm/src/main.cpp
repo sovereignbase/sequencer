@@ -31,15 +31,27 @@ void add_range(std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
                std::uint32_t length, std::uint32_t consumer_reference) {
   State *instance = find_instance_by_id(thisA, thisB, thisC, thisD);
 
-  const Range range = {
-    this_id : {a : rangeA, b : rangeB, c : rangeC, d : rangeD},
-    previous_id : {a : previousA, b : previousB, c : previousC, d : previousD},
-    range_length : length,
-    consumer_reference
+  Range *range = new Range{
+      .this_id = {a : rangeA, b : rangeB, c : rangeC, d : rangeD},
+      .previous_id =
+          {a : previousA, b : previousB, c : previousC, d : previousD},
+      .next_range = nullptr,
+      .previous_range = instance->current,
+      .range_length = length,
+      .consumer_reference = consumer_reference,
+      .deleted = false,
   };
 
   if (!instance->current) {
+    instance->first = range;
+  } else {
+    instance->current->next_range = range;
   }
+
+  instance->index = instance->size;
+  instance->current = range;
+  instance->last = range;
+  instance->size += length;
 }
 
 // Sort doubly linked list by merge rules

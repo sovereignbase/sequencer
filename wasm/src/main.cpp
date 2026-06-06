@@ -27,6 +27,23 @@ void add_instance(std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
                         nullptr  // last
                     }});
 }
+void add_range(std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
+               std::uint32_t thisD, std::uint32_t rangeA, std::uint32_t rangeB,
+               std::uint32_t rangeC, std::uint32_t rangeD,
+               std::uint32_t previousA, std::uint32_t previousB,
+               std::uint32_t previousC, std::uint32_t previousD,
+               std::uint32_t length) {
+  State *instance = find_instance_by_id(thisA, thisB, thisC, thisD);
+
+  const Range range = {
+    this_id : {a : rangeA, b : rangeB, c : rangeC, d : rangeD},
+    previous_id : {a : previousA, b : previousB, c : previousC, d : previousD},
+    range_length : length
+  };
+
+  if (!instance->current) {
+  }
+}
 
 EMSCRIPTEN_KEEPALIVE
 /**
@@ -55,13 +72,18 @@ std::uint32_t consumer_reference_of(std::uint32_t index, std::uint32_t a,
   State *instance = find_instance_by_id(a, b, c, d);
   walk_to_target_range(index, instance);
   return instance->current->consmer_reference +
-         distance_of_numbers(instance->index, instance->current->length);
+         distance_of_numbers(instance->index, instance->current->range_length);
 }
-
 EMSCRIPTEN_KEEPALIVE
-void add_block_after(std::uint16_t index, std::uint16_t length,
-                     std::uint16_t thisA, std::uint16_t thisB,
-                     std::uint16_t thisC, std::uint16_t thisD) {
+void insert(std::uint32_t index, std::uint32_t length, std::uint32_t thisA,
+            std::uint32_t thisB, std::uint32_t thisC, std::uint32_t thisD) {
+  State *instance = find_instance_by_id(thisA, thisB, thisC, thisD);
+  walk_to_target_range(index, instance);
+  return;
+}
+EMSCRIPTEN_KEEPALIVE
+void remove(std::uint32_t index, std::uint32_t length, std::uint32_t thisA,
+            std::uint32_t thisB, std::uint32_t thisC, std::uint32_t thisD) {
   State *instance = find_instance_by_id(thisA, thisB, thisC, thisD);
   walk_to_target_range(index, instance);
   return;

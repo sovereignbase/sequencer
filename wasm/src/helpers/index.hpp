@@ -23,7 +23,7 @@ std::uint32_t distance_of_numbers(std::uint32_t num1, std::uint32_t num2) {
 /////
 bool index_is_within_current_range(State *instance, std::uint32_t index) {
   return (index >= instance->index &&
-          index < (instance->index + instance->current->length));
+          index < (instance->index + instance->current->range_length));
 }
 /////
 void walk_to_target_range(std::uint32_t target, State *instance) {
@@ -56,17 +56,17 @@ void walk_to_target_range(std::uint32_t target, State *instance) {
 
   if (instance->index < target) {
     while (!index_is_within_current_range(instance, target)) {
-      instance->current = instance->current->next;
+      instance->current = instance->current->next_range;
       if (!instance->current->deleted)
-        instance->index += instance->current->length;
+        instance->index += instance->current->range_length;
     }
     return;
   }
 
   while (!index_is_within_current_range(instance, target)) {
-    instance->current = instance->current->previous;
+    instance->current = instance->current->previous_range;
     if (!instance->current->deleted)
-      instance->index -= instance->current->length;
+      instance->index -= instance->current->range_length;
   }
 }
 /////

@@ -20,10 +20,11 @@ struct KeyHash {
 };
 
 struct Range {
-  Key id;
-  Range *next;
-  Range *previous;
-  std::uint32_t length;
+  Key this_id;
+  Key previous_id;
+  Range *next_range;
+  Range *previous_range;
+  std::uint32_t range_length;
   std::uint32_t consmer_reference;
   bool deleted;
 };

@@ -75,20 +75,20 @@ void splice_range_into_current_range(std::uint32_t target, Range *range,
   Range *left_range = instance->current;
   std::uint32_t distance = distance_of_numbers(instance->index, target);
 
-  Range *right_range = new Range{
-      .this_id =
-          {
-              .a = left_range->this_id.a,
-              .b = left_range->this_id.b,
-              .c = left_range->this_id.c,
-              .d = left_range->this_id.d + distance,
-          },
-      .previous_id = left_range->this_id,
-      .deleted = left_range->deleted,
-      .range_length = left_range->range_length - distance,
-      .previous_range = range,
-      .next_range = left_range->next_range,
-  };
+  Range *right_range =
+      new Range{.this_id =
+                    {
+                        .a = left_range->this_id.a,
+                        .b = left_range->this_id.b,
+                        .c = left_range->this_id.c,
+                        .d = left_range->this_id.d + distance,
+                    },
+                .previous_id = left_range->this_id,
+                .deleted = left_range->deleted,
+                .range_length = left_range->range_length - distance,
+                .previous_range = range,
+                .next_range = left_range->next_range,
+                .consumer_reference = left_range->consumer_reference};
 
   left_range->range_length -= distance;
 

@@ -55,7 +55,10 @@ void add_range(std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
 }
 
 // Sort doubly linked list by merge rules
-void resolve_order() {}
+void resolve_order(std::uint32_t thisA, std::uint32_t thisB,
+                   std::uint32_t thisC, std::uint32_t thisD) {
+  State *instance = find_instance_by_id(thisA, thisB, thisC, thisD);
+}
 
 // READ
 EMSCRIPTEN_KEEPALIVE std::uint32_t
@@ -72,19 +75,31 @@ std::uint32_t get_live_item_amount(std::uint32_t thisA, std::uint32_t thisB,
   return find_instance_by_id(thisA, thisB, thisC, thisD)->size;
 }
 // UPDATE
+/**
+ * Moves entries to right for range length starting/including target_index
+ * @param target_index Inclusive zero-based index.
+ * @param range_length Amount of inserted entries
+ */
 EMSCRIPTEN_KEEPALIVE
-void insert(std::uint32_t index, std::uint32_t length, std::uint32_t thisA,
-            std::uint32_t thisB, std::uint32_t thisC, std::uint32_t thisD) {
+void insert(std::uint32_t target_index, std::uint32_t range_length,
+            std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
+            std::uint32_t thisD) {
   State *instance = find_instance_by_id(thisA, thisB, thisC, thisD);
-  walk_to_target_range(index, instance);
+  walk_to_target_range(target_index, instance);
   return;
 }
 // DELETE
+/**
+ * Moves entries to left starting/including target_index to range length
+ * @param target_index Inclusive zero-based index.
+ * @param range_length Amount of removed entries
+ */
 EMSCRIPTEN_KEEPALIVE
-void remove(std::uint32_t index, std::uint32_t length, std::uint32_t thisA,
-            std::uint32_t thisB, std::uint32_t thisC, std::uint32_t thisD) {
+void remove(std::uint32_t target_index, std::uint32_t range_length,
+            std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
+            std::uint32_t thisD) {
   State *instance = find_instance_by_id(thisA, thisB, thisC, thisD);
-  walk_to_target_range(index, instance);
+  walk_to_target_range(target_index, instance);
   return;
 }
 }

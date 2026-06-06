@@ -71,7 +71,7 @@ void walk_to_target_range(std::uint32_t target, State *instance) {
 }
 /////
 void splice_range_into_current_range(std::uint32_t target, Range *range,
-                                     State *instance) {
+                                     State *instance, bool remove) {
   Range *left_range = instance->current;
   std::uint32_t distance = distance_of_numbers(instance->index, target);
 
@@ -84,7 +84,7 @@ void splice_range_into_current_range(std::uint32_t target, Range *range,
                         .d = left_range->this_id.d + distance,
                     },
                 .previous_id = left_range->this_id,
-                .deleted = left_range->deleted,
+                .deleted = remove,
                 .range_length = left_range->range_length - distance,
                 .previous_range = range,
                 .next_range = left_range->next_range,
@@ -97,5 +97,7 @@ void splice_range_into_current_range(std::uint32_t target, Range *range,
 
   instance->current = range;
   instance->index += distance;
+  if (!remove)
+    instance->size += range->range_length;
 }
 ////

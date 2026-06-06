@@ -1,6 +1,7 @@
 #pragma once
 #include <cstddef>
 #include <cstdint>
+#include <unordered_map>
 
 struct Key {
   std::uint32_t a, b, c, d;
@@ -30,8 +31,10 @@ struct Range {
 };
 
 struct State {
-  std::uint32_t size;
+  std::unordered_map<Key, Range *, KeyHash> ranges;
   std::uint32_t index;
+  std::uint32_t size;
+
   Range *first;
   Range *current;
   Range *last;

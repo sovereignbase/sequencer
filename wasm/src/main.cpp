@@ -28,13 +28,14 @@ void add_range(std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
                std::uint32_t rangeC, std::uint32_t rangeD,
                std::uint32_t previousA, std::uint32_t previousB,
                std::uint32_t previousC, std::uint32_t previousD,
-               std::uint32_t length) {
+               std::uint32_t length, std::uint32_t consumer_reference) {
   State *instance = find_instance_by_id(thisA, thisB, thisC, thisD);
 
   const Range range = {
     this_id : {a : rangeA, b : rangeB, c : rangeC, d : rangeD},
     previous_id : {a : previousA, b : previousB, c : previousC, d : previousD},
-    range_length : length
+    range_length : length,
+    consumer_reference
   };
 
   if (!instance->current) {

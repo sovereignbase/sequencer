@@ -26,6 +26,8 @@ Thumbs.db
 
 .c8/
 
+.claude/
+
 wasm/pkg/
 
 wasm/target/

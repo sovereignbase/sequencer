@@ -1,0 +1,23 @@
+{
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/build/wasm-release/compile_commands.json",
+  "C_Cpp.default.compilerPath": "C:/Users/jorts/emsdk/upstream/emscripten/em++.bat",
+  "C_Cpp.default.cppStandard": "c++23",
+  "C_Cpp.formatting": "clangFormat",
+  "C_Cpp.clang_format_path": "C:/Users/jorts/Documents/LLVM/bin/clang-format.exe",
+  "C_Cpp.clang_format_style": "file",
+  "C_Cpp.clang_format_fallbackStyle": "LLVM",
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}/include",
+    "C:/Users/jorts/emsdk/upstream/emscripten/cache/sysroot/include"
+  ],
+  "C_Cpp.default.intelliSenseMode": "linux-clang-x64",
+  "editor.formatOnSave": true,
+  "[c]": {
+    "editor.defaultFormatter": "ms-vscode.cpptools",
+    "editor.formatOnSave": true
+  },
+  "[cpp]": {
+    "editor.defaultFormatter": "ms-vscode.cpptools",
+    "editor.formatOnSave": true
+  }
+}

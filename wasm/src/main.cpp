@@ -41,11 +41,12 @@ void add_range(std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
   }
 }
 
+void resolve_order() {}
+
 // READ
-EMSCRIPTEN_KEEPALIVE
-std::uint32_t get_consumer_reference_of(std::uint32_t target, std::uint32_t a,
-                                        std::uint32_t b, std::uint32_t c,
-                                        std::uint32_t d) {
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+get_consumer_reference_of(std::uint32_t target, std::uint32_t a,
+                          std::uint32_t b, std::uint32_t c, std::uint32_t d) {
   State *instance = find_instance_by_id(a, b, c, d);
   walk_to_target_range(target, instance);
   return instance->current->consmer_reference +
@@ -58,21 +59,12 @@ std::uint32_t get_live_item_amount(std::uint32_t thisA, std::uint32_t thisB,
 }
 // UPDATE
 EMSCRIPTEN_KEEPALIVE
-void insert_after(std::uint32_t index, std::uint32_t length,
-                  std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
-                  std::uint32_t thisD) {
+void insert(std::uint32_t index, std::uint32_t length, std::uint32_t thisA,
+            std::uint32_t thisB, std::uint32_t thisC, std::uint32_t thisD) {
   State *instance = find_instance_by_id(thisA, thisB, thisC, thisD);
   walk_to_target_range(index, instance);
   return;
 }
-void insert_before(std::uint32_t index, std::uint32_t length,
-                   std::uint32_t thisA, std::uint32_t thisB,
-                   std::uint32_t thisC, std::uint32_t thisD) {
-  State *instance = find_instance_by_id(thisA, thisB, thisC, thisD);
-  walk_to_target_range(index, instance);
-  return;
-}
-void overwrite() {}
 // DELETE
 EMSCRIPTEN_KEEPALIVE
 void remove(std::uint32_t index, std::uint32_t length, std::uint32_t thisA,

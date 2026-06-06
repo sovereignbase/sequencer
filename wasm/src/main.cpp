@@ -4,34 +4,36 @@
 #include "./types/type.hpp"
 
 #include "./helpers/index.hpp"
-#include "./helpers/key.hpp"
 
 #include <emscripten/emscripten.h>
 
 extern "C" {
 // CREATE
 EMSCRIPTEN_KEEPALIVE
-void add_instance(std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
-                  std::uint32_t thisD) {
-  instances.insert({Key{thisA, thisB, thisC, thisD}, State{
-                                                         {},      // ranges
-                                                         0,       // index
-                                                         0,       // size
-                                                         nullptr, // first
-                                                         nullptr, // current
-                                                         nullptr  // last
-                                                     }});
+void add_instance(std::uint32_t instanceA, std::uint32_t instanceB,
+                  std::uint32_t instanceC, std::uint32_t instanceD) {
+  instances.insert(
+      {Key{instanceA, instanceB, instanceC, instanceD}, State{
+                                                            {},      // ranges
+                                                            0,       // index
+                                                            0,       // size
+                                                            nullptr, // first
+                                                            nullptr, // current
+                                                            nullptr  // last
+                                                        }});
 }
 
 EMSCRIPTEN_KEEPALIVE
-void add_range_to(std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
-                  std::uint32_t thisD, std::uint32_t rangeA,
+void add_range_to(std::uint32_t range_length, std::uint32_t consumer_reference,
+                  std::uint32_t deleted_flag std::uint32_t instanceA,
+                  std::uint32_t instanceB, std::uint32_t instanceC,
+                  std::uint32_t instanceD, std::uint32_t rangeA,
                   std::uint32_t rangeB, std::uint32_t rangeC,
                   std::uint32_t rangeD, std::uint32_t previousA,
                   std::uint32_t previousB, std::uint32_t previousC,
-                  std::uint32_t previousD, std::uint32_t length,
-                  std::uint32_t consumer_reference) {
-  State *instance = find_instance_by_id(thisA, thisB, thisC, thisD);
+                  std::uint32_t previousD, ) {
+  State *instance =
+      find_instance_by_id(instanceA, instanceB, instanceC, instanceD);
 
   Range *range = new Range{
       .this_id = {a : rangeA, b : rangeB, c : rangeC, d : rangeD},
@@ -59,9 +61,10 @@ void add_range_to(std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
 
 // Sort doubly linked list by merge rules
 EMSCRIPTEN_KEEPALIVE
-void resolve_order_for(std::uint32_t thisA, std::uint32_t thisB,
-                       std::uint32_t thisC, std::uint32_t thisD) {
-  State *instance = find_instance_by_id(thisA, thisB, thisC, thisD);
+void resolve_order_for(std::uint32_t instanceA, std::uint32_t instanceB,
+                       std::uint32_t instanceC, std::uint32_t instanceD) {
+  State *instance =
+      find_instance_by_id(instanceA, instanceB, instanceC, instanceD);
   instance->current = instance->first;
   Range *next = nullptr;
   while (instance->current->next_range) {
@@ -135,36 +138,44 @@ get_consumer_reference_of(std::uint32_t target, std::uint32_t a,
          distance_of_numbers(instance->index, target);
 }
 EMSCRIPTEN_KEEPALIVE
-std::uint32_t get_live_item_amount(std::uint32_t thisA, std::uint32_t thisB,
-                                   std::uint32_t thisC, std::uint32_t thisD) {
-  return find_instance_by_id(thisA, thisB, thisC, thisD)->size;
+std::uint32_t get_live_item_amount(std::uint32_t instanceA,
+                                   std::uint32_t instanceB,
+                                   std::uint32_t instanceC,
+                                   std::uint32_t instanceD) {
+  return find_instance_by_id(instanceA, instanceB, instanceC, instanceD)->size;
 }
-// UPDATE
+// UPDATE / DELETE
 /**
- * Moves entries to right for range length starting/including target_index
- * @param target_index Inclusive zero-based index.
- * @param range_length Amount of inserted entries
- */
-EMSCRIPTEN_KEEPALIVE
-void insert(std::uint32_t target_index, std::uint32_t range_length,
-            std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
-            std::uint32_t thisD) {
-  State *instance = find_instance_by_id(thisA, thisB, thisC, thisD);
-  walk_to_target_range(target_index, instance);
-  return;
-}
-// DELETE
-/**
+ * Moves entries to right for range length starting/including target_index or
  * Moves entries to left starting/including target_index to range length
  * @param target_index Inclusive zero-based index.
- * @param range_length Amount of removed entries
+ * @param range_length Amount of inserted/removed entries
  */
 EMSCRIPTEN_KEEPALIVE
-void remove(std::uint32_t target_index, std::uint32_t range_length,
-            std::uint32_t thisA, std::uint32_t thisB, std::uint32_t thisC,
-            std::uint32_t thisD) {
-  State *instance = find_instance_by_id(thisA, thisB, thisC, thisD);
+void apply(std::uint32_t target_index, std::uint32_t range_length,
+           std::uint32_t deleted_flag, std::uint32_t instanceA,
+           std::uint32_t instanceB, std::uint32_t instanceC,
+           std::uint32_t instanceD, std::uint32_t rangeA, std::uint32_t rangeB,
+           std::uint32_t rangeC, std::uint32_t rangeD, std::uint32_t previousA,
+           std::uint32_t previousB, std::uint32_t previousC,
+           std::uint32_t previousD) {
+  State *instance =
+      find_instance_by_id(instanceA, instanceB, instanceC, instanceD);
   walk_to_target_range(target_index, instance);
+
+  Range *range = new Range{
+      .this_id = {a : rangeA, b : rangeB, c : rangeC, d : rangeD},
+      .previous_id =
+          {a : previousA, b : previousB, c : previousC, d : previousD},
+      .next_range = nullptr,
+      .previous_range = nullptr,
+      .range_length = range_length,
+      .consumer_reference = target_index,
+      .deleted = remove > 0,
+  };
+  instance->ranges.insert({range->this_id, range});
+
+  splice_range_into_current_range(target_index, range, instance, remove > 0);
   return;
 }
 }

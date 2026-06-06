@@ -74,6 +74,10 @@ void splice_range_into_current_range(std::uint32_t target, Range *range,
                                      State *instance, bool remove) {
   Range *left_range = instance->current;
   std::uint32_t distance = distance_of_numbers(instance->index, target);
+  std::uint32_t right_offset = distance + (remove ? range->range_length : 0);
+  std::uint32_t right_consumer_reference = left_range->consumer_reference +
+                                           distance +
+                                           (remove ? 0 : range->range_length);
 
   Range *right_range =
       new Range{.this_id =
@@ -81,23 +85,56 @@ void splice_range_into_current_range(std::uint32_t target, Range *range,
                         .a = left_range->this_id.a,
                         .b = left_range->this_id.b,
                         .c = left_range->this_id.c,
-                        .d = left_range->this_id.d + distance,
+                        .d = left_range->this_id.d + right_offset,
                     },
-                .previous_id = left_range->this_id,
-                .deleted = remove,
-                .range_length = left_range->range_length - distance,
-                .previous_range = range,
+                .previous_id = range->this_id,
                 .next_range = left_range->next_range,
-                .consumer_reference = left_range->consumer_reference};
+                .previous_range = range,
+                .range_length = left_range->range_length - right_offset,
+                .consumer_reference = right_consumer_reference,
+                .deleted = left_range->deleted};
 
-  left_range->range_length -= distance;
-
+  range->deleted = remove;
+  range->previous_range = left_range;
   range->next_range = right_range;
+
+  if (right_range->next_range)
+    right_range->next_range->previous_range = right_range;
+  else
+    instance->last = right_range;
+
+  left_range->range_length = distance;
   left_range->next_range = range;
 
   instance->current = range;
-  instance->index += distance;
-  if (!remove)
+  instance->index = target;
+  if (remove)
+    instance->size -= range->range_length;
+  else
     instance->size += range->range_length;
 }
 ////
+bool key_is_less(Key left, Key right) {
+  if (left.a != right.a)
+    return left.a < right.a;
+  if (left.b != right.b)
+    return left.b < right.b;
+  if (left.c != right.c)
+    return left.c < right.c;
+  return left.d < right.d;
+}
+///
+bool key_is_zero(Key key) {
+  return key.a == 0 && key.b == 0 && key.c == 0 && key.d == 0;
+}
+///
+Key key_add(Key key, std::uint32_t offset) {
+  std::uint64_t next = std::uint64_t(key.d) + offset;
+  key.d = std::uint32_t(next);
+  next = std::uint64_t(key.c) + (next >> 32);
+  key.c = std::uint32_t(next);
+  next = std::uint64_t(key.b) + (next >> 32);
+  key.b = std::uint32_t(next);
+  key.a = std::uint32_t(std::uint64_t(key.a) + (next >> 32));
+  return key;
+}

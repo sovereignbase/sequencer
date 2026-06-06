@@ -25,7 +25,7 @@ void add_instance(std::uint32_t instanceA, std::uint32_t instanceB,
 
 EMSCRIPTEN_KEEPALIVE
 void add_range_to(std::uint32_t range_length, std::uint32_t consumer_reference,
-                  std::uint32_t deleted_flag std::uint32_t instanceA,
+                  std::uint32_t deleted_flag, std::uint32_t instanceA,
                   std::uint32_t instanceB, std::uint32_t instanceC,
                   std::uint32_t instanceD, std::uint32_t rangeA,
                   std::uint32_t rangeB, std::uint32_t rangeC,
@@ -41,9 +41,9 @@ void add_range_to(std::uint32_t range_length, std::uint32_t consumer_reference,
           {a : previousA, b : previousB, c : previousC, d : previousD},
       .next_range = nullptr,
       .previous_range = instance->current,
-      .range_length = length,
+      .range_length = range_length,
       .consumer_reference = consumer_reference,
-      .deleted = false,
+      .deleted = deleted_flag,
   };
   instance->ranges.insert({range->this_id, range});
 
@@ -171,11 +171,12 @@ void apply(std::uint32_t target_index, std::uint32_t range_length,
       .previous_range = nullptr,
       .range_length = range_length,
       .consumer_reference = target_index,
-      .deleted = remove > 0,
+      .deleted = deleted_flag > 0,
   };
   instance->ranges.insert({range->this_id, range});
 
-  splice_range_into_current_range(target_index, range, instance, remove > 0);
+  splice_range_into_current_range(target_index, range, instance,
+                                  deleted_flag > 0);
   return;
 }
 }

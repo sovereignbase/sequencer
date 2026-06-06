@@ -154,37 +154,50 @@ std::uint32_t get_live_item_amount(std::uint32_t instanceA,
  * @returns Index where changes started
  */
 EMSCRIPTEN_KEEPALIVE
-uint32_t apply(std::uint32_t target_index, std::uint32_t range_length,
-               std::uint32_t deleted_flag, std::uint32_t instanceA,
-               std::uint32_t instanceB, std::uint32_t instanceC,
-               std::uint32_t instanceD, std::uint32_t rangeA,
-               std::uint32_t rangeB, std::uint32_t rangeC, std::uint32_t rangeD,
-               std::uint32_t previousA, std::uint32_t previousB,
-               std::uint32_t previousC, std::uint32_t previousD) {
+std::uint32_t apply(std::uint32_t target_index, std::uint32_t range_length,
+                    std::uint32_t deleted_flag, std::uint32_t instanceA,
+                    std::uint32_t instanceB, std::uint32_t instanceC,
+                    std::uint32_t instanceD, std::uint32_t rangeA,
+                    std::uint32_t rangeB, std::uint32_t rangeC,
+                    std::uint32_t rangeD, std::uint32_t previousA,
+                    std::uint32_t previousB, std::uint32_t previousC,
+                    std::uint32_t previousD) {
   State *instance =
       find_instance_by_id(instanceA, instanceB, instanceC, instanceD);
-  if (target_index == = max uint32)
-    walk_to_target_range(target_index, instance);
-  else if (map has previous id) {
-    set range as current and continue to other blocks
-  } else
-    add pending and return early with a sentinel indicating no observable change
-        available
 
-        Range *range = new Range{
-            .this_id = {a : rangeA, b : rangeB, c : rangeC, d : rangeD},
-            .previous_id =
-                {a : previousA, b : previousB, c : previousC, d : previousD},
-            .next_range = nullptr,
-            .previous_range = nullptr,
-            .range_length = range_length,
-            .consumer_reference = target_index,
-            .deleted = deleted_flag > 0,
-        };
+  Range *range = new Range{
+      .this_id = {a : rangeA, b : rangeB, c : rangeC, d : rangeD},
+      .previous_id =
+          {a : previousA, b : previousB, c : previousC, d : previousD},
+      .next_range = nullptr,
+      .previous_range = nullptr,
+      .range_length = range_length,
+      .consumer_reference = target_index,
+      .deleted = deleted_flag > 0,
+  };
+
+  if (target_index == UINT32_MAX) {
+    auto previous = instance->ranges.find(range->previous_id);
+    if (previous == instance->ranges.end()) {
+      instance->pending.insert({range->this_id, range});
+      return UINT32_MAX;
+    }
+
+    instance->current = previous->second;
+    instance->index = 0;
+    for (Range *current = instance->first; current != instance->current;
+         current = current->next_range)
+      if (!current->deleted)
+        instance->index += current->range_length;
+    target_index = instance->index + instance->current->range_length;
+  } else {
+    walk_to_target_range(target_index, instance);
+  }
+
   instance->ranges.insert({range->this_id, range});
 
   splice_range_into_current_range(target_index, range, instance,
                                   deleted_flag > 0);
-  return;
+  return target_index;
 }
 }

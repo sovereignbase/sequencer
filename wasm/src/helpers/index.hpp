@@ -78,22 +78,38 @@ std::uint32_t absolute_distance(std::uint32_t left, std::uint32_t right) {
 
 Key key_offset(Key key, std::uint32_t offset);
 
+/**
+ * @brief Return the projected range at a zero-based linked-list position.
+ */
 Range *range_at(State *state, std::uint32_t range_index) {
+  // Unknown states have no projected ranges.
   Range *range = state ? state->first : nullptr;
+  // Walk from the projection head to the requested range index.
   for (std::uint32_t index = 0; range && index < range_index; index++)
+    // Advance one linked range at a time; tombstones are still ranges.
     range = range->next_range;
+  // Return nullptr when the requested index is outside the projection.
   return range;
 }
 
+/**
+ * @brief Return one uint32 lane from a four-lane key.
+ */
 std::uint32_t key_lane(Key key, std::uint32_t lane) {
+  // Lane zero is the first/highest uint32 segment.
   if (lane == 0)
     return key.a;
+  // Lane one is the second uint32 segment.
   if (lane == 1)
     return key.b;
+  // Lane two is the third uint32 segment.
   if (lane == 2)
     return key.c;
+  // Lane three is the fourth/lowest uint32 segment.
   if (lane == 3)
     return key.d;
+  // Invalid lanes return zero instead of crossing the ABI boundary with error
+  // state.
   return 0;
 }
 

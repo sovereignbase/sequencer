@@ -378,9 +378,9 @@ std::uint32_t get_range_id(std::uint32_t range_index,
                            std::uint32_t instance_id_c,
                            std::uint32_t instance_id_d) {
   Range *range =
-      snapshot_range_at(find_state_by_instance_id(instance_id_a, instance_id_b,
-                                                  instance_id_c, instance_id_d),
-                        range_index);
+      range_at(find_state_by_instance_id(instance_id_a, instance_id_b,
+                                         instance_id_c, instance_id_d),
+               range_index);
   if (!range)
     return 0;
   return key_lane(previous_flag ? range->previous_id : range->this_id, lane);
@@ -393,9 +393,9 @@ std::uint32_t get_range_length(std::uint32_t range_index,
                                std::uint32_t instance_id_c,
                                std::uint32_t instance_id_d) {
   Range *range =
-      snapshot_range_at(find_state_by_instance_id(instance_id_a, instance_id_b,
-                                                  instance_id_c, instance_id_d),
-                        range_index);
+      range_at(find_state_by_instance_id(instance_id_a, instance_id_b,
+                                         instance_id_c, instance_id_d),
+               range_index);
   return range ? range->range_length : 0;
 }
 
@@ -406,9 +406,9 @@ std::uint32_t get_range_deleted(std::uint32_t range_index,
                                 std::uint32_t instance_id_c,
                                 std::uint32_t instance_id_d) {
   Range *range =
-      snapshot_range_at(find_state_by_instance_id(instance_id_a, instance_id_b,
-                                                  instance_id_c, instance_id_d),
-                        range_index);
+      range_at(find_state_by_instance_id(instance_id_a, instance_id_b,
+                                         instance_id_c, instance_id_d),
+               range_index);
   return range && range->deleted ? 1 : 0;
 }
 }

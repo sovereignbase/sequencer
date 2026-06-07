@@ -253,8 +253,6 @@ std::uint32_t get_live_item_amount(std::uint32_t instance_id_a,
  *
  * @param target_index Inclusive target index, or UINT32_MAX when unknown.
  * @param range_length Number of entries represented by the patch range.
- * @param consumer_reference JavaScript-owned reference for the first inserted
- * range entry. Tombstone patches carry it for signature consistency.
  * @param deleted_flag Non-zero applies the patch as a tombstone range.
  * @param instance_id_a First uint32 lane of the instance id.
  * @param instance_id_b Second uint32 lane of the instance id.
@@ -271,15 +269,15 @@ std::uint32_t get_live_item_amount(std::uint32_t instance_id_a,
  * @return First touched target index, or UINT32_MAX when the patch is pending.
  */
 EMSCRIPTEN_KEEPALIVE
-std::uint32_t apply(std::uint32_t target_index, std::uint32_t range_length,
-                    std::uint32_t consumer_reference,
-                    std::uint32_t deleted_flag, std::uint32_t instance_id_a,
-                    std::uint32_t instance_id_b, std::uint32_t instance_id_c,
-                    std::uint32_t instance_id_d, std::uint32_t range_id_a,
-                    std::uint32_t range_id_b, std::uint32_t range_id_c,
-                    std::uint32_t range_id_d, std::uint32_t previous_id_a,
-                    std::uint32_t previous_id_b, std::uint32_t previous_id_c,
-                    std::uint32_t previous_id_d) {
+std::uint32_t
+applyLocal(std::uint32_t target_index, std::uint32_t range_length,
+           std::uint32_t deleted_flag, std::uint32_t instance_id_a,
+           std::uint32_t instance_id_b, std::uint32_t instance_id_c,
+           std::uint32_t instance_id_d, std::uint32_t range_id_a,
+           std::uint32_t range_id_b, std::uint32_t range_id_c,
+           std::uint32_t range_id_d, std::uint32_t previous_id_a,
+           std::uint32_t previous_id_b, std::uint32_t previous_id_c,
+           std::uint32_t previous_id_d) {
   State *state = find_state_by_instance_id(instance_id_a, instance_id_b,
                                            instance_id_c, instance_id_d);
 
@@ -295,20 +293,11 @@ std::uint32_t apply(std::uint32_t target_index, std::uint32_t range_length,
       .next_range = nullptr,
       .previous_range = nullptr,
       .range_length = range_length,
-      .consumer_reference = consumer_reference,
+      .consumer_reference = target_index,
       .deleted = deleted_flag > 0,
   };
 
-  if (target_index == UINT32_MAX) {
-    auto previous_range = state->ranges.find(patch_range->previous_id);
-    if (previous_range == state->ranges.end()) {
-      state->pending.insert({patch_range->this_id, patch_range});
-      return UINT32_MAX;
-    }
-
-  } else {
-    find_target_range(target_index, state);
-  }
+  find_target_range(target_index, state);
 
   state->ranges.insert({patch_range->this_id, patch_range});
 

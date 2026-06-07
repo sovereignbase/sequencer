@@ -64,6 +64,7 @@ const classApi = {
   ids: core.ids,
   readId: (state, index) => state.list[index]?.id,
   find: core.find,
+  some: (state, predicate) => state.list.some(predicate),
   snapshot: core.snapshot,
   hydrate: core.hydrate,
   merge: core.merge,

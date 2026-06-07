@@ -57,6 +57,7 @@ export function register({ api, report }) {
         'prepend',
         'delete',
         'find',
+        'some',
         'forEach',
         'merge',
         'snapshot',
@@ -234,6 +235,46 @@ export function register({ api, report }) {
         list.find((entry) => entry.id === 'missing'),
         undefined,
         'find of a missing value was not undefined'
+      )
+    }
+  )
+
+  // forEach() must visit the live projection in visible order with indices.
+  void report.test(
+    'some() searches the current live list projection in visible order',
+    () => {
+      // Build a list whose middle value is the search target.
+      const list = new api.CRList()
+      void list.append([value('a')])
+      void list.append([value('b')])
+      void list.append([value('c')])
+
+      // The predicate receives values in visible order with the right index.
+      const matched = list.some(
+        function (entry, index, target) {
+          // The bound `this` value must be the supplied thisArg.
+          assertEqual(this.marker, true, 'some thisArg not bound')
+
+          // The third argument must be the list under search.
+          assertEqual(target, list, 'some target argument incorrect')
+
+          // The match is the value `b` which must arrive at index 1.
+          return index === 1 && entry.id === 'b'
+        },
+        { marker: true }
+      )
+
+      // some() returns true for a match and false for a miss.
+      assertEqual(matched, true, 'some did not match the expected value')
+      assertEqual(
+        list.some((entry) => entry.id === 'missing'),
+        false,
+        'some of a missing value was not false'
+      )
+      assertEqual(
+        new api.CRList().some(() => true),
+        false,
+        'some of an empty list was not false'
       )
     }
   )

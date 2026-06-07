@@ -77,6 +77,10 @@ function classFind(list, predicate) {
   return list.find(predicate)
 }
 
+function classSome(list, predicate) {
+  return list.some(predicate)
+}
+
 function classInsert(list, index, values, mode = 'before') {
   if (mode === 'after') list.append(values.map(value), index)
   else list.prepend(values.map(value), index)
@@ -148,6 +152,7 @@ const classApi = {
   ids: classIds,
   readId: (list, index) => list.get(index)?.id,
   find: classFind,
+  some: classSome,
   snapshot: (list) => list.toJSON(),
   hydrate: (snapshot) => new CRList(snapshot),
   merge: (list, artifact) => {

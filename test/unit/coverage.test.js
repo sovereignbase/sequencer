@@ -75,6 +75,24 @@ test('unit: CRList public surface and events', () => {
     new CRList().find(() => true),
     undefined
   )
+  const matched = list.some(
+    function (value, index, target) {
+      assert.equal(this.marker, true)
+      assert.equal(target, list)
+      if (value.id === 'mutated') assert.equal(index, 1)
+      return value.id === 'mutated'
+    },
+    { marker: true }
+  )
+  assert.equal(matched, true)
+  assert.equal(
+    list.some((value) => value.id === 'missing'),
+    false
+  )
+  assert.equal(
+    new CRList().some(() => true),
+    false
+  )
 
   const forEachIds = []
   list.forEach(

@@ -47,6 +47,23 @@ function findBenchmark(ops, definition) {
   })
 }
 
+function someBenchmark(ops, definition) {
+  if (!supports(ops, 'create', 'size', 'readId', 'some')) return undefined
+
+  const state = ops.create(definition.n)
+  const id = definition.name.includes('missing')
+    ? 'class:missing'
+    : ops.readId(
+        state,
+        safeIndex(ops, state, positionFromName(definition.name))
+      )
+  return measured(() => {
+    for (let op = 0; op < definition.ops; op++)
+      ops.some(state, (value) => value.id === id)
+    return definition.ops
+  })
+}
+
 function iterateBenchmark(ops, definition) {
   if (!supports(ops, 'create', 'ids')) return undefined
 
@@ -359,6 +376,7 @@ export function runClass(adapter, definition) {
   if (definition.name.startsWith('read /'))
     return readBenchmark(ops, definition)
   if (definition.name.startsWith('find')) return findBenchmark(ops, definition)
+  if (definition.name.startsWith('some')) return someBenchmark(ops, definition)
   if (
     definition.name.includes('iterate') ||
     definition.name.includes('collect')

@@ -26,6 +26,10 @@
       "require": "./dist/index.cjs",
       "default": "./dist/index.js"
     },
+    "./wasm": {
+      "types": "./wasm/dist/index.d.mts",
+      "import": "./wasm/dist/index.mjs"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -65,22 +69,22 @@
     "@commitlint/config-conventional": "^21.0.2",
     "@playwright/test": "^1.60.0",
     "@sovereignbase/frontier-store": "^1.0.0",
-    "@types/node": "^25.9.1",
+    "@types/node": "^25.9.2",
     "c8": "^11.0.0",
-    "deno": "^2.8.1",
+    "deno": "^2.8.2",
     "edge-runtime": "^4.0.1",
-    "esbuild": "^0.27.3",
+    "esbuild": "^0.28.0",
     "fast-glob": "^3.3.3",
     "husky": "^9.1.7",
-    "json-joy": "^18.24.0",
+    "json-joy": "^18.28.0",
     "playwright": "^1.60.0",
     "prettier": "^3.8.3",
     "terser": "^5.48.0",
-    "tsdown": "^0.22.1",
+    "tsdown": "^0.22.2",
     "typedoc": "^0.28.19",
     "typescript": "^6.0.3",
-    "unrun": "^0.3.0",
-    "wrangler": "^4.95.0",
+    "unrun": "^0.3.1",
+    "wrangler": "^4.98.0",
     "yjs": "^13.6.31",
     "@msgpack/msgpack": "^3.1.3"
   },

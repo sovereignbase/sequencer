@@ -1,5 +1,7 @@
 import { brotliCompressSync, gzipSync } from 'node:zlib'
 import { encode } from '@msgpack/msgpack'
+import { fileURLToPath } from 'node:url'
+import path from 'node:path'
 import {
   __acknowledge,
   __create,
@@ -447,5 +449,29 @@ function crlistRows() {
   ]
 }
 
-printComparableTable(comparableRows())
-printCrlistTable(crlistRows())
+export function measureComparableByteSize() {
+  return comparableRows()
+}
+
+export function measureCrlistByteSize() {
+  return crlistRows()
+}
+
+export function measureByteSize() {
+  return {
+    comparable: measureComparableByteSize(),
+    crlist: measureCrlistByteSize(),
+  }
+}
+
+function main() {
+  const rows = measureByteSize()
+  printComparableTable(rows.comparable)
+  printCrlistTable(rows.crlist)
+}
+
+if (
+  process.argv[1] &&
+  fileURLToPath(import.meta.url) === path.resolve(process.argv[1])
+)
+  main()

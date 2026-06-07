@@ -66,6 +66,59 @@ function combineLibraryResults(messages) {
   }))
 }
 
+function byLibraryAndScope(rows, library, scope) {
+  return rows.find((row) => row.library === library && row.scope === scope)
+}
+
+function sizeRowsFromBundle(rows, metric, scope) {
+  const crlist = byLibraryAndScope(rows, 'crlist', scope)
+  return {
+    group: 'bundle-size',
+    name: `${metric} / ${scope}`,
+    n: 0,
+    ops: 0,
+    unit: 'KiB',
+    crlist: crlist?.[metric],
+    yjs: byLibraryAndScope(rows, 'yjs', 'array-list')?.[metric],
+    jsonJoy: byLibraryAndScope(rows, 'jsonJoy', 'array-model')?.[metric],
+    automerge: byLibraryAndScope(rows, 'automerge', 'list')?.[metric],
+  }
+}
+
+async function sizeRows() {
+  const [{ measureBundleSize }, { measureComparableByteSize }] =
+    await Promise.all([
+      import('./bundle-size/index.js'),
+      import('./byte-size/index.js'),
+    ])
+  const bundle = await measureBundleSize()
+  const bytes = measureComparableByteSize().map((row) => ({
+    group: 'byte-size',
+    name: `${row.kind} / ${row.scenario}`,
+    n: row.live,
+    ops: 0,
+    unit: 'KiB',
+    crlist: row.crlist,
+    yjs: row.yjs,
+    jsonJoy: row['json-joy'],
+    automerge: row.automerge,
+  }))
+  return [
+    ...['raw', 'minified', 'gzip', 'brotli'].flatMap((metric) => [
+      sizeRowsFromBundle(bundle, metric, 'core-list'),
+      sizeRowsFromBundle(bundle, metric, 'class-list'),
+    ]),
+    ...bytes,
+  ]
+}
+
+async function benchmarkRows() {
+  return [
+    ...combineLibraryResults(await runLibraryWorkers()),
+    ...(await sizeRows()),
+  ]
+}
+
 async function main() {
   // Detect the machine-readable JSON mode used by the README updater.
   const emitJson = process.argv.includes('--json')
@@ -73,13 +126,12 @@ async function main() {
   // In JSON mode, emit only the structured rows and runtime metadata so the
   // caller can render them; suppress the human-readable console table.
   if (emitJson) {
-    const rows = combineLibraryResults(await runLibraryWorkers())
     process.stdout.write(
       JSON.stringify({
         node: process.version,
         platform: process.platform,
         arch: process.arch,
-        rows,
+        rows: await benchmarkRows(),
       })
     )
     return
@@ -93,8 +145,7 @@ async function main() {
   console.log(`benchmarks=${BENCHMARKS.length}`)
   console.log('')
   const start = process.hrtime.bigint()
-  const rows = combineLibraryResults(await runLibraryWorkers())
-  printTable(rows)
+  printTable(await benchmarkRows())
   const totalMs = Number(process.hrtime.bigint() - start) / 1_000_000
   console.log('')
   console.log(`total wall time: ${formatDuration(totalMs)} ms`)

@@ -101,9 +101,9 @@ export function register({ api, report }) {
     )
   })
 
-  // find() and forEach() must observe the same projection as materialization.
+  // find(), some(), and forEach() must observe the same projection as materialization.
   void report.test(
-    'find() and forEach() observe the same projection as materialization',
+    'find(), some(), and forEach() observe the same projection as materialization',
     () => {
       // Build a list via the class so find/forEach are available.
       const list = new api.CRList()
@@ -127,6 +127,11 @@ export function register({ api, report }) {
         const target = materialized[index]
         const found = list.find((entry, at) => at === index)
         assertEqual(found.id, target, 'find diverged from reads')
+        assertEqual(
+          list.some((entry, at) => at === index && entry.id === target),
+          true,
+          'some diverged from reads'
+        )
       }
     }
   )

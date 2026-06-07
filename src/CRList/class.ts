@@ -17,10 +17,11 @@ import {
 /**
  * A convergent replicated list.
  *
- * Iteration, `find()`, and `forEach()` expose the same live value references. Mutating returned objects
- * directly can mutate replica state without producing a CRDT delta, so callers
- * must isolate values before out-of-band mutation. Local mutations emit `delta`
- * and `change` events; remote merges emit `change` events.
+ * Iteration, `find()`, `some()`, and `forEach()` expose the same live value
+ * references. Mutating returned objects directly can mutate replica state
+ * without producing a CRDT delta, so callers must isolate values before
+ * out-of-band mutation. Local mutations emit `delta` and `change` events;
+ * remote merges emit `change` events.
  *
  * @typeParam T - The value type stored in the list.
  */
@@ -223,13 +224,21 @@ export class CRList<T> {
     return undefined
   }
 
+  /**
+   * Tests whether any live value matches a predicate in index order.
+   *
+   * Predicate values are live references. Mutating them directly can mutate the
+   * list without emitting a delta.
+   *
+   * @param predicate - Function to test each live value.
+   * @param thisArg - Optional `this` value for the predicate.
+   */
   some(
     predicate: (this: unknown, value: T, index: number, list: this) => unknown,
     thisArg?: unknown
-  ): T | undefined {
-    const start = this.state.currentBlock
+  ): boolean {
     // Start from the first block.
-    let block = start
+    let block = this.state.firstBlock
 
     // Track public list index while scanning block items.
     let index = 0
@@ -244,7 +253,7 @@ export class CRList<T> {
             ? predicate(value, index, this)
             : predicate.call(thisArg, value, index, this)
         )
-          return value
+          return true
         index++
       }
 
@@ -252,27 +261,8 @@ export class CRList<T> {
       block = block.nextBlock
     }
 
-    block = start
-    // Walk live blocks in projection order.
-    while (block) {
-      // Test every live value in the current block.
-      for (let offset = 0; offset < block.items.length; offset++) {
-        const value = block.items[offset]
-        if (
-          thisArg === undefined
-            ? predicate(value, index, this)
-            : predicate.call(thisArg, value, index, this)
-        )
-          return value
-        index++
-      }
-
-      // Continue with the next projection block.
-      block = block.previousBlock
-    }
-
     // No value matched the predicate.
-    return undefined
+    return false
   }
 
   /**

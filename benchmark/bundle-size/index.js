@@ -244,17 +244,26 @@ async function measure(entry) {
   }
 }
 
-async function main() {
+export async function measureBundleSize() {
   await rm(workdir, { recursive: true, force: true })
   await mkdir(workdir, { recursive: true })
   try {
     const rows = []
     for (const entry of entries) rows.push(await measure(entry))
-    printTable(rows)
-    printWinners(rows)
+    return rows
   } finally {
     await rm(workdir, { recursive: true, force: true })
   }
 }
 
-await main()
+async function main() {
+  const rows = await measureBundleSize()
+  printTable(rows)
+  printWinners(rows)
+}
+
+if (
+  process.argv[1] &&
+  fileURLToPath(import.meta.url) === path.resolve(process.argv[1])
+)
+  await main()

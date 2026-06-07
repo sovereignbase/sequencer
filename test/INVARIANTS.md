@@ -19,6 +19,7 @@ under much larger seeded workloads and is intentionally excluded from normal CI.
 - Public methods do not expose internal mutable replica state unless explicitly intended.
 - Iteration returns the current live list projection.
 - `find()` searches the current live list projection in visible order.
+- `some()` searches the current live list projection in visible order.
 - `forEach()` visits the current live list projection in visible order.
 - JSON serialization produces a detached snapshot representation.
 - Snapshot events expose detached snapshot payloads.
@@ -49,7 +50,7 @@ under much larger seeded workloads and is intentionally excluded from normal CI.
 - The live projection order is deterministic.
 - Replica size equals the number of visible values.
 - Iteration order equals materialization order.
-- `find()` and `forEach()` observe the same projection as materialization.
+- `find()`, `some()`, and `forEach()` observe the same projection as materialization.
 - Snapshot hydration recreates the same live projection.
 - Garbage collection does not change the live projection.
 - Duplicate delta delivery does not change the live projection after first application.

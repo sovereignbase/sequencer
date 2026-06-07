@@ -153,7 +153,18 @@ void resolve_order_for(std::uint32_t instance_id_a, std::uint32_t instance_id_b,
         if (right)
           right->previous_range = curr;
       } else {
-        // normaalihaara sijoittaa currentin
+        // Normal siblings are ordered from smallest id to largest id.
+        curr->previous_range = state->ranges.find(curr->previous_id)->second;
+        Range *right = curr->previous_range->next_range;
+        // Move right while the right sibling must stay left of curr.
+        while (right && right->previous_id == curr->previous_id &&
+               key_is_before(right->this_id, curr->this_id))
+          curr->previous_range = right, right = right->next_range;
+        // First larger or non-sibling range becomes curr's right neighbor.
+        curr->next_range = right;
+        curr->previous_range->next_range = curr;
+        if (right)
+          right->previous_range = curr;
       }
 
       if (prev)

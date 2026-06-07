@@ -450,6 +450,24 @@ std::uint32_t get_range_length(std::uint32_t range_index,
 }
 
 /**
+ * @brief Return the JavaScript value reference for a projected range.
+ */
+EMSCRIPTEN_KEEPALIVE
+std::uint32_t get_range_consumer_reference(std::uint32_t range_index,
+                                           std::uint32_t instance_id_a,
+                                           std::uint32_t instance_id_b,
+                                           std::uint32_t instance_id_c,
+                                           std::uint32_t instance_id_d) {
+  // Resolve the projected range by linked-list index.
+  Range *range =
+      range_at(find_state_by_instance_id(instance_id_a, instance_id_b,
+                                         instance_id_c, instance_id_d),
+               range_index);
+  // Missing ranges point at zero so the ABI stays scalar-only.
+  return range ? range->consumer_reference : 0;
+}
+
+/**
  * @brief Return whether a projected range is tombstoned.
  */
 EMSCRIPTEN_KEEPALIVE

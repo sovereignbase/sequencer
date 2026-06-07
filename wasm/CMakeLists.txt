@@ -28,6 +28,7 @@ if(EMSCRIPTEN)
       "-sMODULARIZE=1"
       "-sEXPORT_ES6=1"
       "-sENVIRONMENT=web,worker,node"
+      "-sWASM_ASYNC_COMPILATION=0"
       "-sALLOW_MEMORY_GROWTH=1"
       "-sFILESYSTEM=0"
       "-sDYNAMIC_EXECUTION=0"

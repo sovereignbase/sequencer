@@ -136,7 +136,22 @@ void resolve_order_for(std::uint32_t instance_id_a, std::uint32_t instance_id_b,
     if (!curr->previous_range ||
         curr->previous_id != curr->previous_range->this_id) {
       if (key_is_root(curr->previous_id)) {
-        // root-haara sijoittaa currentin
+        // Root siblings are ordered from largest id to smallest id.
+        Range *right = state->first;
+        // Root insert starts before the current head until the walk moves it.
+        curr->previous_range = nullptr;
+        // Move right while the right sibling must stay left of curr.
+        while (right && key_is_root(right->previous_id) &&
+               key_is_before(curr->this_id, right->this_id))
+          curr->previous_range = right, right = right->next_range;
+        // First smaller or non-root range becomes curr's right neighbor.
+        curr->next_range = right;
+        // If the walk moved, link the larger left sibling to curr.
+        if (curr->previous_range)
+          curr->previous_range->next_range = curr;
+        // If there is a right neighbor, link it back to curr.
+        if (right)
+          right->previous_range = curr;
       } else {
         // normaalihaara sijoittaa currentin
       }

@@ -14,6 +14,32 @@
 static std::unordered_map<Key, State, KeyHash> states_by_instance_id;
 
 /**
+ * @brief Allocate one range metadata node from raw uint32 ABI values.
+ */
+Range *create_range(std::uint32_t range_length,
+                    std::uint32_t consumer_reference,
+                    std::uint32_t deleted_flag, std::uint32_t range_id_a,
+                    std::uint32_t range_id_b, std::uint32_t range_id_c,
+                    std::uint32_t range_id_d, std::uint32_t previous_id_a,
+                    std::uint32_t previous_id_b,
+                    std::uint32_t previous_id_c,
+                    std::uint32_t previous_id_d) {
+  return new Range{.this_id = {.a = range_id_a,
+                               .b = range_id_b,
+                               .c = range_id_c,
+                               .d = range_id_d},
+                   .previous_id = {.a = previous_id_a,
+                                   .b = previous_id_b,
+                                   .c = previous_id_c,
+                                   .d = previous_id_d},
+                   .next_range = nullptr,
+                   .previous_range = nullptr,
+                   .range_length = range_length,
+                   .consumer_reference = consumer_reference,
+                   .deleted = deleted_flag > 0};
+}
+
+/**
  * @brief Find the mutable state for one four-lane instance id.
  *
  * @param instance_id_a First uint32 lane of the instance id.
@@ -244,6 +270,47 @@ bool key_is_before(Key left, Key right) {
 bool key_is_root(Key key) {
   // Root is represented by the zero id in every lane.
   return key.a == 0 && key.b == 0 && key.c == 0 && key.d == 0;
+}
+
+/**
+ * @brief Insert a root-anchored range among root siblings.
+ *
+ * Root siblings are ordered from largest id to smallest id.
+ */
+void insert_root_range(Range *range, State *state) {
+  Range *right = state->first;
+  range->previous_range = nullptr;
+  while (right && key_is_root(right->previous_id) &&
+         key_is_before(range->this_id, right->this_id))
+    range->previous_range = right, right = right->next_range;
+  range->next_range = right;
+  if (range->previous_range)
+    range->previous_range->next_range = range;
+  else
+    state->first = range;
+  if (right)
+    right->previous_range = range;
+  else
+    state->last = range;
+}
+
+/**
+ * @brief Insert a non-root range after its previous_id anchor.
+ *
+ * Normal siblings are ordered from smallest id to largest id.
+ */
+void insert_regular_range(Range *range, State *state) {
+  range->previous_range = state->ranges.find(range->previous_id)->second;
+  Range *right = range->previous_range->next_range;
+  while (right && right->previous_id == range->previous_id &&
+         key_is_before(right->this_id, range->this_id))
+    range->previous_range = right, right = right->next_range;
+  range->next_range = right;
+  range->previous_range->next_range = range;
+  if (right)
+    right->previous_range = range;
+  else
+    state->last = range;
 }
 
 /**

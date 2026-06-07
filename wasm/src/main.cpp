@@ -86,29 +86,11 @@ void add_range_to(std::uint32_t range_length, std::uint32_t consumer_reference,
   State *state = find_state_by_instance_id(instance_id_a, instance_id_b,
                                            instance_id_c, instance_id_d);
 
-  // Allocate the new range node; wasm owns range metadata, not values.
-  Range *range = new Range{
-      // Store the first virtual id represented by this contiguous range.
-      .this_id = {.a = range_id_a,
-                  .b = range_id_b,
-                  .c = range_id_c,
-                  .d = range_id_d},
-      // Store the stable CRDT anchor supplied by JavaScript.
-      .previous_id = {.a = previous_id_a,
-                      .b = previous_id_b,
-                      .c = previous_id_c,
-                      .d = previous_id_d},
-      // Appending starts with no successor.
-      .next_range = nullptr,
-      // The current tail is the predecessor in ingestion order.
-      .previous_range = state->current,
-      // Store how many virtual entries this range covers.
-      .range_length = range_length,
-      // Store JavaScript's reference to the first consumer value.
-      .consumer_reference = consumer_reference,
-      // Non-zero deleted_flag means the range is appended as a tombstone.
-      .deleted = deleted_flag > 0,
-  };
+  Range *range =
+      create_range(range_length, consumer_reference, deleted_flag, range_id_a,
+                   range_id_b, range_id_c, range_id_d, previous_id_a,
+                   previous_id_b, previous_id_c, previous_id_d);
+  range->previous_range = state->current;
   // Index the range by its first virtual id for later anchor lookup.
   state->ranges.insert({range->this_id, range});
 
@@ -172,40 +154,6 @@ void resolve_order_for(std::uint32_t instance_id_a, std::uint32_t instance_id_b,
     // Only move ranges whose current left neighbor is not their anchor.
     if (!curr->previous_range ||
         curr->previous_id != curr->previous_range->this_id) {
-      // Root anchored ranges are sorted among other root siblings.
-      if (key_is_root(curr->previous_id)) {
-        // Root siblings are ordered from largest id to smallest id.
-        Range *right = state->first;
-        // Root insert starts before the current head until the walk moves it.
-        curr->previous_range = nullptr;
-        // Move right while the right sibling must stay left of curr.
-        while (right && key_is_root(right->previous_id) &&
-               key_is_before(curr->this_id, right->this_id))
-          curr->previous_range = right, right = right->next_range;
-        // First smaller or non-root range becomes curr's right neighbor.
-        curr->next_range = right;
-        // If the walk moved, link the larger left sibling to curr.
-        if (curr->previous_range)
-          curr->previous_range->next_range = curr;
-        // If there is a right neighbor, link it back to curr.
-        if (right)
-          right->previous_range = curr;
-        // Non-root ranges are sorted after their previous_id anchor.
-      } else {
-        // Normal siblings are ordered from smallest id to largest id.
-        curr->previous_range = state->ranges.find(curr->previous_id)->second;
-        Range *right = curr->previous_range->next_range;
-        // Move right while the right sibling must stay left of curr.
-        while (right && right->previous_id == curr->previous_id &&
-               key_is_before(right->this_id, curr->this_id))
-          curr->previous_range = right, right = right->next_range;
-        // First larger or non-sibling range becomes curr's right neighbor.
-        curr->next_range = right;
-        curr->previous_range->next_range = curr;
-        if (right)
-          right->previous_range = curr;
-      }
-
       // Close the old gap from which curr was moved.
       if (prev)
         prev->next_range = next;
@@ -215,6 +163,11 @@ void resolve_order_for(std::uint32_t instance_id_a, std::uint32_t instance_id_b,
 
       // Link the old right neighbor back to the old left neighbor.
       next->previous_range = prev;
+
+      if (key_is_root(curr->previous_id))
+        insert_root_range(curr, state);
+      else
+        insert_regular_range(curr, state);
     }
 
     // Continue from the old right neighbor captured before relinking.
@@ -333,29 +286,10 @@ void applyLocal(std::uint32_t target_index, std::uint32_t range_length,
   State *state = find_state_by_instance_id(instance_id_a, instance_id_b,
                                            instance_id_c, instance_id_d);
 
-  // Allocate the patch range from the uint32 ABI values.
-  Range *patch_range = new Range{
-      // Store the first virtual id of the inserted or tombstoned run.
-      .this_id = {.a = range_id_a,
-                  .b = range_id_b,
-                  .c = range_id_c,
-                  .d = range_id_d},
-      // Store the stable anchor carried by the operation.
-      .previous_id = {.a = previous_id_a,
-                      .b = previous_id_b,
-                      .c = previous_id_c,
-                      .d = previous_id_d},
-      // Splice helper fills the forward link.
-      .next_range = nullptr,
-      // Splice helper fills the backward link.
-      .previous_range = nullptr,
-      // Store how many entries the patch represents.
-      .range_length = range_length,
-      // Store JavaScript's reference for the first inserted value.
-      .consumer_reference = consumer_reference,
-      // Store operation mode as the range tombstone marker.
-      .deleted = deleted_flag > 0,
-  };
+  Range *patch_range =
+      create_range(range_length, consumer_reference, deleted_flag, range_id_a,
+                   range_id_b, range_id_c, range_id_d, previous_id_a,
+                   previous_id_b, previous_id_c, previous_id_d);
 
   // Local patches know their visible target index, so seek directly.
   find_target_range(target_index, state);
@@ -377,65 +311,35 @@ applyRemote(std::uint32_t range_length, std::uint32_t deleted_flag,
             std::uint32_t range_id_d, std::uint32_t previous_id_a,
             std::uint32_t previous_id_b, std::uint32_t previous_id_c,
             std::uint32_t previous_id_d) {
-  // Resolve the state that receives the local patch.
   State *state = find_state_by_instance_id(instance_id_a, instance_id_b,
                                            instance_id_c, instance_id_d);
 
-  // Allocate the patch range from the uint32 ABI values.
-  Range *patch_range = new Range{
-      // Store the first virtual id of the inserted or tombstoned run.
-      .this_id = {.a = range_id_a,
-                  .b = range_id_b,
-                  .c = range_id_c,
-                  .d = range_id_d},
-      // Store the stable anchor carried by the operation.
-      .previous_id = {.a = previous_id_a,
-                      .b = previous_id_b,
-                      .c = previous_id_c,
-                      .d = previous_id_d},
-      // Splice helper fills the forward link.
-      .next_range = nullptr,
-      // Splice helper fills the backward link.
-      .previous_range = nullptr,
-      // Store how many entries the patch represents.
-      .range_length = range_length,
-      // Store JavaScript's reference for the first inserted value.
-      .consumer_reference = consumer_reference,
-      // Store operation mode as the range tombstone marker.
-      .deleted = deleted_flag > 0,
-  };
+  Range *patch_range =
+      create_range(range_length, consumer_reference, deleted_flag, range_id_a,
+                   range_id_b, range_id_c, range_id_d, previous_id_a,
+                   previous_id_b, previous_id_c, previous_id_d);
 
-  if (key_is_root(curr->previous_id)) {
-    // Root siblings are ordered from largest id to smallest id.
-    Range *right = state->first;
-    // Root insert starts before the current head until the walk moves it.
-    curr->previous_range = nullptr;
-    // Move right while the right sibling must stay left of curr.
-    while (right && key_is_root(right->previous_id) &&
-           key_is_before(curr->this_id, right->this_id))
-      curr->previous_range = right, right = right->next_range;
-    // First smaller or non-root range becomes curr's right neighbor.
-    curr->next_range = right;
-    // If the walk moved, link the larger left sibling to curr.
-    if (curr->previous_range)
-      curr->previous_range->next_range = curr;
-    // If there is a right neighbor, link it back to curr.
-    if (right)
-      right->previous_range = curr;
-    // Non-root ranges are sorted after their previous_id anchor.
-  } else {
-    // Normal siblings are ordered from smallest id to largest id.
-    curr->previous_range = state->ranges.find(curr->previous_id)->second;
-    Range *right = curr->previous_range->next_range;
-    // Move right while the right sibling must stay left of curr.
-    while (right && right->previous_id == curr->previous_id &&
-           key_is_before(right->this_id, curr->this_id))
-      curr->previous_range = right, right = right->next_range;
-    // First larger or non-sibling range becomes curr's right neighbor.
-    curr->next_range = right;
-    curr->previous_range->next_range = curr;
-    if (right)
-      right->previous_range = curr;
+  if (!key_is_root(patch_range->previous_id) &&
+      state->ranges.find(patch_range->previous_id) == state->ranges.end()) {
+    state->pending.insert({patch_range->this_id, patch_range});
+    return std::uint32_t(-1);
   }
+
+  state->ranges.insert({patch_range->this_id, patch_range});
+  if (key_is_root(patch_range->previous_id))
+    insert_root_range(patch_range, state);
+  else
+    insert_regular_range(patch_range, state);
+  if (!patch_range->deleted)
+    state->size += patch_range->range_length;
+
+  state->index = 0;
+  state->current = state->first;
+  while (state->current != patch_range) {
+    if (!state->current->deleted)
+      state->index += state->current->range_length;
+    state->current = state->current->next_range;
+  }
+  return state->index;
 }
 }

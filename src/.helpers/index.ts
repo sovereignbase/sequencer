@@ -1,80 +1,151 @@
-/** Rebuilds the block-start index cache from linked projection state. */
-export { rebuildBlocksByIndex } from './rebuildBlocksByIndex/index.js'
+import type {
+  CRListSnapshotRange,
+  CRListState,
+  Uint32UuidV7,
+} from '../.types/type.js'
+import createModule, { type MainModule } from '../../wasm/dist/crlist_wasm.mjs'
 
-/** Moves the replica cursor to a requested live index. */
-export { seekCursorToIndex } from './seekCursorToIndex/index.js'
+export const wasmModule = createModule() as unknown as MainModule
 
-/** Rebuilds linked projection order from CRDT previousBlock buckets. */
-export { rebuildLiveProjection } from './rebuildLiveProjection/index.js'
+function isUint32(part: unknown): part is number {
+  return (
+    Number.isSafeInteger(part) &&
+    (part as number) >= 0 &&
+    (part as number) <= 4_294_967_295
+  )
+}
 
-/** Converts snapshot/delta blocks into mutable local state blocks. */
-export { createStateBlock } from './createStateBlock/index.js'
+export function validateUint32UuidV7(value: unknown): value is Uint32UuidV7 {
+  return Array.isArray(value) && value.length === 4 && value.every(isUint32)
+}
 
-/** Adds a block to item-id and previousBlock indexes. */
-export { attachBlockToIndexes } from './attachBlockToIndexes/index.js'
+export function isSafeIndex(
+  index: unknown,
+  liveAmount: number,
+  allowEnd = false
+): index is number {
+  return (
+    Number.isSafeInteger(index) &&
+    (index as number) >= 0 &&
+    (allowEnd
+      ? (index as number) <= liveAmount
+      : (index as number) < liveAmount)
+  )
+}
 
-/** Installs the first block into an empty replica. */
-export { attachBlockToEmptyReplica } from './attachBlockToEmptyReplica/index.js'
+export function idAtTick(id: Uint32UuidV7, tick: number): Uint32UuidV7 {
+  // Add the local clock tick to the lowest uint32 lane.
+  let next = id[3] + tick
+  // Keep only the low 32 bits for lane d.
+  const d = next >>> 0
+  // Add d's overflow carry into lane c.
+  next = id[2] + Math.floor(next / 4_294_967_296)
+  // Keep only the low 32 bits for lane c.
+  const c = next >>> 0
+  // Add c's overflow carry into lane b.
+  next = id[1] + Math.floor(next / 4_294_967_296)
+  // Keep only the low 32 bits for lane b.
+  const b = next >>> 0
+  // Add b's overflow carry into lane a.
+  next = id[0] + Math.floor(next / 4_294_967_296)
+  // Return the four uint32 lanes after advancing by tick.
+  return [next >>> 0, b, c, d]
+}
 
-/** Removes a block from item-id and previousBlock indexes. */
-export { detachBlockFromIndexes } from './detachBlockFromIndexes/index.js'
+export function compareUint32UuidV7(
+  left: Uint32UuidV7,
+  right: Uint32UuidV7
+): number {
+  for (let index = 0; index < 4; index++) {
+    if (left[index] < right[index]) return -1
+    if (left[index] > right[index]) return 1
+  }
+  return 0
+}
 
-/** Deletes a full live block and records its tombstones. */
-export { deleteBlock } from './deleteBlock/index.js'
+export function distanceBetweenUint32UuidV7(
+  left: Uint32UuidV7,
+  right: Uint32UuidV7
+): number {
+  let borrow = 0
+  const distance = [0, 0, 0, 0]
 
-/** Reparents a block by changing its stable previousBlock id. */
-export { changePreviousBlockOf } from './changePreviousBlockOf/index.js'
+  for (let index = 3; index >= 0; index--) {
+    let part = right[index] - left[index] - borrow
+    if (part < 0) {
+      part += 4_294_967_296
+      borrow = 1
+    } else {
+      borrow = 0
+    }
+    distance[index] = part
+  }
 
-/** Links a block between two projection neighbours. */
-export { linkBlockBetween } from './linkBlockBetween/index.js'
+  return distance[3]
+}
 
-/** Fast-path splice for a simple child insert. */
-export { trySpliceChildInsert } from './trySpliceChildInsert/index.js'
+export function snapshotRangeEnd(
+  range: CRListSnapshotRange<unknown>
+): Uint32UuidV7 {
+  return idAtTick(range.id, (range.items?.length ?? range.length ?? 1) - 1)
+}
 
-/** Fast-path splice for an inserted parent and reparented child. */
-export { trySpliceInsertedParent } from './trySpliceInsertedParent/index.js'
+export function getPreviousRangeId<T>(
+  replica: CRListState<T>,
+  index: number
+): Uint32UuidV7 {
+  if (index <= 0) return [0, 0, 0, 0]
 
-/** Fast-path splice for tombstone-backed replacements. */
-export { trySpliceReplacement } from './trySpliceReplacement/index.js'
+  const consumerReference = wasmModule._get_consumer_reference_of(
+    index - 1,
+    ...replica.instanceId
+  )
+  let valueOffset = 0
 
-/** Fast-path splice for concurrent sibling-parent inserts. */
-export { trySpliceSiblingParentInsert } from './trySpliceSiblingParentInsert/index.js'
+  for (const range of replica.ranges) {
+    if (!range.items) continue
+    const nextOffset = valueOffset + range.items.length
+    if (consumerReference < nextOffset)
+      return idAtTick(range.id, consumerReference - valueOffset)
+    valueOffset = nextOffset
+  }
 
-/** Fast-path splice for concurrent sibling inserts. */
-export { trySpliceSiblingInsert } from './trySpliceSiblingInsert/index.js'
+  return [0, 0, 0, 0]
+}
 
-/** Allocates the next local block start id. */
-export { getBlockStartId } from './getBlockStartId/index.js'
+export function validateSnapshotRange<T>(
+  range: unknown
+): range is CRListSnapshotRange<T> {
+  if (!range || typeof range !== 'object') return false
+  const candidate = range as Partial<CRListSnapshotRange<T>>
+  const length = candidate.items?.length ?? candidate.length ?? 0
+  return (
+    validateUint32UuidV7(candidate.id) &&
+    validateUint32UuidV7(candidate.previousRangeId) &&
+    (Array.isArray(candidate.items) || candidate.items === undefined) &&
+    isUint32(length) &&
+    length > 0
+  )
+}
 
-/** Resolves a block's current live start index. */
-export { getBlockStartIndex } from './getBlockStartIndex/index.js'
-
-/** Resolves a block's final virtual item id. */
-export { getBlockEndId } from './getBlockEndId/index.js'
-
-/** Resolves the live index after a virtual item id. */
-export { getIndexAfterBlockId } from './getIndexAfterBlockId/index.js'
-
-/** Splits a block into left and right block state. */
-export { splitBlock } from './splitBlock/index.js'
-
-/** Splits the cursor so it starts at a target index. */
-export { splitCursorAtIndex } from './splitCursorAtIndex/index.js'
-
-/** Splits the cursor so insertion after an index is block-aligned. */
-export { splitCursorAfterIndex } from './splitCursorAfterIndex/index.js'
-
-/** Filters a received block down to unseen live runs. */
-export { sliceBlockIntoUnseenBlocks } from './sliceBlockIntoUnseenBlocks/index.js'
-
-/** Deletes one virtual item id, splitting blocks as needed. */
-export { deleteItemById } from './deleteItemById/index.js'
-
-/** Writes a block into a local index-keyed change patch. */
-export { writeBlockChange } from './writeBlockChange/index.js'
-
-/** Chooses the nearest of three numeric cursor candidates. */
-export { nearestOf3Numbers } from './nearestOf3Numbers/index.js'
-
-/** Queries and records compact deleted-id ranges. */
-export { isDeleted, markDeletedRange } from './deletedRanges/index.js'
+export function generateSnapshotRange<T>(
+  replica: CRListState<T>,
+  items: Array<T> | undefined,
+  previousRangeId: Uint32UuidV7,
+  length = items?.length ?? 0
+): CRListSnapshotRange<T> {
+  const range = items
+    ? {
+        id: idAtTick(replica.instanceId, replica.clock),
+        items,
+        previousRangeId,
+      }
+    : {
+        id: idAtTick(replica.instanceId, replica.clock),
+        items,
+        length,
+        previousRangeId,
+      }
+  replica.clock += length
+  return range
+}

@@ -301,6 +301,7 @@ void applyLocal(std::uint32_t target_index, std::uint32_t range_length,
   splice_range_at_current(target_index, patch_range, state, deleted_flag > 0);
 }
 
+// MERGE
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t
 applyRemote(std::uint32_t range_length, std::uint32_t deleted_flag,
@@ -352,4 +353,6 @@ applyRemote(std::uint32_t range_length, std::uint32_t deleted_flag,
   }
   return state->index;
 }
+
+// SNAPSHOT
 }

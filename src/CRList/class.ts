@@ -6,13 +6,20 @@ import type {
   CRListDelta,
   CRListAck,
 } from '../.types/type.js'
-import { __create, __read, __update, __delete } from '../core/crud/index.js'
+import {
+  __create,
+  __read,
+  __update,
+  __delete,
+  __size,
+} from '../core/crud/index.js'
 import {
   __merge,
   __acknowledge,
   __garbageCollect,
   __snapshot,
 } from '../core/mags/index.js'
+import { wasmModule } from '../.helpers/index.js'
 
 /**
  * A convergent replicated list.
@@ -67,7 +74,7 @@ export class CRList<T> {
    */
   get size(): number {
     // Size is stored directly on mutable replica state.
-    return this.state.size
+    return __size<T>(this.state)
   }
 
   /**
@@ -78,7 +85,7 @@ export class CRList<T> {
    * @param index - The index to read.
    */
   get(index: number): T | undefined {
-    return __read(index, this.state)
+    return __read<T>(index, this.state)
   }
 
   /**
@@ -123,8 +130,7 @@ export class CRList<T> {
     const { delta, change } = result
 
     // Emit local delta for gossip when data was actually produced.
-    if (delta.blocks?.length || delta.deletedRuns?.length)
-      void this.emitCRListEvent('delta', delta)
+    if (delta.length) void this.emitCRListEvent('delta', delta)
 
     // Emit local visible projection patch.
     if (change) void this.emitCRListEvent('change', change)
@@ -140,7 +146,7 @@ export class CRList<T> {
   append(values: Array<T>, afterIndex?: number): void {
     // Default append target is the logical end of the live list.
     const result = __update<T>(
-      afterIndex ?? this.state.size,
+      afterIndex ?? this.size,
       values,
       this.state,
       'after'
@@ -153,8 +159,7 @@ export class CRList<T> {
     const { delta, change } = result
 
     // Emit local delta for gossip when data was actually produced.
-    if (delta.blocks?.length || delta.deletedRuns?.length)
-      void this.emitCRListEvent('delta', delta)
+    if (delta.length) void this.emitCRListEvent('delta', delta)
 
     // Emit local visible projection patch.
     if (change) void this.emitCRListEvent('change', change)
@@ -168,7 +173,7 @@ export class CRList<T> {
    */
   delete(index: number, count = 1): void {
     // Convert count-based API into the primitive's half-open range.
-    const result = __delete(this.state, index, index + count)
+    const result = __delete<T>(this.state, index, index + count)
 
     // No-op deletes do not emit events.
     if (!result) return
@@ -196,31 +201,16 @@ export class CRList<T> {
     predicate: (this: unknown, value: T, index: number, list: this) => unknown,
     thisArg?: unknown
   ): T | undefined {
-    // Start from the first block.
-    let block = this.state.firstBlock
-
-    // Track public list index while scanning block items.
-    let index = 0
-
-    // Walk live blocks in projection order.
-    while (block) {
-      // Test every live value in the current block.
-      for (let offset = 0; offset < block.items.length; offset++) {
-        const value = block.items[offset]
-        if (
-          thisArg === undefined
-            ? predicate(value, index, this)
-            : predicate.call(thisArg, value, index, this)
-        )
-          return value
-        index++
-      }
-
-      // Continue with the next projection block.
-      block = block.nextBlock
+    const size = this.size
+    for (let index = 0; index < size; index++) {
+      const value = __read<T>(index, this.state) as T
+      if (
+        thisArg === undefined
+          ? predicate(value, index, this)
+          : predicate.call(thisArg, value, index, this)
+      )
+        return value
     }
-
-    // No value matched the predicate.
     return undefined
   }
 
@@ -237,31 +227,16 @@ export class CRList<T> {
     predicate: (this: unknown, value: T, index: number, list: this) => unknown,
     thisArg?: unknown
   ): boolean {
-    // Start from the first block.
-    let block = this.state.firstBlock
-
-    // Track public list index while scanning block items.
-    let index = 0
-
-    // Walk live blocks in projection order.
-    while (block) {
-      // Test every live value in the current block.
-      for (let offset = 0; offset < block.items.length; offset++) {
-        const value = block.items[offset]
-        if (
-          thisArg === undefined
-            ? predicate(value, index, this)
-            : predicate.call(thisArg, value, index, this)
-        )
-          return true
-        index++
-      }
-
-      // Continue with the next projection block.
-      block = block.nextBlock
+    const size = this.size
+    for (let index = 0; index < size; index++) {
+      const value = __read<T>(index, this.state) as T
+      if (
+        thisArg === undefined
+          ? predicate(value, index, this)
+          : predicate.call(thisArg, value, index, this)
+      )
+        return true
     }
-
-    // No value matched the predicate.
     return false
   }
 
@@ -274,7 +249,7 @@ export class CRList<T> {
    */
   merge(delta: CRListDelta<T>): void {
     // Apply the remote delta to local mutable state.
-    const change = __merge(
+    const change = __merge<T>(
       this.state,
       delta,
       this.observedEventTypes.has('change')
@@ -288,7 +263,7 @@ export class CRList<T> {
    */
   acknowledge(): void {
     // Build an acknowledgement frontier for retained tombstones.
-    const ack = __acknowledge(this.state)
+    const ack = __acknowledge<T>(this.state)
 
     // Emit only when there is at least one tombstone to acknowledge.
     if (ack) void this.emitCRListEvent('ack', ack)
@@ -300,7 +275,7 @@ export class CRList<T> {
    */
   garbageCollect(frontiers: Array<CRListAck>): void {
     // Remove tombstones known to be acknowledged by every supplied frontier.
-    void __garbageCollect(frontiers, this.state)
+    void __garbageCollect<T>(frontiers, this.state)
   }
   /**
    * Emits the current CRList snapshot.
@@ -393,14 +368,9 @@ export class CRList<T> {
    * Iterates over current live values in index order.
    */
   *[Symbol.iterator](): IterableIterator<T> {
-    // Iteration begins at the projection head.
-    let block = this.state.firstBlock
-
-    // Yield every block's items in projection order.
-    while (block) {
-      yield* block.items
-      block = block.nextBlock
-    }
+    const size = this.size
+    for (let index = 0; index < size; index++)
+      yield __read<T>(index, this.state) as T
   }
   /**
    * Calls a function once for each live value in index order.
@@ -415,23 +385,11 @@ export class CRList<T> {
     callback: (value: T, index: number, list: this) => void,
     thisArg?: unknown
   ): void {
-    // Start from the first block.
-    let block = this.state.firstBlock
-
-    // Track public list index while scanning block items.
-    let index = 0
-
-    // Walk live blocks in projection order.
-    while (block) {
-      // Invoke the callback for every live value in the current block.
-      for (const value of block.items) {
-        if (thisArg === undefined) void callback(value, index, this)
-        else void callback.call(thisArg, value, index, this)
-        index++
-      }
-
-      // Continue with the next projection block.
-      block = block.nextBlock
+    const size = this.size
+    for (let index = 0; index < size; index++) {
+      const value = __read<T>(index, this.state) as T
+      if (thisArg === undefined) void callback(value, index, this)
+      else void callback.call(thisArg, value, index, this)
     }
   }
 

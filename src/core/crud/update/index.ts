@@ -1,12 +1,16 @@
 import { CRListError } from '../../../.errors/class.js'
-import { getBlockStartId } from '../../../.helpers/index.js'
+import {
+  generateSnapshotRange,
+  getPreviousRangeId,
+  isSafeIndex,
+  wasmModule,
+} from '../../../.helpers/index.js'
 import type {
   CRListChange,
   CRListDelta,
   CRListState,
-  CRListStateBlock,
 } from '../../../.types/type.js'
-import * as modes from './modes/index.js'
+import { __delete } from '../delete/index.js'
 
 /**
  * Applies a local value mutation to the replica live view.
@@ -27,10 +31,6 @@ export function __update<T>(
   replica: CRListState<T>,
   mode: 'overwrite' | 'before' | 'after'
 ): { change: CRListChange<T>; delta: CRListDelta<T> } | false {
-  // All update modes require a target inside or at the end of the live list.
-  if (listIndex < 0 || listIndex > replica.size)
-    throw new CRListError('INDEX_OUT_OF_BOUNDS')
-
   // Values must be an array because update modes operate on contiguous blocks.
   if (!Array.isArray(listValues))
     throw new CRListError(
@@ -41,28 +41,56 @@ export function __update<T>(
   // Empty writes are semantic no-ops and produce no events or deltas.
   if (listValues.length === 0) return false
 
+  const liveAmount = wasmModule._get_live_item_amount(...replica.instanceId)
+  if (!isSafeIndex(listIndex, liveAmount, true))
+    throw new CRListError('INDEX_OUT_OF_BOUNDS')
+
   // Change is the local live-view patch; delta is the gossip payload.
-  const change: CRListChange<T> = {}
-  const delta: CRListDelta<T> = {}
+  const removed =
+    mode === 'overwrite'
+      ? __delete(replica, listIndex, listIndex + listValues.length)
+      : false
+  const change: CRListChange<T> = removed ? removed.change : {}
+  const delta: CRListDelta<T> = removed ? removed.delta : []
+  const currentLiveAmount = wasmModule._get_live_item_amount(
+    ...replica.instanceId
+  )
+  const insertIndex =
+    mode === 'after' ? Math.min(listIndex + 1, currentLiveAmount) : listIndex
+  const range = generateSnapshotRange(
+    replica,
+    listValues,
+    getPreviousRangeId(replica, insertIndex)
+  )
+  const consumerReference = replica.values.length
 
-  // Reserve one contiguous id run for the new block's item values.
-  const blockId = getBlockStartId(replica, listValues.length)
+  void replica.values.push(...listValues)
+  void replica.ranges.push(range)
 
-  // Build a detached block; the selected mode will set anchors and links.
-  const block: NonNullable<CRListStateBlock<T>> = {
-    id: blockId,
-    idString: blockId.toString(),
-    items: listValues,
-    previousBlockId: 0n,
-    previousBlock: undefined,
-    nextBlock: undefined,
+  if (insertIndex === currentLiveAmount) {
+    void wasmModule._add_range_to(
+      listValues.length,
+      consumerReference,
+      0,
+      ...replica.instanceId,
+      ...range.id,
+      ...range.previousRangeId
+    )
+  } else {
+    void wasmModule._applyLocal(
+      insertIndex,
+      listValues.length,
+      0,
+      consumerReference,
+      ...replica.instanceId,
+      ...range.id,
+      ...range.previousRangeId
+    )
   }
 
-  // Delegate placement semantics to the selected mode implementation.
-  void modes[mode](listIndex, block, replica, change, delta)
-
-  // If placement produced no visible change, suppress downstream events.
-  if (Object.keys(change).length === 0) return false
+  for (let index = 0; index < listValues.length; index++)
+    change[insertIndex + index] = listValues[index]
+  void delta.push(range)
 
   // Return both the local patch and the CRDT delta to the caller.
   return { change, delta }

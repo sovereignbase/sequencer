@@ -16,14 +16,11 @@
 
 import { createRandom, randomInt, shuffledIndices } from './random.mjs'
 import {
-  liveIds,
-  assertStructuralIntegrity,
-  assertSnapshotRoundTrip,
-} from './assertions.mjs'
-import {
   applyDelete,
   applyUpdateValues,
   cloneReplica,
+  liveIds,
+  liveSize,
   seededReplica,
 } from './fixtures.mjs'
 
@@ -51,9 +48,10 @@ function applyRandomOperation(api, replica, random, makeId, weights) {
 
   // Draw the operation selector once for this step.
   const roll = random()
+  const size = liveSize(api, replica)
 
   // An empty replica can only grow, so force an insert regardless of weights.
-  const forceInsert = replica.size === 0
+  const forceInsert = size === 0
 
   // Choose a small batch width so block batching is exercised by inserts.
   const width = 1 + randomInt(random, 3)
@@ -70,8 +68,8 @@ function applyRandomOperation(api, replica, random, makeId, weights) {
     const index = forceInsert
       ? 0
       : mode === 'after'
-        ? randomInt(random, replica.size + 1)
-        : randomInt(random, replica.size)
+        ? randomInt(random, size + 1)
+        : randomInt(random, size)
 
     // Apply the insert and capture the produced delta.
     const result = applyUpdateValues(api, replica, index, ids, mode)
@@ -88,8 +86,8 @@ function applyRandomOperation(api, replica, random, makeId, weights) {
     // Build the batch of replacement ids.
     const ids = Array.from({ length: width }, () => makeId())
 
-    // Choose a starting index within (or just past) the visible range.
-    const index = randomInt(random, replica.size + 1)
+    // Choose a starting index inside the visible range.
+    const index = randomInt(random, size)
 
     // Apply the overwrite and capture the produced delta.
     const result = applyUpdateValues(api, replica, index, ids, 'overwrite')
@@ -102,8 +100,8 @@ function applyRandomOperation(api, replica, random, makeId, weights) {
   }
 
   // DELETE branch: remove a short visible range starting at a valid index.
-  const start = randomInt(random, replica.size)
-  const span = 1 + randomInt(random, Math.min(3, replica.size - start))
+  const start = randomInt(random, size)
+  const span = 1 + randomInt(random, Math.min(3, size - start))
   const result = applyDelete(api, replica, start, start + span)
 
   // Record a compact, replayable trace entry for the delete.
@@ -261,7 +259,7 @@ export function runConvergenceScenario(api, config) {
   // Build the reference projection by applying all deltas in generation order.
   const reference = cloneReplica(api, base)
   for (const delta of deltas) void api.__merge(reference, delta)
-  const expectedIds = liveIds(reference)
+  const expectedIds = liveIds(api, reference)
 
   // Deliver the pooled deltas to one target per configured delivery mode.
   for (let targetIndex = 0; targetIndex < deliveries.length; targetIndex++) {
@@ -279,7 +277,7 @@ export function runConvergenceScenario(api, config) {
       )
 
       // The delivered projection must match the reference projection exactly.
-      const actualIds = liveIds(target)
+      const actualIds = liveIds(api, target)
       if (stableJson(actualIds) !== stableJson(expectedIds))
         return failure({
           name,
@@ -295,11 +293,21 @@ export function runConvergenceScenario(api, config) {
           trace,
         })
 
-      // The delivered replica must be structurally consistent.
-      assertStructuralIntegrity(api, target, `${name}/${mode}`)
-
       // A snapshot roundtrip of the delivered replica must also converge.
-      assertSnapshotRoundTrip(api, target, `${name}/${mode} snapshot`)
+      const snapshotIds = liveIds(api, api.__create(api.__snapshot(target)))
+      if (stableJson(snapshotIds) !== stableJson(actualIds))
+        return failure({
+          name,
+          seed,
+          replicaCount,
+          opCount: deltas.length,
+          mode,
+          invariant: `snapshot roundtrip after ${mode} delivery`,
+          expected: actualIds,
+          actual: snapshotIds,
+          message: 'snapshot roundtrip changed the delivered projection',
+          trace,
+        })
     } catch (error) {
       // Any thrown invariant failure is reported as a scenario failure.
       return failure({

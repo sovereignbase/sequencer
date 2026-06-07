@@ -1,50 +1,4 @@
-/**
- * A live CRList block stored as a local projection node.
- *
- * A block is an internal batching unit. User-facing operations target items,
- * and each item inside the block has a virtual id derived from `id + offset`.
- * `previousBlockId` is the stable CRDT ordering anchor; `previousBlock` and
- * `nextBlock` are local projection links.
- */
-export type CRListStateBlock<T> =
-  | {
-      /** Stable UUIDv7 identity for this block. */
-      id: bigint
-      /** User payload items stored in this internal block. */
-      items: Array<T>
-      /** Cached string form of `id` (avoids repeated bigint.toString()). */
-      idString: string
-
-      /** Next block in the local projection. */
-      nextBlock: CRListStateBlock<T> | undefined
-      /** Previous block in the local projection. */
-      previousBlock: CRListStateBlock<T> | undefined
-      /** Stable previous block or item id, or `0n` for root-level blocks. */
-      previousBlockId: bigint
-    }
-  | undefined
-
-/**
- * Tracks a live block whose stable parent changed during merge processing.
- *
- * The old parent id is retained so splice fast paths can prove that the local
- * linked projection still matches the expected pre-merge shape.
- */
-export type CRListReparentedStateBlock<T> = {
-  /** Live block that was reparented. */
-  block: NonNullable<CRListStateBlock<T>>
-  /** Stable previousBlock id before the reparent operation. */
-  oldPreviousBlockId: bigint
-}
-
-/**
- * Tombstones stored as sorted, disjoint, non-adjacent inclusive id ranges.
- *
- * Each entry is an inclusive `[startId, endId]` span of deleted item ids. A
- * contiguous delete collapses to a single range instead of one tombstone per
- * item.
- */
-export type DeletedRanges = Array<[bigint, bigint]>
+export type Uint32UuidV7 = Readonly<[number, number, number, number]>
 
 /**
  * Mutable CRList replica state.
@@ -55,30 +9,11 @@ export type DeletedRanges = Array<[bigint, bigint]>
  * they are garbage collected through acknowledgement frontiers.
  */
 export type CRListState<T> = {
-  /** Number of live items in the local projection. */
-  size: number
-  /** Monotonic local block id clock. */
-  clock: bigint
+  instanceId: Uint32UuidV7
+  clock: number
 
-  /** First block (index 0). */
-  firstBlock: CRListStateBlock<T>
-  /** Current block used as the walking cursor. */
-  currentBlock: CRListStateBlock<T>
-  /** Last block in the local projection. */
-  lastBlock: CRListStateBlock<T>
-
-  /** Block-start index of `currentBlock` in the live projection. */
-  currentBlockIndex: number | undefined
-
-  /** Live blocks by contained item id. */
-  blocksById: Map<bigint, CRListStateBlock<T>>
-  /** Opportunistic block-start cache keyed by observed zero-based index. */
-  blocksByIndex: Map<number, NonNullable<CRListStateBlock<T>>>
-  /** Live blocks grouped by previous block or item id. */
-  blocksByPreviousBlockId: Map<bigint, Array<NonNullable<CRListStateBlock<T>>>>
-
-  /** Deleted item ids retained for gossip and convergence, as sorted id ranges. */
-  deletedRanges: DeletedRanges
+  ranges: CRListSnapshot<T>
+  values: Array<T>
 }
 
 /**
@@ -87,31 +22,21 @@ export type CRListState<T> = {
  * `items` are live payload references. Consumers that mutate items outside
  * CRList operations must provide their own isolation first.
  */
-export type CRListSnapshotBlock<T> = {
+export type CRListSnapshotRange<T> = {
   /** Stable identity for this block's first item. */
-  id: string
+  id: Uint32UuidV7
   /** User payload items stored in this block. */
-  items: Array<T>
+  items: Array<T> | undefined
+  /** Number of entries represented by a tombstoned range. */
+  length?: number
   /** Stable previous block or item id, or `'0'` for root-level blocks. */
-  previousBlockId: string
+  previousRangeId: Uint32UuidV7
 }
-
-/**
- * A run of deleted item ids on the wire: `[startId, length]` covers the ids
- * `startId .. startId + length - 1`.
- */
-export type CRListDeletedRun = [string, number]
 
 /**
  * Full CRList state snapshot.
  */
-export type CRListSnapshot<T> = {
-  /** Live blocks with stable CRDT metadata. */
-  blocks: Array<CRListSnapshotBlock<T>>
-  /** Retained deleted item ids, as contiguous runs. */
-  deletedRuns: Array<CRListDeletedRun>
-}
-
+export type CRListSnapshot<T> = Array<CRListSnapshotRange<T>>
 /**
  * Minimal local live-view patch keyed by list index.
  *
@@ -125,14 +50,14 @@ export type CRListChange<T> = Record<number, T | undefined>
  *
  * Delta item payloads are live references.
  */
-export type CRListDelta<T> = Partial<CRListSnapshot<T>>
+export type CRListDelta<T> = CRListSnapshot<T>
 
 /**
  * Deleted acknowledgement frontier.
  *
  * The value is the highest deleted item id the replica can prove it has seen.
  */
-export type CRListAck = string
+export type CRListAck = Uint32UuidV7
 
 /**
  * Maps CRList event names to their event payload shapes.

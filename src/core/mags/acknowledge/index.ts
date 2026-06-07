@@ -1,4 +1,12 @@
-import type { CRListAck, CRListState } from '../../../.types/type.js'
+import {
+  compareUint32UuidV7,
+  snapshotRangeEnd,
+} from '../../../.helpers/index.js'
+import type {
+  CRListAck,
+  CRListState,
+  Uint32UuidV7,
+} from '../../../.types/type.js'
 
 /**
  * Returns the replica deleted-id acknowledgement frontier.
@@ -9,12 +17,14 @@ import type { CRListAck, CRListState } from '../../../.types/type.js'
 export function __acknowledge<T>(
   crListReplica: CRListState<T>
 ): CRListAck | false {
-  // Deleted ranges are sorted ascending, so the last range has the high frontier.
-  const ranges = crListReplica.deletedRanges
+  let frontier: Uint32UuidV7 | undefined
 
-  // No retained tombstones means there is nothing useful to acknowledge.
-  if (ranges.length === 0) return false
+  for (const range of crListReplica.ranges) {
+    if (range.items !== undefined) continue
+    const end = snapshotRangeEnd(range)
+    if (frontier === undefined || compareUint32UuidV7(end, frontier) > 0)
+      frontier = end
+  }
 
-  // Return the highest retained deleted id as the acknowledgement frontier.
-  return ranges[ranges.length - 1][1].toString()
+  return frontier ?? false
 }

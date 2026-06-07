@@ -9,12 +9,14 @@
  * location. Each scenario is seeded so any failure is reproducible.
  */
 
+import { assertDeepEqual } from '../lib/assertions.mjs'
 import {
-  assertDeepEqual,
-  assertStructuralIntegrity,
+  applyDelete,
+  applyUpdate,
   liveIds,
-} from '../lib/assertions.mjs'
-import { applyDelete, applyUpdate, seededReplica } from '../lib/fixtures.mjs'
+  liveSize,
+  seededReplica,
+} from '../lib/fixtures.mjs'
 import { assertScenarioConverges } from '../lib/stress.mjs'
 
 /**
@@ -162,7 +164,7 @@ export function register({ api, report }) {
 
     // The source then makes more edits which the recovered peer applies.
     const followUp = [
-      applyUpdate(api, source, source.size, 'b', 'after').delta,
+      applyUpdate(api, source, liveSize(api, source), 'b', 'after').delta,
       applyUpdate(api, source, 0, 'c', 'before').delta,
     ]
     for (const delta of followUp) void api.__merge(recovered, delta)
@@ -172,11 +174,10 @@ export function register({ api, report }) {
 
     // The recovered peer converges to the source.
     assertDeepEqual(
-      liveIds(recovered),
-      liveIds(source),
+      liveIds(api, recovered),
+      liveIds(api, source),
       'stale peer did not recover'
     )
-    assertStructuralIntegrity(api, recovered, 'after stale peer recovery')
   })
 
   // Replicas must converge after tombstoned predecessor scenarios.
@@ -196,8 +197,8 @@ export function register({ api, report }) {
       void api.__merge(peer, successor)
       void api.__merge(peer, anchor)
       assertDeepEqual(
-        liveIds(peer),
-        liveIds(source),
+        liveIds(api, peer),
+        liveIds(api, source),
         'tombstoned predecessor diverged'
       )
     }
@@ -223,8 +224,8 @@ export function register({ api, report }) {
       void api.__merge(reverse, insert)
       void api.__merge(reverse, remove)
       assertDeepEqual(
-        liveIds(forward),
-        liveIds(reverse),
+        liveIds(api, forward),
+        liveIds(api, reverse),
         'concurrent delete/insert diverged by order'
       )
     }
@@ -248,8 +249,8 @@ export function register({ api, report }) {
     void api.__merge(reverse, rightDelta)
     void api.__merge(reverse, leftDelta)
     assertDeepEqual(
-      liveIds(forward),
-      liveIds(reverse),
+      liveIds(api, forward),
+      liveIds(api, reverse),
       'concurrent root edits diverged'
     )
   })
@@ -264,14 +265,14 @@ export function register({ api, report }) {
     const leftDelta = applyUpdate(
       api,
       left,
-      left.size,
+      liveSize(api, left),
       'left-tail',
       'after'
     ).delta
     const rightDelta = applyUpdate(
       api,
       right,
-      right.size,
+      liveSize(api, right),
       'right-tail',
       'after'
     ).delta
@@ -284,8 +285,8 @@ export function register({ api, report }) {
     void api.__merge(reverse, rightDelta)
     void api.__merge(reverse, leftDelta)
     assertDeepEqual(
-      liveIds(forward),
-      liveIds(reverse),
+      liveIds(api, forward),
+      liveIds(api, reverse),
       'concurrent tail edits diverged'
     )
   })

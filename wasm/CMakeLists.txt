@@ -27,7 +27,8 @@ if(EMSCRIPTEN)
       "-sWASM=1"
       "-sMODULARIZE=1"
       "-sEXPORT_ES6=1"
-      "-sENVIRONMENT=web,worker,node"
+      "-sENVIRONMENT=web,worker"
+      "-sSINGLE_FILE=1"
       "-sWASM_ASYNC_COMPILATION=0"
       "-sALLOW_MEMORY_GROWTH=1"
       "-sFILESYSTEM=0"
@@ -36,7 +37,6 @@ if(EMSCRIPTEN)
       "--emit-tsd=${CMAKE_CURRENT_BINARY_DIR}/crlist_wasm.d.mts"
   )
 
-  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/crlist_wasm.wasm" DESTINATION .)
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/crlist_wasm.d.mts" DESTINATION .)
 endif()
 

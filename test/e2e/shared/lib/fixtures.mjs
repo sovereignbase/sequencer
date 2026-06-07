@@ -59,6 +59,16 @@ export function valueIds(values) {
   return values.map((entry) => entry?.id)
 }
 
+export function liveSize(api, replica) {
+  return api.__size(replica)
+}
+
+export function liveIds(api, replica) {
+  return Array.from({ length: liveSize(api, replica) }, (_, index) =>
+    api.__read(index, replica)?.id
+  )
+}
+
 /**
  * Applies a single-value local update and asserts it produced a result.
  *
@@ -159,7 +169,7 @@ export function seededReplica(api, size) {
 
   // Append `size` deterministic values at the growing tail.
   for (let index = 0; index < size; index++)
-    void applyUpdate(api, replica, replica.size, `base-${index}`, 'after')
+    void applyUpdate(api, replica, liveSize(api, replica), `base-${index}`, 'after')
 
   // Return the seeded replica.
   return replica

@@ -302,6 +302,14 @@ void applyLocal(std::uint32_t target_index, std::uint32_t range_length,
 }
 
 // MERGE
+/**
+ * @brief Apply one remote range into the linked projection.
+ *
+ * Remote ranges carry their CRDT anchor as previous_id. Root-anchored ranges
+ * are inserted among root siblings. Non-root ranges are inserted after the
+ * range containing previous_id; if that anchor is not present yet, the range is
+ * stored as pending and UINT32_MAX is returned.
+ */
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t
 applyRemote(std::uint32_t range_length, std::uint32_t deleted_flag,
@@ -312,64 +320,98 @@ applyRemote(std::uint32_t range_length, std::uint32_t deleted_flag,
             std::uint32_t range_id_d, std::uint32_t previous_id_a,
             std::uint32_t previous_id_b, std::uint32_t previous_id_c,
             std::uint32_t previous_id_d) {
+  // Resolve the state that receives this remote range.
   State *state = find_state_by_instance_id(instance_id_a, instance_id_b,
                                            instance_id_c, instance_id_d);
 
+  // Allocate range metadata from the uint32 ABI values.
   Range *patch_range =
       create_range(range_length, consumer_reference, deleted_flag, range_id_a,
                    range_id_b, range_id_c, range_id_d, previous_id_a,
                    previous_id_b, previous_id_c, previous_id_d);
 
+  // Make the range addressable by its first virtual id.
   state->ranges.insert({patch_range->this_id, patch_range});
+  // Root ranges do not need an existing predecessor anchor.
   if (key_is_root(patch_range->previous_id)) {
+    // Insert among root siblings using deterministic root ordering.
     insert_root_range(patch_range, state);
+    // Live root inserts increase visible length.
     if (!patch_range->deleted)
       state->size += patch_range->range_length;
   } else {
+    // Non-root lookup starts from the projection head.
     state->index = 0;
+    // Keep the shared cursor aligned with the search.
     state->current = state->first;
+    // Measure whether previous_id falls inside the current range.
     std::uint32_t offset =
         key_distance(state->current->this_id, patch_range->previous_id);
+    // UINT32_MAX or any offset outside the range means keep walking.
     while (offset >= state->current->range_length) {
+      // Only live ranges advance visible index coordinates.
       if (!state->current->deleted)
         state->index += state->current->range_length;
+      // Move to the next projected range, tombstones included.
       state->current = state->current->next_range;
+      // Missing anchor: park this range until its predecessor arrives.
       if (!state->current) {
         state->pending.insert({patch_range->this_id, patch_range});
         return std::uint32_t(-1);
       }
+      // Recompute offset against the next candidate range.
       offset = key_distance(state->current->this_id, patch_range->previous_id);
     }
+    // Insert immediately after previous_id within the located range.
     splice_range_at_current(state->index + offset + 1, patch_range, state,
                             deleted_flag > 0);
   }
 
+  // Rewind cursor to compute the first visible index touched by patch_range.
   state->index = 0;
+  // Start the index scan at the projection head.
   state->current = state->first;
+  // Walk until the inserted range is reached.
   while (state->current != patch_range) {
+    // Only live ranges contribute to visible index.
     if (!state->current->deleted)
       state->index += state->current->range_length;
+    // Continue through the linked projection.
     state->current = state->current->next_range;
   }
+  // Return the visible index where the remote patch starts.
   return state->index;
 }
 
 // SNAPSHOT
 
+/**
+ * @brief Return the amount of projected ranges for an instance.
+ */
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t get_range_amount(std::uint32_t instance_id_a,
                                std::uint32_t instance_id_b,
                                std::uint32_t instance_id_c,
                                std::uint32_t instance_id_d) {
+  // Resolve the state by its four uint32 instance id lanes.
   State *state = find_state_by_instance_id(instance_id_a, instance_id_b,
                                            instance_id_c, instance_id_d);
+  // Count linked ranges, including tombstones.
   std::uint32_t amount = 0;
+  // Walk from head to tail without materializing any JS-visible objects.
   for (Range *range = state ? state->first : nullptr; range;
        range = range->next_range)
+    // Each linked node is one projected range.
     amount++;
+  // Return the scalar count to JavaScript.
   return amount;
 }
 
+/**
+ * @brief Return one id lane from a projected range.
+ *
+ * previous_flag selects this_id when zero and previous_id otherwise.
+ */
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t get_range_id(std::uint32_t range_index,
                            std::uint32_t previous_flag, std::uint32_t lane,
@@ -377,38 +419,51 @@ std::uint32_t get_range_id(std::uint32_t range_index,
                            std::uint32_t instance_id_b,
                            std::uint32_t instance_id_c,
                            std::uint32_t instance_id_d) {
+  // Resolve the projected range by linked-list index.
   Range *range =
       range_at(find_state_by_instance_id(instance_id_a, instance_id_b,
                                          instance_id_c, instance_id_d),
                range_index);
+  // Out-of-bounds reads return zero lanes.
   if (!range)
     return 0;
+  // Return either the range id or its predecessor id lane.
   return key_lane(previous_flag ? range->previous_id : range->this_id, lane);
 }
 
+/**
+ * @brief Return the length of a projected range.
+ */
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t get_range_length(std::uint32_t range_index,
                                std::uint32_t instance_id_a,
                                std::uint32_t instance_id_b,
                                std::uint32_t instance_id_c,
                                std::uint32_t instance_id_d) {
+  // Resolve the projected range by linked-list index.
   Range *range =
       range_at(find_state_by_instance_id(instance_id_a, instance_id_b,
                                          instance_id_c, instance_id_d),
                range_index);
+  // Missing ranges have zero length at the scalar boundary.
   return range ? range->range_length : 0;
 }
 
+/**
+ * @brief Return whether a projected range is tombstoned.
+ */
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t get_range_deleted(std::uint32_t range_index,
                                 std::uint32_t instance_id_a,
                                 std::uint32_t instance_id_b,
                                 std::uint32_t instance_id_c,
                                 std::uint32_t instance_id_d) {
+  // Resolve the projected range by linked-list index.
   Range *range =
       range_at(find_state_by_instance_id(instance_id_a, instance_id_b,
                                          instance_id_c, instance_id_d),
                range_index);
+  // Return uint32 boolean: one for tombstone, zero for live or missing.
   return range && range->deleted ? 1 : 0;
 }
 }

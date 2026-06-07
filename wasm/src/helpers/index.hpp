@@ -78,6 +78,25 @@ std::uint32_t absolute_distance(std::uint32_t left, std::uint32_t right) {
 
 Key key_offset(Key key, std::uint32_t offset);
 
+Range *snapshot_range_at(State *state, std::uint32_t range_index) {
+  Range *range = state ? state->first : nullptr;
+  for (std::uint32_t index = 0; range && index < range_index; index++)
+    range = range->next_range;
+  return range;
+}
+
+std::uint32_t key_lane(Key key, std::uint32_t lane) {
+  if (lane == 0)
+    return key.a;
+  if (lane == 1)
+    return key.b;
+  if (lane == 2)
+    return key.c;
+  if (lane == 3)
+    return key.d;
+  return 0;
+}
+
 /**
  * @brief Test whether target_index falls inside the cursor range.
  *

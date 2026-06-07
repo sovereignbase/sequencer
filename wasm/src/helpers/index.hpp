@@ -21,8 +21,7 @@ Range *create_range(std::uint32_t range_length,
                     std::uint32_t deleted_flag, std::uint32_t range_id_a,
                     std::uint32_t range_id_b, std::uint32_t range_id_c,
                     std::uint32_t range_id_d, std::uint32_t previous_id_a,
-                    std::uint32_t previous_id_b,
-                    std::uint32_t previous_id_c,
+                    std::uint32_t previous_id_b, std::uint32_t previous_id_c,
                     std::uint32_t previous_id_d) {
   return new Range{.this_id = {.a = range_id_a,
                                .b = range_id_b,
@@ -77,6 +76,8 @@ std::uint32_t absolute_distance(std::uint32_t left, std::uint32_t right) {
   return left > right ? left - right : right - left;
 }
 
+Key key_offset(Key key, std::uint32_t offset);
+
 /**
  * @brief Test whether target_index falls inside the cursor range.
  *
@@ -119,8 +120,8 @@ void find_target_range(std::uint32_t target_index, State *state) {
     distance = head_distance;
   }
 
-  // Tail index is the last visible index in the current projection.
-  const std::uint32_t tail_index = state->size - 1;
+  // Tail cursor index is the start of the last visible range.
+  const std::uint32_t tail_index = state->size - state->last->range_length;
   // Compute distance from the visible tail to the target.
   const std::uint32_t tail_distance =
       absolute_distance(tail_index, target_index);
@@ -174,60 +175,63 @@ void find_target_range(std::uint32_t target_index, State *state) {
  */
 void splice_range_at_current(std::uint32_t target_index, Range *patch_range,
                              State *state, bool tombstone_patch) {
-  // The cursor range becomes the left split.
-  Range *left_range = state->current;
-  // Offset from the left range start to the patch start.
-  std::uint32_t split_offset = absolute_distance(state->index, target_index);
-  // Delete patches consume source entries before the right split starts.
+  // Source is the range currently containing target_index.
+  Range *source = state->current;
+  // Start with source's old neighbors; empty sides are skipped below.
+  Range *left = source->previous_range;
+  Range *right = source->next_range;
+  // Non-empty left side keeps source as the left range.
+  std::uint32_t left_length = absolute_distance(state->index, target_index);
+  // Delete patches consume entries before the right side starts.
   std::uint32_t right_offset =
-      split_offset + (tombstone_patch ? patch_range->range_length : 0);
-  // Insert patches shift the consumer reference of the right split rightward.
-  std::uint32_t right_consumer_reference =
-      left_range->consumer_reference + split_offset +
-      (tombstone_patch ? 0 : patch_range->range_length);
+      left_length + (tombstone_patch ? patch_range->range_length : 0);
+  // Non-empty right side starts at right_offset inside source.
+  std::uint32_t right_length = source->range_length - right_offset;
 
-  // Allocate the right split that remains after the patch range.
-  Range *right_range =
-      new Range{.this_id =
-                    {
-                        // The right split keeps the left range id prefix.
-                        .a = left_range->this_id.a,
-                        .b = left_range->this_id.b,
-                        .c = left_range->this_id.c,
-                        // Its start id is offset inside the original range.
-                        .d = left_range->this_id.d + right_offset,
-                    },
-                // The right split is anchored after the patch range.
-                .previous_id = patch_range->this_id,
-                // Preserve the old successor behind the right split.
-                .next_range = left_range->next_range,
-                // Link the right split back to the patch range.
-                .previous_range = patch_range,
-                // Keep only the remaining entries after right_offset.
-                .range_length = left_range->range_length - right_offset,
-                // Point at the first consumer value represented on the right.
-                .consumer_reference = right_consumer_reference,
-                // The right split inherits the old range tombstone state.
-                .deleted = left_range->deleted};
+  // Keep source as the left range only when the left side has entries.
+  if (left_length) {
+    source->range_length = left_length;
+    left = source;
+    // Create a right split only when entries remain after the patch.
+    if (right_length) {
+      Key right_id = key_offset(source->this_id, right_offset);
+      right = create_range(
+          right_length, source->consumer_reference + right_offset,
+          source->deleted ? 1 : 0, right_id.a, right_id.b, right_id.c,
+          right_id.d, patch_range->this_id.a, patch_range->this_id.b,
+          patch_range->this_id.c, patch_range->this_id.d);
+      right->next_range = source->next_range;
+    }
+    // If left side is empty, reuse source as the right range when possible.
+  } else if (right_length) {
+    source->this_id = key_offset(source->this_id, right_offset);
+    source->previous_id = patch_range->this_id;
+    source->range_length = right_length;
+    source->consumer_reference += right_offset;
+    right = source;
+  }
 
   // Patch range tombstone state follows the operation mode.
   patch_range->deleted = tombstone_patch;
-  // Patch range is linked after the left split.
-  patch_range->previous_range = left_range;
-  // Patch range is linked before the right split.
-  patch_range->next_range = right_range;
+  // Patch links between the nearest non-empty left and right ranges.
+  patch_range->previous_range = left;
+  patch_range->next_range = right;
 
-  // Repair the old successor's back link when the right split is not tail.
-  if (right_range->next_range)
-    right_range->next_range->previous_range = right_range;
-  // Otherwise the right split becomes the projection tail.
+  // Link left side or make patch the head.
+  if (left)
+    left->next_range = patch_range;
   else
-    state->last = right_range;
-
-  // Shorten the left split so it ends before target_index.
-  left_range->range_length = split_offset;
-  // Link the left split to the patch range.
-  left_range->next_range = patch_range;
+    state->first = patch_range;
+  // Link right side or make patch the tail.
+  if (right) {
+    right->previous_range = patch_range;
+    if (!right->next_range)
+      state->last = right;
+  } else {
+    state->last = patch_range;
+  }
+  if (right && right->next_range)
+    right->next_range->previous_range = right;
 
   // Leave the cursor on the newly spliced patch range.
   state->current = patch_range;

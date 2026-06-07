@@ -223,6 +223,58 @@ export class CRList<T> {
     return undefined
   }
 
+  some(
+    predicate: (this: unknown, value: T, index: number, list: this) => unknown,
+    thisArg?: unknown
+  ): T | undefined {
+    const start = this.state.currentBlock
+    // Start from the first block.
+    let block = start
+
+    // Track public list index while scanning block items.
+    let index = 0
+
+    // Walk live blocks in projection order.
+    while (block) {
+      // Test every live value in the current block.
+      for (let offset = 0; offset < block.items.length; offset++) {
+        const value = block.items[offset]
+        if (
+          thisArg === undefined
+            ? predicate(value, index, this)
+            : predicate.call(thisArg, value, index, this)
+        )
+          return value
+        index++
+      }
+
+      // Continue with the next projection block.
+      block = block.nextBlock
+    }
+
+    block = start
+    // Walk live blocks in projection order.
+    while (block) {
+      // Test every live value in the current block.
+      for (let offset = 0; offset < block.items.length; offset++) {
+        const value = block.items[offset]
+        if (
+          thisArg === undefined
+            ? predicate(value, index, this)
+            : predicate.call(thisArg, value, index, this)
+        )
+          return value
+        index++
+      }
+
+      // Continue with the next projection block.
+      block = block.previousBlock
+    }
+
+    // No value matched the predicate.
+    return undefined
+  }
+
   /**
    * Applies a remote gossip delta to this list.
    *

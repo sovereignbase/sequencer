@@ -125,82 +125,40 @@ void resolve_order_for(std::uint32_t instance_id_a, std::uint32_t instance_id_b,
   State *state = find_state_by_instance_id(instance_id_a, instance_id_b,
                                            instance_id_c, instance_id_d);
   state->current = state->first;
-  Range *next_range = nullptr;
+  Range *curr = state->current;
+  Range *prev = nullptr;
+  Range *next = nullptr;
+
   while (state->current->next_range) {
-    Range *current_range = state->current;
-    next_range = current_range->next_range;
+    prev = curr->previous_range;
+    next = curr->next_range;
 
-    Range *insert_after = current_range->previous_range;
-
-    if (key_is_root(current_range->previous_id)) {
-      Range *before_range = state->first;
-      while (before_range != current_range &&
-             key_is_root(before_range->previous_id) &&
-             key_is_before(current_range->this_id, before_range->this_id))
-        before_range = before_range->next_range;
-
-      if (before_range != current_range)
-        insert_after =
-            before_range ? before_range->previous_range : state->last;
-    } else if (!current_range->previous_range ||
-               current_range->previous_id !=
-                   current_range->previous_range->this_id) {
-      auto previous = state->ranges.find(current_range->previous_id);
-      if (previous != state->ranges.end()) {
-        insert_after = previous->second;
-
-        while (insert_after->next_range &&
-               insert_after->next_range != current_range &&
-               insert_after->next_range->previous_id ==
-                   current_range->previous_id &&
-               key_is_before(insert_after->next_range->this_id,
-                             current_range->this_id))
-          insert_after = insert_after->next_range;
-      }
-    }
-
-    if (insert_after != current_range &&
-        insert_after != current_range->previous_range) {
-      if (current_range->previous_range)
-        current_range->previous_range->next_range = current_range->next_range;
-      else
-        state->first = current_range->next_range;
-
-      if (current_range->next_range)
-        current_range->next_range->previous_range =
-            current_range->previous_range;
-      else
-        state->last = current_range->previous_range;
-
-      if (!insert_after) {
-        current_range->previous_range = nullptr;
-        current_range->next_range = state->first;
-        state->first->previous_range = current_range;
-        state->first = current_range;
+    if (!curr->previous_range ||
+        curr->previous_id != curr->previous_range->this_id) {
+      if (key_is_root(curr->previous_id)) {
+        // root-haara sijoittaa currentin
       } else {
-        current_range->previous_range = insert_after;
-        current_range->next_range = insert_after->next_range;
-        if (insert_after->next_range)
-          insert_after->next_range->previous_range = current_range;
-        else
-          state->last = current_range;
-        insert_after->next_range = current_range;
+        // normaalihaara sijoittaa currentin
       }
+      if (prev)
+        prev->next_range = next;
+      else
+        state->first = next;
+
+      next->previous_range = prev;
     }
 
-    state->current = next_range;
+    curr = next;
+    state->current = next;
   }
-  state->current = state->first;
-  state->index = 0;
 }
-
 // READ
 /**
  * @brief Resolve a target index to the JavaScript-owned consumer reference.
  *
- * The target index addresses the non-tombstoned projection. The returned value
- * is the consumer reference for the concrete entry at that index. JavaScript
- * uses the returned uint32 as its own array/index/reference value.
+ * The target index addresses the non-tombstoned projection. The returned
+ * value is the consumer reference for the concrete entry at that index.
+ * JavaScript uses the returned uint32 as its own array/index/reference value.
  *
  * @param target_index Zero-based target index in the current projection.
  * @param instance_id_a First uint32 lane of the instance id.
@@ -239,7 +197,8 @@ std::uint32_t get_live_item_amount(std::uint32_t instance_id_a,
 }
 // UPDATE / DELETE
 /**
- * @brief Patch the linked range projection with one insert or tombstone range.
+ * @brief Patch the linked range projection with one insert or tombstone
+ * range.
  *
  * Local operations pass a concrete target_index. Remote operations may pass
  * UINT32_MAX when JavaScript does not know the local target index; in that
@@ -266,7 +225,8 @@ std::uint32_t get_live_item_amount(std::uint32_t instance_id_a,
  * @param previous_id_b Second uint32 lane of the patch range anchor.
  * @param previous_id_c Third uint32 lane of the patch range anchor.
  * @param previous_id_d Fourth uint32 lane of the patch range anchor.
- * @return First touched target index, or UINT32_MAX when the patch is pending.
+ * @return First touched target index, or UINT32_MAX when the patch is
+ * pending.
  */
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t

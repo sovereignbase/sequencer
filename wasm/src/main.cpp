@@ -271,13 +271,13 @@ std::uint32_t get_live_item_amount(std::uint32_t instance_id_a,
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t
 applyLocal(std::uint32_t target_index, std::uint32_t range_length,
-           std::uint32_t deleted_flag, std::uint32_t instance_id_a,
-           std::uint32_t instance_id_b, std::uint32_t instance_id_c,
-           std::uint32_t instance_id_d, std::uint32_t range_id_a,
-           std::uint32_t range_id_b, std::uint32_t range_id_c,
-           std::uint32_t range_id_d, std::uint32_t previous_id_a,
-           std::uint32_t previous_id_b, std::uint32_t previous_id_c,
-           std::uint32_t previous_id_d) {
+           std::uint32_t deleted_flag, std::uint32_t consumer_reference,
+           std::uint32_t instance_id_a, std::uint32_t instance_id_b,
+           std::uint32_t instance_id_c, std::uint32_t instance_id_d,
+           std::uint32_t range_id_a, std::uint32_t range_id_b,
+           std::uint32_t range_id_c, std::uint32_t range_id_d,
+           std::uint32_t previous_id_a, std::uint32_t previous_id_b,
+           std::uint32_t previous_id_c, std::uint32_t previous_id_d) {
   State *state = find_state_by_instance_id(instance_id_a, instance_id_b,
                                            instance_id_c, instance_id_d);
 
@@ -293,7 +293,7 @@ applyLocal(std::uint32_t target_index, std::uint32_t range_length,
       .next_range = nullptr,
       .previous_range = nullptr,
       .range_length = range_length,
-      .consumer_reference = target_index,
+      .consumer_reference = consumer_reference,
       .deleted = deleted_flag > 0,
   };
 

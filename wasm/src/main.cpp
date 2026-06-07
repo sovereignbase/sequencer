@@ -140,6 +140,7 @@ void resolve_order_for(std::uint32_t instance_id_a, std::uint32_t instance_id_b,
       } else {
         // normaalihaara sijoittaa currentin
       }
+
       if (prev)
         prev->next_range = next;
       else

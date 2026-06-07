@@ -48,7 +48,11 @@ export function __update<T>(
   // Change is the local live-view patch; delta is the gossip payload.
   const removed =
     mode === 'overwrite'
-      ? __delete(replica, listIndex, listIndex + listValues.length)
+      ? __delete(
+          replica,
+          listIndex,
+          Math.min(listIndex + listValues.length, liveAmount)
+        )
       : false
   const change: CRListChange<T> = removed ? removed.change : {}
   const delta: CRListDelta<T> = removed ? removed.delta : []

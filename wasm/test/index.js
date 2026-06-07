@@ -112,16 +112,8 @@ const wasm = await createModule()
   const observed = readValues(wasm, instance)
   const expectedWithSplit = ['R0', 'REMOTE', 'R1', 'R2']
 
-  if (JSON.stringify(observed) !== JSON.stringify(expectedWithSplit)) {
-    console.warn(
-      'remote mid-range insert does not split the anchor range yet',
-      {
-        changedAt,
-        observed,
-        expectedWithSplit,
-      }
-    )
-  }
+  assert.equal(changedAt, 1)
+  assert.deepEqual(observed, expectedWithSplit)
 }
 
 console.log('wasm PoC ok')

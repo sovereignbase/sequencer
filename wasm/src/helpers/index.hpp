@@ -343,3 +343,11 @@ Key key_offset(Key key, std::uint32_t offset) {
   // Return the offset id.
   return key;
 }
+
+/**
+ * @brief Return right's uint32 offset from left, or UINT32_MAX if unrelated.
+ */
+std::uint32_t key_distance(Key left, Key right) {
+  std::uint32_t offset = right.d - left.d;
+  return key_offset(left, offset) == right ? offset : std::uint32_t(-1);
+}

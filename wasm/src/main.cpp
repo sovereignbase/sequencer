@@ -319,19 +319,29 @@ applyRemote(std::uint32_t range_length, std::uint32_t deleted_flag,
                    range_id_b, range_id_c, range_id_d, previous_id_a,
                    previous_id_b, previous_id_c, previous_id_d);
 
-  if (!key_is_root(patch_range->previous_id) &&
-      state->ranges.find(patch_range->previous_id) == state->ranges.end()) {
-    state->pending.insert({patch_range->this_id, patch_range});
-    return std::uint32_t(-1);
-  }
-
   state->ranges.insert({patch_range->this_id, patch_range});
-  if (key_is_root(patch_range->previous_id))
+  if (key_is_root(patch_range->previous_id)) {
     insert_root_range(patch_range, state);
-  else
-    insert_regular_range(patch_range, state);
-  if (!patch_range->deleted)
-    state->size += patch_range->range_length;
+    if (!patch_range->deleted)
+      state->size += patch_range->range_length;
+  } else {
+    state->index = 0;
+    state->current = state->first;
+    std::uint32_t offset =
+        key_distance(state->current->this_id, patch_range->previous_id);
+    while (offset >= state->current->range_length) {
+      if (!state->current->deleted)
+        state->index += state->current->range_length;
+      state->current = state->current->next_range;
+      if (!state->current) {
+        state->pending.insert({patch_range->this_id, patch_range});
+        return std::uint32_t(-1);
+      }
+      offset = key_distance(state->current->this_id, patch_range->previous_id);
+    }
+    splice_range_at_current(state->index + offset + 1, patch_range, state,
+                            deleted_flag > 0);
+  }
 
   state->index = 0;
   state->current = state->first;

@@ -141,11 +141,12 @@ void find_target_range(std::uint32_t target_index, State *state) {
   if (state->index < target_index) {
     // Stop as soon as the cursor range contains the target.
     while (!current_range_contains_target(state, target_index)) {
+      Range *previous = state->current;
       // Advance to the next linked range, including tombstones.
       state->current = state->current->next_range;
-      // Only non-deleted ranges move the visible target index forward.
-      if (!state->current->deleted)
-        state->index += state->current->range_length;
+      // Only the range walked over moves the visible target index forward.
+      if (!previous->deleted)
+        state->index += previous->range_length;
     }
     return;
   }

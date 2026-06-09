@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.3.7...v1.4.0) (2026-06-09)
+
+
+### Features
+
+* extremely fast typescript implementation of a list crdt ([d2e750c](https://github.com/sovereignbase/convergent-replicated-list/commit/d2e750c988c0c4c0d617be909b8b8154d8ba9508))
+
 ## [1.3.7](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.3.6...v1.3.7) (2026-05-23)
 
 

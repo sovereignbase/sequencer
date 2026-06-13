@@ -19,7 +19,7 @@ FetchContent_MakeAvailable(unordered_dense)
 add_executable(crlist_wasm src/main.cpp)
 
 target_compile_features(crlist_wasm PRIVATE cxx_std_23)
-target_include_directories(crlist_wasm PRIVATE include)
+target_include_directories(crlist_wasm PRIVATE include src)
 target_link_libraries(crlist_wasm PRIVATE unordered_dense::unordered_dense)
 
 if(MSVC)

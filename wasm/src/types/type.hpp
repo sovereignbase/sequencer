@@ -68,7 +68,7 @@ struct Frame {
  */
 struct Instance {
   /// Ranges addressable by their index.
-  std::vector<Frame> frames;
+  std::vector<Frame *> frames;
 
   /// Pending ranges addressable by their virtual id.
   ankerl::unordered_dense::map<Timestamp, Frame *, TimestampHash>

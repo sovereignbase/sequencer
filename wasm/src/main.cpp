@@ -1,3 +1,4 @@
+#pragma once
 
 // Fixed-width uint32 ABI types used by every exported wasm function.
 #include <cstdint>
@@ -32,6 +33,7 @@ std::uint32_t add_instance() {
   const std::uint32_t id = instances.size();
 
   instances.push_back(new Instance{
+      {},      // all frames
       {},      // pending ranges waiting for their previous range
       {},      // ranges addressable by start id
       0,       // current target index
@@ -53,10 +55,7 @@ std::uint32_t add_instance() {
 /**
  * @brief Return the number of non-tombstoned entries in an instance.
  *
- * @param instance_id_a First uint32 lane of the instance id.
- * @param instance_id_b Second uint32 lane of the instance id.
- * @param instance_id_c Third uint32 lane of the instance id.
- * @param instance_id_d Fourth uint32 lane of the instance id.
+
  * @return Current target-indexable entry count.
  */
 EMSCRIPTEN_KEEPALIVE
@@ -81,7 +80,7 @@ std::uint32_t index_of(std::uint32_t instance_id, std::uint32_t target_index) {
   // Resolve the instance to read from.
   Instance *instance = instances[instance_id];
   // Move the cursor to the range containing target_index.
-  find_target_range(target_index, instance);
+  find_target_frame(target_index, instance);
   // Return the range's consumer reference plus the offset inside the range.
   return instance->current->items_index +
          absolute_distance(instance->index, target_index);
@@ -91,13 +90,12 @@ EMSCRIPTEN_KEEPALIVE
 std::uint32_t timestamp_lane_of(std::uint32_t instance_id,
                                 std::uint32_t target_index,
                                 std::uint32_t lane_index) {
-  // Resolve the state to read from.
-  State *state = instances[instance_id];
+  // Resolve the instance to read from.
+  Instance *instance = instances[instance_id];
   // Move the cursor to the range containing target_index.
-  find_target_range(target_index, state);
+  find_target_frame(target_index, instance);
   // Return the range's consumer reference plus the offset inside the range.
-  return state->current->consumer_reference +
-         absolute_distance(state->index, target_index);
+  return instance->current->this_timestamp[lane_index];
 }
 /// @}
 

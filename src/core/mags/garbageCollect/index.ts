@@ -1,9 +1,7 @@
 import {
   compareUint32UuidV7,
-  distanceBetweenUint32UuidV7,
-  idAtTick,
-  snapshotRangeEnd,
   validateUint32UuidV7,
+  wasmModule,
 } from '../../../.helpers/index.js'
 import type { CRListAck, CRListState } from '../../../.types/type.js'
 
@@ -22,28 +20,10 @@ export function __garbageCollect<T>(
   let smallest: CRListAck | undefined
   for (const frontier of frontiers) {
     if (!validateUint32UuidV7(frontier)) continue
-    if (
-      smallest === undefined ||
-      compareUint32UuidV7(frontier, smallest) < 0
-    )
+    if (smallest === undefined || compareUint32UuidV7(frontier, smallest) < 0)
       smallest = frontier
   }
   if (!smallest) return
 
-  for (let index = replica.ranges.length - 1; index >= 0; index--) {
-    const range = replica.ranges[index]
-    if (range.items !== undefined) continue
-
-    const end = snapshotRangeEnd(range)
-    if (compareUint32UuidV7(end, smallest) <= 0) {
-      void replica.ranges.splice(index, 1)
-      continue
-    }
-
-    if (compareUint32UuidV7(range.id, smallest) <= 0) {
-      const removed = distanceBetweenUint32UuidV7(range.id, smallest) + 1
-      range.id = idAtTick(range.id, removed)
-      range.length = (range.length ?? 0) - removed
-    }
-  }
+  void wasmModule._collect_deleted_until(...smallest, ...replica.instanceId)
 }

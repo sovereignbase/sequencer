@@ -69,7 +69,6 @@ export function __update<T>(
   const consumerReference = replica.values.length
 
   void replica.values.push(...listValues)
-  void replica.ranges.push(range)
 
   if (insertIndex === currentLiveAmount) {
     void wasmModule._add_range_to(

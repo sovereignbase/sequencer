@@ -1,7 +1,4 @@
-import {
-  validateSnapshotRange,
-  wasmModule,
-} from '../../../.helpers/index.js'
+import { validateSnapshotRange, wasmModule } from '../../../.helpers/index.js'
 import type {
   CRListChange,
   CRListDelta,
@@ -26,34 +23,51 @@ export function __merge<T>(
 
   const change: CRListChange<T> | undefined = collectChange ? {} : undefined
   let changed = false
+  const applyRange = (
+    range: CRListDelta<T>[number],
+    consumerReference: number
+  ): boolean => {
+    const length = range.items?.length ?? range.length ?? 0
+    const index =
+      wasmModule._applyRemote(
+        length,
+        range.items ? 0 : 1,
+        consumerReference,
+        ...replica.instanceId,
+        ...range.id,
+        ...range.previousRangeId
+      ) >>> 0
+    if (index === 4_294_967_295) return false
+
+    changed = true
+    if (!change) return true
+    if (!range.items) {
+      for (let offset = 0; offset < length; offset++)
+        change[index + offset] = undefined
+      return true
+    }
+    for (let offset = 0; offset < range.items.length; offset++)
+      change[index + offset] = range.items[offset]
+    return true
+  }
 
   for (const range of delta) {
     if (!validateSnapshotRange<T>(range)) continue
 
-    const length = range.items?.length ?? range.length ?? 0
     const consumerReference = replica.values.length
     if (range.items) void replica.values.push(...range.items)
-    void replica.ranges.push(range)
+    if (!applyRange(range, consumerReference))
+      void replica.pending.push({ range, consumerReference })
+  }
 
-    const index = wasmModule._applyRemote(
-      length,
-      range.items ? 0 : 1,
-      consumerReference,
-      ...replica.instanceId,
-      ...range.id,
-      ...range.previousRangeId
-    )
-    if (index === 4_294_967_295) continue
-
-    changed = true
-    if (!change) continue
-    if (!range.items) {
-      for (let offset = 0; offset < length; offset++)
-        change[index + offset] = undefined
-      continue
+  for (let index = 0; index < replica.pending.length; ) {
+    const pending = replica.pending[index]
+    if (applyRange(pending.range, pending.consumerReference)) {
+      void replica.pending.splice(index, 1)
+      index = 0
+    } else {
+      index++
     }
-    for (let offset = 0; offset < range.items.length; offset++)
-      change[index + offset] = range.items[offset]
   }
 
   if (!changed || !change) return false

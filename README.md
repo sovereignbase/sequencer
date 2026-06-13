@@ -285,21 +285,21 @@ Current test results:
 - Total: 160/160 passing.
 - Groups: 13.
 
-| group | result |
-| --- | --- |
-| `unit/public-api` | 13/13 passing |
-| `unit/local-mutations` | 14/14 passing |
-| `unit/live-projection` | 10/10 passing |
-| `unit/merge` | 20/20 passing |
-| `unit/ordering` | 14/14 passing |
-| `unit/tombstones` | 14/14 passing |
-| `unit/snapshots` | 12/12 passing |
+| group                     | result        |
+| ------------------------- | ------------- |
+| `unit/public-api`         | 13/13 passing |
+| `unit/local-mutations`    | 14/14 passing |
+| `unit/live-projection`    | 10/10 passing |
+| `unit/merge`              | 20/20 passing |
+| `unit/ordering`           | 14/14 passing |
+| `unit/tombstones`         | 14/14 passing |
+| `unit/snapshots`          | 12/12 passing |
 | `unit/acknowledgement-gc` | 12/12 passing |
-| `unit/malformed-ingress` | 15/15 passing |
-| `unit/structural` | 13/13 passing |
+| `unit/malformed-ingress`  | 15/15 passing |
+| `unit/structural`         | 13/13 passing |
 | `integration/convergence` | 14/14 passing |
-| `stress` | 5/5 passing |
-| `runtime/compatibility` | 4/4 passing |
+| `stress`                  | 5/5 passing   |
+| `runtime/compatibility`   | 4/4 passing   |
 
 ## Benchmarks
 

@@ -18,18 +18,37 @@ export function __snapshot<T>(replica: CRListState<T>): CRListSnapshot<T> {
   const snapshot: CRListSnapshot<T> = []
   const rangeAmount = wasmModule._get_range_amount(...replica.instanceId)
   const idOf = (rangeIndex: number, previousFlag: number): Uint32UuidV7 => [
-    wasmModule._get_range_id(rangeIndex, previousFlag, 0, ...replica.instanceId) >>>
+    wasmModule._get_range_id(
+      rangeIndex,
+      previousFlag,
       0,
-    wasmModule._get_range_id(rangeIndex, previousFlag, 1, ...replica.instanceId) >>>
-      0,
-    wasmModule._get_range_id(rangeIndex, previousFlag, 2, ...replica.instanceId) >>>
-      0,
-    wasmModule._get_range_id(rangeIndex, previousFlag, 3, ...replica.instanceId) >>>
-      0,
+      ...replica.instanceId
+    ) >>> 0,
+    wasmModule._get_range_id(
+      rangeIndex,
+      previousFlag,
+      1,
+      ...replica.instanceId
+    ) >>> 0,
+    wasmModule._get_range_id(
+      rangeIndex,
+      previousFlag,
+      2,
+      ...replica.instanceId
+    ) >>> 0,
+    wasmModule._get_range_id(
+      rangeIndex,
+      previousFlag,
+      3,
+      ...replica.instanceId
+    ) >>> 0,
   ]
 
   for (let rangeIndex = 0; rangeIndex < rangeAmount; rangeIndex++) {
-    const length = wasmModule._get_range_length(rangeIndex, ...replica.instanceId)
+    const length = wasmModule._get_range_length(
+      rangeIndex,
+      ...replica.instanceId
+    )
     const previousRangeId = idOf(rangeIndex, 1)
 
     if (wasmModule._get_range_deleted(rangeIndex, ...replica.instanceId)) {
@@ -48,10 +67,16 @@ export function __snapshot<T>(replica: CRListState<T>): CRListSnapshot<T> {
     )
     snapshot.push({
       id: idOf(rangeIndex, 0),
-      items: replica.values.slice(consumerReference, consumerReference + length),
+      items: replica.values.slice(
+        consumerReference,
+        consumerReference + length
+      ),
       previousRangeId,
     })
   }
+
+  for (const pending of replica.pending)
+    void snapshot.push({ ...pending.range, pending: true })
 
   return snapshot
 }

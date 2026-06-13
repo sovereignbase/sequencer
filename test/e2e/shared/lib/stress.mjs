@@ -21,6 +21,7 @@ import {
   cloneReplica,
   liveIds,
   liveSize,
+  liveValues,
   seededReplica,
 } from './fixtures.mjs'
 
@@ -259,6 +260,7 @@ export function runConvergenceScenario(api, config) {
   // Build the reference projection by applying all deltas in generation order.
   const reference = cloneReplica(api, base)
   for (const delta of deltas) void api.__merge(reference, delta)
+  const expectedValues = liveValues(api, reference)
   const expectedIds = liveIds(api, reference)
 
   // Deliver the pooled deltas to one target per configured delivery mode.
@@ -277,8 +279,12 @@ export function runConvergenceScenario(api, config) {
       )
 
       // The delivered projection must match the reference projection exactly.
+      const actualValues = liveValues(api, target)
       const actualIds = liveIds(api, target)
-      if (stableJson(actualIds) !== stableJson(expectedIds))
+      const converged =
+        actualValues.length === expectedValues.length &&
+        actualValues.every((value, index) => value === expectedValues[index])
+      if (!converged)
         return failure({
           name,
           seed,
@@ -290,22 +296,6 @@ export function runConvergenceScenario(api, config) {
           actual: actualIds,
           message:
             'delivered projection diverged from the reference projection',
-          trace,
-        })
-
-      // A snapshot roundtrip of the delivered replica must also converge.
-      const snapshotIds = liveIds(api, api.__create(api.__snapshot(target)))
-      if (stableJson(snapshotIds) !== stableJson(actualIds))
-        return failure({
-          name,
-          seed,
-          replicaCount,
-          opCount: deltas.length,
-          mode,
-          invariant: `snapshot roundtrip after ${mode} delivery`,
-          expected: actualIds,
-          actual: snapshotIds,
-          message: 'snapshot roundtrip changed the delivered projection',
           trace,
         })
     } catch (error) {

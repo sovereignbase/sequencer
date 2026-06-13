@@ -63,10 +63,14 @@ export function liveSize(api, replica) {
   return api.__size(replica)
 }
 
-export function liveIds(api, replica) {
+export function liveValues(api, replica) {
   return Array.from({ length: liveSize(api, replica) }, (_, index) =>
-    api.__read(index, replica)?.id
+    api.__read(index, replica)
   )
+}
+
+export function liveIds(api, replica) {
+  return liveValues(api, replica).map((value) => value?.id)
 }
 
 /**
@@ -169,7 +173,13 @@ export function seededReplica(api, size) {
 
   // Append `size` deterministic values at the growing tail.
   for (let index = 0; index < size; index++)
-    void applyUpdate(api, replica, liveSize(api, replica), `base-${index}`, 'after')
+    void applyUpdate(
+      api,
+      replica,
+      liveSize(api, replica),
+      `base-${index}`,
+      'after'
+    )
 
   // Return the seeded replica.
   return replica

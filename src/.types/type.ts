@@ -1,19 +1,19 @@
-export type Uint32UuidV7 = Readonly<[number, number, number, number]>
+import type {
+  HLC,
+  HLCTimestamp,
+  Uint32UuidV7,
+} from '@sovereignbase/hybrid-logical-clock'
 
 /**
  * Mutable CRList replica state.
  *
- * `blocksById` indexes blocks by every contained item id.
- * `blocksByPreviousBlockId` indexes stable ordering buckets for deterministic
- * flattening. `deletedRanges` records deleted item ids as sorted id ranges until
- * they are garbage collected through acknowledgement frontiers.
+ * `values` stores JavaScript-owned payload references. Range projection,
+ * tombstones, acknowledgement, and garbage collection live in the wasm engine.
  */
 export type CRListState<T> = {
-  instanceId: Uint32UuidV7
-  clock: number
-
-  ranges: CRListSnapshot<T>
-  values: Array<T>
+  clock: HLC
+  items: Array<T>
+  pending: Array<{ range: CRListFrame<T>; consumerReference: number }>
 }
 
 /**
@@ -22,21 +22,19 @@ export type CRListState<T> = {
  * `items` are live payload references. Consumers that mutate items outside
  * CRList operations must provide their own isolation first.
  */
-export type CRListSnapshotRange<T> = {
-  /** Stable identity for this block's first item. */
-  id: Uint32UuidV7
+export type CRListFrame<T> = {
   /** User payload items stored in this block. */
-  items: Array<T> | undefined
-  /** Number of entries represented by a tombstoned range. */
-  length?: number
-  /** Stable previous block or item id, or `'0'` for root-level blocks. */
-  previousRangeId: Uint32UuidV7
+  items: Array<T>
+  /** Is the frame deleted or not. */
+  deleted: 0 | 1
+  /** Stable previous and this frame timestamp */
+  timestamp: HLCTimestamp
 }
 
 /**
  * Full CRList state snapshot.
  */
-export type CRListSnapshot<T> = Array<CRListSnapshotRange<T>>
+export type CRListSnapshot<T> = Array<CRListFrame<T>>
 /**
  * Minimal local live-view patch keyed by list index.
  *
@@ -44,13 +42,6 @@ export type CRListSnapshot<T> = Array<CRListSnapshotRange<T>>
  * item was inserted or replaced at the index.
  */
 export type CRListChange<T> = Record<number, T | undefined>
-
-/**
- * Partial CRList state gossiped between replicas.
- *
- * Delta item payloads are live references.
- */
-export type CRListDelta<T> = CRListSnapshot<T>
 
 /**
  * Deleted acknowledgement frontier.
@@ -63,15 +54,14 @@ export type CRListAck = Uint32UuidV7
  * Maps CRList event names to their event payload shapes.
  */
 export type CRListEventMap<T> = {
-  /** Full replica snapshot event payload. */
+  /** Full snapshot event payload. */
   snapshot: CRListSnapshot<T>
-  /** Local live projection patch event payload. */
-  change: CRListChange<T>
-
-  /** Gossip delta event payload. */
-  delta: CRListDelta<T>
+  /** Gossip frame event payload. */
+  frame: CRListFrame<T>
   /** Deleted-id acknowledgement event payload. */
   ack: CRListAck
+  /** Local live projection patch event payload. */
+  change: CRListChange<T>
 }
 
 /**

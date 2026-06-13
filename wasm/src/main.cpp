@@ -11,208 +11,46 @@
 // EMSCRIPTEN_KEEPALIVE keeps the C ABI functions exported to JavaScript.
 #include <emscripten/emscripten.h>
 
+static std::vector<State *> instances;
+
 // Export unmangled C symbols so JavaScript can call them by stable names.
 extern "C" {
 /**
  * @name CREATE
- * Functions that allocate states and append the initial linked projection.
+ * Functions that allocate an instance.
  */
 /// @{
-
 /**
  * @brief Allocate an empty range engine state for one replicated list instance.
  *
  * The instance id is supplied as four uint32 lanes. The wasm core keeps only
  * virtual range metadata; JavaScript owns the actual values and later addresses
  * them through consumer references returned by read operations.
- *
- * @param instance_id_a First uint32 lane of the instance id.
- * @param instance_id_b Second uint32 lane of the instance id.
- * @param instance_id_c Third uint32 lane of the instance id.
- * @param instance_id_d Fourth uint32 lane of the instance id.
  */
 EMSCRIPTEN_KEEPALIVE
-void add_instance(std::uint32_t instance_id_a, std::uint32_t instance_id_b,
-                  std::uint32_t instance_id_c, std::uint32_t instance_id_d) {
-  // Insert a new State under the four-lane instance id.
-  states_by_instance_id.insert(
-      // Key stores the instance id exactly as JavaScript passed it.
-      {Key{instance_id_a, instance_id_b, instance_id_c, instance_id_d},
-       State{
-           {},      // pending ranges waiting for their previous range
-           {},      // ranges addressable by start id
-           0,       // current target index
-           0,       // non-deleted length
-           nullptr, // first projected range
-           nullptr, // cursor range
-           nullptr  // last projected range
-       }});
-}
+std::uint32_t add_instance() {
+  const std::uint32_t id = instances.size();
 
-/**
- * @brief Append one range to the initial projection.
- *
- * Build the linked range projection in ingestion order. After
- * resolve_order_for() has created deterministic order, update using apply() to
- * patch the existing projection. This function does not insert inside the
- * projection and does not remove ranges.
- *
- * @param range_length Number of entries represented by the range.
- * @param consumer_reference JavaScript-owned reference for the first entry.
- * @param deleted_flag Non-zero means the appended range is already tombstoned.
- * @param instance_id_a First uint32 lane of the instance id.
- * @param instance_id_b Second uint32 lane of the instance id.
- * @param instance_id_c Third uint32 lane of the instance id.
- * @param instance_id_d Fourth uint32 lane of the instance id.
- * @param range_id_a First uint32 lane of the range start id.
- * @param range_id_b Second uint32 lane of the range start id.
- * @param range_id_c Third uint32 lane of the range start id.
- * @param range_id_d Fourth uint32 lane of the range start id.
- * @param previous_id_a First uint32 lane of the previous range anchor.
- * @param previous_id_b Second uint32 lane of the previous range anchor.
- * @param previous_id_c Third uint32 lane of the previous range anchor.
- * @param previous_id_d Fourth uint32 lane of the previous range anchor.
- */
-EMSCRIPTEN_KEEPALIVE
-void add_range_to(std::uint32_t range_length, std::uint32_t consumer_reference,
-                  std::uint32_t deleted_flag, std::uint32_t instance_id_a,
-                  std::uint32_t instance_id_b, std::uint32_t instance_id_c,
-                  std::uint32_t instance_id_d, std::uint32_t range_id_a,
-                  std::uint32_t range_id_b, std::uint32_t range_id_c,
-                  std::uint32_t range_id_d, std::uint32_t previous_id_a,
-                  std::uint32_t previous_id_b, std::uint32_t previous_id_c,
-                  std::uint32_t previous_id_d) {
-  // Resolve the mutable state that receives this appended range.
-  State *state = find_state_by_instance_id(instance_id_a, instance_id_b,
-                                           instance_id_c, instance_id_d);
+  instances.push_back(new State{
+      {},      // pending ranges waiting for their previous range
+      {},      // ranges addressable by start id
+      0,       // current target index
+      0,       // non-deleted length
+      nullptr, // first projected range
+      nullptr, // cursor range
+      nullptr  // last projected range
+  });
 
-  Range *range =
-      create_range(range_length, consumer_reference, deleted_flag, range_id_a,
-                   range_id_b, range_id_c, range_id_d, previous_id_a,
-                   previous_id_b, previous_id_c, previous_id_d);
-  range->previous_range = state->current;
-  // Index the range by its first virtual id for later anchor lookup.
-  state->ranges.insert({range->this_id, range});
-
-  // Empty projection: the appended range becomes the head.
-  if (!state->current) {
-    state->first = range;
-    // Non-empty projection: append after the current tail.
-  } else {
-    state->current->next_range = range;
-  }
-
-  // The current visible index before appending is the old visible size.
-  state->index = state->size;
-  // Cursor moves to the appended range.
-  state->current = range;
-  // Tail moves to the appended range.
-  state->last = range;
-  // Tombstoned ranges stay linked but do not increase visible length.
-  if (!range->deleted)
-    state->size += range_length;
-}
-
-/**
- * @brief Sort the initial doubly linked range projection by merge rules.
- *
- * This is the one full ordering pass for the wasm range engine. It relinks the
- * already appended ranges in place. Later mutations must use apply() so the
- * projection is patched instead of rebuilt.
- *
- * Root ranges use the zero previous id. Non-root ranges are ordered after their
- * previous range, with sibling order decided by the range ids.
- *
- * @param instance_id_a First uint32 lane of the instance id.
- * @param instance_id_b Second uint32 lane of the instance id.
- * @param instance_id_c Third uint32 lane of the instance id.
- * @param instance_id_d Fourth uint32 lane of the instance id.
- */
-EMSCRIPTEN_KEEPALIVE
-void resolve_order_for(std::uint32_t instance_id_a, std::uint32_t instance_id_b,
-                       std::uint32_t instance_id_c,
-                       std::uint32_t instance_id_d) {
-  // Resolve the state whose initial projection must be ordered once.
-  State *state = find_state_by_instance_id(instance_id_a, instance_id_b,
-                                           instance_id_c, instance_id_d);
-  // Start the ordering pass from the current projection head.
-  state->current = state->first;
-  // curr is the range being checked or moved.
-  Range *curr = state->current;
-  // prev remembers curr's old left neighbor before any move.
-  Range *prev = nullptr;
-  // next remembers curr's old right neighbor before any move.
-  Range *next = nullptr;
-
-  // Walk the original chain forward; next is captured before any relink.
-  while (state->current->next_range) {
-    // Capture curr's old left neighbor.
-    prev = curr->previous_range;
-    // Capture curr's old right neighbor.
-    next = curr->next_range;
-
-    // Only move ranges whose current left neighbor is not their anchor.
-    if (!curr->previous_range ||
-        curr->previous_id != curr->previous_range->this_id) {
-      // Close the old gap from which curr was moved.
-      if (prev)
-        prev->next_range = next;
-      // Moving the old head makes the old right neighbor the new head.
-      else
-        state->first = next;
-
-      // Link the old right neighbor back to the old left neighbor.
-      next->previous_range = prev;
-
-      if (key_is_root(curr->previous_id))
-        insert_root_range(curr, state);
-      else
-        insert_regular_range(curr, state);
-    }
-
-    // Continue from the old right neighbor captured before relinking.
-    curr = next;
-    // Keep the shared state cursor aligned with curr.
-    state->current = next;
-  }
+  return id;
 }
 
 /// @}
 
 /**
  * @name READ
- * Functions that resolve visible indexes into JavaScript consumer references.
+ * Functions that resolve information for a consumer consumer references.
  */
 /// @{
-
-/**
- * @brief Resolve a target index to the JavaScript-owned consumer reference.
- *
- * The target index addresses the non-tombstoned projection. The returned
- * value is the consumer reference for the concrete entry at that index.
- * JavaScript uses the returned uint32 as its own array/index/reference value.
- *
- * @param target_index Zero-based target index in the current projection.
- * @param instance_id_a First uint32 lane of the instance id.
- * @param instance_id_b Second uint32 lane of the instance id.
- * @param instance_id_c Third uint32 lane of the instance id.
- * @param instance_id_d Fourth uint32 lane of the instance id.
- * @return JavaScript-owned consumer reference for the target entry.
- */
-EMSCRIPTEN_KEEPALIVE std::uint32_t get_consumer_reference_of(
-    std::uint32_t target_index, std::uint32_t instance_id_a,
-    std::uint32_t instance_id_b, std::uint32_t instance_id_c,
-    std::uint32_t instance_id_d) {
-  // Resolve the state to read from.
-  State *state = find_state_by_instance_id(instance_id_a, instance_id_b,
-                                           instance_id_c, instance_id_d);
-  // Move the cursor to the range containing target_index.
-  find_target_range(target_index, state);
-  // Return the range's consumer reference plus the offset inside the range.
-  return state->current->consumer_reference +
-         absolute_distance(state->index, target_index);
-}
-
 /**
  * @brief Return the number of non-tombstoned entries in an instance.
  *
@@ -223,151 +61,172 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t get_consumer_reference_of(
  * @return Current target-indexable entry count.
  */
 EMSCRIPTEN_KEEPALIVE
-std::uint32_t get_live_item_amount(std::uint32_t instance_id_a,
-                                   std::uint32_t instance_id_b,
-                                   std::uint32_t instance_id_c,
-                                   std::uint32_t instance_id_d) {
+std::uint32_t size_of(std::uint32_t instance_id) {
   // Resolve the state and return the visible, non-tombstoned size.
-  return find_state_by_instance_id(instance_id_a, instance_id_b, instance_id_c,
-                                   instance_id_d)
-      ->size;
+  State *state = instances[instance_id];
+  return state->size;
 }
 
+/**
+ * @brief Resolve a target index to the JavaScript-owned consumer reference.
+ *
+ * The target index addresses the non-tombstoned projection. The returned
+ * value is the consumer reference for the concrete entry at that index.
+ * JavaScript uses the returned uint32 as its own array/index/reference value.
+ *
+ * @param target_index Zero-based target index in the current projection.
+ * @return JavaScript-owned consumer reference for the target entry.
+ */
+EMSCRIPTEN_KEEPALIVE
+std::uint32_t index_of(std::uint32_t instance_id, std::uint32_t target_index) {
+  // Resolve the state to read from.
+  State *state = instances[instance_id];
+  // Move the cursor to the range containing target_index.
+  find_target_range(target_index, state);
+  // Return the range's consumer reference plus the offset inside the range.
+  return state->current->consumer_reference +
+         absolute_distance(state->index, target_index);
+}
+
+EMSCRIPTEN_KEEPALIVE
+std::uint32_t timestamp_lane_of(std::uint32_t instance_id,
+                                std::uint32_t target_index,
+                                std::uint32_t lane_index) {
+  // Resolve the state to read from.
+  State *state = instances[instance_id];
+  // Move the cursor to the range containing target_index.
+  find_target_range(target_index, state);
+  // Return the range's consumer reference plus the offset inside the range.
+  return state->current->consumer_reference +
+         absolute_distance(state->index, target_index);
+}
 /// @}
 
+// APPLY
 /**
- * @name UPDATE / DELETE
- * Functions that patch the existing linked projection after initial ordering.
- */
-/// @{
-
-/**
- * @brief Patch the linked range projection with one insert or tombstone
- * range.
+ * @brief Apply one frame into the linked projection.
  *
- * Local operations pass a concrete target_index. Remote operations may pass
- * UINT32_MAX when JavaScript does not know the local target index; in that
- * case previous_id is used as the range anchor. If the anchor range has not
- * arrived yet, the patch range is stored in State::pending and the function
- * returns UINT32_MAX to indicate that no observable patch can be emitted.
- *
- * The patch range itself is always allocated as a Range node. Insert patches
- * are linked as non-deleted ranges. Delete patches are linked as tombstoned
- * ranges. Existing nodes are split and relinked, never physically removed.
- *
- * @param target_index Inclusive target index, or UINT32_MAX when unknown.
- * @param range_length Number of entries represented by the patch range.
- * @param deleted_flag Non-zero applies the patch as a tombstone range.
- * @param instance_id_a First uint32 lane of the instance id.
- * @param instance_id_b Second uint32 lane of the instance id.
- * @param instance_id_c Third uint32 lane of the instance id.
- * @param instance_id_d Fourth uint32 lane of the instance id.
- * @param range_id_a First uint32 lane of the patch range start id.
- * @param range_id_b Second uint32 lane of the patch range start id.
- * @param range_id_c Third uint32 lane of the patch range start id.
- * @param range_id_d Fourth uint32 lane of the patch range start id.
- * @param previous_id_a First uint32 lane of the patch range anchor.
- * @param previous_id_b Second uint32 lane of the patch range anchor.
- * @param previous_id_c Third uint32 lane of the patch range anchor.
- * @param previous_id_d Fourth uint32 lane of the patch range anchor.
- * @return First touched target index, or UINT32_MAX when the patch is
- * pending.
- */
-EMSCRIPTEN_KEEPALIVE
-void applyLocal(std::uint32_t target_index, std::uint32_t range_length,
-                std::uint32_t deleted_flag, std::uint32_t consumer_reference,
-                std::uint32_t instance_id_a, std::uint32_t instance_id_b,
-                std::uint32_t instance_id_c, std::uint32_t instance_id_d,
-                std::uint32_t range_id_a, std::uint32_t range_id_b,
-                std::uint32_t range_id_c, std::uint32_t range_id_d,
-                std::uint32_t previous_id_a, std::uint32_t previous_id_b,
-                std::uint32_t previous_id_c, std::uint32_t previous_id_d) {
-  // Resolve the state that receives the local patch.
-  State *state = find_state_by_instance_id(instance_id_a, instance_id_b,
-                                           instance_id_c, instance_id_d);
-
-  Range *patch_range =
-      create_range(range_length, consumer_reference, deleted_flag, range_id_a,
-                   range_id_b, range_id_c, range_id_d, previous_id_a,
-                   previous_id_b, previous_id_c, previous_id_d);
-
-  // Local patches know their visible target index, so seek directly.
-  find_target_range(target_index, state);
-
-  // Index the patch range by id before it is linked into the projection.
-  state->ranges.insert({patch_range->this_id, patch_range});
-
-  // Split the cursor range and insert or tombstone the patch range.
-  splice_range_at_current(target_index, patch_range, state, deleted_flag > 0);
-}
-
-// MERGE
-/**
- * @brief Apply one remote range into the linked projection.
- *
- * Remote ranges carry their CRDT anchor as previous_id. Root-anchored ranges
+ * Remote frames carry their CRDT anchor as previous_id. Root-anchored ranges
  * are inserted among root siblings. Non-root ranges are inserted after the
- * range containing previous_id; if that anchor is not present yet, the range is
- * stored as pending and UINT32_MAX is returned.
+ * range containing previous_id; if that anchor is not present yet, UINT32_MAX
+ * is returned so JavaScript can replay the range later.
  */
 EMSCRIPTEN_KEEPALIVE
-std::uint32_t
-applyRemote(std::uint32_t range_length, std::uint32_t deleted_flag,
-            std::uint32_t consumer_reference, std::uint32_t instance_id_a,
-            std::uint32_t instance_id_b, std::uint32_t instance_id_c,
-            std::uint32_t instance_id_d, std::uint32_t range_id_a,
-            std::uint32_t range_id_b, std::uint32_t range_id_c,
-            std::uint32_t range_id_d, std::uint32_t previous_id_a,
-            std::uint32_t previous_id_b, std::uint32_t previous_id_c,
-            std::uint32_t previous_id_d) {
+std::uint32_t virtualizeFrame(std::uint32_t instance_id,
+                              std::uint32_t items_index,
+                              std::uint32_t deleted_flag,
+                              std::uint32_t frame_length,
+                              std::uint32_t frame_timestamp_first_32bits,
+                              std::uint32_t frame_timestamp_second_32bits,
+                              std::uint32_t frame_timestamp_third_32bits,
+                              std::uint32_t frame_timestamp_fourth_32bits,
+                              std::uint32_t previous_timestamp_first_32bits,
+                              std::uint32_t previous_timestamp_second_32bits,
+                              std::uint32_t previous_timestamp_third_32bits,
+                              std::uint32_t previous_timestamp_fourth_32bits) {
   // Resolve the state that receives this remote range.
-  State *state = find_state_by_instance_id(instance_id_a, instance_id_b,
-                                           instance_id_c, instance_id_d);
+  State *state = instances[instance_id];
 
   // Allocate range metadata from the uint32 ABI values.
-  Range *patch_range =
-      create_range(range_length, consumer_reference, deleted_flag, range_id_a,
-                   range_id_b, range_id_c, range_id_d, previous_id_a,
-                   previous_id_b, previous_id_c, previous_id_d);
+  Range *patch_range = create_range(
+      range_length, consumer_reference, deleted_flag,
+      frame_timestamp_first_32bits, frame_timestamp_second_32bits,
+      frame_timestamp_third_32bits, frame_timestamp_fourth_32bits,
+      previous_timestamp_first_32bits, previous_timestamp_second_32bits,
+      previous_timestamp_third_32bits, previous_timestamp_fourth_32bits);
 
-  // Make the range addressable by its first virtual id.
-  state->ranges.insert({patch_range->this_id, patch_range});
+  auto existing_range = state->ranges.find(patch_range->this_id);
+  if (!patch_range->deleted && existing_range != state->ranges.end() &&
+      existing_range->second->this_id == patch_range->this_id) {
+    std::uint32_t index = visible_index_of_range(state, existing_range->second);
+    delete patch_range;
+    return index;
+  }
+  if (patch_range->deleted && existing_range != state->ranges.end() &&
+      existing_range->second->this_id == patch_range->this_id &&
+      existing_range->second->deleted) {
+    std::uint32_t index = visible_index_of_range(state, existing_range->second);
+    delete patch_range;
+    return index;
+  }
+  if (patch_range->deleted && existing_range != state->ranges.end()) {
+    state->current = existing_range->second;
+    state->index = visible_index_of_range(state, state->current);
+    splice_range_at_current(state->index, patch_range, state, true);
+    normalize_state_order(state);
+    return state->index;
+  }
+
+  // Tombstones target the deleted virtual id itself, not the predecessor slot.
+  if (patch_range->deleted) {
+    // Tombstone lookup starts from the projection head.
+    state->index = 0;
+    // Keep the shared cursor aligned with the search.
+    state->current = state->first;
+    // Walk until the range containing this tombstone id is found.
+    while (state->current) {
+      // Measure whether range_id falls inside the current projected range.
+      std::uint32_t offset =
+          key_distance(state->current->this_id, patch_range->this_id);
+      // A contained id gives the exact visible target index for the tombstone.
+      if (offset < state->current->range_length) {
+        // Duplicate tombstones over already-deleted ranges are no-ops.
+        if (state->current->deleted) {
+          delete patch_range;
+          return state->index;
+        }
+        // Make the linked tombstone addressable by its virtual id.
+        state->ranges.insert({patch_range->this_id, patch_range});
+        // Replace the target id span with the tombstone range.
+        splice_range_at_current(state->index + offset, patch_range, state,
+                                true);
+        normalize_state_order(state);
+        // Return the visible index where the tombstone was applied.
+        return state->index;
+      }
+      // Only live ranges advance visible index coordinates.
+      if (!state->current->deleted)
+        state->index += state->current->range_length;
+      // Move to the next projected range, tombstones included.
+      state->current = state->current->next_range;
+    }
+    // Missing target: let JavaScript keep and replay this range later.
+    return UINT32_MAX;
+  }
+
   // Root ranges do not need an existing predecessor anchor.
   if (key_is_root(patch_range->previous_id)) {
+    // Make the linked range addressable by its first virtual id.
+    state->ranges.insert({patch_range->this_id, patch_range});
     // Insert among root siblings using deterministic root ordering.
     insert_root_range(patch_range, state);
     // Live root inserts increase visible length.
     if (!patch_range->deleted)
       state->size += patch_range->range_length;
   } else {
-    // Non-root lookup starts from the projection head.
-    state->index = 0;
-    // Keep the shared cursor aligned with the search.
-    state->current = state->first;
-    // Measure whether previous_id falls inside the current range.
+    // Locate the projected range that contains previous_id by walking from the
+    // current cursor in id order first, then falling back to the other side.
+    if (!find_range_containing_key(state, patch_range->previous_id))
+      return UINT32_MAX;
+
+    // Make the linked range addressable by its first virtual id only after the
+    // anchor is known locally.
+    state->ranges.insert({patch_range->this_id, patch_range});
+
     std::uint32_t offset =
         key_distance(state->current->this_id, patch_range->previous_id);
-    // UINT32_MAX or any offset outside the range means keep walking.
-    while (offset >= state->current->range_length) {
-      // Only live ranges advance visible index coordinates.
-      if (!state->current->deleted)
-        state->index += state->current->range_length;
-      // Move to the next projected range, tombstones included.
-      state->current = state->current->next_range;
-      // Missing anchor: park this range until its predecessor arrives.
-      if (!state->current) {
-        state->pending.insert({patch_range->this_id, patch_range});
-        return std::uint32_t(-1);
-      }
-      // Recompute offset against the next candidate range.
-      offset = key_distance(state->current->this_id, patch_range->previous_id);
+    if (offset + 1 < state->current->range_length) {
+      // previous_id is inside a larger range, so split at that item.
+      splice_range_at_current(state->index + offset + 1, patch_range, state,
+                              false);
+    } else {
+      // previous_id is the last id in this range, so insert among siblings.
+      insert_regular_range_from_current_anchor(patch_range, state);
     }
-    // Insert immediately after previous_id within the located range.
-    splice_range_at_current(state->index + offset + 1, patch_range, state,
-                            deleted_flag > 0);
   }
 
   // Rewind cursor to compute the first visible index touched by patch_range.
+  normalize_state_order(state);
   state->index = 0;
   // Start the index scan at the projection head.
   state->current = state->first;
@@ -381,6 +240,42 @@ applyRemote(std::uint32_t range_length, std::uint32_t deleted_flag,
   }
   // Return the visible index where the remote patch starts.
   return state->index;
+}
+
+// ACKNOWLEDGE
+EMSCRIPTEN_KEEPALIVE
+std::uint32_t has_deleted_range(std::uint32_t instance_id_a,
+                                std::uint32_t instance_id_b,
+                                std::uint32_t instance_id_c,
+                                std::uint32_t instance_id_d) {
+  return state_has_deleted_range(find_state_by_instance_id(
+             instance_id_a, instance_id_b, instance_id_c, instance_id_d))
+             ? 1
+             : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+std::uint32_t get_deleted_frontier(std::uint32_t lane,
+                                   std::uint32_t instance_id_a,
+                                   std::uint32_t instance_id_b,
+                                   std::uint32_t instance_id_c,
+                                   std::uint32_t instance_id_d) {
+  Key frontier = deleted_frontier(find_state_by_instance_id(
+      instance_id_a, instance_id_b, instance_id_c, instance_id_d));
+  return key_lane(frontier, lane);
+}
+
+// GARBAGE COLLECT
+EMSCRIPTEN_KEEPALIVE
+void collect_deleted_until(
+    std::uint32_t frontier_id_a, std::uint32_t frontier_id_b,
+    std::uint32_t frontier_id_c, std::uint32_t frontier_id_d,
+    std::uint32_t instance_id_a, std::uint32_t instance_id_b,
+    std::uint32_t instance_id_c, std::uint32_t instance_id_d) {
+  collect_deleted_until_key(
+      find_state_by_instance_id(instance_id_a, instance_id_b, instance_id_c,
+                                instance_id_d),
+      Key{frontier_id_a, frontier_id_b, frontier_id_c, frontier_id_d});
 }
 
 // SNAPSHOT

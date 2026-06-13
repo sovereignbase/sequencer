@@ -1,12 +1,5 @@
-import {
-  compareUint32UuidV7,
-  snapshotRangeEnd,
-} from '../../../.helpers/index.js'
-import type {
-  CRListAck,
-  CRListState,
-  Uint32UuidV7,
-} from '../../../.types/type.js'
+import { wasmModule } from '../../../.helpers/index.js'
+import type { CRListAck, CRListState } from '../../../.types/type.js'
 
 /**
  * Returns the replica deleted-id acknowledgement frontier.
@@ -17,14 +10,11 @@ import type {
 export function __acknowledge<T>(
   crListReplica: CRListState<T>
 ): CRListAck | false {
-  let frontier: Uint32UuidV7 | undefined
-
-  for (const range of crListReplica.ranges) {
-    if (range.items !== undefined) continue
-    const end = snapshotRangeEnd(range)
-    if (frontier === undefined || compareUint32UuidV7(end, frontier) > 0)
-      frontier = end
-  }
-
-  return frontier ?? false
+  if (!wasmModule._has_deleted_range(...crListReplica.instanceId)) return false
+  return [
+    wasmModule._get_deleted_frontier(0, ...crListReplica.instanceId) >>> 0,
+    wasmModule._get_deleted_frontier(1, ...crListReplica.instanceId) >>> 0,
+    wasmModule._get_deleted_frontier(2, ...crListReplica.instanceId) >>> 0,
+    wasmModule._get_deleted_frontier(3, ...crListReplica.instanceId) >>> 0,
+  ]
 }

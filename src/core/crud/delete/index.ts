@@ -2,6 +2,7 @@ import { CRListError } from '../../../.errors/class.js'
 import {
   generateSnapshotRange,
   getPreviousRangeId,
+  getRangeIdAtIndex,
   isSafeIndex,
   wasmModule,
 } from '../../../.helpers/index.js'
@@ -46,9 +47,9 @@ export function __delete<T>(
       replica,
       undefined,
       getPreviousRangeId(replica, listIndex),
-      1
+      1,
+      getRangeIdAtIndex(replica, listIndex)
     )
-    void replica.ranges.push(range)
     change[listIndex + index] = undefined
     void wasmModule._applyLocal(
       listIndex,

@@ -1,9 +1,6 @@
-import { v7 } from 'uuid'
-import {
-  validateSnapshotRange,
-  wasmModule,
-} from '../../../.helpers/index.js'
+import { validateSnapshotRange, wasmModule } from '../../../.helpers/index.js'
 import type { CRListSnapshot, CRListState } from '../../../.types/type.js'
+import { HLC } from '@sovereignbase/hybrid-logical-clock'
 
 /**
  * Creates a local CRList replica from an optional snapshot.
@@ -13,29 +10,47 @@ import type { CRListSnapshot, CRListState } from '../../../.types/type.js'
  * item-level reads, writes, deletes, and merges can find the containing block.
  */
 export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
-  // Seed the local UUIDv7 clock with a sortable, replica-unique identifier.
-  const clockSeed = new Uint8Array(16)
-  void v7(undefined, clockSeed)
-  const [a, b, c, d] = new Uint32Array(clockSeed.buffer)
-  void wasmModule._add_instance(a, b, c, d)
-
   // Initialize all mutable indexes before any optional snapshot hydration.
   const replica: CRListState<T> = {
-    instanceId: [a, b, c, d],
-    clock: 0,
-    ranges: [],
-    values: [],
+    id: wasmModule._add_instance()
+    clock: new HLC(),
+    items: [],
+    pending: [],
   }
+
+  
 
   // Non-Array snapshots are ignored so construction remains tolerant.
   if (!Array.isArray(snapshot)) return replica
+
+  const applyRange = (
+    range: CRListSnapshot<T>[number],
+    consumerReference: number
+  ): boolean => {
+    const length = range.items?.length ?? range.length ?? 0
+    return (
+      wasmModule._applyRemote(
+        length,
+        range.items ? 0 : 1,
+        consumerReference,
+        ...replica.instanceId,
+        ...range.id,
+        ...range.previousRangeId
+      ) >>>
+        0 !==
+      4_294_967_295
+    )
+  }
 
   for (const range of snapshot) {
     if (!validateSnapshotRange<T>(range)) continue
     const length = range.items?.length ?? range.length ?? 0
     const consumerReference = replica.values.length
-    void replica.ranges.push(range)
     if (range.items) void replica.values.push(...range.items)
+    if (range.pending) {
+      void replica.pending.push({ range, consumerReference })
+      continue
+    }
     void wasmModule._add_range_to(
       length,
       consumerReference,
@@ -46,7 +61,15 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
     )
   }
 
-  if (replica.ranges.length > 0) void wasmModule._resolve_order_for(a, b, c, d)
+  for (let index = 0; index < replica.pending.length; ) {
+    const pending = replica.pending[index]
+    if (applyRange(pending.range, pending.consumerReference)) {
+      void replica.pending.splice(index, 1)
+      index = 0
+    } else {
+      index++
+    }
+  }
 
   // Return the hydrated mutable replica state.
   return replica

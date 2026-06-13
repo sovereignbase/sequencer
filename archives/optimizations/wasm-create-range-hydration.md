@@ -9,12 +9,12 @@ engine without changing the TypeScript value/API ownership model.
 
 Current README create rows:
 
-| scenario | crlist ms/op | winner |
-| --- | ---: | --- |
-| create / empty list | 0.01 | crlist |
-| create / hydrate snapshot | 3.62 | crlist |
-| create / hydrate clean snapshot | 3.60 | crlist |
-| create / hydrate tombstoned snapshot | 1.66 | crlist |
+| scenario                             | crlist ms/op | winner |
+| ------------------------------------ | -----------: | ------ |
+| create / empty list                  |         0.01 | crlist |
+| create / hydrate snapshot            |         3.62 | crlist |
+| create / hydrate clean snapshot      |         3.60 | crlist |
+| create / hydrate tombstoned snapshot |         1.66 | crlist |
 
 ## Change
 

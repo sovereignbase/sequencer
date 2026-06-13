@@ -1,7 +1,7 @@
 #pragma once
+#include <ankerl/unordered_dense.h>
 #include <cstddef>
 #include <cstdint>
-#include <unordered_map>
 #include <vector>
 
 struct Timestamp {
@@ -15,11 +15,11 @@ struct Timestamp {
 
 struct TimestampHash {
   std::size_t operator()(const Timestamp &k) const {
-    std::uint64_t x =
-        (std::uint64_t(k.lanes[0]) << 32) | std::uint64_t(k.lanes[1]);
+    std::uint32_t x =
+        (std::uint32_t(k.lanes[0]) << 32) | std::uint32_t(k.lanes[1]);
 
-    std::uint64_t y =
-        (std::uint64_t(k.lanes[2]) << 32) | std::uint64_t(k.lanes[3]);
+    std::uint32_t y =
+        (std::uint32_t(k.lanes[2]) << 32) | std::uint32_t(k.lanes[3]);
 
     x ^= y + 0x9e3779b97f4a7c15ULL + (x << 6) + (x >> 2);
 
@@ -34,6 +34,9 @@ struct TimestampHash {
  * by setting deleted=true, so later operations can patch the existing order.
  */
 struct Frame {
+  /// Tombstone marker. Deleted ranges stay linked and keep their ids.
+  bool deleted;
+
   /// First virtual id in this contiguous run.
   Timestamp this_timestamp;
 
@@ -55,9 +58,6 @@ struct Frame {
    * The consumer resolves later entries by adding the offset inside the range.
    */
   std::uint32_t items_index;
-
-  /// Tombstone marker. Deleted ranges stay linked and keep their ids.
-  bool deleted;
 };
 
 /**
@@ -67,8 +67,11 @@ struct Frame {
  * real values and talks to wasm through uint32 ids and consumer references.
  */
 struct Instance {
-  /// Ranges addressable by their first virtual id.
-  std::unordered_map<Timestamp, Frame *, TimestampHash> frames;
+  /// Ranges addressable by their index.
+  std::vector<Frame> frames;
+
+  /// Pending ranges addressable by their virtual id.
+  ankerl::unordered_dense::map<Timestamp, Frame *, TimestampHash> pending;
 
   /// Target index of current. Counts only non-deleted entries.
   std::uint32_t index;

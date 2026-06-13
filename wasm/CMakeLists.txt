@@ -7,10 +7,20 @@ project(
   LANGUAGES CXX
 )
 
+include(FetchContent)
+
+FetchContent_Declare(
+  unordered_dense
+  GIT_REPOSITORY https://github.com/martinus/unordered_dense.git
+  GIT_TAG v4.8.1
+)
+FetchContent_MakeAvailable(unordered_dense)
+
 add_executable(crlist_wasm src/main.cpp)
 
 target_compile_features(crlist_wasm PRIVATE cxx_std_23)
 target_include_directories(crlist_wasm PRIVATE include)
+target_link_libraries(crlist_wasm PRIVATE unordered_dense::unordered_dense)
 
 if(MSVC)
   target_compile_options(crlist_wasm PRIVATE /W4 /permissive-)

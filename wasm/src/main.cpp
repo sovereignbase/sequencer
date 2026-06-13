@@ -11,7 +11,7 @@
 // EMSCRIPTEN_KEEPALIVE keeps the C ABI functions exported to JavaScript.
 #include <emscripten/emscripten.h>
 
-static std::vector<State *> instances;
+static std::vector<Instance *> instances;
 
 // Export unmangled C symbols so JavaScript can call them by stable names.
 extern "C" {
@@ -31,7 +31,7 @@ EMSCRIPTEN_KEEPALIVE
 std::uint32_t add_instance() {
   const std::uint32_t id = instances.size();
 
-  instances.push_back(new State{
+  instances.push_back(new Instance{
       {},      // pending ranges waiting for their previous range
       {},      // ranges addressable by start id
       0,       // current target index
@@ -43,7 +43,6 @@ std::uint32_t add_instance() {
 
   return id;
 }
-
 /// @}
 
 /**
@@ -63,8 +62,8 @@ std::uint32_t add_instance() {
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t size_of(std::uint32_t instance_id) {
   // Resolve the state and return the visible, non-tombstoned size.
-  State *state = instances[instance_id];
-  return state->size;
+  Instance *instance = instances[instance_id];
+  return instance->size;
 }
 
 /**
@@ -79,13 +78,13 @@ std::uint32_t size_of(std::uint32_t instance_id) {
  */
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t index_of(std::uint32_t instance_id, std::uint32_t target_index) {
-  // Resolve the state to read from.
-  State *state = instances[instance_id];
+  // Resolve the instance to read from.
+  Instance *instance = instances[instance_id];
   // Move the cursor to the range containing target_index.
-  find_target_range(target_index, state);
+  find_target_range(target_index, instance);
   // Return the range's consumer reference plus the offset inside the range.
-  return state->current->consumer_reference +
-         absolute_distance(state->index, target_index);
+  return instance->current->items_index +
+         absolute_distance(instance->index, target_index);
 }
 
 EMSCRIPTEN_KEEPALIVE

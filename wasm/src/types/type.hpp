@@ -71,7 +71,12 @@ struct Instance {
   std::vector<Frame> frames;
 
   /// Pending ranges addressable by their virtual id.
-  ankerl::unordered_dense::map<Timestamp, Frame *, TimestampHash> pending;
+  ankerl::unordered_dense::map<Timestamp, Frame *, TimestampHash>
+      framesByTimestamp;
+
+  /// Pending ranges addressable by their virtual id.
+  ankerl::unordered_dense::map<Timestamp, Frame *, TimestampHash>
+      pendingFramesByTheirPreviousTimestamp;
 
   /// Target index of current. Counts only non-deleted entries.
   std::uint32_t index;

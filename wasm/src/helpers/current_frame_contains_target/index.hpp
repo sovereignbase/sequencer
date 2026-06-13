@@ -1,3 +1,4 @@
+#pragma once
 #include "../../types/type.hpp"
 #include <cstdint>
 

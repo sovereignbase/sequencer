@@ -124,11 +124,25 @@ std::uint32_t applyFrame(std::uint32_t instance_id, std::uint32_t items_index,
   Instance &instance = instances[instance_id];
 
   // Allocate frame from the uint32 ABI values.
-  const std::uint32_t frame_index = virtualize_frame(
+  const std::uint32_t this_frame_index = allocate_frame(
       &instance, items_index, deleted_flag, frame_length,
       frame_timestamp_first_32bits, frame_timestamp_second_32bits,
       frame_timestamp_third_32bits, frame_timestamp_fourth_32bits,
       previous_timestamp_first_32bits, previous_timestamp_second_32bits,
       previous_timestamp_third_32bits, previous_timestamp_fourth_32bits);
+
+  Frame *this_frame = &instance.frames[this_frame_index];
+
+  const std::uint32_t previous_frame_index =
+      find_frame_index_by_timestamp(&instance, this_frame->previous_timestamp);
+
+  if (previous_frame_index == invalid_frame_index) {
+    instance.pending_frame_indices_by_their_previous_timestamp.insert(
+        {this_frame->previous_timestamp, this_frame_index});
+
+    return invalid_frame_index;
+  }
+
+  Frame *previous_frame = &instance.frames[previous_frame_index];
 }
 }

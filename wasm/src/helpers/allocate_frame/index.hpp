@@ -3,17 +3,17 @@
 #include <cstdint>
 
 std::uint32_t
-virtualize_frame(Instance *instance, const std::uint32_t items_index,
-                 const std::uint32_t deleted_flag,
-                 const std::uint32_t frame_length,
-                 const std::uint32_t frame_timestamp_first_32bits,
-                 const std::uint32_t frame_timestamp_second_32bits,
-                 const std::uint32_t frame_timestamp_third_32bits,
-                 const std::uint32_t frame_timestamp_fourth_32bits,
-                 const std::uint32_t previous_timestamp_first_32bits,
-                 const std::uint32_t previous_timestamp_second_32bits,
-                 const std::uint32_t previous_timestamp_third_32bits,
-                 const std::uint32_t previous_timestamp_fourth_32bits) {
+allocate_frame(Instance *instance, const std::uint32_t items_index,
+               const std::uint32_t deleted_flag,
+               const std::uint32_t frame_length,
+               const std::uint32_t frame_timestamp_first_32bits,
+               const std::uint32_t frame_timestamp_second_32bits,
+               const std::uint32_t frame_timestamp_third_32bits,
+               const std::uint32_t frame_timestamp_fourth_32bits,
+               const std::uint32_t previous_timestamp_first_32bits,
+               const std::uint32_t previous_timestamp_second_32bits,
+               const std::uint32_t previous_timestamp_third_32bits,
+               const std::uint32_t previous_timestamp_fourth_32bits) {
   const std::uint32_t index = instance->frames.size();
 
   const Timestamp frame_timestamp = {
@@ -34,5 +34,5 @@ virtualize_frame(Instance *instance, const std::uint32_t items_index,
   if (!instance->frames[index].deleted)
     instance->size += frame_length;
 
-  return index;
+  return index
 }

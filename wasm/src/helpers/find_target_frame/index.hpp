@@ -13,12 +13,11 @@
  * @param target_index Zero-based non-deleted target index.
  * @param instance State whose current range and index are updated.
  */
-void find_target_frame(std::uint32_t target_index, Instance *instance) {
-  if (instance->frames.empty())
-    return;
+void find_target_frame(const std::uint32_t target_index, Instance *instance) {
 
   // If the selected cursor already contains target, no walk is needed.
-  if (current_frame_contains_target(instance, target_index))
+  if (instance->frames.empty() ||
+      current_frame_contains_target(instance, target_index))
     return;
 
   // Start with the distance from the current cursor to the target.

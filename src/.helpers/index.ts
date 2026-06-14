@@ -5,19 +5,17 @@ import type {
 } from '../.types/type.js'
 import createModule, { type MainModule } from '../../wasm/dist/crlist_wasm.mjs'
 
-export const wasmModule = createModule() as unknown as MainModule
+export const projector = createModule() as unknown as MainModule
 
 export function isSafeIndex(
   index: unknown,
-  liveAmount: number,
+  length: number,
   allowEnd = false
 ): index is number {
   return (
     Number.isSafeInteger(index) &&
     (index as number) >= 0 &&
-    (allowEnd
-      ? (index as number) <= liveAmount
-      : (index as number) < liveAmount)
+    (allowEnd ? (index as number) <= length : (index as number) < length)
   )
 }
 

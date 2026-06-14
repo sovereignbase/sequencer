@@ -5,22 +5,25 @@
 #include <limits>
 #include <vector>
 
-constexpr std::uint32_t invalid_frame_index =
+/// Sentinel used when no strip position is available.
+constexpr std::uint32_t invalid_strip_indicator =
     std::numeric_limits<std::uint32_t>::max();
 
-struct Timestamp {
+/// Stable CRSequence timecode encoded as four uint32 lanes.
+struct Timecode {
   std::uint32_t lanes[4];
 
   std::uint32_t operator[](std::uint32_t index) const { return lanes[index]; }
 
-  bool operator==(const Timestamp &other) const {
+  bool operator==(const Timecode &other) const {
     return lanes[0] == other.lanes[0] && lanes[1] == other.lanes[1] &&
            lanes[2] == other.lanes[2] && lanes[3] == other.lanes[3];
   }
 };
 
-struct TimestampHash {
-  std::size_t operator()(const Timestamp &k) const {
+/// Hash function for Timecode map keys.
+struct TimecodeHash {
+  std::size_t operator()(const Timecode &k) const {
     std::uint64_t x =
         (std::uint64_t(k.lanes[0]) << 32) | std::uint64_t(k.lanes[1]);
 
@@ -34,63 +37,66 @@ struct TimestampHash {
 };
 
 /**
- * @brief One contiguous virtual id run in the linked range projection.
+ * @brief One contiguous strip in the linked projection.
  *
- * Ranges are never physically removed from the projection. Deletes are modeled
- * by setting deleted=true, so later operations can patch the existing order.
+ * A strip carries one or more virtual positions. Strips are never physically
+ * removed from the projection. Hidden content is modeled by setting
+ * masked=true, so later operations can patch the existing order.
  */
-struct Frame {
-  /// Tombstone marker. Deleted ranges stay linked and keep their ids.
-  bool deleted;
+struct Strip {
+  /// Visibility marker. Masked strips stay linked and keep their timecodes.
+  bool masked;
 
-  /// First virtual id in this contiguous run.
-  Timestamp this_timestamp;
+  /// Number of virtual positions carried by this strip.
+  std::uint32_t length;
 
-  /// Stable CRDT anchor: the id this range was inserted after.
-  Timestamp previous_timestamp;
-
-  /// Next projected range in the doubly linked range list.
-  std::uint32_t next_index;
-
-  /// Previous projected range in the doubly linked range list.
-  std::uint32_t previous_index;
-
-  /// Number of virtual entries represented by this range.
-  std::uint32_t frame_length;
+  /// First timecode carried by this strip.
+  Timecode timecode;
 
   /**
-   * @brief JavaScript-owned reference for the first value in this range.
+   * @brief JavaScript-owned footage code for this strip's first value.
    *
-   * The consumer resolves later entries by adding the offset inside the range.
+   * Later values are resolved by adding their offset inside the strip.
    */
-  std::uint32_t footage_index;
+  std::uint32_t footage_code;
+
+  /// Start position of the next strip in the linked projection.
+  std::uint32_t next_strip_start_position;
+
+  /// Start position of the previous strip in the linked projection.
+  std::uint32_t previous_strip_start_position;
+
+  /// Timecode this strip was recorded after.
+  Timecode previous_strip_timecode;
 };
 
 /**
- * @brief Complete wasm state for one virtual replicated list instance.
+ * @brief Wasm projector state for one CRSequence instance.
  *
- * The state stores only range metadata and cursor position. JavaScript owns the
- * real values and talks to wasm through uint32 ids and consumer references.
+ * The projector stores strip metadata, projection links, loose strips, and gate
+ * position. JavaScript owns the footage and talks to wasm through uint32
+ * values.
  */
 struct Projector {
-  /// Number of non-deleted entries addressable by target indexes.
-  std::uint32_t size;
-  /// Ranges addressable by their index, stored next to each other in memory.
-  std::vector<Frame> film_strip;
+  /// All strips stored next to each other in memory.
+  std::vector<Strip> reel;
 
-  /// Pending ranges addressable by their virtual id.
-  ankerl::unordered_dense::map<Timestamp, std::uint32_t, TimestampHash>
-      pending_frame_indices_by_their_previous_timestamp;
+  /// Number of visible positions in the projected reel.
+  std::uint32_t reel_length;
 
-  /// Target index of current. Counts only non-deleted entries.
+  /// Current visible position at the projector gate.
   std::uint32_t gate_position;
 
-  /// First range in the linked projection.
-  std::uint32_t first_frame_by_index;
+  /// Start position of the first strip in the linked projection.
+  std::uint32_t first_strip_start_position;
 
-  /// Cursor range used by reads and local patches.
-  std::uint32_t current_frame_by_index;
+  /// Start position of the strip currently at the projector gate.
+  std::uint32_t gate_strip_start_position;
 
-  /// Last range in the linked projection.
-  std::uint32_t last_frame_by_index;
+  /// Start position of the last strip in the linked projection.
+  std::uint32_t last_strip_start_position;
+
+  /// Loose strips waiting for their previous timecode before projection.
+  ankerl::unordered_dense::map<Timecode, std::uint32_t, TimecodeHash>
+      loose_strip_start_positions_by_previous_timecode;
 };

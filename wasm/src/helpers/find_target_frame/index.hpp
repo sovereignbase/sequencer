@@ -14,6 +14,9 @@
  * @param instance State whose current range and index are updated.
  */
 void find_target_frame(std::uint32_t target_index, Instance *instance) {
+  if (instance->frames.empty())
+    return;
+
   // If the selected cursor already contains target, no walk is needed.
   if (current_frame_contains_target(instance, target_index))
     return;
@@ -27,21 +30,8 @@ void find_target_frame(std::uint32_t target_index, Instance *instance) {
   // If the head is closer than current, start the walk at first.
   if (head_distance < distance) {
     instance->index = 0;
-    instance->current = instance->first;
+    instance->current_frame_by_index = instance->first_frame_by_index;
     distance = head_distance;
-  }
-
-  // Tail cursor index is the start of the last visible range.
-  const std::uint32_t tail_index =
-      instance->size - instance->last->range_length;
-  // Compute distance from the visible tail to the target.
-  const std::uint32_t tail_distance =
-      absolute_distance(tail_index, target_index);
-
-  // If tail is closest, start the walk at last.
-  if (tail_distance < distance) {
-    instance->index = tail_index;
-    instance->current = instance->last;
   }
 
   // If the selected cursor already contains target, no walk is needed.
@@ -50,25 +40,34 @@ void find_target_frame(std::uint32_t target_index, Instance *instance) {
 
   // Walk right when the cursor starts before the target or sits on a
   // tombstone.
-  if (instance->index < target_index || instance->current->deleted) {
+  if (instance->index < target_index ||
+      instance->frames[instance->current_frame_by_index].deleted) {
     // Stop as soon as the cursor range contains the target.
     while (!current_frame_contains_target(instance, target_index)) {
-      Frame *previous = instance->current;
+      Frame &previous = instance->frames[instance->current_frame_by_index];
+      if (previous.next_index == invalid_frame_index)
+        return;
+
       // Advance to the next linked range, including tombstones.
-      instance->current = instance->frames[instance->current->next_index];
+      instance->current_frame_by_index = previous.next_index;
       // Only the range walked over moves the visible target index forward.
-      if (!previous->deleted)
-        instance->index += previous->range_length;
+      if (!previous.deleted)
+        instance->index += previous.frame_length;
     }
     return;
   }
 
   // Walk left when the cursor starts after the target.
   while (!current_frame_contains_target(instance, target_index)) {
+    Frame &current = instance->frames[instance->current_frame_by_index];
+    if (current.previous_index == invalid_frame_index)
+      return;
+
     // Move to the previous linked range, including tombstones.
-    instance->current = instance->frames[instance->current->previous_index];
+    instance->current_frame_by_index = current.previous_index;
     // Only non-deleted ranges move the visible target index backward.
-    if (!instance->current->deleted)
-      instance->index -= instance->current->range_length;
+    Frame &previous = instance->frames[instance->current_frame_by_index];
+    if (!previous.deleted)
+      instance->index -= previous.frame_length;
   }
 }

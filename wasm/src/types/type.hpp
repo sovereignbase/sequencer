@@ -2,10 +2,16 @@
 #include <ankerl/unordered_dense.h>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <vector>
+
+constexpr std::uint32_t invalid_frame_index =
+    std::numeric_limits<std::uint32_t>::max();
 
 struct Timestamp {
   std::uint32_t lanes[4];
+
+  std::uint32_t operator[](std::uint32_t index) const { return lanes[index]; }
 
   bool operator==(const Timestamp &other) const {
     return lanes[0] == other.lanes[0] && lanes[1] == other.lanes[1] &&
@@ -15,11 +21,11 @@ struct Timestamp {
 
 struct TimestampHash {
   std::size_t operator()(const Timestamp &k) const {
-    std::uint32_t x =
-        (std::uint32_t(k.lanes[0]) << 32) | std::uint32_t(k.lanes[1]);
+    std::uint64_t x =
+        (std::uint64_t(k.lanes[0]) << 32) | std::uint64_t(k.lanes[1]);
 
-    std::uint32_t y =
-        (std::uint32_t(k.lanes[2]) << 32) | std::uint32_t(k.lanes[3]);
+    std::uint64_t y =
+        (std::uint64_t(k.lanes[2]) << 32) | std::uint64_t(k.lanes[3]);
 
     x ^= y + 0x9e3779b97f4a7c15ULL + (x << 6) + (x >> 2);
 
@@ -67,16 +73,16 @@ struct Frame {
  * real values and talks to wasm through uint32 ids and consumer references.
  */
 struct Instance {
-  /// Ranges addressable by their index.
-  std::vector<Frame *> frames;
+  /// Ranges addressable by their index, stored next to each other in memory.
+  std::vector<Frame> frames;
 
   /// Pending ranges addressable by their virtual id.
-  ankerl::unordered_dense::map<Timestamp, Frame *, TimestampHash>
-      framesByTimestamp;
+  ankerl::unordered_dense::map<Timestamp, std::uint32_t, TimestampHash>
+      frame_indices_by_timestamp;
 
   /// Pending ranges addressable by their virtual id.
-  ankerl::unordered_dense::map<Timestamp, Frame *, TimestampHash>
-      pendingFramesByTheirPreviousTimestamp;
+  ankerl::unordered_dense::map<Timestamp, std::uint32_t, TimestampHash>
+      pending_frame_indices_by_their_previous_timestamp;
 
   /// Target index of current. Counts only non-deleted entries.
   std::uint32_t index;
@@ -85,11 +91,11 @@ struct Instance {
   std::uint32_t size;
 
   /// First range in the linked projection.
-  Frame *first;
+  std::uint32_t first_frame_by_index;
 
   /// Cursor range used by reads and local patches.
-  Frame *current;
+  std::uint32_t current_frame_by_index;
 
   /// Last range in the linked projection.
-  Frame *last;
+  std::uint32_t last_frame_by_index;
 };

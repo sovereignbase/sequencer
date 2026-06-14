@@ -8,7 +8,8 @@
  * @param right Second index.
  * @return Absolute difference between left and right.
  */
-std::uint32_t absolute_distance(std::uint32_t left, std::uint32_t right) {
+std::uint32_t absolute_distance(const std::uint32_t left,
+                                const std::uint32_t right) {
   // Avoid signed arithmetic; all wasm ABI values are uint32.
   return left > right ? left - right : right - left;
 }

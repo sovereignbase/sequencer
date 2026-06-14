@@ -12,21 +12,20 @@ import type {
  */
 export type CRListState<T> = {
   clock: HLC
-  items: Array<T>
-  pending: Array<{ range: CRListFrame<T>; consumerReference: number }>
+  footage: Array<T>
 }
 
 /**
  * Block record used by snapshots and deltas.
  *
- * `items` are live payload references. Consumers that mutate items outside
+ * `footage` are live payload references. Consumers that mutate footage outside
  * CRList operations must provide their own isolation first.
  */
 export type CRListFrame<T> = {
-  /** User payload items stored in this block. */
-  items: Array<T>
   /** Is the frame deleted or not. */
-  deleted: 0 | 1
+  hidden: 0 | 1
+  /** User payload footage stored in this block. */
+  footage: Array<T>
   /** Stable previous and this frame timestamp */
   timestamp: HLCTimestamp
 }

@@ -13,7 +13,7 @@
  * @param target_index Zero-based non-deleted target index.
  * @param instance State whose current range and index are updated.
  */
-void find_target_frame(const std::uint32_t target_index, Instance *instance) {
+void find_frame_by_index(const std::uint32_t target_index, Instance *instance) {
 
   // If the selected cursor already contains target, no walk is needed.
   if (instance->frames.empty() ||

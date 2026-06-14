@@ -63,7 +63,7 @@ struct Frame {
    *
    * The consumer resolves later entries by adding the offset inside the range.
    */
-  std::uint32_t items_index;
+  std::uint32_t footage_index;
 };
 
 /**
@@ -72,23 +72,18 @@ struct Frame {
  * The state stores only range metadata and cursor position. JavaScript owns the
  * real values and talks to wasm through uint32 ids and consumer references.
  */
-struct Instance {
+struct Projector {
+  /// Number of non-deleted entries addressable by target indexes.
+  std::uint32_t size;
   /// Ranges addressable by their index, stored next to each other in memory.
-  std::vector<Frame> frames;
-
-  /// Pending ranges addressable by their virtual id.
-  ankerl::unordered_dense::map<Timestamp, std::uint32_t, TimestampHash>
-      frame_indices_by_timestamp;
+  std::vector<Frame> film_strip;
 
   /// Pending ranges addressable by their virtual id.
   ankerl::unordered_dense::map<Timestamp, std::uint32_t, TimestampHash>
       pending_frame_indices_by_their_previous_timestamp;
 
   /// Target index of current. Counts only non-deleted entries.
-  std::uint32_t index;
-
-  /// Number of non-deleted entries addressable by target indexes.
-  std::uint32_t size;
+  std::uint32_t gate_position;
 
   /// First range in the linked projection.
   std::uint32_t first_frame_by_index;

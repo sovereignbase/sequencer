@@ -29,10 +29,9 @@ allocate_frame(Instance *instance, const std::uint32_t items_index,
       invalid_frame_index, invalid_frame_index, frame_length, items_index});
 
   instance->last_frame_by_index = index;
-  instance->frame_indices_by_timestamp.insert({frame_timestamp, index});
 
   if (!instance->frames[index].deleted)
     instance->size += frame_length;
 
-  return index
+  return index;
 }

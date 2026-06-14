@@ -12,7 +12,7 @@
 // EMSCRIPTEN_KEEPALIVE keeps the C ABI functions exported to JavaScript.
 #include <emscripten/emscripten.h>
 
-static std::vector<Instance> instances;
+static std::vector<Instance> projectors;
 
 // Export unmangled C symbols so JavaScript can call them by stable names.
 extern "C" {
@@ -29,15 +29,15 @@ extern "C" {
  * them through consumer references returned by read operations.
  */
 EMSCRIPTEN_KEEPALIVE
-std::uint32_t add_instance() {
+std::uint32_t add_projector() {
   const std::uint32_t id = instances.size();
 
   instances.push_back(Instance{
-      {},                  // all frames
-      {},                  // pending ranges waiting for their previous range
-      {},                  // ranges addressable by start id
-      0,                   // current target index
-      0,                   // non-deleted length
+      {}, // all frames
+      {}, // pending ranges waiting for their previous range
+      {}, // ranges addressable by start id
+      0,  // the part where one frame is held in position to be projected.
+      0,  // non-deleted length
       invalid_frame_index, // first projected range
       invalid_frame_index, // cursor range
       invalid_frame_index  // last projected range
@@ -110,20 +110,22 @@ std::uint32_t timestamp_lane_of(std::uint32_t instance_id,
  * is returned so JavaScript can replay the range later.
  */
 EMSCRIPTEN_KEEPALIVE
-std::uint32_t applyFrame(std::uint32_t instance_id, std::uint32_t items_index,
-                         std::uint32_t deleted_flag, std::uint32_t frame_length,
-                         std::uint32_t frame_timestamp_first_32bits,
-                         std::uint32_t frame_timestamp_second_32bits,
-                         std::uint32_t frame_timestamp_third_32bits,
-                         std::uint32_t frame_timestamp_fourth_32bits,
-                         std::uint32_t previous_timestamp_first_32bits,
-                         std::uint32_t previous_timestamp_second_32bits,
-                         std::uint32_t previous_timestamp_third_32bits,
-                         std::uint32_t previous_timestamp_fourth_32bits) {
+std::uint32_t splice_frame(std::uint32_t instance_id,
+                           std::uint32_t content_index,
+                           std::uint32_t hidden_flag,
+                           std::uint32_t frame_length,
+                           std::uint32_t frame_timestamp_first_32bits,
+                           std::uint32_t frame_timestamp_second_32bits,
+                           std::uint32_t frame_timestamp_third_32bits,
+                           std::uint32_t frame_timestamp_fourth_32bits,
+                           std::uint32_t previous_timestamp_first_32bits,
+                           std::uint32_t previous_timestamp_second_32bits,
+                           std::uint32_t previous_timestamp_third_32bits,
+                           std::uint32_t previous_timestamp_fourth_32bits) {
   // Resolve the state that receives this remote range.
   Instance &instance = instances[instance_id];
 
-  // Allocate frame from the uint32 ABI values.
+  // Allocate range from the uint32 ABI values.
   const std::uint32_t this_frame_index = allocate_frame(
       &instance, items_index, deleted_flag, frame_length,
       frame_timestamp_first_32bits, frame_timestamp_second_32bits,

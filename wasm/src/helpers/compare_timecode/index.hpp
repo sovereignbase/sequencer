@@ -1,3 +1,4 @@
+#pragma once
 #include "../../types/type.hpp"
 #include <cstdint>
 std::int8_t compare_timecode(const Timecode *left, const Timecode *right) {

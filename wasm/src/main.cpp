@@ -30,7 +30,7 @@ extern "C" {
  */
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t cue() {
-  const std::uint32_t projector_index = projectors.size();
+  const std::uint32_t projector_id = projectors.size();
 
   projectors.push_back(Projector{
       {},                       // reel
@@ -42,7 +42,7 @@ std::uint32_t cue() {
       {}                        // loose strips by previous timecode
   });
 
-  return projector_index;
+  return projector_id;
 }
 /// @}
 
@@ -58,9 +58,9 @@ std::uint32_t cue() {
  * @return Current target-positionable reel length.
  */
 EMSCRIPTEN_KEEPALIVE
-std::uint32_t size_of(std::uint32_t projector_index) {
+std::uint32_t size_of(std::uint32_t projector_id) {
   // Resolve the projector and return the visible reel length.
-  Projector &projector = projectors[projector_index];
+  Projector &projector = projectors[projector_id];
   return projector.reel_length;
 }
 
@@ -75,10 +75,10 @@ std::uint32_t size_of(std::uint32_t projector_index) {
  * @return JavaScript-owned footage code for the target entry.
  */
 EMSCRIPTEN_KEEPALIVE
-std::uint32_t index_of(std::uint32_t projector_index,
+std::uint32_t index_of(std::uint32_t projector_id,
                        std::uint32_t target_position) {
   // Resolve the projector to read from.
-  Projector &projector = projectors[projector_index];
+  Projector &projector = projectors[projector_id];
   // Move the gate to the strip containing target_position.
   find_strip_by_position(target_position, &projector);
   // Return the strip's footage code plus the offset inside the strip.
@@ -87,11 +87,11 @@ std::uint32_t index_of(std::uint32_t projector_index,
 }
 
 EMSCRIPTEN_KEEPALIVE
-std::uint32_t timecode_lane_of(std::uint32_t projector_index,
+std::uint32_t timecode_lane_of(std::uint32_t projector_id,
                                std::uint32_t target_position,
                                std::uint32_t lane_index) {
   // Resolve the projector to read from.
-  Projector &projector = projectors[projector_index];
+  Projector &projector = projectors[projector_id];
   // Move the gate to the strip containing target_position.
   find_strip_by_position(target_position, &projector);
   // Return the selected lane from the strip timecode.
@@ -111,7 +111,7 @@ std::uint32_t timecode_lane_of(std::uint32_t projector_index,
  */
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t splice_strip(
-    std::uint32_t projector_index, std::uint32_t footage_code,
+    std::uint32_t projector_id, std::uint32_t footage_code,
     std::uint32_t masked_flag, std::uint32_t strip_length,
     std::uint32_t strip_timecode_first_32bits,
     std::uint32_t strip_timecode_second_32bits,
@@ -122,7 +122,7 @@ std::uint32_t splice_strip(
     std::uint32_t previous_strip_timecode_third_32bits,
     std::uint32_t previous_strip_timecode_fourth_32bits) {
   // Resolve the projector that receives this remote strip.
-  Projector &projector = projectors[projector_index];
+  Projector &projector = projectors[projector_id];
 
   // Allocate strip from the uint32 ABI values.
   const std::uint32_t this_strip_start_position = allocate_strip(

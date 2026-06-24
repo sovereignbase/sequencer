@@ -4,15 +4,22 @@
 
 #include "../../types/type.hpp"
 
+#include "../../helpers/index.hpp"
+
+/// implement doubly linked list walk istead of map
+
 std::uint32_t find_strip_start_position_by_timecode(const Projector *projector,
-                                                    const Timecode &timecode) {
-  const auto strip_start_position =
-      projector->loose_strip_start_positions_by_previous_timecode.find(
-          timecode);
+                                                    const Timecode *timecode) {
+  Timecode *right =
+      projector->reel[projector->gate_strip_start_position]->timecode;
 
-  if (strip_start_position ==
-      projector->loose_strip_start_positions_by_previous_timecode.end())
-    return invalid_strip_indicator;
+  std::int8_t comparison_result = compare_timecode(timecode, right);
 
-  return strip_start_position->second;
+  while (comparison_result != 0) {
+    if (compare_timecode(timecode, timecode) == 1) {
+    };
+
+    if (compare_timecode(timecode, timecode) == -1) {
+    };
+  };
 }

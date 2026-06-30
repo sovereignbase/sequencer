@@ -7,10 +7,11 @@
  *
  * @param projector Projector whose gate strip and gate position are checked.
  * @param target_position Zero-based visible target position.
- * @return True when target_position is inside projector->gate_strip_start_position.
+ * @return True when target_position is inside
+ * projector->gate_strip_start_position.
  */
-bool current_strip_contains_target(Projector *projector,
-                                   const std::uint32_t target_position) {
+bool current_strip_contains_target_position(
+    Projector *projector, const std::uint32_t target_position) {
   if (projector->gate_strip_start_position == invalid_strip_indicator)
     return false;
 

@@ -6,8 +6,7 @@
 #include <vector>
 
 /// Sentinel used when no strip position is available.
-constexpr std::uint32_t invalid_strip_indicator =
-    std::numeric_limits<std::uint32_t>::max();
+constexpr std::uint32_t max_uint32 = std::numeric_limits<std::uint32_t>::max();
 
 /// Stable CRSequence timecode encoded as four uint32 lanes.
 struct Timecode {

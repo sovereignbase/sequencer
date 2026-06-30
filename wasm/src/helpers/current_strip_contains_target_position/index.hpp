@@ -12,7 +12,7 @@
  */
 bool current_strip_contains_target_position(
     Projector *projector, const std::uint32_t target_position) {
-  if (projector->gate_strip_start_position == invalid_strip_indicator)
+  if (projector->gate_strip_start_position == max_uint32)
     return false;
 
   const Strip &current = projector->reel[projector->gate_strip_start_position];

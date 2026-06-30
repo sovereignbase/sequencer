@@ -26,8 +26,7 @@ splice_strip(Projector *projector, const std::uint32_t footage_code,
        previous_strip_timecode_fourth_32bits}};
 
   projector->reel.push_back(Strip{masked_flag > 0, strip_length, strip_timecode,
-                                  footage_code, invalid_strip_indicator,
-                                  invalid_strip_indicator,
+                                  footage_code, max_uint32, max_uint32,
                                   previous_strip_timecode});
 
   projector->last_strip_start_position = strip_start_position;

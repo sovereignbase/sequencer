@@ -2,9 +2,9 @@
 #include "../../types/type.hpp"
 #include <cstdint>
 
-std::uint32_t timecode_is_within_strip(const Timecode *evaluated,
-                                       const Timecode *against,
-                                       const std::uint32_t length) {
+std::uint32_t current_strip_contains_timecode(const Timecode *evaluated,
+                                              const Timecode *against,
+                                              const std::uint32_t length) {
   std::uint32_t offset = 0;
 
   for (std::uint32_t i = 0; i < 4; ++i) {
@@ -12,14 +12,14 @@ std::uint32_t timecode_is_within_strip(const Timecode *evaluated,
     const std::uint32_t against_lane = (*against)[i];
 
     if (evaluated_lane < against_lane) {
-      return invalid_strip_indicator;
+      return max_uint32;
     }
 
     if (evaluated_lane > against_lane) {
       offset = evaluated_lane - against_lane;
 
       if (offset >= length) {
-        return invalid_strip_indicator;
+        return max_uint32;
       }
     }
   }

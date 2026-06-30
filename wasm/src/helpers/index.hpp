@@ -2,6 +2,7 @@
 #include "./absolute_distance/index.hpp"
 #include "./compare_timecode/index.hpp"
 #include "./current_strip_contains_target_position/index.hpp"
+#include "./current_strip_contains_timecode/index.hpp"
 #include "./find_strip_by_target_position/index.hpp"
 #include "./find_strip_by_timecode/index.hpp"
 #include "./run_backward/index.hpp"

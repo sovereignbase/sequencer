@@ -3,7 +3,7 @@
 
 void run_forward(Projector *projector) {
   Strip &previous = projector->reel[projector->gate_strip_start_position];
-  if (previous.next_strip_start_position == invalid_strip_indicator)
+  if (previous.next_strip_start_position == max_uint32)
     return;
   // Advance to the next linked strip, including masked strips.
   projector->gate_strip_start_position = previous.next_strip_start_position;

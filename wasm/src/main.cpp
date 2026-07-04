@@ -101,9 +101,9 @@ std::uint32_t index_of(std::uint32_t projector_id,
 }
 
 EMSCRIPTEN_KEEPALIVE
-std::uint32_t timecode_lane_of(std::uint32_t projector_id,
-                               std::uint32_t target_position,
-                               std::uint32_t lane_index) {
+std::uint32_t timecode_of(std::uint32_t projector_id,
+                          std::uint32_t target_position,
+                          std::uint32_t lane_index) {
   // Resolve the projector to read from.
   Projector &projector = projectors[projector_id];
   // Move the gate to the strip containing target_position.
@@ -149,16 +149,22 @@ std::uint32_t merge(std::uint32_t projector_id, std::uint32_t footage_code,
 
   Strip *this_strip = &projector.reel[this_strip_start_position];
 
-  const std::uint32_t previous_strip_start_position =
-      find_strip_by_timecode_and_length(
-          &projector, &this_strip->previous_strip_timecode, this_strip->length);
+  const std::uint32_t offset = find_strip_by_timecode_and_length(
+      &projector, &this_strip->previous_strip_timecode, this_strip->length);
 
-  if (previous_strip_start_position == max_uint32) {
+  const std::uint32_t previous_strip_start_position =
+      projector.reel[projector.gate_position];
+
+  if (offset == max_uint32 || previous_strip_start_position == max_uint32) {
     projector.loose_strip_start_positions_by_previous_timecode.insert(
         {this_strip->previous_strip_timecode, this_strip_start_position});
     return max_uint32;
   }
 
   Strip *previous_strip = &projector.reel[previous_strip_start_position];
+
+  clip_strip_at_offset(this_strip, previous_strip, offset);
+
+  return footage_code;
 }
 }

@@ -21,9 +21,9 @@ struct Timecode {
            lanes[2] == other.lanes[2] && lanes[3] == other.lanes[3];
   }
   bool add(std::uint32_t value) {
-    std::uint64_t carry = value;
+    std::uint32_t carry = value;
 
-    for (int i = 3; i >= 0 && carry != 0; --i) {
+    for (std::uint8_t i = 3; i >= 0 && carry != 0; --i) {
       std::uint64_t sum = static_cast<std::uint64_t>(lanes[i]) + carry;
 
       lanes[i] = static_cast<std::uint32_t>(sum);

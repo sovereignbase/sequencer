@@ -161,8 +161,8 @@ std::uint32_t merge(std::uint32_t projector_id, std::uint32_t footage_code,
     return max_uint32;
   }
 
-  clip_strip_at_offset(this_strip_start_position, previous_strip_start_position,
-                       offset);
+  clip_strip_at_offset(&projector, this_strip_start_position,
+                       previous_strip_start_position, offset);
 
   return footage_code;
 }

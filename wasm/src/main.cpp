@@ -153,7 +153,7 @@ std::uint32_t merge(std::uint32_t projector_id, std::uint32_t footage_code,
       &projector, &this_strip->previous_strip_timecode, this_strip->length);
 
   const std::uint32_t previous_strip_start_position =
-      projector.reel[projector.gate_position];
+      projector.gate_strip_start_position;
 
   if (offset == max_uint32 || previous_strip_start_position == max_uint32) {
     projector.loose_strip_start_positions_by_previous_timecode.insert(
@@ -161,9 +161,8 @@ std::uint32_t merge(std::uint32_t projector_id, std::uint32_t footage_code,
     return max_uint32;
   }
 
-  Strip *previous_strip = &projector.reel[previous_strip_start_position];
-
-  clip_strip_at_offset(this_strip, previous_strip, offset);
+  clip_strip_at_offset(this_strip_start_position, previous_strip_start_position,
+                       offset);
 
   return footage_code;
 }

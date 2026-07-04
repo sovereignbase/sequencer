@@ -150,12 +150,12 @@ std::uint32_t merge(std::uint32_t projector_id, std::uint32_t footage_code,
   Strip *this_strip = &projector.reel[this_strip_start_position];
 
   const std::uint32_t previous_strip_start_position =
-      find_strip_by_timecode_and_length();
+      find_strip_by_timecode_and_length(
+          &projector, &this_strip->previous_strip_timecode, this_strip->length);
 
   if (previous_strip_start_position == max_uint32) {
     projector.loose_strip_start_positions_by_previous_timecode.insert(
         {this_strip->previous_strip_timecode, this_strip_start_position});
-
     return max_uint32;
   }
 

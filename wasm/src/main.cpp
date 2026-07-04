@@ -14,8 +14,21 @@
 
 static std::vector<Projector> projectors;
 
+alignas(16) static std::uint32_t timecode_buffer[4];
+
+alignas(16) static std::uint32_t previous_timecode_buffer[4];
+
 // Export unmangled C symbols so JavaScript can call them by stable names.
 extern "C" {
+//
+EMSCRIPTEN_KEEPALIVE
+std::uint32_t *timecode_buffer_pointer() { return timecode_buffer; }
+//
+EMSCRIPTEN_KEEPALIVE
+std::uint32_t *previous_timecode_buffer_pointer() {
+  return previous_timecode_buffer;
+}
+
 /**
  * @name CREATE
  * Functions that allocate an instance.
@@ -25,21 +38,21 @@ extern "C" {
  * @brief Allocate an empty projector state for one replicated list instance.
  *
  * The instance id is supplied as four uint32 lanes. The wasm core keeps strip
- * metadata; JavaScript owns the footage and later addresses it through footage
- * codes returned by read operations.
+ * metadata; JavaScript owns the footage and later addresses it through
+ * footage codes returned by read operations.
  */
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t cue() {
   const std::uint32_t projector_id = projectors.size();
 
   projectors.push_back(Projector{
-      {},                       // reel
-      0,                        // reel length
-      0,                        // gate position
-      invalid_strip_indicator,  // first strip start position
-      invalid_strip_indicator,  // gate strip start position
-      invalid_strip_indicator,  // last strip start position
-      {}                        // loose strips by previous timecode
+      {},         // reel
+      0,          // reel length
+      0,          // gate position
+      max_uint32, // first strip start position
+      max_uint32, // gate strip start position
+      max_uint32, // last strip start position
+      {}          // loose strips by previous timecode
   });
 
   return projector_id;
@@ -68,10 +81,11 @@ std::uint32_t size_of(std::uint32_t projector_id) {
  * @brief Resolve a target position to the JavaScript-owned footage code.
  *
  * The target position addresses the visible projection. The returned value is
- * the footage code for the concrete value at that position. JavaScript uses the
- * returned uint32 as its own array/index/reference value.
+ * the footage code for the concrete value at that position. JavaScript uses
+ * the returned uint32 as its own array/index/reference value.
  *
- * @param target_position Zero-based target position in the current projection.
+ * @param target_position Zero-based target position in the current
+ * projection.
  * @return JavaScript-owned footage code for the target entry.
  */
 EMSCRIPTEN_KEEPALIVE
@@ -110,41 +124,39 @@ std::uint32_t timecode_lane_of(std::uint32_t projector_id,
  * UINT32_MAX is returned so JavaScript can replay the strip later.
  */
 EMSCRIPTEN_KEEPALIVE
-std::uint32_t splice_strip(
-    std::uint32_t projector_id, std::uint32_t footage_code,
-    std::uint32_t masked_flag, std::uint32_t strip_length,
-    std::uint32_t strip_timecode_first_32bits,
-    std::uint32_t strip_timecode_second_32bits,
-    std::uint32_t strip_timecode_third_32bits,
-    std::uint32_t strip_timecode_fourth_32bits,
-    std::uint32_t previous_strip_timecode_first_32bits,
-    std::uint32_t previous_strip_timecode_second_32bits,
-    std::uint32_t previous_strip_timecode_third_32bits,
-    std::uint32_t previous_strip_timecode_fourth_32bits) {
+std::uint32_t merge(std::uint32_t projector_id, std::uint32_t footage_code,
+                    std::uint32_t masked_flag, std::uint32_t strip_length,
+                    std::uint32_t strip_timecode_first_32bits,
+                    std::uint32_t strip_timecode_second_32bits,
+                    std::uint32_t strip_timecode_third_32bits,
+                    std::uint32_t strip_timecode_fourth_32bits,
+                    std::uint32_t previous_strip_timecode_first_32bits,
+                    std::uint32_t previous_strip_timecode_second_32bits,
+                    std::uint32_t previous_strip_timecode_third_32bits,
+                    std::uint32_t previous_strip_timecode_fourth_32bits) {
   // Resolve the projector that receives this remote strip.
   Projector &projector = projectors[projector_id];
 
   // Allocate strip from the uint32 ABI values.
-  const std::uint32_t this_strip_start_position = allocate_strip(
-      &projector, footage_code, masked_flag, strip_length,
-      strip_timecode_first_32bits, strip_timecode_second_32bits,
-      strip_timecode_third_32bits, strip_timecode_fourth_32bits,
-      previous_strip_timecode_first_32bits,
-      previous_strip_timecode_second_32bits,
-      previous_strip_timecode_third_32bits,
-      previous_strip_timecode_fourth_32bits);
+  const std::uint32_t this_strip_start_position =
+      splice_strip(&projector, footage_code, masked_flag, strip_length,
+                   strip_timecode_first_32bits, strip_timecode_second_32bits,
+                   strip_timecode_third_32bits, strip_timecode_fourth_32bits,
+                   previous_strip_timecode_first_32bits,
+                   previous_strip_timecode_second_32bits,
+                   previous_strip_timecode_third_32bits,
+                   previous_strip_timecode_fourth_32bits);
 
   Strip *this_strip = &projector.reel[this_strip_start_position];
 
   const std::uint32_t previous_strip_start_position =
-      find_strip_start_position_by_timecode(
-          &projector, this_strip->previous_strip_timecode);
+      find_strip_by_timecode_and_length();
 
-  if (previous_strip_start_position == invalid_strip_indicator) {
+  if (previous_strip_start_position == max_uint32) {
     projector.loose_strip_start_positions_by_previous_timecode.insert(
         {this_strip->previous_strip_timecode, this_strip_start_position});
 
-    return invalid_strip_indicator;
+    return max_uint32;
   }
 
   Strip *previous_strip = &projector.reel[previous_strip_start_position];

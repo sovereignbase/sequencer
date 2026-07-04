@@ -9,6 +9,8 @@
 constexpr std::uint32_t max_uint32 = std::numeric_limits<std::uint32_t>::max();
 
 /// Stable CRSequence timecode encoded as four uint32 lanes.
+/// lanes[0] = highest 32 bits
+/// lanes[3] = lowest 32 bits
 struct Timecode {
   std::uint32_t lanes[4];
 
@@ -17,6 +19,19 @@ struct Timecode {
   bool operator==(const Timecode &other) const {
     return lanes[0] == other.lanes[0] && lanes[1] == other.lanes[1] &&
            lanes[2] == other.lanes[2] && lanes[3] == other.lanes[3];
+  }
+  bool add(std::uint32_t value) {
+    std::uint64_t carry = value;
+
+    for (int i = 3; i >= 0 && carry != 0; --i) {
+      std::uint64_t sum = static_cast<std::uint64_t>(lanes[i]) + carry;
+
+      lanes[i] = static_cast<std::uint32_t>(sum);
+
+      carry = sum >> 32;
+    }
+
+    return carry == 0;
   }
 };
 

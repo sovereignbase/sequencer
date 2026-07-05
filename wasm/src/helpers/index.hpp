@@ -1,5 +1,6 @@
 #pragma once
 #include "./absolute_distance/index.hpp"
+#include "./allocate_strip/index.hpp"
 #include "./clip_strip_at_offset/index.hpp"
 #include "./compare_timecode/index.hpp"
 #include "./current_strip_contains_target_position/index.hpp"
@@ -8,4 +9,3 @@
 #include "./find_strip_by_timecode/index.hpp"
 #include "./run_backward/index.hpp"
 #include "./run_forward/index.hpp"
-#include "./splice_strip/index.hpp"

@@ -3,16 +3,17 @@
 #include <cstdint>
 
 std::uint32_t
-splice_strip(Projector *projector, const std::uint32_t footage_code,
-             const std::uint32_t masked_flag, const std::uint32_t strip_length,
-             const std::uint32_t strip_timecode_first_32bits,
-             const std::uint32_t strip_timecode_second_32bits,
-             const std::uint32_t strip_timecode_third_32bits,
-             const std::uint32_t strip_timecode_fourth_32bits,
-             const std::uint32_t previous_strip_timecode_first_32bits,
-             const std::uint32_t previous_strip_timecode_second_32bits,
-             const std::uint32_t previous_strip_timecode_third_32bits,
-             const std::uint32_t previous_strip_timecode_fourth_32bits) {
+allocate_strip(Projector *projector, const std::uint32_t footage_code,
+               const std::uint32_t masked_flag,
+               const std::uint32_t strip_length,
+               const std::uint32_t strip_timecode_first_32bits,
+               const std::uint32_t strip_timecode_second_32bits,
+               const std::uint32_t strip_timecode_third_32bits,
+               const std::uint32_t strip_timecode_fourth_32bits,
+               const std::uint32_t previous_strip_timecode_first_32bits,
+               const std::uint32_t previous_strip_timecode_second_32bits,
+               const std::uint32_t previous_strip_timecode_third_32bits,
+               const std::uint32_t previous_strip_timecode_fourth_32bits) {
   const std::uint32_t strip_start_position = projector->reel.size();
 
   const Timecode strip_timecode = {

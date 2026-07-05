@@ -12,6 +12,9 @@ import type {
  * projector.
  */
 export type CRSequenceRecorder<T> = {
+  /** Identifier used to reference a projector. */
+  id: number
+
   /** Counter used to produce timecodes for newly recorded strips. */
   counter: HLC
 

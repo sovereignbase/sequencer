@@ -5,7 +5,22 @@ import type {
 } from '../.types/type.js'
 import createModule, { type MainModule } from '../../wasm/dist/crlist_wasm.mjs'
 
-export const projector = createModule() as unknown as MainModule
+// Lets make well type helper wrappers that do the buffer reads and possible writes etc. so the rest of the typescript has a nice DX
+
+const wasm = createModule() as unknown as MainModule
+
+const timecode_buffer_pointer = wasm._timecode_buffer_pointer()
+const timecode_buffer = wasm.HEAPU32.subarray(
+  timecode_buffer_pointer >>> 2,
+  (timecode_buffer_pointer >>> 2) + 4
+)
+
+const previous_timecode_buffer_pointer =
+  wasm._previous_timecode_buffer_pointer()
+const previous_timecode_buffer = wasm.HEAPU32.subarray(
+  previous_timecode_buffer_pointer >>> 2,
+  (previous_timecode_buffer_pointer >>> 2) + 4
+)
 
 export function isSafeIndex(
   index: unknown,

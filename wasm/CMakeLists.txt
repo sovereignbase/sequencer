@@ -43,7 +43,7 @@ if(EMSCRIPTEN)
       "-sALLOW_MEMORY_GROWTH=1"
       "-sFILESYSTEM=0"
       "-sDYNAMIC_EXECUTION=0"
-      "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap']"
+      "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','HEAPU32']"
       "--emit-tsd=${CMAKE_CURRENT_BINARY_DIR}/crlist_wasm.d.mts"
   )
 

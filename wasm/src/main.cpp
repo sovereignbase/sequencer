@@ -120,6 +120,13 @@ std::uint32_t splice(std::uint32_t projector_id, std::uint32_t footage_code,
                      previous_strip_timecode_third_32bits,
                      previous_strip_timecode_fourth_32bits);
 
+  if (projector.first_strip_start_position == max_uint32) {
+    projector.first_strip_start_position = this_strip_start_position;
+    projector.gate_strip_start_position = this_strip_start_position;
+    projector.gate_position = 0;
+    return footage_code;
+  }
+
   Strip *this_strip = &projector.reel[this_strip_start_position];
 
   const std::uint32_t offset = find_strip_by_timecode_and_length(

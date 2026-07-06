@@ -1,5 +1,9 @@
-import { validateSnapshotRange, wasmModule } from '../../../.helpers/index.js'
-import type { CRListSnapshot, CRListState } from '../../../.types/type.js'
+import { validateSnapshotRange, projector } from '../../../.helpers/index.js'
+import type {
+  CRSequenceReel,
+  CRSequenceStrip,
+  CRSequenceRecorder,
+} from '../../../.types/type.js'
 import { HLC } from '@sovereignbase/hybrid-logical-clock'
 
 /**
@@ -9,39 +13,35 @@ import { HLC } from '@sovereignbase/hybrid-logical-clock'
  * hydration every block is indexed under each contained item id so later
  * item-level reads, writes, deletes, and merges can find the containing block.
  */
-export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
+export function __create<T>(reel?: CRSequenceReel<T>): CRSequenceRecorder<T> {
   // Initialize all mutable indexes before any optional snapshot hydration.
-  const replica: CRListState<T> = {
-    id: wasmModule.cue()
-    clock: new HLC(),
+  const recorder: CRSequenceRecorder<T> = {
+    id: projector._cue(),
+    counter: new HLC(),
     footage: [],
   }
 
-  
-
   // Non-Array snapshots are ignored so construction remains tolerant.
-  if (!Array.isArray(snapshot)) return replica
+  if (!Array.isArray(reel)) return recorder
 
   const applyRange = (
-    range: CRListSnapshot<T>[number],
-    consumerReference: number
+    strip: CRSequenceStrip<T>,
+    footage_code: number
   ): boolean => {
-    const length = range.items?.length ?? range.length ?? 0
     return (
-      wasmModule._applyRemote(
-        length,
-        range.items ? 0 : 1,
-        consumerReference,
-        ...replica.instanceId,
-        ...range.id,
-        ...range.previousRangeId
+      projector._splice(
+        strip.footage.length,
+        strip.masked,
+        footage_code,
+        ...strip.timecode[0],
+        ...strip.timecode[1]
       ) >>>
         0 !==
       4_294_967_295
     )
   }
 
-  for (const range of snapshot) {
+  for (const strip of reel) {
     if (!validateSnapshotRange<T>(range)) continue
     const length = range.items?.length ?? range.length ?? 0
     const consumerReference = replica.values.length
@@ -60,7 +60,7 @@ export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
     )
   }
 
-  for (let index = 0; index < replica.pending.length; ) {
+  for (let index = 0; index < replica.pending.length;) {
     const pending = replica.pending[index]
     if (applyRange(pending.range, pending.consumerReference)) {
       void replica.pending.splice(index, 1)

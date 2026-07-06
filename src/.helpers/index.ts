@@ -1,26 +1,41 @@
-import type {
-  CRListSnapshotRange,
-  CRListState,
-  Uint32UuidV7,
-} from '../.types/type.js'
+import type { CRSequenceStrip, CRSequenceReel } from '../.types/type.js'
+import type { Uint32UuidV7 } from '@sovereignbase/hybrid-logical-clock'
 import createModule, { type MainModule } from '../../wasm/dist/crlist_wasm.mjs'
 
 // Lets make well type helper wrappers that do the buffer reads and possible writes etc. so the rest of the typescript has a nice DX
 
 export const projector = createModule() as unknown as MainModule
 
-const timecode_buffer_pointer = wasm._timecode_buffer_pointer()
-const timecode_buffer = wasm.HEAPU32.subarray(
+const timecode_buffer_pointer = projector._timecode_buffer_pointer()
+const timecode_buffer = projector.HEAPU32.subarray(
   timecode_buffer_pointer >>> 2,
   (timecode_buffer_pointer >>> 2) + 4
 )
 
+function read_from_timecode_buffer(): Uint32UuidV7 {
+  return [
+    timecode_buffer[0],
+    timecode_buffer[1],
+    timecode_buffer[2],
+    timecode_buffer[3],
+  ]
+}
+
 const previous_timecode_buffer_pointer =
-  wasm._previous_timecode_buffer_pointer()
-const previous_timecode_buffer = wasm.HEAPU32.subarray(
+  projector._previous_timecode_buffer_pointer()
+const previous_timecode_buffer = projector.HEAPU32.subarray(
   previous_timecode_buffer_pointer >>> 2,
   (previous_timecode_buffer_pointer >>> 2) + 4
 )
+
+function read_from_previous_timecode_buffer(): Uint32UuidV7 {
+  return [
+    previous_timecode_buffer[0],
+    previous_timecode_buffer[1],
+    previous_timecode_buffer[2],
+    previous_timecode_buffer[3],
+  ]
+}
 
 export function isSafeIndex(
   index: unknown,

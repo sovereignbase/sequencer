@@ -1,4 +1,4 @@
-import { validateSnapshotRange, projector } from '../../../.helpers/index.js'
+import { projector, is_sequencer_strip } from '../../../.helpers/index.js'
 import type {
   CRSequenceReel,
   CRSequenceStrip,
@@ -17,59 +17,31 @@ export function __create<T>(reel?: CRSequenceReel<T>): CRSequenceRecorder<T> {
   // Initialize all mutable indexes before any optional snapshot hydration.
   const recorder: CRSequenceRecorder<T> = {
     id: projector._cue(),
+    // can be static since prefix is globally unique and increments make locally unique regardless of sequence instance.
+    // It is best to add it to the wasm.
     counter: new HLC(),
     footage: [],
   }
 
   // Non-Array snapshots are ignored so construction remains tolerant.
-  if (!Array.isArray(reel)) return recorder
-
-  const applyRange = (
-    strip: CRSequenceStrip<T>,
-    footage_code: number
-  ): boolean => {
-    return (
-      projector._splice(
-        strip.footage.length,
-        strip.masked,
-        footage_code,
-        ...strip.timecode[0],
-        ...strip.timecode[1]
-      ) >>>
-        0 !==
-      4_294_967_295
-    )
-  }
+  if (!Array.isArray(reel) || reel.length < 1) return recorder
 
   for (const strip of reel) {
-    if (!validateSnapshotRange<T>(range)) continue
-    const length = range.items?.length ?? range.length ?? 0
-    const consumerReference = replica.values.length
-    if (range.items) void replica.values.push(...range.items)
-    if (range.pending) {
-      void replica.pending.push({ range, consumerReference })
-      continue
-    }
-    void wasmModule._add_range_to(
-      length,
-      consumerReference,
-      range.items ? 0 : 1,
-      ...replica.instanceId,
-      ...range.id,
-      ...range.previousRangeId
-    )
-  }
+    if (!is_sequencer_strip<T>(strip, recorder)) continue
 
-  for (let index = 0; index < replica.pending.length;) {
-    const pending = replica.pending[index]
-    if (applyRange(pending.range, pending.consumerReference)) {
-      void replica.pending.splice(index, 1)
-      index = 0
-    } else {
-      index++
-    }
+    const footage_code: number = recorder.footage.length
+
+    const [previous_strip_start, this_strip_start] = strip.sequence_coordinate
+
+    void projector._splice(
+      strip.footage.length,
+      strip.masked,
+      footage_code,
+      ...this_start_point,
+      ...previous_start_point
+    )
   }
 
   // Return the hydrated mutable replica state.
-  return replica
+  return recorder
 }

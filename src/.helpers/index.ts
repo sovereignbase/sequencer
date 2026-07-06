@@ -64,7 +64,7 @@ function timestamp_at_position<T>(
   return [read_from_previous_timecode_buffer(), read_from_timecode_buffer()]
 }
 
-export function validateStrip<T>(
+export function is_sequencer_strip<T>(
   strip: unknown,
   recorder: CRSequenceRecorder<T>
 ): strip is CRSequenceStrip<T> {

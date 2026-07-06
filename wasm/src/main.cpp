@@ -97,16 +97,16 @@ void timecodes_of(std::uint32_t projector_id, std::uint32_t target_position) {
 
 /// @{
 EMSCRIPTEN_KEEPALIVE
-std::uint32_t splice(std::uint32_t projector_id, std::uint32_t footage_code,
-                     std::uint32_t masked_flag, std::uint32_t strip_length,
-                     std::uint32_t strip_timecode_first_32bits,
-                     std::uint32_t strip_timecode_second_32bits,
-                     std::uint32_t strip_timecode_third_32bits,
-                     std::uint32_t strip_timecode_fourth_32bits,
-                     std::uint32_t previous_strip_timecode_first_32bits,
-                     std::uint32_t previous_strip_timecode_second_32bits,
-                     std::uint32_t previous_strip_timecode_third_32bits,
-                     std::uint32_t previous_strip_timecode_fourth_32bits) {
+void splice(std::uint32_t projector_id, std::uint32_t footage_code,
+            std::uint32_t masked_flag, std::uint32_t strip_length,
+            std::uint32_t strip_timecode_first_32bits,
+            std::uint32_t strip_timecode_second_32bits,
+            std::uint32_t strip_timecode_third_32bits,
+            std::uint32_t strip_timecode_fourth_32bits,
+            std::uint32_t previous_strip_timecode_first_32bits,
+            std::uint32_t previous_strip_timecode_second_32bits,
+            std::uint32_t previous_strip_timecode_third_32bits,
+            std::uint32_t previous_strip_timecode_fourth_32bits) {
   // Resolve the projector that receives this remote strip.
   Projector &projector = projectors[projector_id];
 
@@ -124,7 +124,6 @@ std::uint32_t splice(std::uint32_t projector_id, std::uint32_t footage_code,
     projector.first_strip_start_position = this_strip_start_position;
     projector.gate_strip_start_position = this_strip_start_position;
     projector.gate_position = 0;
-    return footage_code;
   }
 
   Strip *this_strip = &projector.reel[this_strip_start_position];
@@ -136,15 +135,13 @@ std::uint32_t splice(std::uint32_t projector_id, std::uint32_t footage_code,
       projector.gate_strip_start_position;
 
   if (offset == max_uint32 || previous_strip_start_position == max_uint32) {
+    // build a loose reel and add it to the main reel in reverse.
     projector.loose_strip_start_positions_by_previous_timecode.insert(
         {this_strip->previous_strip_timecode, this_strip_start_position});
-    return max_uint32;
   }
 
   clip_strip_at_offset(&projector, this_strip_start_position,
                        previous_strip_start_position, offset);
-
-  return footage_code;
 }
 /// @}
 }

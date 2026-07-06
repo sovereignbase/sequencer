@@ -35,8 +35,14 @@ export type CRSequenceStrip<T> = {
   /** User payload footage carried by this strip. */
   footage: Array<T>
 
+  /**
+   * type SequenceCoordinate = [
+   * previous_strip_start: SequencePoint,
+   * this_strip_start: SequencePoint
+   * ]
+   */
   /** Stable timecode identifying this strip's position in sequence order. */
-  timecode: HLCTimestamp
+  sequence_coordinate: HLCTimestamp
 }
 
 /**

@@ -12,10 +12,9 @@ import { HLC } from '@sovereignbase/hybrid-logical-clock'
 export function __create<T>(snapshot?: CRListSnapshot<T>): CRListState<T> {
   // Initialize all mutable indexes before any optional snapshot hydration.
   const replica: CRListState<T> = {
-    id: wasmModule._add_instance()
+    id: wasmModule.cue()
     clock: new HLC(),
-    items: [],
-    pending: [],
+    footage: [],
   }
 
   

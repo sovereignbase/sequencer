@@ -2,29 +2,7 @@ import create_module, {
   type MainModule as MainModule,
 } from './raw/crlist_wasm.mjs'
 
-/** A projector handle returned by {@link cue_projector}. */
-export type ProjectorId = number
-
-/** A 128-bit sequence point represented as four unsigned 32-bit lanes, most significant first. */
-export type SequencePoint = readonly [number, number, number, number]
-
-/** The sequence points that locate a strip in the replicated sequence. */
-export interface SequenceCoordinate {
-  /** The sequence point of the preceding strip. */
-  readonly previous_strip_start: SequencePoint
-  /** The sequence point of the selected strip. */
-  readonly this_strip_start: SequencePoint
-}
-
-/** The native fields required to splice a strip into a projector. */
-export interface SpliceOptions extends SequenceCoordinate {
-  /** The application-defined code of the strip's first frame. */
-  readonly footage_code: number
-  /** Whether the strip is hidden from the visible reel. */
-  readonly masked: boolean
-  /** The number of frames in the strip. */
-  readonly length: number
-}
+import type { SequencePoint, SequenceCoordinate } from '../types/type.js'
 
 const wasm = create_module() as unknown as MainModule
 const timecode_offset = wasm._timecode_buffer_pointer() >>> 2
@@ -43,7 +21,7 @@ const previous_timecode_buffer = wasm.HEAPU32.subarray(
  *
  * @returns The handle used by the other projector operations.
  */
-export function cue_projector(): ProjectorId {
+export function cue_projector(): number {
   return wasm._cue()
 }
 
@@ -52,7 +30,7 @@ export function cue_projector(): ProjectorId {
  *
  * @param projector_id The projector to inspect.
  */
-export function size_of(projector_id: ProjectorId): number {
+export function size_of(projector_id: number): number {
   return wasm._size_of(projector_id)
 }
 
@@ -63,7 +41,7 @@ export function size_of(projector_id: ProjectorId): number {
  * @param frame_position The zero-based visible frame position.
  */
 export function footage_code_of(
-  projector_id: ProjectorId,
+  projector_id: number,
   frame_position: number
 ): number {
   return wasm._footage_code_of(projector_id, frame_position)
@@ -76,7 +54,7 @@ export function footage_code_of(
  * @param frame_position The zero-based visible frame position.
  */
 export function timecodes_of(
-  projector_id: ProjectorId,
+  projector_id: number,
   frame_position: number
 ): SequenceCoordinate {
   wasm._timecodes_of(projector_id, frame_position)
@@ -102,23 +80,10 @@ export function timecodes_of(
  * @param projector_id The projector that receives the strip.
  * @param options The strip metadata and sequence coordinates.
  */
-export function splice(
-  projector_id: ProjectorId,
-  options: SpliceOptions
+export function splice_sequence(
+  projector_id: number,
+  footage_position: number,
+  masked: 1 | 0
 ): void {
-  const { footage_code, masked, length, current, previous } = options
-  wasm._splice(
-    projector_id,
-    footage_code,
-    masked ? 1 : 0,
-    length,
-    current[0],
-    current[1],
-    current[2],
-    current[3],
-    previous[0],
-    previous[1],
-    previous[2],
-    previous[3]
-  )
+  wasm._splice(projector_id, footage_position, masked, length)
 }

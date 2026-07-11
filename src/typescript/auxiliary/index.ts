@@ -1,0 +1,46 @@
+import { isUint32, isRecord } from '@sovereignbase/utils'
+import type {
+  SequencePoint,
+  SequenceCoordinate,
+  SequenceStrip,
+} from '../types/type.js'
+
+export function is_sequence_point(data: unknown): data is SequencePoint {
+  return Array.isArray(data) && data.length === 4 && data.every(isUint32)
+}
+
+export function is_sequence_coordinate(
+  data: unknown
+): data is SequenceCoordinate {
+  if (!Array.isArray(data) || data.length !== 2) return false
+
+  const [previous_strip_start, this_strip_start] = data
+
+  return (
+    is_sequence_point(previous_strip_start) &&
+    is_sequence_point(this_strip_start)
+  )
+}
+
+export function is_sequence_strip<T>(data: unknown): data is SequenceStrip<T> {
+  if (!isRecord(data)) return false
+  const candidate = data as SequenceStrip<T>
+  return (
+    Array.isArray(candidate.footage) &&
+    candidate.footage.length > 0 &&
+    (candidate.masked === 1 || candidate.masked === 0) &&
+    is_sequence_coordinate(candidate.sequence_coordinate)
+  )
+}
+
+export function is_safe_position(
+  length: number,
+  position: unknown,
+  allowEnd = false
+): position is number {
+  return (
+    Number.isSafeInteger(position) &&
+    (position as number) >= 0 &&
+    (allowEnd ? (position as number) <= length : (position as number) < length)
+  )
+}

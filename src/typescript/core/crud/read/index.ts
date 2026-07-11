@@ -1,5 +1,7 @@
-import { isSafeIndex, wasmModule } from '../../../helpers/index.js'
-import type { CRSequence } from '../../../types/type.js'
+import type { CRSequence } from '../../types/type.js'
+
+import { footage_code_of, size_of } from '../../../wasm/index.js'
+import { isSafePostition } from '../../helpers/index.js'
 
 /**
  * Reads the value at an index in the replica live view.
@@ -21,19 +23,13 @@ import type { CRSequence } from '../../../types/type.js'
  * Space complexity: O(1)
  */
 export function __read<T>(
-  targetIndex: number,
+  position: number,
   replica: CRSequence<T>
 ): T | undefined {
-  if (
-    !isSafeIndex(
-      targetIndex,
-      wasmModule._get_live_item_amount(...replica.instanceId)
-    )
-  )
-    return undefined
-  return replica.values[
-    wasmModule._get_consumer_reference_of(targetIndex, ...replica.instanceId)
-  ]
+  if (!isSafeIndex(position, size_of(replica.id))) return undefined
+  return replica.footage[footage_code_of(replica.id, position)]
 }
 
-export function __size<T>() {}
+export function __size<T>(replica: CRSequence<T>) {
+  return size_of(replica.id)
+}

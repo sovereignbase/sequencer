@@ -2,18 +2,11 @@
 #include "../../types/type.hpp"
 #include <cstdint>
 
-std::uint32_t
-allocate_strip(Projector *projector, const std::uint32_t footage_code,
-               const std::uint32_t masked_flag,
-               const std::uint32_t strip_length,
-               const std::uint32_t strip_timecode_first_32bits,
-               const std::uint32_t strip_timecode_second_32bits,
-               const std::uint32_t strip_timecode_third_32bits,
-               const std::uint32_t strip_timecode_fourth_32bits,
-               const std::uint32_t previous_strip_timecode_first_32bits,
-               const std::uint32_t previous_strip_timecode_second_32bits,
-               const std::uint32_t previous_strip_timecode_third_32bits,
-               const std::uint32_t previous_strip_timecode_fourth_32bits) {
+std::uint32_t allocate_strip(Projector *projector, const std::uint32_t length,
+                             const std::uint32_t masked_flag,
+                             const std::uint32_t footage_position,
+                             const SequencePoint *this_strip_start,
+                             const SequencePoint *previous_strip_start) {
   const std::uint32_t strip_start_position = projector->reel.size();
 
   const Timecode strip_timecode = {

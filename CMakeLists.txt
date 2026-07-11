@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.28)
 
 project(
-  crsequence_wasm
-  VERSION 0.1.0
-  DESCRIPTION "C++ WebAssembly scaffold for convergent-replicated-sequence"
+  sequencer_wasm
+  VERSION 0.0.0
+  DESCRIPTION "C++ WebAssembly scaffold for sequencer."
   LANGUAGES CXX
 )
 
@@ -23,31 +23,31 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(unordered_dense uuidv7_h)
 
-add_executable(crsequence_wasm src/c++/main.cpp)
-target_compile_features(crsequence_wasm PRIVATE cxx_std_23)
+add_executable(sequencer_wasm src/c++/main.cpp)
+target_compile_features(sequencer_wasm PRIVATE cxx_std_23)
 target_include_directories(
-  crsequence_wasm
+  sequencer_wasm
   PRIVATE
     include
     src/c++
     ${uuidv7_h_SOURCE_DIR}
 )
-target_link_libraries(crsequence_wasm PRIVATE unordered_dense::unordered_dense)
+target_link_libraries(sequencer_wasm PRIVATE unordered_dense::unordered_dense)
 
 if(MSVC)
-  target_compile_options(crsequence_wasm PRIVATE /W4 /permissive-)
+  target_compile_options(sequencer_wasm PRIVATE /W4 /permissive-)
 else()
-  target_compile_options(crsequence_wasm PRIVATE -Wall -Wextra -Wpedantic)
+  target_compile_options(sequencer_wasm PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 if(EMSCRIPTEN)
   set_target_properties(
-    crsequence_wasm
-    PROPERTIES OUTPUT_NAME "crlist_wasm" SUFFIX ".mjs"
+    sequencer_wasm
+    PROPERTIES OUTPUT_NAME "sequencer_wasm" SUFFIX ".mjs"
   )
 
   target_link_options(
-    crsequence_wasm
+    sequencer_wasm
     PRIVATE
       "-sWASM=1"
       "-sMODULARIZE=1"
@@ -59,11 +59,11 @@ if(EMSCRIPTEN)
       "-sFILESYSTEM=0"
       "-sDYNAMIC_EXECUTION=0"
       "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','HEAPU32']"
-      "--emit-tsd=${CMAKE_CURRENT_BINARY_DIR}/crlist_wasm.d.mts"
+      "--emit-tsd=${CMAKE_CURRENT_BINARY_DIR}/sequencer_wasm.d.mts"
   )
 endif()
 
-install(TARGETS crsequence_wasm RUNTIME DESTINATION .)
+install(TARGETS sequencer_wasm RUNTIME DESTINATION .)
 if(EMSCRIPTEN)
-  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/crlist_wasm.d.mts" DESTINATION .)
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/sequencer_wasm.d.mts" DESTINATION .)
 endif()

@@ -5,12 +5,8 @@
 #include <limits>
 #include <vector>
 
-/// Sentinel used when no strip position is available.
 constexpr std::uint32_t max_uint32 = std::numeric_limits<std::uint32_t>::max();
 
-/// Stable CRSequence timecode encoded as four uint32 lanes.
-/// lanes[0] = highest 32 bits
-/// lanes[3] = lowest 32 bits
 struct SequencePoint {
   std::uint32_t lanes[4];
 
@@ -35,7 +31,6 @@ struct SequencePoint {
   }
 };
 
-/// Hash function for SequencePoint map keys.
 struct SequencePointHash {
   std::size_t operator()(const SequencePoint &k) const {
     std::uint64_t x =
@@ -50,50 +45,25 @@ struct SequencePointHash {
   }
 };
 
-/**
- * @brief One contiguous strip in the linked projection.
- *
- * A strip carries one or more virtual positions. Strips are never physically
- * removed from the projection. Hidden content is modeled by setting
- * masked=true, so later operations can patch the existing order.
- */
-struct Strip {
-  /// Visibility marker. Masked strips stay linked and keep their timecodes.
-  bool masked;
-
-  /// Number of virtual positions carried by this strip.
+struct ProjectorStrip {
   std::uint32_t length;
 
-  /// First timecode carried by this strip.
+  bool masked;
+
+  std::uint32_t footage_position;
+
   SequencePoint this_strip_start;
 
-  /**
-   * @brief JavaScript-owned footage code for this strip's first value.
-   *
-   * Later values are resolved by adding their offset inside the strip.
-   */
-  std::uint32_t footage_code;
+  SequencePoint previous_strip_start;
 
-  /// Start position of the next strip in the linked projection.
   std::uint32_t next_strip_start_position;
 
-  /// Start position of the previous strip in the linked projection.
   std::uint32_t previous_strip_start_position;
-
-  /// Timecode this strip was recorded after.
-  SequencePoint previous_strip_start;
 };
 
-/**
- * @brief Wasm projector state for one CRSequence instance.
- *
- * The projector stores strip metadata, projection links, loose strips, and gate
- * position. JavaScript owns the footage and talks to wasm through uint32
- * values.
- */
-struct Projector {
+struct ProjectorState {
   /// All strips stored next to each other in memory.
-  std::vector<Strip> reel;
+  std::vector<ProjectorStrip> reel;
 
   /// Number of visible positions in the projected reel.
   std::uint32_t reel_length;

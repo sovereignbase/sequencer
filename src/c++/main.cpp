@@ -68,7 +68,7 @@ std::uint32_t cue_projector() {
   const std::uint32_t projector_id = projectors.size();
   projectors.push_back(ProjectorState{
       {},         // reel
-      0,          // reel length
+      0,          // sequence length
       0,          // gate position
       max_uint32, // first strip start position
       max_uint32, // gate strip start position
@@ -83,17 +83,18 @@ std::uint32_t cue_projector() {
 /// @{
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t length_of(std::uint32_t projector_id) {
-  ProjectorState &projector = projectors[projector_id];
-  return projector.reel_length;
+  ProjectorState *projector = &projectors[projector_id];
+  return projector->reel_length;
 }
 
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t footage_position_of(std::uint32_t projector_id,
                                   std::uint32_t index) {
-  ProjectorState &projector = projectors[projector_id];
-  find_strip_by_index(index, &projector);
-  return projector.reel[projector.gate_strip_start_position].footage_position +
-         absolute_distance(projector.gate_position, index);
+  ProjectorState *projector = &projectors[projector_id];
+  find_strip_by_index(index, projector);
+  return projector->reel[projector->gate_strip_start_position]
+             .footage_position +
+         absolute_distance(projector->gate_position, index);
 }
 
 EMSCRIPTEN_KEEPALIVE

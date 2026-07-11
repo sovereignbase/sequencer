@@ -91,16 +91,11 @@ export function prepare_next_sequence_point(): void {
   void wasm._next_sequence_point()
 }
 
-/**
- * Splices a strip into a projector.
- *
- * @param projector_id The projector that receives the strip.
- * @param options The strip metadata and sequence coordinates.
- */
 export function splice_sequence(
   projector_id: number,
   footage_position: number,
-  masked: 1 | 0
+  masked: 1 | 0,
+  length: number
 ): void {
   wasm._splice_sequence(projector_id, footage_position, masked, length)
 }

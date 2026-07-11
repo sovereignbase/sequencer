@@ -5,7 +5,11 @@ import type {
   SequenceStrip,
   SequenceReel,
 } from '../../../types/type.js'
-import { length_of } from '../../../wasm/index.js'
+import {
+  length_of,
+  sequence_coordinate_of,
+  splice_sequence,
+} from '../../../wasm/index.js'
 
 export function __delete<T>(
   state: SequencerState<T>,
@@ -27,28 +31,18 @@ export function __delete<T>(
     Math.min(target_end_index, seqeunce_length) - sequence_index
   if (delete_count <= 0) return false
 
-  // Change records local visible removals; delta records tombstones for gossip.
   const change: SequenceChange<T> = {}
   const reel: SequenceReel<T> = []
 
   for (let index = 0; index < delete_count; index++) {
-    const strip = generateSnapshotRange<T>(
-      replica,
-      undefined,
-      getPreviousRangeId(replica, listIndex),
-      1,
-      getRangeIdAtIndex(replica, listIndex)
+    const coordinate = sequence_coordinate_of(
+      state.projector_id,
+      sequence_index
     )
-    change[listIndex + index] = undefined
-    void wasmModule._applyLocal(
-      listIndex,
-      1,
-      1,
-      0,
-      ...replica.instanceId,
-      ...range.id,
-      ...range.previousRangeId
-    )
+
+    const strip = generate_strip<T>(state, 1)
+    change[sequence_Index + index] = undefined
+    void splice_sequence()
     void reel.push(strip)
   }
 

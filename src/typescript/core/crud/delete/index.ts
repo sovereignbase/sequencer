@@ -40,7 +40,7 @@ export function __delete<T>(
       sequence_index
     )
 
-    const strip = generate_strip<T>(state, 1)
+    const strip = generate_strip<T>()
     change[sequence_Index + index] = undefined
     void splice_sequence()
     void reel.push(strip)

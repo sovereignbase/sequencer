@@ -45,7 +45,7 @@ struct SequencePointHash {
   }
 };
 
-struct ProjectorStrip {
+struct SequenceStrip {
   std::uint32_t length;
 
   bool masked;
@@ -63,7 +63,7 @@ struct ProjectorStrip {
 
 struct ProjectorState {
   /// All strips stored next to each other in memory.
-  std::vector<ProjectorStrip> reel;
+  std::vector<SequenceStrip> reel;
 
   /// Number of visible positions in the projected reel.
   std::uint32_t reel_length;

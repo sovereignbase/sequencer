@@ -1,5 +1,3 @@
-#pragma once
-
 // Fixed-width uint32 ABI types used by every exported wasm function.
 #include <cstdint>
 
@@ -50,17 +48,16 @@ alignas(16) inline SequencePoint clock_state = [] {
 alignas(16) static std::uint32_t this_strip_start_buffer[4];
 alignas(16) static std::uint32_t previous_strip_start_buffer[4];
 
-void write_to__strip_start_buffer(const SequencePoint &strip_start) {
-  const buffer * // add conditional and arg that allows to choose between
-                 // previous and this
-      timecode_buffer[0] = timecode.lanes[0]; // highest 32 bits
-  timecode_buffer[1] = timecode.lanes[1];
-  timecode_buffer[2] = timecode.lanes[2];
-  timecode_buffer[3] = timecode.lanes[3]; // lowest 32 bits
+void write_to_strip_start_buffer(const SequencePoint &strip_start,
+                                 std::uint32_t *buffer) {
+  buffer[0] = strip_start.lanes[0];
+  buffer[1] = strip_start.lanes[1];
+  buffer[2] = strip_start.lanes[2];
+  buffer[3] = strip_start.lanes[3];
 }
 
-const SequncePoint read_from_strip_start_buffer() {
-  // add conditional and arg that allows to choose between previous and this
+SequencePoint read_from_strip_start_buffer(const std::uint32_t *buffer) {
+  return SequencePoint{{buffer[0], buffer[1], buffer[2], buffer[3]}};
 }
 
 // Export unmangled C symbols so JavaScript can call them by stable names.
@@ -76,7 +73,7 @@ std::uint32_t cue_projector() {
       max_uint32, // first strip start position
       max_uint32, // gate strip start position
       max_uint32, // last strip start position
-      {}          // loose strips by previous timecode
+      {}          // loose strips by previous strip start SequencePoint
   });
 
   return projector_id;
@@ -86,43 +83,38 @@ std::uint32_t cue_projector() {
 /// @{
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t size_of(std::uint32_t projector_id) {
-  // Resolve the projector and return the visible reel length.
   Projector &projector = projectors[projector_id];
   return projector.reel_length;
 }
 
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t footage_position_of(std::uint32_t projector_id,
-                                  std::uint32_t frame_position) {
-  // Resolve the projector to read from.
+                                  std::uint32_t index) {
   Projector &projector = projectors[projector_id];
-  // Move the gate to the strip containing frame_position.
-  find_strip_by_position(frame_position, &projector);
-  // Return the strip's footage code plus the offset inside the strip.
-  return projector.reel[projector.gate_strip_start_position].footage_code +
-         absolute_distance(projector.gate_position, frame_position);
+  find_strip_by_position(index, &projector);
+  return projector.reel[projector.gate_strip_start_position].footage_position +
+         absolute_distance(projector.gate_position, index);
 }
 
 EMSCRIPTEN_KEEPALIVE
-void this_strip_start_of(std::uint32_t projector_id,
-                         std::uint32_t frame_position) {
+void this_strip_start_of(std::uint32_t projector_id, std::uint32_t index) {
   ProjectorState *projector = &projectors[projector_id];
-  find_strip_by_position(frame_position, projector);
+  find_strip_by_position(index, projector);
   const ProjectorStrip *strip =
-      &projector.reel[projector.gate_strip_start_position];
-  write_to_sequence_point_buffer(strip->this_strip_start);
+      &projector->reel[projector->gate_strip_start_position];
+  write_to_strip_start_buffer(strip->this_strip_start, this_strip_start_buffer);
   return;
 }
 
 EMSCRIPTEN_KEEPALIVE
-void previous_strip_start_of(std::uint32_t projector_id,
-                             std::uint32_t frame_position) {
+void previous_strip_start_of(std::uint32_t projector_id, std::uint32_t index) {
   // Resolve the projector to read from.
   ProjectorState projector = projectors[projector_id];
-  find_strip_by_position(frame_position, &projector);
+  find_strip_by_position(index, &projector);
   const ProjectorStrip *strip =
       &projector.reel[projector.gate_strip_start_position];
-  write_to_sequence_point_buffer(strip->previous_strip_start);
+  write_to_strip_start_buffer(strip->previous_strip_start,
+                              previous_strip_start_buffer);
   return;
 }
 /// @}
@@ -134,19 +126,20 @@ void next_sequence_point() {
       ++clock_state.lanes[1] == 0) {
     ++clock_state.lanes[0];
   }
-  write_to_strip_start_buffer(clock_state);
+  write_to_strip_start_buffer(clock_state, this_strip_start_buffer);
 }
 
 EMSCRIPTEN_KEEPALIVE
 void splice_sequence(std::uint32_t projector_id, std::uint32_t footage_code,
-                     std::uint32_t masked_flag, std::uint32_t strip_length, ) {
+                     std::uint32_t masked_flag, std::uint32_t strip_length) {
   // Resolve the projector that receives this remote strip.
   Projector &projector = projectors[projector_id];
 
   // Allocate strip from the uint32 ABI values.
-  const std::uint32_t this_strip_start_position = allocate_strip(
-      &projector, footage_code, masked_flag, strip_length,
-      read_from_strip_start_buffer(), read_from_strip_start_buffer());
+  const std::uint32_t this_strip_start_position =
+      allocate_strip(&projector, strip_length, masked_flag, footage_code,
+                     read_from_strip_start_buffer(this_strip_start_buffer),
+                     read_from_strip_start_buffer(previous_strip_start_buffer));
 
   if (projector.first_strip_start_position == max_uint32) {
     projector.first_strip_start_position = this_strip_start_position;
@@ -173,5 +166,12 @@ void splice_sequence(std::uint32_t projector_id, std::uint32_t footage_code,
 }
 /// @}
 EMSCRIPTEN_KEEPALIVE
-std::uint32_t *sequence_point_buffer_pointer() { return sequence_point_buffer; }
+std::uint32_t *this_strip_start_buffer_pointer() {
+  return this_strip_start_buffer;
+}
+
+EMSCRIPTEN_KEEPALIVE
+std::uint32_t *previous_strip_start_buffer_pointer() {
+  return previous_strip_start_buffer;
+}
 }

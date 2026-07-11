@@ -3,9 +3,9 @@
 #include <cstdint>
 
 std::uint32_t
-current_strip_contains_timecode(const Timecode *current,
-                                const Timecode *evaluated,
-                                const std::uint32_t evaluated_lenght) {
+current_strip_contains_sequence_point(const SequencePoint *current,
+                                      const SequencePoint *evaluated,
+                                      const std::uint32_t evaluated_lenght) {
 
   std::uint32_t offset = 0;
 

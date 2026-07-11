@@ -5,7 +5,7 @@
       "name": "wasm-release",
       "displayName": "Emscripten Release",
       "generator": "Ninja",
-      "binaryDir": "$temp/build/wasm-release",
+      "binaryDir": "${sourceDir}/temp/build/wasm-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"

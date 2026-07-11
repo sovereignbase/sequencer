@@ -17,7 +17,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(unordered_dense)
 
 add_executable(crsequence_wasm src/c++/main.cpp)
-s
 target_compile_features(crsequence_wasm PRIVATE cxx_std_23)
 target_include_directories(crsequence_wasm PRIVATE include src/c++)
 target_link_libraries(crsequence_wasm PRIVATE unordered_dense::unordered_dense)
@@ -29,7 +28,10 @@ else()
 endif()
 
 if(EMSCRIPTEN)
-  set_target_properties(crsequence_wasm PROPERTIES SUFFIX ".js")
+  set_target_properties(
+    crsequence_wasm
+    PROPERTIES OUTPUT_NAME "crlist_wasm" SUFFIX ".mjs"
+  )
 
   target_link_options(
     crsequence_wasm
@@ -44,10 +46,7 @@ if(EMSCRIPTEN)
       "-sFILESYSTEM=0"
       "-sDYNAMIC_EXECUTION=0"
       "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','HEAPU32']"
-      "--emit-tsd=src/wasm/raw/crsequence_wasm.d.ts"
   )
-
-  install(FILES "src/wasm/raw/crsequence_wasm.d.ts" DESTINATION .)
 endif()
 
 install(TARGETS crsequence_wasm RUNTIME DESTINATION .)

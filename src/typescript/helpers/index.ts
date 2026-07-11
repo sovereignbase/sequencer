@@ -7,11 +7,8 @@ import type {
   HLCTimestamp,
   Uint32UuidV7,
 } from '@sovereignbase/hybrid-logical-clock'
-import createModule, { type MainModule } from '../../wasm/dist/crlist_wasm.mjs'
 
 // Lets make well type helper wrappers that do the buffer reads and possible writes etc. so the rest of the typescript has a nice DX
-
-export const projector = createModule() as unknown as MainModule
 
 const timecode_buffer_pointer = projector._timecode_buffer_pointer()
 const timecode_buffer = projector.HEAPU32.subarray(

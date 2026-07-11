@@ -44,7 +44,7 @@
     "benchmark:bundle-size": "node benchmark/bundle-size/index.js",
     "format": "prettier . --write",
     "build": "tsdown && typedoc",
-    "build:wasm": "cmake --build --preset wasm-release && cmake --install temp/build/wasm-release --prefix dist && node -e \"const fs=require('node:fs');const p='dist/crlist_wasm.mjs';const b=fs.readFileSync(p);const a=Buffer.from('async function Module');const c=Buffer.from('function Module');if(b.subarray(0,a.length).equals(a))fs.writeFileSync(p,Buffer.concat([c,b.subarray(a.length)]))\"",
+    "build:wasm": "cmake --build --preset wasm-release && cmake --install temp/build/wasm-release --prefix src/wasm/raw && node -e \"const fs=require('node:fs');const p='src/wasm/raw/crlist_wasm.mjs';const b=fs.readFileSync(p);const a=Buffer.from('async function Module');const c=Buffer.from('function Module');if(b.subarray(0,a.length).equals(a))fs.writeFileSync(p,Buffer.concat([c,b.subarray(a.length)]))\"",
     "configure:wasm": "emcmake cmake --preset wasm-release",
     "test": "npm run build && node test/run-coverage.mjs && node test/e2e/run.mjs",
     "test:stress": "node test/stress/run.mjs",

@@ -70,22 +70,22 @@ std::uint32_t size_of(std::uint32_t projector_id) {
 
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t footage_code_of(std::uint32_t projector_id,
-                              std::uint32_t target_position) {
+                              std::uint32_t frame_position) {
   // Resolve the projector to read from.
   Projector &projector = projectors[projector_id];
-  // Move the gate to the strip containing target_position.
-  find_strip_by_position(target_position, &projector);
+  // Move the gate to the strip containing frame_position.
+  find_strip_by_position(frame_position, &projector);
   // Return the strip's footage code plus the offset inside the strip.
   return projector.reel[projector.gate_strip_start_position].footage_code +
-         absolute_distance(projector.gate_position, target_position);
+         absolute_distance(projector.gate_position, frame_position);
 }
 
 EMSCRIPTEN_KEEPALIVE
-void timecodes_of(std::uint32_t projector_id, std::uint32_t target_position) {
+void timecodes_of(std::uint32_t projector_id, std::uint32_t frame_position) {
   // Resolve the projector to read from.
   Projector projector = projectors[projector_id];
-  // Move the gate to the strip containing target_position.
-  find_strip_by_position(target_position, &projector);
+  // Move the gate to the strip containing frame_position.
+  find_strip_by_position(frame_position, &projector);
 
   const Strip *strip = &projector.reel[projector.gate_strip_start_position];
   // Write the strip timecode and previous timecode for JavaScript to read.

@@ -46,7 +46,11 @@ if(EMSCRIPTEN)
       "-sFILESYSTEM=0"
       "-sDYNAMIC_EXECUTION=0"
       "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','HEAPU32']"
+      "--emit-tsd=${CMAKE_CURRENT_BINARY_DIR}/crlist_wasm.d.mts"
   )
 endif()
 
 install(TARGETS crsequence_wasm RUNTIME DESTINATION .)
+if(EMSCRIPTEN)
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/crlist_wasm.d.mts" DESTINATION .)
+endif()

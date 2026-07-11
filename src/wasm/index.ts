@@ -1,4 +1,6 @@
-import createModule from './raw/crlist_wasm.mjs'
+import create_module, {
+  type MainModule as MainModule,
+} from './raw/crlist_wasm.mjs'
 
 /** A projector handle returned by {@link cue_projector}. */
 export type ProjectorId = number
@@ -17,44 +19,23 @@ export interface StripTimecodes {
 /** The native fields required to splice a strip into a projector. */
 export interface SpliceOptions extends StripTimecodes {
   /** The application-defined code of the strip's first frame. */
-  readonly footageCode: number
+  readonly footage_code: number
   /** Whether the strip is hidden from the visible reel. */
   readonly masked: boolean
   /** The number of frames in the strip. */
   readonly length: number
 }
 
-interface MainModule {
-  readonly HEAPU32: Uint32Array
-  _timecode_buffer_pointer(): number
-  _previous_timecode_buffer_pointer(): number
-  _cue(): number
-  _size_of(projectorId: number): number
-  _footage_code_of(projectorId: number, framePosition: number): number
-  _timecodes_of(projectorId: number, framePosition: number): void
-  _splice(
-    projectorId: number,
-    footageCode: number,
-    masked: number,
-    length: number,
-    this0: number,
-    this1: number,
-    this2: number,
-    this3: number,
-    previous0: number,
-    previous1: number,
-    previous2: number,
-    previous3: number
-  ): void
-}
-
-const wasm = createModule() as unknown as MainModule
-const timecodeOffset = wasm._timecode_buffer_pointer() >>> 2
-const previousTimecodeOffset = wasm._previous_timecode_buffer_pointer() >>> 2
-const timecodeBuffer = wasm.HEAPU32.subarray(timecodeOffset, timecodeOffset + 4)
-const previousTimecodeBuffer = wasm.HEAPU32.subarray(
-  previousTimecodeOffset,
-  previousTimecodeOffset + 4
+const wasm = create_module() as unknown as MainModule
+const timecode_offset = wasm._timecode_buffer_pointer() >>> 2
+const previous_timecode_offset = wasm._previous_timecode_buffer_pointer() >>> 2
+const timecode_buffer = wasm.HEAPU32.subarray(
+  timecode_offset,
+  timecode_offset + 4
+)
+const previous_timecode_buffer = wasm.HEAPU32.subarray(
+  previous_timecode_offset,
+  previous_timecode_offset + 4
 )
 
 /**
@@ -69,48 +50,48 @@ export function cue_projector(): ProjectorId {
 /**
  * Returns the number of visible frames in a projector.
  *
- * @param projectorId The projector to inspect.
+ * @param projector_id The projector to inspect.
  */
-export function size_of(projectorId: ProjectorId): number {
-  return wasm._size_of(projectorId)
+export function size_of(projector_id: ProjectorId): number {
+  return wasm._size_of(projector_id)
 }
 
 /**
  * Returns the application-defined footage code at a visible frame position.
  *
- * @param projectorId The projector to inspect.
- * @param framePosition The zero-based visible frame position.
+ * @param projector_id The projector to inspect.
+ * @param frame_position The zero-based visible frame position.
  */
 export function footage_code_of(
-  projectorId: ProjectorId,
-  framePosition: number
+  projector_id: ProjectorId,
+  frame_position: number
 ): number {
-  return wasm._footage_code_of(projectorId, framePosition)
+  return wasm._footage_code_of(projector_id, frame_position)
 }
 
 /**
  * Returns the strip timecodes at a visible frame position.
  *
- * @param projectorId The projector to inspect.
- * @param framePosition The zero-based visible frame position.
+ * @param projector_id The projector to inspect.
+ * @param frame_position The zero-based visible frame position.
  */
 export function timecodes_of(
-  projectorId: ProjectorId,
-  framePosition: number
+  projector_id: ProjectorId,
+  frame_position: number
 ): StripTimecodes {
-  wasm._timecodes_of(projectorId, framePosition)
+  wasm._timecodes_of(projector_id, frame_position)
   return {
     previous: [
-      previousTimecodeBuffer[0],
-      previousTimecodeBuffer[1],
-      previousTimecodeBuffer[2],
-      previousTimecodeBuffer[3],
+      previous_timecode_buffer[0],
+      previous_timecode_buffer[1],
+      previous_timecode_buffer[2],
+      previous_timecode_buffer[3],
     ],
     current: [
-      timecodeBuffer[0],
-      timecodeBuffer[1],
-      timecodeBuffer[2],
-      timecodeBuffer[3],
+      timecode_buffer[0],
+      timecode_buffer[1],
+      timecode_buffer[2],
+      timecode_buffer[3],
     ],
   }
 }
@@ -118,14 +99,17 @@ export function timecodes_of(
 /**
  * Splices a strip into a projector.
  *
- * @param projectorId The projector that receives the strip.
+ * @param projector_id The projector that receives the strip.
  * @param options The strip metadata and sequence coordinates.
  */
-export function splice(projectorId: ProjectorId, options: SpliceOptions): void {
-  const { footageCode, masked, length, current, previous } = options
+export function splice(
+  projector_id: ProjectorId,
+  options: SpliceOptions
+): void {
+  const { footage_code, masked, length, current, previous } = options
   wasm._splice(
-    projectorId,
-    footageCode,
+    projector_id,
+    footage_code,
     masked ? 1 : 0,
     length,
     current[0],

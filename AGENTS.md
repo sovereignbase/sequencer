@@ -11,6 +11,8 @@ MUST only do what is asked.
 
 MUST use snake_case in special cases KEBAB_CASE
 
+MUST use PascalCase for types
+
 MUST avoid camelCase
 
 # General

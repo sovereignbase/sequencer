@@ -4,7 +4,7 @@
 
 std::uint32_t allocate_strip(ProjectorState *projector,
                              const std::uint32_t length,
-                             const std::uint32_t masked_flag,
+                             const std::uint8_t masked_flag,
                              const std::uint32_t footage_position,
                              const SequencePoint this_strip_start,
                              const SequencePoint previous_strip_start) {

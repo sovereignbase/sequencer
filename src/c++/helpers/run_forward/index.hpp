@@ -1,8 +1,9 @@
 #include "../../types/type.hpp"
 #include <cstdint>
 
-void run_forward(Projector *projector) {
-  Strip &previous = projector->reel[projector->gate_strip_start_position];
+void run_forward(ProjectorState *projector) {
+  SequenceStrip &previous =
+      projector->reel[projector->gate_strip_start_position];
   if (previous.next_strip_start_position == max_uint32)
     return;
   // Advance to the next linked strip, including masked strips.

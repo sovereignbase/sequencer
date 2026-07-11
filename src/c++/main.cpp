@@ -83,15 +83,15 @@ std::uint32_t cue_projector() {
 /// @{
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t size_of(std::uint32_t projector_id) {
-  Projector &projector = projectors[projector_id];
+  ProjectorState &projector = projectors[projector_id];
   return projector.reel_length;
 }
 
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t footage_position_of(std::uint32_t projector_id,
                                   std::uint32_t index) {
-  Projector &projector = projectors[projector_id];
-  find_strip_by_position(index, &projector);
+  ProjectorState &projector = projectors[projector_id];
+  find_strip_by_index(index, &projector);
   return projector.reel[projector.gate_strip_start_position].footage_position +
          absolute_distance(projector.gate_position, index);
 }
@@ -99,8 +99,8 @@ std::uint32_t footage_position_of(std::uint32_t projector_id,
 EMSCRIPTEN_KEEPALIVE
 void this_strip_start_of(std::uint32_t projector_id, std::uint32_t index) {
   ProjectorState *projector = &projectors[projector_id];
-  find_strip_by_position(index, projector);
-  const ProjectorStrip *strip =
+  find_strip_by_index(index, projector);
+  const SequenceStrip *strip =
       &projector->reel[projector->gate_strip_start_position];
   write_to_strip_start_buffer(strip->this_strip_start, this_strip_start_buffer);
   return;
@@ -110,8 +110,8 @@ EMSCRIPTEN_KEEPALIVE
 void previous_strip_start_of(std::uint32_t projector_id, std::uint32_t index) {
   // Resolve the projector to read from.
   ProjectorState projector = projectors[projector_id];
-  find_strip_by_position(index, &projector);
-  const ProjectorStrip *strip =
+  find_strip_by_index(index, &projector);
+  const SequenceStrip *strip =
       &projector.reel[projector.gate_strip_start_position];
   write_to_strip_start_buffer(strip->previous_strip_start,
                               previous_strip_start_buffer);
@@ -131,9 +131,9 @@ void next_sequence_point() {
 
 EMSCRIPTEN_KEEPALIVE
 void splice_sequence(std::uint32_t projector_id, std::uint32_t footage_code,
-                     std::uint32_t masked_flag, std::uint32_t strip_length) {
+                     std::uint8_t masked_flag, std::uint32_t strip_length) {
   // Resolve the projector that receives this remote strip.
-  Projector &projector = projectors[projector_id];
+  ProjectorState &projector = projectors[projector_id];
 
   // Allocate strip from the uint32 ABI values.
   const std::uint32_t this_strip_start_position =
@@ -147,9 +147,9 @@ void splice_sequence(std::uint32_t projector_id, std::uint32_t footage_code,
     projector.gate_position = 0;
   }
 
-  Strip *this_strip = &projector.reel[this_strip_start_position];
+  SequenceStrip *this_strip = &projector.reel[this_strip_start_position];
 
-  const std::uint32_t offset = find_strip_by_timecode_and_length(
+  const std::uint32_t offset = find_strip_by_sequence_point(
       &projector, &this_strip->previous_strip_start, this_strip->length);
 
   const std::uint32_t previous_strip_start_position =

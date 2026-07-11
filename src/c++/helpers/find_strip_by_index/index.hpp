@@ -12,7 +12,7 @@
  * @param index Zero-based visible target position.
  * @param projector Projector whose gate strip and position are updated.
  */
-void find_strip_index(const std::uint32_t index, Projector *projector) {
+void find_strip_by_index(const std::uint32_t index, ProjectorState *projector) {
 
   // If the reel is empty or selected gate strip already contains target, no
   // walk is needed.

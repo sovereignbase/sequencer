@@ -17,7 +17,7 @@ declare namespace RuntimeExports {
 }
 interface WasmModule {
   _cue_projector(): number;
-  _size_of(_0: number): number;
+  _length_of(_0: number): number;
   _footage_position_of(_0: number, _1: number): number;
   _this_strip_start_of(_0: number, _1: number): void;
   _previous_strip_start_of(_0: number, _1: number): void;

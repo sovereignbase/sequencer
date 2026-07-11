@@ -82,7 +82,7 @@ std::uint32_t cue_projector() {
 
 /// @{
 EMSCRIPTEN_KEEPALIVE
-std::uint32_t size_of(std::uint32_t projector_id) {
+std::uint32_t length_of(std::uint32_t projector_id) {
   ProjectorState &projector = projectors[projector_id];
   return projector.reel_length;
 }

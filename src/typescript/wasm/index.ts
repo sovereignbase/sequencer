@@ -52,8 +52,8 @@ export function cue_projector(): number {
  *
  * @param projector_id The projector to inspect.
  */
-export function size_of(projector_id: number): number {
-  return wasm._size_of(projector_id)
+export function length_of(projector_id: number): number {
+  return wasm._length_of(projector_id)
 }
 
 /**

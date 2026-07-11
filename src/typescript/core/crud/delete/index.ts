@@ -1,49 +1,38 @@
-import { CRListError } from '../../../.errors/class.js'
-import {
-  generateSnapshotRange,
-  getPreviousRangeId,
-  getRangeIdAtIndex,
-  isSafeIndex,
-  wasmModule,
-} from '../../../.helpers/index.js'
+import { is_safe_index } from '../../../auxiliary/index.js'
 import type {
-  CRListChange,
-  CRListDelta,
-  CRListState,
-} from '../../../.types/type.js'
-/**
- * Deletes a range from the replica live view.
- *
- * @param replica - Replica to mutate.
- * @param startIndex - Inclusive start index. Defaults to `0`.
- * @param endIndex - Exclusive end index. Defaults to the current list size.
- * @returns - A local change and gossip delta, or `false` if nothing was deleted.
- */
+  SequenceChange,
+  SequencerState,
+  SequenceStrip,
+  SequenceReel,
+} from '../../../types/type.js'
+import { length_of } from '../../../wasm/index.js'
+
 export function __delete<T>(
-  replica: CRListState<T>,
-  startIndex?: number,
-  endIndex?: number
-): { change: CRListChange<T>; delta: CRListDelta<T> } | false {
-  const listIndex = startIndex ?? 0
-  const liveAmount = wasmModule._get_live_item_amount(...replica.instanceId)
-  const targetEndIndex = endIndex ?? liveAmount
+  state: SequencerState<T>,
+  start_index?: number,
+  end_index?: number
+): { change: SequenceChange<T>; strip: SequenceStrip<T> } | false {
+  const sequence_index = start_index ?? 0
+  const seqeunce_length = length_of(state.projector_id)
+  const target_end_index = end_index ?? seqeunce_length
 
   if (
-    !isSafeIndex(listIndex, liveAmount, true) ||
-    !isSafeIndex(targetEndIndex, liveAmount, true) ||
-    targetEndIndex < listIndex
+    !is_safe_index(sequence_index, seqeunce_length, true) ||
+    !is_safe_index(target_end_index, seqeunce_length, true) ||
+    target_end_index < sequence_index
   )
-    throw new CRListError('INDEX_OUT_OF_BOUNDS')
+    return false
 
-  const deleteCount = Math.min(targetEndIndex, liveAmount) - listIndex
-  if (deleteCount <= 0) return false
+  const delete_count =
+    Math.min(target_end_index, seqeunce_length) - sequence_index
+  if (delete_count <= 0) return false
 
   // Change records local visible removals; delta records tombstones for gossip.
-  const change: CRListChange<T> = {}
-  const delta: CRListDelta<T> = []
+  const change: SequenceChange<T> = {}
+  const reel: SequenceReel<T> = []
 
-  for (let index = 0; index < deleteCount; index++) {
-    const range = generateSnapshotRange<T>(
+  for (let index = 0; index < delete_count; index++) {
+    const strip = generateSnapshotRange<T>(
       replica,
       undefined,
       getPreviousRangeId(replica, listIndex),
@@ -60,9 +49,9 @@ export function __delete<T>(
       ...range.id,
       ...range.previousRangeId
     )
-    void delta.push(range)
+    void reel.push(strip)
   }
 
   // Return the live-view patch and tombstone delta to the caller.
-  return { change, delta }
+  return { change, reel }
 }

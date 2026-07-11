@@ -94,15 +94,8 @@ const SequncePoint read_from_sequence_point_buffer(
   /// @{
   EMSCRIPTEN_KEEPALIVE
   void splice_sequence(std::uint32_t projector_id, std::uint32_t footage_code,
-                       std::uint32_t masked_flag, std::uint32_t strip_length,
-                       std::uint32_t strip_timecode_first_32bits,
-                       std::uint32_t strip_timecode_second_32bits,
-                       std::uint32_t strip_timecode_third_32bits,
-                       std::uint32_t strip_timecode_fourth_32bits,
-                       std::uint32_t previous_strip_timecode_first_32bits,
-                       std::uint32_t previous_strip_timecode_second_32bits,
-                       std::uint32_t previous_strip_timecode_third_32bits,
-                       std::uint32_t previous_strip_timecode_fourth_32bits) {
+                       std::uint32_t masked_flag,
+                       std::uint32_t strip_length, ) {
     // Resolve the projector that receives this remote strip.
     Projector &projector = projectors[projector_id];
 

@@ -10,7 +10,10 @@
     "sourceMap": true,
     "strict": true,
     "skipLibCheck": true,
-    "lib": ["es2024", "dom", "dom.iterable", "webworker"]
+    "lib": ["es2024", "dom", "dom.iterable", "webworker"],
+    "allowJs": true,
+    "emitDeclarationOnly": true,
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src"]
 }

@@ -1,5 +1,4 @@
 import type {
-  HLC,
   HLCTimestamp,
   Uint32UuidV7,
 } from '@sovereignbase/hybrid-logical-clock'
@@ -11,12 +10,9 @@ import type {
  * masking acknowledgement frontiers, and garbage collection live in the wasm
  * projector.
  */
-export type CRSequenceRecorder<T> = {
+export type CRSequence<T> = {
   /** Identifier used to reference a projector. */
   id: number
-
-  /** Counter used to produce timecodes for newly recorded strips. */
-  counter: HLC
 
   /** Footage referenced by recorded strips. */
   footage: Array<T>

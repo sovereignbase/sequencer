@@ -1,5 +1,5 @@
-import { isSafeIndex, wasmModule } from '../../../.helpers/index.js'
-import type { CRListState } from '../../../.types/type.js'
+import { isSafeIndex, wasmModule } from '../../../helpers/index.js'
+import type { CRSequence } from '../../../types/type.js'
 
 /**
  * Reads the value at an index in the replica live view.
@@ -22,7 +22,7 @@ import type { CRListState } from '../../../.types/type.js'
  */
 export function __read<T>(
   targetIndex: number,
-  replica: CRListState<T>
+  replica: CRSequence<T>
 ): T | undefined {
   if (
     !isSafeIndex(
@@ -35,3 +35,5 @@ export function __read<T>(
     wasmModule._get_consumer_reference_of(targetIndex, ...replica.instanceId)
   ]
 }
+
+export function __size<T>() {}

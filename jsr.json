@@ -1,6 +1,6 @@
 {
   "$schema": "https://jsr.io/schema/config-file.v1.json",
-  "name": "@sovereignbase/convergent-replicated-list",
+  "name": "@sovereignbase/convergent-replicated-sequence",
   "version": "0.0.0",
   "exports": "./src/index.ts",
   "publish": {

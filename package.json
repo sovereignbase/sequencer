@@ -1,12 +1,12 @@
 {
   "type": "module",
   "license": "Apache-2.0",
-  "name": "@sovereignbase/convergent-replicated-list",
-  "version": "1.4.0",
-  "description": "Convergent Replicated List (CR-List), a delta CRDT for an ordered sequence of entries.",
+  "name": "@sovereignbase/convergent-replicated-sequence",
+  "version": "0.0.0",
+  "description": "Convergent Replicated sequence (CR-sequence), a delta CRDT for an ordered sequence of entries.",
   "keywords": [
     "crdt",
-    "list",
+    "sequence",
     "replicated",
     "convergent",
     "local-first",
@@ -39,14 +39,15 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "size": "npm run bundle-size && npm run byte-size",
-    "bundle-size": "node benchmark/bundle-size/index.js",
-    "byte-size": "node benchmark/byte-size/index.js",
+    "benchmark:size": "npm run bundle-size && npm run byte-size",
+    "benchmark:byte-size": "node benchmark/byte-size/index.js",
+    "benchmark:bundle-size": "node benchmark/bundle-size/index.js",
     "format": "prettier . --write",
     "build": "tsdown && typedoc",
+    "build:wasm": "cmake --build --preset wasm-release && cmake --install temp/build/wasm-release --prefix dist && node -e \"const fs=require('node:fs');const p='dist/crlist_wasm.mjs';const b=fs.readFileSync(p);const a=Buffer.from('async function Module');const c=Buffer.from('function Module');if(b.subarray(0,a.length).equals(a))fs.writeFileSync(p,Buffer.concat([c,b.subarray(a.length)]))\"",
+    "configure:wasm": "emcmake cmake --preset wasm-release",
     "test": "npm run build && node test/run-coverage.mjs && node test/e2e/run.mjs",
-    "stress": "node test/stress/run.mjs",
-    "update-readme": "node scripts/update-readme.mjs",
+    "test:stress": "node test/stress/run.mjs",
     "bench": "npm run build && node benchmark/bench.js",
     "prepare": "husky",
     "prepublishOnly": "npm run test && npm run bench"
@@ -64,29 +65,26 @@
     ]
   },
   "devDependencies": {
-    "@automerge/automerge": "^3.2.6",
-    "@commitlint/cli": "^21.2.0",
+    "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.2.0",
     "@msgpack/msgpack": "^3.1.3",
     "@playwright/test": "^1.60.1",
     "@sovereignbase/frontier-store": "^1.0.0",
-    "@types/node": "^26.1.0",
+    "@types/node": "^26.1.1",
     "c8": "^11.0.0",
-    "deno": "^2.9.1",
+    "deno": "^2.9.2",
     "edge-runtime": "^4.0.1",
     "esbuild": "^0.28.1",
     "fast-glob": "^3.3.3",
     "husky": "^9.1.7",
-    "json-joy": "^18.28.0",
     "playwright": "^1.61.1",
-    "prettier": "^3.9.4",
-    "terser": "^5.48.0",
-    "tsdown": "^0.22.3",
-    "typedoc": "^0.28.19",
-    "typescript": "^6.0.3",
+    "prettier": "^3.9.5",
+    "terser": "^5.49.0",
+    "tsdown": "^0.22.4",
+    "typedoc": "^0.28.20",
+    "typescript": "^7.0.2",
     "unrun": "^0.3.1",
-    "wrangler": "^4.107.0",
-    "yjs": "^13.6.31"
+    "wrangler": "^4.110.0"
   },
   "dependencies": {
     "@sovereignbase/hybrid-logical-clock": "^1.0.0",
@@ -94,10 +92,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sovereignbase/convergent-replicated-list.git"
+    "url": "git+https://github.com/sovereignbase/convergent-replicated-sequence.git"
   },
   "bugs": {
-    "url": "https://github.com/sovereignbase/convergent-replicated-list/issues"
+    "url": "https://github.com/sovereignbase/convergent-replicated-sequence/issues"
   },
-  "homepage": "https://sovereignbase.dev/convergent-replicated-list"
+  "homepage": "https://sovereignbase.dev/convergent-replicated-sequence"
 }

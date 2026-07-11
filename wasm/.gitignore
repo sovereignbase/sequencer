@@ -1,5 +1,0 @@
-build/
-dist/
-target/
-node_modules/
-compile_commands.json

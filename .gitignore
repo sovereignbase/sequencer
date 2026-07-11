@@ -28,6 +28,6 @@ Thumbs.db
 
 .claude/
 
-wasm/pkg/
+temp/
 
-wasm/target/
+wasm/compile_commands.json

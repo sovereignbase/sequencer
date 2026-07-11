@@ -6,14 +6,14 @@ import type { SequencePoint, SequenceCoordinate } from '../types/type.js'
 const wasm = create_module() as unknown as MainModule
 //
 const this_strip_start_offset = wasm._this_strip_start_buffer_pointer() >>> 2
-const this_strip_start_buffer = wasm.HEAPU32.subarray(
+export const this_strip_start_buffer = wasm.HEAPU32.subarray(
   this_strip_start_offset,
   this_strip_start_offset + 4
 )
 //
 const previous_strip_start_offset =
   wasm._previous_strip_start_buffer_pointer() >>> 2
-const previous_strip_start_buffer = wasm.HEAPU32.subarray(
+export const previous_strip_start_buffer = wasm.HEAPU32.subarray(
   previous_strip_start_offset,
   previous_strip_start_offset + 4
 )

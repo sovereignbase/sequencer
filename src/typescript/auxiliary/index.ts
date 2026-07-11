@@ -33,7 +33,7 @@ export function is_sequence_strip<T>(data: unknown): data is SequenceStrip<T> {
   )
 }
 
-export function is_safe_position(
+export function is_safe_index(
   length: number,
   position: unknown,
   allowEnd = false

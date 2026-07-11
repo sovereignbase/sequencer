@@ -7,6 +7,12 @@ https://www.rfc-editor.org/rfc/rfc2119.html
 
 ---
 
+MUST only do what is asked.
+
+MUST use snake_case in special cases KEBAB_CASE
+
+MUST avoid camelCase
+
 # General
 
 - **NEVER USE MEMORY CACHE.**

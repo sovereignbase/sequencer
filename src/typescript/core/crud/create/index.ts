@@ -6,7 +6,7 @@ import {
   this_strip_start_buffer,
   previous_strip_start_buffer,
 } from '../../../wasm/index.js'
-import type { SequencerState, SequenceReel } from '../../../types/type.js'
+import type { SequencerState } from '../../../types/type.js'
 
 export function __create<T>(data?: unknown): SequencerState<T> {
   const state: SequencerState<T> = {

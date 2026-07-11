@@ -5,19 +5,19 @@ import create_module, {
 /** A projector handle returned by {@link cue_projector}. */
 export type ProjectorId = number
 
-/** A 128-bit timecode represented as four unsigned 32-bit lanes, most significant first. */
-export type Timecode = readonly [number, number, number, number]
+/** A 128-bit sequence point represented as four unsigned 32-bit lanes, most significant first. */
+export type SequencePoint = readonly [number, number, number, number]
 
-/** The timecodes that locate a strip in the replicated sequence. */
-export interface StripTimecodes {
-  /** The timecode of the preceding strip. */
-  readonly previous: Timecode
-  /** The timecode of the selected strip. */
-  readonly current: Timecode
+/** The sequence points that locate a strip in the replicated sequence. */
+export interface SequenceCoordinate {
+  /** The sequence point of the preceding strip. */
+  readonly previous_strip_start: SequencePoint
+  /** The sequence point of the selected strip. */
+  readonly this_strip_start: SequencePoint
 }
 
 /** The native fields required to splice a strip into a projector. */
-export interface SpliceOptions extends StripTimecodes {
+export interface SpliceOptions extends SequenceCoordinate {
   /** The application-defined code of the strip's first frame. */
   readonly footage_code: number
   /** Whether the strip is hidden from the visible reel. */
@@ -78,7 +78,7 @@ export function footage_code_of(
 export function timecodes_of(
   projector_id: ProjectorId,
   frame_position: number
-): StripTimecodes {
+): SequenceCoordinate {
   wasm._timecodes_of(projector_id, frame_position)
   return {
     previous: [

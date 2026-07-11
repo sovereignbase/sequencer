@@ -14,11 +14,24 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/martinus/unordered_dense.git
   GIT_TAG v4.8.1
 )
-FetchContent_MakeAvailable(unordered_dense)
+
+FetchContent_Declare(
+  uuidv7_h
+  GIT_REPOSITORY https://github.com/LiosK/uuidv7-h.git
+  GIT_TAG v0.1.6
+)
+
+FetchContent_MakeAvailable(unordered_dense uuidv7_h)
 
 add_executable(crsequence_wasm src/c++/main.cpp)
 target_compile_features(crsequence_wasm PRIVATE cxx_std_23)
-target_include_directories(crsequence_wasm PRIVATE include src/c++)
+target_include_directories(
+  crsequence_wasm
+  PRIVATE
+    include
+    src/c++
+    ${uuidv7_h_SOURCE_DIR}
+)
 target_link_libraries(crsequence_wasm PRIVATE unordered_dense::unordered_dense)
 
 if(MSVC)

@@ -1,5 +1,5 @@
 {
-  "C_Cpp.default.compileCommands": "${workspaceFolder}/wasm/build/wasm-release/compile_commands.json",
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/temp/build/wasm-release/compile_commands.json",
   "C_Cpp.default.compilerPath": "C:/Users/jorts/emsdk/upstream/emscripten/em++.bat",
   "C_Cpp.default.cppStandard": "c++23",
   "C_Cpp.formatting": "clangFormat",
@@ -7,9 +7,8 @@
   "C_Cpp.clang_format_style": "file",
   "C_Cpp.clang_format_fallbackStyle": "LLVM",
   "C_Cpp.default.includePath": [
-    "${workspaceFolder}/wasm/include",
-    "${workspaceFolder}/wasm/src",
-    "${workspaceFolder}/wasm/build/wasm-release/_deps/unordered_dense-src/include",
+    "${workspaceFolder}/src/c++",
+    "${workspaceFolder}/temp/build/wasm-release/_deps/unordered_dense-src/include",
     "C:/Users/jorts/emsdk/upstream/emscripten/cache/sysroot/include"
   ],
   "C_Cpp.default.intelliSenseMode": "linux-clang-x64",

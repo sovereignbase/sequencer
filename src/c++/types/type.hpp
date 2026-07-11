@@ -11,12 +11,12 @@ constexpr std::uint32_t max_uint32 = std::numeric_limits<std::uint32_t>::max();
 /// Stable CRSequence timecode encoded as four uint32 lanes.
 /// lanes[0] = highest 32 bits
 /// lanes[3] = lowest 32 bits
-struct Timecode {
+struct SequencePoint {
   std::uint32_t lanes[4];
 
   std::uint32_t operator[](std::uint32_t index) const { return lanes[index]; }
 
-  bool operator==(const Timecode &other) const {
+  bool operator==(const SequencePoint &other) const {
     return lanes[0] == other.lanes[0] && lanes[1] == other.lanes[1] &&
            lanes[2] == other.lanes[2] && lanes[3] == other.lanes[3];
   }
@@ -35,9 +35,9 @@ struct Timecode {
   }
 };
 
-/// Hash function for Timecode map keys.
-struct TimecodeHash {
-  std::size_t operator()(const Timecode &k) const {
+/// Hash function for SequencePoint map keys.
+struct SequencePointHash {
+  std::size_t operator()(const SequencePoint &k) const {
     std::uint64_t x =
         (std::uint64_t(k.lanes[0]) << 32) | std::uint64_t(k.lanes[1]);
 
@@ -65,7 +65,7 @@ struct Strip {
   std::uint32_t length;
 
   /// First timecode carried by this strip.
-  Timecode timecode;
+  SequencePoint this_strip_start;
 
   /**
    * @brief JavaScript-owned footage code for this strip's first value.
@@ -81,7 +81,7 @@ struct Strip {
   std::uint32_t previous_strip_start_position;
 
   /// Timecode this strip was recorded after.
-  Timecode previous_strip_timecode;
+  SequencePoint previous_strip_start;
 };
 
 /**
@@ -111,6 +111,6 @@ struct Projector {
   std::uint32_t last_strip_start_position;
 
   /// Loose strips waiting for their previous timecode before projection.
-  ankerl::unordered_dense::map<Timecode, std::uint32_t, TimecodeHash>
-      loose_strip_start_positions_by_previous_timecode;
+  ankerl::unordered_dense::map<SequencePoint, std::uint32_t, SequencePointHash>
+      loose_strip_start_by_previous_strip_start;
 };

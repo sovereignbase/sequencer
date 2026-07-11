@@ -18,7 +18,7 @@
 
 static std::vector<ProjectorState> projectors;
 
-alignas(16) inline SequencePoint clock_state = [] {
+alignas(16) inline static SequencePoint clock_state = [] {
   SequencePoint initial{};
   std::uint8_t random_bytes[10];
 

@@ -41,16 +41,16 @@ export type SequenceCoordinate = [
  * `footage` is the payload carried by the strip. Consumers that mutate footage
  * outside CRSequence operations must provide their own isolation first.
  */
-export type SequenceStrip<T> = {
+export type SequenceStrip<T> = [
   /** Whether this strip is hidden from the projected sequence. */
-  masked: 0 | 1
-
-  /** User payload footage carried by this strip. */
-  footage: Array<T>
-
-  /** Stable timecode identifying this strip's position in sequence order. */
-  sequence_coordinate: SequenceCoordinate
-}
+  mask: 0 | 1,
+  //strip length aka frame count
+  length: number,
+  /** Coordinate determining this strip's position in sequence order. */
+  coordinate: SequenceCoordinate,
+  /** Data saved in this strip. */
+  footage?: Array<T>,
+]
 
 /**
  *  Serializable representation of one or more `SequenceStrips`.

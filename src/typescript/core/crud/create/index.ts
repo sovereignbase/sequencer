@@ -11,7 +11,7 @@ import type { SequencerState } from '../../../types/type.js'
 export function __create<T>(data?: unknown): SequencerState<T> {
   const state: SequencerState<T> = {
     footage: [],
-    projector_id: cue_projector(),
+    sequence_id: cue_projector(),
   }
 
   if (!Array.isArray(data) || data.length < 1) return state
@@ -31,7 +31,12 @@ export function __create<T>(data?: unknown): SequencerState<T> {
     )
     void write_to_strip_start_buffer(this_strip_start_buffer, this_strip_start)
 
-    void splice_sequence(footage_position, chunk.footage.length, chunk.masked)
+    void splice_sequence(
+      state.sequence_id,
+      footage_position,
+      chunk.masked,
+      chunk.footage.length
+    )
   }
 
   return state

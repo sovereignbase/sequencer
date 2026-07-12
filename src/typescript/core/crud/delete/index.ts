@@ -4,6 +4,7 @@ import type {
   SequencerState,
   SequenceStrip,
   SequenceReel,
+  SequenceCoordinate,
 } from '../../../types/type.js'
 import {
   length_of,
@@ -38,9 +39,12 @@ export function __delete<T>(
 
   while (delete_count > 0) {
     const [
-      previous_sequence_point_for_index,
+      this_strip_starts,
+      after_this_sequence_point,
       following_frame_count_in_strip_for_index,
-    ] = sequence_coordinate_of(state.sequence_id, sequence_index)
+    ] = prepare_mask(state.sequence_id, sequence_index)
+
+    // masks can mask only one strip at a time at most
 
     const mask_length =
       delete_count < following_frame_count_in_strip_for_index
@@ -53,9 +57,12 @@ export function __delete<T>(
       change[sequence_Index + i] = undefined
 
     void splice_sequence()
-    void reel.push(materialize_strip<T>())
+    void reel.push([
+      1,
+      mask_length,
+      [after_this_sequence_point, this_strip_starts] as SequenceCoordinate,
+    ] satisfies SequenceStrip<T>)
   }
 
-  // Return the live-view patch and tombstone delta to the caller.
   return { change, reel }
 }

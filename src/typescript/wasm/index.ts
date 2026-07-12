@@ -94,8 +94,13 @@ export function prepare_next_sequence_point(): void {
 export function splice_sequence(
   projector_id: number,
   footage_position: number,
-  masked: 1 | 0,
-  length: number
+  masked_flag: 1 | 0,
+  strip_length: number
 ): void {
-  wasm._splice_sequence(projector_id, footage_position, masked, length)
+  wasm._splice_sequence(
+    projector_id,
+    footage_position,
+    masked_flag,
+    strip_length
+  )
 }

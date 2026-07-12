@@ -44,3 +44,7 @@ export function is_safe_index(
     (allowEnd ? (position as number) <= length : (position as number) < length)
   )
 }
+
+materialize_sequence_strip() {
+
+}

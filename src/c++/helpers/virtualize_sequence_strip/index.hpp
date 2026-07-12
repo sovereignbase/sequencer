@@ -2,7 +2,7 @@
 #include "../../types/type.hpp"
 #include <cstdint>
 
-std::uint32_t allocate_strip(ProjectorState *projector,
+std::uint32_t virtualize_sequence_strip(ProjectorState *projector,
                              const std::uint32_t length,
                              const std::uint8_t masked_flag,
                              const std::uint32_t footage_position,

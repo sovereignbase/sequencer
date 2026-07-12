@@ -8,8 +8,8 @@
 export type SequencerState<T> = {
   /** Footage referenced by recorded strips. */
   footage: Array<T>
-  /** Identifier used to reference a projector. */
-  projector_id: number
+  /** Identifier used to reference a specific sequence within one realm. */
+  sequence_id: number
 }
 
 /**
@@ -53,7 +53,7 @@ export type SequenceStrip<T> = {
 }
 
 /**
- * Reel containing the full sequence.
+ *  Serializable representation of one or more `SequenceStrips`.
  */
 export type SequenceReel<T> = Array<SequenceStrip<T>>
 
@@ -80,9 +80,6 @@ export type SequenceFrontier = SequencePoint
 export type CRSequenceEventMap<T> = {
   /** Full reel snapshot event payload. */
   reel: SequenceReel<T>
-
-  /** Gossip strip event payload. */
-  strip: SequenceStrip<T>
 
   /** Local live projection patch event payload. */
   change: SequenceChange<T>

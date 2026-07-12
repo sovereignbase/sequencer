@@ -131,16 +131,16 @@ void next_sequence_point() {
 }
 
 EMSCRIPTEN_KEEPALIVE
-void splice_sequence(std::uint32_t projector_id, std::uint32_t footage_code,
-                     std::uint8_t masked_flag, std::uint32_t strip_length) {
+void apply_strip(std::uint32_t projector_id, std::uint32_t footage_position,
+                 std::uint8_t masked_flag, std::uint32_t strip_length) {
   // Resolve the projector that receives this remote strip.
   ProjectorState &projector = projectors[projector_id];
 
   // Allocate strip from the uint32 ABI values.
-  const std::uint32_t this_strip_start_position =
-      allocate_strip(&projector, strip_length, masked_flag, footage_code,
-                     read_from_strip_start_buffer(this_strip_start_buffer),
-                     read_from_strip_start_buffer(previous_strip_start_buffer));
+  const std::uint32_t this_strip_start_position = virtualize_sequence_strip(
+      &projector, strip_length, masked_flag, footage_position,
+      read_from_strip_start_buffer(this_strip_start_buffer),
+      read_from_strip_start_buffer(previous_strip_start_buffer));
 
   if (projector.first_strip_start_position == max_uint32) {
     projector.first_strip_start_position = this_strip_start_position;
@@ -156,11 +156,16 @@ void splice_sequence(std::uint32_t projector_id, std::uint32_t footage_code,
   const std::uint32_t previous_strip_start_position =
       projector.gate_strip_start_position;
 
+  // if previous strip could not be found (not recieved yet)
   if (offset == max_uint32 || previous_strip_start_position == max_uint32) {
     // build a loose reel and add it to the main reel in reverse.
     projector.loose_strip_start_by_previous_strip_start.insert(
         {this_strip->previous_strip_start, this_strip_start_position});
+    return;
   }
+
+  // if we were able to find the previous strip start by splitting the previous
+  // strip after the offset
 
   clip_strip_at_offset(&projector, this_strip_start_position,
                        previous_strip_start_position, offset);

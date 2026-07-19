@@ -18,32 +18,23 @@
 
 static std::vector<ProjectorState> projectors;
 
-alignas(16) inline static SequencePoint clock_state = [] {
-  SequencePoint initial{};
-  std::uint8_t random_bytes[10];
+//// @brief CLOCK
+static SequencePoint clock_state = [] {
+  std::uint8_t random_bytes[12];
 
   if (getentropy(random_bytes, sizeof random_bytes) != 0) {
     std::abort();
   }
 
-  const auto unix_time_ms =
-      std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::system_clock::now().time_since_epoch())
-          .count();
+  SequencePoint value = 0;
 
-  uuidv7_generate(reinterpret_cast<std::uint8_t *>(initial.lanes),
-                  static_cast<std::uint64_t>(unix_time_ms), random_bytes,
-                  nullptr);
-
-  if constexpr (std::endian::native == std::endian::little) {
-    initial.lanes[0] = std::byteswap(initial.lanes[0]);
-    initial.lanes[1] = std::byteswap(initial.lanes[1]);
-    initial.lanes[2] = std::byteswap(initial.lanes[2]);
-    initial.lanes[3] = std::byteswap(initial.lanes[3]);
+  for (std::uint32_t i = 0; i < 12; ++i) {
+    value = (value << 8) | random_bytes[i];
   }
 
-  return initial;
+  return value << 32;
 }();
+////
 
 alignas(16) static std::uint32_t this_strip_start_buffer[4];
 alignas(16) static std::uint32_t previous_strip_start_buffer[4];
@@ -57,14 +48,17 @@ void write_to_strip_start_buffer(const SequencePoint &strip_start,
 }
 
 SequencePoint read_from_strip_start_buffer(const std::uint32_t *buffer) {
-  return SequencePoint{{buffer[0], buffer[1], buffer[2], buffer[3]}};
+  return (static_cast<SequencePoint>(buffer[0]) << 96) |
+         (static_cast<SequencePoint>(buffer[1]) << 64) |
+         (static_cast<SequencePoint>(buffer[2]) << 32) |
+         static_cast<SequencePoint>(buffer[3]);
 }
 
 // Export unmangled C symbols so JavaScript can call them by stable names.
 extern "C" {
 /// @{
 EMSCRIPTEN_KEEPALIVE
-std::uint128_t cue_projector() {
+std::uint32_t cue_projector() {
   const std::uint32_t projector_id = projectors.size();
   projectors.push_back(ProjectorState{
       {},         // reel
@@ -122,12 +116,13 @@ void previous_strip_start_of(std::uint32_t projector_id, std::uint32_t index) {
 
 /// @{
 EMSCRIPTEN_KEEPALIVE
-void next_sequence_point() {
-  if (++clock_state.lanes[3] == 0 && ++clock_state.lanes[2] == 0 &&
-      ++clock_state.lanes[1] == 0) {
-    ++clock_state.lanes[0];
-  }
-  write_to_strip_start_buffer(clock_state, this_strip_start_buffer);
+void next_sequence_point(std::uint32_t length) {
+  clock_state += length;
+
+  this_strip_start_buffer[0] = static_cast<std::uint32_t>(clock_state >> 96);
+  this_strip_start_buffer[1] = static_cast<std::uint32_t>(clock_state >> 64);
+  this_strip_start_buffer[2] = static_cast<std::uint32_t>(clock_state >> 32);
+  this_strip_start_buffer[3] = static_cast<std::uint32_t>(clock_state);
 }
 
 EMSCRIPTEN_KEEPALIVE

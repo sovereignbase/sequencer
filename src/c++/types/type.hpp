@@ -1,4 +1,5 @@
 #pragma once
+
 #include <ankerl/unordered_dense.h>
 #include <cstddef>
 #include <cstdint>
@@ -7,10 +8,10 @@
 
 constexpr std::uint32_t max_uint32 = std::numeric_limits<std::uint32_t>::max();
 
-using uint128_t = unsigned __int128;
+using SequencePoint = unsigned __int128;
 
 struct Uint128Hash {
-  std::size_t operator()(uint128_t value) const noexcept {
+  std::size_t operator()(SequencePoint value) const noexcept {
     const std::uint64_t high = static_cast<std::uint64_t>(value >> 64);
     const std::uint64_t low = static_cast<std::uint64_t>(value);
 
@@ -25,18 +26,20 @@ struct SequenceStrip {
 
   std::uint32_t footage_position;
 
-  uint128_t this_strip_start;
+  SequencePoint this_strip_start;
 
-  uint128_t previous_strip_start;
+  SequencePoint previous_strip_start;
 
   std::uint32_t next_strip_start_position;
 
   std::uint32_t previous_strip_start_position;
 };
 
+using SequenceReel = std::vector<SequenceStrip>;
+
 struct ProjectorState {
   /// All strips stored next to each other in memory.
-  std::vector<SequenceStrip> reel;
+  SequenceReel reel;
 
   /// Number of visible positions in the projected reel.
   std::uint32_t reel_length;
@@ -54,6 +57,6 @@ struct ProjectorState {
   std::uint32_t last_strip_start_position;
 
   /// Loose strips waiting for their previous timecode before projection.
-  ankerl::unordered_dense::map<uint128_t, std::uint32_t, Uint128Hash>
+  ankerl::unordered_dense::map<SequencePoint, std::uint32_t, Uint128Hash>
       loose_strip_start_by_previous_strip_start;
 };

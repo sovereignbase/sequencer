@@ -3,7 +3,7 @@
   "license": "Apache-2.0",
   "name": "@sovereignbase/sequencer",
   "version": "0.0.0",
-  "description": "World's fastest causality engine for building CRDT's",
+  "description": "A causality-encoding engine written in TypeScript and C++ to build high-performance, conflict-free replicated data types for use on the web.",
   "keywords": [
     "crdt",
     "sequence",

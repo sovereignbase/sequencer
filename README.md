@@ -1,6 +1,6 @@
 # Sequencer
 
-A causality-encoding engine written in TypeScript and C++ for building high-performance, conflict-free replicated data types.
+A causality-encoding engine written in TypeScript and C++ to build high-performance, conflict-free replicated data types for use on the web.
 
 Sequencer provides a deterministic total ordering for distributed data. It allows independently operating replicas to make concurrent changes and later converge on the same logical state without relying on network arrival order or perfectly synchronized clocks.
 
@@ -71,19 +71,15 @@ In other words:
 network latency → operation order → resulting state
 ```
 
-For a conflict-free distributed system, this is undesirable.
-
 ### Why Wall-Clock Timestamps Are Not Enough
 
 Another solution is to timestamp every operation.
 
 However, wall clocks across different machines are never guaranteed to be perfectly synchronized. Clock skew can cause an operation created later to appear earlier, or an earlier operation to appear later.
 
-Sequencer therefore does not rely exclusively on wall-clock timestamps to establish causality.
-
 ## Sequencer's Approach
 
-Sequencer gives positions in a sequence stable, unique identifiers.
+Sequencer gives a stable unique identifier to every frame in a sequence.
 
 Instead of describing a change as:
 
@@ -94,12 +90,12 @@ Insert "!" at position 11
 an operation can logically describe its relationship to existing sequence elements:
 
 ```text
-Insert "!" after <element-id>
+Insert <frame-id> after <frame-id> and resolve possible sibling order with a deterministic rule
 ```
 
-The identity of that element remains stable even when other elements are inserted or removed around it.
+The identity of that frame remains stable even when other frames are inserted or removed around it.
 
-From any set of sequence elements, Sequencer can reconstruct a deterministic ordering.
+From any set of sequence frames, Sequencer can reconstruct a deterministic ordering.
 
 This means replicas can:
 
@@ -109,38 +105,9 @@ This means replicas can:
 - Merge concurrent changes.
 - Eventually converge on the same sequence.
 
-### Concurrent Insertions
-
-A conflict occurs when multiple elements are inserted after the same element.
-
-For example:
-
-```text
-A → insert X after element P
-B → insert Y after element P
-```
-
-Both insertions are valid and neither operation has inherent causal priority over the other.
-
-Sequencer resolves this deterministically using the identifiers of the conflicting elements.
-
-Conceptually:
-
-```text
-smaller ID ← P → larger ID
-```
-
-Every replica applies the same comparison rule, so every replica independently reaches the same ordering.
-
-Sequencer currently uses **UUID version 7** identifiers.
-
-UUIDv7 provides globally unique identifiers with time-ordered properties. Sequencer uses these properties as part of its deterministic ordering strategy rather than relying exclusively on either wall-clock timestamps or purely random identifiers.
-
-The encoded wall-clock component can influence ordering when appropriate, while correctness does not depend on clocks across replicas being perfectly synchronized.
-
 ## Use Cases
 
-Sequencer can be used anywhere a distributed system requires a deterministic logical order.
+Generally, Sequencer is intended for systems where independently created changes must converge into a state that is both **deterministic** and **logically meaningful** across arbitrary periods of disconnection and synchronization.
 
 Examples include:
 
@@ -148,7 +115,7 @@ Examples include:
 
 Maintain stable ordering of characters, blocks, nodes, annotations, or other document elements across concurrent edits.
 
-### Lists and Ordered Collections
+### List, Collection...-Style Data.
 
 Build replicated lists whose elements maintain deterministic positions regardless of the order in which updates arrive.
 
@@ -160,19 +127,13 @@ Sequence writes to help determine the logically latest value rather than treatin
 
 Establish a deterministic ordering for operations originating from multiple independent actors.
 
-### CRDTs
-
-Use Sequencer as an ordering primitive when building higher-level conflict-free replicated data structures.
-
-More generally, Sequencer is intended for systems where independently created changes must converge into a state that is both **deterministic** and **logically meaningful** across arbitrary periods of disconnection and synchronization.
-
 ## Assumptions
 
-Sequencer assumes that participating actors maintain replicas of the Sequencer state and that those replicas are **eventually consistent**.
+Sequencer assumes that participating actors maintain replicas of the Sequencer state and that those replicas all receive these changes via some channel resulting in **eventual consistency**.
 
 Each actor treats its own local replica as authoritative when determining where newly created data belongs in the sequence.
 
-A particular replica used as the basis for generating new sequence operations should be under the sole control of that actor. Multiple independent actors should not concurrently mutate the same local replica as though they were a single actor.
+A particular replica used as the basis for generating new sequence operations should be under the sole control of that actor. Multiple independent actors should not concurrently mutate the same replica as though they were a single actor.
 
 Sequencer defines ordering and causality. It does not, by itself, establish whether a received operation is authorized or trustworthy.
 

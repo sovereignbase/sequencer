@@ -64,7 +64,7 @@ SequencePoint read_from_strip_start_buffer(const std::uint32_t *buffer) {
 extern "C" {
 /// @{
 EMSCRIPTEN_KEEPALIVE
-std::uint32_t cue_projector() {
+std::uint128_t cue_projector() {
   const std::uint32_t projector_id = projectors.size();
   projectors.push_back(ProjectorState{
       {},         // reel
@@ -133,14 +133,25 @@ void next_sequence_point() {
 EMSCRIPTEN_KEEPALIVE
 void apply_strip(std::uint32_t projector_id, std::uint32_t footage_position,
                  std::uint8_t masked_flag, std::uint32_t strip_length) {
-  // Resolve the projector that receives this remote strip.
+  // Resolve the projector state that receives this strip.
   ProjectorState &projector = projectors[projector_id];
 
-  // Allocate strip from the uint32 ABI values.
+  // Give the data a shape and allocate it to a position in a vector holding
+  // this reel.
   const std::uint32_t this_strip_start_position = virtualize_sequence_strip(
       &projector, strip_length, masked_flag, footage_position,
       read_from_strip_start_buffer(this_strip_start_buffer),
       read_from_strip_start_buffer(previous_strip_start_buffer));
+
+  // Collect a pointer to this strip in the reel vector
+  const SequenceStrip *this_strip = &projector.reel[this_strip_start_position];
+
+  const std::uint32_t previous_strip_start_position =
+      find_strip_by_sequence_point(projector, this_strip->previous_strip_start)
+
+          if (!this_strip.masked) {
+    projector->reel_length += length;
+  }
 
   if (projector.first_strip_start_position == max_uint32) {
     projector.first_strip_start_position = this_strip_start_position;

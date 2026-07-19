@@ -23,13 +23,13 @@ export function is_sequence_coordinate(
 }
 
 export function is_sequence_strip<T>(data: unknown): data is SequenceStrip<T> {
-  if (!isRecord(data)) return false
-  const candidate = data as SequenceStrip<T>
+  if (!Array.isArray(data)) return false
+  const [mask, length, coordinate, footage] = data as SequenceStrip<T>
   return (
-    Array.isArray(candidate.footage) &&
-    candidate.footage.length > 0 &&
-    (candidate.masked === 1 || candidate.masked === 0) &&
-    is_sequence_coordinate(candidate.sequence_coordinate)
+    (mask === 1 || mask === 0) &&
+    isUint32(length) &&
+    is_sequence_coordinate(coordinate) &&
+    (footage === undefined || (Array.isArray(footage) && footage.length > 0))
   )
 }
 

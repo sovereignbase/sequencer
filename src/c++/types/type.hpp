@@ -7,41 +7,14 @@
 
 constexpr std::uint32_t max_uint32 = std::numeric_limits<std::uint32_t>::max();
 
-struct SequencePoint {
-  std::uint32_t lanes[4];
+using uint128_t = unsigned __int128;
 
-  std::uint32_t operator[](std::uint32_t index) const { return lanes[index]; }
+struct Uint128Hash {
+  std::size_t operator()(uint128_t value) const noexcept {
+    const std::uint64_t high = static_cast<std::uint64_t>(value >> 64);
+    const std::uint64_t low = static_cast<std::uint64_t>(value);
 
-  bool operator==(const SequencePoint &other) const {
-    return lanes[0] == other.lanes[0] && lanes[1] == other.lanes[1] &&
-           lanes[2] == other.lanes[2] && lanes[3] == other.lanes[3];
-  }
-  bool add(std::uint32_t value) {
-    std::uint32_t carry = value;
-
-    for (std::uint8_t i = 3; i >= 0 && carry != 0; --i) {
-      std::uint64_t sum = static_cast<std::uint64_t>(lanes[i]) + carry;
-
-      lanes[i] = static_cast<std::uint32_t>(sum);
-
-      carry = sum >> 32;
-    }
-
-    return carry == 0;
-  }
-};
-
-struct SequencePointHash {
-  std::size_t operator()(const SequencePoint &k) const {
-    std::uint64_t x =
-        (std::uint64_t(k.lanes[0]) << 32) | std::uint64_t(k.lanes[1]);
-
-    std::uint64_t y =
-        (std::uint64_t(k.lanes[2]) << 32) | std::uint64_t(k.lanes[3]);
-
-    x ^= y + 0x9e3779b97f4a7c15ULL + (x << 6) + (x >> 2);
-
-    return std::size_t(x);
+    return static_cast<std::size_t>(high ^ low);
   }
 };
 
@@ -52,9 +25,9 @@ struct SequenceStrip {
 
   std::uint32_t footage_position;
 
-  SequencePoint this_strip_start;
+  uint128_t this_strip_start;
 
-  SequencePoint previous_strip_start;
+  uint128_t previous_strip_start;
 
   std::uint32_t next_strip_start_position;
 
@@ -81,6 +54,6 @@ struct ProjectorState {
   std::uint32_t last_strip_start_position;
 
   /// Loose strips waiting for their previous timecode before projection.
-  ankerl::unordered_dense::map<SequencePoint, std::uint32_t, SequencePointHash>
+  ankerl::unordered_dense::map<uint128_t, std::uint32_t, Uint128Hash>
       loose_strip_start_by_previous_strip_start;
 };

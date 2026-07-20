@@ -15,7 +15,7 @@ find_strip_by_sequence_point(ProjectorState *projector,
         strip_contains_sequence_point(&reel[i], sequence_point);
 
     if (result != max_uint32) {
-      return result;
+      projector->return result;
     }
   }
 

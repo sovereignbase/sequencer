@@ -6,7 +6,7 @@ Sequencer provides a deterministic total ordering for distributed data. It allow
 
 ## Understanding the Problem Sequencer Solves
 
-Consider two editors, **A** and **B**, both working on the following text:
+As an example, let's consider two editors, **A** and **B**, both working on the following text:
 
 ```text
 Hello world

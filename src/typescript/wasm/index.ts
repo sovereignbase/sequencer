@@ -87,10 +87,6 @@ export function sequence_coordinate_of(
   ]
 }
 
-export function prepare_next_sequence_point(): void {
-  void wasm._next_sequence_point()
-}
-
 export function splice_sequence(
   projector_id: number,
   footage_position: number,

@@ -18,24 +18,6 @@
 
 static std::vector<ProjectorState> projectors;
 
-//// @brief CLOCK
-static SequencePoint clock_state = [] {
-  std::uint8_t random_bytes[12];
-
-  if (getentropy(random_bytes, sizeof random_bytes) != 0) {
-    std::abort();
-  }
-
-  SequencePoint value = 0;
-
-  for (std::uint32_t i = 0; i < 12; ++i) {
-    value = (value << 8) | random_bytes[i];
-  }
-
-  return value << 32;
-}();
-////
-
 alignas(16) static std::uint32_t this_strip_start_buffer[4];
 alignas(16) static std::uint32_t previous_strip_start_buffer[4];
 
@@ -115,16 +97,6 @@ void previous_strip_start_of(std::uint32_t projector_id, std::uint32_t index) {
 /// @}
 
 /// @{
-EMSCRIPTEN_KEEPALIVE
-void next_sequence_point(std::uint32_t length) {
-  clock_state += length;
-
-  this_strip_start_buffer[0] = static_cast<std::uint32_t>(clock_state >> 96);
-  this_strip_start_buffer[1] = static_cast<std::uint32_t>(clock_state >> 64);
-  this_strip_start_buffer[2] = static_cast<std::uint32_t>(clock_state >> 32);
-  this_strip_start_buffer[3] = static_cast<std::uint32_t>(clock_state);
-}
-
 EMSCRIPTEN_KEEPALIVE
 void apply_strip(std::uint32_t projector_id, std::uint32_t footage_position,
                  std::uint8_t masked_flag, std::uint32_t strip_length) {

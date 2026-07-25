@@ -4,10 +4,6 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace sovereignbase::uuid_map {
-
-namespace detail {
-
 struct actor_slot {
   std::uint32_t key_0;
   std::uint32_t key_1;
@@ -122,8 +118,6 @@ inline void erase_actor(std::size_t hole) {
     resize_actors(capacity / 2);
 }
 
-} // namespace detail
-
 // Reading requires a sequence point that has been written and not removed.
 [[nodiscard]] inline std::uint32_t read(std::uint32_t actor_0,
                                         std::uint32_t actor_1,
@@ -226,5 +220,3 @@ inline void remove(std::uint32_t actor_0, std::uint32_t actor_1,
     }
   }
 }
-
-} // namespace sovereignbase::uuid_map

@@ -7,7 +7,7 @@
 
 std::uint32_t
 find_strip_by_sequence_point(ProjectorState *projector,
-                             const SequencePoint *sequence_point) noexcept {
+                             const Uint128 *sequence_point) noexcept {
 
   const SequenceReel &reel = projector->reel;
 

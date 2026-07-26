@@ -139,9 +139,6 @@ void apply_strip(std::uint32_t projector_id, std::uint32_t footage_position,
 
   // if we were able to find the previous strip start by splitting the previous
   // strip after the offset
-
-  clip_strip_at_offset(&projector, this_strip_start_position,
-                       previous_strip_start_position, offset);
 }
 /// @}
 EMSCRIPTEN_KEEPALIVE

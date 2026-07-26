@@ -5,35 +5,30 @@
 #include "./types/type.hpp"
 
 // Gate walking, strip splicing, key ordering, and projector registry helpers.
-#include "./helpers/index.hpp"
+#include "./auxiliary/index.hpp"
 
 // EMSCRIPTEN_KEEPALIVE keeps the C ABI functions exported to JavaScript.
 #include <emscripten/emscripten.h>
-
-#include "uuidv7.h"
-#include <bit>
-#include <chrono>
-#include <cstdlib>
-#include <sys/random.h>
 
 static std::vector<ProjectorState> projectors;
 
 alignas(16) static std::uint32_t this_strip_start_buffer[4];
 alignas(16) static std::uint32_t previous_strip_start_buffer[4];
 
-void write_to_strip_start_buffer(const SequencePoint &strip_start,
-                                 std::uint32_t *buffer) {
-  buffer[0] = strip_start.lanes[0];
-  buffer[1] = strip_start.lanes[1];
-  buffer[2] = strip_start.lanes[2];
-  buffer[3] = strip_start.lanes[3];
+inline void write_to_strip_start_buffer(Uint128 value,
+                                        std::uint32_t *buffer) noexcept {
+  buffer[0] = static_cast<std::uint32_t>(value >> 96);
+  buffer[1] = static_cast<std::uint32_t>(value >> 64);
+  buffer[2] = static_cast<std::uint32_t>(value >> 32);
+  buffer[3] = static_cast<std::uint32_t>(value);
 }
 
-SequencePoint read_from_strip_start_buffer(const std::uint32_t *buffer) {
-  return (static_cast<SequencePoint>(buffer[0]) << 96) |
-         (static_cast<SequencePoint>(buffer[1]) << 64) |
-         (static_cast<SequencePoint>(buffer[2]) << 32) |
-         static_cast<SequencePoint>(buffer[3]);
+[[nodiscard]] inline Uint128
+read_from_strip_start_buffer(const std::uint32_t *buffer) noexcept {
+  return (static_cast<Uint128>(buffer[0]) << 96) |
+         (static_cast<Uint128>(buffer[1]) << 64) |
+         (static_cast<Uint128>(buffer[2]) << 32) |
+         static_cast<Uint128>(buffer[3]);
 }
 
 // Export unmangled C symbols so JavaScript can call them by stable names.

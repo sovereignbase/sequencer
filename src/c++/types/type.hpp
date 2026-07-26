@@ -8,10 +8,10 @@
 
 constexpr std::uint32_t max_uint32 = std::numeric_limits<std::uint32_t>::max();
 
-using SequencePoint = unsigned __int128;
+using Uint128 = unsigned __int128;
 
 struct Uint128Hash {
-  std::size_t operator()(SequencePoint value) const noexcept {
+  std::size_t operator()(Uint128 value) const noexcept {
     const std::uint64_t high = static_cast<std::uint64_t>(value >> 64);
     const std::uint64_t low = static_cast<std::uint64_t>(value);
 
@@ -26,9 +26,9 @@ struct SequenceStrip {
 
   std::uint32_t footage_position;
 
-  SequencePoint this_strip_start;
+  Uint128 this_strip_start;
 
-  SequencePoint previous_strip_start;
+  Uint128 previous_strip_start;
 
   std::uint32_t next_strip_start_position;
 
@@ -56,7 +56,7 @@ struct ProjectorState {
   /// Start position of the last strip in the linked projection.
   std::uint32_t last_strip_start_position;
 
-  /// Loose strips waiting for their previous timecode before projection.
-  ankerl::unordered_dense::map<SequencePoint, std::uint32_t, Uint128Hash>
-      loose_strip_start_by_previous_strip_start;
+  // All strips indexed
+  ankerl::unordered_dense::map<Uint128, std::uint32_t, Uint128Hash>
+      sequence_point_index;
 };

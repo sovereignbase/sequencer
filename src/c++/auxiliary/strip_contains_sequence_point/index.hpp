@@ -31,10 +31,10 @@
 ///     the sequence point marking the start of the strip.
 std::uint32_t
 strip_contains_sequence_point(const SequenceStrip *strip,
-                              const SequencePoint *sequence_point) noexcept {
+                              const Uint128 *sequence_point) noexcept {
 
   // Resolve the sequence point marking the start of the strip.
-  const SequencePoint strip_start = strip->this_strip_start;
+  const Uint128 strip_start = strip->this_strip_start;
 
   // A sequence point before the start of the strip cannot be contained within
   // it.
@@ -43,7 +43,7 @@ strip_contains_sequence_point(const SequenceStrip *strip,
   }
 
   // Calculate the 128-bit offset from the start of the strip.
-  const unsigned __int128 offset = *sequence_point - strip_start;
+  const Uint128 offset = *sequence_point - strip_start;
 
   // A sequence point whose offset reaches or exceeds the strip length falls
   // outside the strip.

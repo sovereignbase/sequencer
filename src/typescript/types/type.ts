@@ -1,34 +1,41 @@
 /**
- * Sequencer state.
+ * Sequence.
  *
  * `footage` stores JavaScript-owned payloads. Strip projection, masking,
  * masking acknowledgement frontiers, and garbage collection live in the wasm
  * projector.
  */
-export type SequencerState<T> = {
+export type Sequence<T> = {
+  /** Identifier used to reference a specific sequence instance within one realm. */
+  id: number
   /** Footage referenced by recorded strips. */
   footage: Array<T>
-  /** Identifier used to reference a specific sequence within one realm. */
-  sequence_id: number
 }
 
 /**
- * An RFC 9562 UUID version 7 represented as four unsigned 32-bit integer lanes.
+ * A 128-bit value represented as four unsigned 32-bit integer lanes.
  *
- * The lanes are ordered from highest significance to lowest significance:
+ * The lanes are ordered from most significant to least significant:
  * `[first32bits, second32bits, third32bits, fourth32bits]`.
  *
- *  `[0,0,0,0]` to indicate root.
+ * The upper 96 bits are a cryptographically random realm differentiator
+ * (`realm_tag`) shared by all sequence points created within the same
+ * JavaScript realm.
+ *
+ * The lower 32 bits are a monotonically increasing uint32 counter
+ * (`realm_count`) differentiating sequence points created within that realm.
+ *
+ * `[0, 0, 0, 0]` represents the root sequence point.
  */
 export type SequencePoint = readonly [number, number, number, number]
 
 /**
- * A hybrid logical clock timestamp.
+ * A logical clock.
  *
- * The first item references the previous timestamp, or `CLOCK_START` when this
- * is the first timestamp in the chain.
+ * The first item references the previous sequence point, or `CLOCK_START` when this
+ * is after the first sequncepoint in the chain.
  *
- * The second item is this UUIDv7 timestamp.
+ * The second item is this sequence point.
  */
 export type SequenceCoordinate = [
   previous_strip_start: SequencePoint,

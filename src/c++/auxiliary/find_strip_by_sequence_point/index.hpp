@@ -3,6 +3,7 @@
 #include "../../types/type.hpp"
 #include "./index.hpp"
 #include <cstdint>
+#include <tuple>
 
 std::uint32_t
 find_strip_by_sequence_point(ProjectorState *projector,

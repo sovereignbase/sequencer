@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <tuple>
 
+// consider bucketeering by `realm_tag` hash and then linear searching trough
+// `realm_count` as here is done for entire sequence points
 std::tuple<std::uint32_t, std::uint32_t>
 find_strip_by_sequence_point(ProjectorState *projector,
                              const Uint128 *sequence_point) noexcept {

@@ -5,20 +5,22 @@
 #include <cstdint>
 #include <tuple>
 
-std::uint32_t
+std::tuple<std::uint32_t, std::uint32_t>
 find_strip_by_sequence_point(ProjectorState *projector,
                              const Uint128 *sequence_point) noexcept {
 
   const SequenceReel &reel = projector->reel;
+  const size_t reel_size = reel.size();
+  std::uint32_t index = 0;
 
-  for (std::uint32_t i = 0; i < reel.size(); ++i) {
+  while (index < reel_size) {
     const std::uint32_t result =
-        strip_contains_sequence_point(&reel[i], sequence_point);
+        strip_contains_sequence_point(&reel[index], sequence_point);
 
     if (result != max_uint32) {
-      projector->return result;
+      return { result, index }
     }
   }
 
-  return max_uint32;
+  return {max_uint32, max_uint32};
 }

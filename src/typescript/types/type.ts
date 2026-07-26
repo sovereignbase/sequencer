@@ -5,7 +5,7 @@
  * masking acknowledgement frontiers, and garbage collection live in the wasm
  * projector.
  */
-export type Sequence<T> = {
+export type SequenceState<T> = {
   /** Identifier used to reference a specific sequence instance within one realm. */
   id: number
   /** Footage referenced by recorded strips. */

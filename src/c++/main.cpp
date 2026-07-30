@@ -10,7 +10,7 @@
 // EMSCRIPTEN_KEEPALIVE keeps the C ABI functions exported to JavaScript.
 #include <emscripten/emscripten.h>
 
-static std::vector<ProjectorState> projectors;
+static std::vector<ProjectorState> sequences;
 
 alignas(16) static std::uint32_t this_strip_start_buffer[4];
 alignas(16) static std::uint32_t previous_strip_start_buffer[4];

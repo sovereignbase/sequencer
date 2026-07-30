@@ -5,20 +5,23 @@ import {
 } from '../wasm/index.js'
 import { SequencePoint } from '../types/type.js'
 
-const buf = new Uint32Array(4)
-void crypto.getRandomValues(buf.subarray(0, 3))
+const buf = new Uint32Array(3)
+void crypto.getRandomValues(buf.subarray(0, 1))
+buf[1] = Date.now() >>> 0
+buf[2] = 0
 
 /**
  * used by updates to get sequence points for the produced strips
- * @param length
+ * @param length Strip lenght (how much the sequence has advanced)
  */
 export function tick(length: number): void {
   const next = buf[3] + length
   if (!isUint32(next)) {
-    void crypto.getRandomValues(buf.subarray(0, 3))
-    buf[3] = length
+    void crypto.getRandomValues(buf.subarray(0, 1))
+    buf[1] = Date.now() >>> 0
+    buf[2] = 0
   } else {
-    buf[3] = next
+    buf[2] = next
   }
   void write_to_strip_start_buffer(
     this_strip_start_buffer,

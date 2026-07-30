@@ -8,16 +8,12 @@
 
 constexpr std::uint32_t max_uint32 = std::numeric_limits<std::uint32_t>::max();
 
-using Uint128 = unsigned __int128;
+struct SequencePoint {
+  std::uint32_t random;
+  std::uint32_t unix_low_ms;
+  std::uint32_t counter;
 
-struct Uint128Hash {
-  std::size_t operator()(Uint128 value) const noexcept {
-    const std::uint64_t high = static_cast<std::uint64_t>(value >> 64);
-    const std::uint64_t low = static_cast<std::uint64_t>(value);
-
-    return static_cast<std::size_t>(high ^ low);
-  }
-};
+}
 
 struct SequenceStrip {
   std::uint32_t length;

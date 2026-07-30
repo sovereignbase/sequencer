@@ -1,16 +1,14 @@
 #include <cstdint>
 #include <memory>
 #include <utility>
+#include <vector>
 
 class SequencePointIndex {
 public:
-  struct Slot {
+  struct Realm {
     uint32_t random{0};
     uint32_t unix_low_ms{0};
-    uint32_t counter{0};
-    uint32_t k3{0}; // Counter / sequence-osa
-    uint32_t val{0};
-    uint8_t occupied{0};
+    std::vector<uint32_t> entries[];
   };
 
 private:
@@ -19,28 +17,28 @@ private:
   uint32_t mask;
   uint32_t size = 0;
 
-  std::unique_ptr<Slot[]> slots;
+  std::unique_ptr<Realm[]> realms;
 
 public:
   explicit SequencePointIndex(uint32_t initial_capacity = 256)
       : capacity(initial_capacity), mask(initial_capacity - 1) {
-    slots = std::make_unique<Slot[]>(capacity);
+    realms = std::make_unique<Realm[]>(capacity);
   }
 
-  inline void set(uint32_t k0, uint32_t k1, uint32_t k2, uint32_t k3,
+  inline void set(uint32_t random, uint32_t unix_low_ms, uint32_t counter,
                   uint32_t val) noexcept {
-    uint32_t slot = k0 & mask;
+    uint32_t realm_index = random & mask;
 
-    while (slots[slot].occupied == 1) {
-      Slot &s = slots[slot];
-      if (s.k0 == k0 && s.k1 == k1 && s.k2 == k2 && s.k3 == k3) {
-        s.val = val;
+    while (realms[realm_index].) {
+      Realm &realm = realms[realm_index];
+      if (realm.random == random && realm.unix_low_ms == unix_low_ms) {
+        realm.entries[counter] = val;
         return;
       }
       slot = (slot + 1) & mask;
     }
 
-    Slot &s = slots[slot];
+    Realm &s = slots[slot];
     s.k0 = k0;
     s.k1 = k1;
     s.k2 = k2;
@@ -52,17 +50,14 @@ public:
     if (size > limit) {
       upsize(capacity * 2);
     }
-    if (size < limit) {
-      downsize
-    }
   }
 
-  [[nodiscard]] inline int64_t get(uint32_t k0, uint32_t k1, uint32_t k2,
+  [[nodiscard]] inline int64_t get(uint32_t random, uint32_t k1, uint32_t k2,
                                    uint32_t k3) const noexcept {
-    uint32_t slot = hash(k0, k1, k2, k3) & mask;
+    uint32_t slot = random & mask;
 
     while (slots[slot].occupied == 1) {
-      const Slot &s = slots[slot];
+      const Realm &s = slots[slot];
       if (s.k0 == k0 && s.k1 == k1 && s.k2 == k2 && s.k3 == k3) {
         return s.val;
       }
@@ -81,7 +76,7 @@ private:
     mask = new_capacity - 1;
     size = 0;
 
-    slots = std::make_unique<Slot[]>(new_capacity);
+    slots = std::make_unique<Realm[]>(new_capacity);
 
     for (uint32_t i = 0; i < old_capacity; ++i) {
       if (old_slots[i].occupied == 1) {

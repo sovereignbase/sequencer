@@ -1,9 +1,10 @@
+#include "../types/type.hpp"
 #include <cstdint>
 #include <memory>
 #include <utility>
 #include <vector>
 
-class SequencePointIndex {
+class SequenceStripIndex {
 public:
   struct Realm {
     uint32_t random{0};
@@ -25,8 +26,7 @@ public:
     realms = std::make_unique<Realm[]>(capacity);
   }
 
-  inline void set(uint32_t random, uint32_t unix_low_ms, uint32_t counter,
-                  uint32_t val) noexcept {
+  inline void set(SequenceStrip) noexcept {
     uint32_t realm_index = random & mask;
 
     while (realms[realm_index].) {
@@ -35,10 +35,10 @@ public:
         realm.entries[counter] = val;
         return;
       }
-      slot = (slot + 1) & mask;
+      realm_index = (realm_index + 1) & mask;
     }
 
-    Realm &s = slots[slot];
+    Realm &s = realms[realm_index];
     s.k0 = k0;
     s.k1 = k1;
     s.k2 = k2;

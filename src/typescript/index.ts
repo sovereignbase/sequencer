@@ -8,7 +8,6 @@ export class Sequence {
   read<T>(state: SequenceState<T>) {}
   update<T>(state: SequenceState<T>) {}
   delete<T>(state: SequenceState<T>) {}
-
   merge<T>(state: SequenceState, data: unknown) {}
 }
 

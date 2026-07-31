@@ -1,18 +1,40 @@
 #pragma once
 
-// 36 byte crdt meta for projection
-alignas(36) static std::uint32_t strip_buffer[9];
+#include "../types/type.hpp"
 
-inline void write_to_strip_buffer(SequenceStrip strip) noexcept {
-  strip_buffer[0] = static_cast<std::uint32_t>(strip >> 96);
-  strip_buffer[1] = static_cast<std::uint32_t>(strip >> 64);
-  strip_buffer[2] = static_cast<std::uint32_t>(strip >> 32);
-  strip_buffer[3] = static_cast<std::uint32_t>(strip);
+inline std::uint32_t strip_buffer[9];
+
+inline void write_to_strip_buffer(const StripOfSequence &strip) noexcept {
+  strip_buffer[0] = strip.mask;
+  strip_buffer[1] = strip.length;
+  strip_buffer[2] = strip.footage_position;
+
+  strip_buffer[3] = strip.this_strip_start.random;
+  strip_buffer[4] = strip.this_strip_start.unix_low_ms;
+  strip_buffer[5] = strip.this_strip_start.counter;
+
+  strip_buffer[6] = strip.previous_strip_start.random;
+  strip_buffer[7] = strip.previous_strip_start.unix_low_ms;
+  strip_buffer[8] = strip.previous_strip_start.counter;
 }
 
-[[nodiscard]] inline SequenceStrip read_from_strip_buffer() noexcept {
-  return (static_cast<SequenceStrip>(strip_buffer[0]) << 96) |
-         (static_cast<SequenceStrip>(strip_buffer[1]) << 64) |
-         (static_cast<SequenceStrip>(strip_buffer[2]) << 32) |
-         static_cast<SequenceStrip>(strip_buffer[3]);
+[[nodiscard]] inline StripOfSequence read_from_strip_buffer() noexcept {
+  return StripOfSequence{.mask = strip_buffer[0],
+                         .length = strip_buffer[1],
+                         .footage_position = strip_buffer[2],
+                         .this_strip_start{
+                             .random = strip_buffer[3],
+                             .unix_low_ms = strip_buffer[4],
+                             .counter = strip_buffer[5],
+                         },
+                         .previous_strip_start{
+                             .random = strip_buffer[6],
+                             .unix_low_ms = strip_buffer[7],
+                             .counter = strip_buffer[8],
+                         },
+                         .next_strip_start{
+                             .random = max_uint32,
+                             .unix_low_ms = max_uint32,
+                             .counter = max_uint32,
+                         }};
 }

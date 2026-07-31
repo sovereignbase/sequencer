@@ -12,7 +12,8 @@
 // EMSCRIPTEN_KEEPALIVE keeps the C ABI functions exported to JavaScript.
 #include <emscripten/emscripten.h>
 
-static std::vector<Sequencestate> sequences;
+// Stores all instances of a sequences.
+static std::vector<SequenceState> sequences;
 
 // Export unmangled C symbols so JavaScript can call them by stable names.
 extern "C" {
@@ -26,7 +27,6 @@ std::uint32_t initialize_new_sequence() {
       max_uint32, // first strip start position
       max_uint32, // gate strip start position
       max_uint32, // last strip start position
-      {}          // loose strips by previous strip start SequencePoint
   });
 
   return sequence_id;
@@ -34,18 +34,16 @@ std::uint32_t initialize_new_sequence() {
 
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t get_length_of(std::uint32_t sequence_id) {
-  Sequencestate *projector = &Sequences[sequence_id];
-  return projector->reel_length;
+  return sequences[sequence_id].length;
 }
 
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t get_footage_position_of(std::uint32_t sequence_id,
-                                      std::uint32_t index) {
-  Sequencestate *projector = &Sequences[sequence_id];
-  find_strip_by_index(index, projector);
-  return projector->reel[projector->gate_strip_start_position]
-             .footage_position +
-         absolute_distance(projector->gate_position, index);
+                                      std::uint32_t frame_index) {
+  SequenceState *sequence = &sequences[sequence_id];
+  find_strip_by_index(frame_index, sequence);
+  return sequence->reel[sequence->gate_strip_start_position].footage_position +
+         absolute_distance(sequence->gate_position, frame_index);
 }
 
 EMSCRIPTEN_KEEPALIVE

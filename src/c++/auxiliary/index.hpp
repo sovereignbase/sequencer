@@ -8,4 +8,3 @@
 #include "./run_backward/index.hpp"
 #include "./run_forward/index.hpp"
 #include "./strip_contains_sequence_point/index.hpp"
-#include "./virtualize_sequence_strip/index.hpp"

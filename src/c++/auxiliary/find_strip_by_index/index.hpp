@@ -12,18 +12,21 @@
  * @param index Zero-based visible target position.
  * @param projector Projector whose gate strip and position are updated.
  */
-void find_strip_by_index(const std::uint32_t index, ProjectorState *projector) {
+void find_strip_by_index(const std::uint32_t frame_index,
+                         SequenceState *sequence) {
 
   // If the reel is empty or selected gate strip already contains target, no
   // walk is needed.
-  if (projector->reel.empty() || current_strip_contains_index(projector, index))
+  if (projector->reel.empty() ||
+      current_strip_contains_index(projector, frame_index))
     return;
 
   // Start with the distance from the gate to the target.
-  std::uint32_t distance = absolute_distance(projector->gate_position, index);
+  std::uint32_t distance =
+      absolute_distance(projector->gate_position, frame_index);
 
   // Distance from the projection head is the target position itself.
-  const std::uint32_t head_distance = index;
+  const std::uint32_t head_distance = frame_index;
 
   // If the head is closer than current, start the walk at first.
   if (head_distance < distance) {

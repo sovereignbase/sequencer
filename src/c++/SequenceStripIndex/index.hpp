@@ -21,7 +21,7 @@ private:
   std::unique_ptr<Realm[]> realms;
 
 public:
-  explicit SequencePointIndex(uint32_t initial_capacity = 256)
+  explicit SequenceStripIndex(uint32_t initial_capacity = 256)
       : capacity(initial_capacity), mask(initial_capacity - 1) {
     realms = std::make_unique<Realm[]>(capacity);
   }
@@ -52,8 +52,7 @@ public:
     }
   }
 
-  [[nodiscard]] inline int64_t get(uint32_t random, uint32_t k1, uint32_t k2,
-                                   uint32_t k3) const noexcept {
+  [[nodiscard]] inline int64_t get(SequenceStrip) const noexcept {
     uint32_t slot = random & mask;
 
     while (slots[slot].occupied == 1) {

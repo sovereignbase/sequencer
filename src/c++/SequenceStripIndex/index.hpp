@@ -7,9 +7,9 @@
 class SequenceStripIndex {
 public:
   struct Realm {
-    uint32_t random{0};
-    uint32_t unix_low_ms{0};
-    std::vector<uint32_t> entries[];
+    uint32_t random_bits{0};
+    uint32_t unix_low_bits{0};
+    std::vector<StripOfSequence> entries[];
   };
 
 private:
@@ -26,10 +26,11 @@ public:
     realms = std::make_unique<Realm[]>(capacity);
   }
 
-  inline void set(SequenceStrip) noexcept {
-    uint32_t realm_index = random & mask;
+  inline void set(PointInSequence *point) noexcept {
+    uint32_t realm_index = point->random_bits & mask;
 
-    while (realms[realm_index].) {
+    while (realms[realm_index].random_bits != 0 ||
+           realms[realm_index].unix_low_ms != 0) {
       Realm &realm = realms[realm_index];
       if (realm.random == random && realm.unix_low_ms == unix_low_ms) {
         realm.entries[counter] = val;

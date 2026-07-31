@@ -9,9 +9,9 @@
 constexpr std::uint32_t max_uint32 = std::numeric_limits<std::uint32_t>::max();
 
 struct PointInSequence {
-  std::uint32_t random;
-  std::uint32_t unix_low_ms;
-  std::uint32_t counter;
+  std::uint32_t random_bits;
+  std::uint32_t unix_low_bits;
+  std::uint32_t counter_bits;
 };
 
 struct StripOfSequence {

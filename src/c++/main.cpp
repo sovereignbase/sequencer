@@ -59,21 +59,30 @@ std::uint32_t *get_strip_buffer_pointer() noexcept { return strip_buffer; }
 
 EMSCRIPTEN_KEEPALIVE
 void apply_strip_to(std::uint32_t sequence_id) {
-  SequenceState &sequence = sequences[sequence_id];
-  const bool is_first_strip = sequence.index.size() == 0;
+  SequenceState *sequence = &sequences[sequence_id];
   const StripOfSequence strip = read_from_strip_buffer();
-  const bool is_masked_strip = strip.mask;
-
-  sequence.index.set(strip.this_strip_start, strip);
-
-  if (is_masked_strip) {
-    sequence.length += strip.length;
+  const StripOfSequence previous_strip =
+      find_strip_by_sequence_point(sequence, &strip.previous_strip_start);
+  //
+  sequence->index.set(strip.this_strip_start, strip);
+  if (!previous_strip) {
+    strip.loose = true;
+    return;
   }
+  //
 
+  //
+  const bool is_masked_strip = strip.mask;
+  if (is_masked_strip) {
+  }
+  //
+  const bool is_first_strip = sequence->index.size() == 0;
   if (is_first_strip) {
-    sequence.first_strip_start = strip.this_strip_start;
-    sequence.gate_strip_start = strip.this_strip_start;
-    sequence.gate_position = 0;
+    sequence->first_strip_start = strip.this_strip_start;
+    sequence->gate_strip_start = strip.this_strip_start;
+  }
+  //
+  if (false) {
   }
 }
 }

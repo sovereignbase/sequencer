@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <memory>
 #include <utility>
+#include <variant>
 #include <vector>
 
 class StripIndex {
@@ -70,7 +71,7 @@ public:
     }
   }
 
-  [[nodiscard]] inline const StripOfSequence &
+  [[nodiscard]] inline const std::variant<StripOfSequence, bool> &
   get(const PointInSequence &point) const noexcept {
     uint32_t realm_index = point.random_bits & mask;
 

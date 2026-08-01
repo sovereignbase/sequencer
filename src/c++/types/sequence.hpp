@@ -1,9 +1,9 @@
 #pragma once
 
 #include "../StripIndex/index.hpp"
+#include "./strip.hpp"
 #include <cstdint>
 #include <limits>
-#include "./strip.hpp"
 
 constexpr std::uint32_t max_uint32 = std::numeric_limits<std::uint32_t>::max();
 

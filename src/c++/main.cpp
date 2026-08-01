@@ -61,7 +61,7 @@ EMSCRIPTEN_KEEPALIVE
 void merge_strip_to(std::uint32_t sequence_id) {
   SequenceState *sequence = &sequences[sequence_id];
   const StripOfSequence strip = read_from_strip_buffer();
-  const StripOfSequence previous_strip =
+  [[maybe_unused]] const auto [previous_strip, previous_strip_offset] =
       find_strip_by_sequence_point(sequence, &strip.previous_strip_start);
   //
   sequence->index.set(strip.this_strip_start, strip);

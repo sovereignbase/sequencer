@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <memory>
 #include <utility>
-#include <variant>
 #include <vector>
 
 class StripIndex {
@@ -71,7 +70,7 @@ public:
     }
   }
 
-  [[nodiscard]] inline const std::variant<StripOfSequence, bool> &
+  [[nodiscard]] inline const StripOfSequence &
   get(const PointInSequence &point) const noexcept {
     uint32_t realm_index = point.random_bits & mask;
 
@@ -79,19 +78,16 @@ public:
       const Realm &realm = realms[realm_index];
       if (realm.random_bits == point.random_bits &&
           realm.unix_lower_bits == point.unix_lower_bits) {
-        auto entry = std::upper_bound(
+        const auto entry = std::lower_bound(
             realm.entries.begin(), realm.entries.end(), point.counter_bits,
-            [](const uint32_t counter_bits,
-               const StripOfSequence &candidate) noexcept {
-              return counter_bits < candidate.this_strip_start.counter_bits;
+            [](const StripOfSequence &candidate,
+               const uint32_t counter_bits) noexcept {
+              return candidate.this_strip_start.counter_bits < counter_bits;
             });
 
-        if (entry != realm.entries.begin()) {
-          --entry;
-          const uint32_t start = entry->this_strip_start.counter_bits;
-          if (point.counter_bits - start < entry->length) {
-            return *entry;
-          }
+        if (entry != realm.entries.end() &&
+            entry->this_strip_start.counter_bits == point.counter_bits) {
+          return *entry;
         }
         std::unreachable();
       }

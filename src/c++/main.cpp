@@ -62,11 +62,13 @@ void apply_strip_to(std::uint32_t sequence_id) {
   SequenceState &sequence = sequences[sequence_id];
   const bool is_first_strip = sequence.index.size() == 0;
   const StripOfSequence strip = read_from_strip_buffer();
+  const bool is_masked_strip = strip.mask;
 
   sequence.index.set(strip.this_strip_start, strip);
 
-  if (strip.mask == 0)
+  if (is_masked_strip) {
     sequence.length += strip.length;
+  }
 
   if (is_first_strip) {
     sequence.first_strip_start = strip.this_strip_start;

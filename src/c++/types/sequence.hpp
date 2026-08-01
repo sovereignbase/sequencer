@@ -23,4 +23,7 @@ struct SequenceState {
 
   /// Start position of the strip currently at the projector gate.
   PointInSequence gate_strip_start{};
+
+  // Start point of the last strip in the sequence.
+  PointInSequence last_strip_start {}
 };

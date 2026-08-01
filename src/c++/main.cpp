@@ -60,15 +60,17 @@ std::uint32_t *get_strip_buffer_pointer() noexcept { return strip_buffer; }
 EMSCRIPTEN_KEEPALIVE
 void merge_strip_to(std::uint32_t sequence_id) {
   SequenceState *sequence = &sequences[sequence_id];
-  const StripOfSequence strip = read_from_strip_buffer();
-  [[maybe_unused]] const auto [previous_strip, previous_strip_offset] =
-      find_strip_by_sequence_point(sequence, &strip.previous_strip_start);
-  //
+  StripOfSequence strip = read_from_strip_buffer();
   sequence->index.set(strip.this_strip_start, strip);
-  if (!previous_strip) {
+  //
+  const auto previous_strip_result =
+      find_strip_by_sequence_point(sequence, &strip.previous_strip_start);
+  if (std::holds_alternative<bool>(previous_strip_result)) {
     strip.loose = true;
     return;
   }
+  [[maybe_unused]] const auto [previous_strip, previous_strip_offset] =
+      std::get<0>(previous_strip_result);
   //
 
   //

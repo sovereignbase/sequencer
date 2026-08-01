@@ -1,55 +1,54 @@
 #pragma once
+
 #include "../../types/type.hpp"
-#include "../index.hpp"
+#include "../absolute_distance/index.hpp"
+#include "../jump_to_next_strip/index.hpp"
+#include "../jump_to_previous_strip/index.hpp"
+#include "../strip_contains_frame_index/index.hpp"
 #include <cstdint>
 
 /**
- * @brief Move the projector gate to the strip containing index.
+ * @brief Move the sequence gate to the strip containing frame_index.
  *
  * The target position is counted through visible strips only. Masked strips
- * stay linked but do not advance projector->gate_position while walking.
+ * stay linked but do not advance sequence->gate_position while walking.
  *
- * @param index Zero-based visible target position.
- * @param projector Projector whose gate strip and position are updated.
+ * @param frame_index Zero-based visible frame position.
+ * @param sequence Sequence whose gate strip and position are updated.
  */
-void find_strip_by_index(const std::uint32_t frame_index,
-                         SequenceState *sequence) {
+void find_strip_by_frame_index(const std::uint32_t frame_index,
+                               SequenceState *sequence) noexcept {
 
-  // If the reel is empty or selected gate strip already contains target, no
-  // walk is needed.
-  if (sequence->reel.empty() ||
-      current_strip_contains_index(projector, frame_index))
+  if (sequence->length == 0 ||
+      strip_contains_frame_index(sequence, frame_index))
     return;
 
   // Start with the distance from the gate to the target.
   std::uint32_t distance =
-      absolute_distance(projector->gate_position, frame_index);
+      absolute_distance(sequence->gate_position, frame_index);
 
   // Distance from the projection head is the target position itself.
   const std::uint32_t head_distance = frame_index;
 
   // If the head is closer than current, start the walk at first.
   if (head_distance < distance) {
-    projector->gate_position = 0;
-    projector->gate_strip_start_position =
-        projector->first_strip_start_position;
-    distance = head_distance;
+    sequence->gate_position = 0;
+    sequence->gate_strip_start = sequence->first_strip_start;
   }
 
   // If the selected gate strip already contains target, no walk is needed.
-  if (current_strip_contains_index(projector, index))
+  if (strip_contains_frame_index(sequence, frame_index))
     return;
 
   // Run forward when the gate is positioned before the target.
-  if (projector->gate_position < index) {
+  if (sequence->gate_position < frame_index) {
     // Stop as soon as the gate strip contains the target.
-    while (!current_strip_contains_index(projector, index))
-      run_forward(projector);
+    while (!strip_contains_frame_index(sequence, frame_index))
+      jump_to_next_strip(sequence);
     return;
   }
 
   // Walk left when the gate starts after the target.
-  while (!current_strip_contains_index(projector, index))
-    run_backward(projector);
-  return;
+  while (!strip_contains_frame_index(sequence, frame_index))
+    jump_to_previous_strip(sequence);
 }

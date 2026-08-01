@@ -1,36 +1,15 @@
 #pragma once
 
 #include "../StripIndex/index.hpp"
-#include <cstddef>
 #include <cstdint>
 #include <limits>
-#include <vector>
+#include "./strip.hpp"
 
 constexpr std::uint32_t max_uint32 = std::numeric_limits<std::uint32_t>::max();
 
-struct PointInSequence {
-  std::uint32_t random_bits;
-  std::uint32_t unix_lower_bits;
-  std::uint32_t counter_bits;
-};
-
-struct StripOfSequence {
-  std::uint32_t mask;
-
-  std::uint32_t length;
-
-  std::uint32_t footage_position;
-
-  PointInSequence this_strip_start;
-
-  PointInSequence next_strip_start;
-
-  PointInSequence previous_strip_start;
-};
-
 struct SequenceState {
-  /// All strips stored next to each other in memory.
-  PointInSequence index;
+  /// Strips indexed by their point in the sequence.
+  StripIndex index;
 
   /// Number of visible positions in the projected reel.
   std::uint32_t length;
@@ -38,6 +17,9 @@ struct SequenceState {
   /// Current visible position at the projector gate. Updated when walsking
   /// linked projection.
   std::uint32_t gate_position;
+
+  /// Start point of the first strip in the sequence.
+  PointInSequence first_strip_start;
 
   /// Start position of the strip currently at the projector gate.
   PointInSequence gate_strip_start;

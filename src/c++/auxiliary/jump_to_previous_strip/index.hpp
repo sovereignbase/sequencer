@@ -1,18 +1,17 @@
-#include "../../types/type.hpp"
-#include <cstdint>
+#pragma once
 
-void run_backward(ProjectorState *projector) {
-  SequenceStrip &current =
-      projector->reel[projector->gate_strip_start_position];
-  if (current.previous_strip_start_position == max_uint32)
-    return;
+#include "../../types/type.hpp"
+
+void jump_to_previous_strip(SequenceState *sequence) noexcept {
+  const StripOfSequence &current =
+      sequence->index.get(sequence->gate_strip_start);
 
   // Move to the previous linked strip, including masked strips.
-  projector->gate_strip_start_position = current.previous_strip_start_position;
+  sequence->gate_strip_start = current.previous_strip_start;
+
   // Only visible strips move the target position backward.
-  SequenceStrip &previous =
-      projector->reel[projector->gate_strip_start_position];
-  if (!previous.masked)
-    projector->gate_position -= previous.length;
-  return;
+  const StripOfSequence &previous =
+      sequence->index.get(sequence->gate_strip_start);
+  if (previous.mask == 0)
+    sequence->gate_position -= previous.length;
 }

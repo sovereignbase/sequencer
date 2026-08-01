@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../types/type.hpp"
+#include "../types/strip.hpp"
 #include <cstdint>
 #include <memory>
 #include <utility>
@@ -56,21 +56,23 @@ public:
     }
   }
 
-  [[nodiscard]] inline StripOfSequence
-  get(PointInSequence *point) const noexcept {
-    uint32_t realm_index = point->random_bits & mask;
+  [[nodiscard]] inline const StripOfSequence &
+  get(const PointInSequence &point) const noexcept {
+    uint32_t realm_index = point.random_bits & mask;
 
     while (!realms[realm_index].entries.empty()) {
       const Realm &realm = realms[realm_index];
-      if (realm.random_bits == point->random_bits &&
-          realm.unix_lower_bits == point->unix_lower_bits &&
-          realm.entries.size() > point->counter_bits) {
-        return realm.entries[point->counter_bits];
+      if (realm.random_bits == point.random_bits &&
+          realm.unix_lower_bits == point.unix_lower_bits &&
+          realm.entries.size() > point.counter_bits) {
+        return realm.entries[point.counter_bits];
       }
       realm_index = (realm_index + 1) & mask;
     }
-    return {};
+    std::unreachable();
   }
+
+  inline uint32_t size() const noexcept { return size; }
 
 private:
   void upsize(uint32_t new_capacity) {

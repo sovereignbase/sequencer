@@ -7,8 +7,7 @@
 class SequenceStripIndex {
 public:
   struct Realm {
-    uint32_t random_bits{0};
-    uint32_t unix_low_bits{0};
+    uint32_t unix_lower_bits{0};
     std::vector<StripOfSequence> entries[];
   };
 
@@ -26,62 +25,56 @@ public:
     realms = std::make_unique<Realm[]>(capacity);
   }
 
-  inline void set(PointInSequence *point) noexcept {
-    uint32_t realm_index = point->random_bits & mask;
+  inline void set(PointInSequence point, StripOfSequence strip) noexcept {
+    uint32_t realm_index = point.random_bits & mask;
 
-    while (realms[realm_index].random_bits != 0 ||
-           realms[realm_index].unix_low_ms != 0) {
+    while (realms[realm_index].unix_lower_bits >= 0) {
       Realm &realm = realms[realm_index];
-      if (realm.random == random && realm.unix_low_ms == unix_low_ms) {
-        realm.entries[counter] = val;
+      if (realm.unix_lower_bits == point.unix_lower_bits) {
+        realm.entries[point.counter_bits] = strip;
         return;
       }
       realm_index = (realm_index + 1) & mask;
     }
 
-    Realm &s = realms[realm_index];
-    s.k0 = k0;
-    s.k1 = k1;
-    s.k2 = k2;
-    s.k3 = k3;
-    s.val = val;
-    s.occupied = 1;
+    Realm &realm = realms[realm_index];
+    realm.unix_lower_bits = point.unix_lower_bits;
+    realm.entries[point.counter_bits] = strip;
     size++;
 
-    if (size > limit) {
+    if (size >= limit) {
       upsize(capacity * 2);
     }
   }
 
-  [[nodiscard]] inline int64_t get(SequenceStrip) const noexcept {
-    uint32_t slot = random & mask;
+  [[nodiscard]] inline StripOfSequence
+  get(PointInSequence *point) const noexcept {
+    uint32_t realm_index = point->random_bits & mask;
 
-    while (slots[slot].occupied == 1) {
-      const Realm &s = slots[slot];
-      if (s.k0 == k0 && s.k1 == k1 && s.k2 == k2 && s.k3 == k3) {
-        return s.val;
+    while (realms[realm_index].unix_lower_bits >= 0) {
+      const Realm &realm = realms[realm_index];
+      if (realm.unix_lower_bits == point->unix_lower_bits) {
+        return realm.entries[point->counter_bits];
       }
-      slot = (slot + 1) & mask;
+      realm_index = (realm_index + 1) & mask;
     }
-
-    return -1;
+    return
   }
 
 private:
   void upsize(uint32_t new_capacity) {
-    auto old_slots = std::move(slots);
+    auto old_realms = std::move(realms);
     uint32_t old_capacity = capacity;
 
     capacity = new_capacity;
     mask = new_capacity - 1;
     size = 0;
 
-    slots = std::make_unique<Realm[]>(new_capacity);
+    realms = std::make_unique<Realm[]>(new_capacity);
 
     for (uint32_t i = 0; i < old_capacity; ++i) {
-      if (old_slots[i].occupied == 1) {
-        set(old_slots[i].k0, old_slots[i].k1, old_slots[i].k2, old_slots[i].k3,
-            old_slots[i].val);
+      if (old_realms[i].unix_lower_bits >= 0) {
+        set();
       }
     }
   }

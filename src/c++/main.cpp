@@ -58,7 +58,7 @@ EMSCRIPTEN_KEEPALIVE
 std::uint32_t *get_strip_buffer_pointer() noexcept { return strip_buffer; }
 
 EMSCRIPTEN_KEEPALIVE
-void apply_strip_to(std::uint32_t sequence_id) {
+void merge_strip_to(std::uint32_t sequence_id) {
   SequenceState *sequence = &sequences[sequence_id];
   const StripOfSequence strip = read_from_strip_buffer();
   const StripOfSequence previous_strip =

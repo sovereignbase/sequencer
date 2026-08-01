@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../SequenceStripIndex/index.hpp"
+#include "../StripIndex/index.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <limits>

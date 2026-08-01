@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-class SequenceStripIndex {
+class StripIndex {
 public:
   struct Realm {
     uint32_t random_bits{0};
@@ -22,7 +22,7 @@ private:
   std::unique_ptr<Realm[]> realms;
 
 public:
-  explicit SequenceStripIndex(uint32_t initial_capacity = 256)
+  explicit StripIndex(uint32_t initial_capacity = 256)
       : capacity(initial_capacity), mask(initial_capacity - 1) {
     realms = std::make_unique<Realm[]>(capacity);
   }

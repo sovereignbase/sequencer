@@ -20,20 +20,20 @@
 
 // Stores all instances of a sequences.
 static std::vector<std::optional<SequenceState>> sequences;
-static std::vector<std::uint32_t> free_sequence_ids;
+static std::vector<std::uint32_t> cleared_sequence_ids;
 
 // Export unmangled C symbols so JavaScript can call them by stable names.
 extern "C" {
 EMSCRIPTEN_KEEPALIVE
 
 std::uint32_t initialize_new_sequence() {
-  if (free_sequence_ids.empty()) {
+  if (cleared_sequence_ids.empty()) {
     sequences.emplace_back(std::in_place);
     return static_cast<std::uint32_t>(sequences.size() - 1);
   }
 
-  const std::uint32_t sequence_id = free_sequence_ids.back();
-  free_sequence_ids.pop_back();
+  const std::uint32_t sequence_id = cleared_sequence_ids.back();
+  cleared_sequence_ids.pop_back();
   sequences[sequence_id].emplace();
   return sequence_id;
 }
@@ -44,7 +44,7 @@ void clear_sequence_by_id(std::uint32_t sequence_id) {
     return;
 
   sequences[sequence_id].reset();
-  free_sequence_ids.push_back(sequence_id);
+  cleared_sequence_ids.push_back(sequence_id);
 }
 
 EMSCRIPTEN_KEEPALIVE std::uint32_t

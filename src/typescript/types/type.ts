@@ -13,22 +13,21 @@ export type SequenceState<T> = {
 }
 
 /**
- * A 128-bit value represented as four unsigned 32-bit integer lanes.
+ * A 96-bit sequence point represented as three unsigned 32-bit integer lanes.
  *
- * The lanes are ordered from most significant to least significant:
- * `[first32bits, second32bits, third32bits, fourth32bits]`.
+ * The first lane contains the low 32 bits of a Unix timestamp. It provides
+ * opportunistic wall-clock ordering during tie-breaking and helps distinguish
+ * realms whose random values collide.
  *
- * The upper 96 bits are a cryptographically random realm differentiator
- * (`realm_tag`) shared by all sequence points created within the same
- * JavaScript realm.
+ * The second lane contains a counter incremented each time the realm creates
+ * a strip.
  *
- * The lower 32 bits are a monotonically increasing uint32 counter
- * (`realm_count`) differentiating sequence points created within that realm.
+ * The third lane contains random bits used to distinguish realms and acts as
+ * the final tie-breaker.
  *
- * `[0, 0, 0, 0]` represents the root sequence point.
+ * `[0, 0, 0]` represents the root sequence point.
  */
-export type SequencePoint = readonly [number, number, number, number]
-
+export type SequencePoint = readonly [number, number, number]
 /**
  * A logical clock.
  *

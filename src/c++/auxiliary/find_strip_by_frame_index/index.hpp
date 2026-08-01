@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../types/type.hpp"
+#include "../../types/sequence.hpp"
 #include "../absolute_distance/index.hpp"
 #include "../jump_to_next_strip/index.hpp"
 #include "../jump_to_previous_strip/index.hpp"

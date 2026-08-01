@@ -13,8 +13,9 @@ buf[2] = 0
 /**
  * used by updates to get sequence points for the produced strips
  * @param length Strip lenght (how much the sequence has advanced)
+ * @returns A reference to a Uint32Array that should not be modified
  */
-export function tick(length: number): void {
+export function tick(length: number): Readonly<Uint32Array> {
   const next = buf[3] + length
   if (!isUint32(next)) {
     void crypto.getRandomValues(buf.subarray(0, 1))
@@ -23,8 +24,5 @@ export function tick(length: number): void {
   } else {
     buf[2] = next
   }
-  void write_to_strip_start_buffer(
-    this_strip_start_buffer,
-    buf as unknown as SequencePoint
-  )
+  return buf
 }

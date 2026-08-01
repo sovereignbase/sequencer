@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../types/type.hpp"
+#include "../../types/sequence.hpp"
 
 [[nodiscard]] inline const StripOfSequence &find_strip_by_sequence_point(
     const SequenceState *sequence,

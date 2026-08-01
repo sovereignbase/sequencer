@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../types/type.hpp"
+#include "../../types/sequence.hpp"
 #include <cstdint>
 
 /// Determines whether a sequence point is contained within a strip and, if so,

@@ -11,6 +11,8 @@
 
 #include "./strip_buffer/index.hpp"
 
+#include "./mask_strip/index.hpp"
+
 // EMSCRIPTEN_KEEPALIVE keeps the C ABI functions exported to JavaScript.
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
@@ -80,29 +82,25 @@ void merge_strip_to(std::uint32_t sequence_id) {
   //
   const auto previous_strip_result =
       find_strip_by_sequence_point(sequence, &strip.previous_strip_start);
+  const bool is_masked_strip = strip.mask != 0;
+
+  // if previous strip was not findable
   if (std::holds_alternative<bool>(previous_strip_result)) {
     strip.loose = true;
+    if (is_masked_strip)
+      sequence->pending_masks.set(strip.this_strip_start, strip);
     return;
   }
   [[maybe_unused]] const auto [previous_strip, previous_strip_offset] =
       std::get<0>(previous_strip_result);
   //
 
-  const bool is_masked_strip = strip.mask != 0;
   if (is_masked_strip) {
     if (strip.length > previous_strip->length - previous_strip_offset)
       return;
+    mask_strip(sequence, previous_strip, previous_strip_offset, strip);
+    return;
   }
   //
-  sequence->index.set(strip.this_strip_start, strip);
-
-  const bool is_first_strip = sequence->index.size() == 0;
-  if (is_first_strip) {
-    sequence->first_strip_start = strip.this_strip_start;
-    sequence->gate_strip_start = strip.this_strip_start;
-  }
-  //
-  if (false) {
-  }
 }
 }

@@ -25,5 +25,5 @@ struct SequenceState {
   PointInSequence gate_strip_start{};
 
   // Start point of the last strip in the sequence.
-  PointInSequence last_strip_start {}
+  PointInSequence last_strip_start{};
 };

@@ -32,7 +32,11 @@ std::uint32_t initialize_new_sequence() {
 }
 
 EMSCRIPTEN_KEEPALIVE
-std::uint32_t get_length_of(std::uint32_t sequence_id) noexcept {
+void clear_sequence_by_id(std::uint32_t sequence_id){
+    delete sequences[sequence_id]}
+
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+    get_length_of(std::uint32_t sequence_id) noexcept {
   return sequences[sequence_id].length;
 }
 
@@ -61,7 +65,6 @@ EMSCRIPTEN_KEEPALIVE
 void merge_strip_to(std::uint32_t sequence_id) {
   SequenceState *sequence = &sequences[sequence_id];
   StripOfSequence strip = read_from_strip_buffer();
-  sequence->index.set(strip.this_strip_start, strip);
   //
   const auto previous_strip_result =
       find_strip_by_sequence_point(sequence, &strip.previous_strip_start);
@@ -73,11 +76,11 @@ void merge_strip_to(std::uint32_t sequence_id) {
       std::get<0>(previous_strip_result);
   //
 
-  //
-  const bool is_masked_strip = strip.mask;
   if (is_masked_strip) {
   }
   //
+  sequence->index.set(strip.this_strip_start, strip);
+
   const bool is_first_strip = sequence->index.size() == 0;
   if (is_first_strip) {
     sequence->first_strip_start = strip.this_strip_start;

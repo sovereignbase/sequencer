@@ -3,9 +3,9 @@
 #include <cstdint>
 
 struct PointInSequence {
-  std::uint32_t random_bits;
   std::uint32_t unix_lower_bits;
   std::uint32_t counter_bits;
+  std::uint32_t random_bits;
 };
 
 struct StripOfSequence {

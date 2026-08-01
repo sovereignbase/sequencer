@@ -26,6 +26,4 @@ struct SequenceState {
 
   // Start point of the last strip in the sequence.
   PointInSequence last_strip_start{};
-
-  StripIndex pending_masks;
 };

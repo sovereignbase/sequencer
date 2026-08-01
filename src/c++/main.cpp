@@ -86,9 +86,10 @@ void merge_strip_to(std::uint32_t sequence_id) {
 
   // if previous strip was not findable
   if (std::holds_alternative<bool>(previous_strip_result)) {
-    strip.loose = true;
     if (is_masked_strip)
-      sequence->pending_masks.set(strip.this_strip_start, strip);
+      sequence->pending_masks.set(strip.previous_strip_start, strip);
+    else
+      sequence->pending_inserts.set(strip.previous_strip_start, strip);
     return;
   }
   [[maybe_unused]] const auto [previous_strip, previous_strip_offset] =
@@ -101,6 +102,6 @@ void merge_strip_to(std::uint32_t sequence_id) {
     mask_strip(sequence, previous_strip, previous_strip_offset, strip);
     return;
   }
-  //
+  insert_strip()
 }
 }

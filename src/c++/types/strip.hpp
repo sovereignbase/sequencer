@@ -15,5 +15,4 @@ struct StripOfSequence {
   PointInSequence this_strip_start;
   PointInSequence next_strip_start;
   PointInSequence previous_strip_start;
-  bool loose;
 };

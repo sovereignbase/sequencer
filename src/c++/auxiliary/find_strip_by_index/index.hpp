@@ -17,7 +17,7 @@ void find_strip_by_index(const std::uint32_t frame_index,
 
   // If the reel is empty or selected gate strip already contains target, no
   // walk is needed.
-  if (projector->reel.empty() ||
+  if (sequence->reel.empty() ||
       current_strip_contains_index(projector, frame_index))
     return;
 

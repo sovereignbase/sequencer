@@ -29,21 +29,19 @@
 /// @note
 ///     An offset of `0` indicates that `sequence_point` is exactly equal to
 ///     the sequence point marking the start of the strip.
-std::uint32_t
-strip_contains_sequence_point(const SequenceStrip *strip,
-                              const Uint128 *sequence_point) noexcept {
+inline std::uint32_t
+strip_contains_sequence_point(const StripOfSequence *strip,
+                              const PointInSequence *sequence_point) noexcept {
+  const PointInSequence &strip_start = strip->this_strip_start;
 
-  // Resolve the sequence point marking the start of the strip.
-  const Uint128 strip_start = strip->this_strip_start;
-
-  // A sequence point before the start of the strip cannot be contained within
-  // it.
-  if (*sequence_point < strip_start) {
+  if (sequence_point->random_bits != strip_start.random_bits ||
+      sequence_point->unix_lower_bits != strip_start.unix_lower_bits ||
+      sequence_point->counter_bits < strip_start.counter_bits) {
     return max_uint32;
   }
 
-  // Calculate the 128-bit offset from the start of the strip.
-  const Uint128 offset = *sequence_point - strip_start;
+  const std::uint32_t offset =
+      sequence_point->counter_bits - strip_start.counter_bits;
 
   // A sequence point whose offset reaches or exceeds the strip length falls
   // outside the strip.
@@ -51,7 +49,5 @@ strip_contains_sequence_point(const SequenceStrip *strip,
     return max_uint32;
   }
 
-  // The offset is guaranteed to fit within uint32_t because it is smaller than
-  // the uint32_t strip length.
-  return static_cast<std::uint32_t>(offset);
+  return offset;
 }

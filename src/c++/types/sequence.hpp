@@ -12,15 +12,15 @@ struct SequenceState {
   StripIndex index;
 
   /// Number of visible positions in the projected reel.
-  std::uint32_t length;
+  std::uint32_t length{0};
 
-  /// Current visible position at the projector gate. Updated when walsking
+  /// Current visible position at the projector gate. Updated when walking
   /// linked projection.
-  std::uint32_t gate_position;
+  std::uint32_t gate_position{0};
 
   /// Start point of the first strip in the sequence.
-  PointInSequence first_strip_start;
+  PointInSequence first_strip_start{};
 
   /// Start position of the strip currently at the projector gate.
-  PointInSequence gate_strip_start;
+  PointInSequence gate_strip_start{};
 };

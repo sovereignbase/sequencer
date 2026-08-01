@@ -16,15 +16,20 @@
  * @param frame_index Zero-based visible frame position.
  * @param sequence Sequence whose gate strip and position are updated.
  */
-void find_strip_by_frame_index(const std::uint32_t frame_index,
-                               SequenceState *sequence) noexcept {
+inline void find_strip_by_frame_index(const std::uint32_t frame_index,
+                                      SequenceState *sequence) noexcept {
 
-  if (sequence->length == 0 ||
-      strip_contains_frame_index(sequence, frame_index))
+  if (sequence->length == 0)
+    return;
+
+  const StripOfSequence *strip =
+      &sequence->index.get(sequence->gate_strip_start);
+
+  if (strip_contains_frame_index(strip, sequence->gate_position, frame_index))
     return;
 
   // Start with the distance from the gate to the target.
-  std::uint32_t distance =
+  const std::uint32_t distance =
       absolute_distance(sequence->gate_position, frame_index);
 
   // Distance from the projection head is the target position itself.
@@ -34,21 +39,26 @@ void find_strip_by_frame_index(const std::uint32_t frame_index,
   if (head_distance < distance) {
     sequence->gate_position = 0;
     sequence->gate_strip_start = sequence->first_strip_start;
+    strip = &sequence->index.get(sequence->gate_strip_start);
   }
 
   // If the selected gate strip already contains target, no walk is needed.
-  if (strip_contains_frame_index(sequence, frame_index))
+  if (strip_contains_frame_index(strip, sequence->gate_position, frame_index))
     return;
 
   // Run forward when the gate is positioned before the target.
-  if (sequence->gate_position < frame_index) {
+  if (sequence->gate_position <= frame_index) {
     // Stop as soon as the gate strip contains the target.
-    while (!strip_contains_frame_index(sequence, frame_index))
-      jump_to_next_strip(sequence);
+    do {
+      strip = &jump_to_next_strip(sequence, strip);
+    } while (!strip_contains_frame_index(strip, sequence->gate_position,
+                                         frame_index));
     return;
   }
 
-  // Walk left when the gate starts after the target.
-  while (!strip_contains_frame_index(sequence, frame_index))
-    jump_to_previous_strip(sequence);
+  // Walk backward when the gate starts after the target.
+  do {
+    strip = &jump_to_previous_strip(sequence, strip);
+  } while (
+      !strip_contains_frame_index(strip, sequence->gate_position, frame_index));
 }

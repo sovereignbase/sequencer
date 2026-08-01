@@ -20,14 +20,7 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t initialize_new_sequence() {
   const std::uint32_t sequence_id = sequences.size();
-  sequences.push_back(SequenceState{
-      {},         // reel
-      0,          // sequence length
-      0,          // gate position
-      max_uint32, // first strip start position
-      max_uint32, // gate strip start position
-      max_uint32, // last strip start position
-  });
+  sequences.emplace_back();
 
   return sequence_id;
 }
@@ -41,19 +34,22 @@ EMSCRIPTEN_KEEPALIVE
 std::uint32_t get_footage_position_of(std::uint32_t sequence_id,
                                       std::uint32_t frame_index) {
   SequenceState *sequence = &sequences[sequence_id];
-  find_strip_by_index(frame_index, sequence);
-  return sequence->reel[sequence->gate_strip_start_position].footage_position +
+  find_strip_by_frame_index(frame_index, sequence);
+  const StripOfSequence &strip =
+      sequence->index.get(sequence->gate_strip_start);
+  return strip.footage_position +
          absolute_distance(sequence->gate_position, frame_index);
 }
 
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t get_sequence_strip_of(std::uint32_t sequence_id,
-                                    std::uint32_t index) {
-  Sequencestate *projector = &Sequences[sequence_id];
-  find_strip_by_index(index, projector);
-  return projector->reel[projector->gate_strip_start_position]
-             .footage_position +
-         absolute_distance(projector->gate_position, index);
+                                    std::uint32_t frame_index) {
+  SequenceState *sequence = &sequences[sequence_id];
+  find_strip_by_frame_index(frame_index, sequence);
+  const StripOfSequence &strip =
+      sequence->index.get(sequence->gate_strip_start);
+  return strip.footage_position +
+         absolute_distance(sequence->gate_position, frame_index);
 }
 
 EMSCRIPTEN_KEEPALIVE

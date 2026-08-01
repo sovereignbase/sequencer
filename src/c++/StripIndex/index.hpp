@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../types/strip.hpp"
+#include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <utility>
@@ -17,7 +18,7 @@ public:
 private:
   uint32_t capacity;
   uint32_t mask;
-  uint32_t size = 0;
+  uint32_t realm_count = 0;
 
   std::unique_ptr<Realm[]> realms;
 
@@ -34,11 +35,25 @@ public:
       Realm &realm = realms[realm_index];
       if (realm.random_bits == point.random_bits &&
           realm.unix_lower_bits == point.unix_lower_bits) {
-        if (realm.entries.size() <= point.counter_bits) {
-          realm.entries.resize(static_cast<std::size_t>(point.counter_bits) +
-                               1);
+        if (realm.entries.back().this_strip_start.counter_bits <
+            point.counter_bits) {
+          realm.entries.push_back(strip);
+          return;
         }
-        realm.entries[point.counter_bits] = strip;
+
+        const auto entry = std::lower_bound(
+            realm.entries.begin(), realm.entries.end(), point.counter_bits,
+            [](const StripOfSequence &candidate,
+               const uint32_t counter_bits) noexcept {
+              return candidate.this_strip_start.counter_bits < counter_bits;
+            });
+
+        if (entry != realm.entries.end() &&
+            entry->this_strip_start.counter_bits == point.counter_bits) {
+          *entry = strip;
+        } else {
+          realm.entries.insert(entry, strip);
+        }
         return;
       }
       realm_index = (realm_index + 1) & mask;
@@ -47,11 +62,10 @@ public:
     Realm &realm = realms[realm_index];
     realm.random_bits = point.random_bits;
     realm.unix_lower_bits = point.unix_lower_bits;
-    realm.entries.resize(static_cast<std::size_t>(point.counter_bits) + 1);
-    realm.entries[point.counter_bits] = strip;
-    size++;
+    realm.entries.push_back(strip);
+    realm_count++;
 
-    if (size >= capacity / 2) {
+    if (realm_count >= capacity / 2) {
       upsize(capacity * 2);
     }
   }
@@ -63,16 +77,29 @@ public:
     while (!realms[realm_index].entries.empty()) {
       const Realm &realm = realms[realm_index];
       if (realm.random_bits == point.random_bits &&
-          realm.unix_lower_bits == point.unix_lower_bits &&
-          realm.entries.size() > point.counter_bits) {
-        return realm.entries[point.counter_bits];
+          realm.unix_lower_bits == point.unix_lower_bits) {
+        auto entry = std::upper_bound(
+            realm.entries.begin(), realm.entries.end(), point.counter_bits,
+            [](const uint32_t counter_bits,
+               const StripOfSequence &candidate) noexcept {
+              return counter_bits < candidate.this_strip_start.counter_bits;
+            });
+
+        if (entry != realm.entries.begin()) {
+          --entry;
+          const uint32_t start = entry->this_strip_start.counter_bits;
+          if (point.counter_bits - start < entry->length) {
+            return *entry;
+          }
+        }
+        std::unreachable();
       }
       realm_index = (realm_index + 1) & mask;
     }
     std::unreachable();
   }
 
-  inline uint32_t size() const noexcept { return size; }
+  inline uint32_t size() const noexcept { return realm_count; }
 
 private:
   void upsize(uint32_t new_capacity) {
@@ -81,7 +108,7 @@ private:
 
     capacity = new_capacity;
     mask = new_capacity - 1;
-    size = 0;
+    realm_count = 0;
 
     realms = std::make_unique<Realm[]>(new_capacity);
 
@@ -92,7 +119,7 @@ private:
           realm_index = (realm_index + 1) & mask;
         }
         realms[realm_index] = std::move(old_realms[i]);
-        size++;
+        realm_count++;
       }
     }
   }

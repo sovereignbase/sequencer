@@ -60,7 +60,7 @@ std::uint32_t get_footage_position_of(std::uint32_t sequence_id,
   SequenceState *sequence = &*sequences[sequence_id];
   find_strip_by_frame_index(frame_index, sequence);
   const StripOfSequence &strip =
-      sequence->index.get(sequence->gate_strip_start);
+      *sequence->index.get(sequence->gate_strip_start);
   return strip.footage_position + frame_index - sequence->gate_position;
 }
 
@@ -69,7 +69,7 @@ void get_sequence_strip_of(std::uint32_t sequence_id,
                            std::uint32_t frame_index) {
   SequenceState *sequence = &*sequences[sequence_id];
   find_strip_by_frame_index(frame_index, sequence);
-  write_to_strip_buffer(sequence->index.get(sequence->gate_strip_start));
+  write_to_strip_buffer(*sequence->index.get(sequence->gate_strip_start));
 }
 
 EMSCRIPTEN_KEEPALIVE

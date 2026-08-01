@@ -123,7 +123,7 @@ inline void mask_strip(SequenceState *sequence,
       next_start.random_bits != max_uint32;
 
   if (has_next) {
-    StripOfSequence next = sequence->index.get(next_start);
+    StripOfSequence next = *sequence->index.get(next_start);
     next.previous_strip_start = tail_start;
     sequence->index.set(next.this_strip_start, next);
   } else {

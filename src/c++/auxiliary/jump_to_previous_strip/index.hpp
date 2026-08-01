@@ -10,7 +10,7 @@ jump_to_previous_strip(SequenceState *sequence,
 
   // Only visible strips move the target position backward.
   const StripOfSequence &previous =
-      sequence->index.get(sequence->gate_strip_start);
+      *sequence->index.get(sequence->gate_strip_start);
   if (previous.mask == 0)
     sequence->gate_position -= previous.length;
 

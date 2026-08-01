@@ -9,7 +9,7 @@ constexpr std::uint32_t max_uint32 = std::numeric_limits<std::uint32_t>::max();
 
 struct SequenceState {
   /// Strips indexed by their point in the sequence.
-  StripIndex index;
+  StripIndex<> index;
 
   /// Number of visible positions in the projected reel.
   std::uint32_t length{0};
@@ -27,6 +27,6 @@ struct SequenceState {
   // Start point of the last strip in the sequence.
   PointInSequence last_strip_start{};
 
-  StripIndex pending_masks;
-  StripIndex pending_inserts;
+  StripIndex<&StripOfSequence::previous_strip_start> pending_masks;
+  StripIndex<&StripOfSequence::previous_strip_start> pending_inserts;
 };

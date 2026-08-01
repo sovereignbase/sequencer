@@ -12,5 +12,5 @@ jump_to_next_strip(SequenceState *sequence,
   if (current->mask == 0)
     sequence->gate_position += current->length;
 
-  return sequence->index.get(sequence->gate_strip_start);
+  return *sequence->index.get(sequence->gate_strip_start);
 }

@@ -47,11 +47,11 @@ find_strip_by_sequence_point(SequenceState *sequence,
   // Resolve the three high-probability anchors once. The index is not mutated
   // during the search, so these pointers remain stable for the entire walk.
   const StripOfSequence *gate =
-      &sequence->index.get(sequence->gate_strip_start);
+      sequence->index.get(sequence->gate_strip_start);
   const StripOfSequence *first =
-      &sequence->index.get(sequence->first_strip_start);
+      sequence->index.get(sequence->first_strip_start);
   const StripOfSequence *last =
-      &sequence->index.get(sequence->last_strip_start);
+      sequence->index.get(sequence->last_strip_start);
   std::uint32_t offset;
 
   // Consecutive operations are most likely to target the current gate.
@@ -91,7 +91,7 @@ find_strip_by_sequence_point(SequenceState *sequence,
       // Moving forward advances past the current strip only when it is visible.
       if (forward->mask == 0)
         forward_position += forward->length;
-      forward = &sequence->index.get(forward->next_strip_start);
+      forward = sequence->index.get(forward->next_strip_start);
 
       // `last` was already checked before the walk.
       if (forward != last &&
@@ -104,7 +104,7 @@ find_strip_by_sequence_point(SequenceState *sequence,
     }
 
     if (backward != first) {
-      backward = &sequence->index.get(backward->previous_strip_start);
+      backward = sequence->index.get(backward->previous_strip_start);
       // Moving backward subtracts the newly entered strip when it is visible.
       if (backward->mask == 0)
         backward_position -= backward->length;

@@ -23,7 +23,7 @@ inline void find_strip_by_frame_index(const std::uint32_t frame_index,
     return;
 
   const StripOfSequence *strip =
-      &sequence->index.get(sequence->gate_strip_start);
+      sequence->index.get(sequence->gate_strip_start);
 
   if (strip_contains_frame_index(strip, sequence->gate_position, frame_index))
     return;
@@ -39,7 +39,7 @@ inline void find_strip_by_frame_index(const std::uint32_t frame_index,
   if (head_distance < distance) {
     sequence->gate_position = 0;
     sequence->gate_strip_start = sequence->first_strip_start;
-    strip = &sequence->index.get(sequence->gate_strip_start);
+    strip = sequence->index.get(sequence->gate_strip_start);
   }
 
   // If the selected gate strip already contains target, no walk is needed.

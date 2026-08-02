@@ -1,4 +1,4 @@
-import { isUint32, isRecord } from '@sovereignbase/utils'
+import { isUint32 } from '@sovereignbase/utils'
 import type {
   SequencePoint,
   SequenceCoordinate,
@@ -44,3 +44,5 @@ export function is_safe_index(
     (allowEnd ? (position as number) <= length : (position as number) < length)
   )
 }
+
+export { issue_strip_start } from './issue_strip_start/index.js'

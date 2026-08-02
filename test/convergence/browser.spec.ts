@@ -17,7 +17,9 @@ test('converges after opposite Reel delivery orders in Chromium', async ({
   // Load the browser module before constructing concurrent replicas.
   await page.goto('/test/browser/index.html')
   await page.waitForFunction(
-    () => typeof (window as unknown as SequencerWindow).sequencer?.__create === 'function'
+    () =>
+      typeof (window as unknown as SequencerWindow).sequencer?.__create ===
+      'function'
   )
 
   // Fork two concurrent edits and integrate their Reels in opposite orders.

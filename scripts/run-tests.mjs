@@ -2,7 +2,11 @@
  * Runs both test engines even when one fails, then writes one stable report
  * landing page linking their detailed output and V8 coverage.
  */
-import { mkdirSync as make_directory, rmSync as remove_directory, writeFileSync as write_file } from 'node:fs'
+import {
+  mkdirSync as make_directory,
+  rmSync as remove_directory,
+  writeFileSync as write_file,
+} from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath as file_url_to_path } from 'node:url'
 import { spawnSync as spawn_sync } from 'node:child_process'
@@ -11,7 +15,9 @@ import { spawnSync as spawn_sync } from 'node:child_process'
 const script_directory = dirname(file_url_to_path(import.meta.url))
 const repository_directory = resolve(script_directory, '..')
 const reports_directory = resolve(repository_directory, 'docs', 'tests')
-if (relative(repository_directory, reports_directory) !== join('docs', 'tests')) {
+if (
+  relative(repository_directory, reports_directory) !== join('docs', 'tests')
+) {
   console.error('Refusing to replace a report directory outside docs/tests.')
   process.exit(1)
 }
@@ -21,12 +27,16 @@ remove_directory(reports_directory, { recursive: true, force: true })
 make_directory(reports_directory, { recursive: true })
 
 // Run both independent engines and retain both exit states for the landing page.
-const npm_command = process.platform === 'win32' ? 'npm.cmd' : 'npm'
-const run_script = (script_name) =>
-  spawn_sync(npm_command, ['run', script_name], {
+const run_script = (script_name) => {
+  const result = spawn_sync('npm', ['run', script_name], {
     cwd: repository_directory,
     stdio: 'inherit',
-  }).status ?? 1
+    shell: process.platform === 'win32',
+  })
+
+  if (result.error) console.error(result.error.message)
+  return result.status ?? 1
+}
 
 const vitest_status = run_script('test:vitest')
 const playwright_status = run_script('test:browser')

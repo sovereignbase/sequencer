@@ -48,7 +48,7 @@
     "test:vitest": "vitest run --coverage",
     "test:unit": "vitest run test/unit --coverage",
     "test:convergence": "vitest run test/convergence --coverage",
-    "test:stress": "vitest run test/stress --coverage",
+    "test:stress": "npm run build && vitest run test/stress --coverage",
     "test:browser": "playwright test",
     "bench": "npm run build && node benchmark/bench.js",
     "prepare": "husky",

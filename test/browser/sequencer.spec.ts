@@ -13,7 +13,9 @@ test.beforeEach(async ({ page }) => {
   // Load the Vite-transformed TypeScript entry and wait for its WASM adapter.
   await page.goto('/test/browser/index.html')
   await page.waitForFunction(
-    () => typeof (window as unknown as SequencerWindow).sequencer?.__create === 'function'
+    () =>
+      typeof (window as unknown as SequencerWindow).sequencer?.__create ===
+      'function'
   )
 })
 

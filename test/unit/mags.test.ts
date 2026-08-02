@@ -14,11 +14,7 @@ import {
   __snapshot,
   __update,
 } from '../../src/typescript/index.js'
-import type {
-  Frontier,
-  Replica,
-  Reel,
-} from '../../src/typescript/index.js'
+import type { Frontier, Replica, Reel } from '../../src/typescript/index.js'
 
 // Observe the complete visible Projection without inspecting Projector state.
 function projection_values<T>(state: Replica<T>): Array<T | undefined> {
@@ -32,7 +28,15 @@ describe('MAGS merge', () => {
   it('rejects malformed Reels and incomplete visible Footage', () => {
     const state = __create<string>()
     const incomplete_reel: Reel<string> = [
-      [0, 2, [[0, 0, 0], [1, 0, 1]], ['only one']],
+      [
+        0,
+        2,
+        [
+          [0, 0, 0],
+          [1, 0, 1],
+        ],
+        ['only one'],
+      ],
     ]
 
     expect(__merge(state, undefined)).toBe(false)

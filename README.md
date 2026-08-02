@@ -148,7 +148,7 @@ Every `npm test` run rebuilds the native WebAssembly module and verifies unit
 behaviour, deterministic convergence, generative "stress" scenarios, V8 coverage,
 the supported runtime matrix, desktop browsers, mobile browser emulations, and
 module Web Workers. Every stage has a hard timeout, and all detailed evidence is
-written to the [automated test report](https://sovereignbase.dev/tests/).
+written to the [automated test report](https://sovereignbase.dev/sequencer/tests/).
 
 ### Works everywhere where ESM modules and Wasm works
 

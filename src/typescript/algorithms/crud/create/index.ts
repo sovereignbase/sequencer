@@ -5,6 +5,7 @@
  */
 import { is_strip } from '../../../helpers/index.js'
 import {
+  append_structural_strip_to_sequence,
   clear_sequence,
   initialize_sequence,
   merge_strip_into_sequence,
@@ -38,6 +39,7 @@ export function __create<T>(data?: unknown): Replica<T> {
     id: initialize_sequence(),
     footage: [],
   }
+  void finalization_registry.register(state, state.id)
 
   // Validate the optional initialization Reel container.
   if (!Array.isArray(data) || data.length < 1) return state
@@ -47,11 +49,17 @@ export function __create<T>(data?: unknown): Replica<T> {
     // Validate the transferable Strip tuple.
     if (!is_strip<T>(chunk)) continue
     const [is_masked, frame_count, coordinate, footage] = chunk
+    if (
+      (is_masked === 0 && footage?.length !== frame_count) ||
+      (footage !== undefined && footage.length !== frame_count)
+    )
+      continue
 
     // Resolve a stable append-only Footage span for supplied values.
     const footage_frame_index = state.footage.length
 
     if (footage) void state.footage.push(...footage)
+    else state.footage.length += frame_count
 
     // Transfer the Strip and let native code resolve dependency and ordering.
     write_strip_to_buffer(
@@ -61,10 +69,8 @@ export function __create<T>(data?: unknown): Replica<T> {
       coordinate
     )
 
-    void merge_strip_into_sequence(state.id)
-
-    // Register native cleanup for the initialized Replica state.
-    void finalization_registry.register(state, state.id)
+    if (!append_structural_strip_to_sequence(state.id))
+      void merge_strip_into_sequence(state.id)
   }
 
   // Return the independently maintained Replica.

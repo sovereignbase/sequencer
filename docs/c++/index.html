@@ -1872,6 +1872,38 @@ The source is preserved, the selected shape is materialized, and its tail is rec
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv435append_structural_strip_to_sequenceKNSt8uint32_tE">
+<span id="_CPPv335append_structural_strip_to_sequenceKNSt8uint32_tE"></span><span id="_CPPv235append_structural_strip_to_sequenceKNSt8uint32_tE"></span><span id="append_structural_strip_to_sequence__std::uint32_tC"></span><span class="target" id="main_8cpp_1a4a466230a4eae47f2164150188dc62ab"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">append_structural_strip_to_sequence</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv435append_structural_strip_to_sequenceKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Append one already-materialized structural <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> during hydration. </p>
+<p>Snapshot Strips already carry immediate predecessor links and structural order. When the buffered <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> follows the current retained tail exactly, this operation links it directly without reinterpreting a materialized Mask or split fragment as a new merge operation. Other Reels fall back to normal coordinate integration at the TypeScript boundary.</p>
+<p><dl class="simple">
+<dt><strong>Complexity:</strong></dt><dd><p>Expected O(1) index access and amortized O(1) insertion. </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the sequence being hydrated. </p>
+</dd>
+<dt class="field-even">Return values<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>1</strong> – The <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> was appended. </p></li>
+<li><p><strong>0</strong> – Its predecessor was not the current tail, its start was already materialized, or its material shape was invalid. </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Pre<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">sequence_id</span></code> identifies an active <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>. </p>
+</dd>
+<dt class="field-even">Pre<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a> contains one candidate retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+</dd>
+<dt class="field-odd">Post<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A successful append preserves one linked structural chain and updates the Projection length only for a visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv414clear_sequenceKNSt8uint32_tE">
 <span id="_CPPv314clear_sequenceKNSt8uint32_tE"></span><span id="_CPPv214clear_sequenceKNSt8uint32_tE"></span><span id="clear_sequence__std::uint32_tC"></span><span class="target" id="main_8cpp_1aaebc9862d932d18ede76e9fef0c9c082"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clear_sequence</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv414clear_sequenceKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Destroy one Replica’s <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> and release its identifier for reuse. </p>

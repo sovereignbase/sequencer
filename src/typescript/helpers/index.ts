@@ -62,6 +62,7 @@ export function is_strip<T>(data: unknown): data is Strip<T> {
   return (
     (is_masked === 1 || is_masked === 0) &&
     is_uint32(frame_count) &&
+    frame_count > 0 &&
     is_sequence_coordinate(coordinate) &&
     (footage === undefined || (Array.isArray(footage) && footage.length > 0))
   )

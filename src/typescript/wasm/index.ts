@@ -263,6 +263,22 @@ export function garbage_collect_sequence(
 }
 
 /**
+ * Appends the buffered Strip when it is the next member of an ordered
+ * structural snapshot.
+ *
+ * @param sequence_id Active local Projector identifier.
+ * @returns Whether the Strip was appended directly. `false` asks the caller to
+ * use ordinary coordinate integration instead.
+ * @remarks `write_strip_to_buffer` must have supplied the candidate Strip.
+ */
+export function append_structural_strip_to_sequence(
+  sequence_id: number
+): boolean {
+  // Use the constant-time hydration path only for an exact structural tail.
+  return wasm._append_structural_strip_to_sequence(sequence_id) !== 0
+}
+
+/**
  * Merges the buffered Strip into one materialized Sequence.
  *
  * A visible Strip is reported at its resulting Projection start. A Mask is

@@ -29,6 +29,7 @@ interface WasmModule {
   _prepare_garbage_collection_frontier_buffer(_0: number): number;
   _get_garbage_collection_footage_span_buffer_pointer(): number;
   _garbage_collect_sequence(_0: number): number;
+  _append_structural_strip_to_sequence(_0: number): number;
   _merge_strip_into_sequence(_0: number): number;
 }
 

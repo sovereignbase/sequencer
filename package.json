@@ -44,12 +44,13 @@
     "build:wasm": "cmake --build --preset wasm-release && cmake --install temp/build/wasm-release --prefix src/typescript/wasm/raw && node -e \"const fs=require('node:fs');const p='src/typescript/wasm/raw/sequencer_wasm.mjs';const b=fs.readFileSync(p);const a=Buffer.from('async function Module');const c=Buffer.from('function Module');if(b.subarray(0,a.length).equals(a))fs.writeFileSync(p,Buffer.concat([c,b.subarray(a.length)]))\" && npm run docs:c++",
     "docs:c++": "node scripts/build-cpp-docs.mjs",
     "configure:wasm": "emcmake cmake --preset wasm-release",
-    "test": "npm run build:wasm && npm run build && node scripts/run-tests.mjs",
+    "test": "node scripts/run-tests.mjs",
     "test:vitest": "vitest run --coverage",
     "test:unit": "vitest run test/unit --coverage",
     "test:convergence": "vitest run test/convergence --coverage",
     "test:stress": "npm run build && vitest run test/stress --coverage",
-    "test:browser": "playwright test",
+    "test:runtimes": "node scripts/run-runtime-tests.mjs",
+    "test:browser": "node scripts/run-browser-tests.mjs",
     "bench": "npm run build && node benchmark/bench.js",
     "prepare": "husky",
     "prepublishOnly": "npm run test && npm run bench"
@@ -62,6 +63,7 @@
     "@types/node": "^26.1.2",
     "@vitest/coverage-v8": "^4.1.10",
     "@vitest/ui": "^4.1.10",
+    "bun": "^1.3.14",
     "deno": "^2.9.4",
     "edge-runtime": "^4.0.1",
     "esbuild": "^0.28.1",
@@ -86,6 +88,5 @@
   "bugs": {
     "url": "https://github.com/sovereignbase/sequencer/issues"
   },
-  "homepage": "https://sovereignbase.dev/sequencer",
-  "dependencies": {}
+  "homepage": "https://sovereignbase.dev/sequencer"
 }

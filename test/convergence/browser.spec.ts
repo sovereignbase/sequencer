@@ -11,7 +11,7 @@ type SequencerWindow = Window & {
   sequencer: SequencerApi
 }
 
-test('converges after opposite Reel delivery orders in Chromium', async ({
+test('converges after opposite Reel delivery orders in a browser', async ({
   page,
 }) => {
   // Load the browser module before constructing concurrent replicas.

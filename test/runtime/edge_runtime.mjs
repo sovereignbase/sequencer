@@ -11,6 +11,11 @@ const bundle = await build({
   globalName: 'sequencer',
   platform: 'browser',
   target: 'es2022',
+  define: {
+    'import.meta.url': JSON.stringify(
+      'https://sequencer.invalid/dist/index.js'
+    ),
+  },
   write: false,
 })
 const runtime = new EdgeRuntime({ initialCode: bundle.outputFiles[0].text })

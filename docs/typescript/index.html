@@ -27,7 +27,7 @@
 <p>Bundle size benchmakrs</p>
 <h3 id="optimized-data-model" class="tsd-anchor-link">Optimized data model<a href="#optimized-data-model" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>Bytse size benchmarks</p>
-<h2 id="about" class="tsd-anchor-link">About<a href="#about" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h2 id="why-shoul-you-use-it" class="tsd-anchor-link">Why shoul you use it?<a href="#why-shoul-you-use-it" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <h3 id="understanding-the-problem-sequencer-solves" class="tsd-anchor-link">Understanding the Problem Sequencer Solves<a href="#understanding-the-problem-sequencer-solves" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>As an example, let's consider two editors, <strong>A</strong> and <strong>B</strong>, both working on the following text:</p>
 <pre><code class="text">Hello world
@@ -96,8 +96,23 @@
 </ul>
 <h2 id="tests" class="tsd-anchor-link">Tests<a href="#tests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <h3 id="behaviour-guaranteed-by-excessive-tests" class="tsd-anchor-link">Behaviour guaranteed by excessive tests<a href="#behaviour-guaranteed-by-excessive-tests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Every <code>npm test</code> run rebuilds the native WebAssembly module and verifies unit
+behaviour, deterministic convergence, generative &quot;stress&quot; scenarios, V8 coverage,
+the supported runtime matrix, desktop browsers, mobile browser emulations, and
+module Web Workers. Every stage has a hard timeout, and all detailed evidence is
+written to the <a href="media/index.html">automated test report</a>.</p>
 <h3 id="works-everywhere-where-esm-modules-and-wasm-works" class="tsd-anchor-link">Works everywhere where ESM modules and Wasm works<a href="#works-everywhere-where-esm-modules-and-wasm-works" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<p>runtimes with tested support</p>
+<p>Runtimes with tested support:</p>
+<ul>
+<li>Node.js</li>
+<li>Deno</li>
+<li>Bun</li>
+<li>Edge Runtime</li>
+<li>Cloudflare Workers through workerd</li>
+<li>Browser Window and Web Worker contexts</li>
+<li>Chromium, Firefox, and WebKit</li>
+<li>Mobile Chrome and Mobile Safari device profiles</li>
+</ul>
 <h2 id="license" class="tsd-anchor-link">License<a href="#license" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>Apache-2.0</p>
 </div></div>
@@ -130,7 +145,7 @@
 <li><a href="#unbeliveable-performance"><span>Unbeliveable performance</span></a></li>
 <li><a href="#small-bundle-size"><span>Small bundle size</span></a></li>
 <li><a href="#optimized-data-model"><span>Optimized data model</span></a></li></ul></li>
-<li><a href="#about"><span>About</span></a></li>
+<li><a href="#why-shoul-you-use-it"><span>Why shoul you use it?</span></a></li>
 <li>
 <ul>
 <li><a href="#understanding-the-problem-sequencer-solves"><span>Understanding the <wbr/>Problem <wbr/>Sequencer <wbr/>Solves</span></a></li>

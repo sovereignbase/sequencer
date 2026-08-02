@@ -10,6 +10,15 @@ const report_directory = resolve(repository_directory, 'docs', 'tests')
 const binary_directory = resolve(repository_directory, 'node_modules', '.bin')
 const binary = (name) =>
   resolve(binary_directory, `${name}${process.platform === 'win32' ? '.cmd' : ''}`)
+const runtime_binary = (name) =>
+  process.platform === 'win32'
+    ? resolve(
+        repository_directory,
+        'node_modules',
+        name,
+        ...(name === 'bun' ? ['bin', 'bun.exe'] : ['deno.exe'])
+      )
+    : binary(name)
 const runner = (file_name) =>
   resolve(repository_directory, 'test', 'runtime', file_name)
 const runtime_marker = 'SEQUENCER_RUNTIME_RESULT='
@@ -22,12 +31,12 @@ const specifications = [
   },
   {
     name: 'Deno',
-    command: binary('deno'),
+    command: runtime_binary('deno'),
     arguments: ['run', runner('module.mjs')],
   },
   {
     name: 'Bun',
-    command: binary('bun'),
+    command: runtime_binary('bun'),
     arguments: ['run', runner('module.mjs')],
   },
   {
@@ -88,7 +97,7 @@ write_file(
 const all_passed = results.every(({ status }) => status === 'passed')
 for (const result of results) {
   console.log(
-    `${result.status === 'passed' ? '✓' : '×'} ${result.name}${result.version ? ` ${result.version}` : ''} (${result.duration_ms} ms)`
+    `${result.status === 'passed' ? 'PASS' : 'FAIL'} ${result.name}${result.version ? ` ${result.version}` : ''} (${result.duration_ms} ms)`
   )
 }
 process.exitCode = all_passed ? 0 : 1

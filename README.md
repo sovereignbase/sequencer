@@ -141,9 +141,24 @@ This means replicas can:
 
 ### Behaviour guaranteed by excessive tests
 
+Every `npm test` run rebuilds the native WebAssembly module and verifies unit
+behaviour, deterministic convergence, generative "stress" scenarios, V8 coverage,
+the supported runtime matrix, desktop browsers, mobile browser emulations, and
+module Web Workers. Every stage has a hard timeout, and all detailed evidence is
+written to the [automated test report](./docs/tests/index.html).
+
 ### Works everywhere where ESM modules and Wasm works
 
-runtimes with tested support
+Runtimes with tested support:
+
+- Node.js
+- Deno
+- Bun
+- Edge Runtime
+- Cloudflare Workers through workerd
+- Browser Window and Web Worker contexts
+- Chromium, Firefox, and WebKit
+- Mobile Chrome and Mobile Safari device profiles
 
 ## License
 

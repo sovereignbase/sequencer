@@ -1,19 +1,17 @@
-/**
- * Runs both test engines even when one fails, then writes one stable report
- * landing page linking their detailed output and V8 coverage.
- */
+/** Runs every build and test stage with finite process-tree timeouts. */
 import {
   mkdirSync as make_directory,
   rmSync as remove_directory,
-  writeFileSync as write_file,
 } from 'node:fs'
-import { dirname, join, relative, resolve } from 'node:path'
-import { fileURLToPath as file_url_to_path } from 'node:url'
-import { spawnSync as spawn_sync } from 'node:child_process'
+import { join, relative, resolve } from 'node:path'
+import { run_command } from './.helpers/run_command.mjs'
+import {
+  write_pending_test_report,
+  write_test_report,
+} from './write-test-report.mjs'
 
-// Resolve and validate the one generated report directory this script owns.
-const script_directory = dirname(file_url_to_path(import.meta.url))
-const repository_directory = resolve(script_directory, '..')
+const started_at = new Date()
+const repository_directory = resolve(import.meta.dirname, '..')
 const reports_directory = resolve(repository_directory, 'docs', 'tests')
 if (
   relative(repository_directory, reports_directory) !== join('docs', 'tests')
@@ -22,63 +20,67 @@ if (
   process.exit(1)
 }
 
-// Start from an empty report tree so stale successes cannot survive failures.
 remove_directory(reports_directory, { recursive: true, force: true })
 make_directory(reports_directory, { recursive: true })
+write_pending_test_report(reports_directory)
 
-// Run both independent engines and retain both exit states for the landing page.
-const run_script = (script_name) => {
-  const result = spawn_sync('npm', ['run', script_name], {
+const npm_command = process.env.npm_execpath ? process.execPath : 'npm'
+const npm_arguments = process.env.npm_execpath
+  ? [process.env.npm_execpath]
+  : []
+const stages = []
+const run_stage = async (id, label, script_name, timeout_ms) => {
+  console.log(`\n=== ${label} ===`)
+  const result = await run_command(
+    npm_command,
+    [...npm_arguments, 'run', script_name],
+    {
     cwd: repository_directory,
-    stdio: 'inherit',
-    shell: process.platform === 'win32',
-  })
+    timeout_ms,
+    }
+  )
+  const stage = {
+    id,
+    label,
+    status: result.status,
+    duration_ms: result.duration_ms,
+  }
+  stages.push(stage)
+  return stage
+}
+const skip_stage = (id, label) =>
+  stages.push({ id, label, status: null, duration_ms: 0 })
 
-  if (result.error) console.error(result.error.message)
-  return result.status ?? 1
+const wasm_build = await run_stage(
+  'wasm_build',
+  'C++ and Wasm build',
+  'build:wasm',
+  180_000
+)
+const typescript_build =
+  wasm_build.status === 0
+    ? await run_stage(
+        'typescript_build',
+        'TypeScript build',
+        'build',
+        120_000
+      )
+    : (skip_stage('typescript_build', 'TypeScript build'), stages.at(-1))
+
+if (wasm_build.status === 0 && typescript_build.status === 0) {
+  await run_stage(
+    'vitest',
+    'Unit, convergence, and stress',
+    'test:vitest',
+    240_000
+  )
+  await run_stage('runtimes', 'Runtime matrix', 'test:runtimes', 90_000)
+  await run_stage('browser', 'Browser matrix', 'test:browser', 330_000)
+} else {
+  skip_stage('vitest', 'Unit, convergence, and stress')
+  skip_stage('runtimes', 'Runtime matrix')
+  skip_stage('browser', 'Browser matrix')
 }
 
-const vitest_status = run_script('test:vitest')
-const playwright_status = run_script('test:browser')
-const status_label = (status) => (status === 0 ? 'Passed' : 'Failed')
-const overall_status = vitest_status === 0 && playwright_status === 0
-
-// Publish a compact index even when either detailed runner failed to start.
-write_file(
-  resolve(reports_directory, 'index.html'),
-  `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sequencer test report</title>
-    <style>
-      :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #090909; color: #f7f7f7; }
-      body { margin: 0; min-height: 100vh; display: grid; place-items: center; }
-      main { width: min(42rem, calc(100% - 2rem)); }
-      section { display: grid; gap: 1rem; padding: 1.5rem; border: 1px solid #303030; border-radius: 1rem; background: #111; }
-      h1, p { margin: 0; }
-      nav { display: grid; gap: .75rem; }
-      a { display: flex; justify-content: space-between; padding: 1rem; border: 1px solid #303030; border-radius: .75rem; color: inherit; text-decoration: none; }
-      .passed { color: #7ee787; }
-      .failed { color: #ff7b72; }
-    </style>
-  </head>
-  <body>
-    <main>
-      <section>
-        <h1>Sequencer tests</h1>
-        <p class="${overall_status ? 'passed' : 'failed'}">${overall_status ? 'All test engines passed.' : 'At least one test engine failed.'}</p>
-        <nav>
-          <a href="./vitest/index.html"><span>Vitest</span><strong class="${vitest_status === 0 ? 'passed' : 'failed'}">${status_label(vitest_status)}</strong></a>
-          <a href="./coverage/index.html"><span>V8 coverage</span><strong>Open</strong></a>
-          <a href="./playwright/index.html"><span>Playwright</span><strong class="${playwright_status === 0 ? 'passed' : 'failed'}">${status_label(playwright_status)}</strong></a>
-        </nav>
-      </section>
-    </main>
-  </body>
-</html>
-`
-)
-
-process.exitCode = overall_status ? 0 : 1
+write_test_report(reports_directory, stages, started_at)
+process.exitCode = stages.every(({ status }) => status === 0) ? 0 : 1

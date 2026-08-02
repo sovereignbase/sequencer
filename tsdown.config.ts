@@ -22,7 +22,7 @@ const apache_2_banner = [
 export default defineConfig({
   // Emit equivalent ESM and CommonJS packages from the documented public API.
   entry: ['src/typescript/index.ts'],
-  format: ['esm'],
+  format: ['esm', 'cjs'],
   outDir: 'dist',
   platform: 'neutral',
   target: 'es2024',

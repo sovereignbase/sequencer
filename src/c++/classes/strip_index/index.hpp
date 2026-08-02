@@ -258,6 +258,48 @@ public:
   }
 
   /**
+   * @brief Return the Strip whose Frame Span contains a Sequence Point.
+   *
+   * The Realm vector is ordered by start counter, so the final start not
+   * greater than `point` is the only possible containing Strip.
+   *
+   * @param point Logical Frame point to locate.
+   * @return Mutable borrowed pointer to its containing Strip, or `nullptr`.
+   * @complexity Expected O(1) Realm lookup plus O(log n) Realm search.
+   */
+  [[nodiscard]] inline Strip *
+  get_containing(const SequencePoint &point) noexcept {
+    std::uint32_t realm_index = point.random_bits & realm_index_mask;
+
+    while (!realms[realm_index].strips.empty()) {
+      Realm &realm = realms[realm_index];
+      if (realm.random_bits == point.random_bits &&
+          realm.unix_lower_bits == point.unix_lower_bits) {
+        const auto upper_strip_iterator = std::upper_bound(
+            realm.strips.begin(), realm.strips.end(), point.counter_bits,
+            [](const std::uint32_t counter_bits,
+               const Strip &candidate) noexcept {
+              return counter_bits <
+                     (candidate.coordinate.*indexed_sequence_point)
+                         .counter_bits;
+            });
+        if (upper_strip_iterator == realm.strips.begin())
+          return nullptr;
+
+        const auto strip_iterator = upper_strip_iterator - 1;
+        const std::uint32_t strip_counter_bits =
+            (strip_iterator->coordinate.*indexed_sequence_point).counter_bits;
+        return point.counter_bits - strip_counter_bits <
+                       strip_iterator->frame_count
+                   ? &*strip_iterator
+                   : nullptr;
+      }
+      realm_index = (realm_index + 1) & realm_index_mask;
+    }
+    return nullptr;
+  }
+
+  /**
    * @brief Return the first Strip keyed within one Frame Span.
    *
    * Pending indexes use this overload to resolve every dependency point made

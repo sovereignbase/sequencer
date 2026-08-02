@@ -44,6 +44,9 @@
 inline void mask_strip(Projector *projector, const Strip *containing_strip,
                        const std::uint32_t mask_frame_offset,
                        const Strip &mask) noexcept {
+  // A visible gap breaks direct Realm-counter to Projection-index mapping.
+  projector->is_projection_linear = false;
+
   // Follow the immutable logical axis rather than mutable structural links.
   SequencePoint logical_frame_start = mask.coordinate.this_strip_start;
   std::uint32_t remaining_frame_count = mask.frame_count;

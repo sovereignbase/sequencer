@@ -432,6 +432,7 @@ EMSCRIPTEN_KEEPALIVE void hydrate_snapshot_strip_into_sequence(
 
   // Establish all structural boundaries for the first retained Strip.
   if (projector->strip_index.is_empty()) {
+    projector->is_projection_linear = hydrated_strip.is_masked == 0;
     hydrated_strip.previous_structural_strip_start = SequencePoint{};
     projector->strip_index.set(hydrated_strip_start, hydrated_strip);
     projector->first_strip_start = hydrated_strip_start;
@@ -442,6 +443,15 @@ EMSCRIPTEN_KEEPALIVE void hydrate_snapshot_strip_into_sequence(
     // Link the previous tail and append this Strip without interpreting it.
     const SequencePoint previous_strip_start = projector->last_strip_start;
     Strip previous_strip = *projector->strip_index.get(previous_strip_start);
+    projector->is_projection_linear =
+        projector->is_projection_linear && hydrated_strip.is_masked == 0 &&
+        hydrated_strip_start.unix_lower_bits ==
+            previous_strip_start.unix_lower_bits &&
+        hydrated_strip_start.random_bits ==
+            previous_strip_start.random_bits &&
+        static_cast<std::uint64_t>(hydrated_strip_start.counter_bits) ==
+            static_cast<std::uint64_t>(previous_strip_start.counter_bits) +
+                previous_strip.frame_count;
     previous_strip.next_strip_start = hydrated_strip_start;
     hydrated_strip.previous_structural_strip_start = previous_strip_start;
 

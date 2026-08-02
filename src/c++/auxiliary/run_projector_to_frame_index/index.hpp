@@ -48,6 +48,18 @@ inline void run_projector_to_frame_index(
                                  projection_frame_index))
     return;
 
+  // Resolve a proven contiguous single-Realm Projection by counter arithmetic.
+  if (projector->is_projection_linear) {
+    SequencePoint frame_point = projector->first_strip_start;
+    frame_point.counter_bits += projection_frame_index;
+    gate_strip = projector->strip_index.get_containing(frame_point);
+    projector->gate_strip_start = gate_strip->coordinate.this_strip_start;
+    projector->gate_projection_frame_index =
+        gate_strip->coordinate.this_strip_start.counter_bits -
+        projector->first_strip_start.counter_bits;
+    return;
+  }
+
   const std::uint32_t gate_distance = absolute_distance(
       projector->gate_projection_frame_index, projection_frame_index);
 

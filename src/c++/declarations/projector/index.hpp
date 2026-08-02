@@ -61,6 +61,15 @@ struct Projector {
   /** @brief Total number of visible frames in the current Projection. */
   std::uint32_t projection_frame_count{0};
 
+  /**
+   * @brief Whether Projection indexes map directly to the first Strip's Realm.
+   *
+   * This remains true while every materialized Strip is visible, structurally
+   * ordered by one Realm's contiguous counters, and covers the Projection
+   * without gaps. Any Mask or non-tail insertion clears the proof.
+   */
+  bool is_projection_linear{true};
+
   // Movable Gate and retained structural boundaries.
 
   /**

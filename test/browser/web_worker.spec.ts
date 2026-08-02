@@ -5,7 +5,9 @@ test('executes the public sequence API in a Web Worker', async ({ page }) => {
   await page.goto('/test/browser/index.html')
 
   const observation = await page.evaluate(async () => {
-    const worker = new Worker('/test/browser/web_worker.mjs', { type: 'module' })
+    const worker = new Worker('/test/browser/web_worker.mjs', {
+      type: 'module',
+    })
 
     try {
       return await new Promise((resolve, reject) => {

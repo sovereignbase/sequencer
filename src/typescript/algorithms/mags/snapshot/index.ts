@@ -39,8 +39,7 @@ export function __snapshot<T>(state: Replica<T>): Reel<T> {
           : 1
     const footage =
       is_masked !== 0 &&
-      (is_pending === 1 ||
-        state.footage[footage_frame_index] === undefined)
+      (is_pending === 1 || state.footage[footage_frame_index] === undefined)
         ? undefined
         : (state.footage.slice(
             footage_frame_index,
@@ -48,22 +47,10 @@ export function __snapshot<T>(state: Replica<T>): Reel<T> {
           ) as Array<T>)
 
     if (is_pending === 1)
-      reel.push([
-        mask_state,
-        strip_frame_count,
-        coordinate,
-        footage,
-        1,
-      ])
+      reel.push([mask_state, strip_frame_count, coordinate, footage, 1])
     else if (footage === undefined)
       reel.push([mask_state, strip_frame_count, coordinate])
-    else
-      reel.push([
-        mask_state,
-        strip_frame_count,
-        coordinate,
-        footage,
-      ])
+    else reel.push([mask_state, strip_frame_count, coordinate, footage])
   }
 
   // Traverse every retained visible Strip and Mask in Sequence order.

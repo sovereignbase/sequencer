@@ -1,7 +1,4 @@
-import {
-  defineConfig as define_config,
-  devices,
-} from '@playwright/test'
+import { defineConfig as define_config, devices } from '@playwright/test'
 
 /** Runs the built public API across desktop, mobile, and Worker environments. */
 export default define_config({

@@ -135,12 +135,7 @@ const targets = [
   ['duplicate', deliver(base_reel, duplicated, undefined, 'duplicate')],
   [
     'restart',
-    deliver(
-      base_reel,
-      shuffled,
-      Math.ceil(shuffled.length / 2),
-      'restart'
-    ),
+    deliver(base_reel, shuffled, Math.ceil(shuffled.length / 2), 'restart'),
   ],
 ]
 const batched = __create(base_reel)

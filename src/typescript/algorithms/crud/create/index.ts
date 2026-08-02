@@ -68,8 +68,7 @@ export function __create<T>(data?: unknown): Replica<T> {
       footage_frame_index,
       coordinate
     )
-    if (is_pending === 1)
-      hydrate_pending_snapshot_strip_into_sequence(state.id)
+    if (is_pending === 1) hydrate_pending_snapshot_strip_into_sequence(state.id)
     else hydrate_snapshot_strip_into_sequence(state.id)
   }
 

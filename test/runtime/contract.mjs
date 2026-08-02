@@ -1,7 +1,8 @@
 /** Exercises the built public API and its native Projector in any ESM runtime. */
 export function run_runtime_contract(api) {
   const require_condition = (condition, message) => {
-    if (!condition) throw new TypeError(`Sequencer runtime contract: ${message}`)
+    if (!condition)
+      throw new TypeError(`Sequencer runtime contract: ${message}`)
   }
   const read_projection = (state) =>
     Array.from({ length: api.__length(state) }, (_, index) =>
@@ -18,7 +19,8 @@ export function run_runtime_contract(api) {
     'soft deletion was rejected'
   )
   require_condition(
-    JSON.stringify(read_projection(state)) === JSON.stringify(['alpha', 'gamma']),
+    JSON.stringify(read_projection(state)) ===
+      JSON.stringify(['alpha', 'gamma']),
     'projection is incorrect after deletion'
   )
   require_condition(

@@ -14,13 +14,16 @@ export function run_command(
 
     if (process.platform === 'win32') {
       const system_root =
-        child_environment.SystemRoot ?? child_environment.WINDIR ?? 'C:\\Windows'
+        child_environment.SystemRoot ??
+        child_environment.WINDIR ??
+        'C:\\Windows'
       system_directory = join(system_root, 'System32')
       const path_key =
         Object.keys(child_environment).find(
           (key) => key.toLowerCase() === 'path'
         ) ?? 'Path'
-      child_environment[path_key] = `${system_directory};${child_environment[path_key] ?? ''}`
+      child_environment[path_key] =
+        `${system_directory};${child_environment[path_key] ?? ''}`
     }
 
     const child = spawn(command, arguments_, {
@@ -67,16 +70,15 @@ export function run_command(
       console.error(`\nTimed out after ${timeout_ms} ms: ${command}`)
 
       if (process.platform === 'win32' && child.pid && system_directory) {
-        spawn_sync(join(system_directory, 'taskkill.exe'), [
-          '/pid',
-          String(child.pid),
-          '/t',
-          '/f',
-        ], {
-          env: child_environment,
-          stdio: 'ignore',
-          windowsHide: true,
-        })
+        spawn_sync(
+          join(system_directory, 'taskkill.exe'),
+          ['/pid', String(child.pid), '/t', '/f'],
+          {
+            env: child_environment,
+            stdio: 'ignore',
+            windowsHide: true,
+          }
+        )
       } else if (child.pid) {
         try {
           process.kill(-child.pid, 'SIGTERM')

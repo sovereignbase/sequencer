@@ -9,7 +9,10 @@ const repository_directory = resolve(import.meta.dirname, '..')
 const report_directory = resolve(repository_directory, 'docs', 'tests')
 const binary_directory = resolve(repository_directory, 'node_modules', '.bin')
 const binary = (name) =>
-  resolve(binary_directory, `${name}${process.platform === 'win32' ? '.cmd' : ''}`)
+  resolve(
+    binary_directory,
+    `${name}${process.platform === 'win32' ? '.cmd' : ''}`
+  )
 const runtime_binary = (name) =>
   process.platform === 'win32'
     ? resolve(
@@ -83,7 +86,9 @@ const results = await Promise.all(
       assertions: detail?.assertions,
       error:
         command_result.error?.message ??
-        (!detail ? command_result.standard_error.trim() || 'No result returned.' : undefined),
+        (!detail
+          ? command_result.standard_error.trim() || 'No result returned.'
+          : undefined),
     }
   })
 )

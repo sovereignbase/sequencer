@@ -70,7 +70,11 @@ export function __merge<T>(
         ? get_projection_frame_count(state.id) - previous_projection_frame_count
         : frame_count
 
-    for (let frame_offset = 0; frame_offset < changed_frame_count; frame_offset++) {
+    for (
+      let frame_offset = 0;
+      frame_offset < changed_frame_count;
+      frame_offset++
+    ) {
       const frame_index = projection_frame_index + frame_offset
       change[frame_index] =
         is_masked === 0

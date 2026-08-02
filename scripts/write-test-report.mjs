@@ -86,7 +86,9 @@ export function write_test_report(reports_directory, stages, started_at) {
     .join('')
   const overall_status = stages.every(({ status }) => status === 0)
   const finished_at = new Date()
-  const total_duration = Math.round(finished_at.getTime() - started_at.getTime())
+  const total_duration = Math.round(
+    finished_at.getTime() - started_at.getTime()
+  )
 
   write_file(
     resolve(reports_directory, 'index.html'),
@@ -149,7 +151,8 @@ export function write_test_report(reports_directory, stages, started_at) {
         <div class="stage-grid">
           ${stages
             .map(
-              ({ label, status, duration_ms }) => `<article class="stage"><div><strong>${escape_html(label)}</strong><p class="note">${duration_ms ?? 0} ms</p></div><span class="status ${status_class(status)}">${status_label(status)}</span></article>`
+              ({ label, status, duration_ms }) =>
+                `<article class="stage"><div><strong>${escape_html(label)}</strong><p class="note">${duration_ms ?? 0} ms</p></div><span class="status ${status_class(status)}">${status_label(status)}</span></article>`
             )
             .join('')}
         </div>

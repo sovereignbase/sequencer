@@ -1,20 +1,33 @@
+/**
+ * Typed adapter over the native Projector ABI and its shared transfer buffers.
+ *
+ * @module
+ */
 import create_module from './raw/sequencer_wasm.mjs'
 import type {
+  Frontier,
   SequenceCoordinate,
-  SequenceFrontier,
   SequencePoint,
 } from '../types/type.js'
 
+/** Synchronously initialized native Sequencer module shared by this adapter. */
 const wasm = create_module()
+
+/** Stable unsigned-word index of the shared nine-word StripBuffer. */
 const strip_buffer_start_index = wasm._get_strip_buffer_pointer() >>> 2
+
+/** Native sentinel indicating that a merged Strip has no Projection position. */
 const no_projection_frame_index = 0xffff_ffff
 
 /**
- * Reads the strip currently held by the shared WebAssembly transfer buffer.
+ * Reads the Strip currently held by the shared WebAssembly transfer buffer.
  *
  * The returned coordinate follows the TypeScript order
  * `[previous_strip_start, this_strip_start]` even though the native buffer
  * stores the current strip start first.
+ *
+ * @returns A copied visibility word, Frame count, Footage frame index, and
+ * Sequence Coordinate. Later buffer writes cannot mutate the returned tuple.
  */
 export function read_strip_from_buffer(): [
   is_masked: number,
@@ -22,9 +35,11 @@ export function read_strip_from_buffer(): [
   footage_frame_index: number,
   sequence_coordinate: SequenceCoordinate,
 ] {
+  // Resolve the current WebAssembly memory view and stable StripBuffer offset.
   const buffer = wasm.HEAPU32
   const start = strip_buffer_start_index
 
+  // Copy transferable Strip words into their public tuple order.
   return [
     buffer[start],
     buffer[start + 1],
@@ -37,12 +52,15 @@ export function read_strip_from_buffer(): [
 }
 
 /**
- * Writes one strip to the shared WebAssembly transfer buffer.
+ * Writes one Strip to the shared WebAssembly transfer buffer.
  *
- * @param is_masked Zero for a visible strip; nonzero for a mask.
- * @param frame_count Number of consecutive frames represented by the strip.
- * @param footage_frame_index Footage index corresponding to its first frame.
- * @param sequence_coordinate Stable placement coordinate of the strip.
+ * The next native merge consumes these nine unsigned words. Runtime-only
+ * structural links are not transferred because the Projector derives them.
+ *
+ * @param is_masked Zero for a visible Strip; nonzero for a Mask.
+ * @param frame_count Number of consecutive Frames represented by the Strip.
+ * @param footage_frame_index Footage index corresponding to its first Frame.
+ * @param sequence_coordinate Stable placement coordinate of the Strip.
  */
 export function write_strip_to_buffer(
   is_masked: number,
@@ -50,11 +68,13 @@ export function write_strip_to_buffer(
   footage_frame_index: number,
   sequence_coordinate: SequenceCoordinate
 ): void {
+  // Resolve shared memory and both Sequence Coordinate points.
   const buffer = wasm.HEAPU32
   const start = strip_buffer_start_index
   const previous_strip_start = sequence_coordinate[0]
   const this_strip_start = sequence_coordinate[1]
 
+  // Encode the transferable Strip in native lane order.
   buffer[start] = is_masked
   buffer[start + 1] = frame_count
   buffer[start + 2] = footage_frame_index
@@ -66,68 +86,128 @@ export function write_strip_to_buffer(
   buffer[start + 8] = previous_strip_start[1]
 }
 
-/** Initializes an empty sequence and returns its stable identifier. */
+/**
+ * Initializes an empty native Projector.
+ *
+ * @returns Its local identifier, stable until `clear_sequence` releases the
+ * Projector. A later initialization may reuse a released identifier.
+ */
 export function initialize_sequence(): number {
+  // Allocate or reuse one native Projector registry slot.
   return wasm._initialize_sequence() >>> 0
 }
 
-/** Clears a sequence while retaining its identifier for later reuse. */
+/**
+ * Releases one native Projector and makes its identifier reusable.
+ *
+ * Repeated clearing of the same identifier has no effect.
+ *
+ * @param sequence_id Active local Projector identifier.
+ */
 export function clear_sequence(sequence_id: number): void {
+  // Release the selected native Projector registry slot.
   wasm._clear_sequence(sequence_id)
 }
 
-/** Returns the number of frames in the current projection. */
+/**
+ * Returns the number of Frames in the current Projection.
+ *
+ * @param sequence_id Active local Projector identifier.
+ * @returns Sum of the Frame counts of all visible materialized Strips.
+ */
 export function get_projection_frame_count(sequence_id: number): number {
+  // Read the cached native visible Frame count.
   return wasm._get_projection_frame_count(sequence_id) >>> 0
 }
 
-/** Resolves a projection frame index to its footage frame index. */
+/**
+ * Resolves one Projection frame index to its Footage frame index.
+ *
+ * @param sequence_id Active local Projector identifier.
+ * @param projection_frame_index Valid zero-based Frame index in the Projection.
+ * @returns Corresponding zero-based Frame index in JavaScript Footage.
+ */
 export function get_footage_frame_index(
   sequence_id: number,
   projection_frame_index: number
 ): number {
+  // Resolve the Projection Frame through the native Gate.
   return (
     wasm._get_footage_frame_index(sequence_id, projection_frame_index) >>> 0
   )
 }
 
-/** Writes the strip containing a projection frame index to the shared buffer. */
+/**
+ * Writes the Strip containing one Projection frame index to the shared buffer.
+ *
+ * The call also positions the Projector Gate at that Strip.
+ *
+ * @param sequence_id Active local Projector identifier.
+ * @param projection_frame_index Valid zero-based Frame index in the Projection.
+ */
 export function write_strip_at_projection_frame_index_to_buffer(
   sequence_id: number,
   projection_frame_index: number
 ): void {
+  // Position the native Gate and transfer its containing Strip.
   wasm._write_strip_at_projection_frame_index_to_buffer(
     sequence_id,
     projection_frame_index
   )
 }
 
-/** Writes the first visible or masked structural strip to the shared buffer. */
+/**
+ * Writes the first retained Strip to the shared buffer.
+ *
+ * Structural traversal includes visible Strips and Masks and positions the Gate
+ * at the beginning of the Sequence.
+ *
+ * @param sequence_id Active local Projector identifier.
+ * @returns Whether a first Strip exists and was written.
+ */
 export function write_first_structural_strip_to_buffer(
   sequence_id: number
 ): boolean {
+  // Begin native retained-Strip traversal at the Sequence head.
   return wasm._write_first_structural_strip_to_buffer(sequence_id) !== 0
 }
 
-/** Advances structural traversal and writes the next strip when one exists. */
+/**
+ * Advances structural traversal and writes the next retained Strip.
+ *
+ * @param sequence_id Active local Projector identifier.
+ * @returns Whether a successor exists and was written.
+ * @remarks A successful first or previous structural write must have positioned
+ * the Gate.
+ */
 export function write_next_structural_strip_to_buffer(
   sequence_id: number
 ): boolean {
+  // Advance native retained-Strip traversal from the current Gate.
   return wasm._write_next_structural_strip_to_buffer(sequence_id) !== 0
 }
 
-/** Returns the greatest locally observed indexed point in every realm. */
+/**
+ * Copies one Replica's acknowledgement Frontier from native memory.
+ *
+ * @param sequence_id Active local Projector identifier.
+ * @returns One greatest materialized Strip start per represented Realm, or
+ * `false` when no Strip is materialized.
+ */
 export function get_acknowledgement_frontier(
   sequence_id: number
-): SequenceFrontier | false {
+): Frontier | false {
+  // Materialize one greatest indexed Strip start per represented Realm.
   const frontier_count =
     wasm._write_acknowledgement_frontier_to_buffer(sequence_id) >>> 0
   if (frontier_count === 0) return false
 
+  // Resolve the current zero-copy FrontierBuffer view.
   const buffer = wasm.HEAPU32
   let buffer_index = wasm._get_acknowledgement_frontier_buffer_pointer() >>> 2
   const frontier = new Array<SequencePoint>(frontier_count)
 
+  // Copy every native Realm entry into a TypeScript Sequence Point.
   for (let realm_index = 0; realm_index < frontier_count; realm_index++) {
     frontier[realm_index] = [
       buffer[buffer_index],
@@ -141,21 +221,30 @@ export function get_acknowledgement_frontier(
 }
 
 /**
- * Collects masks covered by a selected realm frontier.
+ * Collects Masks covered by a selected realm-indexed Frontier.
  *
  * The returned view contains `(footage_frame_index, frame_count)` pairs and is
- * valid only until another WebAssembly call can rewrite or move its buffer.
+ * valid only until another WebAssembly call rewrites or moves the shared
+ * Footage-span buffer.
+ *
+ * @param sequence_id Active local Projector identifier.
+ * @param frontier Selected garbage-collection boundary for each included Realm.
+ * @returns A zero-copy view of released Footage spans, or `false` when the
+ * Frontier is empty or no Mask is collected.
  */
 export function garbage_collect_sequence(
   sequence_id: number,
-  frontier: SequenceFrontier
+  frontier: Frontier
 ): Uint32Array | false {
+  // Validate that at least one selected Realm boundary exists.
   if (frontier.length === 0) return false
 
+  // Prepare zero-copy input memory for the selected Frontier.
   let buffer_index =
     wasm._prepare_garbage_collection_frontier_buffer(frontier.length) >>> 2
   const buffer = wasm.HEAPU32
 
+  // Encode every selected Realm boundary in native lane order.
   for (const [unix_lower_bits, counter_bits, random_bits] of frontier) {
     buffer[buffer_index] = unix_lower_bits
     buffer[buffer_index + 1] = counter_bits
@@ -163,23 +252,36 @@ export function garbage_collect_sequence(
     buffer_index += 3
   }
 
+  // Collect covered native Masks and resolve the released-span count.
   const span_count = wasm._garbage_collect_sequence(sequence_id) >>> 0
   if (span_count === 0) return false
 
+  // Return a zero-copy view over the latest Footage-span result.
   const span_start =
     wasm._get_garbage_collection_footage_span_buffer_pointer() >>> 2
   return wasm.HEAPU32.subarray(span_start, span_start + span_count * 2)
 }
 
 /**
- * Merges the buffered strip and returns its projection start index.
+ * Merges the buffered Strip into one materialized Sequence.
  *
- * A mask is reported at the index its first frame occupied before masking.
- * `false` means that the strip remained pending or was discarded.
+ * A visible Strip is reported at its resulting Projection start. A Mask is
+ * reported at the position its first Frame occupied before masking. A Strip
+ * whose previous point has not materialized remains pending; an invalid Mask is
+ * discarded. A Mask coordinate uses its containing Strip's indexed start as
+ * the previous point and its first masked Frame's existing point as its own
+ * start.
+ *
+ * @param sequence_id Active local Projector identifier.
+ * @returns The relevant Projection frame index, or `false` when the Strip stays
+ * pending or is discarded.
+ * @remarks `write_strip_to_buffer` must have supplied the incoming Strip.
  */
 export function merge_strip_into_sequence(sequence_id: number): number | false {
+  // Invoke native dependency, Mask, and deterministic insert resolution.
   const projection_frame_index =
     wasm._merge_strip_into_sequence(sequence_id) >>> 0
+  // Translate the native no-position sentinel into the TypeScript contract.
   return projection_frame_index === no_projection_frame_index
     ? false
     : projection_frame_index

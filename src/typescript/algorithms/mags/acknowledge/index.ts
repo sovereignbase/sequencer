@@ -1,12 +1,23 @@
+/**
+ * MAGS acknowledgement of materialized Realm progress.
+ *
+ * @module
+ */
 import { get_acknowledgement_frontier } from '../../../wasm/index.js'
-import type { Sequence, SequenceFrontier } from '../../../types/type.js'
+import type { Frontier, Replica } from '../../../types/type.js'
 
 /**
- * Returns the sequence's realm-specific acknowledgement frontier.
+ * Reports one Replica's realm-indexed acknowledgement Frontier.
  *
- * @param state Sequence to acknowledge.
- * @returns Realm frontiers, or `false` when the sequence is empty.
+ * Each entry is the greatest materialized Strip start currently indexed in one
+ * represented Realm. Visibility does not affect acknowledgement: visible
+ * Strips and Masks advance the same Frontier.
+ *
+ * @typeParam T Consumer-owned value represented by one Frame.
+ * @param state Replica whose materialized Sequence is acknowledged.
+ * @returns The Replica Frontier, or `false` when no Strip is materialized.
  */
-export function __acknowledge<T>(state: Sequence<T>): SequenceFrontier | false {
+export function __acknowledge<T>(state: Replica<T>): Frontier | false {
+  // Copy the native Realm Frontier into TypeScript-owned tuples.
   return get_acknowledgement_frontier(state.id)
 }

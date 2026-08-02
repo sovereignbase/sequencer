@@ -1,4 +1,9 @@
-import type { Sequence, SequenceReel } from '../../../types/type.js'
+/**
+ * MAGS capture of complete retained Replica state without point issuance.
+ *
+ * @module
+ */
+import type { Reel, Replica } from '../../../types/type.js'
 import {
   read_strip_from_buffer,
   write_first_structural_strip_to_buffer,
@@ -6,17 +11,26 @@ import {
 } from '../../../wasm/index.js'
 
 /**
- * Captures every materialized strip in structural order.
+ * Captures every materialized Strip in structural Sequence order.
  *
- * Collected masks are absent because native garbage collection removed them
- * from StripIndex. Hard-deleted masks remain structural but omit footage whose
- * JavaScript references have already been released.
+ * Collected Masks are absent because garbage collection removed them from the
+ * Projector. Hard-deleted Masks remain structural but omit Footage whose
+ * JavaScript references were released. Visible Strips and soft-deleted Masks
+ * include independent Footage arrays.
+ *
+ * @typeParam T Consumer-owned value represented by one Frame.
+ * @param state Replica whose complete retained state is captured.
+ * @returns A complete Reel in structural Sequence order, or an empty Reel for
+ * an empty Replica.
  */
-export function __snapshot<T>(state: Sequence<T>): SequenceReel<T> {
-  const reel: SequenceReel<T> = []
+export function __snapshot<T>(state: Replica<T>): Reel<T> {
+  // Initialize the Reel and native structural traversal.
+  const reel: Reel<T> = []
   if (!write_first_structural_strip_to_buffer(state.id)) return reel
 
+  // Traverse every retained visible Strip and Mask in Sequence order.
   do {
+    // Read the current Strip and select its retained Footage representation.
     const [is_masked, strip_frame_count, footage_frame_index, coordinate] =
       read_strip_from_buffer()
 
@@ -34,5 +48,6 @@ export function __snapshot<T>(state: Sequence<T>): SequenceReel<T> {
       ])
   } while (write_next_structural_strip_to_buffer(state.id))
 
+  // Return the complete retained Reel.
   return reel
 }

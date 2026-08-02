@@ -2,5 +2,11 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": ["src/typescript/index.ts"],
   "favicon": "https://sovereignbase.dev/sovereignbase_logo.png",
-  "out": "docs/typescript"
+  "out": "docs/typescript",
+  "validation": {
+    "invalidLink": true,
+    "notDocumented": true,
+    "notExported": true
+  },
+  "treatWarningsAsErrors": true
 }

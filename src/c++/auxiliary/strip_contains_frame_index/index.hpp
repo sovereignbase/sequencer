@@ -1,10 +1,9 @@
 /**
  * @file
- * @brief Tests visible containment on the projection frame axis.
+ * @brief Tests Strip containment on the Projection frame-index axis.
  *
- * Structural containment and projection containment differ for masked strips:
- * a masked strip remains in the structural chain but occupies no projection
- * frame indexes.
+ * A Mask remains in retained sequence order but occupies no Projection frame
+ * indexes. Containment on this axis therefore applies only to visible Strips.
  */
 #pragma once
 
@@ -12,22 +11,29 @@
 #include <cstdint>
 
 /**
- * @brief Test whether a projection frame index falls within a visible strip.
+ * @brief Test whether a Projection frame index belongs to a visible Strip.
  *
- * @param strip Strip whose projected frame span is tested.
+ * The visible Strip occupies the half-open interval beginning at
+ * `strip_projection_frame_index` and extending for `strip->frame_count`
+ * Frames. Subtraction occurs only after the lower bound succeeds, avoiding
+ * unsigned underflow.
+ *
+ * @param strip Strip whose Projection Frame Span is tested.
  * @param strip_projection_frame_index Projection frame index at which the
  * strip begins.
  * @param projection_frame_index Projection frame index to test.
  * @return `true` when the strip is visible and contains the frame index.
  * @pre `strip` is non-null.
+ * @complexity O(1) time and O(1) space.
  */
 [[nodiscard]] inline bool strip_contains_frame_index(
-    const Strip *strip,
-    const std::uint32_t strip_projection_frame_index,
+    const Strip *strip, const std::uint32_t strip_projection_frame_index,
     const std::uint32_t projection_frame_index) noexcept {
+  // Exclude Masks, which occupy no Projection Frame indexes.
   if (strip->is_masked != 0)
     return false;
 
+  // Test the visible Strip's half-open Projection interval.
   return projection_frame_index >= strip_projection_frame_index &&
          projection_frame_index - strip_projection_frame_index <
              strip->frame_count;

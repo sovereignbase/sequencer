@@ -37,6 +37,19 @@ public:
   inline void clear() noexcept { words.clear(); }
 
   /**
+   * @brief Prepare writable transfer memory for an exact frontier count.
+   *
+   * Existing capacity is reused whenever possible. The WebAssembly host must
+   * write every prepared entry before the buffer is read by native code.
+   *
+   * @param frontier_count Number of three-word frontiers to receive.
+   */
+  inline void resize(const std::uint32_t frontier_count) noexcept {
+    words.resize(static_cast<std::size_t>(frontier_count) *
+                 words_per_frontier);
+  }
+
+  /**
    * @brief Reserve transfer memory for a known maximum frontier count.
    *
    * @param frontier_capacity Maximum number of realm frontiers to be written.
@@ -60,6 +73,28 @@ public:
   /** @brief Return the number of complete realm frontiers in the buffer. */
   [[nodiscard]] inline std::uint32_t get_frontier_count() const noexcept {
     return static_cast<std::uint32_t>(words.size() / words_per_frontier);
+  }
+
+  /**
+   * @brief Test whether a point is covered by its realm's buffered frontier.
+   *
+   * Realm identity consists of the Unix and random components. A point is
+   * covered when the matching frontier's counter is equal or greater.
+   * Missing realms are never covered.
+   *
+   * @param point Sequence point whose collection eligibility is tested.
+   * @return `true` when the buffered realm frontier covers `point`.
+   * @complexity O(r), where r is the buffered realm count.
+   */
+  [[nodiscard]] inline bool covers(const SequencePoint &point) const noexcept {
+    for (std::size_t word_index = 0; word_index < words.size();
+         word_index += words_per_frontier) {
+      if (words[word_index] == point.unix_lower_bits &&
+          words[word_index + 2] == point.random_bits &&
+          words[word_index + 1] >= point.counter_bits)
+        return true;
+    }
+    return false;
   }
 
   /**

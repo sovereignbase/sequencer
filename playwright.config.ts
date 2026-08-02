@@ -1,45 +1,25 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig as define_config } from '@playwright/test'
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:4173'
-const webServer = process.env.PLAYWRIGHT_BASE_URL
-  ? undefined
-  : {
-      command: 'node test/e2e/runsInBrowsers/server.mjs',
-      url: baseURL,
-      env: {
-        ...process.env,
-        PORT: new URL(baseURL).port || '4173',
-      },
-      reuseExistingServer: true,
-    }
-
-export default defineConfig({
-  testDir: 'test/e2e/runsInBrowsers',
-  timeout: 120000,
-  use: {
-    baseURL,
-  },
-  webServer,
-  projects: [
-    {
-      name: 'chromium',
-      use: { browserName: 'chromium' },
-    },
-    {
-      name: 'firefox',
-      use: { browserName: 'firefox' },
-    },
-    {
-      name: 'webkit',
-      use: { browserName: 'webkit' },
-    },
-    {
-      name: 'mobile-chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'mobile-safari',
-      use: { ...devices['iPhone 12'] },
-    },
+/** Runs the public TypeScript API in a real Chromium module environment. */
+export default define_config({
+  testDir: 'test',
+  testMatch: ['browser/**/*.spec.ts', 'convergence/**/*.spec.ts'],
+  fullyParallel: false,
+  workers: 1,
+  forbidOnly: Boolean(process.env.CI),
+  outputDir: 'test-results/playwright',
+  reporter: [
+    ['list'],
+    ['html', { outputFolder: 'docs/tests/playwright', open: 'never' }],
   ],
+  use: {
+    baseURL: 'http://127.0.0.1:4173',
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
+  },
+  webServer: {
+    command: 'npm exec vite -- --host 127.0.0.1 --port 4173 --strictPort',
+    url: 'http://127.0.0.1:4173/test/browser/index.html',
+    reuseExistingServer: false,
+  },
 })

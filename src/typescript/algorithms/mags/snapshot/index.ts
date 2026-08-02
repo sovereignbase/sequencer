@@ -5,6 +5,13 @@ import {
   write_next_structural_strip_to_buffer,
 } from '../../../wasm/index.js'
 
+/**
+ * Captures every materialized strip in structural order.
+ *
+ * Collected masks are absent because native garbage collection removed them
+ * from StripIndex. Hard-deleted masks remain structural but omit footage whose
+ * JavaScript references have already been released.
+ */
 export function __snapshot<T>(state: Sequence<T>): SequenceReel<T> {
   const reel: SequenceReel<T> = []
   if (!write_first_structural_strip_to_buffer(state.id)) return reel

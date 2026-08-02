@@ -184,8 +184,7 @@ get_acknowledgement_frontier_buffer_pointer() noexcept {
 }
 
 /**
- * @brief Write one sequence's realm-specific mask frontiers to the shared
- * acknowledgement buffer.
+ * @brief Write one sequence's realm-specific acknowledgement frontiers.
  *
  * StripIndex writes the final counter-ordered entry of every occupied realm
  * directly to FrontierBuffer. Mask semantics belong to garbage collection.

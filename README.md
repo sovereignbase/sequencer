@@ -118,3 +118,7 @@ This means replicas can:
 - Eventually converge on the same sequence.
 
 ## Behaviour guaranteed by excessive tests
+
+## Works everywhere
+
+runtimes with tested support

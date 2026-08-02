@@ -15,3 +15,5 @@ export function __read<T>(state: Sequence<T>, index: number): T | undefined {
 export function __length<T>(state: Sequence<T>) {
   return get_projection_frame_count(state.id)
 }
+
+export function __recover<T>(state: Sequence<T>) {}

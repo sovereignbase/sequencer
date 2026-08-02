@@ -15,7 +15,18 @@ import {
   write_strip_to_buffer,
 } from '../../../wasm/index.js'
 
-/** Masks the half-open projection range `[start_index, end_index)`. */
+/**
+ * Masks the half-open projection range `[start_index, end_index)`.
+ *
+ * A hard deletion also releases the corresponding JavaScript footage entries
+ * after each mask is materialized. Indexes remain stable because releasing a
+ * span never changes the footage array's length.
+ *
+ * @param state Sequence whose visible range is masked.
+ * @param start_index First projection frame to mask.
+ * @param end_index Projection boundary after the final frame to mask.
+ * @param hard Whether to release the masked footage references immediately.
+ */
 export function __delete<T>(
   state: Sequence<T>,
   start_index = 0,
@@ -78,12 +89,13 @@ export function __delete<T>(
 
     write_strip_to_buffer(1, mask_frame_count, 0, mask_coordinate)
     const projection_frame_index = merge_strip_into_sequence(state.id)
-    if (hard && projection_frame_index !== false)
+    if (hard && projection_frame_index !== false) {
       state.footage.fill(
         undefined,
         selected_footage_frame_index,
         selected_footage_frame_index + mask_frame_count
       )
+    }
     reel.push([1, mask_frame_count, mask_coordinate])
     remaining_frame_count -= mask_frame_count
   }

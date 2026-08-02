@@ -1,42 +1,30 @@
-import { is_sequence_strip } from '../../../auxiliary/index.js'
+import { is_sequence_strip } from '../../../helpers/index.js'
 import {
-  cue_projector,
-  splice_sequence,
-  write_to_strip_start_buffer,
-  this_strip_start_buffer,
-  previous_strip_start_buffer,
+  initialize_sequence,
+  merge_strip_into_sequence,
+  write_strip_to_buffer,
 } from '../../../wasm/index.js'
-import type { SequencerState } from '../../../types/type.js'
+import type { Sequence, SequenceStrip } from '../../../types/type.js'
 
-export function __create<T>(data?: unknown): SequencerState<T> {
-  const state: SequencerState<T> = {
+export function __create<T>(data?: unknown): Sequence<T> {
+  const state: Sequence<T> = {
+    id: initialize_sequence(),
     footage: [],
-    sequence_id: cue_projector(),
   }
 
   if (!Array.isArray(data) || data.length < 1) return state
 
   for (const chunk of data) {
     if (!is_sequence_strip<T>(chunk)) continue
+    const [mask, length, coordinate, footage] = chunk as SequenceStrip<T>
 
-    const footage_position: number = state.footage.length
+    const footage_frame_index: number = state.footage.length
 
-    void state.footage.push(...chunk.footage)
+    if (footage) void state.footage.push(...footage)
 
-    const [previous_strip_start, this_strip_start] = chunk.sequence_coordinate
+    write_strip_to_buffer(mask, length, footage_frame_index, coordinate)
 
-    void write_to_strip_start_buffer(
-      previous_strip_start_buffer,
-      previous_strip_start
-    )
-    void write_to_strip_start_buffer(this_strip_start_buffer, this_strip_start)
-
-    void splice_sequence(
-      state.sequence_id,
-      footage_position,
-      chunk.masked,
-      chunk.footage.length
-    )
+    void merge_strip_into_sequence(state.id)
   }
 
   return state

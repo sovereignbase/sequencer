@@ -11,13 +11,24 @@
 <div class="tsd-panel tsd-typography"><h1 id="sequencer" class="tsd-anchor-link">Sequencer<a href="#sequencer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
 <p>A causality-encoding engine written in TypeScript and C++ to build high-performance, conflict-free replicated data types for use on the web.</p>
 <p>Sequencer provides a deterministic total ordering for distributed data. It allows independently operating replicas to make concurrent changes and later converge on the same logical state without relying on network arrival order or perfectly synchronized clocks.</p>
-<h2 id="unbeliveable-performance" class="tsd-anchor-link">Unbeliveable performance<a href="#unbeliveable-performance" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="table-of-contents" class="tsd-anchor-link">Table of contents<a href="#table-of-contents" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul>
+<li>//links to headlines per hierarchy</li>
+</ul>
+<h2 id="usage" class="tsd-anchor-link">Usage<a href="#usage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="simple-typed-api" class="tsd-anchor-link">Simple typed api<a href="#simple-typed-api" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="ts"><span class="hl-0">import</span><span class="hl-1"> </span><span class="hl-2">*</span><span class="hl-1"> </span><span class="hl-0">as</span><span class="hl-1"> </span><span class="hl-3">sequencer</span><span class="hl-1"> </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-4">&#39;@sovereignbase/sequencer&#39;</span><br/><br/><span class="hl-2">const</span><span class="hl-1"> </span><span class="hl-5">sequence</span><span class="hl-1"> = </span><span class="hl-3">sequencer</span><span class="hl-1">.</span><span class="hl-6">__create</span><span class="hl-1">(</span><span class="hl-7">/*optional stored snapshot*/</span><span class="hl-1">)</span><br/><span class="hl-2">const</span><span class="hl-1"> { </span><span class="hl-5">reel</span><span class="hl-1">, </span><span class="hl-5">change</span><span class="hl-1"> } = </span><span class="hl-3">sequencer</span><span class="hl-1">.</span><span class="hl-6">__update</span><span class="hl-1">(</span><span class="hl-3">sequence</span><span class="hl-1">, </span><span class="hl-8">0</span><span class="hl-1">, </span><span class="hl-4">&#39;Hello World&#39;</span><span class="hl-1">, </span><span class="hl-4">&#39;after&#39;</span><span class="hl-1">)</span><br/><span class="hl-3">console</span><span class="hl-1">.</span><span class="hl-6">log</span><span class="hl-1">(</span><span class="hl-3">sequencer</span><span class="hl-1">.</span><span class="hl-6">__read</span><span class="hl-1">(</span><span class="hl-3">sequence</span><span class="hl-1">, </span><span class="hl-8">0</span><span class="hl-1">)) </span><span class="hl-7">// &quot;Hello World&quot;</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="benchmarks" class="tsd-anchor-link">Benchmarks<a href="#benchmarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="unbeliveable-performance" class="tsd-anchor-link">Unbeliveable performance<a href="#unbeliveable-performance" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>|function|troughput (ops/sec)|average time (ns)</p>
-<h2 id="small-bundle-size" class="tsd-anchor-link">Small bundle size<a href="#small-bundle-size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="small-bundle-size" class="tsd-anchor-link">Small bundle size<a href="#small-bundle-size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>Bundle size benchmakrs</p>
-<h2 id="optimized-data-model" class="tsd-anchor-link">Optimized data model<a href="#optimized-data-model" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="optimized-data-model" class="tsd-anchor-link">Optimized data model<a href="#optimized-data-model" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>Bytse size benchmarks</p>
-<h2 id="understanding-the-problem-sequencer-solves" class="tsd-anchor-link">Understanding the Problem Sequencer Solves<a href="#understanding-the-problem-sequencer-solves" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h2 id="about" class="tsd-anchor-link">About<a href="#about" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="understanding-the-problem-sequencer-solves" class="tsd-anchor-link">Understanding the Problem Sequencer Solves<a href="#understanding-the-problem-sequencer-solves" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>As an example, let's consider two editors, <strong>A</strong> and <strong>B</strong>, both working on the following text:</p>
 <pre><code class="text">Hello world
 </code><button type="button">Copy</button></pre>
@@ -63,7 +74,7 @@
 <h3 id="why-wall-clock-timestamps-are-not-enough" class="tsd-anchor-link">Why Wall-Clock Timestamps Are Not Enough<a href="#why-wall-clock-timestamps-are-not-enough" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>Another solution is to timestamp every operation.</p>
 <p>However, wall clocks across different machines are never guaranteed to be perfectly synchronized. Clock skew can cause an operation created later to appear earlier, or an earlier operation to appear later.</p>
-<h2 id="sequencers-approach" class="tsd-anchor-link">Sequencer's Approach<a href="#sequencers-approach" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="sequencers-approach" class="tsd-anchor-link">Sequencer's Approach<a href="#sequencers-approach" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>Sequencer gives a stable unique identifier to every frame in a sequence.</p>
 <p>Instead of describing a change as:</p>
 <pre><code class="text">Insert &quot;!&quot; at position 11
@@ -83,8 +94,9 @@
 <li>Merge concurrent changes.</li>
 <li>Eventually converge on the same sequence.</li>
 </ul>
-<h2 id="behaviour-guaranteed-by-excessive-tests" class="tsd-anchor-link">Behaviour guaranteed by excessive tests<a href="#behaviour-guaranteed-by-excessive-tests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<h2 id="works-everywhere-where-esm-modules-and-wasm-works" class="tsd-anchor-link">Works everywhere where ESM modules and Wasm works<a href="#works-everywhere-where-esm-modules-and-wasm-works" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h2 id="tests" class="tsd-anchor-link">Tests<a href="#tests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="behaviour-guaranteed-by-excessive-tests" class="tsd-anchor-link">Behaviour guaranteed by excessive tests<a href="#behaviour-guaranteed-by-excessive-tests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<h3 id="works-everywhere-where-esm-modules-and-wasm-works" class="tsd-anchor-link">Works everywhere where ESM modules and Wasm works<a href="#works-everywhere-where-esm-modules-and-wasm-works" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>runtimes with tested support</p>
 <h2 id="license" class="tsd-anchor-link">License<a href="#license" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>Apache-2.0</p>
@@ -105,17 +117,31 @@
 <h3>On This Page</h3></summary>
 <div class="tsd-accordion-details"><a href="#sequencer"><span>Sequencer</span></a>
 <ul>
-<li><a href="#unbeliveable-performance"><span>Unbeliveable performance</span></a></li>
-<li><a href="#small-bundle-size"><span>Small bundle size</span></a></li>
-<li><a href="#optimized-data-model"><span>Optimized data model</span></a></li>
-<li><a href="#understanding-the-problem-sequencer-solves"><span>Understanding the <wbr/>Problem <wbr/>Sequencer <wbr/>Solves</span></a></li>
 <li>
 <ul>
+<li><a href="#table-of-contents"><span>Table of contents</span></a></li></ul></li>
+<li><a href="#usage"><span>Usage</span></a></li>
+<li>
+<ul>
+<li><a href="#simple-typed-api"><span>Simple typed api</span></a></li></ul></li>
+<li><a href="#benchmarks"><span>Benchmarks</span></a></li>
+<li>
+<ul>
+<li><a href="#unbeliveable-performance"><span>Unbeliveable performance</span></a></li>
+<li><a href="#small-bundle-size"><span>Small bundle size</span></a></li>
+<li><a href="#optimized-data-model"><span>Optimized data model</span></a></li></ul></li>
+<li><a href="#about"><span>About</span></a></li>
+<li>
+<ul>
+<li><a href="#understanding-the-problem-sequencer-solves"><span>Understanding the <wbr/>Problem <wbr/>Sequencer <wbr/>Solves</span></a></li>
 <li><a href="#why-network-ordering-is-not-enough"><span>Why <wbr/>Network <wbr/>Ordering <wbr/>Is <wbr/>Not <wbr/>Enough</span></a></li>
-<li><a href="#why-wall-clock-timestamps-are-not-enough"><span>Why <wbr/>Wall-<wbr/>Clock <wbr/>Timestamps <wbr/>Are <wbr/>Not <wbr/>Enough</span></a></li></ul></li>
-<li><a href="#sequencers-approach"><span>Sequencer&#39;s <wbr/>Approach</span></a></li>
+<li><a href="#why-wall-clock-timestamps-are-not-enough"><span>Why <wbr/>Wall-<wbr/>Clock <wbr/>Timestamps <wbr/>Are <wbr/>Not <wbr/>Enough</span></a></li>
+<li><a href="#sequencers-approach"><span>Sequencer&#39;s <wbr/>Approach</span></a></li></ul></li>
+<li><a href="#tests"><span>Tests</span></a></li>
+<li>
+<ul>
 <li><a href="#behaviour-guaranteed-by-excessive-tests"><span>Behaviour guaranteed by excessive tests</span></a></li>
-<li><a href="#works-everywhere-where-esm-modules-and-wasm-works"><span>Works everywhere where <wbr/>ESM modules and <wbr/>Wasm works</span></a></li>
+<li><a href="#works-everywhere-where-esm-modules-and-wasm-works"><span>Works everywhere where <wbr/>ESM modules and <wbr/>Wasm works</span></a></li></ul></li>
 <li><a href="#license"><span>License</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="modules.html">@sovereignbase/sequencer</a>

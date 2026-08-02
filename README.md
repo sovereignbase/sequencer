@@ -34,7 +34,7 @@ Bundle size benchmakrs
 
 Bytse size benchmarks
 
-## About
+## Why shoul you use it?
 
 ### Understanding the Problem Sequencer Solves
 

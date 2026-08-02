@@ -22,6 +22,10 @@ export function write_benchmark_report(
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   })
+  const microseconds = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
+  })
   const bytes = (value: number): string =>
     value < 1_000
       ? `${number.format(value)} B`
@@ -44,11 +48,11 @@ export function write_benchmark_report(
   const performance_markdown = [
     `Measured on Node \`${function_results.environment.node}\` / ${function_results.environment.cpu}. [Full benchmark report](./docs/benchmarks/index.html).`,
     '',
-    '| function | throughput (ops/sec) | average time (ns/op) |',
-    '| --- | ---: | ---: |',
+    '| function | Sequence length | throughput (ops/sec) | calls | avg µs/op |',
+    '| --- | ---: | ---: | ---: | ---: |',
     ...function_results.rows.map(
       (row) =>
-        `| \`${row.name}\` | ${number.format(row.throughput_ops_per_second)} | ${number.format(row.average_time_ns)} |`
+        `| \`${row.name}\` | ${number.format(row.sequence_length)} | ${number.format(row.throughput_ops_per_second)} | ${number.format(row.calls)} | ${microseconds.format(row.average_time_microseconds)} |`
     ),
   ].join('\n')
   const bundle_markdown = [
@@ -106,7 +110,7 @@ export function write_benchmark_report(
   const status_rows = function_results.rows
     .map(
       (row) =>
-        `<tr><th scope="row"><code>${row.name}</code></th><td>${row.workload}</td><td>${number.format(row.throughput_ops_per_second)}</td><td>${number.format(row.average_time_ns)}</td><td>±${row.relative_margin_of_error.toFixed(2)}%</td><td>${number.format(row.samples)}</td></tr>`
+        `<tr><th scope="row"><code>${row.name}</code></th><td>${number.format(row.sequence_length)}</td><td>${row.workload}</td><td>${number.format(row.throughput_ops_per_second)}</td><td>${number.format(row.calls)}</td><td>${microseconds.format(row.average_time_microseconds)}</td><td>±${row.relative_margin_of_error.toFixed(2)}%</td></tr>`
     )
     .join('')
   const bundle_rows = bundle_results
@@ -147,9 +151,9 @@ export function write_benchmark_report(
       .meta { display: flex; flex-wrap: wrap; gap: .65rem; color: rgba(255,255,255,.68); line-height: 1.5; }
       .meta span { padding: .45rem .7rem; border: 1px solid rgba(255,255,255,.12); border-radius: 999px; }
       .table-shell { overflow-x: auto; border: 1px solid rgba(255,255,255,.12); border-radius: 1rem; }
-      table { width: 100%; min-width: 48rem; border-collapse: collapse; }
+      table { width: 100%; min-width: 64rem; border-collapse: collapse; }
       th, td { padding: .9rem 1rem; border-bottom: 1px solid rgba(255,255,255,.09); text-align: right; white-space: nowrap; }
-      th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+      th:first-child, td:first-child, th:nth-child(3), td:nth-child(3) { text-align: left; }
       thead th { color: rgba(255,255,255,.58); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; }
       tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
       code { color: #c9a9ff; font-size: .92rem; }
@@ -172,8 +176,8 @@ export function write_benchmark_report(
       </header>
       <section>
         <h2>Public function throughput</h2>
-        <div class="table-shell"><table><thead><tr><th>Function</th><th>Timed workload</th><th>Ops/sec</th><th>Average ns/op</th><th>RME</th><th>Samples</th></tr></thead><tbody>${status_rows}</tbody></table></div>
-        <p class="note">Setup is excluded from timing. Mutating operations receive a fresh prepared Replica for every sample; read-only operations use stable state. Different workloads are documented and should not be compared as identical units of work.</p>
+        <div class="table-shell"><table><thead><tr><th>Function</th><th>Sequence length</th><th>Timed workload</th><th>Ops/sec</th><th>Calls</th><th>avg µs/op</th><th>RME</th></tr></thead><tbody>${status_rows}</tbody></table></div>
+        <p class="note">Setup and warmup calls are excluded. Calls is the measured sample count multiplied by the timed batch size. Mutating operations receive a fresh prepared Replica for every sample; read-only operations use stable state.</p>
       </section>
       <section>
         <h2>Small bundle size</h2>

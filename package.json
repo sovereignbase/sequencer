@@ -51,7 +51,7 @@
     "test:stress": "npm run build && vitest run test/stress --coverage",
     "test:runtimes": "node scripts/run-runtime-tests.mjs",
     "test:browser": "node scripts/run-browser-tests.mjs",
-    "bench": "npm run build && node --experimental-strip-types benchmarks/index.ts",
+    "bench": "npm run build && node --expose-gc --experimental-strip-types benchmarks/index.ts",
     "prepare": "husky",
     "prepublishOnly": "npm run test && npm run bench"
   },

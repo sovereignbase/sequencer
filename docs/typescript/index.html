@@ -22,11 +22,426 @@
 
 <h2 id="benchmarks" class="tsd-anchor-link">Benchmarks<a href="#benchmarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <h3 id="unbeliveable-performance" class="tsd-anchor-link">Unbeliveable performance<a href="#unbeliveable-performance" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<p>|function|troughput (ops/sec)|average time (ns)</p>
+<p>Measured on Node <code>24.16.0</code> / Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz. <a href="media/index.html">Full benchmark report</a>.</p>
+<table>
+<thead>
+<tr>
+<th>function</th>
+<th style="text-align:right">Sequence length</th>
+<th style="text-align:right">throughput (ops/sec)</th>
+<th style="text-align:right">calls</th>
+<th style="text-align:right">avg µs/op</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>__create</code></td>
+<td style="text-align:right">100</td>
+<td style="text-align:right">92,229</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">14.090</td>
+</tr>
+<tr>
+<td><code>__read</code></td>
+<td style="text-align:right">100</td>
+<td style="text-align:right">12,503,456</td>
+<td style="text-align:right">131,072</td>
+<td style="text-align:right">0.084</td>
+</tr>
+<tr>
+<td><code>__length</code></td>
+<td style="text-align:right">100</td>
+<td style="text-align:right">37,316,972</td>
+<td style="text-align:right">131,072</td>
+<td style="text-align:right">0.033</td>
+</tr>
+<tr>
+<td><code>__recover</code></td>
+<td style="text-align:right">100</td>
+<td style="text-align:right">335,674</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">4.958</td>
+</tr>
+<tr>
+<td><code>__update</code></td>
+<td style="text-align:right">100</td>
+<td style="text-align:right">138,061</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">8.218</td>
+</tr>
+<tr>
+<td><code>__delete</code></td>
+<td style="text-align:right">100</td>
+<td style="text-align:right">199,345</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">6.589</td>
+</tr>
+<tr>
+<td><code>__merge</code></td>
+<td style="text-align:right">100</td>
+<td style="text-align:right">179,787</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">6.599</td>
+</tr>
+<tr>
+<td><code>__acknowledge</code></td>
+<td style="text-align:right">100</td>
+<td style="text-align:right">938,363</td>
+<td style="text-align:right">4,096</td>
+<td style="text-align:right">1.082</td>
+</tr>
+<tr>
+<td><code>__garbageCollect</code></td>
+<td style="text-align:right">100</td>
+<td style="text-align:right">359,856</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">3.096</td>
+</tr>
+<tr>
+<td><code>__snapshot</code></td>
+<td style="text-align:right">100</td>
+<td style="text-align:right">330,346</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">3.179</td>
+</tr>
+<tr>
+<td><code>__create</code></td>
+<td style="text-align:right">1,000</td>
+<td style="text-align:right">124,802</td>
+<td style="text-align:right">128</td>
+<td style="text-align:right">8.708</td>
+</tr>
+<tr>
+<td><code>__read</code></td>
+<td style="text-align:right">1,000</td>
+<td style="text-align:right">13,853,913</td>
+<td style="text-align:right">65,536</td>
+<td style="text-align:right">0.079</td>
+</tr>
+<tr>
+<td><code>__length</code></td>
+<td style="text-align:right">1,000</td>
+<td style="text-align:right">33,116,007</td>
+<td style="text-align:right">65,536</td>
+<td style="text-align:right">0.043</td>
+</tr>
+<tr>
+<td><code>__recover</code></td>
+<td style="text-align:right">1,000</td>
+<td style="text-align:right">95,369</td>
+<td style="text-align:right">128</td>
+<td style="text-align:right">15.826</td>
+</tr>
+<tr>
+<td><code>__update</code></td>
+<td style="text-align:right">1,000</td>
+<td style="text-align:right">91,584</td>
+<td style="text-align:right">128</td>
+<td style="text-align:right">17.072</td>
+</tr>
+<tr>
+<td><code>__delete</code></td>
+<td style="text-align:right">1,000</td>
+<td style="text-align:right">285,008</td>
+<td style="text-align:right">128</td>
+<td style="text-align:right">4.056</td>
+</tr>
+<tr>
+<td><code>__merge</code></td>
+<td style="text-align:right">1,000</td>
+<td style="text-align:right">348,206</td>
+<td style="text-align:right">128</td>
+<td style="text-align:right">3.004</td>
+</tr>
+<tr>
+<td><code>__acknowledge</code></td>
+<td style="text-align:right">1,000</td>
+<td style="text-align:right">1,123,076</td>
+<td style="text-align:right">2,048</td>
+<td style="text-align:right">0.926</td>
+</tr>
+<tr>
+<td><code>__garbageCollect</code></td>
+<td style="text-align:right">1,000</td>
+<td style="text-align:right">360,488</td>
+<td style="text-align:right">128</td>
+<td style="text-align:right">3.374</td>
+</tr>
+<tr>
+<td><code>__snapshot</code></td>
+<td style="text-align:right">1,000</td>
+<td style="text-align:right">239,998</td>
+<td style="text-align:right">128</td>
+<td style="text-align:right">5.416</td>
+</tr>
+<tr>
+<td><code>__create</code></td>
+<td style="text-align:right">10,000</td>
+<td style="text-align:right">8,714</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">330.591</td>
+</tr>
+<tr>
+<td><code>__read</code></td>
+<td style="text-align:right">10,000</td>
+<td style="text-align:right">10,360,875</td>
+<td style="text-align:right">32,768</td>
+<td style="text-align:right">0.101</td>
+</tr>
+<tr>
+<td><code>__length</code></td>
+<td style="text-align:right">10,000</td>
+<td style="text-align:right">30,999,887</td>
+<td style="text-align:right">32,768</td>
+<td style="text-align:right">0.038</td>
+</tr>
+<tr>
+<td><code>__recover</code></td>
+<td style="text-align:right">10,000</td>
+<td style="text-align:right">14,811</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">87.477</td>
+</tr>
+<tr>
+<td><code>__update</code></td>
+<td style="text-align:right">10,000</td>
+<td style="text-align:right">237,468</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">8.480</td>
+</tr>
+<tr>
+<td><code>__delete</code></td>
+<td style="text-align:right">10,000</td>
+<td style="text-align:right">361,957</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">3.953</td>
+</tr>
+<tr>
+<td><code>__merge</code></td>
+<td style="text-align:right">10,000</td>
+<td style="text-align:right">327,164</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">4.048</td>
+</tr>
+<tr>
+<td><code>__acknowledge</code></td>
+<td style="text-align:right">10,000</td>
+<td style="text-align:right">1,006,299</td>
+<td style="text-align:right">1,024</td>
+<td style="text-align:right">1.015</td>
+</tr>
+<tr>
+<td><code>__garbageCollect</code></td>
+<td style="text-align:right">10,000</td>
+<td style="text-align:right">281,912</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">4.522</td>
+</tr>
+<tr>
+<td><code>__snapshot</code></td>
+<td style="text-align:right">10,000</td>
+<td style="text-align:right">58,146</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">23.719</td>
+</tr>
+<tr>
+<td><code>__create</code></td>
+<td style="text-align:right">100,000</td>
+<td style="text-align:right">438</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">2,690.206</td>
+</tr>
+<tr>
+<td><code>__read</code></td>
+<td style="text-align:right">100,000</td>
+<td style="text-align:right">4,331,831</td>
+<td style="text-align:right">8,192</td>
+<td style="text-align:right">0.239</td>
+</tr>
+<tr>
+<td><code>__length</code></td>
+<td style="text-align:right">100,000</td>
+<td style="text-align:right">12,557,091</td>
+<td style="text-align:right">8,192</td>
+<td style="text-align:right">0.080</td>
+</tr>
+<tr>
+<td><code>__recover</code></td>
+<td style="text-align:right">100,000</td>
+<td style="text-align:right">461</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">2,520.288</td>
+</tr>
+<tr>
+<td><code>__update</code></td>
+<td style="text-align:right">100,000</td>
+<td style="text-align:right">283,533</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">3.544</td>
+</tr>
+<tr>
+<td><code>__delete</code></td>
+<td style="text-align:right">100,000</td>
+<td style="text-align:right">361,410</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">2.794</td>
+</tr>
+<tr>
+<td><code>__merge</code></td>
+<td style="text-align:right">100,000</td>
+<td style="text-align:right">159,454</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">6.294</td>
+</tr>
+<tr>
+<td><code>__acknowledge</code></td>
+<td style="text-align:right">100,000</td>
+<td style="text-align:right">886,029</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">1.130</td>
+</tr>
+<tr>
+<td><code>__garbageCollect</code></td>
+<td style="text-align:right">100,000</td>
+<td style="text-align:right">351,864</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">2.894</td>
+</tr>
+<tr>
+<td><code>__snapshot</code></td>
+<td style="text-align:right">100,000</td>
+<td style="text-align:right">2,913</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">363.825</td>
+</tr>
+<tr>
+<td><code>__create</code></td>
+<td style="text-align:right">1,000,000</td>
+<td style="text-align:right">37</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">28,985.025</td>
+</tr>
+<tr>
+<td><code>__read</code></td>
+<td style="text-align:right">1,000,000</td>
+<td style="text-align:right">5,587,860</td>
+<td style="text-align:right">8,192</td>
+<td style="text-align:right">0.200</td>
+</tr>
+<tr>
+<td><code>__length</code></td>
+<td style="text-align:right">1,000,000</td>
+<td style="text-align:right">20,428,833</td>
+<td style="text-align:right">8,192</td>
+<td style="text-align:right">0.053</td>
+</tr>
+<tr>
+<td><code>__recover</code></td>
+<td style="text-align:right">1,000,000</td>
+<td style="text-align:right">35</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">30,516.569</td>
+</tr>
+<tr>
+<td><code>__update</code></td>
+<td style="text-align:right">1,000,000</td>
+<td style="text-align:right">117,019</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">8.669</td>
+</tr>
+<tr>
+<td><code>__delete</code></td>
+<td style="text-align:right">1,000,000</td>
+<td style="text-align:right">136,371</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">7.350</td>
+</tr>
+<tr>
+<td><code>__merge</code></td>
+<td style="text-align:right">1,000,000</td>
+<td style="text-align:right">100,666</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">10.244</td>
+</tr>
+<tr>
+<td><code>__acknowledge</code></td>
+<td style="text-align:right">1,000,000</td>
+<td style="text-align:right">1,196,516</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">0.836</td>
+</tr>
+<tr>
+<td><code>__garbageCollect</code></td>
+<td style="text-align:right">1,000,000</td>
+<td style="text-align:right">356,662</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">2.838</td>
+</tr>
+<tr>
+<td><code>__snapshot</code></td>
+<td style="text-align:right">1,000,000</td>
+<td style="text-align:right">234</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">7,147.513</td>
+</tr>
+</tbody>
+</table>
 <h3 id="small-bundle-size" class="tsd-anchor-link">Small bundle size<a href="#small-bundle-size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<p>Bundle size benchmakrs</p>
+<table>
+<thead>
+<tr>
+<th>format</th>
+<th style="text-align:right">raw</th>
+<th style="text-align:right">minified</th>
+<th style="text-align:right">minified + gzip</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ESM</td>
+<td style="text-align:right">89.8 kB</td>
+<td style="text-align:right">53.2 kB</td>
+<td style="text-align:right">18.8 kB</td>
+</tr>
+<tr>
+<td>CommonJS</td>
+<td style="text-align:right">90.1 kB</td>
+<td style="text-align:right">55.6 kB</td>
+<td style="text-align:right">19.1 kB</td>
+</tr>
+</tbody>
+</table>
 <h3 id="optimized-data-model" class="tsd-anchor-link">Optimized data model<a href="#optimized-data-model" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<p>Bytse size benchmarks</p>
+<table>
+<thead>
+<tr>
+<th>Reel workload</th>
+<th style="text-align:right">average bytes/operation</th>
+<th style="text-align:right">MessagePack</th>
+<th style="text-align:right">MessagePack + gzip</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1,000 one-Frame updates</td>
+<td style="text-align:right">39.6 B</td>
+<td style="text-align:right">39.6 kB</td>
+<td style="text-align:right">7.8 kB</td>
+</tr>
+<tr>
+<td>1,000 one-Frame Masks</td>
+<td style="text-align:right">36.0 B</td>
+<td style="text-align:right">36.0 kB</td>
+<td style="text-align:right">5.1 kB</td>
+</tr>
+<tr>
+<td>Snapshot of 1,000 one-Frame Strips</td>
+<td style="text-align:right">39.6 B</td>
+<td style="text-align:right">39.6 kB</td>
+<td style="text-align:right">7.8 kB</td>
+</tr>
+</tbody>
+</table>
 <h2 id="why-shoul-you-use-it" class="tsd-anchor-link">Why shoul you use it?<a href="#why-shoul-you-use-it" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <h3 id="understanding-the-problem-sequencer-solves" class="tsd-anchor-link">Understanding the Problem Sequencer Solves<a href="#understanding-the-problem-sequencer-solves" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>As an example, let's consider two editors, <strong>A</strong> and <strong>B</strong>, both working on the following text:</p>
@@ -100,7 +515,7 @@
 behaviour, deterministic convergence, generative &quot;stress&quot; scenarios, V8 coverage,
 the supported runtime matrix, desktop browsers, mobile browser emulations, and
 module Web Workers. Every stage has a hard timeout, and all detailed evidence is
-written to the <a href="media/index.html">automated test report</a>.</p>
+written to the <a href="https://sovereignbase.dev/sequencer/tests/">automated test report</a>.</p>
 <h3 id="works-everywhere-where-esm-modules-and-wasm-works" class="tsd-anchor-link">Works everywhere where ESM modules and Wasm works<a href="#works-everywhere-where-esm-modules-and-wasm-works" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>Runtimes with tested support:</p>
 <ul>

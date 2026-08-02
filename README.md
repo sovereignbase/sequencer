@@ -24,18 +24,75 @@ console.log(sequencer.__read(sequence, 0)) // "Hello World"
 
 ### Unbeliveable performance
 
-|function|troughput (ops/sec)|average time (ns)
-performance benchamrks
+Measured on Node `24.16.0` / Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz. [Full benchmark report](./docs/benchmarks/index.html).
+
+| function | Sequence length | throughput (ops/sec) | calls | avg µs/op |
+| --- | ---: | ---: | ---: | ---: |
+| `__create` | 100 | 97,832 | 256 | 14.667 |
+| `__read` | 100 | 30,402,149 | 131,072 | 0.037 |
+| `__length` | 100 | 98,457,272 | 131,072 | 0.011 |
+| `__recover` | 100 | 683,498 | 256 | 2.895 |
+| `__update` | 100 | 260,515 | 256 | 4.676 |
+| `__delete` | 100 | 436,983 | 256 | 2.773 |
+| `__merge` | 100 | 435,190 | 256 | 2.958 |
+| `__acknowledge` | 100 | 1,169,305 | 4,096 | 0.865 |
+| `__garbageCollect` | 100 | 492,831 | 256 | 2.424 |
+| `__snapshot` | 100 | 474,622 | 256 | 2.168 |
+| `__create` | 1,000 | 123,863 | 128 | 8.809 |
+| `__read` | 1,000 | 10,693,172 | 65,536 | 0.104 |
+| `__length` | 1,000 | 31,697,486 | 65,536 | 0.037 |
+| `__recover` | 1,000 | 73,368 | 128 | 20.147 |
+| `__update` | 1,000 | 181,099 | 128 | 9.312 |
+| `__delete` | 1,000 | 280,488 | 128 | 4.302 |
+| `__merge` | 1,000 | 445,057 | 128 | 2.471 |
+| `__acknowledge` | 1,000 | 1,592,640 | 2,048 | 0.652 |
+| `__garbageCollect` | 1,000 | 746,821 | 128 | 1.517 |
+| `__snapshot` | 1,000 | 357,724 | 128 | 3.414 |
+| `__create` | 10,000 | 16,924 | 64 | 159.944 |
+| `__read` | 10,000 | 9,000,340 | 32,768 | 0.127 |
+| `__length` | 10,000 | 30,024,321 | 32,768 | 0.039 |
+| `__recover` | 10,000 | 18,969 | 64 | 66.053 |
+| `__update` | 10,000 | 366,696 | 64 | 4.134 |
+| `__delete` | 10,000 | 570,152 | 64 | 2.716 |
+| `__merge` | 10,000 | 494,549 | 64 | 2.842 |
+| `__acknowledge` | 10,000 | 1,690,735 | 1,024 | 0.593 |
+| `__garbageCollect` | 10,000 | 488,861 | 64 | 2.638 |
+| `__snapshot` | 10,000 | 127,237 | 64 | 9.109 |
+| `__create` | 100,000 | 417 | 16 | 2,987.138 |
+| `__read` | 100,000 | 6,262,578 | 8,192 | 0.163 |
+| `__length` | 100,000 | 30,314,687 | 8,192 | 0.034 |
+| `__recover` | 100,000 | 894 | 16 | 1,374.712 |
+| `__update` | 100,000 | 232,151 | 16 | 4.375 |
+| `__delete` | 100,000 | 343,535 | 16 | 4.325 |
+| `__merge` | 100,000 | 205,882 | 16 | 4.881 |
+| `__acknowledge` | 100,000 | 1,195,798 | 256 | 0.875 |
+| `__garbageCollect` | 100,000 | 494,959 | 16 | 2.062 |
+| `__snapshot` | 100,000 | 7,745 | 16 | 161.750 |
+| `__create` | 1,000,000 | 58 | 16 | 18,247.688 |
+| `__read` | 1,000,000 | 10,066,895 | 8,192 | 0.101 |
+| `__length` | 1,000,000 | 33,379,169 | 8,192 | 0.031 |
+| `__recover` | 1,000,000 | 64 | 16 | 16,047.169 |
+| `__update` | 1,000,000 | 186,245 | 16 | 5.381 |
+| `__delete` | 1,000,000 | 207,388 | 16 | 4.831 |
+| `__merge` | 1,000,000 | 143,121 | 16 | 7.006 |
+| `__acknowledge` | 1,000,000 | 1,307,201 | 256 | 0.765 |
+| `__garbageCollect` | 1,000,000 | 403,573 | 16 | 2.519 |
+| `__snapshot` | 1,000,000 | 482 | 16 | 2,760.119 |
 
 ### Small bundle size
 
-|raw|min|min+gzip|
-Bundle size benchmakrs
+| format | raw | minified | minified + gzip |
+| --- | ---: | ---: | ---: |
+| ESM | 89.8 kB | 53.2 kB | 18.8 kB |
+| CommonJS | 90.1 kB | 55.6 kB | 19.1 kB |
 
 ### Optimized data model
 
-|per op avg reel bytes| x size reel bytes| gzipped|
-Bytse size benchmarks (msgpacked)
+| Reel workload | average bytes/operation | MessagePack | MessagePack + gzip |
+| --- | ---: | ---: | ---: |
+| 1,000 one-Frame updates | 39.6 B | 39.6 kB | 7.8 kB |
+| 1,000 one-Frame Masks | 36.0 B | 36.0 kB | 5.1 kB |
+| Snapshot of 1,000 one-Frame Strips | 39.6 B | 39.6 kB | 7.8 kB |
 
 ## Why shoul you use it?
 

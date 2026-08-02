@@ -1,217 +1,309 @@
-import { cpus, platform, arch } from 'node:os'
+import { arch, cpus, platform } from 'node:os'
 import { Bench } from 'tinybench'
 import * as api from '../../dist/index.js'
-import type { Frontier, Reel, Replica } from '../../dist/index.js'
+import type {
+  Frontier,
+  Reel,
+  Replica,
+  SequencePoint,
+} from '../../dist/index.js'
 
-/** Measures every public operation against one documented fixed workload. */
+type BenchmarkExecution = {
+  before_each?: () => void
+  release?: () => void
+  run: () => void
+}
+
+type BenchmarkDefinition = {
+  batch_size: number
+  name: string
+  prepare: (sample_count: number) => BenchmarkExecution
+  workload: string
+}
+
+const benchmark_sizes = [
+  [100, 256],
+  [1_000, 128],
+  [10_000, 64],
+  [100_000, 16],
+  [1_000_000, 16],
+] as const
+
+/** Measures every public operation at each documented Sequence length. */
 export async function run_function_benchmarks() {
-  const frame_count = 256
-  const values = Array.from({ length: frame_count }, (_, index) => index)
-  const retained_states: Array<Replica<number>> = []
+  const base_state = api.__create<number>()
+  const rows = []
+  let base_length = 0
   let result_sink: unknown
-  let mutable_state: Replica<number> | undefined
-  let garbage_collection_frontiers: Array<Frontier> = []
-  let read_index = 0
 
   const require_result = <T>(result: T | false, operation: string): T => {
     if (result === false)
       throw new TypeError(`Benchmark setup failed for ${operation}.`)
     return result
   }
-  const create_state = (): Replica<number> => {
-    const state = api.__create<number>()
-    require_result(api.__update(state, 0, values, 'after'), '__update')
-    return state
+  const clone_frontier = (frontier: Frontier): Frontier =>
+    frontier.map((point): SequencePoint => [point[0], point[1], point[2]])
+  const release_memory = async (): Promise<void> => {
+    const collect_garbage = (
+      globalThis as typeof globalThis & { gc?: () => void }
+    ).gc
+    collect_garbage?.()
+    await new Promise<void>((resolve_done) => setImmediate(resolve_done))
+    collect_garbage?.()
+    await new Promise<void>((resolve_done) => setImmediate(resolve_done))
   }
-  const retain_mutable_state = (): void => {
-    if (mutable_state) retained_states.push(mutable_state)
-    mutable_state = undefined
-  }
 
-  // Initialize the issuing Realm before any measured update.
-  retained_states.push(create_state())
-  const stable_state = create_state()
-  retained_states.push(stable_state)
-  const merge_source = api.__create<number>()
-  const merge_reel: Reel<number> = require_result(
-    api.__update(merge_source, 0, values.slice(0, 16), 'after'),
-    '__merge'
-  ).reel
-  retained_states.push(merge_source)
+  for (const [sequence_length, measured_samples] of benchmark_sizes) {
+    // Grow one stable baseline in bounded Strips to avoid argument-count limits.
+    while (base_length < sequence_length) {
+      const frame_count = Math.min(10_000, sequence_length - base_length)
+      const values = Array.from(
+        { length: frame_count },
+        (_, frame_offset) => base_length + frame_offset
+      )
+      require_result(
+        api.__update(base_state, base_length, values, 'after'),
+        '__update'
+      )
+      base_length += frame_count
+    }
 
-  const definitions: Array<{
-    name: string
-    workload: string
-    batch_size: number
-    mutates_state?: boolean
-    before_each?: () => void
-    run: () => void
-    after_each?: () => void
-  }> = [
-    {
-      name: '__create',
-      workload: 'Create one empty Replica',
-      batch_size: 1,
-      mutates_state: true,
-      run: () => {
-        mutable_state = api.__create<number>()
-      },
-      after_each: retain_mutable_state,
-    },
-    {
-      name: '__read',
-      workload: 'Read a rotating index from one 256-Frame Strip',
-      batch_size: 512,
-      run: () => {
-        result_sink = api.__read(stable_state, read_index)
-        read_index = (read_index + 1) & 255
-      },
-    },
-    {
-      name: '__length',
-      workload: 'Read the length of one 256-Frame Strip',
-      batch_size: 512,
-      run: () => {
-        result_sink = api.__length(stable_state)
-      },
-    },
-    {
-      name: '__recover',
-      workload: 'Recover one retained 256-Frame Strip',
-      batch_size: 8,
-      run: () => {
-        result_sink = api.__recover(stable_state)
-      },
-    },
-    {
-      name: '__update',
-      workload: 'Insert one Frame into one 256-Frame Strip',
-      batch_size: 1,
-      mutates_state: true,
-      before_each: () => {
-        mutable_state = create_state()
-      },
-      run: () => {
-        result_sink = api.__update(mutable_state!, 127, [frame_count], 'after')
-      },
-      after_each: retain_mutable_state,
-    },
-    {
-      name: '__delete',
-      workload: 'Soft-delete one Frame from one 256-Frame Strip',
-      batch_size: 1,
-      mutates_state: true,
-      before_each: () => {
-        mutable_state = create_state()
-      },
-      run: () => {
-        result_sink = api.__delete(mutable_state!, 128, 129)
-      },
-      after_each: retain_mutable_state,
-    },
-    {
-      name: '__merge',
-      workload: 'Merge one new 16-Frame Strip into an empty Replica',
-      batch_size: 1,
-      mutates_state: true,
-      before_each: () => {
-        mutable_state = api.__create<number>()
-      },
-      run: () => {
-        result_sink = api.__merge(mutable_state!, merge_reel)
-      },
-      after_each: retain_mutable_state,
-    },
-    {
-      name: '__acknowledge',
-      workload: 'Acknowledge one Realm containing a 256-Frame Strip',
-      batch_size: 16,
-      run: () => {
-        result_sink = api.__acknowledge(stable_state)
-      },
-    },
-    {
-      name: '__garbageCollect',
-      workload: 'Release one soft-deleted Frame using two Frontiers',
-      batch_size: 1,
-      mutates_state: true,
-      before_each: () => {
-        mutable_state = create_state()
-        require_result(
-          api.__delete(mutable_state, 128, 129),
-          '__garbageCollect'
-        )
-        const frontier = require_result(
-          api.__acknowledge(mutable_state),
-          '__acknowledge'
-        )
-        garbage_collection_frontiers = [
-          frontier.map((point) => [...point]),
-          frontier.map((point) => [...point]),
-        ]
-      },
-      run: () => {
-        result_sink = api.__garbageCollect(
-          garbage_collection_frontiers,
-          mutable_state!
-        )
-      },
-      after_each: retain_mutable_state,
-    },
-    {
-      name: '__snapshot',
-      workload: 'Snapshot one retained 256-Frame Strip',
-      batch_size: 8,
-      run: () => {
-        result_sink = api.__snapshot(stable_state)
-      },
-    },
-  ]
+    console.log(
+      `Benchmarking ${sequence_length.toLocaleString('en-US')} Frames...`
+    )
+    const snapshot: Reel<number> = api.__snapshot(base_state)
+    const create_state = (): Replica<number> => api.__create<number>(snapshot)
+    const middle_frame_index = sequence_length >> 1
+    const merge_source = create_state()
+    const merge_reel = require_result(
+      api.__update(
+        merge_source,
+        middle_frame_index,
+        [sequence_length],
+        'after'
+      ),
+      '__merge'
+    ).reel
+    let read_index = 0
 
-  const rows = []
-  for (const definition of definitions) {
-    const iterations = definition.mutates_state ? 512 : 2_000
-    const benchmark = new Bench({
-      iterations,
-      time: 0,
-      warmup: true,
-      warmupIterations: definition.mutates_state ? 128 : 256,
-      warmupTime: 0,
-      throws: true,
-      timestampProvider: 'hrtimeNow',
-    })
-    benchmark.add(
-      definition.name,
-      () => {
-        const started_at = process.hrtime.bigint()
-        for (let iteration = 0; iteration < definition.batch_size; iteration++)
-          definition.run()
-        const duration_ms =
-          Number(process.hrtime.bigint() - started_at) /
-          1_000_000 /
-          definition.batch_size
-        return { overriddenDuration: duration_ms }
+    const prepare_state_pool = (
+      sample_count: number,
+      operation: (state: Replica<number>) => unknown,
+      prepare_state: () => Replica<number> = create_state
+    ): BenchmarkExecution => {
+      const state_pool = Array.from({ length: sample_count }, prepare_state)
+      let current_state: Replica<number> | undefined
+      return {
+        before_each: () => {
+          current_state = state_pool.pop()
+          if (!current_state)
+            throw new TypeError('Benchmark state pool was exhausted.')
+        },
+        run: () => {
+          result_sink = operation(current_state!)
+        },
+        release: () => {
+          current_state = undefined
+          state_pool.length = 0
+        },
+      }
+    }
+
+    const definitions: Array<BenchmarkDefinition> = [
+      {
+        name: '__create',
+        workload: 'Hydrate the retained Reel',
+        batch_size: 1,
+        prepare: () => {
+          const created_states: Array<Replica<number>> = []
+          return {
+            run: () => {
+              created_states.push(create_state())
+            },
+            release: () => {
+              created_states.length = 0
+            },
+          }
+        },
       },
       {
-        async: false,
-        beforeEach: definition.before_each,
-        afterEach: definition.after_each,
-      }
-    )
-    await benchmark.run()
+        name: '__read',
+        workload: 'Read a rotating visible index',
+        batch_size: 512,
+        prepare: () => ({
+          run: () => {
+            result_sink = api.__read(base_state, read_index)
+            read_index = (read_index + 1) % sequence_length
+          },
+        }),
+      },
+      {
+        name: '__length',
+        workload: 'Read the visible length',
+        batch_size: 512,
+        prepare: () => ({
+          run: () => {
+            result_sink = api.__length(base_state)
+          },
+        }),
+      },
+      {
+        name: '__recover',
+        workload: 'Recover all retained values',
+        batch_size: 1,
+        prepare: () => ({
+          run: () => {
+            result_sink = api.__recover(base_state)
+          },
+        }),
+      },
+      {
+        name: '__update',
+        workload: 'Insert one Frame at the midpoint',
+        batch_size: 1,
+        prepare: (sample_count) =>
+          prepare_state_pool(sample_count, (state) =>
+            api.__update(state, middle_frame_index, [sequence_length], 'after')
+          ),
+      },
+      {
+        name: '__delete',
+        workload: 'Soft-delete one midpoint Frame',
+        batch_size: 1,
+        prepare: (sample_count) =>
+          prepare_state_pool(sample_count, (state) =>
+            api.__delete(state, middle_frame_index, middle_frame_index + 1)
+          ),
+      },
+      {
+        name: '__merge',
+        workload: 'Merge one new midpoint Frame',
+        batch_size: 1,
+        prepare: (sample_count) =>
+          prepare_state_pool(sample_count, (state) =>
+            api.__merge(state, merge_reel)
+          ),
+      },
+      {
+        name: '__acknowledge',
+        workload: 'Acknowledge materialized Realm progress',
+        batch_size: 16,
+        prepare: () => ({
+          run: () => {
+            result_sink = api.__acknowledge(base_state)
+          },
+        }),
+      },
+      {
+        name: '__garbageCollect',
+        workload: 'Release one soft-deleted Frame',
+        batch_size: 1,
+        prepare: (sample_count) => {
+          type GarbageCollectionCase = {
+            frontiers: Array<Frontier>
+            state: Replica<number>
+          }
+          const case_pool: Array<GarbageCollectionCase> = Array.from(
+            { length: sample_count },
+            () => {
+              const state = create_state()
+              require_result(
+                api.__delete(state, middle_frame_index, middle_frame_index + 1),
+                '__garbageCollect'
+              )
+              const frontier = require_result(
+                api.__acknowledge(state),
+                '__acknowledge'
+              )
+              return {
+                state,
+                frontiers: [clone_frontier(frontier), clone_frontier(frontier)],
+              }
+            }
+          )
+          let current_case: GarbageCollectionCase | undefined
+          return {
+            before_each: () => {
+              current_case = case_pool.pop()
+              if (!current_case)
+                throw new TypeError('Benchmark case pool was exhausted.')
+            },
+            run: () => {
+              result_sink = api.__garbageCollect(
+                current_case!.frontiers,
+                current_case!.state
+              )
+            },
+            release: () => {
+              current_case = undefined
+              case_pool.length = 0
+            },
+          }
+        },
+      },
+      {
+        name: '__snapshot',
+        workload: 'Snapshot complete retained state',
+        batch_size: 1,
+        prepare: () => ({
+          run: () => {
+            result_sink = api.__snapshot(base_state)
+          },
+        }),
+      },
+    ]
 
-    const result = benchmark.tasks[0].result
-    if (result.state !== 'completed')
-      throw new TypeError(`Benchmark failed for ${definition.name}.`)
-    rows.push({
-      name: definition.name,
-      workload: definition.workload,
-      throughput_ops_per_second: result.throughput.mean,
-      average_time_ns: result.latency.mean * 1_000_000,
-      relative_margin_of_error: result.latency.rme,
-      samples: result.latency.samplesCount,
-      batch_size: definition.batch_size,
-    })
+    for (const definition of definitions) {
+      const warmup_samples = Math.max(1, measured_samples >> 2)
+      const execution = definition.prepare(measured_samples + warmup_samples)
+      const benchmark = new Bench({
+        iterations: measured_samples,
+        time: 0,
+        warmup: true,
+        warmupIterations: warmup_samples,
+        warmupTime: 0,
+        throws: true,
+        timestampProvider: 'hrtimeNow',
+      })
+      benchmark.add(
+        definition.name,
+        () => {
+          const started_at = process.hrtime.bigint()
+          for (
+            let call_index = 0;
+            call_index < definition.batch_size;
+            call_index++
+          )
+            execution.run()
+          const duration_ms =
+            Number(process.hrtime.bigint() - started_at) /
+            1_000_000 /
+            definition.batch_size
+          return { overriddenDuration: duration_ms }
+        },
+        { async: false, beforeEach: execution.before_each }
+      )
+      await benchmark.run()
+
+      const result = benchmark.tasks[0].result
+      if (result.state !== 'completed')
+        throw new TypeError(`Benchmark failed for ${definition.name}.`)
+      rows.push({
+        name: definition.name,
+        sequence_length,
+        workload: definition.workload,
+        throughput_ops_per_second: result.throughput.mean,
+        calls: result.latency.samplesCount * definition.batch_size,
+        average_time_microseconds: result.latency.mean * 1_000,
+        relative_margin_of_error: result.latency.rme,
+        samples: result.latency.samplesCount,
+        batch_size: definition.batch_size,
+      })
+
+      execution.release?.()
+      result_sink = undefined
+      await release_memory()
+    }
   }
 
   void result_sink

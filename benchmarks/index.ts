@@ -12,8 +12,10 @@ write_benchmark_report(function_results, bundle_results, data_results)
 console.table(
   function_results.rows.map((row) => ({
     function: row.name,
+    length: row.sequence_length,
     'ops/sec': Math.round(row.throughput_ops_per_second),
-    'ns/op': Math.round(row.average_time_ns),
+    calls: row.calls,
+    'avg µs/op': row.average_time_microseconds.toFixed(3),
   }))
 )
 console.log('Benchmark report written to docs/benchmarks/index.html')

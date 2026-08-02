@@ -73,6 +73,7 @@ inline void mask_strip(Projector *projector, const Strip *containing_strip,
         Strip prefix_strip = source_strip;
         prefix_strip.frame_count = current_frame_offset;
         prefix_strip.next_strip_start = logical_frame_start;
+        prefix_strip.next_source_strip_start = logical_frame_start;
         projector->strip_index.set(source_strip_start, prefix_strip);
       }
 
@@ -85,6 +86,12 @@ inline void mask_strip(Projector *projector, const Strip *containing_strip,
       masked_strip.frame_count = masked_frame_count;
       masked_strip.footage_frame_index += current_frame_offset;
       masked_strip.next_strip_start = original_next_strip_start;
+      masked_strip.previous_source_strip_start =
+          current_frame_offset != 0
+              ? source_strip_start
+              : source_strip.previous_source_strip_start;
+      masked_strip.next_source_strip_start =
+          source_strip.next_source_strip_start;
 
       if (current_frame_offset != 0) {
         masked_strip.coordinate = {
@@ -110,13 +117,26 @@ inline void mask_strip(Projector *projector, const Strip *containing_strip,
             .previous_strip_start = suffix_previous_frame,
         };
         suffix_strip.previous_structural_strip_start = logical_frame_start;
+        suffix_strip.previous_source_strip_start = logical_frame_start;
 
         masked_strip.next_strip_start = suffix_strip_start;
+        masked_strip.next_source_strip_start = suffix_strip_start;
         replacement_tail_strip_start = suffix_strip_start;
         projector->strip_index.set(logical_frame_start, masked_strip);
         projector->strip_index.set(suffix_strip_start, suffix_strip);
       } else {
         projector->strip_index.set(logical_frame_start, masked_strip);
+      }
+
+      if (!(source_strip.next_source_strip_start ==
+            unlinked_strip_start)) {
+        Strip next_source_strip = *projector->strip_index.get(
+            source_strip.next_source_strip_start);
+        next_source_strip.previous_source_strip_start =
+            replacement_tail_strip_start;
+        projector->strip_index.set(
+            next_source_strip.coordinate.this_strip_start,
+            next_source_strip);
       }
 
       // Reconnect the original successor or publish the new retained tail.
@@ -128,6 +148,60 @@ inline void mask_strip(Projector *projector, const Strip *containing_strip,
         projector->strip_index.set(original_next_strip_start, next_strip);
       } else {
         projector->last_strip_start = replacement_tail_strip_start;
+      }
+
+      // Restore the next fragment of this source before concurrent siblings.
+      const SequencePoint source_successor_start =
+          masked_strip.next_source_strip_start;
+      if (!(source_successor_start == unlinked_strip_start)) {
+        Strip source_successor =
+            *projector->strip_index.get(source_successor_start);
+        if (!(source_successor.previous_structural_strip_start ==
+              replacement_tail_strip_start)) {
+          const SequencePoint source_previous_start =
+              source_successor.previous_structural_strip_start;
+          const SequencePoint source_successor_next =
+              source_successor.next_strip_start;
+
+          // Detach the source successor from its current structural position.
+          Strip source_previous =
+              *projector->strip_index.get(source_previous_start);
+          source_previous.next_strip_start = source_successor_next;
+          projector->strip_index.set(source_previous_start, source_previous);
+          if (!(source_successor_next == unlinked_strip_start)) {
+            Strip successor_next =
+                *projector->strip_index.get(source_successor_next);
+            successor_next.previous_structural_strip_start =
+                source_previous_start;
+            projector->strip_index.set(source_successor_next, successor_next);
+          } else {
+            projector->last_strip_start = source_previous_start;
+          }
+
+          // Insert the source successor directly after the replacement tail.
+          Strip replacement_tail =
+              *projector->strip_index.get(replacement_tail_strip_start);
+          const SequencePoint insertion_successor =
+              replacement_tail.next_strip_start;
+          replacement_tail.next_strip_start = source_successor_start;
+          source_successor.previous_structural_strip_start =
+              replacement_tail_strip_start;
+          source_successor.next_strip_start = insertion_successor;
+          projector->strip_index.set(replacement_tail_strip_start,
+                                     replacement_tail);
+          projector->strip_index.set(source_successor_start,
+                                     source_successor);
+
+          if (!(insertion_successor == unlinked_strip_start)) {
+            Strip insertion_next =
+                *projector->strip_index.get(insertion_successor);
+            insertion_next.previous_structural_strip_start =
+                source_successor_start;
+            projector->strip_index.set(insertion_successor, insertion_next);
+          } else {
+            projector->last_strip_start = source_successor_start;
+          }
+        }
       }
 
       projector->projection_frame_count -= masked_frame_count;

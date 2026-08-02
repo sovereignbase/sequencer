@@ -170,6 +170,7 @@ insert_strip(Projector *projector, const Strip *previous_strip,
       SequencePoint suffix_strip_start =
           original_strip.coordinate.this_strip_start;
       suffix_strip_start.counter_bits += insertion_boundary;
+      prefix_strip.next_source_strip_start = suffix_strip_start;
       Strip suffix_strip = original_strip;
       if (suffix_strip.is_masked != 0)
         suffix_strip.is_masked |= mask_is_source_continuation;
@@ -183,6 +184,18 @@ insert_strip(Projector *projector, const Strip *previous_strip,
                   : logical_parent,
       };
       suffix_strip.previous_structural_strip_start = inserted_strip_start;
+      suffix_strip.previous_source_strip_start =
+          prefix_strip.coordinate.this_strip_start;
+
+      if (!(original_strip.next_source_strip_start ==
+            unlinked_strip_start)) {
+        Strip next_source_strip = *projector->strip_index.get(
+            original_strip.next_source_strip_start);
+        next_source_strip.previous_source_strip_start = suffix_strip_start;
+        projector->strip_index.set(
+            next_source_strip.coordinate.this_strip_start,
+            next_source_strip);
+      }
 
       inserted_strip.next_strip_start = suffix_strip_start;
       replacement_tail_strip_start = suffix_strip_start;

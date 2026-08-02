@@ -108,6 +108,8 @@ public:
         },
         .previous_structural_strip_start{},
         .next_strip_start = unlinked_strip_start,
+        .previous_source_strip_start{},
+        .next_source_strip_start = unlinked_strip_start,
     };
   }
 

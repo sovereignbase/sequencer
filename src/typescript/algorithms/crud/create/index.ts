@@ -7,7 +7,8 @@ import { is_strip } from '../../../helpers/index.js'
 import {
   clear_sequence,
   initialize_sequence,
-  merge_strip_into_sequence,
+  stage_strip_for_sequence,
+  try_to_resolve_pending,
   write_strip_to_buffer,
 } from '../../../wasm/index.js'
 import type { Replica } from '../../../types/type.js'
@@ -22,11 +23,11 @@ const finalization_registry = new FinalizationRegistry((held_value) => {
 /**
  * Creates an independently maintained sequence state.
  *
- * Entries are replayed through native dependency resolution in supplied
- * Snapshot order. Missing dependencies restore themselves into the pending
- * insertion or Mask index; pending is never represented in transferred data.
- * Invalid input and invalid entries are ignored; an empty Replica is still
- * returned. Creation preserves supplied coordinates and never issues points.
+ * Entries are staged without integration, then one native Root traversal
+ * resolves every reachable dependency. Pending is never represented in
+ * transferred data. Invalid input and invalid entries are ignored; an empty
+ * Replica is still returned. Creation preserves coordinates and issues no
+ * points.
  *
  * @typeParam T Consumer-owned value represented by one Frame.
  * @param data Optional candidate Reel used to initialize retained state.
@@ -42,25 +43,6 @@ export function __create<T>(data?: unknown): Replica<T> {
 
   // Validate the optional initialization Reel container.
   if (!Array.isArray(data) || data.length < 1) return state
-
-  // Clone the common single-Strip Snapshot without growing Footage incrementally.
-  if (data.length === 1) {
-    const chunk = data[0]
-    if (!is_strip<T>(chunk)) return state
-    const [is_masked, frame_count, coordinate, footage] = chunk
-    if (
-      (is_masked === 0 && footage?.length !== frame_count) ||
-      (footage !== undefined && footage.length !== frame_count)
-    )
-      return state
-
-    if (footage !== undefined) state.footage = footage.slice()
-    else state.footage = new Array<T | undefined>(frame_count)
-
-    write_strip_to_buffer(is_masked, frame_count, 0, coordinate)
-    merge_strip_into_sequence(state.id)
-    return state
-  }
 
   // Integrate structurally valid retained Strips in supplied Reel order.
   for (const chunk of data) {
@@ -78,15 +60,18 @@ export function __create<T>(data?: unknown): Replica<T> {
     if (footage) void state.footage.push(...footage)
     else state.footage.length += frame_count
 
-    // Replay through native dependency resolution; missing context stays pending.
+    // Stage without resolution so native code can process the complete graph.
     write_strip_to_buffer(
       is_masked,
       frame_count,
       footage_frame_index,
       coordinate
     )
-    merge_strip_into_sequence(state.id)
+    stage_strip_for_sequence(state.id)
   }
+
+  // Resolve the complete staged dependency graph once, beginning at Root.
+  try_to_resolve_pending(state.id)
 
   // Return the independently maintained Replica.
   return state

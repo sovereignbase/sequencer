@@ -631,10 +631,24 @@ Doxygen documentation maintained beside every implementation unit in
 </dd></dl>
 
 <dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N5Strip23next_source_strip_startE">
+<span id="_CPPv3N5Strip23next_source_strip_startE"></span><span id="_CPPv2N5Strip23next_source_strip_startE"></span><span id="Strip::next_source_strip_start__SequencePoint"></span><span class="target" id="structStrip_1a2d9fc28ffa2f10089818c01c9824f367"></span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">next_source_strip_start</span></span></span><a class="headerlink" href="#_CPPv4N5Strip23next_source_strip_startE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Next material fragment of the same originally issued <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+<p><code class="docutils literal notranslate"><a class="reference internal" href="#declarations_2sequence__point_2index_8hpp_1a9e716f5b43419e6224231e28028de70c"><span class="std std-ref"><span class="pre">unlinked_strip_start</span></span></a></code> means this fragment ends its source. The link is runtime-only and never participates in sibling conflict resolution. </p>
+</dd></dl>
+
+<dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N5Strip16next_strip_startE">
 <span id="_CPPv3N5Strip16next_strip_startE"></span><span id="_CPPv2N5Strip16next_strip_startE"></span><span id="Strip::next_strip_start__SequencePoint"></span><span class="target" id="structStrip_1a3f21bff37a5703eb457c165ae90b4fbb"></span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">next_strip_start</span></span></span><a class="headerlink" href="#_CPPv4N5Strip16next_strip_startE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Start point of the next materialized <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
 <p>The last retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> stores <code class="docutils literal notranslate"><a class="reference internal" href="#declarations_2sequence__point_2index_8hpp_1a9e716f5b43419e6224231e28028de70c"><span class="std std-ref"><span class="pre">unlinked_strip_start</span></span></a></code>. This runtime link is derived by the <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>, is not trusted from transferred data, and is deliberately absent from serialized Reels. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N5Strip27previous_source_strip_startE">
+<span id="_CPPv3N5Strip27previous_source_strip_startE"></span><span id="_CPPv2N5Strip27previous_source_strip_startE"></span><span id="Strip::previous_source_strip_start__SequencePoint"></span><span class="target" id="structStrip_1a5984d159e6c479efe29dc82efaab7d38"></span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">previous_source_strip_start</span></span></span><a class="headerlink" href="#_CPPv4N5Strip27previous_source_strip_startE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Previous material fragment of the same originally issued <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+<p>Root means this fragment begins its source. The link is runtime-only and is rebuilt by splitting or Snapshot resolution. </p>
 </dd></dl>
 
 <dl class="cpp var">
@@ -2035,50 +2049,6 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv444hydrate_pending_snapshot_strip_into_sequenceKNSt8uint32_tE">
-<span id="_CPPv344hydrate_pending_snapshot_strip_into_sequenceKNSt8uint32_tE"></span><span id="_CPPv244hydrate_pending_snapshot_strip_into_sequenceKNSt8uint32_tE"></span><span id="hydrate_pending_snapshot_strip_into_sequence__std::uint32_tC"></span><span class="target" id="main_8cpp_1ae0f47a6f28f48bcd4e92068a7835a1f5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hydrate_pending_snapshot_strip_into_sequence</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv444hydrate_pending_snapshot_strip_into_sequenceKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Restore one buffered Snapshot entry directly to its pending index. </p>
-<p>The <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s visibility selects the Mask or visible-insert index; its stable logical previous point remains the unresolved dependency key. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the active sequence. </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv436hydrate_snapshot_strip_into_sequenceKNSt8uint32_tE">
-<span id="_CPPv336hydrate_snapshot_strip_into_sequenceKNSt8uint32_tE"></span><span id="_CPPv236hydrate_snapshot_strip_into_sequenceKNSt8uint32_tE"></span><span id="hydrate_snapshot_strip_into_sequence__std::uint32_tC"></span><span class="target" id="main_8cpp_1a3e3b70822f89f6d9ccf2f5dffca8ad42"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hydrate_snapshot_strip_into_sequence</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv436hydrate_snapshot_strip_into_sequenceKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Hydrate one retained Snapshot <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> in structural order. </p>
-<p>Snapshot entries already represent materialized state rather than merge operations. This operation therefore preserves the transferred Sequence Coordinate and derives only the runtime links omitted by <a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a>. Each entry is appended after the current retained tail, including Masks and material fragments that cannot be reconstructed by replaying them as operations.</p>
-<p><dl class="simple">
-<dt><strong>Complexity:</strong></dt><dd><p>A constant number of <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> operations and O(1) auxiliary space. </p>
-</dd>
-</dl>
-</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the sequence being hydrated. </p>
-</dd>
-<dt class="field-even">Pre<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">sequence_id</span></code> identifies an active <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>. </p>
-</dd>
-<dt class="field-odd">Pre<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a> contains the next unique <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> of one ordered Snapshot. </p>
-</dd>
-<dt class="field-even">Post<span class="colon">:</span></dt>
-<dd class="field-even"><p>The transferred coordinate is unchanged. </p>
-</dd>
-<dt class="field-odd">Post<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is the retained tail and structural links are bidirectional. </p>
-</dd>
-<dt class="field-even">Post<span class="colon">:</span></dt>
-<dd class="field-even"><p>A visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> contributes its complete Frame count to the Projection. </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv419initialize_sequencev">
 <span id="_CPPv319initialize_sequencev"></span><span id="_CPPv219initialize_sequencev"></span><span id="initialize_sequence"></span><span class="target" id="main_8cpp_1a32bc7f4dbd99147dad169a52f456b901"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">initialize_sequence</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv419initialize_sequencev" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create an empty <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> for one Replica. </p>
@@ -2151,6 +2121,39 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 </dd></dl>
 
 <dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv424stage_strip_for_sequenceKNSt8uint32_tE">
+<span id="_CPPv324stage_strip_for_sequenceKNSt8uint32_tE"></span><span id="_CPPv224stage_strip_for_sequenceKNSt8uint32_tE"></span><span id="stage_strip_for_sequence__std::uint32_tC"></span><span class="target" id="main_8cpp_1a4dce5e22cc72244ddf82713045a30a3f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">stage_strip_for_sequence</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv424stage_strip_for_sequenceKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stage one buffered <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> without resolving its dependency. </p>
+<p>Visible Strips and Masks enter their dedicated pending index under the transferred previous point. Staging the complete input first lets one later Root traversal resolve the graph without TypeScript-driven replay.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the sequence receiving staged input. </p>
+</dd>
+<dt class="field-even">Pre<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">sequence_id</span></code> identifies an active <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>. </p>
+</dd>
+<dt class="field-odd">Pre<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a> contains one structurally valid <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv422try_to_resolve_pendingKNSt8uint32_tE">
+<span id="_CPPv322try_to_resolve_pendingKNSt8uint32_tE"></span><span id="_CPPv222try_to_resolve_pendingKNSt8uint32_tE"></span><span id="try_to_resolve_pending__std::uint32_tC"></span><span class="target" id="main_8cpp_1a6448c40ca98c709f9034e02bf57b89ee"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">try_to_resolve_pending</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv422try_to_resolve_pendingKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve every staged dependency reachable from Root. </p>
+<p>Root-visible Strips seed ordinary native insertion. <code class="docutils literal notranslate"><a class="reference internal" href="#algorithms_2insert__strip_2index_8hpp_1a96b04a33104dfcd16702d7a7574abfa3"><span class="std std-ref"><span class="pre">insert_strip</span></span></a></code> then drains pending insertions and Masks for each newly materialized Frame Span. Entries whose dependency remains absent stay in their pending index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the sequence whose staged graph is resolved. </p>
+</dd>
+<dt class="field-even">Pre<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">sequence_id</span></code> identifies an active <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv440write_acknowledgement_frontier_to_bufferKNSt8uint32_tE">
 <span id="_CPPv340write_acknowledgement_frontier_to_bufferKNSt8uint32_tE"></span><span id="_CPPv240write_acknowledgement_frontier_to_bufferKNSt8uint32_tE"></span><span id="write_acknowledgement_frontier_to_buffer__std::uint32_tC"></span><span class="target" id="main_8cpp_1a0f33af461948a3c2182bf5b08db09059"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">write_acknowledgement_frontier_to_buffer</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv440write_acknowledgement_frontier_to_bufferKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Materialize one Replica’s Frontier in the shared buffer. </p>
@@ -2179,21 +2182,15 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv435write_first_pending_strip_to_bufferKNSt8uint32_tE">
 <span id="_CPPv335write_first_pending_strip_to_bufferKNSt8uint32_tE"></span><span id="_CPPv235write_first_pending_strip_to_bufferKNSt8uint32_tE"></span><span id="write_first_pending_strip_to_buffer__std::uint32_tC"></span><span class="target" id="main_8cpp_1af24daa179a420aace4c7d37ef6dc88f0"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">write_first_pending_strip_to_buffer</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv435write_first_pending_strip_to_bufferKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Begin Snapshot traversal over unresolved incoming Strips. </p>
-<p>Pending visible Strips are emitted before pending Masks. Their coordinates and Footage indexes are transferred unchanged so Snapshot hydration can restore them through ordinary merge after materialized state is hydrated.</p>
-<p><dl class="simple">
-<dt><strong>Complexity:</strong></dt><dd><p>O(c) leading Realm-slot scan and O(1) auxiliary space. </p>
-</dd>
-</dl>
-</p>
+<dd><p>Write the first pending Snapshot <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> to <a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a>. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the active sequence. </p>
 </dd>
 <dt class="field-even">Return values<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>1</strong> – A pending <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> was written to <a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a>. </p></li>
-<li><p><strong>0</strong> – No unresolved <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> exists. </p></li>
+<li><p><strong>1</strong> – A pending insertion or Mask was written. </p></li>
+<li><p><strong>0</strong> – Both pending indexes are empty. </p></li>
 </ul>
 </dd>
 </dl>
@@ -2223,24 +2220,16 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv434write_next_pending_strip_to_bufferKNSt8uint32_tE">
 <span id="_CPPv334write_next_pending_strip_to_bufferKNSt8uint32_tE"></span><span id="_CPPv234write_next_pending_strip_to_bufferKNSt8uint32_tE"></span><span id="write_next_pending_strip_to_buffer__std::uint32_tC"></span><span class="target" id="main_8cpp_1a6e4024d365aa286fa448e041930fa160"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">write_next_pending_strip_to_buffer</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv434write_next_pending_strip_to_bufferKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Advance Snapshot traversal to the next unresolved incoming <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
-<p><dl class="simple">
-<dt><strong>Complexity:</strong></dt><dd><p>O(c + p) over a complete traversal of p pending Strips. </p>
-</dd>
-</dl>
-</p>
+<dd><p>Advance the pending Snapshot traversal and write its next <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the active sequence. </p>
 </dd>
 <dt class="field-even">Return values<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>1</strong> – The next pending <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> was written to <a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a>. </p></li>
-<li><p><strong>0</strong> – The pending traversal is complete. </p></li>
+<li><p><strong>1</strong> – Another pending insertion or Mask was written. </p></li>
+<li><p><strong>0</strong> – Both pending indexes have been exhausted. </p></li>
 </ul>
-</dd>
-<dt class="field-odd">Pre<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><a class="reference internal" href="#main_8cpp_1af24daa179a420aace4c7d37ef6dc88f0"><span class="std std-ref"><span class="pre">write_first_pending_strip_to_buffer</span></span></a></code> returned one and no <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> mutation occurred afterward. </p>
 </dd>
 </dl>
 </dd></dl>

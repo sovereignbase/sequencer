@@ -66,7 +66,7 @@ static constexpr std::uint32_t no_projection_frame_index =
 
 extern "C" {
 
-/**poista
+/**
  * @brief Create an empty Projector for one Replica.
  *
  * A cleared registry slot is reused before a new slot is appended. The returned
@@ -234,6 +234,49 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_next_structural_strip_to_buffer(
 }
 
 /**
+ * @brief Write the first pending Snapshot Strip to StripBuffer.
+ * @param sequence_id Identifier of the active sequence.
+ * @retval 1 A pending insertion or Mask was written.
+ * @retval 0 Both pending indexes are empty.
+ */
+EMSCRIPTEN_KEEPALIVE std::uint32_t write_first_pending_strip_to_buffer(
+    const std::uint32_t sequence_id) noexcept {
+  Projector &projector = *projectors[sequence_id];
+  pending_strip_kind = 0;
+  const Strip *strip = projector.pending_inserts.first(pending_strip_cursor);
+  if (strip == nullptr) {
+    pending_strip_kind = 1;
+    strip = projector.pending_masks.first(pending_strip_cursor);
+  }
+  if (strip == nullptr)
+    return 0;
+  strip_buffer.write_strip(*strip);
+  return 1;
+}
+
+/**
+ * @brief Advance the pending Snapshot traversal and write its next Strip.
+ * @param sequence_id Identifier of the active sequence.
+ * @retval 1 Another pending insertion or Mask was written.
+ * @retval 0 Both pending indexes have been exhausted.
+ */
+EMSCRIPTEN_KEEPALIVE std::uint32_t write_next_pending_strip_to_buffer(
+    const std::uint32_t sequence_id) noexcept {
+  Projector &projector = *projectors[sequence_id];
+  const Strip *strip = pending_strip_kind == 0
+                           ? projector.pending_inserts.next(pending_strip_cursor)
+                           : projector.pending_masks.next(pending_strip_cursor);
+  if (strip == nullptr && pending_strip_kind == 0) {
+    pending_strip_kind = 1;
+    strip = projector.pending_masks.first(pending_strip_cursor);
+  }
+  if (strip == nullptr)
+    return 0;
+  strip_buffer.write_strip(*strip);
+  return 1;
+}
+
+/**
  * @brief Return the mutable address of the shared nine-word StripBuffer.
  *
  * @return Pointer to the first transferable `std::uint32_t` word.
@@ -346,6 +389,54 @@ garbage_collect_sequence(const std::uint32_t sequence_id) noexcept {
   Projector &projector = *projectors[sequence_id];
   projector.strip_index.garbage_collect(frontier_buffer, footage_span_buffer);
   return footage_span_buffer.get_span_count();
+}
+
+/**
+ * @brief Stage one buffered Strip without resolving its dependency.
+ *
+ * Visible Strips and Masks enter their dedicated pending index under the
+ * transferred previous point. Staging the complete input first lets one later
+ * Root traversal resolve the graph without TypeScript-driven replay.
+ *
+ * @param sequence_id Identifier of the sequence receiving staged input.
+ * @pre `sequence_id` identifies an active Projector.
+ * @pre StripBuffer contains one structurally valid Strip.
+ */
+EMSCRIPTEN_KEEPALIVE void
+stage_strip_for_sequence(const std::uint32_t sequence_id) noexcept {
+  Projector &projector = *projectors[sequence_id];
+  const Strip staged_strip = strip_buffer.read_strip();
+  const SequencePoint &dependency =
+      staged_strip.coordinate.previous_strip_start;
+  if (staged_strip.is_masked == 0)
+    projector.pending_inserts.set(dependency, staged_strip);
+  else
+    projector.pending_masks.set(dependency, staged_strip);
+}
+
+/**
+ * @brief Resolve every staged dependency reachable from Root.
+ *
+ * Root-visible Strips seed ordinary native insertion. `insert_strip` then
+ * drains pending insertions and Masks for each newly materialized Frame Span.
+ * Entries whose dependency remains absent stay in their pending index.
+ *
+ * @param sequence_id Identifier of the sequence whose staged graph is resolved.
+ * @pre `sequence_id` identifies an active Projector.
+ */
+EMSCRIPTEN_KEEPALIVE void
+try_to_resolve_pending(const std::uint32_t sequence_id) noexcept {
+  Projector *projector = &*projectors[sequence_id];
+  const SequencePoint root{};
+
+  while (const Strip *root_strip = projector->pending_inserts.get(root)) {
+    const Strip root_strip_copy = *root_strip;
+    projector->pending_inserts.remove(root);
+    if (projector->strip_index.get(
+            root_strip_copy.coordinate.this_strip_start) != nullptr)
+      continue;
+    static_cast<void>(insert_strip(projector, nullptr, 0, root_strip_copy));
+  }
 }
 
 /**

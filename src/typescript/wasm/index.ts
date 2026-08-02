@@ -159,27 +159,51 @@ export function write_strip_at_projection_frame_index_to_buffer(
 }
 
 /**
- * Writes the first materialized or pending Snapshot Strip to the shared buffer.
+ * Writes the first materialized Snapshot Strip to the shared buffer.
  *
  * @param sequence_id Active local Projector identifier.
  * @returns Whether a first Snapshot Strip exists and was written.
  */
-export function write_first_snapshot_strip_to_buffer(
+export function write_first_structural_strip_to_buffer(
   sequence_id: number
 ): boolean {
-  return wasm._write_first_snapshot_strip_to_buffer(sequence_id) !== 0
+  return wasm._write_first_structural_strip_to_buffer(sequence_id) !== 0
 }
 
 /**
- * Advances the unified materialized, pending-insert, and pending-Mask stream.
+ * Advances the materialized structural Snapshot stream.
  *
  * @param sequence_id Active local Projector identifier.
  * @returns Whether another Snapshot Strip was written.
  */
-export function write_next_snapshot_strip_to_buffer(
+export function write_next_structural_strip_to_buffer(
   sequence_id: number
 ): boolean {
-  return wasm._write_next_snapshot_strip_to_buffer(sequence_id) !== 0
+  return wasm._write_next_structural_strip_to_buffer(sequence_id) !== 0
+}
+
+/** Writes the first runtime-pending Strip to the Snapshot buffer. */
+export function write_first_pending_strip_to_buffer(
+  sequence_id: number
+): boolean {
+  return wasm._write_first_pending_strip_to_buffer(sequence_id) !== 0
+}
+
+/** Advances runtime-pending Snapshot traversal. */
+export function write_next_pending_strip_to_buffer(
+  sequence_id: number
+): boolean {
+  return wasm._write_next_pending_strip_to_buffer(sequence_id) !== 0
+}
+
+/** Stages one buffered Strip without resolving its dependency. */
+export function stage_strip_for_sequence(sequence_id: number): void {
+  wasm._stage_strip_for_sequence(sequence_id)
+}
+
+/** Resolves every staged dependency reachable from Root. */
+export function try_to_resolve_pending(sequence_id: number): void {
+  wasm._try_to_resolve_pending(sequence_id)
 }
 
 /**

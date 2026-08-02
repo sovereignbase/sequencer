@@ -31,8 +31,8 @@ interface WasmModule {
   _prepare_garbage_collection_frontier_buffer(_0: number): number;
   _get_garbage_collection_footage_span_buffer_pointer(): number;
   _garbage_collect_sequence(_0: number): number;
-  _hydrate_snapshot_strip_into_sequence(_0: number): void;
-  _hydrate_pending_snapshot_strip_into_sequence(_0: number): void;
+  _stage_strip_for_sequence(_0: number): void;
+  _try_to_resolve_pending(_0: number): void;
   _merge_strip_into_sequence(_0: number): number;
 }
 

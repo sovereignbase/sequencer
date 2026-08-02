@@ -92,6 +92,22 @@ struct Strip {
    * deliberately absent from serialized Reels.
    */
   SequencePoint next_strip_start;
+
+  /**
+   * @brief Previous material fragment of the same originally issued Strip.
+   *
+   * Root means this fragment begins its source. The link is runtime-only and
+   * is rebuilt by splitting or Snapshot resolution.
+   */
+  SequencePoint previous_source_strip_start;
+
+  /**
+   * @brief Next material fragment of the same originally issued Strip.
+   *
+   * `unlinked_strip_start` means this fragment ends its source. The link is
+   * runtime-only and never participates in sibling conflict resolution.
+   */
+  SequencePoint next_source_strip_start;
 };
 
 /** @brief Visibility bit identifying a materialized Mask. */

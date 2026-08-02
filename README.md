@@ -1,7 +1,5 @@
 # Sequencer
 
-### Shortly
-
 A causality-encoding engine written in TypeScript and C++ to build high-performance, conflict-free replicated data types for use on the web.
 
 Sequencer provides a deterministic total ordering for distributed data. It allows independently operating replicas to make concurrent changes and later converge on the same logical state without relying on network arrival order or perfectly synchronized clocks.

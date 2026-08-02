@@ -10,12 +10,23 @@ const data_results = measure_data_sizes()
 write_benchmark_report(function_results, bundle_results, data_results)
 
 console.table(
-  function_results.rows.map((row) => ({
-    function: row.name,
-    length: row.sequence_length,
-    'ops/sec': Math.round(row.throughput_ops_per_second),
-    calls: row.calls,
-    'avg µs/op': row.average_time_microseconds.toFixed(3),
-  }))
+  function_results.rows.map((row) => {
+    const decimal_places =
+      row.average_time_microseconds < 0.1
+        ? 5
+        : row.average_time_microseconds < 1
+          ? 4
+          : 3
+    const average_time_microseconds = Number(
+      row.average_time_microseconds.toFixed(decimal_places)
+    )
+    return {
+      function: row.name,
+      length: row.sequence_length,
+      'ops/sec': Math.round(1_000_000 / average_time_microseconds),
+      calls: row.calls,
+      'avg µs/op': average_time_microseconds.toFixed(decimal_places),
+    }
+  })
 )
 console.log('Benchmark report written to docs/benchmarks/index.html')

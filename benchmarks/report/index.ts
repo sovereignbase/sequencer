@@ -22,10 +22,32 @@ export function write_benchmark_report(
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   })
-  const microseconds = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3,
+  const percentage = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
   })
+  const cpu_name = function_results.environment.cpu
+    .replaceAll('(R)', '')
+    .replaceAll('(TM)', '')
+    .replace(' CPU @ ', ' at ')
+    .replace(/(\d)GHz\b/, '$1 GHz')
+    .replace(/\s+/g, ' ')
+    .trim()
+  const gzip_reduction = (messagepack: number, compressed: number): number =>
+    (1 - compressed / messagepack) * 100
+  const average_time_decimal_places = (value: number): number =>
+    value < 0.1 ? 5 : value < 1 ? 4 : 3
+  const rounded_average_time = (value: number): number =>
+    Number(value.toFixed(average_time_decimal_places(value)))
+  const average_time = (value: number): string => {
+    const decimal_places = average_time_decimal_places(value)
+    return value.toLocaleString('en-US', {
+      minimumFractionDigits: decimal_places,
+      maximumFractionDigits: decimal_places,
+    })
+  }
+  const throughput = (average_time_microseconds: number): string =>
+    number.format(1_000_000 / rounded_average_time(average_time_microseconds))
   const bytes = (value: number): string =>
     value < 1_000
       ? `${number.format(value)} B`
@@ -46,13 +68,13 @@ export function write_benchmark_report(
   }
 
   const performance_markdown = [
-    `Measured on Node \`${function_results.environment.node}\` / ${function_results.environment.cpu}. [Full benchmark report](./docs/benchmarks/index.html).`,
+    `JavaScript/WASM performance measured using Node.js \`${function_results.environment.node}\` on ${cpu_name}. These results characterize Node.js, not browser runtimes. [See the full benchmark report](./docs/benchmarks/index.html) for methodology and variability.`,
     '',
     '| function | Sequence length | throughput (ops/sec) | calls | avg µs/op |',
     '| --- | ---: | ---: | ---: | ---: |',
     ...function_results.rows.map(
       (row) =>
-        `| \`${row.name}\` | ${number.format(row.sequence_length)} | ${number.format(row.throughput_ops_per_second)} | ${number.format(row.calls)} | ${microseconds.format(row.average_time_microseconds)} |`
+        `| \`${row.name}\` | ${number.format(row.sequence_length)} | ${throughput(row.average_time_microseconds)} | ${number.format(row.calls)} | ${average_time(row.average_time_microseconds)} |`
     ),
   ].join('\n')
   const bundle_markdown = [
@@ -64,30 +86,30 @@ export function write_benchmark_report(
     ),
   ].join('\n')
   const data_markdown = [
-    '| Reel workload | average bytes/operation | MessagePack | MessagePack + gzip |',
-    '| --- | ---: | ---: | ---: |',
+    '| Reel workload | average bytes per operation | MessagePack | MessagePack + gzip | gzip reduction |',
+    '| --- | ---: | ---: | ---: | ---: |',
     ...data_results.map(
       (row) =>
-        `| ${row.name} | ${decimal.format(row.average_bytes_per_operation)} B | ${bytes(row.messagepack_bytes)} | ${bytes(row.messagepack_gzip_bytes)} |`
+        `| ${row.name} | ${decimal.format(row.average_bytes_per_operation)} B | ${bytes(row.messagepack_bytes)} | ${bytes(row.messagepack_gzip_bytes)} | ${percentage.format(gzip_reduction(row.messagepack_bytes, row.messagepack_gzip_bytes))}% |`
     ),
   ].join('\n')
 
   let readme = read_file(readme_path, 'utf8')
   readme = replace_section(
     readme,
-    '### Unbeliveable performance',
+    '### Exceptional performance',
     '### Small bundle size',
     performance_markdown
   )
   readme = replace_section(
     readme,
     '### Small bundle size',
-    '### Optimized data model',
+    '### Compact data model',
     bundle_markdown
   )
   readme = replace_section(
     readme,
-    '### Optimized data model',
+    '### Compact data model',
     '## Why shoul you use it?',
     data_markdown
   )
@@ -110,7 +132,7 @@ export function write_benchmark_report(
   const status_rows = function_results.rows
     .map(
       (row) =>
-        `<tr><th scope="row"><code>${row.name}</code></th><td>${number.format(row.sequence_length)}</td><td>${row.workload}</td><td>${number.format(row.throughput_ops_per_second)}</td><td>${number.format(row.calls)}</td><td>${microseconds.format(row.average_time_microseconds)}</td><td>±${row.relative_margin_of_error.toFixed(2)}%</td></tr>`
+        `<tr><th scope="row"><code>${row.name}</code></th><td>${number.format(row.sequence_length)}</td><td>${row.workload}</td><td>${throughput(row.average_time_microseconds)}</td><td>${number.format(row.calls)}</td><td>${average_time(row.average_time_microseconds)}</td><td>±${row.relative_margin_of_error.toFixed(2)}%</td></tr>`
     )
     .join('')
   const bundle_rows = bundle_results
@@ -122,7 +144,7 @@ export function write_benchmark_report(
   const data_rows = data_results
     .map(
       (row) =>
-        `<tr><th scope="row">${row.name}</th><td>${decimal.format(row.average_bytes_per_operation)} B</td><td>${bytes(row.messagepack_bytes)}</td><td>${bytes(row.messagepack_gzip_bytes)}</td></tr>`
+        `<tr><th scope="row">${row.name}</th><td>${decimal.format(row.average_bytes_per_operation)} B</td><td>${bytes(row.messagepack_bytes)}</td><td>${bytes(row.messagepack_gzip_bytes)}</td><td>${percentage.format(gzip_reduction(row.messagepack_bytes, row.messagepack_gzip_bytes))}%</td></tr>`
     )
     .join('')
 
@@ -153,7 +175,8 @@ export function write_benchmark_report(
       .table-shell { overflow-x: auto; border: 1px solid rgba(255,255,255,.12); border-radius: 1rem; }
       table { width: 100%; min-width: 64rem; border-collapse: collapse; }
       th, td { padding: .9rem 1rem; border-bottom: 1px solid rgba(255,255,255,.09); text-align: right; white-space: nowrap; }
-      th:first-child, td:first-child, th:nth-child(3), td:nth-child(3) { text-align: left; }
+      th:first-child, td:first-child { text-align: left; }
+      .performance-table th:nth-child(3), .performance-table td:nth-child(3) { text-align: left; }
       thead th { color: rgba(255,255,255,.58); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; }
       tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
       code { color: #c9a9ff; font-size: .92rem; }
@@ -165,28 +188,28 @@ export function write_benchmark_report(
     <main>
       <header>
         <span class="eyebrow">Automated benchmark report</span>
-        <h1>Unbeliveable performance</h1>
+        <h1>Exceptional performance</h1>
         <div class="meta">
-          <span>Node ${function_results.environment.node}</span>
+          <span>Node.js ${function_results.environment.node}</span>
           <span>V8 ${function_results.environment.v8}</span>
           <span>${function_results.environment.platform} ${function_results.environment.architecture}</span>
-          <span>${function_results.environment.cpu}</span>
+          <span>${cpu_name}</span>
           <span>${function_results.generated_at}</span>
         </div>
       </header>
       <section>
-        <h2>Public function throughput</h2>
-        <div class="table-shell"><table><thead><tr><th>Function</th><th>Sequence length</th><th>Timed workload</th><th>Ops/sec</th><th>Calls</th><th>avg µs/op</th><th>RME</th></tr></thead><tbody>${status_rows}</tbody></table></div>
-        <p class="note">Setup and warmup calls are excluded. Calls is the measured sample count multiplied by the timed batch size. Mutating operations receive a fresh prepared Replica for every sample; read-only operations use stable state.</p>
+        <h2>JavaScript/WASM performance</h2>
+        <div class="table-shell"><table class="performance-table"><thead><tr><th>Function</th><th>Sequence length</th><th>Timed workload</th><th>Ops/sec</th><th>Calls</th><th>avg µs/op</th><th>RME</th></tr></thead><tbody>${status_rows}</tbody></table></div>
+        <p class="note"><strong>Methodology:</strong> avg µs/op is the arithmetic mean of the measured per-call latencies. Ops/sec is its reciprocal; displayed values are rounded as one reciprocal pair. Setup and warmup calls are excluded. Mutating operations receive a fresh prepared Replica for every sample; read-only operations use stable state. These Node.js results do not represent browser runtimes.</p>
       </section>
       <section>
         <h2>Small bundle size</h2>
         <div class="table-shell"><table><thead><tr><th>Format</th><th>Raw</th><th>Minified</th><th>Minified + gzip</th></tr></thead><tbody>${bundle_rows}</tbody></table></div>
       </section>
       <section>
-        <h2>Optimized data model</h2>
-        <div class="table-shell"><table><thead><tr><th>Reel workload</th><th>Average bytes/operation</th><th>MessagePack</th><th>MessagePack + gzip</th></tr></thead><tbody>${data_rows}</tbody></table></div>
-        <p class="note">Reel sizes use MessagePack and gzip level 9 over the complete 1,000-operation collection.</p>
+        <h2>Compact data model</h2>
+        <div class="table-shell"><table><thead><tr><th>Reel workload</th><th>Average bytes per operation</th><th>MessagePack</th><th>MessagePack + gzip</th><th>Gzip reduction</th></tr></thead><tbody>${data_rows}</tbody></table></div>
+        <p class="note">Reel sizes use MessagePack and gzip level 9 over the complete 1,000-operation collection. Gzip reduction is measured against the MessagePack payload.</p>
       </section>
     </main>
   </body>

@@ -3,7 +3,7 @@ import { pack } from 'msgpackr'
 import * as api from '../../dist/index.js'
 import type { Reel } from '../../dist/index.js'
 
-/** Measures MessagePack Reels for common one-Frame operation workloads. */
+/** Measures MessagePack Reels for common one-frame operation workloads. */
 export function measure_data_sizes() {
   const operation_count = 1_000
   const require_result = <T>(result: T | false, operation: string): T => {
@@ -53,10 +53,10 @@ export function measure_data_sizes() {
   }
 
   return [
-    measure_reel('1,000 one-Frame updates', update_reel, operation_count),
-    measure_reel('1,000 one-Frame Masks', delete_reel, operation_count),
+    measure_reel('1,000 one-frame updates', update_reel, operation_count),
+    measure_reel('1,000 one-frame masks', delete_reel, operation_count),
     measure_reel(
-      'Snapshot of 1,000 one-Frame Strips',
+      'Snapshot containing 1,000 one-frame strips',
       api.__snapshot(update_state),
       operation_count
     ),

@@ -288,13 +288,14 @@ export async function run_function_benchmarks() {
       const result = benchmark.tasks[0].result
       if (result.state !== 'completed')
         throw new TypeError(`Benchmark failed for ${definition.name}.`)
+      const average_time_microseconds = result.latency.mean * 1_000
       rows.push({
         name: definition.name,
         sequence_length,
         workload: definition.workload,
-        throughput_ops_per_second: result.throughput.mean,
+        throughput_ops_per_second: 1_000_000 / average_time_microseconds,
         calls: result.latency.samplesCount * definition.batch_size,
-        average_time_microseconds: result.latency.mean * 1_000,
+        average_time_microseconds,
         relative_margin_of_error: result.latency.rme,
         samples: result.latency.samplesCount,
         batch_size: definition.batch_size,
@@ -315,6 +316,11 @@ export async function run_function_benchmarks() {
       platform: platform(),
       architecture: arch(),
       cpu: cpus()[0]?.model ?? 'Unknown CPU',
+    },
+    methodology: {
+      average_time: 'Arithmetic mean of measured per-call latency samples.',
+      throughput: '1,000,000 divided by average_time_microseconds.',
+      calls: 'Measured calls; setup and warmup calls are excluded.',
     },
     rows,
   }

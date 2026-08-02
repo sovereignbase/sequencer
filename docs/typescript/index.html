@@ -21,8 +21,8 @@
 </code><button type="button">Copy</button></pre>
 
 <h2 id="benchmarks" class="tsd-anchor-link">Benchmarks<a href="#benchmarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<h3 id="unbeliveable-performance" class="tsd-anchor-link">Unbeliveable performance<a href="#unbeliveable-performance" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<p>Measured on Node <code>24.16.0</code> / Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz. <a href="media/index.html">Full benchmark report</a>.</p>
+<h3 id="exceptional-performance" class="tsd-anchor-link">Exceptional performance<a href="#exceptional-performance" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>JavaScript/WASM performance measured using Node.js <code>24.16.0</code> on Intel Core i5-10210U at 1.60 GHz. These results characterize Node.js, not browser runtimes. <a href="media/index.html">See the full benchmark report</a> for methodology and variability.</p>
 <table>
 <thead>
 <tr>
@@ -37,352 +37,352 @@
 <tr>
 <td><code>__create</code></td>
 <td style="text-align:right">100</td>
-<td style="text-align:right">92,229</td>
+<td style="text-align:right">74,627</td>
 <td style="text-align:right">256</td>
-<td style="text-align:right">14.090</td>
+<td style="text-align:right">13.400</td>
 </tr>
 <tr>
 <td><code>__read</code></td>
 <td style="text-align:right">100</td>
-<td style="text-align:right">12,503,456</td>
+<td style="text-align:right">25,050,100</td>
 <td style="text-align:right">131,072</td>
-<td style="text-align:right">0.084</td>
+<td style="text-align:right">0.03992</td>
 </tr>
 <tr>
 <td><code>__length</code></td>
 <td style="text-align:right">100</td>
-<td style="text-align:right">37,316,972</td>
+<td style="text-align:right">78,740,157</td>
 <td style="text-align:right">131,072</td>
-<td style="text-align:right">0.033</td>
+<td style="text-align:right">0.01270</td>
 </tr>
 <tr>
 <td><code>__recover</code></td>
 <td style="text-align:right">100</td>
-<td style="text-align:right">335,674</td>
+<td style="text-align:right">454,545</td>
 <td style="text-align:right">256</td>
-<td style="text-align:right">4.958</td>
+<td style="text-align:right">2.200</td>
 </tr>
 <tr>
 <td><code>__update</code></td>
 <td style="text-align:right">100</td>
-<td style="text-align:right">138,061</td>
+<td style="text-align:right">161,186</td>
 <td style="text-align:right">256</td>
-<td style="text-align:right">8.218</td>
+<td style="text-align:right">6.204</td>
 </tr>
 <tr>
 <td><code>__delete</code></td>
 <td style="text-align:right">100</td>
-<td style="text-align:right">199,345</td>
+<td style="text-align:right">348,918</td>
 <td style="text-align:right">256</td>
-<td style="text-align:right">6.589</td>
+<td style="text-align:right">2.866</td>
 </tr>
 <tr>
 <td><code>__merge</code></td>
 <td style="text-align:right">100</td>
-<td style="text-align:right">179,787</td>
+<td style="text-align:right">324,254</td>
 <td style="text-align:right">256</td>
-<td style="text-align:right">6.599</td>
+<td style="text-align:right">3.084</td>
 </tr>
 <tr>
 <td><code>__acknowledge</code></td>
 <td style="text-align:right">100</td>
-<td style="text-align:right">938,363</td>
+<td style="text-align:right">1,251,878</td>
 <td style="text-align:right">4,096</td>
-<td style="text-align:right">1.082</td>
+<td style="text-align:right">0.7988</td>
 </tr>
 <tr>
 <td><code>__garbageCollect</code></td>
 <td style="text-align:right">100</td>
-<td style="text-align:right">359,856</td>
+<td style="text-align:right">460,193</td>
 <td style="text-align:right">256</td>
-<td style="text-align:right">3.096</td>
+<td style="text-align:right">2.173</td>
 </tr>
 <tr>
 <td><code>__snapshot</code></td>
 <td style="text-align:right">100</td>
-<td style="text-align:right">330,346</td>
+<td style="text-align:right">477,099</td>
 <td style="text-align:right">256</td>
-<td style="text-align:right">3.179</td>
+<td style="text-align:right">2.096</td>
 </tr>
 <tr>
 <td><code>__create</code></td>
 <td style="text-align:right">1,000</td>
-<td style="text-align:right">124,802</td>
+<td style="text-align:right">125,408</td>
 <td style="text-align:right">128</td>
-<td style="text-align:right">8.708</td>
+<td style="text-align:right">7.974</td>
 </tr>
 <tr>
 <td><code>__read</code></td>
 <td style="text-align:right">1,000</td>
-<td style="text-align:right">13,853,913</td>
+<td style="text-align:right">17,946,877</td>
 <td style="text-align:right">65,536</td>
-<td style="text-align:right">0.079</td>
+<td style="text-align:right">0.05572</td>
 </tr>
 <tr>
 <td><code>__length</code></td>
 <td style="text-align:right">1,000</td>
-<td style="text-align:right">33,116,007</td>
+<td style="text-align:right">41,911,148</td>
 <td style="text-align:right">65,536</td>
-<td style="text-align:right">0.043</td>
+<td style="text-align:right">0.02386</td>
 </tr>
 <tr>
 <td><code>__recover</code></td>
 <td style="text-align:right">1,000</td>
-<td style="text-align:right">95,369</td>
+<td style="text-align:right">98,097</td>
 <td style="text-align:right">128</td>
-<td style="text-align:right">15.826</td>
+<td style="text-align:right">10.194</td>
 </tr>
 <tr>
 <td><code>__update</code></td>
 <td style="text-align:right">1,000</td>
-<td style="text-align:right">91,584</td>
+<td style="text-align:right">142,308</td>
 <td style="text-align:right">128</td>
-<td style="text-align:right">17.072</td>
+<td style="text-align:right">7.027</td>
 </tr>
 <tr>
 <td><code>__delete</code></td>
 <td style="text-align:right">1,000</td>
-<td style="text-align:right">285,008</td>
+<td style="text-align:right">414,594</td>
 <td style="text-align:right">128</td>
-<td style="text-align:right">4.056</td>
+<td style="text-align:right">2.412</td>
 </tr>
 <tr>
 <td><code>__merge</code></td>
 <td style="text-align:right">1,000</td>
-<td style="text-align:right">348,206</td>
+<td style="text-align:right">433,276</td>
 <td style="text-align:right">128</td>
-<td style="text-align:right">3.004</td>
+<td style="text-align:right">2.308</td>
 </tr>
 <tr>
 <td><code>__acknowledge</code></td>
 <td style="text-align:right">1,000</td>
-<td style="text-align:right">1,123,076</td>
+<td style="text-align:right">1,534,919</td>
 <td style="text-align:right">2,048</td>
-<td style="text-align:right">0.926</td>
+<td style="text-align:right">0.6515</td>
 </tr>
 <tr>
 <td><code>__garbageCollect</code></td>
 <td style="text-align:right">1,000</td>
-<td style="text-align:right">360,488</td>
+<td style="text-align:right">545,554</td>
 <td style="text-align:right">128</td>
-<td style="text-align:right">3.374</td>
+<td style="text-align:right">1.833</td>
 </tr>
 <tr>
 <td><code>__snapshot</code></td>
 <td style="text-align:right">1,000</td>
-<td style="text-align:right">239,998</td>
+<td style="text-align:right">322,789</td>
 <td style="text-align:right">128</td>
-<td style="text-align:right">5.416</td>
+<td style="text-align:right">3.098</td>
 </tr>
 <tr>
 <td><code>__create</code></td>
 <td style="text-align:right">10,000</td>
-<td style="text-align:right">8,714</td>
+<td style="text-align:right">6,803</td>
 <td style="text-align:right">64</td>
-<td style="text-align:right">330.591</td>
+<td style="text-align:right">146.992</td>
 </tr>
 <tr>
 <td><code>__read</code></td>
 <td style="text-align:right">10,000</td>
-<td style="text-align:right">10,360,875</td>
+<td style="text-align:right">14,736,222</td>
 <td style="text-align:right">32,768</td>
-<td style="text-align:right">0.101</td>
+<td style="text-align:right">0.06786</td>
 </tr>
 <tr>
 <td><code>__length</code></td>
 <td style="text-align:right">10,000</td>
-<td style="text-align:right">30,999,887</td>
+<td style="text-align:right">42,535,091</td>
 <td style="text-align:right">32,768</td>
-<td style="text-align:right">0.038</td>
+<td style="text-align:right">0.02351</td>
 </tr>
 <tr>
 <td><code>__recover</code></td>
 <td style="text-align:right">10,000</td>
-<td style="text-align:right">14,811</td>
+<td style="text-align:right">14,793</td>
 <td style="text-align:right">64</td>
-<td style="text-align:right">87.477</td>
+<td style="text-align:right">67.598</td>
 </tr>
 <tr>
 <td><code>__update</code></td>
 <td style="text-align:right">10,000</td>
-<td style="text-align:right">237,468</td>
+<td style="text-align:right">141,623</td>
 <td style="text-align:right">64</td>
-<td style="text-align:right">8.480</td>
+<td style="text-align:right">7.061</td>
 </tr>
 <tr>
 <td><code>__delete</code></td>
 <td style="text-align:right">10,000</td>
-<td style="text-align:right">361,957</td>
+<td style="text-align:right">218,436</td>
 <td style="text-align:right">64</td>
-<td style="text-align:right">3.953</td>
+<td style="text-align:right">4.578</td>
 </tr>
 <tr>
 <td><code>__merge</code></td>
 <td style="text-align:right">10,000</td>
-<td style="text-align:right">327,164</td>
+<td style="text-align:right">124,688</td>
 <td style="text-align:right">64</td>
-<td style="text-align:right">4.048</td>
+<td style="text-align:right">8.020</td>
 </tr>
 <tr>
 <td><code>__acknowledge</code></td>
 <td style="text-align:right">10,000</td>
-<td style="text-align:right">1,006,299</td>
+<td style="text-align:right">1,664,724</td>
 <td style="text-align:right">1,024</td>
-<td style="text-align:right">1.015</td>
+<td style="text-align:right">0.6007</td>
 </tr>
 <tr>
 <td><code>__garbageCollect</code></td>
 <td style="text-align:right">10,000</td>
-<td style="text-align:right">281,912</td>
+<td style="text-align:right">465,116</td>
 <td style="text-align:right">64</td>
-<td style="text-align:right">4.522</td>
+<td style="text-align:right">2.150</td>
 </tr>
 <tr>
 <td><code>__snapshot</code></td>
 <td style="text-align:right">10,000</td>
-<td style="text-align:right">58,146</td>
+<td style="text-align:right">125,976</td>
 <td style="text-align:right">64</td>
-<td style="text-align:right">23.719</td>
+<td style="text-align:right">7.938</td>
 </tr>
 <tr>
 <td><code>__create</code></td>
 <td style="text-align:right">100,000</td>
-<td style="text-align:right">438</td>
+<td style="text-align:right">578</td>
 <td style="text-align:right">16</td>
-<td style="text-align:right">2,690.206</td>
+<td style="text-align:right">1,731.556</td>
 </tr>
 <tr>
 <td><code>__read</code></td>
 <td style="text-align:right">100,000</td>
-<td style="text-align:right">4,331,831</td>
+<td style="text-align:right">12,423,904</td>
 <td style="text-align:right">8,192</td>
-<td style="text-align:right">0.239</td>
+<td style="text-align:right">0.08049</td>
 </tr>
 <tr>
 <td><code>__length</code></td>
 <td style="text-align:right">100,000</td>
-<td style="text-align:right">12,557,091</td>
+<td style="text-align:right">25,367,834</td>
 <td style="text-align:right">8,192</td>
-<td style="text-align:right">0.080</td>
+<td style="text-align:right">0.03942</td>
 </tr>
 <tr>
 <td><code>__recover</code></td>
 <td style="text-align:right">100,000</td>
-<td style="text-align:right">461</td>
+<td style="text-align:right">707</td>
 <td style="text-align:right">16</td>
-<td style="text-align:right">2,520.288</td>
+<td style="text-align:right">1,414.231</td>
 </tr>
 <tr>
 <td><code>__update</code></td>
 <td style="text-align:right">100,000</td>
-<td style="text-align:right">283,533</td>
+<td style="text-align:right">243,132</td>
 <td style="text-align:right">16</td>
-<td style="text-align:right">3.544</td>
+<td style="text-align:right">4.113</td>
 </tr>
 <tr>
 <td><code>__delete</code></td>
 <td style="text-align:right">100,000</td>
-<td style="text-align:right">361,410</td>
+<td style="text-align:right">495,295</td>
 <td style="text-align:right">16</td>
-<td style="text-align:right">2.794</td>
+<td style="text-align:right">2.019</td>
 </tr>
 <tr>
 <td><code>__merge</code></td>
 <td style="text-align:right">100,000</td>
-<td style="text-align:right">159,454</td>
+<td style="text-align:right">375,516</td>
 <td style="text-align:right">16</td>
-<td style="text-align:right">6.294</td>
+<td style="text-align:right">2.663</td>
 </tr>
 <tr>
 <td><code>__acknowledge</code></td>
 <td style="text-align:right">100,000</td>
-<td style="text-align:right">886,029</td>
+<td style="text-align:right">1,698,658</td>
 <td style="text-align:right">256</td>
-<td style="text-align:right">1.130</td>
+<td style="text-align:right">0.5887</td>
 </tr>
 <tr>
 <td><code>__garbageCollect</code></td>
 <td style="text-align:right">100,000</td>
-<td style="text-align:right">351,864</td>
+<td style="text-align:right">463,822</td>
 <td style="text-align:right">16</td>
-<td style="text-align:right">2.894</td>
+<td style="text-align:right">2.156</td>
 </tr>
 <tr>
 <td><code>__snapshot</code></td>
 <td style="text-align:right">100,000</td>
-<td style="text-align:right">2,913</td>
+<td style="text-align:right">6,264</td>
 <td style="text-align:right">16</td>
-<td style="text-align:right">363.825</td>
+<td style="text-align:right">159.644</td>
 </tr>
 <tr>
 <td><code>__create</code></td>
 <td style="text-align:right">1,000,000</td>
-<td style="text-align:right">37</td>
+<td style="text-align:right">47</td>
 <td style="text-align:right">16</td>
-<td style="text-align:right">28,985.025</td>
+<td style="text-align:right">21,436.781</td>
 </tr>
 <tr>
 <td><code>__read</code></td>
 <td style="text-align:right">1,000,000</td>
-<td style="text-align:right">5,587,860</td>
+<td style="text-align:right">8,539,710</td>
 <td style="text-align:right">8,192</td>
-<td style="text-align:right">0.200</td>
+<td style="text-align:right">0.1171</td>
 </tr>
 <tr>
 <td><code>__length</code></td>
 <td style="text-align:right">1,000,000</td>
-<td style="text-align:right">20,428,833</td>
+<td style="text-align:right">32,226,877</td>
 <td style="text-align:right">8,192</td>
-<td style="text-align:right">0.053</td>
+<td style="text-align:right">0.03103</td>
 </tr>
 <tr>
 <td><code>__recover</code></td>
 <td style="text-align:right">1,000,000</td>
-<td style="text-align:right">35</td>
+<td style="text-align:right">53</td>
 <td style="text-align:right">16</td>
-<td style="text-align:right">30,516.569</td>
+<td style="text-align:right">18,859.406</td>
 </tr>
 <tr>
 <td><code>__update</code></td>
 <td style="text-align:right">1,000,000</td>
-<td style="text-align:right">117,019</td>
+<td style="text-align:right">97,087</td>
 <td style="text-align:right">16</td>
-<td style="text-align:right">8.669</td>
+<td style="text-align:right">10.300</td>
 </tr>
 <tr>
 <td><code>__delete</code></td>
 <td style="text-align:right">1,000,000</td>
-<td style="text-align:right">136,371</td>
+<td style="text-align:right">119,218</td>
 <td style="text-align:right">16</td>
-<td style="text-align:right">7.350</td>
+<td style="text-align:right">8.388</td>
 </tr>
 <tr>
 <td><code>__merge</code></td>
 <td style="text-align:right">1,000,000</td>
-<td style="text-align:right">100,666</td>
+<td style="text-align:right">91,216</td>
 <td style="text-align:right">16</td>
-<td style="text-align:right">10.244</td>
+<td style="text-align:right">10.963</td>
 </tr>
 <tr>
 <td><code>__acknowledge</code></td>
 <td style="text-align:right">1,000,000</td>
-<td style="text-align:right">1,196,516</td>
+<td style="text-align:right">735,294</td>
 <td style="text-align:right">256</td>
-<td style="text-align:right">0.836</td>
+<td style="text-align:right">1.360</td>
 </tr>
 <tr>
 <td><code>__garbageCollect</code></td>
 <td style="text-align:right">1,000,000</td>
-<td style="text-align:right">356,662</td>
+<td style="text-align:right">215,657</td>
 <td style="text-align:right">16</td>
-<td style="text-align:right">2.838</td>
+<td style="text-align:right">4.637</td>
 </tr>
 <tr>
 <td><code>__snapshot</code></td>
 <td style="text-align:right">1,000,000</td>
-<td style="text-align:right">234</td>
+<td style="text-align:right">246</td>
 <td style="text-align:right">16</td>
-<td style="text-align:right">7,147.513</td>
+<td style="text-align:right">4,072.638</td>
 </tr>
 </tbody>
 </table>
@@ -411,34 +411,38 @@
 </tr>
 </tbody>
 </table>
-<h3 id="optimized-data-model" class="tsd-anchor-link">Optimized data model<a href="#optimized-data-model" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<h3 id="compact-data-model" class="tsd-anchor-link">Compact data model<a href="#compact-data-model" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <table>
 <thead>
 <tr>
 <th>Reel workload</th>
-<th style="text-align:right">average bytes/operation</th>
+<th style="text-align:right">average bytes per operation</th>
 <th style="text-align:right">MessagePack</th>
 <th style="text-align:right">MessagePack + gzip</th>
+<th style="text-align:right">gzip reduction</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>1,000 one-Frame updates</td>
+<td>1,000 one-frame updates</td>
 <td style="text-align:right">39.6 B</td>
 <td style="text-align:right">39.6 kB</td>
 <td style="text-align:right">7.8 kB</td>
+<td style="text-align:right">80.2%</td>
 </tr>
 <tr>
-<td>1,000 one-Frame Masks</td>
+<td>1,000 one-frame masks</td>
 <td style="text-align:right">36.0 B</td>
 <td style="text-align:right">36.0 kB</td>
 <td style="text-align:right">5.1 kB</td>
+<td style="text-align:right">85.9%</td>
 </tr>
 <tr>
-<td>Snapshot of 1,000 one-Frame Strips</td>
+<td>Snapshot containing 1,000 one-frame strips</td>
 <td style="text-align:right">39.6 B</td>
 <td style="text-align:right">39.6 kB</td>
 <td style="text-align:right">7.8 kB</td>
+<td style="text-align:right">80.2%</td>
 </tr>
 </tbody>
 </table>
@@ -557,9 +561,9 @@ written to the <a href="https://sovereignbase.dev/sequencer/tests/">automated te
 <li><a href="#benchmarks"><span>Benchmarks</span></a></li>
 <li>
 <ul>
-<li><a href="#unbeliveable-performance"><span>Unbeliveable performance</span></a></li>
+<li><a href="#exceptional-performance"><span>Exceptional performance</span></a></li>
 <li><a href="#small-bundle-size"><span>Small bundle size</span></a></li>
-<li><a href="#optimized-data-model"><span>Optimized data model</span></a></li></ul></li>
+<li><a href="#compact-data-model"><span>Compact data model</span></a></li></ul></li>
 <li><a href="#why-shoul-you-use-it"><span>Why shoul you use it?</span></a></li>
 <li>
 <ul>

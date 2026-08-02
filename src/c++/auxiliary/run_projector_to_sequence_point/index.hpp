@@ -47,38 +47,19 @@ run_projector_to_sequence_point(Projector *projector,
   if (projector->strip_index.is_empty())
     return false;
 
-  // Resolve and test the locality-optimized Gate candidate first.
+  // Resolve the Gate and both retained boundaries.
   const Strip *gate_strip =
       projector->strip_index.get(projector->gate_strip_start);
-  std::uint32_t strip_frame_offset;
-  if ((strip_frame_offset = strip_contains_sequence_point(
-           gate_strip, sequence_point)) != sequence_point_outside_strip)
-    return std::pair{gate_strip, strip_frame_offset};
-
-  // Resolve a proven contiguous single-Realm Projection by counter arithmetic.
-  const SequencePoint &linear_start = projector->first_strip_start;
-  if (projector->is_projection_linear &&
-      sequence_point->unix_lower_bits == linear_start.unix_lower_bits &&
-      sequence_point->random_bits == linear_start.random_bits &&
-      sequence_point->counter_bits >= linear_start.counter_bits &&
-      sequence_point->counter_bits - linear_start.counter_bits <
-          projector->projection_frame_count) {
-    gate_strip = projector->strip_index.get_containing(*sequence_point);
-    projector->gate_strip_start = gate_strip->coordinate.this_strip_start;
-    projector->gate_projection_frame_index =
-        gate_strip->coordinate.this_strip_start.counter_bits -
-        linear_start.counter_bits;
-    return std::pair{
-        gate_strip,
-        sequence_point->counter_bits -
-            gate_strip->coordinate.this_strip_start.counter_bits};
-  }
-
-  // Resolve retained boundaries only for the general linked traversal.
   const Strip *first_strip =
       projector->strip_index.get(projector->first_strip_start);
   const Strip *last_strip =
       projector->strip_index.get(projector->last_strip_start);
+  std::uint32_t strip_frame_offset;
+
+  // Test the locality-optimized Gate candidate first.
+  if ((strip_frame_offset = strip_contains_sequence_point(
+           gate_strip, sequence_point)) != sequence_point_outside_strip)
+    return std::pair{gate_strip, strip_frame_offset};
 
   // Derive the last Strip's Projection position.
   const std::uint32_t last_strip_projection_frame_index =

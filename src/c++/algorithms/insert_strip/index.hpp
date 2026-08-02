@@ -63,22 +63,6 @@ insert_strip(Projector *projector, const Strip *previous_strip,
                      : 0);
   std::uint32_t projection_frame_offset = 0;
 
-  // Preserve direct counter-to-Projection mapping only for a contiguous tail.
-  const bool was_empty = projector->strip_index.is_empty();
-  projector->is_projection_linear =
-      was_empty ||
-      (projector->is_projection_linear && previous_strip != nullptr &&
-       previous_strip->is_masked == 0 &&
-       previous_strip_frame_offset + 1 == previous_strip->frame_count &&
-       previous_strip->next_strip_start == unlinked_strip_start &&
-       inserted_strip_start.unix_lower_bits ==
-           projector->first_strip_start.unix_lower_bits &&
-       inserted_strip_start.random_bits ==
-           projector->first_strip_start.random_bits &&
-       inserted_strip_start.counter_bits ==
-           projector->first_strip_start.counter_bits +
-               projector->projection_frame_count);
-
   const auto immediately_follows = [](const SequencePoint &point,
                                       const SequencePoint &previous) noexcept {
     return point.unix_lower_bits == previous.unix_lower_bits &&

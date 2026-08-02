@@ -24,6 +24,7 @@ console.table(
       implementation: row.implementation,
       function: row.name,
       length: row.sequence_length,
+      strips: row.sequencer_strip_count,
       'ops/sec': Math.round(1_000_000 / average_time_microseconds),
       calls: row.calls,
       'avg µs/op': average_time_microseconds.toFixed(decimal_places),

@@ -57,21 +57,23 @@ export async function run_function_benchmarks() {
   }
 
   for (const [sequence_length, measured_samples] of benchmark_sizes) {
-    // Grow one stable baseline in bounded Strips to avoid argument-count limits.
+    // Grow one stable baseline as one visible Frame per retained Strip.
     while (base_length < sequence_length) {
-      const frame_count = Math.min(10_000, sequence_length - base_length)
-      const values = Array<string>(frame_count).fill('a')
       require_result(
-        api.__update(base_state, base_length, values, 'after'),
+        api.__update(base_state, base_length, ['a'], 'after'),
         '__update'
       )
-      base_length += frame_count
+      base_length++
     }
 
     console.log(
-      `Benchmarking ${sequence_length.toLocaleString('en-US')} Frames...`
+      `Benchmarking ${sequence_length.toLocaleString('en-US')} Frames in ${sequence_length.toLocaleString('en-US')} retained Strips...`
     )
     const snapshot: Reel<string> = api.__snapshot(base_state)
+    if (snapshot.length !== sequence_length)
+      throw new TypeError(
+        `Expected ${sequence_length} retained Strips, received ${snapshot.length}.`
+      )
     const create_state = (): Replica<string> => api.__create<string>(snapshot)
     const middle_frame_index = sequence_length >> 1
     const merge_source = create_state()
@@ -310,6 +312,7 @@ export async function run_function_benchmarks() {
         implementation: definition.implementation,
         name: definition.name,
         sequence_length,
+        sequencer_strip_count: sequence_length,
         workload: definition.workload,
         throughput_ops_per_second: 1_000_000 / average_time_microseconds,
         calls: result.latency.samplesCount * definition.batch_size,
@@ -342,7 +345,7 @@ export async function run_function_benchmarks() {
       throughput: '1,000,000 divided by average_time_microseconds.',
       calls: 'Measured calls; setup and warmup calls are excluded.',
       comparison:
-        'Both implementations use one-character strings and equivalent public operations. Diamond Types indexed reads use get() because it has no direct indexed-read API; garbage collection is unsupported.',
+        'Both implementations are built with one public single-character insert call per visible Frame: one million calls at the largest size. Sequencer therefore retains exactly one single-Frame Strip per visible Frame. Diamond Types indexed reads use get() because it has no direct indexed-read API; garbage collection is unsupported.',
     },
     implementations: [
       {

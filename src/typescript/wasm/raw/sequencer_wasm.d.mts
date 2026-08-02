@@ -16,6 +16,8 @@ declare namespace RuntimeExports {
     let HEAPU32: Uint32Array;
 }
 interface WasmModule {
+  _reset_diagnostic_strip_index_get_count(): void;
+  _get_diagnostic_strip_index_get_count(): number;
   _initialize_sequence(): number;
   _clear_sequence(_0: number): void;
   _get_projection_frame_count(_0: number): number;

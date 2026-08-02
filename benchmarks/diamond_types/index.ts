@@ -6,11 +6,8 @@ export function create_diamond_types_benchmarks(
   write_result: (result: unknown) => void
 ) {
   const base_state = new Doc('benchmark_base')
-  for (let frame_index = 0; frame_index < sequence_length;) {
-    const frame_count = Math.min(10_000, sequence_length - frame_index)
-    base_state.ins(frame_index, 'a'.repeat(frame_count))
-    frame_index += frame_count
-  }
+  for (let frame_index = 0; frame_index < sequence_length; frame_index++)
+    base_state.ins(frame_index, 'a')
 
   const snapshot = base_state.toBytes()
   const middle_frame_index = sequence_length >> 1

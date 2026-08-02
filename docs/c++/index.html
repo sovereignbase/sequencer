@@ -1745,6 +1745,15 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 <em>#include &lt;vector&gt;</em></div>
 <p>Defines the cache-oriented index for materialized and pending Strips. </p>
 <p><a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> groups stable Sequence Point keys by Realm and stores each Realm’s Strips in counter order. Realm lookup uses open addressing with linear probing; exact point lookup within one Realm uses binary search. This keeps the common Realm-local insertion and traversal paths contiguous in memory. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv432diagnostic_strip_index_get_count">
+<span id="_CPPv332diagnostic_strip_index_get_count"></span><span id="_CPPv232diagnostic_strip_index_get_count"></span><span id="diagnostic_strip_index_get_count__std::uint32_t"></span><span class="target" id="classes_2strip__index_2index_8hpp_1a1afbc1fe88b036390367fc86854ebebc"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">diagnostic_strip_index_get_count</span></span></span><a class="headerlink" href="#_CPPv432diagnostic_strip_index_get_count" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Diagnostic count of exact-key lookups during local profiling. </p>
+</dd></dl>
+
+</div>
 </dd></dl>
 
 <dl>
@@ -1940,6 +1949,17 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Pointer to the first Frontier entry, or <code class="docutils literal notranslate"><span class="pre">nullptr</span></code> when empty. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv436get_diagnostic_strip_index_get_countv">
+<span id="_CPPv336get_diagnostic_strip_index_get_countv"></span><span id="_CPPv236get_diagnostic_strip_index_get_countv"></span><span id="get_diagnostic_strip_index_get_count"></span><span class="target" id="main_8cpp_1a5dc6bdb2c4d8238ed0b1a8d15ba22add"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_diagnostic_strip_index_get_count</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv436get_diagnostic_strip_index_get_countv" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Read the temporary exact <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> lookup profiler. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Number of exact-key lookups since the last reset. </p>
 </dd>
 </dl>
 </dd></dl>
@@ -2148,6 +2168,12 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 <dd class="field-odd"><p><a class="reference internal" href="#classFrontierBuffer"><span class="std std-ref">FrontierBuffer</span></a> has space for exactly <code class="docutils literal notranslate"><span class="pre">frontier_count</span></code> complete entries. </p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv438reset_diagnostic_strip_index_get_countv">
+<span id="_CPPv338reset_diagnostic_strip_index_get_countv"></span><span id="_CPPv238reset_diagnostic_strip_index_get_countv"></span><span id="reset_diagnostic_strip_index_get_count"></span><span class="target" id="main_8cpp_1ae838efc761b59727229c22e1390468b6"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">reset_diagnostic_strip_index_get_count</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv438reset_diagnostic_strip_index_get_countv" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Reset the temporary exact <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> lookup profiler. </p>
 </dd></dl>
 
 <dl class="cpp function">

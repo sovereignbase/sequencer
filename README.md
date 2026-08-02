@@ -4,19 +4,35 @@ A causality-encoding engine written in TypeScript and C++ to build high-performa
 
 Sequencer provides a deterministic total ordering for distributed data. It allows independently operating replicas to make concurrent changes and later converge on the same logical state without relying on network arrival order or perfectly synchronized clocks.
 
-## Unbeliveable performance
+## Usage
+
+### Simple typed api
+
+```ts
+import * as sequencer from '@sovereignbase/sequencer'
+
+const sequence = sequencer.__create(/*optional stored snapshot*/)
+const { reel, change } = sequencer.__update(sequence, 0, 'Hello World', 'after')
+console.log(sequencer.__read(sequence, 0)) // "Hello World"
+```
+
+## Benchmarks
+
+### Unbeliveable performance
 
 |function|troughput (ops/sec)|average time (ns)
 
-## Small bundle size
+### Small bundle size
 
 Bundle size benchmakrs
 
-## Optimized data model
+### Optimized data model
 
 Bytse size benchmarks
 
-## Understanding the Problem Sequencer Solves
+## About
+
+### Understanding the Problem Sequencer Solves
 
 As an example, let's consider two editors, **A** and **B**, both working on the following text:
 
@@ -89,7 +105,7 @@ Another solution is to timestamp every operation.
 
 However, wall clocks across different machines are never guaranteed to be perfectly synchronized. Clock skew can cause an operation created later to appear earlier, or an earlier operation to appear later.
 
-## Sequencer's Approach
+### Sequencer's Approach
 
 Sequencer gives a stable unique identifier to every frame in a sequence.
 
@@ -117,9 +133,11 @@ This means replicas can:
 - Merge concurrent changes.
 - Eventually converge on the same sequence.
 
-## Behaviour guaranteed by excessive tests
+## Tests
 
-## Works everywhere where ESM modules and Wasm works
+### Behaviour guaranteed by excessive tests
+
+### Works everywhere where ESM modules and Wasm works
 
 runtimes with tested support
 

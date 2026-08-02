@@ -5,7 +5,6 @@ import type {
   SequenceCoordinate,
   SequencePoint,
   SequenceReel,
-  SequenceStrip,
 } from '../../../types/type.js'
 import {
   get_footage_frame_index,

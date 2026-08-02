@@ -1,100 +1,80 @@
-import { CRListError } from '../../../.errors/class.js'
-import {
-  generateSnapshotRange,
-  getPreviousRangeId,
-  isSafeIndex,
-  wasmModule,
-} from '../../../.helpers/index.js'
+import { is_safe_index, issue_strip_start } from '../../../helpers/index.js'
 import type {
-  CRListChange,
-  CRListDelta,
-  CRListState,
-} from '../../../.types/type.js'
+  Sequence,
+  SequenceChange,
+  SequenceCoordinate,
+  SequencePoint,
+  SequenceReel,
+} from '../../../types/type.js'
+import {
+  get_footage_frame_index,
+  get_projection_frame_count,
+  merge_strip_into_sequence,
+  read_strip_from_buffer,
+  write_strip_at_projection_frame_index_to_buffer,
+  write_strip_to_buffer,
+} from '../../../wasm/index.js'
 import { __delete } from '../delete/index.js'
 
-/**
- * Applies a local value mutation to the replica live view.
- *
- * The update can replace a range starting at the target item, insert values
- * before it, or insert values after it. The returned delta is suitable for
- * gossip and the returned change describes the local live-view patch.
- *
- * @param listIndex - Target index in the live list.
- * @param listValues - Values to insert or overwrite.
- * @param replica - Replica to mutate.
- * @param mode - Mutation mode relative to `listIndex`.
- * @returns - A local change and gossip delta, or `false` if no mutation occurred.
- */
 export function __update<T>(
-  listIndex: number,
-  listValues: Array<T>,
-  replica: CRListState<T>,
+  state: Sequence<T>,
+  index: number,
+  values: Array<T>,
   mode: 'overwrite' | 'before' | 'after'
-): { change: CRListChange<T>; delta: CRListDelta<T> } | false {
-  // Values must be an array because update modes operate on contiguous blocks.
-  if (!Array.isArray(listValues))
-    throw new CRListError(
-      'UPDATE_EXPECTED_AN_ARRAY',
-      '`listValues` must be an Array'
-    )
+): { change: SequenceChange<T>; reel: SequenceReel<T> } | false {
+  if (!Array.isArray(values) || values.length === 0) return false
 
-  // Empty writes are semantic no-ops and produce no events or deltas.
-  if (listValues.length === 0) return false
+  const projection_frame_count = get_projection_frame_count(state.id)
+  if (!is_safe_index(projection_frame_count, index, true)) return false
 
-  const liveAmount = wasmModule._get_live_item_amount(...replica.instanceId)
-  if (!isSafeIndex(listIndex, liveAmount, true))
-    throw new CRListError('INDEX_OUT_OF_BOUNDS')
-
-  // Change is the local live-view patch; delta is the gossip payload.
-  const removed =
+  const insertion_frame_index =
+    mode === 'after' ? Math.min(index + 1, projection_frame_count) : index
+  const masked =
     mode === 'overwrite'
       ? __delete(
-          replica,
-          listIndex,
-          Math.min(listIndex + listValues.length, liveAmount)
+          state,
+          index,
+          Math.min(index + values.length, projection_frame_count)
         )
       : false
-  const change: CRListChange<T> = removed ? removed.change : {}
-  const delta: CRListDelta<T> = removed ? removed.delta : []
-  const currentLiveAmount = wasmModule._get_live_item_amount(
-    ...replica.instanceId
-  )
-  const insertIndex =
-    mode === 'after' ? Math.min(listIndex + 1, currentLiveAmount) : listIndex
-  const range = generateSnapshotRange(
-    replica,
-    listValues,
-    getPreviousRangeId(replica, insertIndex)
-  )
-  const consumerReference = replica.values.length
+  const change: SequenceChange<T> = masked ? masked.change : {}
+  const reel: SequenceReel<T> = masked ? masked.reel : []
+  let previous_strip_start: SequencePoint = [0, 0, 0]
 
-  void replica.values.push(...listValues)
+  if (insertion_frame_index > 0) {
+    const previous_projection_frame_index = insertion_frame_index - 1
+    const previous_footage_frame_index = get_footage_frame_index(
+      state.id,
+      previous_projection_frame_index
+    )
+    write_strip_at_projection_frame_index_to_buffer(
+      state.id,
+      previous_projection_frame_index
+    )
 
-  if (insertIndex === currentLiveAmount) {
-    void wasmModule._add_range_to(
-      listValues.length,
-      consumerReference,
-      0,
-      ...replica.instanceId,
-      ...range.id,
-      ...range.previousRangeId
-    )
-  } else {
-    void wasmModule._applyLocal(
-      insertIndex,
-      listValues.length,
-      0,
-      consumerReference,
-      ...replica.instanceId,
-      ...range.id,
-      ...range.previousRangeId
-    )
+    const [, , strip_footage_frame_index, [, strip_start]] =
+      read_strip_from_buffer()
+    previous_strip_start = [
+      strip_start[0],
+      strip_start[1] + previous_footage_frame_index - strip_footage_frame_index,
+      strip_start[2],
+    ]
   }
 
-  for (let index = 0; index < listValues.length; index++)
-    change[insertIndex + index] = listValues[index]
-  void delta.push(range)
+  const frame_count = values.length
+  const footage_frame_index = state.footage.length
+  const coordinate: SequenceCoordinate = [
+    previous_strip_start,
+    issue_strip_start(frame_count),
+  ]
 
-  // Return both the local patch and the CRDT delta to the caller.
-  return { change, delta }
+  state.footage.push(...values)
+  write_strip_to_buffer(0, frame_count, footage_frame_index, coordinate)
+  merge_strip_into_sequence(state.id)
+  reel.push([0, frame_count, coordinate, values])
+
+  for (let frame_offset = 0; frame_offset < frame_count; frame_offset++)
+    change[insertion_frame_index + frame_offset] = values[frame_offset]
+
+  return { change, reel }
 }

@@ -1,102 +1,103 @@
-import create_module, {
-  type MainModule as MainModule,
-} from './raw/sequencer_wasm.mjs'
-import type { SequencePoint, SequenceCoordinate } from '../types/type.js'
-//
-const wasm = create_module() as unknown as MainModule
-//
-const this_strip_start_offset = wasm._this_strip_start_buffer_pointer() >>> 2
-export const this_strip_start_buffer = wasm.HEAPU32.subarray(
-  this_strip_start_offset,
-  this_strip_start_offset + 4
-)
-//
-const previous_strip_start_offset =
-  wasm._previous_strip_start_buffer_pointer() >>> 2
-export const previous_strip_start_buffer = wasm.HEAPU32.subarray(
-  previous_strip_start_offset,
-  previous_strip_start_offset + 4
-)
-//
-export function read_from_strip_start_buffer(
-  strip_start_buffer: Uint32Array<ArrayBufferLike>
-): SequencePoint {
+import create_module from './raw/sequencer_wasm.mjs'
+import type { SequenceCoordinate } from '../types/type.js'
+
+const wasm = create_module()
+const strip_buffer_start_index = wasm._get_strip_buffer_pointer() >>> 2
+
+/**
+ * Reads the strip currently held by the shared WebAssembly transfer buffer.
+ *
+ * The returned coordinate follows the TypeScript order
+ * `[previous_strip_start, this_strip_start]` even though the native buffer
+ * stores the current strip start first.
+ */
+export function read_strip_from_buffer(): [
+  is_masked: number,
+  frame_count: number,
+  footage_frame_index: number,
+  sequence_coordinate: SequenceCoordinate,
+] {
+  const buffer = wasm.HEAPU32
+  const start = strip_buffer_start_index
+
   return [
-    strip_start_buffer[0],
-    strip_start_buffer[1],
-    strip_start_buffer[2],
-    strip_start_buffer[3],
+    buffer[start],
+    buffer[start + 1],
+    buffer[start + 2],
+    [
+      [buffer[start + 7], buffer[start + 8], buffer[start + 6]],
+      [buffer[start + 4], buffer[start + 5], buffer[start + 3]],
+    ],
   ]
 }
-//
-export function write_to_strip_start_buffer(
-  strip_start_buffer: Uint32Array<ArrayBufferLike>,
-  strip_start: SequencePoint
+
+/**
+ * Writes one strip to the shared WebAssembly transfer buffer.
+ *
+ * @param is_masked Zero for a visible strip; nonzero for a mask.
+ * @param frame_count Number of consecutive frames represented by the strip.
+ * @param footage_frame_index Footage index corresponding to its first frame.
+ * @param sequence_coordinate Stable placement coordinate of the strip.
+ */
+export function write_strip_to_buffer(
+  is_masked: number,
+  frame_count: number,
+  footage_frame_index: number,
+  sequence_coordinate: SequenceCoordinate
 ): void {
-  ;((strip_start_buffer[0] = strip_start[0]),
-    (strip_start_buffer[1] = strip_start[1]),
-    (strip_start_buffer[2] = strip_start[2]),
-    (strip_start_buffer[3] = strip_start[3]))
-}
-/**
- * Creates an empty projector.
- *
- * @returns The handle used by the other projector operations.
- */
-export function cue_projector(): number {
-  return wasm._cue_projector()
+  const buffer = wasm.HEAPU32
+  const start = strip_buffer_start_index
+  const previous_strip_start = sequence_coordinate[0]
+  const this_strip_start = sequence_coordinate[1]
+
+  buffer[start] = is_masked
+  buffer[start + 1] = frame_count
+  buffer[start + 2] = footage_frame_index
+  buffer[start + 3] = this_strip_start[2]
+  buffer[start + 4] = this_strip_start[0]
+  buffer[start + 5] = this_strip_start[1]
+  buffer[start + 6] = previous_strip_start[2]
+  buffer[start + 7] = previous_strip_start[0]
+  buffer[start + 8] = previous_strip_start[1]
 }
 
-/**
- * Returns the number of visible frames in a projector.
- *
- * @param projector_id The projector to inspect.
- */
-export function length_of(projector_id: number): number {
-  return wasm._length_of(projector_id)
+/** Initializes an empty sequence and returns its stable identifier. */
+export function initialize_sequence(): number {
+  return wasm._initialize_sequence() >>> 0
 }
 
-/**
- * Returns the application-defined footage code at a requested index.
- *
- * @param projector_id The projector to inspect.
- * @param index The desired zero-based index.
- */
-export function footage_position_of(
-  projector_id: number,
-  index: number
+/** Clears a sequence while retaining its identifier for later reuse. */
+export function clear_sequence(sequence_id: number): void {
+  wasm._clear_sequence(sequence_id)
+}
+
+/** Returns the number of frames in the current projection. */
+export function get_projection_frame_count(sequence_id: number): number {
+  return wasm._get_projection_frame_count(sequence_id) >>> 0
+}
+
+/** Resolves a projection frame index to its footage frame index. */
+export function get_footage_frame_index(
+  sequence_id: number,
+  projection_frame_index: number
 ): number {
-  return wasm._footage_position_of(projector_id, index)
-}
-
-/**
- * Returns the strip timecodes at a visible frame position.
- *
- * @param projector_id The projector to inspect.
- * @param index The zero-based visible frame position.
- */
-export function sequence_coordinate_of(
-  projector_id: number,
-  index: number
-): SequenceCoordinate {
-  void wasm._previous_strip_start_of(projector_id, index)
-  void wasm._this_strip_start_of(projector_id, index)
-  return [
-    read_from_strip_start_buffer(previous_strip_start_buffer),
-    read_from_strip_start_buffer(this_strip_start_buffer),
-  ]
-}
-
-export function splice_sequence(
-  projector_id: number,
-  footage_position: number,
-  masked_flag: 1 | 0,
-  strip_length: number
-): void {
-  wasm._splice_sequence(
-    projector_id,
-    footage_position,
-    masked_flag,
-    strip_length
+  return (
+    wasm._get_footage_frame_index(sequence_id, projection_frame_index) >>> 0
   )
+}
+
+/** Writes the strip containing a projection frame index to the shared buffer. */
+export function write_strip_at_projection_frame_index_to_buffer(
+  sequence_id: number,
+  projection_frame_index: number
+): void {
+  wasm._write_strip_at_projection_frame_index_to_buffer(
+    sequence_id,
+    projection_frame_index
+  )
+}
+
+/** Merges the strip currently held by the shared buffer into a sequence. */
+export function merge_strip_into_sequence(sequence_id: number): void {
+  wasm._merge_strip_into_sequence(sequence_id)
 }

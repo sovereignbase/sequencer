@@ -1,14 +1,10 @@
 import { isUint32 } from '@sovereignbase/utils'
-import {
-  write_to_strip_start_buffer,
-  this_strip_start_buffer,
-} from '../wasm/index.js'
-import { SequencePoint } from '../types/type.js'
+import { SequencePoint } from '../../types/type.js'
 
 const buf = new Uint32Array(3)
-void crypto.getRandomValues(buf.subarray(0, 1))
-buf[1] = Date.now() >>> 0
-buf[2] = 0
+buf[0] = Date.now() >>> 0
+buf[1] = 0
+void crypto.getRandomValues(buf.subarray(2, 3))
 
 /**
  * used by updates to get sequence points for the produced strips
@@ -16,13 +12,13 @@ buf[2] = 0
  * @returns A reference to a Uint32Array that should not be modified
  */
 export function tick(length: number): Readonly<Uint32Array> {
-  const next = buf[3] + length
+  const next = buf[1] + length
   if (!isUint32(next)) {
-    void crypto.getRandomValues(buf.subarray(0, 1))
-    buf[1] = Date.now() >>> 0
-    buf[2] = 0
+    buf[0] = Date.now() >>> 0
+    buf[1] = 0
+    void crypto.getRandomValues(buf.subarray(2, 3))
   } else {
-    buf[2] = next
+    buf[1] = next
   }
   return buf
 }

@@ -1,0 +1,139 @@
+{
+  "generated_at": "2026-08-02T18:19:35.266Z",
+  "environment": {
+    "node": "24.16.0",
+    "v8": "13.6.233.17-node.49",
+    "platform": "win32",
+    "architecture": "x64",
+    "cpu": "Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz"
+  },
+  "rows": [
+    {
+      "name": "__create",
+      "workload": "Create one empty Replica",
+      "throughput_ops_per_second": 96458.18698684692,
+      "average_time_ns": 16748.437500000007,
+      "relative_margin_of_error": 7.209646173568764,
+      "samples": 512,
+      "batch_size": 1
+    },
+    {
+      "name": "__read",
+      "workload": "Read a rotating index from one 256-Frame Strip",
+      "throughput_ops_per_second": 12374920.677405419,
+      "average_time_ns": 88.59003906250007,
+      "relative_margin_of_error": 3.1789615597640783,
+      "samples": 2000,
+      "batch_size": 512
+    },
+    {
+      "name": "__length",
+      "workload": "Read the length of one 256-Frame Strip",
+      "throughput_ops_per_second": 35522161.5293905,
+      "average_time_ns": 37.077148437500014,
+      "relative_margin_of_error": 12.753696648043542,
+      "samples": 2000,
+      "batch_size": 512
+    },
+    {
+      "name": "__recover",
+      "workload": "Recover one retained 256-Frame Strip",
+      "throughput_ops_per_second": 336609.83549635496,
+      "average_time_ns": 4135.181249999998,
+      "relative_margin_of_error": 8.081415756088287,
+      "samples": 2000,
+      "batch_size": 8
+    },
+    {
+      "name": "__update",
+      "workload": "Insert one Frame into one 256-Frame Strip",
+      "throughput_ops_per_second": 185021.26988745245,
+      "average_time_ns": 8635.546874999996,
+      "relative_margin_of_error": 33.142345161990384,
+      "samples": 512,
+      "batch_size": 1
+    },
+    {
+      "name": "__delete",
+      "workload": "Soft-delete one Frame from one 256-Frame Strip",
+      "throughput_ops_per_second": 171692.32915045507,
+      "average_time_ns": 19074.21875,
+      "relative_margin_of_error": 91.22066782758029,
+      "samples": 512,
+      "batch_size": 1
+    },
+    {
+      "name": "__merge",
+      "workload": "Merge one new 16-Frame Strip into an empty Replica",
+      "throughput_ops_per_second": 136501.76029341095,
+      "average_time_ns": 9825.585937500002,
+      "relative_margin_of_error": 13.455857506463584,
+      "samples": 512,
+      "batch_size": 1
+    },
+    {
+      "name": "__acknowledge",
+      "workload": "Acknowledge one Realm containing a 256-Frame Strip",
+      "throughput_ops_per_second": 909461.2373635278,
+      "average_time_ns": 1257.699999999999,
+      "relative_margin_of_error": 7.10154545356782,
+      "samples": 2000,
+      "batch_size": 16
+    },
+    {
+      "name": "__garbageCollect",
+      "workload": "Release one soft-deleted Frame using two Frontiers",
+      "throughput_ops_per_second": 446903.3409189262,
+      "average_time_ns": 3807.031249999999,
+      "relative_margin_of_error": 14.785212534594955,
+      "samples": 512,
+      "batch_size": 1
+    },
+    {
+      "name": "__snapshot",
+      "workload": "Snapshot one retained 256-Frame Strip",
+      "throughput_ops_per_second": 464949.93834760913,
+      "average_time_ns": 2827.681249999997,
+      "relative_margin_of_error": 8.216713027680852,
+      "samples": 2000,
+      "batch_size": 8
+    }
+  ],
+  "bundle_sizes": [
+    {
+      "format": "ESM",
+      "raw_bytes": 89828,
+      "minified_bytes": 53177,
+      "minified_gzip_bytes": 18782
+    },
+    {
+      "format": "CommonJS",
+      "raw_bytes": 90124,
+      "minified_bytes": 55605,
+      "minified_gzip_bytes": 19108
+    }
+  ],
+  "data_sizes": [
+    {
+      "name": "1,000 one-Frame updates",
+      "operations": 1000,
+      "average_bytes_per_operation": 39.607,
+      "messagepack_bytes": 39607,
+      "messagepack_gzip_bytes": 7845
+    },
+    {
+      "name": "1,000 one-Frame Masks",
+      "operations": 1000,
+      "average_bytes_per_operation": 36.003,
+      "messagepack_bytes": 36003,
+      "messagepack_gzip_bytes": 5083
+    },
+    {
+      "name": "Snapshot of 1,000 one-Frame Strips",
+      "operations": 1000,
+      "average_bytes_per_operation": 39.607,
+      "messagepack_bytes": 39607,
+      "messagepack_gzip_bytes": 7845
+    }
+  ]
+}

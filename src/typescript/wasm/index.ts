@@ -104,9 +104,7 @@ export function write_strip_at_projection_frame_index_to_buffer(
  * A mask is reported at the index its first frame occupied before masking.
  * `false` means that the strip remained pending or was discarded.
  */
-export function merge_strip_into_sequence(
-  sequence_id: number
-): number | false {
+export function merge_strip_into_sequence(sequence_id: number): number | false {
   const projection_frame_index =
     wasm._merge_strip_into_sequence(sequence_id) >>> 0
   return projection_frame_index === no_projection_frame_index

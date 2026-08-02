@@ -89,8 +89,12 @@ The baseline includes the separately retained `__recover` optimization.
   function, and line coverage.
 - Added a public-API regression test proving that acknowledgement still emits
   both entries after materializing two distinct Realms.
+- `npm run test`: 28 tests, five runtime targets, and 15 browser targets passed
+  in the final combined worktree.
+- `npm run bench`: passed. Sequencer beat Diamond Types at all five measured
+  lengths; at 1,000,000 Frames the full-matrix result was 4,856,727 versus
+  1,439,885 ops/sec.
 
 Decision: retain. The isolated hypothesis improves the common one-Realm path by
 approximately 79-85% with a 24-byte minified+gzip ESM increase and leaves the
-multi-Realm algorithm intact. Full repository tests and the complete benchmark
-matrix remain part of final combined verification.
+multi-Realm algorithm intact.

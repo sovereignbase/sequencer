@@ -80,8 +80,8 @@ path returned to its original single pass. Five process medians were
 583.80/536.40/1,054.65/766.00/823.00 µs at 100,000, and
 5,898.75/5,184.05/6,302.70/5,377.55/5,625.45 µs at 1,000,000.
 
-Decision: retain the architectural separation, then optimize the remaining
-single-Strip copy independently.
+Decision: provisionally retain the architectural separation, then validate its
+effect on operations that mutate a hydrated Replica.
 
 ### 4. Single-Strip `slice()` fast path
 
@@ -90,7 +90,7 @@ released Footage allocates the required stable holes, and pending state retains
 an empty Footage array when appropriate. Invalid input still yields an empty
 Replica.
 
-## Final candidate raw results
+## Combined local candidate raw results
 
 |    Length | Sequencer runs                                                                                          | Diamond Types runs                                                                            |
 | --------: | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
@@ -100,9 +100,10 @@ Replica.
 |   100,000 | 457.70 (557.79); 722.25 (545.99); 648.10 (534.82); 886.20 (7,853.02); 824.65 (507.06)                   | 138.75 (16.51); 126.55 (22.22); 126.95 (7.55); 282.85 (14.14); 136.55 (22.43)                 |
 | 1,000,000 | 6,434.30 (6,098.35); 5,307.00 (3,704.80); 6,436.25 (5,266.69); 6,176.90 (6,589.69); 5,093.20 (3,737.80) | 1,316.75 (366.32); 1,341.50 (563.65); 1,340.70 (291.98); 1,342.05 (483.73); 1,327.60 (721.63) |
 
-## Median comparison
+## Local `__create` median comparison
 
-The table uses the median of the five process medians.
+The table uses the median of the five process medians. These local results did
+not justify retention until downstream workloads were measured.
 
 |    Length | Baseline Sequencer µs | Candidate Sequencer µs | Improvement | Candidate comparison       |
 | --------: | --------------------: | ---------------------: | ----------: | -------------------------- |
@@ -115,32 +116,57 @@ The table uses the median of the five process medians.
 Allocation and collection make the within-process standard deviations noisy,
 especially because the benchmark intentionally retains created Sequencer
 Replicas through each task. Five independent process medians therefore drive
-the decision. The large-case improvement is much wider than that noise.
+the local comparison.
+
+## Downstream regression and reversion
+
+The complete benchmark exposed a disqualifying cross-operation regression at
+the exact 100,000 Frame activation boundary. `new Array(frame_count)` followed
+by indexed assignments leaves V8 with a holey elements kind even after every
+slot is populated. The benchmark creates update and merge state pools through
+`__create`; their first subsequent Footage append then encountered the slow
+large holey-array path.
+
+|    Length | Operation  | Preallocated candidate µs | After reversion µs | Recovery |
+| --------: | ---------- | ------------------------: | -----------------: | -------: |
+|   100,000 | `__update` |                 3,450.894 |              2.450 |   1,408x |
+|   100,000 | `__merge`  |                 2,602.388 |              2.925 |     890x |
+| 1,000,000 | `__update` |                12,867.006 |              5.500 |   2,339x |
+| 1,000,000 | `__merge`  |                11,818.538 |              6.688 |   1,767x |
+
+The preallocated large-Snapshot unit and its routing were removed. The retained
+change is only the single-Strip `slice()` path, whose result is a packed,
+independently owned array. Multi-Strip snapshots again use the original
+incremental packed-array path.
 
 ## Artifact impact
 
-The baseline includes the retained `__recover` and `__acknowledge` changes.
+The baseline includes the retained `__recover` and `__acknowledge` changes. The
+candidate below is the final single-Strip-only implementation after removing
+large preallocation.
 
-| Artifact                 | Baseline bytes | Candidate bytes |  Delta |
-| ------------------------ | -------------: | --------------: | -----: |
-| Raw Wasm                 |         35,673 |          35,673 |      0 |
-| ESM raw                  |         90,690 |          93,039 | +2,349 |
-| ESM gzip                 |         27,136 |          27,432 |   +296 |
-| ESM minified + gzip      |         18,944 |          19,153 |   +209 |
-| CommonJS raw             |         90,986 |          93,335 | +2,349 |
-| CommonJS gzip            |         27,243 |          27,542 |   +299 |
-| CommonJS minified + gzip |         19,269 |          19,512 |   +243 |
+| Artifact                 | Baseline bytes | Candidate bytes | Delta |
+| ------------------------ | -------------: | --------------: | ----: |
+| Raw Wasm                 |         35,673 |          35,673 |     0 |
+| ESM raw                  |         90,690 |          91,328 |  +638 |
+| ESM gzip                 |         27,136 |          27,198 |   +62 |
+| ESM minified + gzip      |         18,944 |          19,014 |   +70 |
+| CommonJS raw             |         90,986 |          91,624 |  +638 |
+| CommonJS gzip            |         27,243 |          27,307 |   +64 |
+| CommonJS minified + gzip |         19,269 |          19,340 |   +71 |
 
 ## Correctness and decision
 
 - `npm run build`: passed for each retained candidate.
-- `npm run test:unit`: 20 tests passed across four files after the final code.
+- `npm run test`: 28 tests, five runtime targets, and 15 browser targets passed
+  after removing the preallocated path.
 - Added coverage that mutating input Snapshot Footage after `__create` cannot
-  mutate the created Replica, including the ten-Strip preallocated path.
-- Added large-path malformed and pending Snapshot coverage.
+  mutate the created Replica for single- and multi-Strip snapshots.
+- `npm run bench`: passed after reversion; update and merge returned to their
+  expected microsecond-scale behavior at 100,000 and 1,000,000 Frames.
 
-Decision: retain the separate preallocated large path and single-Strip clone.
-The final candidate improves every measured length, closes the largest
-Sequencer gaps substantially, preserves value ownership, and adds 209 bytes to
-the minified+gzip ESM artifact. Full repository tests and the complete benchmark
-matrix remain part of final combined verification.
+Decision: reject every large-Snapshot preallocation attempt and retain only the
+single-Strip clone. The retained path improves the targeted 100, 1,000, and
+10,000 Frame process medians, preserves packed Footage and value ownership, and
+adds 70 bytes to the minified+gzip ESM artifact. The downstream failure is part
+of the archive so the locally attractive preallocation is not repeated.

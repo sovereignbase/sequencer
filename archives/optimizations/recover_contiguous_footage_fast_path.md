@@ -114,6 +114,11 @@ memory was not separately instrumented.
 ## Correctness
 
 - `npm run test:unit`: 18 tests passed.
+- `npm run test`: 28 tests, five runtime targets, and 15 browser targets
+  passed in the final combined worktree.
+- `npm run bench`: passed in the final combined worktree. At 100,000 and
+  1,000,000 Frames, full-matrix throughput increased from the supplied 698 and
+  55 ops/sec baselines to 2,706 and 208 ops/sec.
 - Added coverage for recovery when structural order differs from Footage append
   order.
 - Added coverage for pending Footage that is not yet materialized.
@@ -122,7 +127,7 @@ memory was not separately instrumented.
 
 ## Decision
 
-Retained provisionally pending the repository-wide test and benchmark runs.
+Retained after the repository-wide test and benchmark runs.
 
 The change provides large, reproducible improvements at representative lengths
 and narrows every Diamond Types deficit without changing state or semantics.

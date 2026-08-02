@@ -4,7 +4,6 @@
  * @module
  */
 import { is_strip } from '../../../helpers/index.js'
-import { hydrate_large_snapshot } from './hydrate_large_snapshot/index.js'
 import {
   clear_sequence,
   hydrate_pending_snapshot_strip_into_sequence,
@@ -63,15 +62,6 @@ export function __create<T>(data?: unknown): Replica<T> {
     write_strip_to_buffer(is_masked, frame_count, 0, coordinate)
     if (is_pending === 1) hydrate_pending_snapshot_strip_into_sequence(state.id)
     else hydrate_snapshot_strip_into_sequence(state.id)
-    return state
-  }
-
-  // Route large retained snapshots to their preallocated hydration path.
-  const first_chunk = data[0]
-  const first_frame_count =
-    Array.isArray(first_chunk) && is_uint32(first_chunk[1]) ? first_chunk[1] : 0
-  if (data.length >= 10 || first_frame_count >= 100_000) {
-    hydrate_large_snapshot<T>(state, data)
     return state
   }
 

@@ -43,9 +43,6 @@ describe('MAGS merge', () => {
     expect(__merge(state, [null])).toBe(false)
     expect(__merge(state, incomplete_reel)).toBe(false)
     expect(__length(__create([...incomplete_reel, null]))).toBe(0)
-    expect(
-      __length(__create([...incomplete_reel, ...Array<null>(9).fill(null)]))
-    ).toBe(0)
     expect(__length(state)).toBe(0)
   })
 
@@ -61,11 +58,7 @@ describe('MAGS merge', () => {
     expect(__length(target)).toBe(0)
     expect(__recover(target)).toEqual([])
 
-    const pending_snapshot = __snapshot(target)
-    const restarted = __create<string>([
-      ...pending_snapshot,
-      ...Array<null>(9).fill(null),
-    ])
+    const restarted = __create<string>(__snapshot(target))
     expect(__merge(restarted, parent_result.reel)).toEqual({
       0: 'parent',
       1: 'child',
@@ -95,7 +88,7 @@ describe('MAGS retained state', () => {
     expect(__recover(target)).toEqual(['a', 'b', 'c'])
   })
 
-  it('hydrates large Snapshots into independently owned Footage', () => {
+  it('hydrates multi-Strip Snapshots into independently owned Footage', () => {
     const source = __create<string>()
     const expected_values = Array.from(
       { length: 10 },

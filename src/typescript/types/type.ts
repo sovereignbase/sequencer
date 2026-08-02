@@ -28,6 +28,9 @@ export type Replica<T> = {
   footage: Array<T | undefined>
 }
 
+//MINIMIZE COPYING
+//CREATE ONE METADATA OBJECCT WITH STRIPS BEING [meta, footage] //GIVE ITS POINTER TO WASM API, ONLY COPY THE VALUES AT WASM ABI AND ONLY COPY FOOTAGE TO REPLICA
+
 // Stable Sequence Point tuple contract.
 /**
  * Immutable identity of either the Root or one stable Frame in sequence space.

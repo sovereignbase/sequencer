@@ -15,6 +15,9 @@ the before/after baseline for a local optimization attempt.
 Review `src`.
 
 **OPTIMIZE TO THE EXTREME**
+**SIMPLIFY TO THE EXTREME**
+**MINIMIZE TO THE EXTREME**
+**SEMANTICS TO THE EXTREME**
 
 ## Optimization Loop
 

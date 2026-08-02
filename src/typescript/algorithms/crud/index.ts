@@ -2,7 +2,7 @@
 export { __create } from './create/index.js'
 
 /** Exports the live-view read primitive. */
-export { __read, __length } from './read/index.js'
+export * from './read/index.js'
 
 /** Exports the local mutation primitive. */
 export { __update } from './update/index.js'

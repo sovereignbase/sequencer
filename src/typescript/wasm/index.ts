@@ -3,6 +3,7 @@ import type { SequenceCoordinate } from '../types/type.js'
 
 const wasm = create_module()
 const strip_buffer_start_index = wasm._get_strip_buffer_pointer() >>> 2
+const no_projection_frame_index = 0xffff_ffff
 
 /**
  * Reads the strip currently held by the shared WebAssembly transfer buffer.
@@ -97,7 +98,18 @@ export function write_strip_at_projection_frame_index_to_buffer(
   )
 }
 
-/** Merges the strip currently held by the shared buffer into a sequence. */
-export function merge_strip_into_sequence(sequence_id: number): void {
-  wasm._merge_strip_into_sequence(sequence_id)
+/**
+ * Merges the buffered strip and returns its projection start index.
+ *
+ * A mask is reported at the index its first frame occupied before masking.
+ * `false` means that the strip remained pending or was discarded.
+ */
+export function merge_strip_into_sequence(
+  sequence_id: number
+): number | false {
+  const projection_frame_index =
+    wasm._merge_strip_into_sequence(sequence_id) >>> 0
+  return projection_frame_index === no_projection_frame_index
+    ? false
+    : projection_frame_index
 }

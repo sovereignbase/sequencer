@@ -3,7 +3,7 @@
 
 PROJECT_NAME           = "Sequencer C++ API"
 PROJECT_NUMBER         = 0.0.0
-OUTPUT_DIRECTORY       = documentation/c++/.doxygen
+OUTPUT_DIRECTORY       = .doxygen
 OUTPUT_LANGUAGE        = English
 
 FULL_PATH_NAMES        = YES

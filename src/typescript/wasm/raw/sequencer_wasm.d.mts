@@ -22,7 +22,7 @@ interface WasmModule {
   _get_footage_frame_index(_0: number, _1: number): number;
   _write_strip_at_projection_frame_index_to_buffer(_0: number, _1: number): void;
   _get_strip_buffer_pointer(): number;
-  _merge_strip_into_sequence(_0: number): void;
+  _merge_strip_into_sequence(_0: number): number;
 }
 
 export type MainModule = WasmModule & typeof RuntimeExports;

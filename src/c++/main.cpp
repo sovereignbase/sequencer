@@ -15,6 +15,7 @@
 #include "./classes/strip_buffer/index.hpp"
 #include "./declarations/projector/index.hpp"
 #include <cstdint>
+#include <limits>
 #include <optional>
 #include <variant>
 #include <vector>
@@ -28,6 +29,8 @@
 static std::vector<std::optional<Projector>> projectors;
 static std::vector<std::uint32_t> available_sequence_ids;
 static StripBuffer strip_buffer;
+static constexpr std::uint32_t no_projection_frame_index =
+    std::numeric_limits<std::uint32_t>::max();
 
 extern "C" {
 
@@ -126,8 +129,12 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *get_strip_buffer_pointer() noexcept {
  * that contains its previous point is discarded without being retained.
  *
  * @param sequence_id Identifier of the sequence receiving the buffered strip.
+ * @return Projection frame index at which the incoming strip begins. For a
+ * mask, the index is measured before its frames leave the projection.
+ * `no_projection_frame_index` means that the strip remained pending or was
+ * discarded.
  */
-EMSCRIPTEN_KEEPALIVE void
+EMSCRIPTEN_KEEPALIVE std::uint32_t
 merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
   Projector *projector = &*projectors[sequence_id];
   const Strip incoming_strip = strip_buffer.read_strip();
@@ -141,24 +148,31 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
       projector->pending_masks.set(previous_strip_start, incoming_strip);
     else
       projector->pending_inserts.set(previous_strip_start, incoming_strip);
-    return;
+    return no_projection_frame_index;
   }
 
   const auto [previous_strip, previous_strip_frame_offset] =
       std::get<0>(containing_strip_result);
 
   if (incoming_strip.is_masked != 0) {
-    if (incoming_strip.frame_count >
-        previous_strip->frame_count - previous_strip_frame_offset)
-      return;
+    if (previous_strip->is_masked != 0 ||
+        incoming_strip.frame_count >
+            previous_strip->frame_count - previous_strip_frame_offset)
+      return no_projection_frame_index;
 
+    const std::uint32_t strip_projection_frame_index =
+        projector->gate_projection_frame_index + previous_strip_frame_offset;
     mask_strip(projector, previous_strip, previous_strip_frame_offset,
                incoming_strip);
-    return;
+    return strip_projection_frame_index;
   }
 
+  const std::uint32_t strip_projection_frame_index =
+      projector->gate_projection_frame_index +
+      (previous_strip->is_masked == 0 ? previous_strip_frame_offset + 1 : 0);
   insert_strip(projector, previous_strip, previous_strip_frame_offset,
                incoming_strip);
+  return strip_projection_frame_index;
 }
 
 }

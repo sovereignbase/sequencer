@@ -1,0 +1,61 @@
+# Doxygen extracts the documented C++ interface as XML for Breathe. Sphinx is
+# the only HTML generator in this documentation pipeline.
+
+PROJECT_NAME           = "Sequencer C++ API"
+PROJECT_NUMBER         = 0.0.0
+OUTPUT_DIRECTORY       = documentation/c++/.doxygen
+OUTPUT_LANGUAGE        = English
+
+FULL_PATH_NAMES        = YES
+STRIP_FROM_PATH        = src/c++
+JAVADOC_AUTOBRIEF      = YES
+MARKDOWN_SUPPORT       = YES
+AUTOLINK_SUPPORT       = YES
+BUILTIN_STL_SUPPORT    = YES
+ALIASES                = complexity="@par Complexity:^^"
+
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
+HIDE_UNDOC_MEMBERS     = YES
+HIDE_UNDOC_CLASSES     = YES
+INTERNAL_DOCS          = NO
+MAX_INITIALIZER_LINES  = 0
+
+CASE_SENSE_NAMES       = YES
+SORT_MEMBER_DOCS       = YES
+SORT_BRIEF_DOCS        = YES
+SORT_BY_SCOPE_NAME     = YES
+
+INPUT                   = src/c++
+FILE_PATTERNS           = *.hpp *.cpp
+RECURSIVE               = YES
+EXCLUDE_PATTERNS        = */.doxygen/* */.sphinx/*
+EXTENSION_MAPPING       = hpp=C++
+
+SOURCE_BROWSER          = NO
+INLINE_SOURCES          = NO
+VERBATIM_HEADERS        = NO
+
+QUIET                   = YES
+WARNINGS                = YES
+WARN_IF_UNDOCUMENTED    = YES
+WARN_IF_DOC_ERROR       = YES
+WARN_NO_PARAMDOC        = YES
+WARN_AS_ERROR           = FAIL_ON_WARNINGS
+
+GENERATE_HTML           = NO
+GENERATE_LATEX          = NO
+GENERATE_RTF            = NO
+GENERATE_MAN            = NO
+GENERATE_DOCBOOK        = NO
+
+GENERATE_XML            = YES
+XML_OUTPUT              = xml
+XML_PROGRAMLISTING      = NO
+
+ENABLE_PREPROCESSING    = YES
+MACRO_EXPANSION         = YES
+EXPAND_ONLY_PREDEF      = YES
+PREDEFINED              = EMSCRIPTEN_KEEPALIVE=
+SKIP_FUNCTION_MACROS    = YES

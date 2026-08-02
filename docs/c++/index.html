@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Sequencer C++ API &#8212; Sequencer C++ API</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=f6a572b4" />
+    <script src="_static/documentation_options.js?v=3e6ca1ad"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">Sequencer C++ API</a></h1>
+
+
+
+<p class="blurb">Sequencer C++ API reference</p>
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="sequencer-c-api">
+<h1>Sequencer C++ API<a class="headerlink" href="#sequencer-c-api" title="Link to this heading">¶</a></h1>
+<p>The C++ runtime materializes coordinated strips as a visible sequence
+projection. This reference is generated from the documentation maintained next
+to the implementation in <code class="docutils literal notranslate"><span class="pre">src/c++</span></code>.</p>
+<section id="api-reference">
+<h2>API reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h2>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv49Projector">
+<span id="_CPPv39Projector"></span><span id="_CPPv29Projector"></span><span id="Projector"></span><span class="target" id="structProjector"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Projector</span></span></span><a class="headerlink" href="#_CPPv49Projector" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;index.hpp&gt;</em></div>
+<p>Materialized structural sequence and its current visible projection. </p>
+<p>The primary index stores integrated strips by <code class="docutils literal notranslate"><span class="pre">this_strip_start</span></code>. Pending indexes retain operations by <code class="docutils literal notranslate"><span class="pre">previous_strip_start</span></code> until that dependency becomes available. Gate fields cache one projected location and never define sequence ordering. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9Projector17first_strip_startE">
+<span id="_CPPv3N9Projector17first_strip_startE"></span><span id="_CPPv2N9Projector17first_strip_startE"></span><span id="Projector::first_strip_start__SequencePoint"></span><span class="target" id="structProjector_1a615570f05d1f42c8704f67716c2531f0"></span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">first_strip_start</span></span></span><a class="headerlink" href="#_CPPv4N9Projector17first_strip_startE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Start point of the first materialized strip. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9Projector27gate_projection_frame_indexE">
+<span id="_CPPv3N9Projector27gate_projection_frame_indexE"></span><span id="_CPPv2N9Projector27gate_projection_frame_indexE"></span><span id="Projector::gate_projection_frame_index__std::uint32_t"></span><span class="target" id="structProjector_1a65843b72df54af6ecf26a698fe1d98a6"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gate_projection_frame_index</span></span></span><a class="headerlink" href="#_CPPv4N9Projector27gate_projection_frame_indexE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Projection frame index at which the gate strip begins. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9Projector16gate_strip_startE">
+<span id="_CPPv3N9Projector16gate_strip_startE"></span><span id="_CPPv2N9Projector16gate_strip_startE"></span><span id="Projector::gate_strip_start__SequencePoint"></span><span class="target" id="structProjector_1a37130eac6686c7c096aff286bc0f5ed0"></span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gate_strip_start</span></span></span><a class="headerlink" href="#_CPPv4N9Projector16gate_strip_startE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Start point of the strip currently cached at the projector gate. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9Projector16last_strip_startE">
+<span id="_CPPv3N9Projector16last_strip_startE"></span><span id="_CPPv2N9Projector16last_strip_startE"></span><span id="Projector::last_strip_start__SequencePoint"></span><span class="target" id="structProjector_1a9afb6ab5723ec9c0d43ffe8b6bbc5a30"></span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">last_strip_start</span></span></span><a class="headerlink" href="#_CPPv4N9Projector16last_strip_startE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Start point of the last materialized strip. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9Projector15pending_insertsE">
+<span id="_CPPv3N9Projector15pending_insertsE"></span><span id="_CPPv2N9Projector15pending_insertsE"></span><span id="Projector::pending_inserts__StripIndex:&SequenceCoordinate::previous_strip_start:"></span><span class="target" id="structProjector_1aa773c169d584b6c6ce1d263b1238a167"></span><a class="reference internal" href="#_CPPv4I_M18SequenceCoordinate13SequencePointE10StripIndex" title="StripIndex"><span class="n"><span class="pre">StripIndex</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="o"><span class="pre">&amp;</span></span><a class="reference internal" href="#_CPPv418SequenceCoordinate" title="SequenceCoordinate"><span class="n"><span class="pre">SequenceCoordinate</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="#_CPPv4N18SequenceCoordinate20previous_strip_startE" title="SequenceCoordinate::previous_strip_start"><span class="n"><span class="pre">previous_strip_start</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pending_inserts</span></span></span><a class="headerlink" href="#_CPPv4N9Projector15pending_insertsE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Inserts waiting for the strip identified by their previous start point. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9Projector13pending_masksE">
+<span id="_CPPv3N9Projector13pending_masksE"></span><span id="_CPPv2N9Projector13pending_masksE"></span><span id="Projector::pending_masks__StripIndex:&SequenceCoordinate::previous_strip_start:"></span><span class="target" id="structProjector_1a6ba8e0522b80ca58ec309ffa1c4a53c2"></span><a class="reference internal" href="#_CPPv4I_M18SequenceCoordinate13SequencePointE10StripIndex" title="StripIndex"><span class="n"><span class="pre">StripIndex</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="o"><span class="pre">&amp;</span></span><a class="reference internal" href="#_CPPv418SequenceCoordinate" title="SequenceCoordinate"><span class="n"><span class="pre">SequenceCoordinate</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="#_CPPv4N18SequenceCoordinate20previous_strip_startE" title="SequenceCoordinate::previous_strip_start"><span class="n"><span class="pre">previous_strip_start</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pending_masks</span></span></span><a class="headerlink" href="#_CPPv4N9Projector13pending_masksE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Masks waiting for the strip identified by their previous start point. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9Projector22projection_frame_countE">
+<span id="_CPPv3N9Projector22projection_frame_countE"></span><span id="_CPPv2N9Projector22projection_frame_countE"></span><span id="Projector::projection_frame_count__std::uint32_t"></span><span class="target" id="structProjector_1a79f1e7accae41706d696ab54f7c8de28"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">projection_frame_count</span></span></span><a class="headerlink" href="#_CPPv4N9Projector22projection_frame_countE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Total number of visible frames in the current projection. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9Projector11strip_indexE">
+<span id="_CPPv3N9Projector11strip_indexE"></span><span id="_CPPv2N9Projector11strip_indexE"></span><span id="Projector::strip_index__StripIndex"></span><span class="target" id="structProjector_1ae6d64de977179aaabdf042e5e93e938b"></span><a class="reference internal" href="#_CPPv4I_M18SequenceCoordinate13SequencePointE10StripIndex" title="StripIndex"><span class="n"><span class="pre">StripIndex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">strip_index</span></span></span><a class="headerlink" href="#_CPPv4N9Projector11strip_indexE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Integrated strips indexed by their own stable start points. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv418SequenceCoordinate">
+<span id="_CPPv318SequenceCoordinate"></span><span id="_CPPv218SequenceCoordinate"></span><span id="SequenceCoordinate"></span><span class="target" id="structSequenceCoordinate"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SequenceCoordinate</span></span></span><a class="headerlink" href="#_CPPv418SequenceCoordinate" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;index.hpp&gt;</em></div>
+<p>Placement relationship between an established strip and a new strip. </p>
+<p><code class="docutils literal notranslate"><a class="reference internal" href="#structSequenceCoordinate_1ab9f3aa88bd04a9d40a89e427cbef08e1"><span class="std std-ref"><span class="pre">previous_strip_start</span></span></a></code> supplies the established sequence context and <code class="docutils literal notranslate"><a class="reference internal" href="#structSequenceCoordinate_1a157ba310eb07b073dbdde36d2214acaf"><span class="std std-ref"><span class="pre">this_strip_start</span></span></a></code> identifies the first frame represented by the strip. Once materialized, the previous component also serves as the strip’s backward structural link. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N18SequenceCoordinate20previous_strip_startE">
+<span id="_CPPv3N18SequenceCoordinate20previous_strip_startE"></span><span id="_CPPv2N18SequenceCoordinate20previous_strip_startE"></span><span id="SequenceCoordinate::previous_strip_start__SequencePoint"></span><span class="target" id="structSequenceCoordinate_1ab9f3aa88bd04a9d40a89e427cbef08e1"></span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">previous_strip_start</span></span></span><a class="headerlink" href="#_CPPv4N18SequenceCoordinate20previous_strip_startE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Established strip-start context from which placement is resolved. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N18SequenceCoordinate16this_strip_startE">
+<span id="_CPPv3N18SequenceCoordinate16this_strip_startE"></span><span id="_CPPv2N18SequenceCoordinate16this_strip_startE"></span><span id="SequenceCoordinate::this_strip_start__SequencePoint"></span><span class="target" id="structSequenceCoordinate_1a157ba310eb07b073dbdde36d2214acaf"></span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">this_strip_start</span></span></span><a class="headerlink" href="#_CPPv4N18SequenceCoordinate16this_strip_startE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Stable point identifying the first frame represented by this strip. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv413SequencePoint">
+<span id="_CPPv313SequencePoint"></span><span id="_CPPv213SequencePoint"></span><span id="SequencePoint"></span><span class="target" id="structSequencePoint"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SequencePoint</span></span></span><a class="headerlink" href="#_CPPv413SequencePoint" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;index.hpp&gt;</em></div>
+<p>Immutable identity of one frame in sequence space. </p>
+<p>Points issued by one realm share <code class="docutils literal notranslate"><a class="reference internal" href="#structSequencePoint_1a7eede156ba09bccc7ea8832e1874ac43"><span class="std std-ref"><span class="pre">unix_lower_bits</span></span></a></code> and <code class="docutils literal notranslate"><a class="reference internal" href="#structSequencePoint_1a97296edb5c72c1e432636abb49e42769"><span class="std std-ref"><span class="pre">random_bits</span></span></a></code>. Consecutive frames within that realm advance <code class="docutils literal notranslate"><a class="reference internal" href="#structSequencePoint_1ab800820b9026543930daac8fc75ec09d"><span class="std std-ref"><span class="pre">counter_bits</span></span></a></code>. Ordering uses the Unix component first, the counter second, and the random component only as the final deterministic tie-break. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK13SequencePointeqERK13SequencePoint">
+<span id="_CPPv3NK13SequencePointeqERK13SequencePoint"></span><span id="_CPPv2NK13SequencePointeqERK13SequencePoint"></span><span id="SequencePoint::eq-operator__SequencePointCRC"></span><span class="target" id="structSequencePoint_1a9ffdd38a135250defacd658f1c0d6071"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">==</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4NK13SequencePointeqERK13SequencePoint" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N13SequencePoint12counter_bitsE">
+<span id="_CPPv3N13SequencePoint12counter_bitsE"></span><span id="_CPPv2N13SequencePoint12counter_bitsE"></span><span id="SequencePoint::counter_bits__std::uint32_t"></span><span class="target" id="structSequencePoint_1ab800820b9026543930daac8fc75ec09d"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">counter_bits</span></span></span><a class="headerlink" href="#_CPPv4N13SequencePoint12counter_bitsE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Counter locating the frame within the realm’s issued lineage. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N13SequencePoint11random_bitsE">
+<span id="_CPPv3N13SequencePoint11random_bitsE"></span><span id="_CPPv2N13SequencePoint11random_bitsE"></span><span id="SequencePoint::random_bits__std::uint32_t"></span><span class="target" id="structSequencePoint_1a97296edb5c72c1e432636abb49e42769"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">random_bits</span></span></span><a class="headerlink" href="#_CPPv4N13SequencePoint11random_bitsE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Realm discriminator and final deterministic ordering component. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N13SequencePoint15unix_lower_bitsE">
+<span id="_CPPv3N13SequencePoint15unix_lower_bitsE"></span><span id="_CPPv2N13SequencePoint15unix_lower_bitsE"></span><span id="SequencePoint::unix_lower_bits__std::uint32_t"></span><span class="target" id="structSequencePoint_1a7eede156ba09bccc7ea8832e1874ac43"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">unix_lower_bits</span></span></span><a class="headerlink" href="#_CPPv4N13SequencePoint15unix_lower_bitsE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Lower 32 bits of the issuing realm’s Unix-time component. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv45Strip">
+<span id="_CPPv35Strip"></span><span id="_CPPv25Strip"></span><span id="Strip"></span><span class="target" id="structStrip"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Strip</span></span></span><a class="headerlink" href="#_CPPv45Strip" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;index.hpp&gt;</em></div>
+<p>One contiguous frame span in a materialized sequence. </p>
+<p>The strip maps its sequence frame span to an equally long footage frame span. Its coordinate carries its own stable start and its previous structural link; <code class="docutils literal notranslate"><a class="reference internal" href="#structStrip_1a3f21bff37a5703eb457c165ae90b4fbb"><span class="std std-ref"><span class="pre">next_strip_start</span></span></a></code> completes the projector’s bidirectional chain. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N5Strip10coordinateE">
+<span id="_CPPv3N5Strip10coordinateE"></span><span id="_CPPv2N5Strip10coordinateE"></span><span id="Strip::coordinate__SequenceCoordinate"></span><span class="target" id="structStrip_1a20a05655f8b9df199f1ed2b312f75ad3"></span><a class="reference internal" href="#_CPPv418SequenceCoordinate" title="SequenceCoordinate"><span class="n"><span class="pre">SequenceCoordinate</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">coordinate</span></span></span><a class="headerlink" href="#_CPPv4N5Strip10coordinateE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Relational placement and stable start point of the strip. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N5Strip19footage_frame_indexE">
+<span id="_CPPv3N5Strip19footage_frame_indexE"></span><span id="_CPPv2N5Strip19footage_frame_indexE"></span><span id="Strip::footage_frame_index__std::uint32_t"></span><span class="target" id="structStrip_1ac7c4d682f53f258da7514b33c31bd0a8"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">footage_frame_index</span></span></span><a class="headerlink" href="#_CPPv4N5Strip19footage_frame_indexE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Footage frame index corresponding to the strip’s first frame. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N5Strip11frame_countE">
+<span id="_CPPv3N5Strip11frame_countE"></span><span id="_CPPv2N5Strip11frame_countE"></span><span id="Strip::frame_count__std::uint32_t"></span><span class="target" id="structStrip_1a073d3a2a53b4174dea9358ecd0d4bfe6"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">frame_count</span></span></span><a class="headerlink" href="#_CPPv4N5Strip11frame_countE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of consecutive frames represented by the strip. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N5Strip9is_maskedE">
+<span id="_CPPv3N5Strip9is_maskedE"></span><span id="_CPPv2N5Strip9is_maskedE"></span><span id="Strip::is_masked__std::uint32_t"></span><span class="target" id="structStrip_1ad2cfe3a32364a709f01c604c22154040"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_masked</span></span></span><a class="headerlink" href="#_CPPv4N5Strip9is_maskedE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Zero when visible; nonzero when excluded from the projection. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N5Strip16next_strip_startE">
+<span id="_CPPv3N5Strip16next_strip_startE"></span><span id="_CPPv2N5Strip16next_strip_startE"></span><span id="Strip::next_strip_start__SequencePoint"></span><span class="target" id="structStrip_1a3f21bff37a5703eb457c165ae90b4fbb"></span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">next_strip_start</span></span></span><a class="headerlink" href="#_CPPv4N5Strip16next_strip_startE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Start point of the next materialized strip, or <code class="docutils literal notranslate"><a class="reference internal" href="#declarations_2sequence__point_2index_8hpp_1a9e716f5b43419e6224231e28028de70c"><span class="std std-ref"><span class="pre">unlinked_strip_start</span></span></a></code>. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv411StripBuffer">
+<span id="_CPPv311StripBuffer"></span><span id="_CPPv211StripBuffer"></span><span id="StripBuffer"></span><span class="target" id="classStripBuffer"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StripBuffer</span></span></span><a class="headerlink" href="#_CPPv411StripBuffer" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;index.hpp&gt;</em></div>
+<p>Fixed-size readable and writable transfer representation of a <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>One instance is shared by the exported interface. Callers must finish reading or writing its nine words before invoking another buffer operation. </p>
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N11StripBuffer18get_memory_pointerEv">
+<span id="_CPPv3N11StripBuffer18get_memory_pointerEv"></span><span id="_CPPv2N11StripBuffer18get_memory_pointerEv"></span><span id="StripBuffer::get_memory_pointer"></span><span class="target" id="classStripBuffer_1a5c49869354806b91617026ac770640fe"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">get_memory_pointer</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4N11StripBuffer18get_memory_pointerEv" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the first word of the contiguous transfer memory. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mutable pointer exported to the WebAssembly host. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK11StripBuffer10read_stripEv">
+<span id="_CPPv3NK11StripBuffer10read_stripEv"></span><span id="_CPPv2NK11StripBuffer10read_stripEv"></span><span id="StripBuffer::read_stripC"></span><span class="target" id="classStripBuffer_1a4fae90b126aa90a03e15c236c98d3a2c"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">read_strip</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK11StripBuffer10read_stripEv" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Decode the current nine words into an unlinked strip. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> containing the transferred fields and <code class="docutils literal notranslate"><a class="reference internal" href="#declarations_2sequence__point_2index_8hpp_1a9e716f5b43419e6224231e28028de70c"><span class="std std-ref"><span class="pre">unlinked_strip_start</span></span></a></code> as its runtime successor. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N11StripBuffer11write_stripERK5Strip">
+<span id="_CPPv3N11StripBuffer11write_stripERK5Strip"></span><span id="_CPPv2N11StripBuffer11write_stripERK5Strip"></span><span id="StripBuffer::write_strip__StripCR"></span><span class="target" id="classStripBuffer_1aab90757ddda6f25a7a5e4cd84dc4aec2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">write_strip</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">strip</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4N11StripBuffer11write_stripERK5Strip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Encode a strip into the stable nine-word memory layout. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>strip</strong> – <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> whose transferable fields replace the buffer contents. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-private-members">Private Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N11StripBuffer5wordsE">
+<span id="_CPPv3N11StripBuffer5wordsE"></span><span id="_CPPv2N11StripBuffer5wordsE"></span><span id="StripBuffer::words__std::uint32_tA"></span><span class="target" id="classStripBuffer_1aa51b47f0f442c3c1b826c0b62cdff1fd"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">words</span></span></span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">9</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#_CPPv4N11StripBuffer5wordsE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4I_M18SequenceCoordinate13SequencePointE10StripIndex">
+<span id="_CPPv3I_M18SequenceCoordinate13SequencePointE10StripIndex"></span><span id="_CPPv2I_M18SequenceCoordinate13SequencePointE10StripIndex"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><a class="reference internal" href="#_CPPv418SequenceCoordinate" title="SequenceCoordinate"><span class="n"><span class="pre">SequenceCoordinate</span></span></a><span class="p"><span class="pre">::</span></span><span class="p"><span class="pre">*</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">indexed_sequence_point</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">&amp;</span></span><a class="reference internal" href="#_CPPv418SequenceCoordinate" title="SequenceCoordinate"><span class="n"><span class="pre">SequenceCoordinate</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="#_CPPv4N18SequenceCoordinate16this_strip_startE" title="SequenceCoordinate::this_strip_start"><span class="n"><span class="pre">this_strip_start</span></span></a><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classStripIndex"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StripIndex</span></span></span><a class="headerlink" href="#_CPPv4I_M18SequenceCoordinate13SequencePointE10StripIndex" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;index.hpp&gt;</em></div>
+<p>Index <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> values by one member of <a class="reference internal" href="#structSequenceCoordinate"><span class="std std-ref">SequenceCoordinate</span></a>. </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Any successful <code class="docutils literal notranslate"><a class="reference internal" href="#classStripIndex_1acfd4ccae733acfd6a7361c187925042d"><span class="std std-ref"><span class="pre">set</span></span></a></code> or <code class="docutils literal notranslate"><a class="reference internal" href="#classStripIndex_1a33bd1d8a921ed70263670ff615922a3d"><span class="std std-ref"><span class="pre">remove</span></span></a></code> may invalidate pointers returned by <code class="docutils literal notranslate"><a class="reference internal" href="#classStripIndex_1a078d1be63747b30c705ac585103046c0"><span class="std std-ref"><span class="pre">get</span></span></a></code> because realm vectors and the realm table may move. </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>indexed_sequence_point</strong> – Coordinate member used as the exact key. The primary projector index uses <code class="docutils literal notranslate"><span class="pre">this_strip_start</span></code>; pending indexes use <code class="docutils literal notranslate"><span class="pre">previous_strip_start</span></code>. Key selection is resolved at compile time and adds neither per-index memory nor a runtime branch.</p>
+</dd>
+</dl>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10StripIndex3getERK13SequencePoint">
+<span id="_CPPv3NK10StripIndex3getERK13SequencePoint"></span><span id="_CPPv2NK10StripIndex3getERK13SequencePoint"></span><span id="StripIndex::get__SequencePointCRC"></span><span class="target" id="classStripIndex_1a078d1be63747b30c705ac585103046c0"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">get</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">point</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK10StripIndex3getERK13SequencePoint" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the strip stored under one exact sequence point. </p>
+<p><dl class="simple">
+<dt><strong>Complexity:</strong></dt><dd><p>Expected O(1) realm lookup plus O(log n) within one realm. </p>
+</dd>
+</dl>
+</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The pointer remains valid only until the index is modified. </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>point</strong> – Exact selected-coordinate key to locate. </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pointer to the stored strip, or <code class="docutils literal notranslate"><span class="pre">nullptr</span></code> when absent. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10StripIndex8is_emptyEv">
+<span id="_CPPv3NK10StripIndex8is_emptyEv"></span><span id="_CPPv2NK10StripIndex8is_emptyEv"></span><span id="StripIndex::is_emptyC"></span><span class="target" id="classStripIndex_1a72a30ae5fd61b88d550a1ecb111d1d3e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_empty</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK10StripIndex8is_emptyEv" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Report whether the index contains no strips. </p>
+<p><a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> occupancy is sufficient because an empty realm is never retained.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">true</span></code> when no exact point key is stored; otherwise <code class="docutils literal notranslate"><span class="pre">false</span></code>. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex6removeERK13SequencePoint">
+<span id="_CPPv3N10StripIndex6removeERK13SequencePoint"></span><span id="_CPPv2N10StripIndex6removeERK13SequencePoint"></span><span id="StripIndex::remove__SequencePointCR"></span><span class="target" id="classStripIndex_1a33bd1d8a921ed70263670ff615922a3d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">remove</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">point</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10StripIndex6removeERK13SequencePoint" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Remove the strip stored under one exact sequence point. </p>
+<p>Missing points are ignored. Removing a realm’s final strip closes its linear-probing hole and may halve a sparsely populated realm table.</p>
+<p><dl class="simple">
+<dt><strong>Complexity:</strong></dt><dd><p>Expected O(1) realm lookup, O(log n) search, and O(n) vector erase within one realm; realm removal may additionally scan a probe run. </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>point</strong> – Exact selected-coordinate key to remove. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex3setERK13SequencePoint5Strip">
+<span id="_CPPv3N10StripIndex3setERK13SequencePoint5Strip"></span><span id="_CPPv2N10StripIndex3setERK13SequencePoint5Strip"></span><span id="StripIndex::set__SequencePointCR.Strip"></span><span class="target" id="classStripIndex_1acfd4ccae733acfd6a7361c187925042d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">point</span></span>, <a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">strip</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4N10StripIndex3setERK13SequencePoint5Strip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Insert or replace one strip under its selected coordinate point. </p>
+<p>Appending a monotonically increasing point within an existing realm is a constant-time fast path. Other counters are located with binary search.</p>
+<p><dl class="simple">
+<dt><strong>Complexity:</strong></dt><dd><p>Expected O(1) realm lookup plus O(log n) search and O(n) insertion within one realm; monotonic append is expected O(1). </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point</strong> – Exact key represented by the selected coordinate member. </p></li>
+<li><p><strong>strip</strong> – <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> to store by value. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Pre<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">point</span> <span class="pre">==</span> <span class="pre">strip.coordinate.*indexed_sequence_point</span></code>. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex10StripIndexEKNSt8uint32_tE">
+<span id="_CPPv3N10StripIndex10StripIndexEKNSt8uint32_tE"></span><span id="_CPPv2N10StripIndex10StripIndexEKNSt8uint32_tE"></span><span id="StripIndex::StripIndex__std::uint32_tC"></span><span class="target" id="classStripIndex_1ad0a4b6df68d5a7e31c77ddac2749a326"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">explicit</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">StripIndex</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">initial_realm_capacity</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N10StripIndex22minimum_realm_capacityE" title="StripIndex::minimum_realm_capacity"><span class="n"><span class="pre">minimum_realm_capacity</span></span></a><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10StripIndex10StripIndexEKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Construct an empty index with a power-of-two realm capacity. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>initial_realm_capacity</strong> – Initial number of open-addressing slots. </p>
+</dd>
+<dt class="field-even">Pre<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">initial_realm_capacity</span></code> is a power of two and is at least 256. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-private-functions">Private Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex6resizeEKNSt8uint32_tE">
+<span id="_CPPv3N10StripIndex6resizeEKNSt8uint32_tE"></span><span id="_CPPv2N10StripIndex6resizeEKNSt8uint32_tE"></span><span id="StripIndex::resize__std::uint32_tC"></span><span class="target" id="classStripIndex_1abb34a747d0b8876f20edb572caaf0b5e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">resize</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">new_realm_capacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10StripIndex6resizeEKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rehash every occupied realm into a new power-of-two table. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>new_realm_capacity</strong> – Number of slots in the replacement table. </p>
+</dd>
+<dt class="field-even">Pre<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">new_realm_capacity</span></code> is a power of two and is at least 256. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-private-members">Private Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex14realm_capacityE">
+<span id="_CPPv3N10StripIndex14realm_capacityE"></span><span id="_CPPv2N10StripIndex14realm_capacityE"></span><span id="StripIndex::realm_capacity__std::uint32_t"></span><span class="target" id="classStripIndex_1ad234b26782b75823aac0cd2608019996"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">realm_capacity</span></span></span><a class="headerlink" href="#_CPPv4N10StripIndex14realm_capacityE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex11realm_countE">
+<span id="_CPPv3N10StripIndex11realm_countE"></span><span id="_CPPv2N10StripIndex11realm_countE"></span><span id="StripIndex::realm_count__std::uint32_t"></span><span class="target" id="classStripIndex_1af8fe0fd7bf9ee19662010b7a65e81b22"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">realm_count</span></span></span><a class="headerlink" href="#_CPPv4N10StripIndex11realm_countE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex16realm_index_maskE">
+<span id="_CPPv3N10StripIndex16realm_index_maskE"></span><span id="_CPPv2N10StripIndex16realm_index_maskE"></span><span id="StripIndex::realm_index_mask__std::uint32_t"></span><span class="target" id="classStripIndex_1a5110e709f94df45833efab59e096b184"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">realm_index_mask</span></span></span><a class="headerlink" href="#_CPPv4N10StripIndex16realm_index_maskE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex6realmsE">
+<span id="_CPPv3N10StripIndex6realmsE"></span><span id="_CPPv2N10StripIndex6realmsE"></span><span id="StripIndex::realms__std::unique_ptr:RealmA:"></span><span class="target" id="classStripIndex_1a82a7fcaa4785db7f47fd9c480614780f"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">unique_ptr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">Realm</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">realms</span></span></span><a class="headerlink" href="#_CPPv4N10StripIndex6realmsE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-private-static-attributes">Private Static Attributes</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex22minimum_realm_capacityE">
+<span id="_CPPv3N10StripIndex22minimum_realm_capacityE"></span><span id="_CPPv2N10StripIndex22minimum_realm_capacityE"></span><span id="StripIndex::minimum_realm_capacity__std::uint32_t"></span><span class="target" id="classStripIndex_1a7fd9126c046a23956c887b948fdf0dd2"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">minimum_realm_capacity</span></span></span><a class="headerlink" href="#_CPPv4N10StripIndex22minimum_realm_capacityE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex5RealmE">
+<span id="_CPPv3N10StripIndex5RealmE"></span><span id="_CPPv2N10StripIndex5RealmE"></span><span id="StripIndex::Realm"></span><span class="target" id="structStripIndex_1_1Realm"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Realm</span></span></span><a class="headerlink" href="#_CPPv4N10StripIndex5RealmE" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;index.hpp&gt;</em></div>
+<p>One indexed point realm and its counter-ordered strips. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex5Realm11random_bitsE">
+<span id="_CPPv3N10StripIndex5Realm11random_bitsE"></span><span id="_CPPv2N10StripIndex5Realm11random_bitsE"></span><span id="StripIndex::Realm::random_bits__std::uint32_t"></span><span class="target" id="structStripIndex_1_1Realm_1a0147af1c27dbcb96e5ccbd1468110d8c"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">random_bits</span></span></span><a class="headerlink" href="#_CPPv4N10StripIndex5Realm11random_bitsE" title="Link to this definition">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> discriminator shared by every indexed point in <code class="docutils literal notranslate"><a class="reference internal" href="#structStripIndex_1_1Realm_1ae5ae0a349cfaccc17b3aa215c5aa1a24"><span class="std std-ref"><span class="pre">strips</span></span></a></code>. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex5Realm6stripsE">
+<span id="_CPPv3N10StripIndex5Realm6stripsE"></span><span id="_CPPv2N10StripIndex5Realm6stripsE"></span><span id="StripIndex::Realm::strips__std::vector:Strip:"></span><span class="target" id="structStripIndex_1_1Realm_1ae5ae0a349cfaccc17b3aa215c5aa1a24"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">strips</span></span></span><a class="headerlink" href="#_CPPv4N10StripIndex5Realm6stripsE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Strips ordered by the counter of the selected coordinate point. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex5Realm15unix_lower_bitsE">
+<span id="_CPPv3N10StripIndex5Realm15unix_lower_bitsE"></span><span id="_CPPv2N10StripIndex5Realm15unix_lower_bitsE"></span><span id="StripIndex::Realm::unix_lower_bits__std::uint32_t"></span><span class="target" id="structStripIndex_1_1Realm_1aa9c5d703f24b020364184ceb18982510"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">unix_lower_bits</span></span></span><a class="headerlink" href="#_CPPv4N10StripIndex5Realm15unix_lower_bitsE" title="Link to this definition">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> time component shared by every indexed point in <code class="docutils literal notranslate"><a class="reference internal" href="#structStripIndex_1_1Realm_1ae5ae0a349cfaccc17b3aa215c5aa1a24"><span class="std std-ref"><span class="pre">strips</span></span></a></code>. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv4St">
+<span id="_CPPv3St"></span><span id="_CPPv2St"></span><span id="std"></span><span class="target" id="namespacestd"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">std</span></span></span><a class="headerlink" href="#_CPPv4St" title="Link to this definition">¶</a><br /></dt>
+<dd><p>STL namespace. </p>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="algorithms_2insert__strip_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#algorithms_2mask__strip_2index_8hpp"><span class="std std-ref">../mask_strip/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">../../declarations/projector/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<p>Inserts a strip and resolves operations waiting on its start point. </p>
+<p>Insertions preserve the existing strip’s indexed start. Appending creates one new strip; insertion between frames also materializes the existing strip’s suffix. Pending masks and inserts are consumed from the newly established start point without recursion or additional traversal storage. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv412insert_stripP9ProjectorPK5StripNSt8uint32_tE5Strip">
+<span id="_CPPv312insert_stripP9ProjectorPK5StripNSt8uint32_tE5Strip"></span><span id="_CPPv212insert_stripP9ProjectorPK5StripNSt8uint32_tE5Strip"></span><span id="insert_strip__ProjectorP.StripCP.std::uint32_t.Strip"></span><span class="target" id="algorithms_2insert__strip_2index_8hpp_1a5b3897e75f2be712c63af4cb2986af00"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">insert_strip</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">previous_strip</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">previous_strip_frame_offset</span></span>, <a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">inserted_strip</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv412insert_stripP9ProjectorPK5StripNSt8uint32_tE5Strip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Insert a visible strip after one frame of a materialized strip. </p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">At</span><span class="w"> </span><span class="n">end</span><span class="o">:</span><span class="w">    </span><span class="p">[</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="p">][</span><span class="w"> </span><span class="n">insert</span><span class="w"> </span><span class="p">]</span>
+<span class="n">In</span><span class="w"> </span><span class="n">middle</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="n">prefix</span><span class="w"> </span><span class="p">][</span><span class="w"> </span><span class="n">insert</span><span class="w"> </span><span class="p">][</span><span class="w"> </span><span class="n">suffix</span><span class="w"> </span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The original start key always remains indexed. An end insertion retains the complete source strip; otherwise that entry becomes the source prefix. The suffix begins at the source point advanced by the insertion boundary and at the corresponding footage frame index.</p>
+<p>Processing is divided into four phases:</p>
+<p><ol class="loweralpha simple">
+<li><p>Preserve the source strip and resolve the insertion boundary.</p></li>
+<li><p>Materialize the applicable shape shown above.</p></li>
+<li><p>Reconnect the replacement tail to the original successor.</p></li>
+<li><p>Consume the mask and insert waiting on the inserted start point.</p></li>
+</ol>
+</p>
+<p>A pending mask is applied before a pending insert. The pending insert is appended after the complete inserted frame span, including any suffix created by that mask. Further dependent inserts repeat the same processing iteratively.</p>
+<p><a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> writes may invalidate stored pointers, so the replacement is derived from the preserved source value and each pending value is copied before its index entry is removed.</p>
+<p><dl class="simple">
+<dt><strong>Complexity:</strong></dt><dd><p>A constant number of <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> operations per resolved pending insert and O(1) local space. </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>projector</strong> – <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> receiving the strip. </p></li>
+<li><p><strong>previous_strip</strong> – <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> containing the frame after which insertion occurs. </p></li>
+<li><p><strong>previous_strip_frame_offset</strong> – Zero-based offset of that frame within <code class="docutils literal notranslate"><span class="pre">previous_strip</span></code>. </p></li>
+<li><p><strong>inserted_strip</strong> – Visible strip to insert. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Pre<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">projector</span></code> and <code class="docutils literal notranslate"><span class="pre">previous_strip</span></code> are non-null. </p>
+</dd>
+<dt class="field-odd">Pre<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">previous_strip_frame_offset</span> <span class="pre">&lt;</span> <span class="pre">previous_strip-&gt;frame_count</span></code>. </p>
+</dd>
+<dt class="field-even">Pre<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">inserted_strip.is_masked</span></code> is zero. </p>
+</dd>
+<dt class="field-odd">Post<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Every inserted visible frame is included in <code class="docutils literal notranslate"><span class="pre">projector-&gt;projection_frame_count</span></code>. </p>
+</dd>
+<dt class="field-even">Post<span class="colon">:</span></dt>
+<dd class="field-even"><p>The original successor is linked after the complete inserted chain. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="algorithms_2mask__strip_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">../../declarations/projector/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<p>Applies a mask contained within one materialized strip. </p>
+<p>A mask changes projection visibility without removing frames from structural sequence history. Depending on its offset and frame count, one source strip becomes one, two, or three linked strips while always retaining the source strip’s indexed start. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv410mask_stripP9ProjectorPK5StripKNSt8uint32_tE5Strip">
+<span id="_CPPv310mask_stripP9ProjectorPK5StripKNSt8uint32_tE5Strip"></span><span id="_CPPv210mask_stripP9ProjectorPK5StripKNSt8uint32_tE5Strip"></span><span id="mask_strip__ProjectorP.StripCP.std::uint32_tC.Strip"></span><span class="target" id="algorithms_2mask__strip_2index_8hpp_1adbbeb202b1d79a7b70566b67a5ec3164"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mask_strip</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">containing_strip</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mask_frame_offset</span></span>, <a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">mask</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv410mask_stripP9ProjectorPK5StripKNSt8uint32_tE5Strip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mask a frame span contained entirely within one visible strip. </p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">Entire</span><span class="w"> </span><span class="n">strip</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="n">mask</span><span class="w"> </span><span class="p">]</span>
+<span class="n">At</span><span class="w"> </span><span class="n">start</span><span class="o">:</span><span class="w">     </span><span class="p">[</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="n">mask</span><span class="w"> </span><span class="p">][</span><span class="w"> </span><span class="n">suffix</span><span class="w"> </span><span class="p">]</span>
+<span class="n">At</span><span class="w"> </span><span class="n">end</span><span class="o">:</span><span class="w">       </span><span class="p">[</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="n">prefix</span><span class="w"> </span><span class="p">][</span><span class="w"> </span><span class="n">mask</span><span class="w"> </span><span class="p">]</span>
+<span class="n">In</span><span class="w"> </span><span class="n">middle</span><span class="o">:</span><span class="w">    </span><span class="p">[</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="n">prefix</span><span class="w"> </span><span class="p">][</span><span class="w"> </span><span class="n">mask</span><span class="w"> </span><span class="p">][</span><span class="w"> </span><span class="n">suffix</span><span class="w"> </span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The original start key always remains indexed. A start-aligned mask reuses that entry; otherwise the original entry becomes the visible prefix. Any suffix begins at the source point advanced by the mask’s ending offset and at the corresponding footage frame index.</p>
+<p>Processing is divided into three phases:</p>
+<p><ol class="loweralpha simple">
+<li><p>Preserve the source strip and resolve the replacement boundaries.</p></li>
+<li><p>Materialize the applicable shape shown above.</p></li>
+<li><p>Connect the replacement tail to the original successor.</p></li>
+</ol>
+</p>
+<p><a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> writes may invalidate stored pointers, so every replacement is derived from the preserved source value rather than from <code class="docutils literal notranslate"><span class="pre">containing_strip</span></code> after the first write.</p>
+<p><dl class="simple">
+<dt><strong>Complexity:</strong></dt><dd><p>A constant number of <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> operations and O(1) local space. </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>projector</strong> – <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> containing the materialized source strip. </p></li>
+<li><p><strong>containing_strip</strong> – Visible strip containing the complete mask span. </p></li>
+<li><p><strong>mask_frame_offset</strong> – Zero-based frame offset of the mask within the containing strip. </p></li>
+<li><p><strong>mask</strong> – Incoming mask strip. Its runtime links and footage frame index are normalized when it becomes a distinct structural strip. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Pre<span class="colon">:</span></dt>
+<dd class="field-even"><p>Both pointers are non-null. </p>
+</dd>
+<dt class="field-odd">Pre<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">mask_frame_offset</span> <span class="pre">+</span> <span class="pre">mask.frame_count</span></code> does not exceed <code class="docutils literal notranslate"><span class="pre">containing_strip-&gt;frame_count</span></code>. </p>
+</dd>
+<dt class="field-even">Pre<span class="colon">:</span></dt>
+<dd class="field-even"><p>The containing strip is visible and <code class="docutils literal notranslate"><span class="pre">mask.is_masked</span></code> is nonzero. </p>
+</dd>
+<dt class="field-odd">Pre<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Advancing the containing start counter by the mask end does not overflow. </p>
+</dd>
+<dt class="field-even">Post<span class="colon">:</span></dt>
+<dd class="field-even"><p>Projection frame count is reduced by exactly <code class="docutils literal notranslate"><span class="pre">mask.frame_count</span></code>. </p>
+</dd>
+<dt class="field-odd">Post<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The projector gate key remains valid and the replacement tail is linked to the original successor or published as the last strip. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="auxiliary_2absolute__distance_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<p>Provides unsigned distance between two frame indexes. </p>
+<p>The helper keeps frame-index distance arithmetic unsigned and branch-only, avoiding signed conversion and overflow at the limits of std::uint32_t. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv417absolute_distanceKNSt8uint32_tEKNSt8uint32_tE">
+<span id="_CPPv317absolute_distanceKNSt8uint32_tEKNSt8uint32_tE"></span><span id="_CPPv217absolute_distanceKNSt8uint32_tEKNSt8uint32_tE"></span><span id="absolute_distance__std::uint32_tC.std::uint32_tC"></span><span class="target" id="auxiliary_2absolute__distance_2index_8hpp_1a59031fe0f6ed4202402bd4dfa240fd86"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">absolute_distance</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">left_frame_index</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">right_frame_index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv417absolute_distanceKNSt8uint32_tEKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the absolute distance between two unsigned frame indexes. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>left_frame_index</strong> – First frame index. </p></li>
+<li><p><strong>right_frame_index</strong> – Second frame index. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Non-negative distance between the two indexes. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="auxiliary_2compare__sequence__points_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2sequence__point_2index_8hpp"><span class="std std-ref">../../declarations/sequence_point/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<p>Defines deterministic ordering for sequence points. </p>
+<p>Ordering follows the semantic lineage components: Unix time first, counter second, and random bits only as the final tie-break. Randomness therefore never takes priority over the ordered components of a point. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv423compare_sequence_pointsPK13SequencePointPK13SequencePoint">
+<span id="_CPPv323compare_sequence_pointsPK13SequencePointPK13SequencePoint"></span><span id="_CPPv223compare_sequence_pointsPK13SequencePointPK13SequencePoint"></span><span id="compare_sequence_points__SequencePointCP.SequencePointCP"></span><span class="target" id="auxiliary_2compare__sequence__points_2index_8hpp_1a3b3f6bac322d5324b59cd86364f535f1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">int8_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">compare_sequence_points</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">left_sequence_point</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">right_sequence_point</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv423compare_sequence_pointsPK13SequencePointPK13SequencePoint" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compare two sequence points in deterministic sequence-point order. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>left_sequence_point</strong> – Left comparison operand. </p></li>
+<li><p><strong>right_sequence_point</strong> – Right comparison operand. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">-1</span></code> when left precedes right, <code class="docutils literal notranslate"><span class="pre">1</span></code> when right precedes left, and <code class="docutils literal notranslate"><span class="pre">0</span></code> when both points are equal. </p>
+</dd>
+<dt class="field-odd">Pre<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Both pointers are non-null. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="auxiliary_2run__projector__backward_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">../../declarations/projector/index.hpp</span></a>”</em></div>
+<p>Runs a projector gate backward by one linked strip. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv422run_projector_backwardP9ProjectorPK5Strip">
+<span id="_CPPv322run_projector_backwardP9ProjectorPK5Strip"></span><span id="_CPPv222run_projector_backwardP9ProjectorPK5Strip"></span><span id="run_projector_backward__ProjectorP.StripCP"></span><span class="target" id="auxiliary_2run__projector__backward_2index_8hpp_1a6c87c108eb2beb22e47b94ce71dd6b0f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">run_projector_backward</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">current_strip</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv422run_projector_backwardP9ProjectorPK5Strip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Move the gate from its current strip to the previous structural strip. </p>
+<p>The previous strip is entered before its visible frame count is subtracted. A masked previous strip therefore changes the structural gate without changing the gate’s projection frame index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>projector</strong> – <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> whose gate is moved backward. </p></li>
+<li><p><strong>current_strip</strong> – <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> currently held at the gate. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Previous linked strip, which is also the final gate strip. </p>
+</dd>
+<dt class="field-odd">Pre<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Both pointers are non-null and <code class="docutils literal notranslate"><span class="pre">current_strip</span></code> has an indexed predecessor. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="auxiliary_2run__projector__forward_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">../../declarations/projector/index.hpp</span></a>”</em></div>
+<p>Runs a projector gate forward by one linked strip. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv421run_projector_forwardP9ProjectorPK5Strip">
+<span id="_CPPv321run_projector_forwardP9ProjectorPK5Strip"></span><span id="_CPPv221run_projector_forwardP9ProjectorPK5Strip"></span><span id="run_projector_forward__ProjectorP.StripCP"></span><span class="target" id="auxiliary_2run__projector__forward_2index_8hpp_1ad242812098864e39cba1507e33b69e73"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">run_projector_forward</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">current_strip</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv421run_projector_forwardP9ProjectorPK5Strip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Move the gate from its current strip to the next structural strip. </p>
+<p>The gate crosses masked strips structurally, while only a visible current strip advances its projection frame index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>projector</strong> – <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> whose gate is advanced. </p></li>
+<li><p><strong>current_strip</strong> – <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> currently held at the gate. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Next linked strip, which is also the final gate strip. </p>
+</dd>
+<dt class="field-odd">Pre<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Both pointers are non-null and <code class="docutils literal notranslate"><span class="pre">current_strip</span></code> has an indexed successor. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="auxiliary_2run__projector__to__frame__index_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">../../declarations/projector/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#auxiliary_2absolute__distance_2index_8hpp"><span class="std std-ref">../absolute_distance/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#auxiliary_2run__projector__backward_2index_8hpp"><span class="std std-ref">../run_projector_backward/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#auxiliary_2run__projector__forward_2index_8hpp"><span class="std std-ref">../run_projector_forward/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#auxiliary_2strip__contains__frame__index_2index_8hpp"><span class="std std-ref">../strip_contains_frame_index/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<p>Positions a projector gate at a requested projection frame index. </p>
+<p>The search begins at the current gate unless the projection head is closer. It then runs by linked strip spans rather than advancing frame by frame. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv428run_projector_to_frame_indexP9ProjectorKNSt8uint32_tE">
+<span id="_CPPv328run_projector_to_frame_indexP9ProjectorKNSt8uint32_tE"></span><span id="_CPPv228run_projector_to_frame_indexP9ProjectorKNSt8uint32_tE"></span><span id="run_projector_to_frame_index__ProjectorP.std::uint32_tC"></span><span class="target" id="auxiliary_2run__projector__to__frame__index_2index_8hpp_1a1b36b2b2db54a096f49121e1399a233f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">run_projector_to_frame_index</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">projection_frame_index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv428run_projector_to_frame_indexP9ProjectorKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Move the gate to the strip containing a projection frame index. </p>
+<p>Masked strips remain traversable structural links but contribute zero to the projection frame index. On return, both gate fields describe the containing strip: <code class="docutils literal notranslate"><span class="pre">gate_strip_start</span></code> identifies it and <code class="docutils literal notranslate"><span class="pre">gate_projection_frame_index</span></code> is the projection index at which it begins.</p>
+<p><dl class="simple">
+<dt><strong>Complexity:</strong></dt><dd><p>O(s) in the number of linked strips traversed and O(1) space. </p>
+</dd>
+</dl>
+</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>An empty projection leaves the gate unchanged. </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>projector</strong> – <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> whose gate is repositioned. </p></li>
+<li><p><strong>projection_frame_index</strong> – Zero-based visible frame index to locate. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Pre<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">projector</span></code> is non-null. </p>
+</dd>
+<dt class="field-odd">Pre<span class="colon">:</span></dt>
+<dd class="field-odd"><p>For a non-empty projection, <code class="docutils literal notranslate"><span class="pre">projection_frame_index</span></code> is less than <code class="docutils literal notranslate"><span class="pre">projector-&gt;projection_frame_count</span></code> and all structural links are indexed. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="auxiliary_2run__projector__to__sequence__point_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">../../declarations/projector/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#auxiliary_2strip__contains__sequence__point_2index_8hpp"><span class="std std-ref">../strip_contains_sequence_point/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<div class="docutils container">
+<em>#include &lt;utility&gt;</em></div>
+<div class="docutils container">
+<em>#include &lt;variant&gt;</em></div>
+<p>Positions a projector gate at the strip containing a sequence point. </p>
+<p>The search is tuned for sequential integration: it tests the gate, the last strip, and the first strip before expanding in both directions from the gate. Every remaining strip is tested at most once. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv431run_projector_to_sequence_pointP9ProjectorPK13SequencePoint">
+<span id="_CPPv331run_projector_to_sequence_pointP9ProjectorPK13SequencePoint"></span><span id="_CPPv231run_projector_to_sequence_pointP9ProjectorPK13SequencePoint"></span><span id="run_projector_to_sequence_point__ProjectorP.SequencePointCP"></span><span class="target" id="auxiliary_2run__projector__to__sequence__point_2index_8hpp_1a4132f8e7651eb0cd9779cbcf42a7850d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">variant</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">run_projector_to_sequence_point</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">sequence_point</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv431run_projector_to_sequence_pointP9ProjectorPK13SequencePoint" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Find the strip containing a stable sequence point and move the gate. </p>
+<p>Masked strips participate because their sequence points remain structural, but they contribute zero frames while the projection positions of both search directions are maintained. If found, the final gate start and gate projection frame index both describe the returned strip.</p>
+<p><dl class="simple">
+<dt><strong>Complexity:</strong></dt><dd><p>O(s) worst case and O(1) auxiliary space, where s is the number of materialized strips. </p>
+</dd>
+</dl>
+</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The returned strip pointer remains valid only until <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> is modified. </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>projector</strong> – <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> whose linked strips are searched and whose gate is updated on success. </p></li>
+<li><p><strong>sequence_point</strong> – Stable point to locate within a strip frame span. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pair of the containing strip and its zero-based strip frame offset, or <code class="docutils literal notranslate"><span class="pre">false</span></code> when the projector is empty or the point is absent. </p>
+</dd>
+<dt class="field-odd">Pre<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Both pointers are non-null. </p>
+</dd>
+<dt class="field-even">Pre<span class="colon">:</span></dt>
+<dd class="field-even"><p>A non-empty projector has valid first, gate, and last strip starts and one bounded bidirectional structural chain. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="auxiliary_2strip__contains__frame__index_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2strip_2index_8hpp"><span class="std std-ref">../../declarations/strip/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<p>Tests visible containment on the projection frame axis. </p>
+<p>Structural containment and projection containment differ for masked strips: a masked strip remains in the structural chain but occupies no projection frame indexes. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv426strip_contains_frame_indexPK5StripKNSt8uint32_tEKNSt8uint32_tE">
+<span id="_CPPv326strip_contains_frame_indexPK5StripKNSt8uint32_tEKNSt8uint32_tE"></span><span id="_CPPv226strip_contains_frame_indexPK5StripKNSt8uint32_tEKNSt8uint32_tE"></span><span id="strip_contains_frame_index__StripCP.std::uint32_tC.std::uint32_tC"></span><span class="target" id="auxiliary_2strip__contains__frame__index_2index_8hpp_1a5b40fdbb5a590ae3071e7af70e5bac96"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">strip_contains_frame_index</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">strip</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">strip_projection_frame_index</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">projection_frame_index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv426strip_contains_frame_indexPK5StripKNSt8uint32_tEKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test whether a projection frame index falls within a visible strip. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>strip</strong> – <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> whose projected frame span is tested. </p></li>
+<li><p><strong>strip_projection_frame_index</strong> – Projection frame index at which the strip begins. </p></li>
+<li><p><strong>projection_frame_index</strong> – Projection frame index to test. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">true</span></code> when the strip is visible and contains the frame index. </p>
+</dd>
+<dt class="field-odd">Pre<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">strip</span></code> is non-null. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="auxiliary_2strip__contains__sequence__point_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2strip_2index_8hpp"><span class="std std-ref">../../declarations/strip/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<p>Tests containment on the stable sequence-point axis. </p>
+<p>Unlike projection containment, this test includes masked strips because a mask changes visibility without removing sequence points from structural history. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv429strip_contains_sequence_pointPK5StripPK13SequencePoint">
+<span id="_CPPv329strip_contains_sequence_pointPK5StripPK13SequencePoint"></span><span id="_CPPv229strip_contains_sequence_pointPK5StripPK13SequencePoint"></span><span id="strip_contains_sequence_point__StripCP.SequencePointCP"></span><span class="target" id="auxiliary_2strip__contains__sequence__point_2index_8hpp_1a1b9f94f97fd19dcdb8456bd1691364e3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">strip_contains_sequence_point</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">strip</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">sequence_point</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv429strip_contains_sequence_pointPK5StripPK13SequencePoint" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Test whether a sequence point belongs to a strip’s frame span. </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>An offset of zero means that the point equals <code class="docutils literal notranslate"><span class="pre">this_strip_start</span></code>. </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>strip</strong> – <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> whose half-open sequence-point span is tested. </p></li>
+<li><p><strong>sequence_point</strong> – Stable sequence point to test. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Zero-based frame offset from the strip start when contained; <code class="docutils literal notranslate"><a class="reference internal" href="#declarations_2strip_2index_8hpp_1a04bbea591b11d617ca2bb1c1184bac8b"><span class="std std-ref"><span class="pre">sequence_point_outside_strip</span></span></a></code> otherwise. </p>
+</dd>
+<dt class="field-odd">Pre<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Both pointers are non-null. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="classes_2strip__buffer_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2strip_2index_8hpp"><span class="std std-ref">../../declarations/strip/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<p>Defines the fixed-width transfer buffer for one strip. </p>
+<p><a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a> is the sole translation boundary between the C++ <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> model and the nine-word WebAssembly memory contract. It owns exactly nine std::uint32_t values and adds no dynamic allocation.</p>
+<p>The memory layout is stable:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="mi">0</span><span class="w">  </span><span class="n">is_masked</span>
+<span class="mi">1</span><span class="w">  </span><span class="n">frame_count</span>
+<span class="mi">2</span><span class="w">  </span><span class="n">footage_frame_index</span>
+<span class="mi">3</span><span class="w">  </span><span class="n">this_strip_start</span><span class="p">.</span><span class="n">random_bits</span>
+<span class="mi">4</span><span class="w">  </span><span class="n">this_strip_start</span><span class="p">.</span><span class="n">unix_lower_bits</span>
+<span class="mi">5</span><span class="w">  </span><span class="n">this_strip_start</span><span class="p">.</span><span class="n">counter_bits</span>
+<span class="mi">6</span><span class="w">  </span><span class="n">previous_strip_start</span><span class="p">.</span><span class="n">random_bits</span>
+<span class="mi">7</span><span class="w">  </span><span class="n">previous_strip_start</span><span class="p">.</span><span class="n">unix_lower_bits</span>
+<span class="mi">8</span><span class="w">  </span><span class="n">previous_strip_start</span><span class="p">.</span><span class="n">counter_bits</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">next_strip_start</span></code> is runtime linkage and is intentionally absent from the transfer representation. A decoded strip therefore starts unlinked. </p>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="classes_2strip__index_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2strip_2index_8hpp"><span class="std std-ref">../../declarations/strip/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include &lt;algorithm&gt;</em></div>
+<div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<div class="docutils container">
+<em>#include &lt;memory&gt;</em></div>
+<div class="docutils container">
+<em>#include &lt;utility&gt;</em></div>
+<div class="docutils container">
+<em>#include &lt;vector&gt;</em></div>
+<p>Defines the cache-oriented index used for materialized and pending strips. </p>
+<p><a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> groups point keys by realm and keeps each realm’s strips ordered by point counter. Realm lookup uses open addressing with linear probing; point lookup inside a realm uses binary search. </p>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="declarations_2projector_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#classes_2strip__index_2index_8hpp"><span class="std std-ref">../../classes/strip_index/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2strip_2index_8hpp"><span class="std std-ref">../strip/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<p>Defines the runtime that materializes and navigates one projection. </p>
+<p><a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> owns the structural strip chain, its visible projection, a movable gate, and operations waiting for their coordinate dependency. It introduces no second representation of sequence order: every structural reference is a <a class="reference internal" href="#structSequencePoint"><span class="std std-ref">SequencePoint</span></a> resolved through <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a>. </p>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="declarations_2sequence__coordinate_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2sequence__point_2index_8hpp"><span class="std std-ref">../sequence_point/index.hpp</span></a>”</em></div>
+<p>Defines the relational coordinate carried by a strip. </p>
+<p>Sequence coordinates express placement entirely with stable sequence points. They therefore remain meaningful when strips arrive out of order or when projection frame indexes change after insertion and masking. </p>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="declarations_2sequence__point_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<div class="docutils container">
+<em>#include &lt;limits&gt;</em></div>
+<p>Defines stable frame identities in sequence space. </p>
+<p>A <a class="reference internal" href="#structSequencePoint"><span class="std std-ref">SequencePoint</span></a> identifies a frame independently of its current projection index and independently of the strip that currently contains it. The three fixed-width components also form the point representation transferred across the WebAssembly application binary interface. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv420unlinked_strip_start">
+<span id="_CPPv320unlinked_strip_start"></span><span id="_CPPv220unlinked_strip_start"></span><span id="unlinked_strip_start__SequencePoint"></span><span class="target" id="declarations_2sequence__point_2index_8hpp_1a9e716f5b43419e6224231e28028de70c"></span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">unlinked_strip_start</span></span></span><a class="headerlink" href="#_CPPv420unlinked_strip_start" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Point sentinel used when a strip has no linked structural neighbor. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="declarations_2strip_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2sequence__coordinate_2index_8hpp"><span class="std std-ref">../sequence_coordinate/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<div class="docutils container">
+<em>#include &lt;limits&gt;</em></div>
+<p>Defines the material representation of one contiguous frame span. </p>
+<p>A <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> joins stable sequence placement, contiguous footage, visibility, and structural links in one fixed-size value. Splitting a strip changes its material boundaries without changing the identities of its frames. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv428sequence_point_outside_strip">
+<span id="_CPPv328sequence_point_outside_strip"></span><span id="_CPPv228sequence_point_outside_strip"></span><span id="sequence_point_outside_strip__std::uint32_t"></span><span class="target" id="declarations_2strip_2index_8hpp_1a04bbea591b11d617ca2bb1c1184bac8b"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">sequence_point_outside_strip</span></span></span><a class="headerlink" href="#_CPPv428sequence_point_outside_strip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Offset sentinel returned when a sequence point is outside a strip. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="main_8cpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">main.cpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#algorithms_2insert__strip_2index_8hpp"><span class="std std-ref">./algorithms/insert_strip/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#algorithms_2mask__strip_2index_8hpp"><span class="std std-ref">./algorithms/mask_strip/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#auxiliary_2run__projector__to__frame__index_2index_8hpp"><span class="std std-ref">./auxiliary/run_projector_to_frame_index/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#auxiliary_2run__projector__to__sequence__point_2index_8hpp"><span class="std std-ref">./auxiliary/run_projector_to_sequence_point/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#classes_2strip__buffer_2index_8hpp"><span class="std std-ref">./classes/strip_buffer/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">./declarations/projector/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<div class="docutils container">
+<em>#include &lt;optional&gt;</em></div>
+<div class="docutils container">
+<em>#include &lt;variant&gt;</em></div>
+<div class="docutils container">
+<em>#include &lt;vector&gt;</em></div>
+<p>Exposes sequencer projectors through the WebAssembly C interface. </p>
+<p>The interface owns projector lifetimes and one shared <a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a>. Sequence identifiers address optional registry slots: clearing a sequence destroys its projector state, and later initialization reuses that identifier before the registry grows. Runtime callers guarantee valid active identifiers and valid projection frame indexes. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-defines">Defines</p>
+<dl class="cpp macro">
+<dt class="sig sig-object cpp" id="c.EMSCRIPTEN_KEEPALIVE">
+<span class="target" id="main_8cpp_1accd20b3e3d5a4dd1228fb0d35d686df5"></span><span class="sig-name descname"><span class="n"><span class="pre">EMSCRIPTEN_KEEPALIVE</span></span></span><a class="headerlink" href="#c.EMSCRIPTEN_KEEPALIVE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv414clear_sequenceKNSt8uint32_tE">
+<span id="_CPPv314clear_sequenceKNSt8uint32_tE"></span><span id="_CPPv214clear_sequenceKNSt8uint32_tE"></span><span id="clear_sequence__std::uint32_tC"></span><span class="target" id="main_8cpp_1afa1bd6755d76a22f68c24026a64a257f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clear_sequence</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414clear_sequenceKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Destroy one projector while retaining its identifier for reuse. </p>
+<p>Repeated clearing of the same identifier has no effect.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the sequence to clear. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv423get_footage_frame_indexKNSt8uint32_tEKNSt8uint32_tE">
+<span id="_CPPv323get_footage_frame_indexKNSt8uint32_tEKNSt8uint32_tE"></span><span id="_CPPv223get_footage_frame_indexKNSt8uint32_tEKNSt8uint32_tE"></span><span id="get_footage_frame_index__std::uint32_tC.std::uint32_tC"></span><span class="target" id="main_8cpp_1aefa7981963c2a6a98ce066fda4777549"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_footage_frame_index</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">projection_frame_index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv423get_footage_frame_indexKNSt8uint32_tEKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolve a projection frame index to its footage frame index. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sequence_id</strong> – Identifier of the active sequence. </p></li>
+<li><p><strong>projection_frame_index</strong> – Visible frame index to resolve. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Corresponding frame index in the strip’s footage. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv426get_projection_frame_countKNSt8uint32_tE">
+<span id="_CPPv326get_projection_frame_countKNSt8uint32_tE"></span><span id="_CPPv226get_projection_frame_countKNSt8uint32_tE"></span><span id="get_projection_frame_count__std::uint32_tC"></span><span class="target" id="main_8cpp_1a0fe77fde3cbbb4e3190b29d915a89e31"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_projection_frame_count</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv426get_projection_frame_countKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the visible frame count of one sequence projection. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the active sequence. </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Number of frames in its current projection. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv424get_strip_buffer_pointerv">
+<span id="_CPPv324get_strip_buffer_pointerv"></span><span id="_CPPv224get_strip_buffer_pointerv"></span><span id="get_strip_buffer_pointer"></span><span class="target" id="main_8cpp_1a211ca72e2976d32fc45f9802ecd9236b"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">get_strip_buffer_pointer</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv424get_strip_buffer_pointerv" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the mutable start address of the shared nine-word <a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a>. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pointer to the first transferable std::uint32_t word. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv419initialize_sequencev">
+<span id="_CPPv319initialize_sequencev"></span><span id="_CPPv219initialize_sequencev"></span><span id="initialize_sequence"></span><span class="target" id="main_8cpp_1a5ef7c079a3987e0cb7afb7f46bf2d792"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">initialize_sequence</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419initialize_sequencev" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Create an empty projector and return its stable sequence identifier. </p>
+<p>Cleared identifiers are reused before the projector registry is extended.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Stable identifier of the initialized sequence. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv425merge_strip_into_sequenceKNSt8uint32_tE">
+<span id="_CPPv325merge_strip_into_sequenceKNSt8uint32_tE"></span><span id="_CPPv225merge_strip_into_sequenceKNSt8uint32_tE"></span><span id="merge_strip_into_sequence__std::uint32_tC"></span><span class="target" id="main_8cpp_1affe0a21473956b8171381d0307317b2f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">merge_strip_into_sequence</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv425merge_strip_into_sequenceKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Merge the strip currently encoded in <a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a> into a sequence. </p>
+<p>If the coordinate’s previous point is not materialized, the strip remains pending under that exact dependency. A mask extending beyond the one strip that contains its previous point is discarded without being retained.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the sequence receiving the buffered strip. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv447write_strip_at_projection_frame_index_to_bufferKNSt8uint32_tEKNSt8uint32_tE">
+<span id="_CPPv347write_strip_at_projection_frame_index_to_bufferKNSt8uint32_tEKNSt8uint32_tE"></span><span id="_CPPv247write_strip_at_projection_frame_index_to_bufferKNSt8uint32_tEKNSt8uint32_tE"></span><span id="write_strip_at_projection_frame_index_to_buffer__std::uint32_tC.std::uint32_tC"></span><span class="target" id="main_8cpp_1ac54d4f4168677e40a76a99365cae363a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">write_strip_at_projection_frame_index_to_buffer</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">projection_frame_index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv447write_strip_at_projection_frame_index_to_bufferKNSt8uint32_tEKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Write the strip containing a projection frame index to <a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a>. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sequence_id</strong> – Identifier of the active sequence. </p></li>
+<li><p><strong>projection_frame_index</strong> – Visible frame index whose strip is written. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv422available_sequence_ids">
+<span id="_CPPv322available_sequence_ids"></span><span id="_CPPv222available_sequence_ids"></span><span id="available_sequence_ids__std::vector:std::uint32_t:"></span><span class="target" id="main_8cpp_1a0fa4542910a5ec2a621c1ba626aa39d3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">available_sequence_ids</span></span></span><a class="headerlink" href="#_CPPv422available_sequence_ids" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv410projectors">
+<span id="_CPPv310projectors"></span><span id="_CPPv210projectors"></span><span id="projectors__std::vector:std::optional:Projector::"></span><span class="target" id="main_8cpp_1a8df700548b71d917efd32d739406749c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">optional</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">projectors</span></span></span><a class="headerlink" href="#_CPPv410projectors" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv412strip_buffer">
+<span id="_CPPv312strip_buffer"></span><span id="_CPPv212strip_buffer"></span><span id="strip_buffer__StripBuffer"></span><span class="target" id="main_8cpp_1a9609b6d2800e86da56859af96bbd52fc"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv411StripBuffer" title="StripBuffer"><span class="n"><span class="pre">StripBuffer</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">strip_buffer</span></span></span><a class="headerlink" href="#_CPPv412strip_buffer" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_18b6339da2843fd4ee808a64a2221580"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">auxiliary/absolute_distance</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_c0ce462e37efe0a8d60c01d75f78f8a0"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">algorithms</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_71cfd0b311a1d3f4d13c43908edebbe5"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">auxiliary</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_b02e4219757ae4e3a0f1714873865bbf"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">classes</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_50591e02afe73ba9cd05b2d0179b5baf"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">auxiliary/compare_sequence_points</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_330d10bd316f3597dac3f5e32d63e945"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">declarations</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_7e76cccec048d76fb148290ce2886905"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">algorithms/insert_strip</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_448fc81098eb9f17b0c83fd7d0cbce24"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">algorithms/mask_strip</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_0de3b766f64c9c79f9f60ea86c44c995"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">declarations/projector</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_6b21d58613406fa3bfb7e4e6eefb8301"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">auxiliary/run_projector_backward</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_414adbe59711ecca04a5b3878b74cb31"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">auxiliary/run_projector_forward</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_f87ef282f8f510671f7c5d62e9da2d90"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">auxiliary/run_projector_to_frame_index</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_b3da50d1fb45b69bf90a6a5754474195"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">auxiliary/run_projector_to_sequence_point</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_98a91e8d3e324130e2732ca73316f1c5"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">declarations/sequence_coordinate</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_d341c065c4da0e06311448f1091afd89"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">declarations/sequence_point</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_d4fcf95b3f237f91821b0a90b3c191a1"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">declarations/strip</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_427b4208dcacd7263a696f385b33a523"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">classes/strip_buffer</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_942ee7947ca173c0a0ab32f29cc90a5f"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">auxiliary/strip_contains_frame_index</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_0fb6b15891c7b82e88d7e8e14775c48e"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">auxiliary/strip_contains_sequence_point</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_a7b66038862b82806df4388c31c81016"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">classes/strip_index</span></span></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2026, Jori Lehtinen.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

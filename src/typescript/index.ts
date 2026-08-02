@@ -1,14 +1,14 @@
 import { __create } from './core/crud/index.js'
 import type { SequenceState } from './types/type.js'
 
-export class Sequence {
-  create<T>(data?: unknown): SequenceState<T> {
+export class Sequencer {
+  create<T>(data?: unknown): Sequence<T> {
     return __create(data)
   }
-  read<T>(state: SequenceState<T>) {}
-  update<T>(state: SequenceState<T>) {}
-  delete<T>(state: SequenceState<T>) {}
-  merge<T>(state: SequenceState, data: unknown) {}
+  read<T>(state: Sequence<T>) {}
+  update<T>(state: Sequence<T>) {}
+  delete<T>(state: Sequence<T>) {}
+  merge<T>(state: Sequence, data: unknown) {}
 }
 
 export type * from './types/type.js'

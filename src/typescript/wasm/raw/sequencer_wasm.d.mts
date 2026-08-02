@@ -16,15 +16,13 @@ declare namespace RuntimeExports {
     let HEAPU32: Uint32Array;
 }
 interface WasmModule {
-  _cue_projector(): number;
-  _length_of(_0: number): number;
-  _footage_position_of(_0: number, _1: number): number;
-  _this_strip_start_of(_0: number, _1: number): void;
-  _previous_strip_start_of(_0: number, _1: number): void;
-  _next_sequence_point(): void;
-  _splice_sequence(_0: number, _1: number, _2: number, _3: number): void;
-  _this_strip_start_buffer_pointer(): number;
-  _previous_strip_start_buffer_pointer(): number;
+  _initialize_sequence(): number;
+  _clear_sequence(_0: number): void;
+  _get_projection_frame_count(_0: number): number;
+  _get_footage_frame_index(_0: number, _1: number): number;
+  _write_strip_at_projection_frame_index_to_buffer(_0: number, _1: number): void;
+  _get_strip_buffer_pointer(): number;
+  _merge_strip_into_sequence(_0: number): void;
 }
 
 export type MainModule = WasmModule & typeof RuntimeExports;

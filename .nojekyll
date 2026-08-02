@@ -1,0 +1,1 @@
+Sphinx copies this marker to the generated site so GitHub Pages preserves directories whose names begin with an underscore.

@@ -1,23 +1,34 @@
+/**
+ * @file
+ * @brief Tests visible containment on the projection frame axis.
+ *
+ * Structural containment and projection containment differ for masked strips:
+ * a masked strip remains in the structural chain but occupies no projection
+ * frame indexes.
+ */
 #pragma once
-#include "../../types/strip.hpp"
+
+#include "../../declarations/strip/index.hpp"
 #include <cstdint>
 
 /**
- * @brief Test whether frame_index falls inside a visible strip.
+ * @brief Test whether a projection frame index falls within a visible strip.
  *
- * @param strip Strip to inspect.
- * @param strip_frame_index Visible frame position where the strip starts.
- * @param frame_index Zero-based visible frame position.
- * @return True when frame_index is inside strip.
+ * @param strip Strip whose projected frame span is tested.
+ * @param strip_projection_frame_index Projection frame index at which the
+ * strip begins.
+ * @param projection_frame_index Projection frame index to test.
+ * @return `true` when the strip is visible and contains the frame index.
+ * @pre `strip` is non-null.
  */
-inline bool strip_contains_frame_index(
-    const StripOfSequence *strip, const std::uint32_t strip_frame_index,
-    const std::uint32_t frame_index) noexcept {
-
-  // Masked strips stay linked but never contain visible target positions.
-  if (strip->mask != 0)
+[[nodiscard]] inline bool strip_contains_frame_index(
+    const Strip *strip,
+    const std::uint32_t strip_projection_frame_index,
+    const std::uint32_t projection_frame_index) noexcept {
+  if (strip->is_masked != 0)
     return false;
 
-  return frame_index >= strip_frame_index &&
-         frame_index - strip_frame_index < strip->length;
+  return projection_frame_index >= strip_projection_frame_index &&
+         projection_frame_index - strip_projection_frame_index <
+             strip->frame_count;
 }

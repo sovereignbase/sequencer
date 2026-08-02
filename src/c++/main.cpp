@@ -13,6 +13,7 @@
 #include "./algorithms/mask_strip/index.hpp"
 #include "./auxiliary/run_projector_to_frame_index/index.hpp"
 #include "./auxiliary/run_projector_to_sequence_point/index.hpp"
+#include "./classes/frontier_buffer/index.hpp"
 #include "./classes/strip_buffer/index.hpp"
 #include "./declarations/projector/index.hpp"
 #include <cstdint>
@@ -30,7 +31,7 @@
 static std::vector<std::optional<Projector>> projectors;
 static std::vector<std::uint32_t> available_sequence_ids;
 static StripBuffer strip_buffer;
-static std::vector<SequencePoint> acknowledgement_frontier_buffer;
+static FrontierBuffer frontier_buffer;
 static constexpr std::uint32_t no_projection_frame_index =
     std::numeric_limits<std::uint32_t>::max();
 
@@ -127,37 +128,33 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *get_strip_buffer_pointer() noexcept {
  * @brief Return the current acknowledgement-frontier buffer address.
  *
  * Each entry is one SequencePoint whose Unix and random components identify a
- * realm and whose counter is the greatest locally observed masked-strip start
- * in that realm. The address may change whenever the buffer is rewritten.
+ * realm and whose counter is the greatest locally observed indexed point in
+ * that realm. The address may change whenever the buffer is rewritten.
  *
  * @return Pointer to the first realm frontier, or `nullptr` when empty.
  */
-EMSCRIPTEN_KEEPALIVE const SequencePoint *
+EMSCRIPTEN_KEEPALIVE std::uint32_t *
 get_acknowledgement_frontier_buffer_pointer() noexcept {
-  return acknowledgement_frontier_buffer.empty()
-             ? nullptr
-             : acknowledgement_frontier_buffer.data();
+  return frontier_buffer.get_memory_pointer();
 }
 
 /**
  * @brief Write one sequence's realm-specific mask frontiers to the shared
  * acknowledgement buffer.
  *
- * StripIndex uses its existing realm partition and counter ordering to return
- * the greatest masked-strip start in each realm.
+ * StripIndex writes the final counter-ordered entry of every occupied realm
+ * directly to FrontierBuffer. Mask semantics belong to garbage collection.
  *
  * @param sequence_id Identifier of the active sequence to acknowledge.
  * @return Number of SequencePoint entries written to the frontier buffer.
- * @complexity O(c + s) worst-case time and O(r) retained output space, where c
- * is the realm-table capacity, s is the strip count, and r is the returned
- * realm count.
+ * @complexity O(c) time and O(r) retained output space, where c is the realm
+ * table capacity and r is its occupied realm count.
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t write_acknowledgement_frontier_to_buffer(
     const std::uint32_t sequence_id) noexcept {
-  acknowledgement_frontier_buffer =
-      projectors[sequence_id]->strip_index.get_acknowledgement_frontier();
-  return static_cast<std::uint32_t>(
-      acknowledgement_frontier_buffer.size());
+  projectors[sequence_id]->strip_index.write_acknowledgement_frontier(
+      &frontier_buffer);
+  return frontier_buffer.get_frontier_count();
 }
 
 /**

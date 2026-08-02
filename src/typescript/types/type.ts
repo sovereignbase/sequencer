@@ -74,11 +74,11 @@ export type SequenceChange<T> = Record<number, T | undefined>
 /**
  * Masking acknowledgement frontier.
  *
- * The value is the latest masked strip timecode the replica can prove it has
- * seen. Emitters can use this frontier to decide which masked strips are safe to
- * garbage collect from their point of view.
+ * Each sequence point identifies one realm and carries the greatest indexed
+ * counter locally observed in that realm. Garbage collection combines actor
+ * frontiers realm by realm and applies the resulting lower bounds to masks.
  */
-export type SequenceFrontier = SequencePoint
+export type SequenceFrontier = Array<SequencePoint>
 
 /**
  * Maps Sequencer event names to their event payload shapes.

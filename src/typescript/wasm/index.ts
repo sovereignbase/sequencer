@@ -1,5 +1,9 @@
 import create_module from './raw/sequencer_wasm.mjs'
-import type { SequenceCoordinate } from '../types/type.js'
+import type {
+  SequenceCoordinate,
+  SequenceFrontier,
+  SequencePoint,
+} from '../types/type.js'
 
 const wasm = create_module()
 const strip_buffer_start_index = wasm._get_strip_buffer_pointer() >>> 2
@@ -96,6 +100,31 @@ export function write_strip_at_projection_frame_index_to_buffer(
     sequence_id,
     projection_frame_index
   )
+}
+
+/** Returns the greatest locally observed indexed point in every realm. */
+export function get_acknowledgement_frontier(
+  sequence_id: number
+): SequenceFrontier | false {
+  const frontier_count =
+    wasm._write_acknowledgement_frontier_to_buffer(sequence_id) >>> 0
+  if (frontier_count === 0) return false
+
+  const buffer = wasm.HEAPU32
+  let buffer_index =
+    wasm._get_acknowledgement_frontier_buffer_pointer() >>> 2
+  const frontier = new Array<SequencePoint>(frontier_count)
+
+  for (let realm_index = 0; realm_index < frontier_count; realm_index++) {
+    frontier[realm_index] = [
+      buffer[buffer_index],
+      buffer[buffer_index + 1],
+      buffer[buffer_index + 2],
+    ]
+    buffer_index += 3
+  }
+
+  return frontier
 }
 
 /**

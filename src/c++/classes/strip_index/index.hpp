@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "../frontier_buffer/index.hpp"
 #include "../../declarations/strip/index.hpp"
 #include <algorithm>
 #include <cstdint>
@@ -229,39 +230,28 @@ public:
   }
 
   /**
-   * @brief Return the greatest locally observed mask start in every realm.
+   * @brief Write the greatest indexed point of every occupied realm.
    *
-   * The primary index already partitions strips by realm and orders each realm
-   * by counter. Scanning each occupied realm backward therefore finds its
-   * acknowledgement frontier without another lookup structure or sequence
-   * traversal.
+   * Realm vectors are already ordered by counter, so their final entries are
+   * the local acknowledgement frontiers. Empty hash-table slots are skipped;
+   * no strip traversal, mask test, secondary lookup, or intermediate
+   * collection is required.
    *
-   * @return One mask SequencePoint per realm containing a materialized mask.
-   * @complexity O(c + s) worst-case time and O(r) result space, where c is the
-   * realm-table capacity, s is the strip count, and r is the returned realm
-   * count.
+   * @param frontier_buffer Shared transfer buffer replaced by the result.
+   * @complexity O(c) time and O(r) retained buffer space, where c is the realm
+   * table capacity and r is its occupied realm count.
    */
-  [[nodiscard]] inline std::vector<SequencePoint>
-  get_acknowledgement_frontier() const noexcept {
-    static_assert(indexed_sequence_point ==
-                  &SequenceCoordinate::this_strip_start);
-
-    std::vector<SequencePoint> frontier;
-    frontier.reserve(realm_count);
-
+  inline void write_acknowledgement_frontier(
+      FrontierBuffer *frontier_buffer) const noexcept {
+    frontier_buffer->clear();
+    frontier_buffer->reserve(realm_count);
     for (std::uint32_t realm_index = 0; realm_index < realm_capacity;
          ++realm_index) {
       const Realm &realm = realms[realm_index];
-      for (auto strip = realm.strips.rbegin(); strip != realm.strips.rend();
-           ++strip) {
-        if (strip->is_masked == 0)
-          continue;
-        frontier.push_back(strip->coordinate.this_strip_start);
-        break;
-      }
+      if (!realm.strips.empty())
+        frontier_buffer->write_frontier(
+            realm.strips.back().coordinate.*indexed_sequence_point);
     }
-
-    return frontier;
   }
 
 private:

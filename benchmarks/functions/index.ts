@@ -76,12 +76,7 @@ export async function run_function_benchmarks() {
     const middle_frame_index = sequence_length >> 1
     const merge_source = create_state()
     const merge_reel = require_result(
-      api.__update(
-        merge_source,
-        middle_frame_index,
-        ['b'],
-        'after'
-      ),
+      api.__update(merge_source, middle_frame_index, ['b'], 'after'),
       '__merge'
     ).reel
     let read_index = 0

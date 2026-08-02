@@ -337,8 +337,9 @@ get_acknowledgement_frontier_buffer_pointer() noexcept {
 EMSCRIPTEN_KEEPALIVE std::uint32_t write_acknowledgement_frontier_to_buffer(
     const std::uint32_t sequence_id) noexcept {
   // Replace the shared buffer with this Replica's Frontier.
-  projectors[sequence_id]->strip_index.write_acknowledgement_frontier(
-      &frontier_buffer);
+  const Projector *projector = &*projectors[sequence_id];
+  projector->strip_index.write_acknowledgement_frontier(
+      &frontier_buffer, projector->last_strip_start);
   return frontier_buffer.get_frontier_count();
 }
 

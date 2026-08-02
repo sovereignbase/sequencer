@@ -505,6 +505,8 @@ public:
    *
    * @param frontier_buffer Non-null transfer buffer replaced by the resulting
    * Frontier.
+   * @param realm_hint Point belonging to any represented Realm when the index
+   * is non-empty.
    * @pre This is the primary index keyed by `this_strip_start`.
    * @pre `frontier_buffer != nullptr`.
    * @post The buffer contains exactly one greatest point per occupied Realm and
@@ -512,14 +514,25 @@ public:
    * not structural Sequence order.
    * @warning Allocation failure terminates the program because this operation
    * is `noexcept`.
-   * @complexity O(c) time and O(r) retained buffer space, where c is the Realm
-   * table capacity and r is its occupied Realm count.
+   * @complexity O(1) time for one Realm, otherwise O(c) time, and O(r) retained
+   * buffer space, where c is the Realm table capacity and r is its occupied
+   * Realm count.
    */
   inline void write_acknowledgement_frontier(
-      FrontierBuffer *frontier_buffer) const noexcept {
+      FrontierBuffer *frontier_buffer,
+      const SequencePoint &realm_hint) const noexcept {
     // Replace the prior Frontier and reserve one entry per occupied Realm.
     frontier_buffer->clear();
     frontier_buffer->reserve(realm_count);
+
+    // Resolve the overwhelmingly common single Realm directly from its hash.
+    if (realm_count == 1) {
+      const Realm &realm = realms[realm_hint.random_bits & realm_index_mask];
+      frontier_buffer->write_frontier(realm.strips.back().coordinate.*
+                                      indexed_sequence_point);
+      return;
+    }
+
     // Emit each Realm's greatest materialized Strip start.
     for (std::uint32_t realm_index = 0; realm_index < realm_capacity;
          ++realm_index) {

@@ -42,6 +42,10 @@ describe('MAGS merge', () => {
     expect(__merge(state, undefined)).toBe(false)
     expect(__merge(state, [null])).toBe(false)
     expect(__merge(state, incomplete_reel)).toBe(false)
+    expect(__length(__create([...incomplete_reel, null]))).toBe(0)
+    expect(
+      __length(__create([...incomplete_reel, ...Array<null>(9).fill(null)]))
+    ).toBe(0)
     expect(__length(state)).toBe(0)
   })
 
@@ -57,7 +61,11 @@ describe('MAGS merge', () => {
     expect(__length(target)).toBe(0)
     expect(__recover(target)).toEqual([])
 
-    const restarted = __create<string>(__snapshot(target))
+    const pending_snapshot = __snapshot(target)
+    const restarted = __create<string>([
+      ...pending_snapshot,
+      ...Array<null>(9).fill(null),
+    ])
     expect(__merge(restarted, parent_result.reel)).toEqual({
       0: 'parent',
       1: 'child',
@@ -84,6 +92,28 @@ describe('MAGS retained state', () => {
     assert(footage !== undefined)
     footage[0] = 'mutated snapshot'
     expect(projection_values(source)).toEqual(['a', 'c'])
+    expect(__recover(target)).toEqual(['a', 'b', 'c'])
+  })
+
+  it('hydrates large Snapshots into independently owned Footage', () => {
+    const source = __create<string>()
+    const expected_values = Array.from(
+      { length: 10 },
+      (_, frame_index) => `${frame_index}`
+    )
+    for (const value of expected_values)
+      expect(__update(source, __length(source), [value], 'after')).not.toBe(
+        false
+      )
+
+    const snapshot = __snapshot(source)
+    expect(snapshot).toHaveLength(10)
+    const target = __create<string>(snapshot)
+    const footage = snapshot[0][3]
+    assert(footage !== undefined)
+    footage[0] = 'mutated snapshot'
+
+    expect(__recover(target)).toEqual(expected_values)
   })
 
   it('acknowledges the greatest materialized start in each Realm', () => {
@@ -98,6 +128,38 @@ describe('MAGS retained state', () => {
     const frontier = __acknowledge(state)
     assert(frontier !== false)
     expect(frontier).toContainEqual(second_result.reel.at(-1)?.[2][1])
+  })
+
+  it('acknowledges every materialized Realm', () => {
+    const first_state = __create<string>()
+    const second_state = __create<string>()
+    const first_result = __update(first_state, 0, ['first'], 'after')
+    const second_result = __update(second_state, 0, ['second'], 'after')
+    assert(first_result !== false)
+    assert(second_result !== false)
+    const second_strip = second_result.reel.at(-1)
+    assert(second_strip !== undefined)
+    const second_start = second_strip[2][1]
+    const remote_start: [number, number, number] = [
+      second_start[0],
+      second_start[1],
+      (second_start[2] ^ 1) >>> 0,
+    ]
+    const remote_reel: Reel<string> = [
+      [
+        second_strip[0],
+        second_strip[1],
+        [second_strip[2][0], remote_start],
+        second_strip[3],
+      ],
+    ]
+    expect(__merge(first_state, remote_reel)).not.toBe(false)
+
+    const frontier = __acknowledge(first_state)
+    assert(frontier !== false)
+    expect(frontier).toHaveLength(2)
+    expect(frontier).toContainEqual(first_result.reel.at(-1)?.[2][1])
+    expect(frontier).toContainEqual(remote_start)
   })
 
   it('reduces Replica Frontiers realm-wise before collection', () => {

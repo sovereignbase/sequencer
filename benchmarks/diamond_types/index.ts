@@ -6,7 +6,7 @@ export function create_diamond_types_benchmarks(
   write_result: (result: unknown) => void
 ) {
   const base_state = new Doc('benchmark_base')
-  for (let frame_index = 0; frame_index < sequence_length; ) {
+  for (let frame_index = 0; frame_index < sequence_length;) {
     const frame_count = Math.min(10_000, sequence_length - frame_index)
     base_state.ins(frame_index, 'a'.repeat(frame_count))
     frame_index += frame_count
@@ -27,7 +27,9 @@ export function create_diamond_types_benchmarks(
     sample_count: number,
     operation: (state: Doc) => unknown
   ) => {
-    const state_pool = Array.from({ length: sample_count }, () => create_state())
+    const state_pool = Array.from({ length: sample_count }, () =>
+      create_state()
+    )
     let current_state: Doc | undefined
     return {
       before_each: () => {

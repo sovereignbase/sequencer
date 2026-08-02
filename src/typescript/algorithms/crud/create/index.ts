@@ -4,6 +4,7 @@
  * @module
  */
 import { is_strip } from '../../../helpers/index.js'
+import { hydrate_large_snapshot } from './hydrate_large_snapshot/index.js'
 import {
   clear_sequence,
   hydrate_pending_snapshot_strip_into_sequence,
@@ -44,6 +45,36 @@ export function __create<T>(data?: unknown): Replica<T> {
   // Validate the optional initialization Reel container.
   if (!Array.isArray(data) || data.length < 1) return state
 
+  // Clone the common single-Strip Snapshot without growing Footage incrementally.
+  if (data.length === 1) {
+    const chunk = data[0]
+    if (!is_strip<T>(chunk)) return state
+    const [is_masked, frame_count, coordinate, footage, is_pending] = chunk
+    if (
+      (is_masked === 0 && footage?.length !== frame_count) ||
+      (footage !== undefined && footage.length !== frame_count)
+    )
+      return state
+
+    if (footage !== undefined) state.footage = footage.slice()
+    else if (is_pending !== 1)
+      state.footage = new Array<T | undefined>(frame_count)
+
+    write_strip_to_buffer(is_masked, frame_count, 0, coordinate)
+    if (is_pending === 1) hydrate_pending_snapshot_strip_into_sequence(state.id)
+    else hydrate_snapshot_strip_into_sequence(state.id)
+    return state
+  }
+
+  // Route large retained snapshots to their preallocated hydration path.
+  const first_chunk = data[0]
+  const first_frame_count =
+    Array.isArray(first_chunk) && is_uint32(first_chunk[1]) ? first_chunk[1] : 0
+  if (data.length >= 10 || first_frame_count >= 100_000) {
+    hydrate_large_snapshot<T>(state, data)
+    return state
+  }
+
   // Integrate structurally valid retained Strips in supplied Reel order.
   for (const chunk of data) {
     // Validate the transferable Strip tuple.
@@ -54,7 +85,6 @@ export function __create<T>(data?: unknown): Replica<T> {
       (footage !== undefined && footage.length !== frame_count)
     )
       continue
-
     // Resolve a stable append-only Footage span for supplied values.
     const footage_frame_index = state.footage.length
 

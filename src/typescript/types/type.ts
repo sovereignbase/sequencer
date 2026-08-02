@@ -79,34 +79,3 @@ export type SequenceChange<T> = Record<number, T | undefined>
  * frontiers realm by realm and applies the resulting lower bounds to masks.
  */
 export type SequenceFrontier = Array<SequencePoint>
-
-/**
- * Maps Sequencer event names to their event payload shapes.
- */
-export type SequencerEventMap<T> = {
-  /** Full reel snapshot event payload. */
-  reel: SequenceReel<T>
-
-  /** Local live projection patch event payload. */
-  change: SequenceChange<T>
-
-  /** Masking acknowledgement frontier event payload. */
-  frontier: SequenceFrontier
-}
-
-/**
- * Represents a strongly typed Sequencer event listener.
- */
-export type SequencerEventListener<T, K extends keyof SequencerEventMap<T>> =
-  | ((event: CustomEvent<SequencerEventMap<T>[K]>) => void)
-  | { handleEvent(event: CustomEvent<SequencerEventMap<T>[K]>): void }
-
-/**
- * Resolves an event name to its corresponding listener type.
- */
-export type SequencerEventListenerFor<
-  T,
-  K extends string,
-> = K extends keyof SequencerEventMap<T>
-  ? SequencerEventListener<T, K>
-  : EventListenerOrEventListenerObject

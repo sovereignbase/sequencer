@@ -55,6 +55,7 @@ describe('MAGS merge', () => {
     const target = __create<string>()
     expect(__merge(target, child_result.reel)).toBe(false)
     expect(__length(target)).toBe(0)
+    expect(__recover(target)).toEqual([])
 
     const restarted = __create<string>(__snapshot(target))
     expect(__merge(restarted, parent_result.reel)).toEqual({

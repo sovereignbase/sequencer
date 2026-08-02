@@ -56,9 +56,13 @@ export function __length<T>(state: Replica<T>): number {
  * @returns Dense values in structural Sequence order.
  */
 export function __recover<T>(state: Replica<T>): Array<T> {
-  // Initialize the dense result and structural traversal.
-  const values: Array<T> = []
-  if (!write_first_structural_strip_to_buffer(state.id)) return values
+  // Initialize structural traversal and defer result allocation while Footage
+  // remains contiguous in Sequence order.
+  if (!write_first_structural_strip_to_buffer(state.id)) return []
+  const footage = state.footage
+  let contiguous_footage_end = 0
+  let values: Array<T> | undefined
+  let value_count = 0
 
   // Traverse every retained visible Strip and Mask in Sequence order.
   do {
@@ -66,13 +70,49 @@ export function __recover<T>(state: Replica<T>): Array<T> {
     const [, frame_count, footage_frame_index] = read_strip_from_buffer()
     const footage_end_index = footage_frame_index + frame_count
 
+    // Prove the common append and hydration layout without copying each Frame.
+    if (
+      values === undefined &&
+      footage_frame_index === contiguous_footage_end
+    ) {
+      contiguous_footage_end = footage_end_index
+      continue
+    }
+
+    // Materialize the proven prefix only when structural order diverges.
+    if (values === undefined) {
+      values = new Array<T>(footage.length)
+      for (let index = 0; index < contiguous_footage_end; index++) {
+        const value = footage[index]
+        if (value !== undefined) values[value_count++] = value
+      }
+    }
+
     // Append only Frames whose Footage has not been released.
     for (let index = footage_frame_index; index < footage_end_index; index++) {
-      const value = state.footage[index]
-      if (value !== undefined) values.push(value)
+      const value = footage[index]
+      if (value !== undefined) values[value_count++] = value
     }
   } while (write_next_structural_strip_to_buffer(state.id))
 
+  // Copy a complete contiguous layout through optimized array primitives.
+  if (
+    values === undefined &&
+    contiguous_footage_end === footage.length &&
+    !footage.includes(undefined)
+  )
+    return footage.slice() as Array<T>
+
+  // Densify a contiguous prefix containing released or pending Footage.
+  if (values === undefined) {
+    values = new Array<T>(contiguous_footage_end)
+    for (let index = 0; index < contiguous_footage_end; index++) {
+      const value = footage[index]
+      if (value !== undefined) values[value_count++] = value
+    }
+  }
+
   // Return retained values as one dense structural sequence.
+  values.length = value_count
   return values
 }

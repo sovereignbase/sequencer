@@ -48,6 +48,31 @@ export function write_benchmark_report(
   }
   const throughput = (average_time_microseconds: number): string =>
     number.format(1_000_000 / rounded_average_time(average_time_microseconds))
+  const comparison_rows = function_results.rows.filter(
+    (row) => row.implementation === 'Sequencer'
+  )
+  const diamond_types_row = (
+    name: string,
+    sequence_length: number
+  ): (typeof function_results.rows)[number] | undefined =>
+    function_results.rows.find(
+      (row) =>
+        row.implementation === 'Diamond Types' &&
+        row.name === name &&
+        row.sequence_length === sequence_length
+    )
+  const optional_throughput = (
+    row: (typeof function_results.rows)[number] | undefined
+  ): string => (row ? throughput(row.average_time_microseconds) : '—')
+  const optional_calls = (
+    row: (typeof function_results.rows)[number] | undefined
+  ): string => (row ? number.format(row.calls) : '—')
+  const optional_average_time = (
+    row: (typeof function_results.rows)[number] | undefined
+  ): string => (row ? average_time(row.average_time_microseconds) : '—')
+  const optional_margin = (
+    row: (typeof function_results.rows)[number] | undefined
+  ): string => (row ? `±${row.relative_margin_of_error.toFixed(2)}%` : '—')
   const bytes = (value: number): string =>
     value < 1_000
       ? `${number.format(value)} B`
@@ -68,14 +93,14 @@ export function write_benchmark_report(
   }
 
   const performance_markdown = [
-    `JavaScript/WASM performance measured using Node.js \`${function_results.environment.node}\` on ${cpu_name}. These results characterize Node.js, not browser runtimes. [See the full benchmark report](./docs/benchmarks/index.html) for methodology and variability.`,
+    `JavaScript/WASM performance measured using Node.js \`${function_results.environment.node}\` on ${cpu_name}. Diamond Types 1.0.2 is included under its upstream description, “The world's fastest CRDT. WIP.” Results use equivalent public operations where available; \`—\` means Diamond Types has no public equivalent. [See the full benchmark report](./docs/benchmarks/index.html) for methodology, API differences, and variability.`,
     '',
-    '| function | Sequence length | throughput (ops/sec) | calls | avg µs/op |',
-    '| --- | ---: | ---: | ---: | ---: |',
-    ...function_results.rows.map(
-      (row) =>
-        `| \`${row.name}\` | ${number.format(row.sequence_length)} | ${throughput(row.average_time_microseconds)} | ${number.format(row.calls)} | ${average_time(row.average_time_microseconds)} |`
-    ),
+    '| function | Sequence length | Sequencer ops/sec | Diamond Types ops/sec | Sequencer calls | Diamond Types calls | Sequencer avg µs/op | Diamond Types avg µs/op |',
+    '| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |',
+    ...comparison_rows.map((row) => {
+      const diamond_types = diamond_types_row(row.name, row.sequence_length)
+      return `| \`${row.name}\` | ${number.format(row.sequence_length)} | ${throughput(row.average_time_microseconds)} | ${optional_throughput(diamond_types)} | ${number.format(row.calls)} | ${optional_calls(diamond_types)} | ${average_time(row.average_time_microseconds)} | ${optional_average_time(diamond_types)} |`
+    }),
   ].join('\n')
   const bundle_markdown = [
     '| format | raw | minified | minified + gzip |',
@@ -129,11 +154,11 @@ export function write_benchmark_report(
     )}\n`
   )
 
-  const status_rows = function_results.rows
-    .map(
-      (row) =>
-        `<tr><th scope="row"><code>${row.name}</code></th><td>${number.format(row.sequence_length)}</td><td>${row.workload}</td><td>${throughput(row.average_time_microseconds)}</td><td>${number.format(row.calls)}</td><td>${average_time(row.average_time_microseconds)}</td><td>±${row.relative_margin_of_error.toFixed(2)}%</td></tr>`
-    )
+  const status_rows = comparison_rows
+    .map((row) => {
+      const diamond_types = diamond_types_row(row.name, row.sequence_length)
+      return `<tr><th scope="row"><code>${row.name}</code></th><td>${number.format(row.sequence_length)}</td><td>${row.workload}</td><td>${throughput(row.average_time_microseconds)}</td><td>${optional_throughput(diamond_types)}</td><td>${number.format(row.calls)}</td><td>${optional_calls(diamond_types)}</td><td>${average_time(row.average_time_microseconds)}</td><td>${optional_average_time(diamond_types)}</td><td>±${row.relative_margin_of_error.toFixed(2)}%</td><td>${optional_margin(diamond_types)}</td></tr>`
+    })
     .join('')
   const bundle_rows = bundle_results
     .map(
@@ -199,8 +224,9 @@ export function write_benchmark_report(
       </header>
       <section>
         <h2>JavaScript/WASM performance</h2>
-        <div class="table-shell"><table class="performance-table"><thead><tr><th>Function</th><th>Sequence length</th><th>Timed workload</th><th>Ops/sec</th><th>Calls</th><th>avg µs/op</th><th>RME</th></tr></thead><tbody>${status_rows}</tbody></table></div>
-        <p class="note"><strong>Methodology:</strong> avg µs/op is the arithmetic mean of the measured per-call latencies. Ops/sec is its reciprocal; displayed values are rounded as one reciprocal pair. Setup and warmup calls are excluded. Mutating operations receive a fresh prepared Replica for every sample; read-only operations use stable state. These Node.js results do not represent browser runtimes.</p>
+        <div class="table-shell"><table class="performance-table"><thead><tr><th>Function</th><th>Sequence length</th><th>Timed Sequencer workload</th><th>Sequencer ops/sec</th><th>Diamond Types ops/sec</th><th>Sequencer calls</th><th>Diamond Types calls</th><th>Sequencer avg µs/op</th><th>Diamond Types avg µs/op</th><th>Sequencer RME</th><th>Diamond Types RME</th></tr></thead><tbody>${status_rows}</tbody></table></div>
+        <p class="note"><strong>Diamond Types 1.0.2:</strong> “The world's fastest CRDT. WIP.” Both implementations use one-character strings, the same logical Sequence lengths, midpoint mutations, warm-up sample counts, and measured sample counts. Each uses its public native snapshot and patch format. Diamond Types has no direct indexed-read API, so its read result calls <code>get()</code> before selecting one character; its clean-state <code>get()</code> is the closest recovery equivalent. Diamond Types exposes no public garbage-collection operation, shown as —.</p>
+        <p class="note"><strong>Methodology:</strong> avg µs/op is the arithmetic mean of the measured per-call latencies. Ops/sec is its reciprocal; displayed values are rounded as one reciprocal pair. Setup, cleanup, and warmup calls are excluded. Mutating operations receive a fresh prepared state for every sample; read-only operations use stable state. Batch sizes only amortize timer overhead and are reported through call counts. These Node.js results do not represent browser runtimes.</p>
       </section>
       <section>
         <h2>Small bundle size</h2>

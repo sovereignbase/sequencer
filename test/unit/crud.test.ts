@@ -51,6 +51,13 @@ describe('CRUD creation and reads', () => {
       reel.map((strip) => strip[2])
     )
   })
+
+  it('recovers structural order after Footage append order diverges', () => {
+    const state = create_values(['a', 'b', 'c'])
+    expect(__update(state, 0, ['x'], 'after')).not.toBe(false)
+
+    expect(__recover(state)).toEqual(['a', 'x', 'b', 'c'])
+  })
 })
 
 // Visible update modes and validation.

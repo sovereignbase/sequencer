@@ -21,6 +21,7 @@ console.table(
       row.average_time_microseconds.toFixed(decimal_places)
     )
     return {
+      implementation: row.implementation,
       function: row.name,
       length: row.sequence_length,
       'ops/sec': Math.round(1_000_000 / average_time_microseconds),

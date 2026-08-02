@@ -85,9 +85,9 @@ insert_strip(Projector *projector, const Strip *previous_strip,
       const Strip *structural_predecessor = nullptr;
 
       // Compare only Root siblings; their children are already to their right.
-      while (current_strip != nullptr) {
-        if (current_strip->coordinate.previous_strip_start == root &&
-            compare_sequence_points(
+      while (current_strip != nullptr &&
+             current_strip->coordinate.previous_strip_start == root) {
+        if (compare_sequence_points(
                 &inserted_strip_start,
                 &current_strip->coordinate.this_strip_start) > 0)
           break;
@@ -256,8 +256,72 @@ insert_strip(Projector *projector, const Strip *previous_strip,
       projector->pending_masks.remove(dependency);
       const auto mask_start_result = run_projector_to_sequence_point(
           projector, &pending_mask_copy.coordinate.this_strip_start);
-      if (std::holds_alternative<bool>(mask_start_result))
+      if (std::holds_alternative<bool>(mask_start_result)) {
+        // Snapshot states 3/5/7 are already-materialized source fragments.
+        if (pending_mask_copy.is_masked == masked_strip_state)
+          continue;
+
+        const Strip *source_previous =
+            projector->strip_index.get(dependency);
+        if (source_previous == nullptr)
+          continue;
+
+        Strip source_previous_copy = *source_previous;
+        Strip materialized_mask = pending_mask_copy;
+        const SequencePoint materialized_mask_start =
+            materialized_mask.coordinate.this_strip_start;
+        const SequencePoint structural_successor =
+            source_previous_copy.next_strip_start;
+        materialized_mask.previous_structural_strip_start = dependency;
+        materialized_mask.next_strip_start = structural_successor;
+        materialized_mask.previous_source_strip_start =
+            (materialized_mask.is_masked & mask_is_source_continuation) != 0
+                ? dependency
+                : SequencePoint{};
+        materialized_mask.next_source_strip_start = unlinked_strip_start;
+        if ((materialized_mask.is_masked & mask_has_source_successor) != 0) {
+          materialized_mask.next_source_strip_start = materialized_mask_start;
+          materialized_mask.next_source_strip_start.counter_bits +=
+              materialized_mask.frame_count;
+        }
+
+        source_previous_copy.next_strip_start = materialized_mask_start;
+        source_previous_copy.next_source_strip_start = materialized_mask_start;
+        projector->strip_index.set(dependency, source_previous_copy);
+        projector->strip_index.set(materialized_mask_start,
+                                   materialized_mask);
+        if (!(structural_successor == unlinked_strip_start)) {
+          Strip successor =
+              *projector->strip_index.get(structural_successor);
+          successor.previous_structural_strip_start =
+              materialized_mask_start;
+          projector->strip_index.set(structural_successor, successor);
+        } else {
+          projector->last_strip_start = materialized_mask_start;
+        }
+
+        // Resolve staged successors whose parent is this Masked Frame Span.
+        SequencePoint masked_dependency = materialized_mask_start;
+        for (std::uint32_t masked_offset = 0;
+             masked_offset < materialized_mask.frame_count;
+             ++masked_offset, ++masked_dependency.counter_bits) {
+          while (const Strip *pending_successor =
+                     projector->pending_inserts.get(masked_dependency)) {
+            const Strip pending_successor_copy = *pending_successor;
+            projector->pending_inserts.remove(masked_dependency);
+            const auto parent_result = run_projector_to_sequence_point(
+                projector, &masked_dependency);
+            if (std::holds_alternative<bool>(parent_result))
+              continue;
+            const auto [parent_strip, parent_frame_offset] =
+                std::get<0>(parent_result);
+            static_cast<void>(insert_strip(projector, parent_strip,
+                                           parent_frame_offset,
+                                           pending_successor_copy));
+          }
+        }
         continue;
+      }
       const auto [containing_strip, mask_frame_offset] =
           std::get<0>(mask_start_result);
       mask_strip(projector, containing_strip, mask_frame_offset,

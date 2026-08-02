@@ -153,7 +153,8 @@ inline void mask_strip(Projector *projector, const Strip *containing_strip,
       // Restore the next fragment of this source before concurrent siblings.
       const SequencePoint source_successor_start =
           masked_strip.next_source_strip_start;
-      if (!(source_successor_start == unlinked_strip_start)) {
+      if (!(source_successor_start == unlinked_strip_start) &&
+          !(source_successor_start == replacement_tail_strip_start)) {
         Strip source_successor =
             *projector->strip_index.get(source_successor_start);
         if (!(source_successor.previous_structural_strip_start ==

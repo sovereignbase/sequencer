@@ -1,45 +1,24 @@
-mitä vittua replyaa ei mitään reply paskaa kun kerralla vittu sisään ne
+Kyllä. Toteutan tämän täsmälleen tuolla mallilla: snapshotin rakenteellinen osa hydraataan samassa järjestyksessä, pendingit jäävät Reelissä tavallisiksi stripeiksi loppuun, ja maskifragmenttien jatkuvuus rakennetaan runtime-only source-linkeillä realm+counter-jatkumosta — ei sibling-ancestryä eikä pending-lippua. Käytän optimointiskilliä myös tämän muutoksen correctness- ja suorituskykyvarmennukseen.
 
 
 
 
-
-
-1:41 AM
-
+Ran commandsRan $ErrorActionPreference='Stop'; Get-Content -Raw '.skills\optimize-performance\SKILL.md'; git status --short --branch; git log -3 --oneline; Get-Content -Raw 'src\c++\declarations\projector\index.hpp'; Get-Content -Raw 'src\c++\main.cpp'; Get-Content -Raw 'src\c++\algorithms\insert_strip\index.hpp'; Get-Content -Raw 'src\c++\algorithms\mask_strip\index.hpp'; Get-Content -Raw 'src\typescript\algorithms\crud\create\index.ts'; Get-Content -Raw 'src\typescript\algorithms\mags\snapshot\index.ts'; Get-Content -Raw 'src\typescript\wasm\index.ts' in 3s
 
 
 
 
-
-You stopped after 23s
-
+Ran $ErrorActionPreference='Stop'; git show --stat --oneline HEAD; git diff -- src/c++/algorithms/insert_strip/index.hpp src/c++/algorithms/mask_strip/index.hpp; rg -n "stage_strip|try_to_resolve|hydrate|pending|source_strip|write_first_structural|write_first_pending|descends_from" src/c++ src/typescript test tests benchmark benchmarks README.md archives/optimizations -g '!src/typescript/wasm/raw/sequencer_wasm.mjs'; Get-Content -Raw 'src\c++\declarations\projector\index.hpp'; $m=Get-Content 'src\c++\main.cpp'; $m[0..260]; $i=Get-Content 'src\c++\algorithms\insert_strip\index.hpp'; $i[0..320] in 4s
 
 
 
 
+Ran $ErrorActionPreference='Stop'; Get-Content 'src\c++\declarations\projector\index.hpp'; $m=Get-Content 'src\c++\main.cpp'; $m[360..550]; Get-Content 'src\c++\declarations\strip\index.hpp'; Get-Content 'src\c++\classes\strip_index\index.hpp'; Get-Content 'src\c++\auxiliary\run_projector_to_sequence_point\index.hpp'; Get-Content 'src\c++\auxiliary\run_projector_forward\index.hpp'; Get-Content 'src\c++\classes\strip_buffer\index.hpp'; git show 20ebdf2:src/c++/main.cpp | Select-String -Pattern 'hydrate_snapshot' -Context 15,45 in 8s
 
 
 
 
-
-
-
-kaikki vaan sisään ja sitten metodi joka käskee wasmin kävellä projectionin alusta resolvaten pendingit
-
-
-
-
-
-
-1:42 AM
-
-
-
-
-
-
-You stopped after 11s
+Ran $ErrorActionPreference='Stop'; Get-Content -Raw 'src\typescript\algorithms\crud\update\index.ts'; Get-Content -Raw 'src\typescript\algorithms\crud\delete\index.ts'; Get-Content -Raw 'src\c++\algorithms\mask_strip\index.hpp'; git show 20ebdf2:src/c++/main.cpp | Select-String -Pattern 'hydrate_snapshot_strip_into_sequence' -Context 20,80; git show 20ebdf2:src/typescript/algorithms/crud/create/index.ts; git show 20ebdf2:src/typescript/algorithms/mags/snapshot/index.ts in 5s
 
 
 
@@ -49,7 +28,18 @@ You stopped after 11s
 
 
 
+Yksi olennainen rajatapaus löytyi ennen koodin lukitsemista: tavallinen start-aligned Mask (state 1, previous == this) on siirtomuodossa bitilleen sama riippumatta siitä, onko se jo materiaalisoitu vai vielä pending. Pelkkä “pendingit viimeisenä” ei siis yksin anna rajaa, jos snapshotissa on vain Mask tai ensimmäinen pending on tällainen. Ratkaisen tämän ilman pending-lippua siten, että Wasm saa snapshotin rakenteellisen määrän yhdellä erillisellä batch-metatiedolla; itse Strip/Reel-entryt pysyvät täysin tavallisina. Sen jälkeen source-linkit voidaan rakentaa counter-jatkumosta deterministisesti.
 
 
 
-eli aina vaan sisään tosta mergestä, ja sitten erillinen metodi joku try to resolve pending, joka sitten aloittaa projectionin ihan alusta eli jostain miikä on root niin siitä resolvaamaan, eli ei nyt vittu typescriptin kuulu tehdä muutakun vaan tunkea äkkiä ne arvot sisään ja sitten wasmi hoitaa loput, pitäisi olla itsestään selvää minimi allocit JSsään
+
+Ran $ErrorActionPreference='Stop'; Get-Content 'test\unit\mags.test.ts'; Get-Content 'test\convergence\convergence.test.ts'; Get-Content 'src\typescript\types\type.ts'; rg -n "JSON|stringify|parse|snapshot\(" test src README.md index.html in 4s
+
+
+
+
+
+
+
+Snapshotin rakenteelliset Stripit voidaan laittaa ensin ja pendingit viimeiseksi. Mutta nykyinen Reel ei serialisoi footage_frame_indexiä, joten raja ei säily datassa. Lisäksi materiaalisoitu kokonainen Mask ja vastaava pending Mask voivat olla täysin identtisiä.
+Tarvitaan siksi yksi Reel-tason erotin rakenteellisen osan ja pending-osan väliin. Pending-Stripeihin ei tule lippua: ne pysyvät tavallisina Stripeinä. Wasm saa kaikki Stripeinä sisään, säilyttää rakenteellisen järjestyksen ja rakentaa maskifragmenttien runtime source-linkit realm+counter-jatkumosta ilman ancestry-kävelyä. Hyväksytkö yhden null-erottimen Reeliin ennen pendingejä?

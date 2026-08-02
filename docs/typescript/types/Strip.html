@@ -10,13 +10,12 @@
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
 <li><a href="" aria-current="page">Strip</a></li></ul>
 <h1>Type Alias Strip&lt;T&gt;</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Strip</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">[</span><br/>    is_masked<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">0</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">1</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">3</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">5</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">7</span><span class="tsd-signature-symbol">,</span><br/>    frame_count<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>    coordinate<span class="tsd-signature-symbol">:</span> <a href="SequenceCoordinate.html" class="tsd-signature-type tsd-kind-type-alias">SequenceCoordinate</a><span class="tsd-signature-symbol">,</span><br/>    footage<span class="tsd-signature-symbol">?:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span><br/>    is_pending<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">1</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">]</span></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Strip</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">[</span><br/>    is_masked<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">0</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">1</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">3</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">5</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">7</span><span class="tsd-signature-symbol">,</span><br/>    frame_count<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>    coordinate<span class="tsd-signature-symbol">:</span> <a href="SequenceCoordinate.html" class="tsd-signature-type tsd-kind-type-alias">SequenceCoordinate</a><span class="tsd-signature-symbol">,</span><br/>    footage<span class="tsd-signature-symbol">?:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">]</span></div>
 <div class="tsd-comment tsd-typography"><p>Serializable material representation of one contiguous Frame Span.</p>
 <p>A visible Strip contributes its Frames to the Projection. A Mask remains in
 retained Sequence order while contributing none. Footage may be omitted only
-when a Mask's consumer-owned values have already been released. A Snapshot
-marks unresolved Strips as pending; <code>is_masked</code> then distinguishes a pending
-Mask from a pending insertion.</p>
+when a Mask's consumer-owned values have already been released. Pending is
+exclusively runtime Projector state and is never serialized into a Strip.</p>
 </div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -25,7 +24,7 @@ Mask from a pending insertion.</p>
 <div class="tsd-comment tsd-typography"><p>Consumer-owned value represented by one Frame.</p>
 </div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/20ebdf2a404215293c02cbbe7359b0da885a00ca/src/typescript/types/type.ts#L89">types/type.ts:89</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/d7ab0f4c9d92f4cc3cdebbac6315bf3c8d53037f/src/typescript/types/type.ts#L88">types/type.ts:88</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

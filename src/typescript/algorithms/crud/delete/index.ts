@@ -1,67 +1,85 @@
-import { is_safe_index } from '../../../helpers/index.js'
+import { is_safe_index, issue_strip_start } from '../../../helpers/index.js'
 import type {
+  Sequence,
   SequenceChange,
-  SequencerState,
-  SequenceStrip,
-  SequenceReel,
   SequenceCoordinate,
+  SequencePoint,
+  SequenceReel,
+  SequenceStrip,
 } from '../../../types/type.js'
 import {
-  length_of,
-  sequence_coordinate_of,
-  splice_sequence,
-  write_to_strip_start_buffer,
+  get_footage_frame_index,
+  get_projection_frame_count,
+  merge_strip_into_sequence,
+  read_strip_from_buffer,
+  write_strip_at_projection_frame_index_to_buffer,
+  write_strip_to_buffer,
 } from '../../../wasm/index.js'
 
+/** Masks the half-open projection range `[start_index, end_index)`. */
 export function __delete<T>(
-  state: SequencerState<T>,
-  start_index?: number, // exclusive
-  end_index?: number //inclusive
+  state: Sequence<T>,
+  start_index = 0,
+  end_index?: number
 ): { change: SequenceChange<T>; reel: SequenceReel<T> } | false {
-  const sequence_index = start_index ?? 0
-  const seqeunce_length = length_of(state.sequence_id)
-  const target_end_index = end_index ?? seqeunce_length
+  const projection_frame_count = get_projection_frame_count(state.id)
+  const deletion_end_index = end_index ?? projection_frame_count
 
   if (
-    !is_safe_index(sequence_index, seqeunce_length, true) ||
-    !is_safe_index(target_end_index, seqeunce_length, true) ||
-    target_end_index < sequence_index
+    !is_safe_index(projection_frame_count, start_index, true) ||
+    !is_safe_index(projection_frame_count, deletion_end_index, true) ||
+    start_index >= deletion_end_index
   )
     return false
 
-  let delete_count: number =
-    Math.min(target_end_index, seqeunce_length) - sequence_index
-
-  if (delete_count <= 0) return false
-
   const change: SequenceChange<T> = {}
   const reel: SequenceReel<T> = []
+  let remaining_frame_count = deletion_end_index - start_index
 
-  while (delete_count > 0) {
+  for (
+    let frame_index = start_index;
+    frame_index < deletion_end_index;
+    frame_index++
+  )
+    change[frame_index] = undefined
+
+  while (remaining_frame_count > 0) {
+    const selected_footage_frame_index = get_footage_frame_index(
+      state.id,
+      start_index
+    )
+    write_strip_at_projection_frame_index_to_buffer(state.id, start_index)
+
     const [
-      this_strip_starts,
-      after_this_sequence_point,
-      following_frame_count_in_strip_for_index,
-    ] = prepare_mask(state.sequence_id, sequence_index)
+      ,
+      containing_strip_frame_count,
+      containing_strip_footage_frame_index,
+      [, containing_strip_start],
+    ] = read_strip_from_buffer()
 
-    // masks can mask only one strip at a time at most
+    const strip_frame_offset =
+      selected_footage_frame_index - containing_strip_footage_frame_index
 
-    const mask_length =
-      delete_count < following_frame_count_in_strip_for_index
-        ? delete_count
-        : following_frame_count_in_strip_for_index
+    const mask_frame_count = Math.min(
+      remaining_frame_count,
+      containing_strip_frame_count - strip_frame_offset
+    )
 
-    delete_count -= mask_length
+    const previous_strip_start: SequencePoint = [
+      containing_strip_start[0],
+      containing_strip_start[1] + strip_frame_offset,
+      containing_strip_start[2],
+    ]
 
-    for (let i = 0; i < following_frame_count_in_strip; i++)
-      change[sequence_Index + i] = undefined
+    const mask_coordinate: SequenceCoordinate = [
+      previous_strip_start,
+      issue_strip_start(mask_frame_count),
+    ]
 
-    void splice_sequence()
-    void reel.push([
-      1,
-      mask_length,
-      [after_this_sequence_point, this_strip_starts] as SequenceCoordinate,
-    ] satisfies SequenceStrip<T>)
+    write_strip_to_buffer(1, mask_frame_count, 0, mask_coordinate)
+    merge_strip_into_sequence(state.id)
+    reel.push([1, mask_frame_count, mask_coordinate])
+    remaining_frame_count -= mask_frame_count
   }
 
   return { change, reel }

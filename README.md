@@ -24,7 +24,7 @@ console.log(sequencer.__read(sequence, 0)) // "Hello World"
 
 ### Exceptional performance
 
-JavaScript/WASM performance measured using Node.js `24.16.0` on Intel Core i5-10210U at 1.60 GHz. These results characterize Node.js, not browser runtimes. [See the full benchmark report](./docs/benchmarks/index.html) for methodology and variability.
+JavaScript/WASM performance measured using Node.js `24.16.0` on Intel Core i5-10210U at 1.60 GHz. These results characterize Node.js, not browser runtimes. [See the full benchmark report](https://sovereignbase.dev/sequencer/benchmarks/) for methodology and variability.
 
 | function | Sequence length | throughput (ops/sec) | calls | avg µs/op |
 | --- | ---: | ---: | ---: | ---: |

@@ -1,4 +1,4 @@
-import { is_safe_index } from '../../../auxiliary/index.js'
+import { is_safe_index } from '../../../helpers/index.js'
 import type {
   SequenceChange,
   SequencerState,

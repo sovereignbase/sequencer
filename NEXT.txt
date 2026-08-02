@@ -1,0 +1,55 @@
+mitä vittua replyaa ei mitään reply paskaa kun kerralla vittu sisään ne
+
+
+
+
+
+
+1:41 AM
+
+
+
+
+
+
+You stopped after 23s
+
+
+
+
+
+
+
+
+
+
+
+
+kaikki vaan sisään ja sitten metodi joka käskee wasmin kävellä projectionin alusta resolvaten pendingit
+
+
+
+
+
+
+1:42 AM
+
+
+
+
+
+
+You stopped after 11s
+
+
+
+
+
+
+
+
+
+
+
+
+eli aina vaan sisään tosta mergestä, ja sitten erillinen metodi joku try to resolve pending, joka sitten aloittaa projectionin ihan alusta eli jostain miikä on root niin siitä resolvaamaan, eli ei nyt vittu typescriptin kuulu tehdä muutakun vaan tunkea äkkiä ne arvot sisään ja sitten wasmi hoitaa loput, pitäisi olla itsestään selvää minimi allocit JSsään

@@ -6,9 +6,8 @@
 import { is_strip } from '../../../helpers/index.js'
 import {
   clear_sequence,
-  hydrate_pending_snapshot_strip_into_sequence,
-  hydrate_snapshot_strip_into_sequence,
   initialize_sequence,
+  merge_strip_into_sequence,
   write_strip_to_buffer,
 } from '../../../wasm/index.js'
 import type { Replica } from '../../../types/type.js'
@@ -23,11 +22,11 @@ const finalization_registry = new FinalizationRegistry((held_value) => {
 /**
  * Creates an independently maintained sequence state.
  *
- * Materialized entries are hydrated in supplied structural order. Entries
- * marked pending are restored directly to the pending insertion or Mask index
- * selected by their visibility. Invalid input and invalid entries are ignored;
- * an empty Replica is still returned. Creation preserves supplied coordinates
- * and never issues points.
+ * Entries are replayed through native dependency resolution in supplied
+ * Snapshot order. Missing dependencies restore themselves into the pending
+ * insertion or Mask index; pending is never represented in transferred data.
+ * Invalid input and invalid entries are ignored; an empty Replica is still
+ * returned. Creation preserves supplied coordinates and never issues points.
  *
  * @typeParam T Consumer-owned value represented by one Frame.
  * @param data Optional candidate Reel used to initialize retained state.
@@ -48,7 +47,7 @@ export function __create<T>(data?: unknown): Replica<T> {
   if (data.length === 1) {
     const chunk = data[0]
     if (!is_strip<T>(chunk)) return state
-    const [is_masked, frame_count, coordinate, footage, is_pending] = chunk
+    const [is_masked, frame_count, coordinate, footage] = chunk
     if (
       (is_masked === 0 && footage?.length !== frame_count) ||
       (footage !== undefined && footage.length !== frame_count)
@@ -56,12 +55,10 @@ export function __create<T>(data?: unknown): Replica<T> {
       return state
 
     if (footage !== undefined) state.footage = footage.slice()
-    else if (is_pending !== 1)
-      state.footage = new Array<T | undefined>(frame_count)
+    else state.footage = new Array<T | undefined>(frame_count)
 
     write_strip_to_buffer(is_masked, frame_count, 0, coordinate)
-    if (is_pending === 1) hydrate_pending_snapshot_strip_into_sequence(state.id)
-    else hydrate_snapshot_strip_into_sequence(state.id)
+    merge_strip_into_sequence(state.id)
     return state
   }
 
@@ -69,7 +66,7 @@ export function __create<T>(data?: unknown): Replica<T> {
   for (const chunk of data) {
     // Validate the transferable Strip tuple.
     if (!is_strip<T>(chunk)) continue
-    const [is_masked, frame_count, coordinate, footage, is_pending] = chunk
+    const [is_masked, frame_count, coordinate, footage] = chunk
     if (
       (is_masked === 0 && footage?.length !== frame_count) ||
       (footage !== undefined && footage.length !== frame_count)
@@ -79,17 +76,16 @@ export function __create<T>(data?: unknown): Replica<T> {
     const footage_frame_index = state.footage.length
 
     if (footage) void state.footage.push(...footage)
-    else if (is_pending !== 1) state.footage.length += frame_count
+    else state.footage.length += frame_count
 
-    // Transfer materialized state or restore one unresolved operation.
+    // Replay through native dependency resolution; missing context stays pending.
     write_strip_to_buffer(
       is_masked,
       frame_count,
       footage_frame_index,
       coordinate
     )
-    if (is_pending === 1) hydrate_pending_snapshot_strip_into_sequence(state.id)
-    else hydrate_snapshot_strip_into_sequence(state.id)
+    merge_strip_into_sequence(state.id)
   }
 
   // Return the independently maintained Replica.

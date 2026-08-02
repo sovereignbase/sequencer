@@ -159,58 +159,27 @@ export function write_strip_at_projection_frame_index_to_buffer(
 }
 
 /**
- * Writes the first retained Strip to the shared buffer.
- *
- * Structural traversal includes visible Strips and Masks and positions the Gate
- * at the beginning of the Sequence.
+ * Writes the first materialized or pending Snapshot Strip to the shared buffer.
  *
  * @param sequence_id Active local Projector identifier.
- * @returns Whether a first Strip exists and was written.
+ * @returns Whether a first Snapshot Strip exists and was written.
  */
-export function write_first_structural_strip_to_buffer(
+export function write_first_snapshot_strip_to_buffer(
   sequence_id: number
 ): boolean {
-  // Begin native retained-Strip traversal at the Sequence head.
-  return wasm._write_first_structural_strip_to_buffer(sequence_id) !== 0
+  return wasm._write_first_snapshot_strip_to_buffer(sequence_id) !== 0
 }
 
 /**
- * Advances structural traversal and writes the next retained Strip.
+ * Advances the unified materialized, pending-insert, and pending-Mask stream.
  *
  * @param sequence_id Active local Projector identifier.
- * @returns Whether a successor exists and was written.
- * @remarks A successful first or previous structural write must have positioned
- * the Gate.
+ * @returns Whether another Snapshot Strip was written.
  */
-export function write_next_structural_strip_to_buffer(
+export function write_next_snapshot_strip_to_buffer(
   sequence_id: number
 ): boolean {
-  // Advance native retained-Strip traversal from the current Gate.
-  return wasm._write_next_structural_strip_to_buffer(sequence_id) !== 0
-}
-
-/**
- * Begins traversal over unresolved Snapshot operations.
- *
- * @param sequence_id Active local Projector identifier.
- * @returns Whether the first pending Strip was written to StripBuffer.
- */
-export function write_first_pending_strip_to_buffer(
-  sequence_id: number
-): boolean {
-  return wasm._write_first_pending_strip_to_buffer(sequence_id) !== 0
-}
-
-/**
- * Advances traversal over unresolved Snapshot operations.
- *
- * @param sequence_id Active local Projector identifier.
- * @returns Whether another pending Strip was written to StripBuffer.
- */
-export function write_next_pending_strip_to_buffer(
-  sequence_id: number
-): boolean {
-  return wasm._write_next_pending_strip_to_buffer(sequence_id) !== 0
+  return wasm._write_next_snapshot_strip_to_buffer(sequence_id) !== 0
 }
 
 /**
@@ -286,40 +255,6 @@ export function garbage_collect_sequence(
   const span_start =
     wasm._get_garbage_collection_footage_span_buffer_pointer() >>> 2
   return wasm.HEAPU32.subarray(span_start, span_start + span_count * 2)
-}
-
-/**
- * Hydrates the buffered retained Strip at the end of an ordered Snapshot.
- *
- * The native Projector preserves its transferred Sequence Coordinate and
- * derives only runtime structural links. Unlike an ordinary merge, this path
- * does not reinterpret a Mask or material fragment as a new operation.
- *
- * @param sequence_id Active local Projector identifier.
- * @remarks `write_strip_to_buffer` must have supplied the next Snapshot Strip.
- */
-export function hydrate_snapshot_strip_into_sequence(
-  sequence_id: number
-): void {
-  // Append one already-materialized Strip in supplied structural order.
-  wasm._hydrate_snapshot_strip_into_sequence(sequence_id)
-}
-
-/**
- * Hydrates the buffered Strip into its pending Snapshot index.
- *
- * The Strip's visibility selects pending insertions or pending Masks. No
- * placement attempt is made because Snapshot hydration restores unresolved
- * dependency state exactly as captured.
- *
- * @param sequence_id Active local Projector identifier.
- * @remarks `write_strip_to_buffer` must have supplied one pending Strip.
- */
-export function hydrate_pending_snapshot_strip_into_sequence(
-  sequence_id: number
-): void {
-  // Restore one unresolved Strip without reinterpreting its dependency.
-  wasm._hydrate_pending_snapshot_strip_into_sequence(sequence_id)
 }
 
 /**

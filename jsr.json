@@ -2,12 +2,12 @@
   "$schema": "https://jsr.io/schema/config-file.v1.json",
   "name": "@sovereignbase/sequencer",
   "version": "0.0.0",
-  "exports": "./src/index.ts",
+  "exports": "./src/typescript/index.ts",
   "publish": {
     "include": [
       "package.json",
-      "src/**/*.ts",
-      "src/**/.*/**/*.ts",
+      "src/typescript/**/*.ts",
+      "src/typescript/**/.*/**/*.ts",
       "README.md",
       "LICENSE"
     ]

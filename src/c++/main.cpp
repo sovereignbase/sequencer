@@ -162,17 +162,22 @@ get_footage_frame_index(const std::uint32_t sequence_id,
  * @param projection_frame_index Visible frame index whose strip is written.
  * @pre `sequence_id` identifies an active Projector.
  * @pre `projection_frame_index < get_projection_frame_count(sequence_id)`.
+ * @return Footage frame index corresponding to `projection_frame_index`.
  * @post StripBuffer contains the transferable fields of the containing Strip,
  * and the Projector Gate describes that Strip.
  */
-EMSCRIPTEN_KEEPALIVE void write_strip_at_projection_frame_index_to_buffer(
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+write_strip_at_projection_frame_index_to_buffer(
     const std::uint32_t sequence_id,
     const std::uint32_t projection_frame_index) noexcept {
   // Position the Gate and encode its containing Strip.
   Projector *projector = &*projectors[sequence_id];
   run_projector_to_frame_index(projector, projection_frame_index);
-  strip_buffer.write_strip(
-      *projector->strip_index.get(projector->gate_strip_start));
+  const Strip &strip =
+      *projector->strip_index.get(projector->gate_strip_start);
+  strip_buffer.write_strip(strip);
+  return strip.footage_frame_index + projection_frame_index -
+         projector->gate_projection_frame_index;
 }
 
 /**

@@ -12,7 +12,6 @@ import type {
   SequencePoint,
 } from '../../../types/type.js'
 import {
-  get_footage_frame_index,
   get_projection_frame_count,
   merge_strip_into_sequence,
   read_strip_from_buffer,
@@ -82,11 +81,8 @@ export function __delete<T>(
   // Resolve and mask one containing materialized Strip at a time.
   while (remaining_frame_count > 0) {
     // Resolve the containing Strip and its Footage position.
-    const selected_footage_frame_index = get_footage_frame_index(
-      state.id,
-      start_index
-    )
-    write_strip_at_projection_frame_index_to_buffer(state.id, start_index)
+    const selected_footage_frame_index =
+      write_strip_at_projection_frame_index_to_buffer(state.id, start_index)
 
     const [
       ,

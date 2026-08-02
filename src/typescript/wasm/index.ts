@@ -148,11 +148,13 @@ export function get_footage_frame_index(
 export function write_strip_at_projection_frame_index_to_buffer(
   sequence_id: number,
   projection_frame_index: number
-): void {
-  // Position the native Gate and transfer its containing Strip.
-  wasm._write_strip_at_projection_frame_index_to_buffer(
-    sequence_id,
-    projection_frame_index
+): number {
+  // Position the native Gate, transfer its Strip, and return its Footage index.
+  return (
+    wasm._write_strip_at_projection_frame_index_to_buffer(
+      sequence_id,
+      projection_frame_index
+    ) >>> 0
   )
 }
 

@@ -12,7 +12,6 @@ import type {
   SequencePoint,
 } from '../../../types/type.js'
 import {
-  get_footage_frame_index,
   get_projection_frame_count,
   merge_strip_into_sequence,
   read_strip_from_buffer,
@@ -80,14 +79,11 @@ export function __update<T>(
   // Resolve the preceding visible Frame to its stable Sequence Point.
   if (insertion_frame_index > 0) {
     const previous_projection_frame_index = insertion_frame_index - 1
-    const previous_footage_frame_index = get_footage_frame_index(
-      state.id,
-      previous_projection_frame_index
-    )
-    write_strip_at_projection_frame_index_to_buffer(
-      state.id,
-      previous_projection_frame_index
-    )
+    const previous_footage_frame_index =
+      write_strip_at_projection_frame_index_to_buffer(
+        state.id,
+        previous_projection_frame_index
+      )
 
     const [, , strip_footage_frame_index, [, strip_start]] =
       read_strip_from_buffer()

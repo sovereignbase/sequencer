@@ -46,18 +46,18 @@
         <span class="eyebrow">Automated verification report</span>
         <h1>Behaviour guaranteed by excessive tests</h1>
         <div class="summary">
-          <span class="status passed">All checks passed</span>
-          <span>Generated 2026-08-02T22:21:44.525Z</span>
-          <span>Total duration 97947 ms</span>
+          <span class="status failed">Checks failed</span>
+          <span>Generated 2026-08-02T22:34:44.062Z</span>
+          <span>Total duration 76653 ms</span>
         </div>
       </header>
 
       <section>
         <h2>Verification summary</h2>
         <div class="stage-grid">
-          <article class="stage"><div><strong>C++ and Wasm build</strong><p class="note">8399 ms</p></div><span class="status passed">Passed</span></article><article class="stage"><div><strong>TypeScript build</strong><p class="note">14676 ms</p></div><span class="status passed">Passed</span></article><article class="stage"><div><strong>Unit, convergence, and stress</strong><p class="note">16661 ms</p></div><span class="status passed">Passed</span></article><article class="stage"><div><strong>Runtime matrix</strong><p class="note">8124 ms</p></div><span class="status passed">Passed</span></article><article class="stage"><div><strong>Browser matrix</strong><p class="note">50057 ms</p></div><span class="status passed">Passed</span></article>
+          <article class="stage"><div><strong>C++ and Wasm build</strong><p class="note">9335 ms</p></div><span class="status passed">Passed</span></article><article class="stage"><div><strong>TypeScript build</strong><p class="note">10061 ms</p></div><span class="status passed">Passed</span></article><article class="stage"><div><strong>Unit, convergence, and stress</strong><p class="note">10839 ms</p></div><span class="status failed">Failed</span></article><article class="stage"><div><strong>Runtime matrix</strong><p class="note">4992 ms</p></div><span class="status passed">Passed</span></article><article class="stage"><div><strong>Browser matrix</strong><p class="note">41099 ms</p></div><span class="status passed">Passed</span></article>
         </div>
-        <p class="note">Vitest: 28/28 tests passed. Playwright: 15 expected, 0 unexpected, 0 skipped.</p>
+        <p class="note">Vitest: 26/28 tests passed. Playwright: 15 expected, 0 unexpected, 0 skipped.</p>
       </section>
 
       <section>
@@ -70,35 +70,35 @@
           <th scope="row">Node.js</th>
           <td>24.16.0</td>
           <td>8</td>
-          <td>554 ms</td>
+          <td>581 ms</td>
           <td><span class="status passed">Passed</span></td>
         </tr>
         <tr>
           <th scope="row">Deno</th>
           <td>2.9.4</td>
           <td>8</td>
-          <td>779 ms</td>
+          <td>867 ms</td>
           <td><span class="status passed">Passed</span></td>
         </tr>
         <tr>
           <th scope="row">Bun</th>
           <td>1.3.14</td>
           <td>8</td>
-          <td>909 ms</td>
+          <td>798 ms</td>
           <td><span class="status passed">Passed</span></td>
         </tr>
         <tr>
           <th scope="row">Edge Runtime</th>
           <td>edge-runtime</td>
           <td>8</td>
-          <td>1144 ms</td>
+          <td>999 ms</td>
           <td><span class="status passed">Passed</span></td>
         </tr>
         <tr>
           <th scope="row">Cloudflare Workers</th>
           <td>workerd via Wrangler 4.118.0</td>
           <td>8</td>
-          <td>6879 ms</td>
+          <td>3748 ms</td>
           <td><span class="status passed">Passed</span></td>
         </tr></tbody>
           </table>

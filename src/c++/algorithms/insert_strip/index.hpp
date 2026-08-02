@@ -20,8 +20,8 @@
  * @brief Insert a visible Strip after its logical parent Frame.
  *
  * Root siblings are ordered by descending start point; non-Root siblings by
- * ascending start point. An existing sibling's complete descendant subtree is
- * crossed as one unit.
+ * ascending start point. Conflict resolution crosses only consecutive Strips
+ * with the same logical parent.
  *
  * Interior insertion retains the source prefix and materializes its suffix.
  * Every material fragment keeps a logical coordinate; mutable retained order
@@ -40,8 +40,8 @@
  * @param inserted_strip Visible Strip with an immutable logical coordinate.
  * @return Visible Frames crossed before the incoming Strip's placement.
  * @pre `projector` is non-null and `inserted_strip.is_masked == 0`.
- * @complexity O(s^2 + f log p) worst-case time and O(1) auxiliary space, where
- * s is retained Strip count, f is the inserted Frame count, and p is pending
+ * @complexity O(s + f log p) worst-case time and O(1) auxiliary space, where s
+ * is retained sibling count, f is the inserted Frame count, and p is pending
  * Realm size. Typical append placement is O(1).
  */
 [[nodiscard]] inline std::uint32_t
@@ -62,58 +62,6 @@ insert_strip(Projector *projector, const Strip *previous_strip,
                      ? previous_strip_frame_offset + 1
                      : 0);
   std::uint32_t projection_frame_offset = 0;
-
-  const auto immediately_follows = [](const SequencePoint &point,
-                                      const SequencePoint &previous) noexcept {
-    return point.unix_lower_bits == previous.unix_lower_bits &&
-           point.random_bits == previous.random_bits &&
-           point.counter_bits > previous.counter_bits &&
-           point.counter_bits - previous.counter_bits == 1;
-  };
-
-  // Test ancestry by following immutable logical parents while locating each
-  // parent through the already materialized structural chain.
-  const auto descends_from =
-      [projector, &root](const Strip *strip,
-                         const SequencePoint &ancestor) noexcept {
-        SequencePoint parent = strip->coordinate.previous_strip_start;
-        SequencePoint structural_start =
-            strip->previous_structural_strip_start;
-
-        while (!(parent == root)) {
-          if (parent == ancestor)
-            return true;
-
-          const Strip *containing_strip = nullptr;
-          while (!(structural_start == root)) {
-            const Strip *candidate =
-                projector->strip_index.get(structural_start);
-            if (strip_contains_sequence_point(candidate, &parent) !=
-                sequence_point_outside_strip) {
-              containing_strip = candidate;
-              break;
-            }
-            structural_start = candidate->previous_structural_strip_start;
-          }
-          if (containing_strip == nullptr)
-            return false;
-
-          const SequencePoint &containing_start =
-              containing_strip->coordinate.this_strip_start;
-          if (ancestor.unix_lower_bits == containing_start.unix_lower_bits &&
-              ancestor.random_bits == containing_start.random_bits &&
-              ancestor.counter_bits >= containing_start.counter_bits &&
-              ancestor.counter_bits <= parent.counter_bits &&
-              ancestor.counter_bits - containing_start.counter_bits <
-                  containing_strip->frame_count)
-            return true;
-
-          parent = containing_strip->coordinate.previous_strip_start;
-          structural_start =
-              containing_strip->previous_structural_strip_start;
-        }
-        return false;
-      };
 
   // Select the structural predecessor while comparing only logical siblings.
   const bool follows_root = logical_parent == root;
@@ -183,42 +131,17 @@ insert_strip(Projector *projector, const Strip *previous_strip,
     while (sibling != nullptr) {
       const SequencePoint &sibling_start =
           sibling->coordinate.this_strip_start;
-      SequencePoint masked_source_successor =
-          previous_strip->coordinate.this_strip_start;
-      masked_source_successor.counter_bits += previous_strip->frame_count;
-      const bool is_fragment_boundary =
-          (sibling->is_masked & mask_is_source_continuation) != 0 ||
-          ((previous_strip->is_masked & mask_has_source_successor) != 0 &&
-           sibling_start == masked_source_successor) ||
-          (immediately_follows(sibling_start, logical_parent) &&
-           !(sibling->previous_structural_strip_start ==
-             previous_strip->coordinate.this_strip_start));
-      if (is_fragment_boundary ||
-          !(sibling->coordinate.previous_strip_start == logical_parent) ||
+      if (!(sibling->coordinate.previous_strip_start == logical_parent) ||
           compare_sequence_points(&inserted_strip_start, &sibling_start) <= 0)
         break;
 
-      const SequencePoint sibling_subtree_start = sibling_start;
-      const Strip *subtree_tail = sibling;
-      if (subtree_tail->is_masked == 0)
-        projection_frame_offset += subtree_tail->frame_count;
-
-      while (!(subtree_tail->next_strip_start == unlinked_strip_start)) {
-        const Strip *next_strip =
-            projector->strip_index.get(subtree_tail->next_strip_start);
-        if (!descends_from(next_strip, sibling_subtree_start))
-          break;
-        subtree_tail = next_strip;
-        if (subtree_tail->is_masked == 0)
-          projection_frame_offset += subtree_tail->frame_count;
-      }
-
-      placement_strip = subtree_tail;
-      placement_frame_offset = subtree_tail->frame_count - 1;
-      sibling = subtree_tail->next_strip_start == unlinked_strip_start
+      if (sibling->is_masked == 0)
+        projection_frame_offset += sibling->frame_count;
+      placement_strip = sibling;
+      placement_frame_offset = sibling->frame_count - 1;
+      sibling = sibling->next_strip_start == unlinked_strip_start
                     ? nullptr
-                    : projector->strip_index.get(
-                          subtree_tail->next_strip_start);
+                    : projector->strip_index.get(sibling->next_strip_start);
     }
   }
 

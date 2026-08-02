@@ -228,6 +228,42 @@ public:
     return realm_count == 0;
   }
 
+  /**
+   * @brief Return the greatest locally observed mask start in every realm.
+   *
+   * The primary index already partitions strips by realm and orders each realm
+   * by counter. Scanning each occupied realm backward therefore finds its
+   * acknowledgement frontier without another lookup structure or sequence
+   * traversal.
+   *
+   * @return One mask SequencePoint per realm containing a materialized mask.
+   * @complexity O(c + s) worst-case time and O(r) result space, where c is the
+   * realm-table capacity, s is the strip count, and r is the returned realm
+   * count.
+   */
+  [[nodiscard]] inline std::vector<SequencePoint>
+  get_acknowledgement_frontier() const noexcept {
+    static_assert(indexed_sequence_point ==
+                  &SequenceCoordinate::this_strip_start);
+
+    std::vector<SequencePoint> frontier;
+    frontier.reserve(realm_count);
+
+    for (std::uint32_t realm_index = 0; realm_index < realm_capacity;
+         ++realm_index) {
+      const Realm &realm = realms[realm_index];
+      for (auto strip = realm.strips.rbegin(); strip != realm.strips.rend();
+           ++strip) {
+        if (strip->is_masked == 0)
+          continue;
+        frontier.push_back(strip->coordinate.this_strip_start);
+        break;
+      }
+    }
+
+    return frontier;
+  }
+
 private:
   /**
    * @brief Rehash every occupied realm into a new power-of-two table.

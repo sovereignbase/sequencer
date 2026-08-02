@@ -15,7 +15,6 @@
 #include "./auxiliary/run_projector_to_sequence_point/index.hpp"
 #include "./classes/strip_buffer/index.hpp"
 #include "./declarations/projector/index.hpp"
-#include <algorithm>
 #include <cstdint>
 #include <limits>
 #include <optional>
@@ -144,55 +143,19 @@ get_acknowledgement_frontier_buffer_pointer() noexcept {
  * @brief Write one sequence's realm-specific mask frontiers to the shared
  * acknowledgement buffer.
  *
- * The structural strip chain is visited once. For every masked strip, its
- * indexed start supplies the realm and counter. Entries remain ordered by the
- * realm pair `(unix_lower_bits, random_bits)`, making the output deterministic
- * and allowing each subsequent realm lookup to use binary search.
+ * StripIndex uses its existing realm partition and counter ordering to return
+ * the greatest masked-strip start in each realm.
  *
  * @param sequence_id Identifier of the active sequence to acknowledge.
  * @return Number of SequencePoint entries written to the frontier buffer.
- * @complexity O(s log r + r^2) time in the worst case and O(r) retained space,
- * where s is the strip count and r is the number of masked-strip realms. The
- * quadratic term consists only of inserting each newly encountered realm into
- * the ordered output vector.
+ * @complexity O(c + s) worst-case time and O(r) retained output space, where c
+ * is the realm-table capacity, s is the strip count, and r is the returned
+ * realm count.
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t write_acknowledgement_frontier_to_buffer(
     const std::uint32_t sequence_id) noexcept {
-  acknowledgement_frontier_buffer.clear();
-  Projector *projector = &*projectors[sequence_id];
-  if (projector->strip_index.is_empty())
-    return 0;
-
-  const Strip *strip =
-      projector->strip_index.get(projector->first_strip_start);
-
-  while (true) {
-    if (strip->is_masked != 0) {
-      const SequencePoint &mask_start = strip->coordinate.this_strip_start;
-      const auto realm_frontier = std::lower_bound(
-          acknowledgement_frontier_buffer.begin(),
-          acknowledgement_frontier_buffer.end(), mask_start,
-          [](const SequencePoint &frontier,
-             const SequencePoint &candidate) noexcept {
-            if (frontier.unix_lower_bits != candidate.unix_lower_bits)
-              return frontier.unix_lower_bits < candidate.unix_lower_bits;
-            return frontier.random_bits < candidate.random_bits;
-          });
-
-      if (realm_frontier == acknowledgement_frontier_buffer.end() ||
-          realm_frontier->unix_lower_bits != mask_start.unix_lower_bits ||
-          realm_frontier->random_bits != mask_start.random_bits) {
-        acknowledgement_frontier_buffer.insert(realm_frontier, mask_start);
-      } else if (realm_frontier->counter_bits < mask_start.counter_bits) {
-        realm_frontier->counter_bits = mask_start.counter_bits;
-      }
-    }
-
-    if (strip->coordinate.this_strip_start == projector->last_strip_start)
-      break;
-    strip = projector->strip_index.get(strip->next_strip_start);
-  }
-
+  acknowledgement_frontier_buffer =
+      projectors[sequence_id]->strip_index.get_acknowledgement_frontier();
   return static_cast<std::uint32_t>(
       acknowledgement_frontier_buffer.size());
 }

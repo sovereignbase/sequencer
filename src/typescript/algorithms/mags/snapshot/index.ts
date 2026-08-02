@@ -1,82 +1,31 @@
-import { wasmModule } from '../../../.helpers/index.js'
-import type {
-  CRListSnapshot,
-  CRListState,
-  Uint32UuidV7,
-} from '../../../.types/type.js'
+import type { Sequence, SequenceReel } from '../../../types/type.js'
+import {
+  get_projection_frame_count,
+  read_strip_from_buffer,
+  write_strip_at_projection_frame_index_to_buffer,
+} from '../../../wasm/index.js'
 
-/**
- * Creates a full CRList snapshot from the current replica state.
- *
- * Each block emits one snapshot block with all contained items. Item payloads
- * are live references.
- *
- * @param replica - Replica to snapshot.
- * @returns - A full snapshot suitable for hydration or transport.
- */
-export function __snapshot<T>(replica: CRListState<T>): CRListSnapshot<T> {
-  const snapshot: CRListSnapshot<T> = []
-  const rangeAmount = wasmModule._get_range_amount(...replica.instanceId)
-  const idOf = (rangeIndex: number, previousFlag: number): Uint32UuidV7 => [
-    wasmModule._get_range_id(
-      rangeIndex,
-      previousFlag,
+export function __snapshot<T>(state: Sequence<T>): SequenceReel<T> {
+  const reel: SequenceReel<T> = []
+  const projection_frame_count = get_projection_frame_count(state.id)
+  let frame_index = 0
+
+  while (frame_index < projection_frame_count) {
+    write_strip_at_projection_frame_index_to_buffer(state.id, frame_index)
+    const [, strip_frame_count, footage_frame_index, coordinate] =
+      read_strip_from_buffer()
+
+    reel.push([
       0,
-      ...replica.instanceId
-    ) >>> 0,
-    wasmModule._get_range_id(
-      rangeIndex,
-      previousFlag,
-      1,
-      ...replica.instanceId
-    ) >>> 0,
-    wasmModule._get_range_id(
-      rangeIndex,
-      previousFlag,
-      2,
-      ...replica.instanceId
-    ) >>> 0,
-    wasmModule._get_range_id(
-      rangeIndex,
-      previousFlag,
-      3,
-      ...replica.instanceId
-    ) >>> 0,
-  ]
-
-  for (let rangeIndex = 0; rangeIndex < rangeAmount; rangeIndex++) {
-    const length = wasmModule._get_range_length(
-      rangeIndex,
-      ...replica.instanceId
-    )
-    const previousRangeId = idOf(rangeIndex, 1)
-
-    if (wasmModule._get_range_deleted(rangeIndex, ...replica.instanceId)) {
-      snapshot.push({
-        id: idOf(rangeIndex, 0),
-        items: undefined,
-        length,
-        previousRangeId,
-      })
-      continue
-    }
-
-    const consumerReference = wasmModule._get_range_consumer_reference(
-      rangeIndex,
-      ...replica.instanceId
-    )
-    snapshot.push({
-      id: idOf(rangeIndex, 0),
-      items: replica.values.slice(
-        consumerReference,
-        consumerReference + length
+      strip_frame_count,
+      coordinate,
+      state.footage.slice(
+        footage_frame_index,
+        footage_frame_index + strip_frame_count
       ),
-      previousRangeId,
-    })
+    ])
+    frame_index += strip_frame_count
   }
 
-  for (const pending of replica.pending)
-    void snapshot.push({ ...pending.range, pending: true })
-
-  return snapshot
+  return reel
 }

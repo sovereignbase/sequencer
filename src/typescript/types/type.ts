@@ -45,7 +45,7 @@ export type SequenceCoordinate = [
  * Strip used standalone and in reels.
  *
  * `footage` is the payload carried by the strip. Consumers that mutate footage
- * outside CRSequence operations must provide their own isolation first.
+ * outside Sequencer operations must provide their own isolation first.
  */
 export type SequenceStrip<T> = [
   /** Whether this strip is hidden from the projected sequence. */
@@ -81,9 +81,9 @@ export type SequenceChange<T> = Record<number, T | undefined>
 export type SequenceFrontier = SequencePoint
 
 /**
- * Maps CRSequence event names to their event payload shapes.
+ * Maps Sequencer event names to their event payload shapes.
  */
-export type CRSequenceEventMap<T> = {
+export type SequencerEventMap<T> = {
   /** Full reel snapshot event payload. */
   reel: SequenceReel<T>
 
@@ -95,18 +95,18 @@ export type CRSequenceEventMap<T> = {
 }
 
 /**
- * Represents a strongly typed CRSequence event listener.
+ * Represents a strongly typed Sequencer event listener.
  */
-export type CRSequenceEventListener<T, K extends keyof CRSequenceEventMap<T>> =
-  | ((event: CustomEvent<CRSequenceEventMap<T>[K]>) => void)
-  | { handleEvent(event: CustomEvent<CRSequenceEventMap<T>[K]>): void }
+export type SequencerEventListener<T, K extends keyof SequencerEventMap<T>> =
+  | ((event: CustomEvent<SequencerEventMap<T>[K]>) => void)
+  | { handleEvent(event: CustomEvent<SequencerEventMap<T>[K]>): void }
 
 /**
  * Resolves an event name to its corresponding listener type.
  */
-export type CRSequenceEventListenerFor<
+export type SequencerEventListenerFor<
   T,
   K extends string,
-> = K extends keyof CRSequenceEventMap<T>
-  ? CRSequenceEventListener<T, K>
+> = K extends keyof SequencerEventMap<T>
+  ? SequencerEventListener<T, K>
   : EventListenerOrEventListenerObject

@@ -102,6 +102,20 @@ export function write_strip_at_projection_frame_index_to_buffer(
   )
 }
 
+/** Writes the first visible or masked structural strip to the shared buffer. */
+export function write_first_structural_strip_to_buffer(
+  sequence_id: number
+): boolean {
+  return wasm._write_first_structural_strip_to_buffer(sequence_id) !== 0
+}
+
+/** Advances structural traversal and writes the next strip when one exists. */
+export function write_next_structural_strip_to_buffer(
+  sequence_id: number
+): boolean {
+  return wasm._write_next_structural_strip_to_buffer(sequence_id) !== 0
+}
+
 /** Returns the greatest locally observed indexed point in every realm. */
 export function get_acknowledgement_frontier(
   sequence_id: number
@@ -111,8 +125,7 @@ export function get_acknowledgement_frontier(
   if (frontier_count === 0) return false
 
   const buffer = wasm.HEAPU32
-  let buffer_index =
-    wasm._get_acknowledgement_frontier_buffer_pointer() >>> 2
+  let buffer_index = wasm._get_acknowledgement_frontier_buffer_pointer() >>> 2
   const frontier = new Array<SequencePoint>(frontier_count)
 
   for (let realm_index = 0; realm_index < frontier_count; realm_index++) {
@@ -125,6 +138,37 @@ export function get_acknowledgement_frontier(
   }
 
   return frontier
+}
+
+/**
+ * Collects masks covered by a selected realm frontier.
+ *
+ * The returned view contains `(footage_frame_index, frame_count)` pairs and is
+ * valid only until another WebAssembly call can rewrite or move its buffer.
+ */
+export function garbage_collect_sequence(
+  sequence_id: number,
+  frontier: SequenceFrontier
+): Uint32Array | false {
+  if (frontier.length === 0) return false
+
+  let buffer_index =
+    wasm._prepare_garbage_collection_frontier_buffer(frontier.length) >>> 2
+  const buffer = wasm.HEAPU32
+
+  for (const [unix_lower_bits, counter_bits, random_bits] of frontier) {
+    buffer[buffer_index] = unix_lower_bits
+    buffer[buffer_index + 1] = counter_bits
+    buffer[buffer_index + 2] = random_bits
+    buffer_index += 3
+  }
+
+  const span_count = wasm._garbage_collect_sequence(sequence_id) >>> 0
+  if (span_count === 0) return false
+
+  const span_start =
+    wasm._get_garbage_collection_footage_span_buffer_pointer() >>> 2
+  return wasm.HEAPU32.subarray(span_start, span_start + span_count * 2)
 }
 
 /**

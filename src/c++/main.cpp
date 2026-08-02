@@ -243,8 +243,11 @@ get_garbage_collection_footage_span_buffer_pointer() noexcept {
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 garbage_collect_sequence(const std::uint32_t sequence_id) noexcept {
-  garbage_collect_masks(&*projectors[sequence_id], &frontier_buffer,
-                        &footage_span_buffer);
+  Projector &projector = *projectors[sequence_id];
+  projector.strip_index.garbage_collect(
+      frontier_buffer, footage_span_buffer, projector.first_strip_start,
+      projector.gate_strip_start, projector.last_strip_start,
+      projector.gate_projection_frame_index);
   return footage_span_buffer.get_span_count();
 }
 

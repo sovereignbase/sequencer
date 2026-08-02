@@ -19,7 +19,8 @@ import {
 export function __delete<T>(
   state: Sequence<T>,
   start_index = 0,
-  end_index?: number
+  end_index?: number,
+  hard = false
 ): { change: SequenceChange<T>; reel: SequenceReel<T> } | false {
   const projection_frame_count = get_projection_frame_count(state.id)
   const deletion_end_index = end_index ?? projection_frame_count
@@ -76,7 +77,13 @@ export function __delete<T>(
     ]
 
     write_strip_to_buffer(1, mask_frame_count, 0, mask_coordinate)
-    merge_strip_into_sequence(state.id)
+    const projection_frame_index = merge_strip_into_sequence(state.id)
+    if (hard && projection_frame_index !== false)
+      state.footage.fill(
+        undefined,
+        selected_footage_frame_index,
+        selected_footage_frame_index + mask_frame_count
+      )
     reel.push([1, mask_frame_count, mask_coordinate])
     remaining_frame_count -= mask_frame_count
   }

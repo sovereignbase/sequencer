@@ -8,8 +8,8 @@
 export type Sequence<T> = {
   /** Identifier used to reference a specific sequence instance within one realm. */
   id: number
-  /** Footage referenced by recorded strips. */
-  footage: Array<T>
+  /** Footage referenced by recorded strips; collected entries are undefined. */
+  footage: Array<T | undefined>
 }
 
 /**

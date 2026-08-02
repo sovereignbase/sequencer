@@ -1,6 +1,6 @@
-# CRList Optimization Skill
+# Sequencer Optimization Skill
 
-Use this skill when optimizing CRList benchmark performance against Yjs, json-joy, and Automerge.
+Use this skill when optimizing Sequencer benchmark performance.
 
 ## Baseline
 
@@ -12,13 +12,7 @@ For optimization decisions, use your own targeted before/after benchmark runs
 for the rows touched by the attempted change. The README table is context, not
 the before/after baseline for a local optimization attempt.
 
-Read the CRList, Yjs, json-joy, and Automerge benchmark implementations.
-
-Verify that the benchmark is fair for all libraries. Each implementation must be benchmarked against the same work and the same consumer observable result.
-
-Then review `src`.
-
-Compare the CRList implementation against the other implementations. Identify where CRList performs worse, what it could do better, and how performance could be improved without weakening convergence.
+Review `src`.
 
 ## Optimization Loop
 
@@ -26,7 +20,7 @@ Work iteratively.
 
 1. Choose one concrete performance improvement target that is not already documented in or you think could work or be better if done differtly from the documented implementation:
 
-   `C:\Users\jorts\convergent-replicated-list\archives\optimizations`
+   `C:\Users\jorts\sequencer\archives\optimizations`
 
 2. Reason about and plan the smallest safe change.
 3. Run targeted benchmarks for that area. Use multiple targeted runs when the
@@ -41,16 +35,16 @@ Work iteratively.
    benchmark when the result is noisy or mixed.
 9. If the change improves performance, keep it.
 10. If the change does not improve performance, revert it.
-11. Evaluate the benchmark result relative to the competing libraries, not only as absolute milliseconds:
-    - Report CRList before → after percentage change.
-    - Report CRList's ratio or percentage gap versus the winning competing library before and after.
-    - Treat a change as worse if it improves absolute CRList milliseconds but increases the relative gap or loses more benchmark rows in the target area.
+11. Evaluate the benchmark result relative to the competing libraries, not only as absolute nanoseconds:
+    - Report sequencer before → after percentage change.
+    - Report sequencer's ratio or percentage gap versus the winning competing library before and after.
+    - Treat a change as worse if it improves absolute sequencer nanoseconds but increases the relative gap or loses more benchmark rows in the target area.
 
 12. Document the idea, rationale, before results, after results, relative competitor comparison, and final rationale in:
 
-`C:\Users\jorts\convergent-replicated-list\archives\optimizations\{targetDescriptiveName}`
+`C:\Users\jorts\sequencer\archives\optimizations\{targetDescriptiveName}`
 
-Repeat this loop until CRList wins every benchmark while still guaranteeing full real-time convergence in all scenarios.
+Repeat this loop until sequencer wins every benchmark while still guaranteeing full real-time convergence in all scenarios.
 
 ## Code Constraints
 
@@ -61,21 +55,3 @@ Prefer semantic helper abstractions only when they make the code clearer.
 Prefer reducing total code size where possible.
 
 Do not add large abstractions or unnecessary machinery.
-
-## Performance Goal
-
-The performance goal is not only how fast an operation merges into internal state.
-
-The performance goal is the fastest observable consumer experience.
-
-Example:
-
-Actor 1 makes a change. Actor 2 receives it. Actor 2 can then read the updated value as a consumer.
-
-Measure and optimize the time until Actor 2 can read the correct observable state.
-
-If an out-of-order pending path makes the library practically slower because the consumer cannot read the usable state yet, that counts as worse performance, even if the merge operation itself returns quickly.
-
-The goal is to make shared state observable between two or more systems as fast as possible, while still eventually converging correctly and without relying on full snapshots to reach eventual consistency.
-
-Continue until CRList wins all benchmarks.

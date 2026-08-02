@@ -25,7 +25,7 @@
  * @brief Contiguous WebAssembly transfer representation of realm frontiers.
  *
  * @note One instance is shared by the exported interface. Its pointer remains
- * valid only until another acknowledgement rewrites the buffer.
+ * valid only until another acknowledgement or collection prepares the buffer.
  */
 class FrontierBuffer {
 private:
@@ -76,25 +76,21 @@ public:
   }
 
   /**
-   * @brief Test whether a point is covered by its realm's buffered frontier.
+   * @brief Decode one frontier from the stable three-word layout.
    *
-   * Realm identity consists of the Unix and random components. A point is
-   * covered when the matching frontier's counter is equal or greater.
-   * Missing realms are never covered.
-   *
-   * @param point Sequence point whose collection eligibility is tested.
-   * @return `true` when the buffered realm frontier covers `point`.
-   * @complexity O(r), where r is the buffered realm count.
+   * @param frontier_index Zero-based frontier entry index.
+   * @return Realm frontier stored at `frontier_index`.
+   * @pre `frontier_index < get_frontier_count()`.
    */
-  [[nodiscard]] inline bool covers(const SequencePoint &point) const noexcept {
-    for (std::size_t word_index = 0; word_index < words.size();
-         word_index += words_per_frontier) {
-      if (words[word_index] == point.unix_lower_bits &&
-          words[word_index + 2] == point.random_bits &&
-          words[word_index + 1] >= point.counter_bits)
-        return true;
-    }
-    return false;
+  [[nodiscard]] inline SequencePoint
+  read_frontier(const std::uint32_t frontier_index) const noexcept {
+    const std::size_t word_index =
+        static_cast<std::size_t>(frontier_index) * words_per_frontier;
+    return SequencePoint{
+        .unix_lower_bits = words[word_index],
+        .counter_bits = words[word_index + 1],
+        .random_bits = words[word_index + 2],
+    };
   }
 
   /**

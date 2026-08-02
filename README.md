@@ -4,6 +4,18 @@ A causality-encoding engine written in TypeScript and C++ to build high-performa
 
 Sequencer provides a deterministic total ordering for distributed data. It allows independently operating replicas to make concurrent changes and later converge on the same logical state without relying on network arrival order or perfectly synchronized clocks.
 
+## Unbeliveable performance
+
+|function|troughput (ops/sec)|average time (ns)
+
+## Small bundle size
+
+Bundle size benchmakrs
+
+## Optimized data model
+
+Bytse size benchmarks
+
 ## Understanding the Problem Sequencer Solves
 
 As an example, let's consider two editors, **A** and **B**, both working on the following text:
@@ -105,36 +117,4 @@ This means replicas can:
 - Merge concurrent changes.
 - Eventually converge on the same sequence.
 
-## Use Cases
-
-Generally, Sequencer is intended for systems where independently created changes must converge into a state that is both **deterministic** and **logically meaningful** across arbitrary periods of disconnection and synchronization.
-
-Examples include:
-
-### Text and Rich-Text Editors
-
-Maintain stable ordering of characters, blocks, nodes, annotations, or other document elements across concurrent edits.
-
-### List, Collection...-Style Data.
-
-Build replicated lists whose elements maintain deterministic positions regardless of the order in which updates arrive.
-
-### Key-Value Data Models
-
-Sequence writes to help determine the logically latest value rather than treating network arrival order as authoritative.
-
-### Event and Operation Logs
-
-Establish a deterministic ordering for operations originating from multiple independent actors.
-
-## Assumptions
-
-Sequencer assumes that participating actors maintain replicas of the Sequencer state and that those replicas all receive these changes via some channel resulting in **eventual consistency**.
-
-Each actor treats its own local replica as authoritative when determining where newly created data belongs in the sequence.
-
-A particular replica used as the basis for generating new sequence operations should be under the sole control of that actor. Multiple independent actors should not concurrently mutate the same replica as though they were a single actor.
-
-Sequencer defines ordering and causality. It does not, by itself, establish whether a received operation is authorized or trustworthy.
-
-Distributed applications using Sequencer should therefore authenticate actors and protect synchronization channels appropriately. Depending on the system's threat model, this may include cryptographic authentication, signatures, authenticated transport, or other mechanisms for verifying the origin and integrity of replicated changes.
+## Behaviour guaranteed by excessive tests

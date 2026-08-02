@@ -9,9 +9,11 @@
  */
 #pragma once
 
+#include "../footage_span_buffer/index.hpp"
 #include "../frontier_buffer/index.hpp"
 #include "../../declarations/strip/index.hpp"
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <utility>
@@ -130,12 +132,11 @@ public:
    * @note The pointer remains valid only until the index is modified.
    * @complexity Expected O(1) realm lookup plus O(log n) within one realm.
    */
-  [[nodiscard]] inline const Strip *
-  get(const SequencePoint &point) const noexcept {
+  [[nodiscard]] inline Strip *get(const SequencePoint &point) noexcept {
     std::uint32_t realm_index = point.random_bits & realm_index_mask;
 
     while (!realms[realm_index].strips.empty()) {
-      const Realm &realm = realms[realm_index];
+      Realm &realm = realms[realm_index];
       if (realm.random_bits == point.random_bits &&
           realm.unix_lower_bits == point.unix_lower_bits) {
         const auto strip_iterator = std::lower_bound(
@@ -215,6 +216,117 @@ public:
         return;
       }
       realm_index = (realm_index + 1) & realm_index_mask;
+    }
+  }
+
+  /**
+   * @brief Remove acknowledged masks directly from their indexed realms.
+   *
+   * Each frontier resolves its realm once. Eligible masks are unlinked in
+   * place and removed by one contiguous compaction of that realm vector. This
+   * avoids a structural-chain scan and repeated public index mutations.
+   *
+   * @param frontier_buffer Realm frontiers acknowledged by every actor.
+   * @param footage_span_buffer Released footage spans replaced by this pass.
+   * @param first_strip_start First structural strip boundary to maintain.
+   * @param gate_strip_start Current structural gate boundary to maintain.
+   * @param last_strip_start Last structural strip boundary to maintain.
+   * @param gate_projection_frame_index Projection index of the gate boundary.
+   * @pre This is the primary index keyed by `this_strip_start`.
+   * @post Retained neighboring strips have mutually consistent links.
+   * @post Projection frame count is unchanged because only masks are removed.
+   * @complexity O(f + m) realm-local scanning and compaction plus exact
+   * neighbor lookups, where f is the frontier count and m is the number of
+   * indexed strips in matching realms.
+   */
+  inline void garbage_collect(
+      const FrontierBuffer &frontier_buffer,
+      FootageSpanBuffer &footage_span_buffer,
+      SequencePoint &first_strip_start, SequencePoint &gate_strip_start,
+      SequencePoint &last_strip_start,
+      std::uint32_t &gate_projection_frame_index) noexcept {
+    footage_span_buffer.clear();
+
+    for (std::uint32_t frontier_index = 0;
+         frontier_index < frontier_buffer.get_frontier_count();
+         ++frontier_index) {
+      const SequencePoint frontier =
+          frontier_buffer.read_frontier(frontier_index);
+      std::uint32_t realm_index = frontier.random_bits & realm_index_mask;
+
+      while (!realms[realm_index].strips.empty()) {
+        Realm &realm = realms[realm_index];
+        if (realm.random_bits == frontier.random_bits &&
+            realm.unix_lower_bits == frontier.unix_lower_bits) {
+          std::size_t collected_strip_count = 0;
+
+          for (Strip &strip : realm.strips) {
+            const SequencePoint &strip_start =
+                strip.coordinate.*indexed_sequence_point;
+            if (strip_start.counter_bits > frontier.counter_bits)
+              break;
+            if (strip.is_masked == 0)
+              continue;
+
+            const bool is_first = strip_start == first_strip_start;
+            const bool is_last =
+                strip.next_strip_start == unlinked_strip_start;
+            Strip *previous_strip =
+                is_first
+                    ? nullptr
+                    : get(strip.coordinate.previous_strip_start);
+            Strip *next_strip =
+                is_last ? nullptr : get(strip.next_strip_start);
+
+            footage_span_buffer.write_span(strip.footage_frame_index,
+                                            strip.frame_count);
+            collected_strip_count++;
+
+            if (gate_strip_start == strip_start) {
+              if (!is_last) {
+                gate_strip_start = strip.next_strip_start;
+              } else if (!is_first) {
+                gate_strip_start = strip.coordinate.previous_strip_start;
+                if (previous_strip->is_masked == 0)
+                  gate_projection_frame_index -= previous_strip->frame_count;
+              } else {
+                gate_strip_start = {};
+                gate_projection_frame_index = 0;
+              }
+            }
+
+            if (is_first)
+              first_strip_start =
+                  is_last ? SequencePoint{} : strip.next_strip_start;
+            else
+              previous_strip->next_strip_start = strip.next_strip_start;
+
+            if (is_last)
+              last_strip_start =
+                  is_first ? SequencePoint{}
+                           : strip.coordinate.previous_strip_start;
+            else
+              next_strip->coordinate.previous_strip_start =
+                  is_first ? strip.coordinate.previous_strip_start
+                           : previous_strip->coordinate.this_strip_start;
+          }
+
+          if (collected_strip_count == realm.strips.size()) {
+            const SequencePoint remaining_strip_start =
+                realm.strips.front().coordinate.*indexed_sequence_point;
+            realm.strips.resize(1);
+            remove(remaining_strip_start);
+          } else if (collected_strip_count != 0) {
+            std::erase_if(realm.strips, [&](const Strip &strip) noexcept {
+              return strip.is_masked != 0 &&
+                     (strip.coordinate.*indexed_sequence_point).counter_bits <=
+                         frontier.counter_bits;
+            });
+          }
+          break;
+        }
+        realm_index = (realm_index + 1) & realm_index_mask;
+      }
     }
   }
 

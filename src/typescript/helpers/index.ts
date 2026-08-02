@@ -6,7 +6,7 @@ import type {
 } from '../types/type.js'
 
 export function is_sequence_point(data: unknown): data is SequencePoint {
-  return Array.isArray(data) && data.length === 4 && data.every(isUint32)
+  return Array.isArray(data) && data.length === 3 && data.every(isUint32)
 }
 
 export function is_sequence_coordinate(

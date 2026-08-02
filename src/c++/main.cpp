@@ -51,6 +51,13 @@ static FrontierBuffer frontier_buffer;
 /** @brief Shared result buffer for Footage spans released by collection. */
 static FootageSpanBuffer footage_span_buffer;
 
+/** @brief Shared cursor for synchronous pending-Strip Snapshot traversal. */
+static StripIndex<&SequenceCoordinate::previous_strip_start>::Cursor
+    pending_strip_cursor;
+
+/** @brief Pending index currently traversed: zero inserts, one Masks. */
+static std::uint32_t pending_strip_kind{0};
+
 /**
  * @brief ABI sentinel indicating that no Projection frame index was produced.
  */
@@ -223,6 +230,59 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_next_structural_strip_to_buffer(
 }
 
 /**
+ * @brief Begin Snapshot traversal over unresolved incoming Strips.
+ *
+ * Pending visible Strips are emitted before pending Masks. Their coordinates
+ * and Footage indexes are transferred unchanged so Snapshot hydration can
+ * restore them through ordinary merge after materialized state is hydrated.
+ *
+ * @param sequence_id Identifier of the active sequence.
+ * @retval 1 A pending Strip was written to StripBuffer.
+ * @retval 0 No unresolved Strip exists.
+ * @complexity O(c) leading Realm-slot scan and O(1) auxiliary space.
+ */
+EMSCRIPTEN_KEEPALIVE std::uint32_t write_first_pending_strip_to_buffer(
+    const std::uint32_t sequence_id) noexcept {
+  Projector &projector = *projectors[sequence_id];
+  pending_strip_kind = 0;
+  const Strip *strip = projector.pending_inserts.first(pending_strip_cursor);
+  if (strip == nullptr) {
+    pending_strip_kind = 1;
+    strip = projector.pending_masks.first(pending_strip_cursor);
+  }
+  if (strip == nullptr)
+    return 0;
+  strip_buffer.write_strip(*strip);
+  return 1;
+}
+
+/**
+ * @brief Advance Snapshot traversal to the next unresolved incoming Strip.
+ *
+ * @param sequence_id Identifier of the active sequence.
+ * @retval 1 The next pending Strip was written to StripBuffer.
+ * @retval 0 The pending traversal is complete.
+ * @pre `write_first_pending_strip_to_buffer` returned one and no Projector
+ * mutation occurred afterward.
+ * @complexity O(c + p) over a complete traversal of p pending Strips.
+ */
+EMSCRIPTEN_KEEPALIVE std::uint32_t write_next_pending_strip_to_buffer(
+    const std::uint32_t sequence_id) noexcept {
+  Projector &projector = *projectors[sequence_id];
+  const Strip *strip = pending_strip_kind == 0
+                           ? projector.pending_inserts.next(pending_strip_cursor)
+                           : projector.pending_masks.next(pending_strip_cursor);
+  if (strip == nullptr && pending_strip_kind == 0) {
+    pending_strip_kind = 1;
+    strip = projector.pending_masks.first(pending_strip_cursor);
+  }
+  if (strip == nullptr)
+    return 0;
+  strip_buffer.write_strip(*strip);
+  return 1;
+}
+
+/**
  * @brief Return the mutable address of the shared nine-word StripBuffer.
  *
  * @return Pointer to the first transferable `std::uint32_t` word.
@@ -315,100 +375,97 @@ get_garbage_collection_footage_span_buffer_pointer() noexcept {
 }
 
 /**
- * @brief Permanently collect Masks covered by the prepared Frontier.
+ * @brief Release Footage covered by acknowledged Masks.
  *
- * For every Frontier entry, Masks in the same Realm at or below its counter are
- * unlinked from retained Sequence order and removed from StripIndex. Visible
- * Strips are never collected. The corresponding consumer-owned Footage spans
- * replace the shared FootageSpanBuffer contents for zero-copy processing by
- * the TypeScript boundary.
+ * For every Frontier entry, Masks in the same Realm at or below its counter
+ * report their consumer-owned Footage spans. Every Mask, coordinate, and
+ * structural link remains materialized as permanent dependency data.
  *
  * @param sequence_id Identifier of the active sequence to collect.
  * @return Number of released Footage spans written to the result buffer.
  * @pre `sequence_id` identifies an active Projector.
  * @pre FrontierBuffer contains at most one selected point per represented
  * Realm, derived from the required Replica Frontiers.
- * @post Retained Strip links, first and last starts, and the Gate remain valid.
- * @post Projection frame count is unchanged because only Masks are removed.
+ * @post Projector state and retained Strip metadata are unchanged.
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 garbage_collect_sequence(const std::uint32_t sequence_id) noexcept {
   // Apply the prepared Frontier and replace the released Footage spans.
   Projector &projector = *projectors[sequence_id];
-  projector.strip_index.garbage_collect(
-      frontier_buffer, footage_span_buffer, projector.first_strip_start,
-      projector.gate_strip_start, projector.last_strip_start,
-      projector.gate_projection_frame_index);
+  projector.strip_index.garbage_collect(frontier_buffer, footage_span_buffer);
   return footage_span_buffer.get_span_count();
 }
 
 /**
- * @brief Append one already-materialized structural Strip during hydration.
+ * @brief Hydrate one retained Snapshot Strip in structural order.
  *
- * Snapshot Strips already carry immediate predecessor links and structural
- * order. When the buffered Strip follows the current retained tail exactly,
- * this operation links it directly without reinterpreting a materialized Mask
- * or split fragment as a new merge operation. Other Reels fall back to normal
- * coordinate integration at the TypeScript boundary.
+ * Snapshot entries already represent materialized state rather than merge
+ * operations. This operation therefore preserves the transferred Sequence
+ * Coordinate and derives only the runtime links omitted by StripBuffer. Each
+ * entry is appended after the current retained tail, including Masks and
+ * material fragments that cannot be reconstructed by replaying them as
+ * operations.
  *
  * @param sequence_id Identifier of the sequence being hydrated.
- * @retval 1 The Strip was appended.
- * @retval 0 Its predecessor was not the current tail, its start was already
- * materialized, or its material shape was invalid.
  * @pre `sequence_id` identifies an active Projector.
- * @pre StripBuffer contains one candidate retained Strip.
- * @post A successful append preserves one linked structural chain and updates
- * the Projection length only for a visible Strip.
- * @complexity Expected O(1) index access and amortized O(1) insertion.
+ * @pre StripBuffer contains the next unique Strip of one ordered Snapshot.
+ * @post The transferred coordinate is unchanged.
+ * @post The Strip is the retained tail and structural links are bidirectional.
+ * @post A visible Strip contributes its complete Frame count to the Projection.
+ * @complexity A constant number of StripIndex operations and O(1) auxiliary
+ * space.
  */
-EMSCRIPTEN_KEEPALIVE std::uint32_t append_structural_strip_to_sequence(
+EMSCRIPTEN_KEEPALIVE void hydrate_snapshot_strip_into_sequence(
     const std::uint32_t sequence_id) noexcept {
+  // Decode retained material and initialize its derived tail linkage.
   Projector *projector = &*projectors[sequence_id];
-  Strip appended_strip = strip_buffer.read_strip();
-  const SequencePoint appended_strip_start =
-      appended_strip.coordinate.this_strip_start;
-  const SequencePoint expected_previous_strip_start =
-      projector->strip_index.is_empty() ? SequencePoint{}
-                                        : projector->last_strip_start;
+  Strip hydrated_strip = strip_buffer.read_strip();
+  const SequencePoint hydrated_strip_start =
+      hydrated_strip.coordinate.this_strip_start;
+  hydrated_strip.next_strip_start = unlinked_strip_start;
 
-  // Accept only the next unique Strip of an ordered structural snapshot.
-  if (appended_strip.frame_count == 0 ||
-      appended_strip_start == SequencePoint{} ||
-      appended_strip_start == unlinked_strip_start ||
-      !(appended_strip.coordinate.previous_strip_start ==
-        expected_previous_strip_start) ||
-      projector->strip_index.get(appended_strip_start) != nullptr)
-    return 0;
-
-  // Establish the complete structural state for the first retained Strip.
+  // Establish all structural boundaries for the first retained Strip.
   if (projector->strip_index.is_empty()) {
-    projector->strip_index.set(appended_strip_start, appended_strip);
-    projector->first_strip_start = appended_strip_start;
-    projector->gate_strip_start = appended_strip_start;
-    projector->last_strip_start = appended_strip_start;
+    hydrated_strip.previous_structural_strip_start = SequencePoint{};
+    projector->strip_index.set(hydrated_strip_start, hydrated_strip);
+    projector->first_strip_start = hydrated_strip_start;
+    projector->gate_strip_start = hydrated_strip_start;
+    projector->last_strip_start = hydrated_strip_start;
     projector->gate_projection_frame_index = 0;
   } else {
-    // Link the current tail forward before publishing the appended Strip.
-    Strip previous_strip =
-        *projector->strip_index.get(projector->last_strip_start);
+    // Link the previous tail and append this Strip without interpreting it.
+    const SequencePoint previous_strip_start = projector->last_strip_start;
+    Strip previous_strip = *projector->strip_index.get(previous_strip_start);
+    previous_strip.next_strip_start = hydrated_strip_start;
+    hydrated_strip.previous_structural_strip_start = previous_strip_start;
 
-    // Route an operation Mask inside the tail through ordinary Mask merging.
-    if (appended_strip.is_masked != 0 &&
-        strip_contains_sequence_point(&previous_strip,
-                                      &appended_strip_start) !=
-            sequence_point_outside_strip)
-      return 0;
-
-    previous_strip.next_strip_start = appended_strip_start;
-    projector->strip_index.set(previous_strip.coordinate.this_strip_start,
-                               previous_strip);
-    projector->strip_index.set(appended_strip_start, appended_strip);
-    projector->last_strip_start = appended_strip_start;
+    projector->strip_index.set(previous_strip_start, previous_strip);
+    projector->strip_index.set(hydrated_strip_start, hydrated_strip);
+    projector->last_strip_start = hydrated_strip_start;
   }
 
-  if (appended_strip.is_masked == 0)
-    projector->projection_frame_count += appended_strip.frame_count;
-  return 1;
+  // Count only material that contributes Frames to the Projection.
+  if (hydrated_strip.is_masked == 0)
+    projector->projection_frame_count += hydrated_strip.frame_count;
+}
+
+/**
+ * @brief Restore one buffered Snapshot entry directly to its pending index.
+ *
+ * The Strip's visibility selects the Mask or visible-insert index; its stable
+ * logical previous point remains the unresolved dependency key.
+ * @param sequence_id Identifier of the active sequence.
+ */
+EMSCRIPTEN_KEEPALIVE void hydrate_pending_snapshot_strip_into_sequence(
+    const std::uint32_t sequence_id) noexcept {
+  Projector &projector = *projectors[sequence_id];
+  const Strip pending_strip = strip_buffer.read_strip();
+  const SequencePoint &dependency =
+      pending_strip.coordinate.previous_strip_start;
+  if (pending_strip.is_masked != 0)
+    projector.pending_masks.set(dependency, pending_strip);
+  else
+    projector.pending_inserts.set(dependency, pending_strip);
 }
 
 /**
@@ -453,41 +510,33 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
 
   // Validate and apply a Mask against its exact containing Strip start.
   if (incoming_strip.is_masked != 0) {
-    // Ignore a Mask whose exact masked span is already materialized.
-    const Strip *materialized_strip =
-        projector->strip_index.get(incoming_strip_start);
-    if (materialized_strip != nullptr && materialized_strip->is_masked != 0)
-      return no_projection_frame_index;
-
-    // Retain the Mask while its containing indexed Strip is absent.
+    // Use the containing-start shortcut while it still contains the target.
     const Strip *containing_strip =
         projector->strip_index.get(previous_strip_start);
-    if (containing_strip == nullptr) {
-      projector->pending_masks.set(previous_strip_start, incoming_strip);
-      return no_projection_frame_index;
-    }
+    std::uint32_t mask_frame_offset =
+        containing_strip == nullptr
+            ? sequence_point_outside_strip
+            : strip_contains_sequence_point(containing_strip,
+                                            &incoming_strip_start);
 
-    // Position the Gate at the already resolved containing Strip.
-    if (!(projector->gate_strip_start == previous_strip_start)) {
-      const auto containing_strip_result =
-          run_projector_to_sequence_point(projector, &previous_strip_start);
-      if (std::holds_alternative<bool>(containing_strip_result))
-        return no_projection_frame_index;
-      containing_strip = std::get<0>(containing_strip_result).first;
-    }
-
-    // Locate the first masked Frame and reject an invalid Mask span.
-    const std::uint32_t mask_frame_offset = strip_contains_sequence_point(
-        containing_strip, &incoming_strip.coordinate.this_strip_start);
+    // Resolve a split target by its immutable logical Sequence Point.
     if (mask_frame_offset == sequence_point_outside_strip ||
-        containing_strip->is_masked != 0 ||
-        incoming_strip.frame_count >
-            containing_strip->frame_count - mask_frame_offset)
-      return no_projection_frame_index;
+        !(projector->gate_strip_start ==
+          containing_strip->coordinate.this_strip_start)) {
+      const auto containing_strip_result =
+          run_projector_to_sequence_point(projector, &incoming_strip_start);
+      if (std::holds_alternative<bool>(containing_strip_result)) {
+        projector->pending_masks.set(previous_strip_start, incoming_strip);
+        return no_projection_frame_index;
+      }
+      containing_strip = std::get<0>(containing_strip_result).first;
+      mask_frame_offset = std::get<0>(containing_strip_result).second;
+    }
 
-    // Apply the contained Mask and return its former Projection position.
+    // Apply the logical Frame Span and return its former Projection position.
     const std::uint32_t strip_projection_frame_index =
-        projector->gate_projection_frame_index + mask_frame_offset;
+        projector->gate_projection_frame_index +
+        (containing_strip->is_masked == 0 ? mask_frame_offset : 0);
     mask_strip(projector, containing_strip, mask_frame_offset, incoming_strip);
     return strip_projection_frame_index;
   }

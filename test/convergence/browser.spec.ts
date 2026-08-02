@@ -44,11 +44,9 @@ test('converges after opposite Reel delivery orders in Chromium', async ({
     void api.__merge(reverse, left_result.reel)
 
     const project = (state: Replica<string>): Array<string> =>
-      api
-        .__snapshot(state)
-        .flatMap(([is_masked, , , footage]) =>
-          is_masked === 0 ? (footage ?? []) : []
-        )
+      Array.from({ length: api.__length(state) }, (_, index) =>
+        api.__read(state, index)
+      ) as Array<string>
 
     return { forward: project(forward), reverse: project(reverse) }
   })

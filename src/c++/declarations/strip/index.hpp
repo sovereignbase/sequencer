@@ -22,25 +22,21 @@
  * maps the Strip to an equally long contiguous region of consumer-owned
  * Footage; C++ stores the index only and never owns the payload.
  *
- * A transferred Strip carries an integration coordinate and no trusted runtime
- * successor. The Projector normalizes a materialized Strip's
- * `coordinate.previous_strip_start` to the indexed start of its immediate
- * retained predecessor and derives `next_strip_start` from retained Sequence
- * order. Those points then form its backward and forward structural links.
- * `coordinate.this_strip_start` remains the StripIndex key and identifies the
- * first Frame of the represented span.
+ * A transferred Strip carries an immutable integration coordinate and no
+ * trusted runtime links. The Projector derives
+ * `previous_structural_strip_start` and `next_strip_start` independently from
+ * retained Sequence order. `coordinate.this_strip_start` remains the
+ * StripIndex key, while `coordinate.previous_strip_start` permanently retains
+ * the logical dependency used for deterministic integration.
  *
  * A transferred Mask specifically names its containing visible Strip with
  * `coordinate.previous_strip_start` and its first masked Frame with
- * `coordinate.this_strip_start`. Materialization preserves the current point
- * while normalizing the previous point and runtime successor like every other
- * retained Strip.
+ * `coordinate.this_strip_start`. Materialization preserves both points.
  *
  * @invariant Every materialized Strip represents a positive `frame_count`.
  * @invariant The counter range beginning at
  * `coordinate.this_strip_start.counter_bits` remains within one Realm.
- * @invariant A visible Strip has `is_masked == 0`; a Mask has
- * `is_masked != 0`.
+ * @invariant A visible Strip has `is_masked == 0`; a Mask has bit zero set.
  */
 struct Strip {
   // Transferable visibility, length, and Footage mapping.
@@ -48,8 +44,9 @@ struct Strip {
   /**
    * @brief Visibility state encoded as an unsigned WebAssembly word.
    *
-   * Zero denotes a visible Strip. Any nonzero value denotes a Mask, although
-   * transferable values are conventionally normalized to one.
+   * Zero denotes a visible Strip. Bit zero denotes a Mask. The remaining Mask
+   * bits retain source-fragment boundaries without adding storage to the
+   * fixed-size Strip.
    */
   std::uint32_t is_masked;
 
@@ -68,16 +65,24 @@ struct Strip {
    */
   std::uint32_t footage_frame_index;
 
-  // Stable coordinate and Projector-owned successor linkage.
+  // Stable coordinate and Projector-owned structural linkage.
 
   /**
-   * @brief Sequence Coordinate defining transfer placement or retained linkage.
+   * @brief Immutable Sequence Coordinate defining logical placement.
    *
-   * `this_strip_start` always identifies this Frame Span. Before integration,
-   * `previous_strip_start` is a placement dependency; after integration, it is
-   * the immediate retained predecessor's indexed start or the Root.
+   * `this_strip_start` identifies this Frame Span and `previous_strip_start`
+   * retains the original logical dependency. Materialization never rewrites
+   * either point.
    */
   SequenceCoordinate coordinate;
+
+  /**
+   * @brief Start point of the previous materialized Strip.
+   *
+   * The first retained Strip stores the Root. This runtime link is derived by
+   * the Projector and is deliberately absent from serialized Reels.
+   */
+  SequencePoint previous_structural_strip_start;
 
   /**
    * @brief Start point of the next materialized Strip.
@@ -88,6 +93,15 @@ struct Strip {
    */
   SequencePoint next_strip_start;
 };
+
+/** @brief Visibility bit identifying a materialized Mask. */
+inline constexpr std::uint32_t masked_strip_state = 1;
+
+/** @brief Mask-state bit identifying a following source-Strip fragment. */
+inline constexpr std::uint32_t mask_has_source_successor = 2;
+
+/** @brief Mask-state bit identifying continuation from a source prefix. */
+inline constexpr std::uint32_t mask_is_source_continuation = 4;
 
 // Sequence-point containment result sentinel.
 

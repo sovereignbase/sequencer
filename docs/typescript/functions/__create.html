@@ -19,11 +19,11 @@
 <div class="tsd-signature tsd-anchor-link" id="__create"><span class="tsd-kind-call-signature">__create</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#__createt">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">data</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#__createt">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#__create" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Creates an independently maintained sequence state.</p>
-<p>Every structurally valid Strip in <code>data</code> is integrated in arrival order. The
-native Projector resolves Sequence Coordinates, so the resulting Projection
-does not depend on that order. Invalid input and invalid Reel entries are
-ignored; an empty Replica is still returned. Creation integrates supplied
-Sequence Points unchanged and never issues new points.</p>
+<p>Materialized entries are hydrated in supplied structural order. Entries
+marked pending are restored directly to the pending insertion or Mask index
+selected by their visibility. Invalid input and invalid entries are ignored;
+an empty Replica is still returned. Creation preserves supplied coordinates
+and never issues points.</p>
 </div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -40,7 +40,7 @@ Sequence Points unchanged and never issues new points.</p>
 <h4 class="tsd-returns-title">Returns <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#__createt">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A new Replica owning its JavaScript Footage and native Projector.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/c2a2eb2f2c19c15a5b754df9f0cde881c966d078/src/typescript/algorithms/crud/create/index.ts#L35">algorithms/crud/create/index.ts:35</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/75ac35afeff33f34a806999e2caab011a66fba02/src/typescript/algorithms/crud/create/index.ts#L36">algorithms/crud/create/index.ts:36</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

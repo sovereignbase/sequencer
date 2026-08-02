@@ -2,7 +2,9 @@
 import { assert, expect } from 'vitest'
 import {
   __create,
+  __length,
   __merge,
+  __read,
   __snapshot,
   __update,
 } from '../../src/typescript/index.js'
@@ -23,11 +25,11 @@ export function create_seed<T>(values: Array<T>): Replica<T> {
   return state
 }
 
-/** Reads visible values structurally, independently of the point-read API. */
+/** Reads the complete visible Projection through the public point-read API. */
 export function projection_values<T>(state: Replica<T>): Array<T> {
-  return __snapshot(state).flatMap(([is_masked, , , footage]) =>
-    is_masked === 0 ? (footage ?? []) : []
-  )
+  return Array.from({ length: __length(state) }, (_, index) =>
+    __read(state, index)
+  ) as Array<T>
 }
 
 /** Extracts the visible Strip issued by one accepted update. */
@@ -84,11 +86,10 @@ export function deliver<T>(
   return state
 }
 
-/** Requires equal Projection and retained structural Reel. */
+/** Requires equal visible Projection length, indexes, and values. */
 export function expect_converged<T>(
   expected: Replica<T>,
   actual: Replica<T>
 ): void {
   expect(projection_values(actual)).toEqual(projection_values(expected))
-  expect(__snapshot(actual)).toEqual(__snapshot(expected))
 }

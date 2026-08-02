@@ -188,6 +188,30 @@ export function write_next_structural_strip_to_buffer(
 }
 
 /**
+ * Begins traversal over unresolved Snapshot operations.
+ *
+ * @param sequence_id Active local Projector identifier.
+ * @returns Whether the first pending Strip was written to StripBuffer.
+ */
+export function write_first_pending_strip_to_buffer(
+  sequence_id: number
+): boolean {
+  return wasm._write_first_pending_strip_to_buffer(sequence_id) !== 0
+}
+
+/**
+ * Advances traversal over unresolved Snapshot operations.
+ *
+ * @param sequence_id Active local Projector identifier.
+ * @returns Whether another pending Strip was written to StripBuffer.
+ */
+export function write_next_pending_strip_to_buffer(
+  sequence_id: number
+): boolean {
+  return wasm._write_next_pending_strip_to_buffer(sequence_id) !== 0
+}
+
+/**
  * Copies one Replica's acknowledgement Frontier from native memory.
  *
  * @param sequence_id Active local Projector identifier.
@@ -221,7 +245,7 @@ export function get_acknowledgement_frontier(
 }
 
 /**
- * Collects Masks covered by a selected realm-indexed Frontier.
+ * Resolves Footage covered by a selected realm-indexed Frontier.
  *
  * The returned view contains `(footage_frame_index, frame_count)` pairs and is
  * valid only until another WebAssembly call rewrites or moves the shared
@@ -230,7 +254,7 @@ export function get_acknowledgement_frontier(
  * @param sequence_id Active local Projector identifier.
  * @param frontier Selected garbage-collection boundary for each included Realm.
  * @returns A zero-copy view of released Footage spans, or `false` when the
- * Frontier is empty or no Mask is collected.
+ * Frontier is empty or no Mask Footage is releasable.
  */
 export function garbage_collect_sequence(
   sequence_id: number,
@@ -252,7 +276,7 @@ export function garbage_collect_sequence(
     buffer_index += 3
   }
 
-  // Collect covered native Masks and resolve the released-span count.
+  // Resolve covered native Mask Footage and the released-span count.
   const span_count = wasm._garbage_collect_sequence(sequence_id) >>> 0
   if (span_count === 0) return false
 
@@ -263,19 +287,37 @@ export function garbage_collect_sequence(
 }
 
 /**
- * Appends the buffered Strip when it is the next member of an ordered
- * structural snapshot.
+ * Hydrates the buffered retained Strip at the end of an ordered Snapshot.
+ *
+ * The native Projector preserves its transferred Sequence Coordinate and
+ * derives only runtime structural links. Unlike an ordinary merge, this path
+ * does not reinterpret a Mask or material fragment as a new operation.
  *
  * @param sequence_id Active local Projector identifier.
- * @returns Whether the Strip was appended directly. `false` asks the caller to
- * use ordinary coordinate integration instead.
- * @remarks `write_strip_to_buffer` must have supplied the candidate Strip.
+ * @remarks `write_strip_to_buffer` must have supplied the next Snapshot Strip.
  */
-export function append_structural_strip_to_sequence(
+export function hydrate_snapshot_strip_into_sequence(
   sequence_id: number
-): boolean {
-  // Use the constant-time hydration path only for an exact structural tail.
-  return wasm._append_structural_strip_to_sequence(sequence_id) !== 0
+): void {
+  // Append one already-materialized Strip in supplied structural order.
+  wasm._hydrate_snapshot_strip_into_sequence(sequence_id)
+}
+
+/**
+ * Hydrates the buffered Strip into its pending Snapshot index.
+ *
+ * The Strip's visibility selects pending insertions or pending Masks. No
+ * placement attempt is made because Snapshot hydration restores unresolved
+ * dependency state exactly as captured.
+ *
+ * @param sequence_id Active local Projector identifier.
+ * @remarks `write_strip_to_buffer` must have supplied one pending Strip.
+ */
+export function hydrate_pending_snapshot_strip_into_sequence(
+  sequence_id: number
+): void {
+  // Restore one unresolved Strip without reinterpreting its dependency.
+  wasm._hydrate_pending_snapshot_strip_into_sequence(sequence_id)
 }
 
 /**

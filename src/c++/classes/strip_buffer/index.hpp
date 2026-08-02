@@ -20,9 +20,8 @@
  * 8  previous_strip_start.counter_bits
  * @endcode
  *
- * `next_strip_start` is Projector-owned runtime linkage and is intentionally
- * absent from the transfer representation. A decoded Strip therefore starts
- * with no structural successor.
+ * Both structural links are Projector-owned runtime state and intentionally
+ * absent from the transfer representation.
  */
 #pragma once
 
@@ -84,7 +83,7 @@ public:
    * @brief Decode the current nine words into an unlinked strip.
    *
    * @return Strip containing the transferred fields and
-   * `unlinked_strip_start` as its runtime successor.
+   * the Root and `unlinked_strip_start` as its initial runtime links.
    * @pre The nine words contain a valid transferable Strip representation.
    * @post The buffer contents are unchanged.
    * @complexity O(1) time and O(1) auxiliary space.
@@ -107,6 +106,7 @@ public:
                 .random_bits = words[6],
             },
         },
+        .previous_structural_strip_start{},
         .next_strip_start = unlinked_strip_start,
     };
   }

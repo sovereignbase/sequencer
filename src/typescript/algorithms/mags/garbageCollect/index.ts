@@ -1,5 +1,5 @@
 /**
- * MAGS garbageCollect selection and permanent acknowledged Mask collection.
+ * MAGS garbageCollect selection and acknowledged Footage release.
  *
  * @module
  */
@@ -7,12 +7,12 @@ import type { Frontier, Replica } from '../../../types/type.js'
 import { garbage_collect_sequence } from '../../../wasm/index.js'
 
 /**
- * Permanently collects Masks covered by the supplied Replica Frontiers.
+ * Releases Footage covered by the supplied Replica Frontiers.
  *
  * For every Realm in the first Frontier, the smallest corresponding point
  * found in later Frontiers becomes the garbage-collection boundary. Native
- * code removes covered Masks directly from their indexed Realms and returns
- * the Footage spans whose JavaScript references must be released.
+ * code retains every Mask and coordinate as dependency data and returns only
+ * the Footage spans whose JavaScript references may be released.
  *
  * The first supplied Frontier is reused as the selected boundary and may be
  * overwritten. Other Frontiers are read without mutation. Every Realm eligible
@@ -21,7 +21,7 @@ import { garbage_collect_sequence } from '../../../wasm/index.js'
  *
  * @typeParam T Consumer-owned value represented by one Frame.
  * @param frontiers Acknowledgement Frontiers from participating Replicas.
- * @param state Replica whose acknowledged Masks and Footage are collected.
+ * @param state Replica whose acknowledged Mask Footage is released.
  */
 export function __garbageCollect<T>(
   frontiers: Array<Frontier>,
@@ -48,7 +48,7 @@ export function __garbageCollect<T>(
         frontier[realm_index] = replica_point
     }
 
-  // Transfer selected boundaries and collect matching native Masks.
+  // Transfer selected boundaries and resolve matching Mask Footage.
   const footage_spans = garbage_collect_sequence(state.id, frontier)
   if (!footage_spans) return
 

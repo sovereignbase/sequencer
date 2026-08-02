@@ -119,6 +119,10 @@ This means replicas can:
 
 ## Behaviour guaranteed by excessive tests
 
-## Works everywhere
+## Works everywhere where ESM modules and Wasm works
 
 runtimes with tested support
+
+## License
+
+Apache-2.0

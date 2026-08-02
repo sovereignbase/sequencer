@@ -6,6 +6,8 @@
 import { is_strip } from '../../../helpers/index.js'
 import type { Change, Replica } from '../../../types/type.js'
 import {
+  get_footage_frame_index,
+  get_projection_frame_count,
   merge_strip_into_sequence,
   write_strip_to_buffer,
 } from '../../../wasm/index.js'
@@ -47,6 +49,7 @@ export function __merge<T>(
 
     // Append visible Footage at a stable, non-compacting span.
     const footage_frame_index = state.footage.length
+    const previous_projection_frame_count = get_projection_frame_count(state.id)
 
     if (is_masked === 0) state.footage.push(...footage!)
 
@@ -62,9 +65,18 @@ export function __merge<T>(
 
     // Project the accepted Strip into the consumer-facing Change.
     changed = true
-    for (let frame_offset = 0; frame_offset < frame_count; frame_offset++)
-      change[projection_frame_index + frame_offset] =
-        is_masked === 0 ? footage![frame_offset] : undefined
+    const changed_frame_count =
+      is_masked === 0
+        ? get_projection_frame_count(state.id) - previous_projection_frame_count
+        : frame_count
+
+    for (let frame_offset = 0; frame_offset < changed_frame_count; frame_offset++) {
+      const frame_index = projection_frame_index + frame_offset
+      change[frame_index] =
+        is_masked === 0
+          ? state.footage[get_footage_frame_index(state.id, frame_index)]
+          : undefined
+    }
   }
 
   // Return only an immediately materialized visible change.

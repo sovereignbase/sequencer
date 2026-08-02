@@ -5,10 +5,10 @@
  */
 import { is_strip } from '../../../helpers/index.js'
 import {
-  append_structural_strip_to_sequence,
   clear_sequence,
+  hydrate_pending_snapshot_strip_into_sequence,
+  hydrate_snapshot_strip_into_sequence,
   initialize_sequence,
-  merge_strip_into_sequence,
   write_strip_to_buffer,
 } from '../../../wasm/index.js'
 import type { Replica } from '../../../types/type.js'
@@ -23,11 +23,11 @@ const finalization_registry = new FinalizationRegistry((held_value) => {
 /**
  * Creates an independently maintained sequence state.
  *
- * Every structurally valid Strip in `data` is integrated in arrival order. The
- * native Projector resolves Sequence Coordinates, so the resulting Projection
- * does not depend on that order. Invalid input and invalid Reel entries are
- * ignored; an empty Replica is still returned. Creation integrates supplied
- * Sequence Points unchanged and never issues new points.
+ * Materialized entries are hydrated in supplied structural order. Entries
+ * marked pending are restored directly to the pending insertion or Mask index
+ * selected by their visibility. Invalid input and invalid entries are ignored;
+ * an empty Replica is still returned. Creation preserves supplied coordinates
+ * and never issues points.
  *
  * @typeParam T Consumer-owned value represented by one Frame.
  * @param data Optional candidate Reel used to initialize retained state.
@@ -48,7 +48,7 @@ export function __create<T>(data?: unknown): Replica<T> {
   for (const chunk of data) {
     // Validate the transferable Strip tuple.
     if (!is_strip<T>(chunk)) continue
-    const [is_masked, frame_count, coordinate, footage] = chunk
+    const [is_masked, frame_count, coordinate, footage, is_pending] = chunk
     if (
       (is_masked === 0 && footage?.length !== frame_count) ||
       (footage !== undefined && footage.length !== frame_count)
@@ -59,18 +59,18 @@ export function __create<T>(data?: unknown): Replica<T> {
     const footage_frame_index = state.footage.length
 
     if (footage) void state.footage.push(...footage)
-    else state.footage.length += frame_count
+    else if (is_pending !== 1) state.footage.length += frame_count
 
-    // Transfer the Strip and let native code resolve dependency and ordering.
+    // Transfer materialized state or restore one unresolved operation.
     write_strip_to_buffer(
       is_masked,
       frame_count,
       footage_frame_index,
       coordinate
     )
-
-    if (!append_structural_strip_to_sequence(state.id))
-      void merge_strip_into_sequence(state.id)
+    if (is_pending === 1)
+      hydrate_pending_snapshot_strip_into_sequence(state.id)
+    else hydrate_snapshot_strip_into_sequence(state.id)
   }
 
   // Return the independently maintained Replica.

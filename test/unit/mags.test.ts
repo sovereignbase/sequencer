@@ -56,11 +56,12 @@ describe('MAGS merge', () => {
     expect(__merge(target, child_result.reel)).toBe(false)
     expect(__length(target)).toBe(0)
 
-    expect(__merge(target, parent_result.reel)).toEqual({
+    const restarted = __create<string>(__snapshot(target))
+    expect(__merge(restarted, parent_result.reel)).toEqual({
       0: 'parent',
       1: 'child',
     })
-    expect(projection_values(target)).toEqual(['parent', 'child'])
+    expect(projection_values(restarted)).toEqual(['parent', 'child'])
   })
 })
 
@@ -133,6 +134,8 @@ describe('MAGS retained state', () => {
     expect(projection_values(state)).toEqual(['a', 'c'])
     expect(__recover(state)).toEqual(['a', 'c'])
     expect(state.footage[1]).toBeUndefined()
-    expect(__snapshot(state).every(([is_masked]) => is_masked === 0)).toBe(true)
+    expect(
+      __snapshot(state).find(([is_masked]) => is_masked !== 0)?.[3]
+    ).toBeUndefined()
   })
 })

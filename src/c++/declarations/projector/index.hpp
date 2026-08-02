@@ -24,18 +24,20 @@
  * at which it begins; it accelerates navigation but never determines Sequence
  * order.
  *
- * Integration normalizes transfer coordinates into structural linkage. Every
- * retained non-first Strip stores its immediate predecessor's indexed start in
- * `coordinate.previous_strip_start`; the first stores the Root. The predecessor
- * names the same Strip through `next_strip_start`.
+ * Integration preserves every transfer coordinate and derives separate
+ * structural links. Every retained non-first Strip stores its immediate
+ * predecessor's indexed start in `previous_structural_strip_start`; the first
+ * stores the Root. The predecessor names the same Strip through
+ * `next_strip_start`.
  *
  * @invariant The structural chain contains every materialized Strip, including
  * Masks, exactly once from `first_strip_start` through `last_strip_start`.
  * @invariant Adjacent structural Strips have mutually consistent forward and
  * backward links.
  * @invariant The first retained Strip has the Root as its previous point, every
- * other retained Strip has its immediate predecessor's `this_strip_start`, and
- * the last retained Strip has `unlinked_strip_start` as its successor.
+ * other retained Strip has its immediate predecessor's `this_strip_start` in
+ * `previous_structural_strip_start`, and the last retained Strip has
+ * `unlinked_strip_start` as its successor.
  * @invariant `projection_frame_count` equals the sum of `frame_count` over all
  * visible materialized Strips.
  * @invariant When the primary index is non-empty, the first, Gate, and last
@@ -51,7 +53,8 @@ struct Projector {
    * @brief Materialized Strips indexed by their own stable start points.
    *
    * This is the authoritative runtime representation of structural membership.
-   * Each stored Strip has normalized predecessor and successor links.
+   * Each stored Strip has derived predecessor and successor links while its
+   * Sequence Coordinate remains immutable.
    */
   StripIndex<> strip_index;
 
@@ -97,8 +100,7 @@ struct Projector {
    *
    * Each pending insertion is keyed by the transferred
    * `coordinate.previous_strip_start`, the Root or Frame after which it is to
-   * be placed. Materialization later normalizes that field to a structural
-   * link.
+   * be placed. Materialization preserves that dependency.
    */
   StripIndex<&SequenceCoordinate::previous_strip_start> pending_inserts;
 };

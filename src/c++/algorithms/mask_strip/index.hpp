@@ -1,165 +1,145 @@
 /**
  * @file
- * @brief Applies a Mask contained within one materialized Strip.
+ * @brief Excludes one logical Frame Span from the Projection.
  *
- * A Mask excludes a Frame Span from the Projection while retaining it in
- * Sequence order until garbage collection. Depending on its offset and Frame
- * count, one source Strip becomes one, two, or three linked Strips while its
- * indexed start is always retained. A transferable Mask reuses existing
- * Sequence Points: its previous point is the containing indexed Strip start and
- * its own start is the first masked Frame point.
+ * A Mask names its first existing Sequence Point and spans consecutive points
+ * in that Realm. Material splitting and concurrent insertions do not change
+ * that axis: the algorithm advances by counters and resolves each continuation
+ * directly through StripIndex, thereby skipping structurally inserted Strips.
  */
 #pragma once
 
 #include "../../declarations/projector/index.hpp"
+#include <algorithm>
 #include <cstdint>
 
 /**
- * @brief Mask a Frame Span contained entirely within one visible Strip.
+ * @brief Materialize a Mask across its logical Frame Span.
  *
- * @par Result shapes
+ * Visible fragments are split only at the Mask boundaries. Existing masked
+ * fragments are retained and counted toward the requested logical span without
+ * reducing the Projection again. Every new material fragment uses an existing
+ * Sequence Point and records its logical preceding Frame in its immutable
+ * coordinate; mutable retained order is maintained exclusively through
+ * `previous_structural_strip_start` and `next_strip_start`.
  *
- * | Mask extent | Retained Strip order |
- * | --- | --- |
- * | Entire source | `[ mask ]` |
- * | Source start | `[ mask ][ suffix ]` |
- * | Source end | `[ prefix ][ mask ]` |
- * | Source interior | `[ prefix ][ mask ][ suffix ]` |
- *
- * @par Invariants
- *
- * The source start remains indexed in every shape. A start-aligned Mask reuses
- * that entry; otherwise it becomes the visible prefix. A suffix begins at the
- * source Sequence Point advanced by the Mask's ending offset and at the
- * correspondingly advanced Footage frame index. Every resulting Strip retains
- * the source's original Footage mapping. The incoming Mask coordinate names
- * only existing points: `previous_strip_start` is exactly the indexed start of
- * `containing_strip`, and `this_strip_start` is exactly the first masked Frame
- * point within that Strip. Only visible updates issue Sequence Points; masking
- * never does.
- *
- * @par Processing
- *
- * The source is preserved, the selected shape is materialized, and its tail is
- * reconnected to the original successor. StripIndex writes may invalidate
- * stored pointers, so every replacement is derived from the preserved value
- * rather than from `containing_strip` after the first write. Once materialized,
- * `previous_strip_start` also serves as the mutable backward structural link;
- * this runtime role does not alter the stable first masked Frame identified by
- * `this_strip_start`.
- *
- * @param projector Projector containing the materialized source Strip.
- * @param containing_strip Visible Strip containing the complete Mask span.
- * @param mask_frame_offset Zero-based Frame offset of the Mask within the
- * containing Strip.
- * @param mask Incoming Mask Strip whose previous point identifies
- * `containing_strip` and whose own start identifies the first masked Frame. Its
- * runtime links and Footage frame index are normalized during materialization.
- * @pre Both pointers are non-null.
- * @pre `mask_frame_offset + mask.frame_count` does not exceed
- * `containing_strip->frame_count`.
- * @pre The containing strip is visible and `mask.is_masked` is nonzero.
- * @pre `mask.coordinate.previous_strip_start` equals
- * `containing_strip->coordinate.this_strip_start` and
- * `mask.coordinate.this_strip_start` equals that point advanced by
- * `mask_frame_offset` Frames.
- * @pre Advancing the containing start counter by the mask end does not
- * overflow.
- * @post Projection frame count is reduced by exactly `mask.frame_count`
- * Frames.
- * @post The projector gate key remains valid and the replacement tail is linked
- * to the original successor or published as the last retained Strip.
- * @complexity A constant number of StripIndex operations and O(1) local space.
+ * @param projector Projector containing the first masked Frame.
+ * @param containing_strip Material fragment containing
+ * `mask.coordinate.this_strip_start`.
+ * @param mask_frame_offset Zero-based offset of the first masked Frame in
+ * `containing_strip`.
+ * @param mask Mask whose start is the first logical Frame to exclude and whose
+ * Frame count is the complete logical span length.
+ * @pre All pointers are non-null.
+ * @pre The complete Mask span is materialized as consecutive points in the
+ * Mask start Realm, possibly across split or already masked fragments.
+ * @pre Counter advancement across the Mask span does not overflow.
+ * @post Exactly the previously visible Frames in the Mask span are removed
+ * from the Projection.
+ * @post Coordinates of existing material fragments remain unchanged.
+ * @post Structural predecessor and successor links remain bidirectional.
+ * @complexity O(f log n) time and O(1) space for f intersected fragments and
+ * n Strips in their Realm.
  */
 inline void mask_strip(Projector *projector, const Strip *containing_strip,
                        const std::uint32_t mask_frame_offset,
-                       Strip mask) noexcept {
-  // Preserve the source before an index write can invalidate its pointer.
-  Strip original_strip = *containing_strip;
-  const SequencePoint original_next_strip_start =
-      original_strip.next_strip_start;
+                       const Strip &mask) noexcept {
+  // Follow the immutable logical axis rather than mutable structural links.
+  SequencePoint logical_frame_start = mask.coordinate.this_strip_start;
+  std::uint32_t remaining_frame_count = mask.frame_count;
+  const Strip *current_strip = containing_strip;
+  std::uint32_t current_frame_offset = mask_frame_offset;
 
-  // Replace the entire visible Strip with a Mask at the same start.
-  if (mask_frame_offset == 0 &&
-      mask.frame_count == original_strip.frame_count) {
-    original_strip.is_masked = 1;
-    projector->projection_frame_count -= original_strip.frame_count;
-    projector->strip_index.set(original_strip.coordinate.this_strip_start,
-                               original_strip);
-    return;
-  }
+  while (remaining_frame_count != 0) {
+    // Preserve the fragment before any index write can invalidate its pointer.
+    const Strip source_strip = *current_strip;
+    const std::uint32_t masked_frame_count =
+        std::min(remaining_frame_count,
+                 source_strip.frame_count - current_frame_offset);
 
-  // Resolve the optional suffix shared by every partial-Mask shape.
-  const std::uint32_t mask_end_frame_offset =
-      mask_frame_offset + mask.frame_count;
-  const std::uint32_t suffix_frame_count =
-      original_strip.frame_count - mask_end_frame_offset;
-  SequencePoint suffix_strip_start = original_strip.coordinate.this_strip_start;
-  suffix_strip_start.counter_bits += mask_end_frame_offset;
+    // Exclude only Frames that are not already represented by a Mask.
+    if (source_strip.is_masked == 0) {
+      const std::uint32_t mask_end_frame_offset =
+          current_frame_offset + masked_frame_count;
+      const std::uint32_t suffix_frame_count =
+          source_strip.frame_count - mask_end_frame_offset;
+      const SequencePoint source_strip_start =
+          source_strip.coordinate.this_strip_start;
+      const SequencePoint original_next_strip_start =
+          source_strip.next_strip_start;
 
-  // Remove the Mask's Frame Span from the Projection.
-  projector->projection_frame_count -= mask.frame_count;
+      // Retain an optional visible prefix at the source's indexed start.
+      if (current_frame_offset != 0) {
+        Strip prefix_strip = source_strip;
+        prefix_strip.frame_count = current_frame_offset;
+        prefix_strip.next_strip_start = logical_frame_start;
+        projector->strip_index.set(source_strip_start, prefix_strip);
+      }
 
-  // Materialize the partial Mask according to its source offset.
-  if (mask_frame_offset == 0) {
-    // Reuse the source entry for a start-aligned Mask.
-    Strip suffix_strip = original_strip;
-    suffix_strip.frame_count = suffix_frame_count;
-    suffix_strip.footage_frame_index += mask_end_frame_offset;
-    suffix_strip.coordinate.this_strip_start = suffix_strip_start;
-    suffix_strip.coordinate.previous_strip_start =
-        original_strip.coordinate.this_strip_start;
+      // Reuse a start-aligned fragment or materialize an interior Mask.
+      Strip masked_strip = source_strip;
+      masked_strip.is_masked =
+          masked_strip_state |
+          (suffix_frame_count != 0 ? mask_has_source_successor : 0) |
+          (current_frame_offset != 0 ? mask_is_source_continuation : 0);
+      masked_strip.frame_count = masked_frame_count;
+      masked_strip.footage_frame_index += current_frame_offset;
+      masked_strip.next_strip_start = original_next_strip_start;
 
-    original_strip.is_masked = 1;
-    original_strip.frame_count = mask.frame_count;
-    original_strip.next_strip_start = suffix_strip_start;
+      if (current_frame_offset != 0) {
+        masked_strip.coordinate = {
+            .this_strip_start = logical_frame_start,
+            .previous_strip_start = mask.coordinate.previous_strip_start,
+        };
+        masked_strip.previous_structural_strip_start = source_strip_start;
+      }
 
-    projector->strip_index.set(original_strip.coordinate.this_strip_start,
-                               original_strip);
-    projector->strip_index.set(suffix_strip_start, suffix_strip);
-  } else {
-    // Retain the source entry as the visible prefix.
-    Strip prefix_strip = original_strip;
-    prefix_strip.frame_count = mask_frame_offset;
-    prefix_strip.next_strip_start = mask.coordinate.this_strip_start;
+      // Append an optional visible suffix after the materialized Mask.
+      SequencePoint replacement_tail_strip_start = logical_frame_start;
+      if (suffix_frame_count != 0) {
+        SequencePoint suffix_strip_start = source_strip_start;
+        suffix_strip_start.counter_bits += mask_end_frame_offset;
+        SequencePoint suffix_previous_frame = suffix_strip_start;
+        --suffix_previous_frame.counter_bits;
 
-    mask.is_masked = 1;
-    mask.footage_frame_index =
-        original_strip.footage_frame_index + mask_frame_offset;
-    mask.coordinate.previous_strip_start =
-        original_strip.coordinate.this_strip_start;
-    mask.next_strip_start = suffix_frame_count == 0
-                                ? original_strip.next_strip_start
-                                : suffix_strip_start;
+        Strip suffix_strip = source_strip;
+        suffix_strip.frame_count = suffix_frame_count;
+        suffix_strip.footage_frame_index += mask_end_frame_offset;
+        suffix_strip.coordinate = {
+            .this_strip_start = suffix_strip_start,
+            .previous_strip_start = suffix_previous_frame,
+        };
+        suffix_strip.previous_structural_strip_start = logical_frame_start;
 
-    projector->strip_index.set(prefix_strip.coordinate.this_strip_start,
-                               prefix_strip);
-    projector->strip_index.set(mask.coordinate.this_strip_start, mask);
+        masked_strip.next_strip_start = suffix_strip_start;
+        replacement_tail_strip_start = suffix_strip_start;
+        projector->strip_index.set(logical_frame_start, masked_strip);
+        projector->strip_index.set(suffix_strip_start, suffix_strip);
+      } else {
+        projector->strip_index.set(logical_frame_start, masked_strip);
+      }
 
-    // Materialize visible Frames following an interior Mask when present.
-    if (suffix_frame_count != 0) {
-      Strip suffix_strip = original_strip;
-      suffix_strip.frame_count = suffix_frame_count;
-      suffix_strip.footage_frame_index += mask_end_frame_offset;
-      suffix_strip.coordinate.this_strip_start = suffix_strip_start;
-      suffix_strip.coordinate.previous_strip_start =
-          mask.coordinate.this_strip_start;
-      projector->strip_index.set(suffix_strip_start, suffix_strip);
+      // Reconnect the original successor or publish the new retained tail.
+      if (!(original_next_strip_start == unlinked_strip_start)) {
+        Strip next_strip =
+            *projector->strip_index.get(original_next_strip_start);
+        next_strip.previous_structural_strip_start =
+            replacement_tail_strip_start;
+        projector->strip_index.set(original_next_strip_start, next_strip);
+      } else {
+        projector->last_strip_start = replacement_tail_strip_start;
+      }
+
+      projector->projection_frame_count -= masked_frame_count;
     }
-  }
 
-  // Reconnect the replacement tail in retained Strip order.
-  const SequencePoint replacement_tail_strip_start =
-      suffix_frame_count != 0 ? suffix_strip_start
-                              : mask.coordinate.this_strip_start;
+    // Resolve the next original fragment directly, skipping inserted Strips.
+    logical_frame_start.counter_bits += masked_frame_count;
+    remaining_frame_count -= masked_frame_count;
+    if (remaining_frame_count == 0)
+      return;
 
-  // Relink the following Strip or publish the new retained tail.
-  if (!(original_next_strip_start == unlinked_strip_start)) {
-    Strip next_strip = *projector->strip_index.get(original_next_strip_start);
-    next_strip.coordinate.previous_strip_start = replacement_tail_strip_start;
-    projector->strip_index.set(next_strip.coordinate.this_strip_start,
-                               next_strip);
-  } else {
-    projector->last_strip_start = replacement_tail_strip_start;
+    current_strip = projector->strip_index.get(logical_frame_start);
+    current_frame_offset = 0;
   }
 }

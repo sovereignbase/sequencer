@@ -115,7 +115,7 @@ run_projector_to_sequence_point(Projector *projector,
     // Advance and test one Strip in the backward direction.
     if (backward_strip != first_strip) {
       backward_strip = projector->strip_index.get(
-          backward_strip->coordinate.previous_strip_start);
+          backward_strip->previous_structural_strip_start);
       if (backward_strip->is_masked == 0)
         backward_projection_frame_index -= backward_strip->frame_count;
 

@@ -405,13 +405,13 @@ Doxygen documentation maintained beside every implementation unit in
 <em>#include &lt;index.hpp&gt;</em></div>
 <p>Owned runtime state that materializes one Sequence and its Projection. </p>
 <p>The primary index owns all materialized Strips under their stable starts. Pending indexes own incoming Strips under unresolved transfer dependencies. For a pending Mask that dependency is the exact indexed start of its containing <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>; for a pending visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> it is the Frame after which it is placed. The Gate caches one materialized <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> and the Projection position at which it begins; it accelerates navigation but never determines Sequence order.</p>
-<p>Integration normalizes transfer coordinates into structural linkage. Every retained non-first <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> stores its immediate predecessor’s indexed start in <code class="docutils literal notranslate"><span class="pre">coordinate.previous_strip_start</span></code>; the first stores the Root. The predecessor names the same <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> through <code class="docutils literal notranslate"><span class="pre">next_strip_start</span></code>.</p>
+<p>Integration preserves every transfer coordinate and derives separate structural links. Every retained non-first <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> stores its immediate predecessor’s indexed start in <code class="docutils literal notranslate"><span class="pre">previous_structural_strip_start</span></code>; the first stores the Root. The predecessor names the same <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> through <code class="docutils literal notranslate"><span class="pre">next_strip_start</span></code>.</p>
 <p><dl class="simple">
 <dt><strong>Invariant</strong></dt><dd><p>The structural chain contains every materialized <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>, including Masks, exactly once from <code class="docutils literal notranslate"><a class="reference internal" href="#structProjector_1a615570f05d1f42c8704f67716c2531f0"><span class="std std-ref"><span class="pre">first_strip_start</span></span></a></code> through <code class="docutils literal notranslate"><a class="reference internal" href="#structProjector_1a9afb6ab5723ec9c0d43ffe8b6bbc5a30"><span class="std std-ref"><span class="pre">last_strip_start</span></span></a></code>. </p>
 </dd>
 <dt><strong>Invariant</strong></dt><dd><p>Adjacent structural Strips have mutually consistent forward and backward links. </p>
 </dd>
-<dt><strong>Invariant</strong></dt><dd><p>The first retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> has the Root as its previous point, every other retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> has its immediate predecessor’s <code class="docutils literal notranslate"><span class="pre">this_strip_start</span></code>, and the last retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> has <code class="docutils literal notranslate"><a class="reference internal" href="#declarations_2sequence__point_2index_8hpp_1a9e716f5b43419e6224231e28028de70c"><span class="std std-ref"><span class="pre">unlinked_strip_start</span></span></a></code> as its successor. </p>
+<dt><strong>Invariant</strong></dt><dd><p>The first retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> has the Root as its previous point, every other retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> has its immediate predecessor’s <code class="docutils literal notranslate"><span class="pre">this_strip_start</span></code> in <code class="docutils literal notranslate"><span class="pre">previous_structural_strip_start</span></code>, and the last retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> has <code class="docutils literal notranslate"><a class="reference internal" href="#declarations_2sequence__point_2index_8hpp_1a9e716f5b43419e6224231e28028de70c"><span class="std std-ref"><span class="pre">unlinked_strip_start</span></span></a></code> as its successor. </p>
 </dd>
 <dt><strong>Invariant</strong></dt><dd><p><code class="docutils literal notranslate"><a class="reference internal" href="#structProjector_1a79f1e7accae41706d696ab54f7c8de28"><span class="std std-ref"><span class="pre">projection_frame_count</span></span></a></code> equals the sum of <code class="docutils literal notranslate"><span class="pre">frame_count</span></code> over all visible materialized Strips. </p>
 </dd>
@@ -454,7 +454,7 @@ Doxygen documentation maintained beside every implementation unit in
 <dt class="sig sig-object cpp" id="_CPPv4N9Projector15pending_insertsE">
 <span id="_CPPv3N9Projector15pending_insertsE"></span><span id="_CPPv2N9Projector15pending_insertsE"></span><span id="Projector::pending_inserts__StripIndex:&SequenceCoordinate::previous_strip_start:"></span><span class="target" id="structProjector_1aa773c169d584b6c6ce1d263b1238a167"></span><a class="reference internal" href="#_CPPv4I_M18SequenceCoordinate13SequencePointE10StripIndex" title="StripIndex"><span class="n"><span class="pre">StripIndex</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="o"><span class="pre">&amp;</span></span><a class="reference internal" href="#_CPPv418SequenceCoordinate" title="SequenceCoordinate"><span class="n"><span class="pre">SequenceCoordinate</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="#_CPPv4N18SequenceCoordinate20previous_strip_startE" title="SequenceCoordinate::previous_strip_start"><span class="n"><span class="pre">previous_strip_start</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pending_inserts</span></span></span><a class="headerlink" href="#_CPPv4N9Projector15pending_insertsE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Visible Strips awaiting their placement Frame. </p>
-<p>Each pending insertion is keyed by the transferred <code class="docutils literal notranslate"><span class="pre">coordinate.previous_strip_start</span></code>, the Root or Frame after which it is to be placed. Materialization later normalizes that field to a structural link. </p>
+<p>Each pending insertion is keyed by the transferred <code class="docutils literal notranslate"><span class="pre">coordinate.previous_strip_start</span></code>, the Root or Frame after which it is to be placed. Materialization preserves that dependency. </p>
 </dd></dl>
 
 <dl class="cpp var">
@@ -474,7 +474,7 @@ Doxygen documentation maintained beside every implementation unit in
 <dt class="sig sig-object cpp" id="_CPPv4N9Projector11strip_indexE">
 <span id="_CPPv3N9Projector11strip_indexE"></span><span id="_CPPv2N9Projector11strip_indexE"></span><span id="Projector::strip_index__StripIndex"></span><span class="target" id="structProjector_1ae6d64de977179aaabdf042e5e93e938b"></span><a class="reference internal" href="#_CPPv4I_M18SequenceCoordinate13SequencePointE10StripIndex" title="StripIndex"><span class="n"><span class="pre">StripIndex</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">strip_index</span></span></span><a class="headerlink" href="#_CPPv4N9Projector11strip_indexE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Materialized Strips indexed by their own stable start points. </p>
-<p>This is the authoritative runtime representation of structural membership. Each stored <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> has normalized predecessor and successor links. </p>
+<p>This is the authoritative runtime representation of structural membership. Each stored <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> has derived predecessor and successor links while its Sequence Coordinate remains immutable. </p>
 </dd></dl>
 
 </div>
@@ -485,22 +485,13 @@ Doxygen documentation maintained beside every implementation unit in
 <span id="_CPPv318SequenceCoordinate"></span><span id="_CPPv218SequenceCoordinate"></span><span id="SequenceCoordinate"></span><span class="target" id="structSequenceCoordinate"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SequenceCoordinate</span></span></span><a class="headerlink" href="#_CPPv418SequenceCoordinate" title="Link to this definition">¶</a><br /></dt>
 <dd><div class="docutils container">
 <em>#include &lt;index.hpp&gt;</em></div>
-<p>Stable placement and structural relationship carried by one <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
-<p>In vocabulary order, the coordinate is the pair <code class="docutils literal notranslate"><span class="pre">(</span><a class="reference internal" href="#structSequenceCoordinate_1ab9f3aa88bd04a9d40a89e427cbef08e1"><span class="std std-ref"><span class="pre">previous_strip_start</span></span></a><span class="pre">,</span> <a class="reference internal" href="#structSequenceCoordinate_1a157ba310eb07b073dbdde36d2214acaf"><span class="std std-ref"><span class="pre">this_strip_start</span></span></a><span class="pre">)</span></code>. <code class="docutils literal notranslate"><a class="reference internal" href="#structSequenceCoordinate_1a157ba310eb07b073dbdde36d2214acaf"><span class="std std-ref"><span class="pre">this_strip_start</span></span></a></code> always identifies the first Frame of the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s Frame Span. The meaning of the previous point is specific to the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s lifecycle and visibility state.</p>
-<p>
-For a visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>, <code class="docutils literal notranslate"><a class="reference internal" href="#structSequenceCoordinate_1ab9f3aa88bd04a9d40a89e427cbef08e1"><span class="std std-ref"><span class="pre">previous_strip_start</span></span></a></code> is the Root or the stable point of the Frame after which the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is placed. For a Mask, it is the exact indexed start of the visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> containing the complete masked Frame Span, while <code class="docutils literal notranslate"><a class="reference internal" href="#structSequenceCoordinate_1a157ba310eb07b073dbdde36d2214acaf"><span class="std std-ref"><span class="pre">this_strip_start</span></span></a></code> is the existing Sequence Point of the first masked Frame. Masking therefore issues no new Sequence Point.<dl class="simple">
-<dt><strong>Transfer semantics</strong></dt><dd><p></p>
-</dd>
-</dl>
-</p>
-<p>
-The <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> normalizes <code class="docutils literal notranslate"><a class="reference internal" href="#structSequenceCoordinate_1ab9f3aa88bd04a9d40a89e427cbef08e1"><span class="std std-ref"><span class="pre">previous_strip_start</span></span></a></code> to the indexed start of the immediately preceding retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>, or to the Root for the first retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. It then serves as the backward structural link paired with the predecessor’s <code class="docutils literal notranslate"><span class="pre">next_strip_start</span></code>. Garbage collection may normalize it again after removing a Mask. <code class="docutils literal notranslate"><a class="reference internal" href="#structSequenceCoordinate_1a157ba310eb07b073dbdde36d2214acaf"><span class="std std-ref"><span class="pre">this_strip_start</span></span></a></code> remains the primary <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> key and the first point of the retained Frame Span.<dl class="simple">
-<dt><strong>Materialized semantics</strong></dt><dd><p></p>
-</dd>
-</dl>
-</p>
+<p>Immutable logical placement carried by one <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+<p>In vocabulary order, the coordinate is the pair <code class="docutils literal notranslate"><span class="pre">(</span><a class="reference internal" href="#structSequenceCoordinate_1ab9f3aa88bd04a9d40a89e427cbef08e1"><span class="std std-ref"><span class="pre">previous_strip_start</span></span></a><span class="pre">,</span> <a class="reference internal" href="#structSequenceCoordinate_1a157ba310eb07b073dbdde36d2214acaf"><span class="std std-ref"><span class="pre">this_strip_start</span></span></a><span class="pre">)</span></code>. <code class="docutils literal notranslate"><a class="reference internal" href="#structSequenceCoordinate_1a157ba310eb07b073dbdde36d2214acaf"><span class="std std-ref"><span class="pre">this_strip_start</span></span></a></code> always identifies the first Frame of the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s Frame Span.</p>
+<p>For a visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>, <code class="docutils literal notranslate"><a class="reference internal" href="#structSequenceCoordinate_1ab9f3aa88bd04a9d40a89e427cbef08e1"><span class="std std-ref"><span class="pre">previous_strip_start</span></span></a></code> is the Root or the stable point of the Frame after which the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is placed. For a Mask, it is the exact indexed start of the visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> containing the complete masked Frame Span, while <code class="docutils literal notranslate"><a class="reference internal" href="#structSequenceCoordinate_1a157ba310eb07b073dbdde36d2214acaf"><span class="std std-ref"><span class="pre">this_strip_start</span></span></a></code> is the existing Sequence Point of the first masked Frame. Masking therefore issues no new Sequence Point.</p>
 <p><dl class="simple">
-<dt><strong>Invariant</strong></dt><dd><p><code class="docutils literal notranslate"><a class="reference internal" href="#structSequenceCoordinate_1a157ba310eb07b073dbdde36d2214acaf"><span class="std std-ref"><span class="pre">this_strip_start</span></span></a></code> identifies the first Frame represented by its <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> in both transfer and materialized forms.</p>
+<dt><strong>Invariant</strong></dt><dd><p><code class="docutils literal notranslate"><a class="reference internal" href="#structSequenceCoordinate_1a157ba310eb07b073dbdde36d2214acaf"><span class="std std-ref"><span class="pre">this_strip_start</span></span></a></code> identifies the first Frame represented by its </p>
+</dd>
+<dt><strong>Invariant</strong></dt><dd><p>Materialization never modifies either Sequence Point.</p>
 </dd>
 </dl>
 </p>
@@ -513,8 +504,8 @@ The <a class="reference internal" href="#structProjector"><span class="std std-r
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N18SequenceCoordinate20previous_strip_startE">
 <span id="_CPPv3N18SequenceCoordinate20previous_strip_startE"></span><span id="_CPPv2N18SequenceCoordinate20previous_strip_startE"></span><span id="SequenceCoordinate::previous_strip_start__SequencePoint"></span><span class="target" id="structSequenceCoordinate_1ab9f3aa88bd04a9d40a89e427cbef08e1"></span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">previous_strip_start</span></span></span><a class="headerlink" href="#_CPPv4N18SequenceCoordinate20previous_strip_startE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Transfer dependency or normalized structural predecessor. </p>
-<p>A transferable visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> names its placement Frame; a transferable Mask names the exact indexed start of its containing <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. Pending indexes use that value as their dependency key. Once materialized, the value is the Root or the exact indexed start of the immediate retained predecessor. </p>
+<dd><p>Stable logical dependency used for deterministic integration. </p>
+<p>A transferable visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> names its placement Frame; a transferable Mask names the exact indexed start of its containing <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. Pending indexes use that value as their dependency key. The <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> never rewrites it as a runtime link. </p>
 </dd></dl>
 
 <dl class="cpp var">
@@ -598,14 +589,14 @@ The <a class="reference internal" href="#structProjector"><span class="std std-r
 <em>#include &lt;index.hpp&gt;</em></div>
 <p>Material representation of one contiguous Frame Span. </p>
 <p>A visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> contributes <code class="docutils literal notranslate"><a class="reference internal" href="#structStrip_1a073d3a2a53b4174dea9358ecd0d4bfe6"><span class="std std-ref"><span class="pre">frame_count</span></span></a></code> frames to the Projection. A Mask contributes none while retaining the same structural position in the Sequence until garbage collection. In both states, <code class="docutils literal notranslate"><a class="reference internal" href="#structStrip_1ac7c4d682f53f258da7514b33c31bd0a8"><span class="std std-ref"><span class="pre">footage_frame_index</span></span></a></code> maps the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> to an equally long contiguous region of consumer-owned Footage; C++ stores the index only and never owns the payload.</p>
-<p>A transferred <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> carries an integration coordinate and no trusted runtime successor. The <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> normalizes a materialized <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s <code class="docutils literal notranslate"><span class="pre">coordinate.previous_strip_start</span></code> to the indexed start of its immediate retained predecessor and derives <code class="docutils literal notranslate"><a class="reference internal" href="#structStrip_1a3f21bff37a5703eb457c165ae90b4fbb"><span class="std std-ref"><span class="pre">next_strip_start</span></span></a></code> from retained Sequence order. Those points then form its backward and forward structural links. <code class="docutils literal notranslate"><span class="pre">coordinate.this_strip_start</span></code> remains the <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> key and identifies the first Frame of the represented span.</p>
-<p>A transferred Mask specifically names its containing visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> with <code class="docutils literal notranslate"><span class="pre">coordinate.previous_strip_start</span></code> and its first masked Frame with <code class="docutils literal notranslate"><span class="pre">coordinate.this_strip_start</span></code>. Materialization preserves the current point while normalizing the previous point and runtime successor like every other retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>.</p>
+<p>A transferred <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> carries an immutable integration coordinate and no trusted runtime links. The <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> derives <code class="docutils literal notranslate"><a class="reference internal" href="#structStrip_1adae4d72802929afbfb9e18dd045debbf"><span class="std std-ref"><span class="pre">previous_structural_strip_start</span></span></a></code> and <code class="docutils literal notranslate"><a class="reference internal" href="#structStrip_1a3f21bff37a5703eb457c165ae90b4fbb"><span class="std std-ref"><span class="pre">next_strip_start</span></span></a></code> independently from retained Sequence order. <code class="docutils literal notranslate"><span class="pre">coordinate.this_strip_start</span></code> remains the <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> key, while <code class="docutils literal notranslate"><span class="pre">coordinate.previous_strip_start</span></code> permanently retains the logical dependency used for deterministic integration.</p>
+<p>A transferred Mask specifically names its containing visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> with <code class="docutils literal notranslate"><span class="pre">coordinate.previous_strip_start</span></code> and its first masked Frame with <code class="docutils literal notranslate"><span class="pre">coordinate.this_strip_start</span></code>. Materialization preserves both points.</p>
 <p><dl class="simple">
 <dt><strong>Invariant</strong></dt><dd><p>Every materialized <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> represents a positive <code class="docutils literal notranslate"><a class="reference internal" href="#structStrip_1a073d3a2a53b4174dea9358ecd0d4bfe6"><span class="std std-ref"><span class="pre">frame_count</span></span></a></code>. </p>
 </dd>
 <dt><strong>Invariant</strong></dt><dd><p>The counter range beginning at <code class="docutils literal notranslate"><span class="pre">coordinate.this_strip_start.counter_bits</span></code> remains within one Realm. </p>
 </dd>
-<dt><strong>Invariant</strong></dt><dd><p>A visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> has <code class="docutils literal notranslate"><a class="reference internal" href="#structStrip_1ad2cfe3a32364a709f01c604c22154040"><span class="std std-ref"><span class="pre">is_masked</span></span></a> <span class="pre">==</span> <span class="pre">0</span></code>; a Mask has <code class="docutils literal notranslate"><a class="reference internal" href="#structStrip_1ad2cfe3a32364a709f01c604c22154040"><span class="std std-ref"><span class="pre">is_masked</span></span></a> <span class="pre">!=</span> <span class="pre">0</span></code>. </p>
+<dt><strong>Invariant</strong></dt><dd><p>A visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> has <code class="docutils literal notranslate"><a class="reference internal" href="#structStrip_1ad2cfe3a32364a709f01c604c22154040"><span class="std std-ref"><span class="pre">is_masked</span></span></a> <span class="pre">==</span> <span class="pre">0</span></code>; a Mask has bit zero set. </p>
 </dd>
 </dl>
 </p>
@@ -614,8 +605,8 @@ The <a class="reference internal" href="#structProjector"><span class="std std-r
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N5Strip10coordinateE">
 <span id="_CPPv3N5Strip10coordinateE"></span><span id="_CPPv2N5Strip10coordinateE"></span><span id="Strip::coordinate__SequenceCoordinate"></span><span class="target" id="structStrip_1a20a05655f8b9df199f1ed2b312f75ad3"></span><a class="reference internal" href="#_CPPv418SequenceCoordinate" title="SequenceCoordinate"><span class="n"><span class="pre">SequenceCoordinate</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">coordinate</span></span></span><a class="headerlink" href="#_CPPv4N5Strip10coordinateE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Sequence Coordinate defining transfer placement or retained linkage. </p>
-<p><code class="docutils literal notranslate"><span class="pre">this_strip_start</span></code> always identifies this Frame Span. Before integration, <code class="docutils literal notranslate"><span class="pre">previous_strip_start</span></code> is a placement dependency; after integration, it is the immediate retained predecessor’s indexed start or the Root. </p>
+<dd><p>Immutable Sequence Coordinate defining logical placement. </p>
+<p><code class="docutils literal notranslate"><span class="pre">this_strip_start</span></code> identifies this Frame Span and <code class="docutils literal notranslate"><span class="pre">previous_strip_start</span></code> retains the original logical dependency. Materialization never rewrites either point. </p>
 </dd></dl>
 
 <dl class="cpp var">
@@ -636,7 +627,7 @@ The <a class="reference internal" href="#structProjector"><span class="std std-r
 <dt class="sig sig-object cpp" id="_CPPv4N5Strip9is_maskedE">
 <span id="_CPPv3N5Strip9is_maskedE"></span><span id="_CPPv2N5Strip9is_maskedE"></span><span id="Strip::is_masked__std::uint32_t"></span><span class="target" id="structStrip_1ad2cfe3a32364a709f01c604c22154040"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_masked</span></span></span><a class="headerlink" href="#_CPPv4N5Strip9is_maskedE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Visibility state encoded as an unsigned WebAssembly word. </p>
-<p>Zero denotes a visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. Any nonzero value denotes a Mask, although transferable values are conventionally normalized to one. </p>
+<p>Zero denotes a visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. Bit zero denotes a Mask. The remaining Mask bits retain source-fragment boundaries without adding storage to the fixed-size <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
 </dd></dl>
 
 <dl class="cpp var">
@@ -644,6 +635,13 @@ The <a class="reference internal" href="#structProjector"><span class="std std-r
 <span id="_CPPv3N5Strip16next_strip_startE"></span><span id="_CPPv2N5Strip16next_strip_startE"></span><span id="Strip::next_strip_start__SequencePoint"></span><span class="target" id="structStrip_1a3f21bff37a5703eb457c165ae90b4fbb"></span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">next_strip_start</span></span></span><a class="headerlink" href="#_CPPv4N5Strip16next_strip_startE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Start point of the next materialized <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
 <p>The last retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> stores <code class="docutils literal notranslate"><a class="reference internal" href="#declarations_2sequence__point_2index_8hpp_1a9e716f5b43419e6224231e28028de70c"><span class="std std-ref"><span class="pre">unlinked_strip_start</span></span></a></code>. This runtime link is derived by the <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>, is not trusted from transferred data, and is deliberately absent from serialized Reels. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N5Strip31previous_structural_strip_startE">
+<span id="_CPPv3N5Strip31previous_structural_strip_startE"></span><span id="_CPPv2N5Strip31previous_structural_strip_startE"></span><span id="Strip::previous_structural_strip_start__SequencePoint"></span><span class="target" id="structStrip_1adae4d72802929afbfb9e18dd045debbf"></span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">previous_structural_strip_start</span></span></span><a class="headerlink" href="#_CPPv4N5Strip31previous_structural_strip_startE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Start point of the previous materialized <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+<p>The first retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> stores the Root. This runtime link is derived by the <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> and is deliberately absent from serialized Reels. </p>
 </dd></dl>
 
 </div>
@@ -698,7 +696,7 @@ The <a class="reference internal" href="#structProjector"><span class="std std-r
 </p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> containing the transferred fields and <code class="docutils literal notranslate"><a class="reference internal" href="#declarations_2sequence__point_2index_8hpp_1a9e716f5b43419e6224231e28028de70c"><span class="std std-ref"><span class="pre">unlinked_strip_start</span></span></a></code> as its runtime successor. </p>
+<dd class="field-odd"><p><a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> containing the transferred fields and the Root and <code class="docutils literal notranslate"><a class="reference internal" href="#declarations_2sequence__point_2index_8hpp_1a9e716f5b43419e6224231e28028de70c"><span class="std std-ref"><span class="pre">unlinked_strip_start</span></span></a></code> as its initial runtime links. </p>
 </dd>
 <dt class="field-even">Pre<span class="colon">:</span></dt>
 <dd class="field-even"><p>The nine words contain a valid transferable <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> representation. </p>
@@ -755,7 +753,7 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 <p><dl class="simple">
 <dt><strong>Invariant</strong></dt><dd><p>Every occupied table slot represents exactly one <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a>, identified by the pair <code class="docutils literal notranslate"><span class="pre">(unix_lower_bits,</span> <span class="pre">random_bits)</span></code>. </p>
 </dd>
-<dt><strong>Invariant</strong></dt><dd><p>Each occupied <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> vector is non-empty, strictly ordered by the selected point’s <code class="docutils literal notranslate"><span class="pre">counter_bits</span></code>, and contains at most one <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> per counter. </p>
+<dt><strong>Invariant</strong></dt><dd><p>Each occupied <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> vector is non-empty and ordered by the selected point’s <code class="docutils literal notranslate"><span class="pre">counter_bits</span></code>. Pending Strips sharing a dependency are ordered by <code class="docutils literal notranslate"><span class="pre">this_strip_start</span></code>. </p>
 </dd>
 <dt><strong>Invariant</strong></dt><dd><p>Empty vectors denote unused hash-table slots and are never retained as occupied Realms. </p>
 </dd>
@@ -767,7 +765,7 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> stores coordinates exactly as supplied. <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> algorithms are responsible for normalizing materialized predecessor and successor links before calling <code class="docutils literal notranslate"><a class="reference internal" href="#classStripIndex_1acfd4ccae733acfd6a7361c187925042d"><span class="std std-ref"><span class="pre">set</span></span></a></code>. </p>
+<p><a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> stores coordinates exactly as supplied. <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> algorithms derive runtime structural links without modifying them. </p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -781,33 +779,48 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex15garbage_collectERK14FrontierBufferR17FootageSpanBufferR13SequencePointR13SequencePointR13SequencePointRNSt8uint32_tE">
-<span id="_CPPv3N10StripIndex15garbage_collectERK14FrontierBufferR17FootageSpanBufferR13SequencePointR13SequencePointR13SequencePointRNSt8uint32_tE"></span><span id="_CPPv2N10StripIndex15garbage_collectERK14FrontierBufferR17FootageSpanBufferR13SequencePointR13SequencePointR13SequencePointRNSt8uint32_tE"></span><span id="StripIndex::garbage_collect__FrontierBufferCR.FootageSpanBufferR.SequencePointR.SequencePointR.SequencePointR.std::uint32_tR"></span><span class="target" id="classStripIndex_1a56167e415faabe7ff14cb8b326da605d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">garbage_collect</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv414FrontierBuffer" title="FrontierBuffer"><span class="n"><span class="pre">FrontierBuffer</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">frontier_buffer</span></span>, <a class="reference internal" href="#_CPPv417FootageSpanBuffer" title="FootageSpanBuffer"><span class="n"><span class="pre">FootageSpanBuffer</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">footage_span_buffer</span></span>, <a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">first_strip_start</span></span>, <a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">gate_strip_start</span></span>, <a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">last_strip_start</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">gate_projection_frame_index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4N10StripIndex15garbage_collectERK14FrontierBufferR17FootageSpanBufferR13SequencePointR13SequencePointR13SequencePointRNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Permanently collect acknowledged Masks from their indexed Realms. </p>
-<p>Each Frontier entry resolves its <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> directly. A Mask is eligible when its own start counter is no greater than that <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a>’s selected boundary. Eligible Masks are unlinked in place and removed by one contiguous compaction of the <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> vector. Visible Strips are retained regardless of their counters.</p>
+<dt class="sig sig-object cpp" id="_CPPv4NK10StripIndex5firstER6Cursor">
+<span id="_CPPv3NK10StripIndex5firstER6Cursor"></span><span id="_CPPv2NK10StripIndex5firstER6Cursor"></span><span id="StripIndex::first__CursorRC"></span><span class="target" id="classStripIndex_1a257b111279832dccc541a289404e7051"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">first</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Cursor</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">cursor</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK10StripIndex5firstER6Cursor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Begin a read-only traversal over every stored <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+<p><dl class="simple">
+<dt><strong>Complexity:</strong></dt><dd><p>O(c) worst-case time across leading empty <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> slots. </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cursor</strong> – Traversal state initialized to the returned <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>First stored <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>, or <code class="docutils literal notranslate"><span class="pre">nullptr</span></code> when the index is empty. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10StripIndex15garbage_collectERK14FrontierBufferR17FootageSpanBuffer">
+<span id="_CPPv3NK10StripIndex15garbage_collectERK14FrontierBufferR17FootageSpanBuffer"></span><span id="_CPPv2NK10StripIndex15garbage_collectERK14FrontierBufferR17FootageSpanBuffer"></span><span id="StripIndex::garbage_collect__FrontierBufferCR.FootageSpanBufferRC"></span><span class="target" id="classStripIndex_1ae5c1cb8dff307540fa6c02ff0f5437d7"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">garbage_collect</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv414FrontierBuffer" title="FrontierBuffer"><span class="n"><span class="pre">FrontierBuffer</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">frontier_buffer</span></span>, <a class="reference internal" href="#_CPPv417FootageSpanBuffer" title="FootageSpanBuffer"><span class="n"><span class="pre">FootageSpanBuffer</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">footage_span_buffer</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK10StripIndex15garbage_collectERK14FrontierBufferR17FootageSpanBuffer" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Report Footage retained by acknowledged Masks. </p>
+<p>Each Frontier entry resolves its <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> directly. A Mask’s Footage is eligible when its own start counter is no greater than that <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a>’s selected boundary. Every <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>, coordinate, and structural link remains materialized as permanent dependency data.</p>
 <p>The selected boundary is expected to be the least corresponding Frontier point acknowledged across the participating Replicas. Frontier selection remains outside <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a>; this operation applies the supplied result.</p>
 <p><dl class="simple">
-<dt><strong>Complexity:</strong></dt><dd><p>Expected O(f + sum(n_r) + k log n_max) for f Frontier entries, n_r Strips scanned in each matching <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a>, k collected Masks, and the largest indexed <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> size n_max, plus O(c) when removing a <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> triggers table maintenance. </p>
+<dt><strong>Complexity:</strong></dt><dd><p>Expected O(f + sum(n_r)) time for f Frontier entries and the Strips scanned in each matching <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a>, with O(k) output for k Masks. </p>
 </dd>
 </dl>
 </p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Pending indexes are unaffected. Every pointer previously returned by this index must be treated as invalid after collection. </p>
+<p>Pending Masks are unaffected because they have no resolved Footage span. </p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Allocation failure while writing output or shrinking this <code class="docutils literal notranslate"><span class="pre">noexcept</span></code> index terminates the program. </p>
+<p>Allocation failure while writing output to this <code class="docutils literal notranslate"><span class="pre">noexcept</span></code> operation terminates the program. </p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>frontier_buffer</strong> – Selected <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> boundaries acknowledged by all participating Replicas. </p></li>
-<li><p><strong>footage_span_buffer</strong> – Output replaced with one released Footage range for each collected Mask. </p></li>
-<li><p><strong>first_strip_start</strong> – First structural <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> start, updated when removed. </p></li>
-<li><p><strong>gate_strip_start</strong> – Current Gate <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> start, updated when removed. </p></li>
-<li><p><strong>last_strip_start</strong> – Last structural <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> start, updated when removed. </p></li>
-<li><p><strong>gate_projection_frame_index</strong> – Projection position of the Gate <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>, updated when the Gate moves backward or the Sequence becomes empty. </p></li>
+<li><p><strong>footage_span_buffer</strong> – Output replaced with one releasable Footage range for each eligible Mask. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Pre<span class="colon">:</span></dt>
@@ -816,20 +829,37 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 <dt class="field-odd">Pre<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The Frontier contains at most one selected point per <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a>. </p>
 </dd>
-<dt class="field-even">Pre<span class="colon">:</span></dt>
-<dd class="field-even"><p>Structural links and the first, Gate, and last starts are consistent with this index. </p>
+<dt class="field-even">Post<span class="colon">:</span></dt>
+<dd class="field-even"><p>The output buffer contains exactly the Footage ranges belonging to eligible Masks; its previous contents are discarded. </p>
 </dd>
 <dt class="field-odd">Post<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Retained neighboring Strips have mutually consistent links: each forward link names the next <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s primary key, and each backward link names the previous <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s primary key. </p>
+<dd class="field-odd"><p>This <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> and all structural <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> state remain unchanged. </p>
 </dd>
-<dt class="field-even">Post<span class="colon">:</span></dt>
-<dd class="field-even"><p>The first retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> keeps the Root as its previous point and the last retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> keeps <code class="docutils literal notranslate"><a class="reference internal" href="#declarations_2sequence__point_2index_8hpp_1a9e716f5b43419e6224231e28028de70c"><span class="std std-ref"><span class="pre">unlinked_strip_start</span></span></a></code> as its successor. </p>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex3getERK13SequencePointKNSt8uint32_tE">
+<span id="_CPPv3N10StripIndex3getERK13SequencePointKNSt8uint32_tE"></span><span id="_CPPv2N10StripIndex3getERK13SequencePointKNSt8uint32_tE"></span><span id="StripIndex::get__SequencePointCR.std::uint32_tC"></span><span class="target" id="classStripIndex_1aaf5152b0e1fec9353f9f660d8165c188"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">get</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">frame_span_start</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">frame_count</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4N10StripIndex3getERK13SequencePointKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the first <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> keyed within one Frame Span. </p>
+<p>Pending indexes use this overload to resolve every dependency point made available by one newly materialized visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>.</p>
+<p><dl class="simple">
+<dt><strong>Complexity:</strong></dt><dd><p>Expected O(1) <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> lookup plus O(log n) <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> search. </p>
 </dd>
-<dt class="field-odd">Post<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The output buffer contains exactly the Footage ranges belonging to Masks removed by this pass; its previous contents are discarded. </p>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame_span_start</strong> – First point of the materialized Frame Span. </p></li>
+<li><p><strong>frame_count</strong> – Positive number of consecutive points in the span. </p></li>
+</ul>
 </dd>
-<dt class="field-even">Post<span class="colon">:</span></dt>
-<dd class="field-even"><p>Projection frame count is unchanged because Masks contribute no frames to the Projection. </p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mutable borrowed pointer to the first matching <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>, or <code class="docutils literal notranslate"><span class="pre">nullptr</span></code>. </p>
+</dd>
+<dt class="field-odd">Pre<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">frame_count</span> <span class="pre">&gt;</span> <span class="pre">0</span></code> and the span remains within one <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a>. </p>
 </dd>
 </dl>
 </dd></dl>
@@ -882,9 +912,31 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 </dd></dl>
 
 <dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10StripIndex4nextER6Cursor">
+<span id="_CPPv3NK10StripIndex4nextER6Cursor"></span><span id="_CPPv2NK10StripIndex4nextER6Cursor"></span><span id="StripIndex::next__CursorRC"></span><span class="target" id="classStripIndex_1a8a927d3c9aa160b024ebeac39afbeac1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">next</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">Cursor</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">cursor</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK10StripIndex4nextER6Cursor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Advance a read-only traversal over every stored <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+<p><dl class="simple">
+<dt><strong>Complexity:</strong></dt><dd><p>O(c + n) across a complete traversal of n Strips. </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cursor</strong> – Traversal state produced by <code class="docutils literal notranslate"><a class="reference internal" href="#classStripIndex_1a257b111279832dccc541a289404e7051"><span class="std std-ref"><span class="pre">first</span></span></a></code> or this method. </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Next stored <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>, or <code class="docutils literal notranslate"><span class="pre">nullptr</span></code> after the final <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+</dd>
+<dt class="field-odd">Pre<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The index has not been mutated since traversal began. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N10StripIndex6removeERK13SequencePoint">
 <span id="_CPPv3N10StripIndex6removeERK13SequencePoint"></span><span id="_CPPv2N10StripIndex6removeERK13SequencePoint"></span><span id="StripIndex::remove__SequencePointCR"></span><span class="target" id="classStripIndex_1a33bd1d8a921ed70263670ff615922a3d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">remove</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">point</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10StripIndex6removeERK13SequencePoint" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Remove the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> stored under one exact Sequence Point. </p>
+<dd><p>Remove the first <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> stored under one exact Sequence Point. </p>
 <p>Missing points are ignored. Removing a <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a>’s final <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> closes its linear-probing hole so later <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> lookups remain reachable, and may halve a sparsely populated <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> table.</p>
 <p><dl class="simple">
 <dt><strong>Complexity:</strong></dt><dd><p>Expected O(1) <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> lookup, O(log n) search, and O(n) vector erasure within one <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a>. Removing an empty <a class="reference internal" href="#structStripIndex_1_1Realm"><span class="std std-ref">Realm</span></a> additionally scans its probe run and a table shrink costs O(c). </p>
@@ -903,7 +955,7 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 <dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv4St" title="std"><span class="n">std</span></a><span class="p">::</span><span class="n">bad_alloc</span></span></span> – when removal triggers a table shrink whose allocation fails outside a <code class="docutils literal notranslate"><span class="pre">noexcept</span></code> caller. </p>
 </dd>
 <dt class="field-odd">Post<span class="colon">:</span></dt>
-<dd class="field-odd"><p>No <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is stored under <code class="docutils literal notranslate"><span class="pre">point</span></code>; an absent point leaves the index unchanged. </p>
+<dd class="field-odd"><p>The first exact-key <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is removed; pending siblings remain. An absent point leaves the index unchanged. </p>
 </dd>
 </dl>
 </dd></dl>
@@ -937,7 +989,7 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">point</span> <span class="pre">==</span> <span class="pre">strip.coordinate.*indexed_sequence_point</span></code>. </p>
 </dd>
 <dt class="field-odd">Post<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Exactly one <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is stored under <code class="docutils literal notranslate"><span class="pre">point</span></code>; an existing value at that point is replaced. </p>
+<dd class="field-odd"><p>The primary index stores one <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> under <code class="docutils literal notranslate"><span class="pre">point</span></code>. A pending index stores every distinct <code class="docutils literal notranslate"><span class="pre">this_strip_start</span></code> sharing <code class="docutils literal notranslate"><span class="pre">point</span></code> and replaces only an exact repeated <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
 </dd>
 </dl>
 </dd></dl>
@@ -1068,6 +1120,27 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 </dd></dl>
 
 <dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex6CursorE">
+<span id="_CPPv3N10StripIndex6CursorE"></span><span id="_CPPv2N10StripIndex6CursorE"></span><span id="StripIndex::Cursor"></span><span class="target" id="structStripIndex_1_1Cursor"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Cursor</span></span></span><a class="headerlink" href="#_CPPv4N10StripIndex6CursorE" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;index.hpp&gt;</em></div>
+<p>Stateless traversal position for one complete index scan. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex6Cursor11realm_indexE">
+<span id="_CPPv3N10StripIndex6Cursor11realm_indexE"></span><span id="_CPPv2N10StripIndex6Cursor11realm_indexE"></span><span id="StripIndex::Cursor::realm_index__std::uint32_t"></span><span class="target" id="structStripIndex_1_1Cursor_1a21a21f603eabfe19a6d66a53f2712234"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">realm_index</span></span></span><a class="headerlink" href="#_CPPv4N10StripIndex6Cursor11realm_indexE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N10StripIndex6Cursor11strip_indexE">
+<span id="_CPPv3N10StripIndex6Cursor11strip_indexE"></span><span id="_CPPv2N10StripIndex6Cursor11strip_indexE"></span><span id="StripIndex::Cursor::strip_index__std::uint32_t"></span><span class="target" id="structStripIndex_1_1Cursor_1aa2154ce6c9c308261b3e998274d05cf9"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">strip_index</span></span></span><a class="headerlink" href="#_CPPv4N10StripIndex6Cursor11strip_indexE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
 <dt class="sig sig-object cpp" id="_CPPv4N10StripIndex5RealmE">
 <span id="_CPPv3N10StripIndex5RealmE"></span><span id="_CPPv2N10StripIndex5RealmE"></span><span id="StripIndex::Realm"></span><span class="target" id="structStripIndex_1_1Realm"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Realm</span></span></span><a class="headerlink" href="#_CPPv4N10StripIndex5RealmE" title="Link to this definition">¶</a><br /></dt>
 <dd><div class="docutils container">
@@ -1109,6 +1182,8 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 <dd><div class="docutils container">
 <em>#include “<a class="reference internal" href="#auxiliary_2compare__sequence__points_2index_8hpp"><span class="std std-ref">../../auxiliary/compare_sequence_points/index.hpp</span></a>”</em></div>
 <div class="docutils container">
+<em>#include “<a class="reference internal" href="#auxiliary_2run__projector__to__sequence__point_2index_8hpp"><span class="std std-ref">../../auxiliary/run_projector_to_sequence_point/index.hpp</span></a>”</em></div>
+<div class="docutils container">
 <em>#include “<a class="reference internal" href="#auxiliary_2strip__contains__sequence__point_2index_8hpp"><span class="std std-ref">../../auxiliary/strip_contains_sequence_point/index.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">../../declarations/projector/index.hpp</span></a>”</em></div>
@@ -1116,90 +1191,40 @@ The index owns every stored <a class="reference internal" href="#structStrip"><s
 <em>#include “<a class="reference internal" href="#algorithms_2mask__strip_2index_8hpp"><span class="std std-ref">../mask_strip/index.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include &lt;cstdint&gt;</em></div>
-<p>Integrates a visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> and resolves dependent pending Strips. </p>
-<p>Insertion preserves the source <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s indexed start. Appending adds one <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>; insertion between Frames also materializes the source suffix. Pending Masks and inserts keyed by the inserted <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> start are consumed without recursion or traversal storage. The visible update supplies its newly issued Frame Span; this algorithm issues no Sequence Points and retains no ordering metadata. </p>
+<div class="docutils container">
+<em>#include &lt;utility&gt;</em></div>
+<div class="docutils container">
+<em>#include &lt;variant&gt;</em></div>
+<p>Integrates one visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> into deterministic retained order. </p>
+<p>The immutable Sequence Coordinate supplies logical parentage and sibling order. Separate runtime links materialize the resulting depth-first order. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv412insert_stripP9ProjectorPK5StripNSt8uint32_tE5Strip">
 <span id="_CPPv312insert_stripP9ProjectorPK5StripNSt8uint32_tE5Strip"></span><span id="_CPPv212insert_stripP9ProjectorPK5StripNSt8uint32_tE5Strip"></span><span id="insert_strip__ProjectorP.StripCP.std::uint32_t.Strip"></span><span class="target" id="algorithms_2insert__strip_2index_8hpp_1a96b04a33104dfcd16702d7a7574abfa3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">insert_strip</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">previous_strip</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">previous_strip_frame_offset</span></span>, <a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">inserted_strip</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv412insert_stripP9ProjectorPK5StripNSt8uint32_tE5Strip" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Insert a visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> after the Root or one materialized Frame. </p>
-<p><table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Insertion boundary  </p></th>
-<th class="head"><p>Retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> order  </p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>Empty Sequence Root  </p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">[</span> <span class="pre">insert</span> <span class="pre">]</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>Occupied Sequence Root  </p></td>
-<td><p>Root successors in descending Strip-start order  </p></td>
-</tr>
-<tr class="row-even"><td><p>End of source  </p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">[</span> <span class="pre">source</span> <span class="pre">][</span> <span class="pre">insert</span> <span class="pre">]</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>Inside source  </p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">[</span> <span class="pre">prefix</span> <span class="pre">][</span> <span class="pre">insert</span> <span class="pre">][</span> <span class="pre">suffix</span> <span class="pre">]</span></code></p></td>
-</tr>
-</tbody>
-</table>
-<dl class="simple">
-<dt><strong>Result shapes</strong></dt><dd><p></p>
-</dd>
-</dl>
-</p>
-<p>
-For a non-Root insertion, the source start remains indexed in every shape. An end insertion retains the complete source <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>; otherwise that entry becomes the prefix. The suffix begins at the existing source Sequence Point at the insertion boundary and at the correspondingly advanced Footage frame index. Runtime links supplied by <code class="docutils literal notranslate"><span class="pre">inserted_strip</span></code> are replaced by links derived from the materialized Sequence. The suffix start is an existing Frame point from the split source span, not a newly issued point.<dl class="simple">
-<dt><strong>Invariants</strong></dt><dd><p></p>
-</dd>
-</dl>
-</p>
-<p>
-A Root insertion establishes or reorders the beginning of the retained Sequence. A non-Root source is preserved, the selected split shape is materialized, and its tail is reconnected to the original successor. A pending Mask whose <code class="docutils literal notranslate"><span class="pre">previous_strip_start</span></code> equals the inserted indexed start is then located by its <code class="docutils literal notranslate"><span class="pre">this_strip_start</span></code>, the existing first masked Frame point. It is applied before a pending visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> with the same dependency. Further dependencies repeat the same process iteratively.<dl class="simple">
-<dt><strong>Processing</strong></dt><dd><p></p>
-</dd>
-</dl>
-</p>
-<p><a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> writes may invalidate stored pointers, so the replacement is derived from a preserved source value and every pending <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is copied before removal from its pending index.</p>
-<p>
-When multiple visible Strips follow the same point, their unique <code class="docutils literal notranslate"><span class="pre">this_strip_start</span></code> values break the tie. Successors of a non-Root point are ordered in ascending Sequence Point order. Successors of the Root are ordered in descending Sequence Point order. The decision rewrites only structural <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> links; no direction flag, auxiliary index, or other ordering metadata is retained.<dl class="simple">
-<dt><strong>Concurrent placement</strong></dt><dd><p></p>
-</dd>
-</dl>
-</p>
+<dd><p>Insert a visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> after its logical parent Frame. </p>
+<p>Root siblings are ordered by descending start point; non-Root siblings by ascending start point. An existing sibling’s complete descendant subtree is crossed as one unit.</p>
+<p>Interior insertion retains the source prefix and materializes its suffix. Every material fragment keeps a logical coordinate; mutable retained order is represented only by <code class="docutils literal notranslate"><span class="pre">previous_structural_strip_start</span></code> and <code class="docutils literal notranslate"><span class="pre">next_strip_start</span></code>.</p>
+<p>Once the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is materialized, pending inserts depending on any point in its Frame Span are integrated recursively. Pending Masks over those points are applied only after the inserts, so masking follows the logical Frame axis across any newly created structural splits.</p>
 <p><dl class="simple">
-<dt><strong>Complexity:</strong></dt><dd><p>A constant number of <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> operations per resolved pending <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> and O(1) auxiliary space. </p>
+<dt><strong>Complexity:</strong></dt><dd><p>O(s^2 + f log p) worst-case time and O(1) auxiliary space, where s is retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> count, f is the inserted Frame count, and p is pending Realm size. Typical append placement is O(1). </p>
 </dd>
 </dl>
 </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>projector</strong> – <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> receiving the strip. </p></li>
-<li><p><strong>previous_strip</strong> – <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> containing the Frame after which insertion occurs, or <code class="docutils literal notranslate"><span class="pre">nullptr</span></code> when <code class="docutils literal notranslate"><span class="pre">inserted_strip</span></code> follows the Root. </p></li>
-<li><p><strong>previous_strip_frame_offset</strong> – Zero-based offset of that Frame within <code class="docutils literal notranslate"><span class="pre">previous_strip</span></code>; ignored for a Root insertion. </p></li>
-<li><p><strong>inserted_strip</strong> – Visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> whose <code class="docutils literal notranslate"><span class="pre">this_strip_start</span></code> is the newly issued first point of its Frame Span. </p></li>
+<li><p><strong>projector</strong> – <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> receiving the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p></li>
+<li><p><strong>previous_strip</strong> – <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> containing the non-Root logical parent, or null for Root. </p></li>
+<li><p><strong>previous_strip_frame_offset</strong> – Parent Frame offset; ignored for Root. </p></li>
+<li><p><strong>inserted_strip</strong> – Visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> with an immutable logical coordinate. </p></li>
 </ul>
 </dd>
-<dt class="field-even">Pre<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">projector</span></code> is non-null. </p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Visible Frames crossed before the incoming <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s placement. </p>
 </dd>
 <dt class="field-odd">Pre<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">previous_strip</span></code> is non-null and <code class="docutils literal notranslate"><span class="pre">previous_strip_frame_offset</span> <span class="pre">&lt;</span> <span class="pre">previous_strip-&gt;frame_count</span></code>, unless the inserted coordinate follows the Root, in which case <code class="docutils literal notranslate"><span class="pre">previous_strip</span></code> may be null. </p>
-</dd>
-<dt class="field-even">Pre<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">inserted_strip.is_masked</span></code> is zero. </p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Number of already projected Frames crossed when the incoming <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is placed to the right of an existing successor. </p>
-</dd>
-<dt class="field-even">Post<span class="colon">:</span></dt>
-<dd class="field-even"><p>Every inserted visible Frame is included in <code class="docutils literal notranslate"><span class="pre">projector-&gt;projection_frame_count</span></code>. </p>
-</dd>
-<dt class="field-odd">Post<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The original successor follows the complete inserted <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> chain, or <code class="docutils literal notranslate"><span class="pre">projector-&gt;last_strip_start</span></code> identifies its final <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">projector</span></code> is non-null and <code class="docutils literal notranslate"><span class="pre">inserted_strip.is_masked</span> <span class="pre">==</span> <span class="pre">0</span></code>. </p>
 </dd>
 </dl>
 </dd></dl>
@@ -1213,87 +1238,49 @@ When multiple visible Strips follow the same point, their unique <code class="do
 <dd><div class="docutils container">
 <em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">../../declarations/projector/index.hpp</span></a>”</em></div>
 <div class="docutils container">
+<em>#include &lt;algorithm&gt;</em></div>
+<div class="docutils container">
 <em>#include &lt;cstdint&gt;</em></div>
-<p>Applies a Mask contained within one materialized <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
-<p>A Mask excludes a Frame Span from the Projection while retaining it in Sequence order until garbage collection. Depending on its offset and Frame count, one source <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> becomes one, two, or three linked Strips while its indexed start is always retained. A transferable Mask reuses existing Sequence Points: its previous point is the containing indexed <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> start and its own start is the first masked Frame point. </p>
+<p>Excludes one logical Frame Span from the Projection. </p>
+<p>A Mask names its first existing Sequence Point and spans consecutive points in that Realm. Material splitting and concurrent insertions do not change that axis: the algorithm advances by counters and resolves each continuation directly through <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a>, thereby skipping structurally inserted Strips. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv410mask_stripP9ProjectorPK5StripKNSt8uint32_tE5Strip">
-<span id="_CPPv310mask_stripP9ProjectorPK5StripKNSt8uint32_tE5Strip"></span><span id="_CPPv210mask_stripP9ProjectorPK5StripKNSt8uint32_tE5Strip"></span><span id="mask_strip__ProjectorP.StripCP.std::uint32_tC.Strip"></span><span class="target" id="algorithms_2mask__strip_2index_8hpp_1adbbeb202b1d79a7b70566b67a5ec3164"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mask_strip</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">containing_strip</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mask_frame_offset</span></span>, <a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">mask</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv410mask_stripP9ProjectorPK5StripKNSt8uint32_tE5Strip" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Mask a Frame Span contained entirely within one visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
-<p><table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Mask extent  </p></th>
-<th class="head"><p>Retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> order  </p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>Entire source  </p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">[</span> <span class="pre">mask</span> <span class="pre">]</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>Source start  </p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">[</span> <span class="pre">mask</span> <span class="pre">][</span> <span class="pre">suffix</span> <span class="pre">]</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p>Source end  </p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">[</span> <span class="pre">prefix</span> <span class="pre">][</span> <span class="pre">mask</span> <span class="pre">]</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>Source interior  </p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">[</span> <span class="pre">prefix</span> <span class="pre">][</span> <span class="pre">mask</span> <span class="pre">][</span> <span class="pre">suffix</span> <span class="pre">]</span></code></p></td>
-</tr>
-</tbody>
-</table>
-<dl class="simple">
-<dt><strong>Result shapes</strong></dt><dd><p></p>
-</dd>
-</dl>
-</p>
-<p>
-The source start remains indexed in every shape. A start-aligned Mask reuses that entry; otherwise it becomes the visible prefix. A suffix begins at the source Sequence Point advanced by the Mask’s ending offset and at the correspondingly advanced Footage frame index. Every resulting <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> retains the source’s original Footage mapping. The incoming Mask coordinate names only existing points: <code class="docutils literal notranslate"><span class="pre">previous_strip_start</span></code> is exactly the indexed start of <code class="docutils literal notranslate"><span class="pre">containing_strip</span></code>, and <code class="docutils literal notranslate"><span class="pre">this_strip_start</span></code> is exactly the first masked Frame point within that <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. Only visible updates issue Sequence Points; masking never does.<dl class="simple">
-<dt><strong>Invariants</strong></dt><dd><p></p>
-</dd>
-</dl>
-</p>
-<p>
-The source is preserved, the selected shape is materialized, and its tail is reconnected to the original successor. <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> writes may invalidate stored pointers, so every replacement is derived from the preserved value rather than from <code class="docutils literal notranslate"><span class="pre">containing_strip</span></code> after the first write. Once materialized, <code class="docutils literal notranslate"><span class="pre">previous_strip_start</span></code> also serves as the mutable backward structural link; this runtime role does not alter the stable first masked Frame identified by <code class="docutils literal notranslate"><span class="pre">this_strip_start</span></code>.<dl class="simple">
-<dt><strong>Processing</strong></dt><dd><p></p>
-</dd>
-</dl>
-</p>
+<dt class="sig sig-object cpp" id="_CPPv410mask_stripP9ProjectorPK5StripKNSt8uint32_tERK5Strip">
+<span id="_CPPv310mask_stripP9ProjectorPK5StripKNSt8uint32_tERK5Strip"></span><span id="_CPPv210mask_stripP9ProjectorPK5StripKNSt8uint32_tERK5Strip"></span><span id="mask_strip__ProjectorP.StripCP.std::uint32_tC.StripCR"></span><span class="target" id="algorithms_2mask__strip_2index_8hpp_1adfbb65a058312a8785c1c30c3aba93d8"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mask_strip</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">containing_strip</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mask_frame_offset</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">mask</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv410mask_stripP9ProjectorPK5StripKNSt8uint32_tERK5Strip" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Materialize a Mask across its logical Frame Span. </p>
+<p>Visible fragments are split only at the Mask boundaries. Existing masked fragments are retained and counted toward the requested logical span without reducing the Projection again. Every new material fragment uses an existing Sequence Point and records its logical preceding Frame in its immutable coordinate; mutable retained order is maintained exclusively through <code class="docutils literal notranslate"><span class="pre">previous_structural_strip_start</span></code> and <code class="docutils literal notranslate"><span class="pre">next_strip_start</span></code>.</p>
 <p><dl class="simple">
-<dt><strong>Complexity:</strong></dt><dd><p>A constant number of <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> operations and O(1) local space. </p>
+<dt><strong>Complexity:</strong></dt><dd><p>O(f log n) time and O(1) space for f intersected fragments and n Strips in their Realm. </p>
 </dd>
 </dl>
 </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>projector</strong> – <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> containing the materialized source <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p></li>
-<li><p><strong>containing_strip</strong> – Visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> containing the complete Mask span. </p></li>
-<li><p><strong>mask_frame_offset</strong> – Zero-based Frame offset of the Mask within the containing <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p></li>
-<li><p><strong>mask</strong> – Incoming Mask <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> whose previous point identifies <code class="docutils literal notranslate"><span class="pre">containing_strip</span></code> and whose own start identifies the first masked Frame. Its runtime links and Footage frame index are normalized during materialization. </p></li>
+<li><p><strong>projector</strong> – <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> containing the first masked Frame. </p></li>
+<li><p><strong>containing_strip</strong> – Material fragment containing <code class="docutils literal notranslate"><span class="pre">mask.coordinate.this_strip_start</span></code>. </p></li>
+<li><p><strong>mask_frame_offset</strong> – Zero-based offset of the first masked Frame in <code class="docutils literal notranslate"><span class="pre">containing_strip</span></code>. </p></li>
+<li><p><strong>mask</strong> – Mask whose start is the first logical Frame to exclude and whose Frame count is the complete logical span length. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Pre<span class="colon">:</span></dt>
-<dd class="field-even"><p>Both pointers are non-null. </p>
+<dd class="field-even"><p>All pointers are non-null. </p>
 </dd>
 <dt class="field-odd">Pre<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">mask_frame_offset</span> <span class="pre">+</span> <span class="pre">mask.frame_count</span></code> does not exceed <code class="docutils literal notranslate"><span class="pre">containing_strip-&gt;frame_count</span></code>. </p>
+<dd class="field-odd"><p>The complete Mask span is materialized as consecutive points in the Mask start Realm, possibly across split or already masked fragments. </p>
 </dd>
 <dt class="field-even">Pre<span class="colon">:</span></dt>
-<dd class="field-even"><p>The containing strip is visible and <code class="docutils literal notranslate"><span class="pre">mask.is_masked</span></code> is nonzero. </p>
-</dd>
-<dt class="field-odd">Pre<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">mask.coordinate.previous_strip_start</span></code> equals <code class="docutils literal notranslate"><span class="pre">containing_strip-&gt;coordinate.this_strip_start</span></code> and <code class="docutils literal notranslate"><span class="pre">mask.coordinate.this_strip_start</span></code> equals that point advanced by <code class="docutils literal notranslate"><span class="pre">mask_frame_offset</span></code> Frames. </p>
-</dd>
-<dt class="field-even">Pre<span class="colon">:</span></dt>
-<dd class="field-even"><p>Advancing the containing start counter by the mask end does not overflow. </p>
+<dd class="field-even"><p>Counter advancement across the Mask span does not overflow. </p>
 </dd>
 <dt class="field-odd">Post<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Projection frame count is reduced by exactly <code class="docutils literal notranslate"><span class="pre">mask.frame_count</span></code> Frames. </p>
+<dd class="field-odd"><p>Exactly the previously visible Frames in the Mask span are removed from the Projection. </p>
 </dd>
 <dt class="field-even">Post<span class="colon">:</span></dt>
-<dd class="field-even"><p>The projector gate key remains valid and the replacement tail is linked to the original successor or published as the last retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+<dd class="field-even"><p>Coordinates of existing material fragments remain unchanged. </p>
+</dd>
+<dt class="field-odd">Post<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Structural predecessor and successor links remain bidirectional. </p>
 </dd>
 </dl>
 </dd></dl>
@@ -1727,13 +1714,15 @@ The source is preserved, the selected shape is materialized, and its tail is rec
 <span class="mi">8</span><span class="w">  </span><span class="n">previous_strip_start</span><span class="p">.</span><span class="n">counter_bits</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">next_strip_start</span></code> is Projector-owned runtime linkage and is intentionally absent from the transfer representation. A decoded <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> therefore starts with no structural successor. </p>
+<p>Both structural links are Projector-owned runtime state and intentionally absent from the transfer representation. </p>
 </dd></dl>
 
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="classes_2strip__index_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
 <dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#auxiliary_2compare__sequence__points_2index_8hpp"><span class="std std-ref">../../auxiliary/compare_sequence_points/index.hpp</span></a>”</em></div>
+<div class="docutils container">
 <em>#include “<a class="reference internal" href="#declarations_2strip_2index_8hpp"><span class="std std-ref">../../declarations/strip/index.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include “<a class="reference internal" href="#classes_2footage__span__buffer_2index_8hpp"><span class="std std-ref">../footage_span_buffer/index.hpp</span></a>”</em></div>
@@ -1774,7 +1763,7 @@ The source is preserved, the selected shape is materialized, and its tail is rec
 <dd><div class="docutils container">
 <em>#include “<a class="reference internal" href="#declarations_2sequence__point_2index_8hpp"><span class="std std-ref">../sequence_point/index.hpp</span></a>”</em></div>
 <p>Defines the Sequence Coordinate carried by a <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
-<p>A Sequence Coordinate expresses <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> placement entirely with stable Sequence Points. On transfer it describes how to integrate a <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. After materialization the same fields identify the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s Frame Span and link it to its immediate structural predecessor. Neither meaning depends on a mutable Projection frame index. </p>
+<p>A Sequence Coordinate expresses <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> placement entirely with stable Sequence Points. It retains the same logical meaning before and after materialization and never depends on a mutable Projection frame index. </p>
 </dd></dl>
 
 <dl>
@@ -1817,6 +1806,24 @@ The source is preserved, the selected shape is materialized, and its tail is rec
 <p>A <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> joins a Sequence Coordinate, equally long contiguous Footage, one visibility state, and runtime structural linkage in a fixed-size value. Splitting a <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> changes its material boundaries while each resulting <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s coordinate identifies the start of its represented Frame Span. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv425mask_has_source_successor">
+<span id="_CPPv325mask_has_source_successor"></span><span id="_CPPv225mask_has_source_successor"></span><span id="mask_has_source_successor__std::uint32_t"></span><span class="target" id="declarations_2strip_2index_8hpp_1ab06b1db773a5b257905d3906d701dd73"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mask_has_source_successor</span></span></span><a class="headerlink" href="#_CPPv425mask_has_source_successor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mask-state bit identifying a following source-Strip fragment. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv427mask_is_source_continuation">
+<span id="_CPPv327mask_is_source_continuation"></span><span id="_CPPv227mask_is_source_continuation"></span><span id="mask_is_source_continuation__std::uint32_t"></span><span class="target" id="declarations_2strip_2index_8hpp_1a782529d37bd5448425348fa2feb7e696"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mask_is_source_continuation</span></span></span><a class="headerlink" href="#_CPPv427mask_is_source_continuation" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mask-state bit identifying continuation from a source prefix. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv418masked_strip_state">
+<span id="_CPPv318masked_strip_state"></span><span id="_CPPv218masked_strip_state"></span><span id="masked_strip_state__std::uint32_t"></span><span class="target" id="declarations_2strip_2index_8hpp_1acd2ce161d4a4987e372f905ae359e9e6"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">masked_strip_state</span></span></span><a class="headerlink" href="#_CPPv418masked_strip_state" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Visibility bit identifying a materialized Mask. </p>
+</dd></dl>
+
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv428sequence_point_outside_strip">
 <span id="_CPPv328sequence_point_outside_strip"></span><span id="_CPPv228sequence_point_outside_strip"></span><span id="sequence_point_outside_strip__std::uint32_t"></span><span class="target" id="declarations_2strip_2index_8hpp_1a04bbea591b11d617ca2bb1c1184bac8b"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">sequence_point_outside_strip</span></span></span><a class="headerlink" href="#_CPPv428sequence_point_outside_strip" title="Link to this definition">¶</a><br /></dt>
@@ -1872,38 +1879,6 @@ The source is preserved, the selected shape is materialized, and its tail is rec
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv435append_structural_strip_to_sequenceKNSt8uint32_tE">
-<span id="_CPPv335append_structural_strip_to_sequenceKNSt8uint32_tE"></span><span id="_CPPv235append_structural_strip_to_sequenceKNSt8uint32_tE"></span><span id="append_structural_strip_to_sequence__std::uint32_tC"></span><span class="target" id="main_8cpp_1a4a466230a4eae47f2164150188dc62ab"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">append_structural_strip_to_sequence</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv435append_structural_strip_to_sequenceKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Append one already-materialized structural <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> during hydration. </p>
-<p>Snapshot Strips already carry immediate predecessor links and structural order. When the buffered <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> follows the current retained tail exactly, this operation links it directly without reinterpreting a materialized Mask or split fragment as a new merge operation. Other Reels fall back to normal coordinate integration at the TypeScript boundary.</p>
-<p><dl class="simple">
-<dt><strong>Complexity:</strong></dt><dd><p>Expected O(1) index access and amortized O(1) insertion. </p>
-</dd>
-</dl>
-</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the sequence being hydrated. </p>
-</dd>
-<dt class="field-even">Return values<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>1</strong> – The <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> was appended. </p></li>
-<li><p><strong>0</strong> – Its predecessor was not the current tail, its start was already materialized, or its material shape was invalid. </p></li>
-</ul>
-</dd>
-<dt class="field-odd">Pre<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">sequence_id</span></code> identifies an active <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>. </p>
-</dd>
-<dt class="field-even">Pre<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a> contains one candidate retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
-</dd>
-<dt class="field-odd">Post<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A successful append preserves one linked structural chain and updates the Projection length only for a visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv414clear_sequenceKNSt8uint32_tE">
 <span id="_CPPv314clear_sequenceKNSt8uint32_tE"></span><span id="_CPPv214clear_sequenceKNSt8uint32_tE"></span><span id="clear_sequence__std::uint32_tC"></span><span class="target" id="main_8cpp_1aaebc9862d932d18ede76e9fef0c9c082"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">clear_sequence</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv414clear_sequenceKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Destroy one Replica’s <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> and release its identifier for reuse. </p>
@@ -1924,8 +1899,8 @@ The source is preserved, the selected shape is materialized, and its tail is rec
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv424garbage_collect_sequenceKNSt8uint32_tE">
 <span id="_CPPv324garbage_collect_sequenceKNSt8uint32_tE"></span><span id="_CPPv224garbage_collect_sequenceKNSt8uint32_tE"></span><span id="garbage_collect_sequence__std::uint32_tC"></span><span class="target" id="main_8cpp_1ad56c831cf1d3987bf7b077c63cc874ae"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">garbage_collect_sequence</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv424garbage_collect_sequenceKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Permanently collect Masks covered by the prepared Frontier. </p>
-<p>For every Frontier entry, Masks in the same Realm at or below its counter are unlinked from retained Sequence order and removed from <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a>. Visible Strips are never collected. The corresponding consumer-owned Footage spans replace the shared <a class="reference internal" href="#classFootageSpanBuffer"><span class="std std-ref">FootageSpanBuffer</span></a> contents for zero-copy processing by the TypeScript boundary.</p>
+<dd><p>Release Footage covered by acknowledged Masks. </p>
+<p>For every Frontier entry, Masks in the same Realm at or below its counter report their consumer-owned Footage spans. Every Mask, coordinate, and structural link remains materialized as permanent dependency data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the active sequence to collect. </p>
@@ -1940,10 +1915,7 @@ The source is preserved, the selected shape is materialized, and its tail is rec
 <dd class="field-even"><p><a class="reference internal" href="#classFrontierBuffer"><span class="std std-ref">FrontierBuffer</span></a> contains at most one selected point per represented Realm, derived from the required Replica Frontiers. </p>
 </dd>
 <dt class="field-odd">Post<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> links, first and last starts, and the Gate remain valid. </p>
-</dd>
-<dt class="field-even">Post<span class="colon">:</span></dt>
-<dd class="field-even"><p>Projection frame count is unchanged because only Masks are removed. </p>
+<dd class="field-odd"><p><a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> state and retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> metadata are unchanged. </p>
 </dd>
 </dl>
 </dd></dl>
@@ -2060,6 +2032,50 @@ The source is preserved, the selected shape is materialized, and its tail is rec
 </dd></dl>
 
 <dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv444hydrate_pending_snapshot_strip_into_sequenceKNSt8uint32_tE">
+<span id="_CPPv344hydrate_pending_snapshot_strip_into_sequenceKNSt8uint32_tE"></span><span id="_CPPv244hydrate_pending_snapshot_strip_into_sequenceKNSt8uint32_tE"></span><span id="hydrate_pending_snapshot_strip_into_sequence__std::uint32_tC"></span><span class="target" id="main_8cpp_1ae0f47a6f28f48bcd4e92068a7835a1f5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hydrate_pending_snapshot_strip_into_sequence</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv444hydrate_pending_snapshot_strip_into_sequenceKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Restore one buffered Snapshot entry directly to its pending index. </p>
+<p>The <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s visibility selects the Mask or visible-insert index; its stable logical previous point remains the unresolved dependency key. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the active sequence. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv436hydrate_snapshot_strip_into_sequenceKNSt8uint32_tE">
+<span id="_CPPv336hydrate_snapshot_strip_into_sequenceKNSt8uint32_tE"></span><span id="_CPPv236hydrate_snapshot_strip_into_sequenceKNSt8uint32_tE"></span><span id="hydrate_snapshot_strip_into_sequence__std::uint32_tC"></span><span class="target" id="main_8cpp_1a3e3b70822f89f6d9ccf2f5dffca8ad42"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hydrate_snapshot_strip_into_sequence</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv436hydrate_snapshot_strip_into_sequenceKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Hydrate one retained Snapshot <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> in structural order. </p>
+<p>Snapshot entries already represent materialized state rather than merge operations. This operation therefore preserves the transferred Sequence Coordinate and derives only the runtime links omitted by <a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a>. Each entry is appended after the current retained tail, including Masks and material fragments that cannot be reconstructed by replaying them as operations.</p>
+<p><dl class="simple">
+<dt><strong>Complexity:</strong></dt><dd><p>A constant number of <a class="reference internal" href="#classStripIndex"><span class="std std-ref">StripIndex</span></a> operations and O(1) auxiliary space. </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the sequence being hydrated. </p>
+</dd>
+<dt class="field-even">Pre<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">sequence_id</span></code> identifies an active <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>. </p>
+</dd>
+<dt class="field-odd">Pre<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a> contains the next unique <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> of one ordered Snapshot. </p>
+</dd>
+<dt class="field-even">Post<span class="colon">:</span></dt>
+<dd class="field-even"><p>The transferred coordinate is unchanged. </p>
+</dd>
+<dt class="field-odd">Post<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is the retained tail and structural links are bidirectional. </p>
+</dd>
+<dt class="field-even">Post<span class="colon">:</span></dt>
+<dd class="field-even"><p>A visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> contributes its complete Frame count to the Projection. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv419initialize_sequencev">
 <span id="_CPPv319initialize_sequencev"></span><span id="_CPPv219initialize_sequencev"></span><span id="initialize_sequence"></span><span class="target" id="main_8cpp_1a32bc7f4dbd99147dad169a52f456b901"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">initialize_sequence</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv419initialize_sequencev" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Create an empty <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> for one Replica. </p>
@@ -2158,6 +2174,29 @@ The source is preserved, the selected shape is materialized, and its tail is rec
 </dd></dl>
 
 <dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv435write_first_pending_strip_to_bufferKNSt8uint32_tE">
+<span id="_CPPv335write_first_pending_strip_to_bufferKNSt8uint32_tE"></span><span id="_CPPv235write_first_pending_strip_to_bufferKNSt8uint32_tE"></span><span id="write_first_pending_strip_to_buffer__std::uint32_tC"></span><span class="target" id="main_8cpp_1af24daa179a420aace4c7d37ef6dc88f0"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">write_first_pending_strip_to_buffer</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv435write_first_pending_strip_to_bufferKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Begin Snapshot traversal over unresolved incoming Strips. </p>
+<p>Pending visible Strips are emitted before pending Masks. Their coordinates and Footage indexes are transferred unchanged so Snapshot hydration can restore them through ordinary merge after materialized state is hydrated.</p>
+<p><dl class="simple">
+<dt><strong>Complexity:</strong></dt><dd><p>O(c) leading Realm-slot scan and O(1) auxiliary space. </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the active sequence. </p>
+</dd>
+<dt class="field-even">Return values<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>1</strong> – A pending <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> was written to <a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a>. </p></li>
+<li><p><strong>0</strong> – No unresolved <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> exists. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv438write_first_structural_strip_to_bufferKNSt8uint32_tE">
 <span id="_CPPv338write_first_structural_strip_to_bufferKNSt8uint32_tE"></span><span id="_CPPv238write_first_structural_strip_to_bufferKNSt8uint32_tE"></span><span id="write_first_structural_strip_to_buffer__std::uint32_tC"></span><span class="target" id="main_8cpp_1a317d6e05a03d0ac43cb4c46e870a7cce"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">write_first_structural_strip_to_buffer</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv438write_first_structural_strip_to_bufferKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Write the first retained <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> of a Sequence to <a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a>. </p>
@@ -2174,6 +2213,31 @@ The source is preserved, the selected shape is materialized, and its tail is rec
 </dd>
 <dt class="field-odd">Pre<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">sequence_id</span></code> identifies an active <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv434write_next_pending_strip_to_bufferKNSt8uint32_tE">
+<span id="_CPPv334write_next_pending_strip_to_bufferKNSt8uint32_tE"></span><span id="_CPPv234write_next_pending_strip_to_bufferKNSt8uint32_tE"></span><span id="write_next_pending_strip_to_buffer__std::uint32_tC"></span><span class="target" id="main_8cpp_1a6e4024d365aa286fa448e041930fa160"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">write_next_pending_strip_to_buffer</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv434write_next_pending_strip_to_bufferKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Advance Snapshot traversal to the next unresolved incoming <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+<p><dl class="simple">
+<dt><strong>Complexity:</strong></dt><dd><p>O(c + p) over a complete traversal of p pending Strips. </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the active sequence. </p>
+</dd>
+<dt class="field-even">Return values<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>1</strong> – The next pending <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> was written to <a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a>. </p></li>
+<li><p><strong>0</strong> – The pending traversal is complete. </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Pre<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><a class="reference internal" href="#main_8cpp_1af24daa179a420aace4c7d37ef6dc88f0"><span class="std std-ref"><span class="pre">write_first_pending_strip_to_buffer</span></span></a></code> returned one and no <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> mutation occurred afterward. </p>
 </dd>
 </dl>
 </dd></dl>
@@ -2250,6 +2314,18 @@ The source is preserved, the selected shape is materialized, and its tail is rec
 <dt class="sig sig-object cpp" id="_CPPv425no_projection_frame_index">
 <span id="_CPPv325no_projection_frame_index"></span><span id="_CPPv225no_projection_frame_index"></span><span id="no_projection_frame_index__std::uint32_t"></span><span class="target" id="main_8cpp_1ac5dfc095d7c2935d25ce542a055e94dd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">no_projection_frame_index</span></span></span><a class="headerlink" href="#_CPPv425no_projection_frame_index" title="Link to this definition">¶</a><br /></dt>
 <dd><p>ABI sentinel indicating that no Projection frame index was produced. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv420pending_strip_cursor">
+<span id="_CPPv320pending_strip_cursor"></span><span id="_CPPv220pending_strip_cursor"></span><span id="pending_strip_cursor__StripIndex:&SequenceCoordinate::previous_strip_start:::Cursor"></span><span class="target" id="main_8cpp_1a6ebdb14ea36f727bc9dfa9b588546268"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I_M18SequenceCoordinate13SequencePointE10StripIndex" title="StripIndex"><span class="n"><span class="pre">StripIndex</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="o"><span class="pre">&amp;</span></span><a class="reference internal" href="#_CPPv418SequenceCoordinate" title="SequenceCoordinate"><span class="n"><span class="pre">SequenceCoordinate</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="#_CPPv4N18SequenceCoordinate20previous_strip_startE" title="SequenceCoordinate::previous_strip_start"><span class="n"><span class="pre">previous_strip_start</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Cursor</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pending_strip_cursor</span></span></span><a class="headerlink" href="#_CPPv420pending_strip_cursor" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Shared cursor for synchronous pending-Strip Snapshot traversal. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv418pending_strip_kind">
+<span id="_CPPv318pending_strip_kind"></span><span id="_CPPv218pending_strip_kind"></span><span id="pending_strip_kind__std::uint32_t"></span><span class="target" id="main_8cpp_1a50083d0cf7f3c0b7b205c59b4b886fa5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pending_strip_kind</span></span></span><a class="headerlink" href="#_CPPv418pending_strip_kind" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Pending index currently traversed: zero inserts, one Masks. </p>
 </dd></dl>
 
 <dl class="cpp var">

@@ -56,15 +56,21 @@ export function is_sequence_coordinate(
 export function is_strip<T>(data: unknown): data is Strip<T> {
   // Validate transferable tuple shape before destructuring.
   if (!Array.isArray(data)) return false
-  const [is_masked, frame_count, coordinate, footage] = data as Strip<T>
+  const [is_masked, frame_count, coordinate, footage, is_pending] =
+    data as Strip<T>
 
   // Validate visibility, Frame Span, coordinate, and optional Footage.
   return (
-    (is_masked === 1 || is_masked === 0) &&
+    (is_masked === 0 ||
+      is_masked === 1 ||
+      is_masked === 3 ||
+      is_masked === 5 ||
+      is_masked === 7) &&
     is_uint32(frame_count) &&
     frame_count > 0 &&
     is_sequence_coordinate(coordinate) &&
-    (footage === undefined || (Array.isArray(footage) && footage.length > 0))
+    (footage === undefined || (Array.isArray(footage) && footage.length > 0)) &&
+    (is_pending === undefined || is_pending === 1)
   )
 }
 

@@ -12,7 +12,7 @@ export { __merge } from '../mags/merge/index.js'
 export { __acknowledge } from '../mags/acknowledge/index.js'
 
 // Export acknowledged Mask collection under its stable API spelling.
-/** Permanently collects Masks covered by participating Replica Frontiers. */
+/** Releases acknowledged Mask Footage while retaining dependency data. */
 export { __garbageCollect } from '../mags/garbageCollect/index.js'
 
 // Export complete retained-state capture.

@@ -27,7 +27,8 @@
 run_projector_backward(Projector *projector,
                        const Strip *current_strip) noexcept {
   // Move the Gate key to the current Strip's predecessor.
-  projector->gate_strip_start = current_strip->coordinate.previous_strip_start;
+  projector->gate_strip_start =
+      current_strip->previous_structural_strip_start;
 
   // Resolve the preceding retained Strip.
   const Strip &previous_strip =

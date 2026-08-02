@@ -1,13 +1,20 @@
 /** Executes one generated convergence scenario inside an interruptible Worker. */
 import { parentPort, workerData as scenario } from 'node:worker_threads'
+import { writeSync as write_sync } from 'node:fs'
 import {
   __create,
   __delete,
   __length,
   __merge,
+  __read,
   __snapshot,
   __update,
 } from '../../../dist/index.js'
+
+const debug = process.env.SEQUENCER_STRESS_DEBUG === 'true'
+const mark = (...values) => {
+  if (debug) write_sync(2, `[stress] ${values.join(' ')}\n`)
+}
 
 // Report exactly one terminal result to the controlling Vitest process.
 let finished = false
@@ -17,24 +24,29 @@ const finish = (ok, message) => {
   parentPort.postMessage({ ok, message })
 }
 
-// Convert one Replica into a deterministic visible and structural signature.
+// Convert one Replica into its deterministic visible Projection signature.
 const signature = (state) => {
-  const snapshot = __snapshot(state)
-  return JSON.stringify({
-    projection: snapshot.flatMap(([is_masked, , , footage]) =>
-      is_masked === 0 ? (footage ?? []) : []
-    ),
-    snapshot,
-  })
+  mark('signature', 'start', __length(state))
+  const result = JSON.stringify(
+    Array.from({ length: __length(state) }, (_, index) => __read(state, index))
+  )
+  mark('signature', 'done')
+  return result
 }
 
 // Integrate individual Strips and optionally restart from a mid-stream snapshot.
-const deliver = (base_reel, strips, restart_index) => {
+const deliver = (base_reel, strips, restart_index, label = 'delivery') => {
+  mark(label, 'create')
   let state = __create(base_reel)
   for (let index = 0; index < strips.length; index++) {
+    mark(label, 'merge', index, JSON.stringify(strips[index].slice(0, 3)))
     void __merge(state, [strips[index]])
-    if (index + 1 === restart_index) state = __create(__snapshot(state))
+    if (index + 1 === restart_index) {
+      mark(label, 'restart', index)
+      state = __create(__snapshot(state))
+    }
   }
+  mark(label, 'done')
   return state
 }
 
@@ -65,6 +77,7 @@ for (
   operation_index < scenario.operations.length;
   operation_index++
 ) {
+  mark('operation', operation_index, 'start')
   const operation = scenario.operations[operation_index]
   const replica_index = operation.replica_selector % scenario.replica_count
   const replica = replicas[replica_index]
@@ -99,6 +112,7 @@ for (
     continue
   }
   strips.push(...result.reel)
+  mark('operation', operation_index, 'done')
 }
 
 // Derive every delivery family from the same immutable Strip collection.
@@ -113,13 +127,21 @@ const shuffled = strips
 const duplicated = shuffled.flatMap((strip, index) =>
   index % 3 === 0 ? [strip, strip] : [strip]
 )
-const ordered = deliver(base_reel, strips)
+const ordered = deliver(base_reel, strips, undefined, 'ordered')
 const expected = signature(ordered)
 const targets = [
-  ['reverse', deliver(base_reel, [...strips].reverse())],
-  ['shuffle', deliver(base_reel, shuffled)],
-  ['duplicate', deliver(base_reel, duplicated)],
-  ['restart', deliver(base_reel, shuffled, Math.ceil(shuffled.length / 2))],
+  ['reverse', deliver(base_reel, [...strips].reverse(), undefined, 'reverse')],
+  ['shuffle', deliver(base_reel, shuffled, undefined, 'shuffle')],
+  ['duplicate', deliver(base_reel, duplicated, undefined, 'duplicate')],
+  [
+    'restart',
+    deliver(
+      base_reel,
+      shuffled,
+      Math.ceil(shuffled.length / 2),
+      'restart'
+    ),
+  ],
 ]
 const batched = __create(base_reel)
 void __merge(batched, strips)

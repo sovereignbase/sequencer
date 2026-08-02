@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "../../auxiliary/compare_sequence_points/index.hpp"
 #include "../../declarations/strip/index.hpp"
 #include "../footage_span_buffer/index.hpp"
 #include "../frontier_buffer/index.hpp"
@@ -35,8 +36,9 @@
  *
  * @invariant Every occupied table slot represents exactly one Realm, identified
  * by the pair `(unix_lower_bits, random_bits)`.
- * @invariant Each occupied Realm vector is non-empty, strictly ordered by the
- * selected point's `counter_bits`, and contains at most one Strip per counter.
+ * @invariant Each occupied Realm vector is non-empty and ordered by the
+ * selected point's `counter_bits`. Pending Strips sharing a dependency are
+ * ordered by `this_strip_start`.
  * @invariant Empty vectors denote unused hash-table slots and are never
  * retained as occupied Realms.
  * @warning Modifying the selected coordinate member through a pointer returned
@@ -44,8 +46,7 @@
  * @note Any mutating index operation may invalidate every pointer returned by
  * `get` because a Realm vector or the Realm table may move.
  * @note StripIndex stores coordinates exactly as supplied. Projector algorithms
- * are responsible for normalizing materialized predecessor and successor links
- * before calling `set`.
+ * derive runtime structural links without modifying them.
  */
 template <SequencePoint SequenceCoordinate::*indexed_sequence_point =
               &SequenceCoordinate::this_strip_start>
@@ -71,6 +72,12 @@ public:
      * @brief Owned Strips ordered by the selected point's counter component.
      */
     std::vector<Strip> strips;
+  };
+
+  /** @brief Stateless traversal position for one complete index scan. */
+  struct Cursor {
+    std::uint32_t realm_index{0};
+    std::uint32_t strip_index{0};
   };
 
 private:
@@ -118,8 +125,9 @@ public:
    * @param point Exact key represented by the selected coordinate member.
    * @param strip Strip value copied into index-owned storage.
    * @pre `point == strip.coordinate.*indexed_sequence_point`.
-   * @post Exactly one Strip is stored under `point`; an existing value at that
-   * point is replaced.
+   * @post The primary index stores one Strip under `point`. A pending index
+   * stores every distinct `this_strip_start` sharing `point` and replaces only
+   * an exact repeated Strip.
    * @note A new Realm may grow and rehash the table. Any successful call must
    * be treated as invalidating pointers returned by `get`.
    * @warning Allocation failure terminates the program because this operation
@@ -152,11 +160,39 @@ public:
                          .counter_bits < counter_bits;
             });
 
-        // Replace an exact key or insert the missing counter in order.
+        // Replace an exact primary key or retain every pending sibling.
         if (strip_iterator != realm.strips.end() &&
             (strip_iterator->coordinate.*indexed_sequence_point).counter_bits ==
                 point.counter_bits) {
-          *strip_iterator = strip;
+          if constexpr (indexed_sequence_point ==
+                        &SequenceCoordinate::this_strip_start) {
+            *strip_iterator = strip;
+          } else {
+            const auto equal_key_end = std::upper_bound(
+                strip_iterator, realm.strips.end(), point.counter_bits,
+                [](const std::uint32_t counter_bits,
+                   const Strip &candidate) noexcept {
+                  return counter_bits <
+                         (candidate.coordinate.*indexed_sequence_point)
+                             .counter_bits;
+                });
+            const auto pending_strip_iterator = std::lower_bound(
+                strip_iterator, equal_key_end,
+                strip.coordinate.this_strip_start,
+                [](const Strip &candidate,
+                   const SequencePoint &strip_start) noexcept {
+                  return compare_sequence_points(
+                             &candidate.coordinate.this_strip_start,
+                             &strip_start) < 0;
+                });
+
+            if (pending_strip_iterator != equal_key_end &&
+                pending_strip_iterator->coordinate.this_strip_start ==
+                    strip.coordinate.this_strip_start)
+              *pending_strip_iterator = strip;
+            else
+              realm.strips.insert(pending_strip_iterator, strip);
+          }
         } else {
           realm.strips.insert(strip_iterator, strip);
         }
@@ -222,15 +258,99 @@ public:
   }
 
   /**
-   * @brief Remove the Strip stored under one exact Sequence Point.
+   * @brief Return the first Strip keyed within one Frame Span.
+   *
+   * Pending indexes use this overload to resolve every dependency point made
+   * available by one newly materialized visible Strip.
+   *
+   * @param frame_span_start First point of the materialized Frame Span.
+   * @param frame_count Positive number of consecutive points in the span.
+   * @return Mutable borrowed pointer to the first matching Strip, or `nullptr`.
+   * @pre `frame_count > 0` and the span remains within one Realm.
+   * @complexity Expected O(1) Realm lookup plus O(log n) Realm search.
+   */
+  [[nodiscard]] inline Strip *
+  get(const SequencePoint &frame_span_start,
+      const std::uint32_t frame_count) noexcept {
+    // Probe for the Realm containing the complete Frame Span.
+    std::uint32_t realm_index =
+        frame_span_start.random_bits & realm_index_mask;
+
+    while (!realms[realm_index].strips.empty()) {
+      Realm &realm = realms[realm_index];
+      if (realm.random_bits == frame_span_start.random_bits &&
+          realm.unix_lower_bits == frame_span_start.unix_lower_bits) {
+        const auto strip_iterator = std::lower_bound(
+            realm.strips.begin(), realm.strips.end(),
+            frame_span_start.counter_bits,
+            [](const Strip &candidate,
+               const std::uint32_t counter_bits) noexcept {
+              return (candidate.coordinate.*indexed_sequence_point)
+                         .counter_bits < counter_bits;
+            });
+        if (strip_iterator == realm.strips.end())
+          return nullptr;
+
+        const std::uint32_t counter_bits =
+            (strip_iterator->coordinate.*indexed_sequence_point).counter_bits;
+        return counter_bits - frame_span_start.counter_bits < frame_count
+                   ? &*strip_iterator
+                   : nullptr;
+      }
+      realm_index = (realm_index + 1) & realm_index_mask;
+    }
+    return nullptr;
+  }
+
+  /**
+   * @brief Begin a read-only traversal over every stored Strip.
+   *
+   * @param cursor Traversal state initialized to the returned Strip.
+   * @return First stored Strip, or `nullptr` when the index is empty.
+   * @complexity O(c) worst-case time across leading empty Realm slots.
+   */
+  [[nodiscard]] inline const Strip *first(Cursor &cursor) const noexcept {
+    cursor = {};
+    while (cursor.realm_index < realm_capacity &&
+           realms[cursor.realm_index].strips.empty())
+      ++cursor.realm_index;
+    return cursor.realm_index < realm_capacity
+               ? &realms[cursor.realm_index].strips[0]
+               : nullptr;
+  }
+
+  /**
+   * @brief Advance a read-only traversal over every stored Strip.
+   *
+   * @param cursor Traversal state produced by `first` or this method.
+   * @return Next stored Strip, or `nullptr` after the final Strip.
+   * @pre The index has not been mutated since traversal began.
+   * @complexity O(c + n) across a complete traversal of n Strips.
+   */
+  [[nodiscard]] inline const Strip *next(Cursor &cursor) const noexcept {
+    if (++cursor.strip_index < realms[cursor.realm_index].strips.size())
+      return &realms[cursor.realm_index].strips[cursor.strip_index];
+
+    cursor.strip_index = 0;
+    do
+      ++cursor.realm_index;
+    while (cursor.realm_index < realm_capacity &&
+           realms[cursor.realm_index].strips.empty());
+    return cursor.realm_index < realm_capacity
+               ? &realms[cursor.realm_index].strips[0]
+               : nullptr;
+  }
+
+  /**
+   * @brief Remove the first Strip stored under one exact Sequence Point.
    *
    * Missing points are ignored. Removing a Realm's final Strip closes its
    * linear-probing hole so later Realm lookups remain reachable, and may halve
    * a sparsely populated Realm table.
    *
    * @param point Exact selected-coordinate key to remove.
-   * @post No Strip is stored under `point`; an absent point leaves the index
-   * unchanged.
+   * @post The first exact-key Strip is removed; pending siblings remain. An
+   * absent point leaves the index unchanged.
    * @note Successful removal may invalidate every pointer returned by `get`.
    * @throws std::bad_alloc when removal triggers a table shrink whose
    * allocation fails outside a `noexcept` caller.
@@ -297,13 +417,12 @@ public:
   // Frontier-based Mask collection.
 
   /**
-   * @brief Permanently collect acknowledged Masks from their indexed Realms.
+   * @brief Report Footage retained by acknowledged Masks.
    *
-   * Each Frontier entry resolves its Realm directly. A Mask is eligible when
-   * its own start counter is no greater than that Realm's selected boundary.
-   * Eligible Masks are unlinked in place and removed by one contiguous
-   * compaction of the Realm vector. Visible Strips are retained regardless of
-   * their counters.
+   * Each Frontier entry resolves its Realm directly. A Mask's Footage is
+   * eligible when its own start counter is no greater than that Realm's
+   * selected boundary. Every Strip, coordinate, and structural link remains
+   * materialized as permanent dependency data.
    *
    * The selected boundary is expected to be the least corresponding Frontier
    * point acknowledged across the participating Replicas. Frontier selection
@@ -311,41 +430,23 @@ public:
    *
    * @param frontier_buffer Selected Realm boundaries acknowledged by all
    * participating Replicas.
-   * @param footage_span_buffer Output replaced with one released Footage range
-   * for each collected Mask.
-   * @param first_strip_start First structural Strip start, updated when
-   * removed.
-   * @param gate_strip_start Current Gate Strip start, updated when removed.
-   * @param last_strip_start Last structural Strip start, updated when removed.
-   * @param gate_projection_frame_index Projection position of the Gate Strip,
-   * updated when the Gate moves backward or the Sequence becomes empty.
+   * @param footage_span_buffer Output replaced with one releasable Footage
+   * range for each eligible Mask.
    * @pre This is the primary index keyed by `this_strip_start`.
    * @pre The Frontier contains at most one selected point per Realm.
-   * @pre Structural links and the first, Gate, and last starts are consistent
-   * with this index.
-   * @post Retained neighboring Strips have mutually consistent links: each
-   * forward link names the next Strip's primary key, and each backward link
-   * names the previous Strip's primary key.
-   * @post The first retained Strip keeps the Root as its previous point and the
-   * last retained Strip keeps `unlinked_strip_start` as its successor.
    * @post The output buffer contains exactly the Footage ranges belonging to
-   * Masks removed by this pass; its previous contents are discarded.
-   * @post Projection frame count is unchanged because Masks contribute no
-   * frames to the Projection.
-   * @note Pending indexes are unaffected. Every pointer previously returned by
-   * this index must be treated as invalid after collection.
-   * @warning Allocation failure while writing output or shrinking this
-   * `noexcept` index terminates the program.
-   * @complexity Expected O(f + sum(n_r) + k log n_max) for f Frontier entries,
-   * n_r Strips scanned in each matching Realm, k collected Masks, and the
-   * largest indexed Realm size n_max, plus O(c) when removing a Realm triggers
-   * table maintenance.
+   * eligible Masks; its previous contents are discarded.
+   * @post This StripIndex and all structural Projector state remain unchanged.
+   * @note Pending Masks are unaffected because they have no resolved Footage
+   * span.
+   * @warning Allocation failure while writing output to this `noexcept`
+   * operation terminates the program.
+   * @complexity Expected O(f + sum(n_r)) time for f Frontier entries and the
+   * Strips scanned in each matching Realm, with O(k) output for k Masks.
    */
   inline void garbage_collect(
       const FrontierBuffer &frontier_buffer,
-      FootageSpanBuffer &footage_span_buffer, SequencePoint &first_strip_start,
-      SequencePoint &gate_strip_start, SequencePoint &last_strip_start,
-      std::uint32_t &gate_projection_frame_index) noexcept {
+      FootageSpanBuffer &footage_span_buffer) const noexcept {
     // Replace the previously reported Footage ranges.
     footage_span_buffer.clear();
 
@@ -359,77 +460,18 @@ public:
       std::uint32_t realm_index = frontier.random_bits & realm_index_mask;
 
       while (!realms[realm_index].strips.empty()) {
-        Realm &realm = realms[realm_index];
+        const Realm &realm = realms[realm_index];
         if (realm.random_bits == frontier.random_bits &&
             realm.unix_lower_bits == frontier.unix_lower_bits) {
-          // Scan the counter prefix and unlink every eligible Mask.
-          std::size_t collected_strip_count = 0;
-
-          for (Strip &strip : realm.strips) {
+          // Report every Mask in the acknowledged counter prefix.
+          for (const Strip &strip : realm.strips) {
             const SequencePoint &strip_start =
                 strip.coordinate.*indexed_sequence_point;
             if (strip_start.counter_bits > frontier.counter_bits)
               break;
-            if (strip.is_masked == 0)
-              continue;
-
-            // Resolve the Mask's retained structural neighbors.
-            const bool is_first = strip_start == first_strip_start;
-            const bool is_last = strip.next_strip_start == unlinked_strip_start;
-            Strip *previous_strip =
-                is_first ? nullptr : get(strip.coordinate.previous_strip_start);
-            Strip *next_strip = is_last ? nullptr : get(strip.next_strip_start);
-
-            // Report the Footage range released with the Mask.
-            footage_span_buffer.write_span(strip.footage_frame_index,
-                                           strip.frame_count);
-            collected_strip_count++;
-
-            // Keep the Gate on a retained Strip at the same Projection
-            // position.
-            if (gate_strip_start == strip_start) {
-              if (!is_last) {
-                gate_strip_start = strip.next_strip_start;
-              } else if (!is_first) {
-                gate_strip_start = strip.coordinate.previous_strip_start;
-                if (previous_strip->is_masked == 0)
-                  gate_projection_frame_index -= previous_strip->frame_count;
-              } else {
-                gate_strip_start = {};
-                gate_projection_frame_index = 0;
-              }
-            }
-
-            // Repair the predecessor's forward link or advance the first start.
-            if (is_first)
-              first_strip_start =
-                  is_last ? SequencePoint{} : strip.next_strip_start;
-            else
-              previous_strip->next_strip_start = strip.next_strip_start;
-
-            // Repair the successor's backward link or retreat the last start.
-            if (is_last)
-              last_strip_start = is_first
-                                     ? SequencePoint{}
-                                     : strip.coordinate.previous_strip_start;
-            else
-              next_strip->coordinate.previous_strip_start =
-                  is_first ? strip.coordinate.previous_strip_start
-                           : previous_strip->coordinate.this_strip_start;
-          }
-
-          // Remove an empty Realm or compact its retained Strips once.
-          if (collected_strip_count == realm.strips.size()) {
-            const SequencePoint remaining_strip_start =
-                realm.strips.front().coordinate.*indexed_sequence_point;
-            realm.strips.resize(1);
-            remove(remaining_strip_start);
-          } else if (collected_strip_count != 0) {
-            std::erase_if(realm.strips, [&](const Strip &strip) noexcept {
-              return strip.is_masked != 0 &&
-                     (strip.coordinate.*indexed_sequence_point).counter_bits <=
-                         frontier.counter_bits;
-            });
+            if (strip.is_masked != 0)
+              footage_span_buffer.write_span(strip.footage_frame_index,
+                                             strip.frame_count);
           }
           break;
         }

@@ -80,13 +80,15 @@ export type SequenceCoordinate = [
  *
  * A visible Strip contributes its Frames to the Projection. A Mask remains in
  * retained Sequence order while contributing none. Footage may be omitted only
- * when a Mask's consumer-owned values have already been released.
+ * when a Mask's consumer-owned values have already been released. A Snapshot
+ * marks unresolved Strips as pending; `is_masked` then distinguishes a pending
+ * Mask from a pending insertion.
  *
  * @typeParam T Consumer-owned value represented by one Frame.
  */
 export type Strip<T> = [
-  /** Zero for a visible Strip; one for a Mask. */
-  is_masked: 0 | 1,
+  /** Zero for visible; nonzero Mask states retain source-fragment boundaries. */
+  is_masked: 0 | 1 | 3 | 5 | 7,
 
   /** Positive number of consecutive Frames represented by the Strip. */
   frame_count: number,
@@ -96,6 +98,9 @@ export type Strip<T> = [
 
   /** Contiguous Footage corresponding to the represented Frame Span. */
   footage?: Array<T>,
+
+  /** One while this Strip awaits its placement dependency. */
+  is_pending?: 1,
 ]
 
 // Transferable Reel collection contract.

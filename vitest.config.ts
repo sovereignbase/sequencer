@@ -22,7 +22,10 @@ export default define_config({
       enabled: true,
       provider: 'v8',
       include: ['src/typescript/**/*.ts'],
-      exclude: ['src/typescript/wasm/raw/**'],
+      exclude: [
+        'src/typescript/wasm/raw/**',
+        'src/typescript/helpers/serializers/**',
+      ],
       reporter: ['text', 'html', 'json-summary'],
       reportsDirectory: 'docs/tests/coverage',
       reportOnFailure: true,

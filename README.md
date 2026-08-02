@@ -25,14 +25,17 @@ console.log(sequencer.__read(sequence, 0)) // "Hello World"
 ### Unbeliveable performance
 
 |function|troughput (ops/sec)|average time (ns)
+performance benchamrks
 
 ### Small bundle size
 
+|raw|min|min+gzip|
 Bundle size benchmakrs
 
 ### Optimized data model
 
-Bytse size benchmarks
+|per op avg reel bytes| x size reel bytes| gzipped|
+Bytse size benchmarks (msgpacked)
 
 ## Why shoul you use it?
 

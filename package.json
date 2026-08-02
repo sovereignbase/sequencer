@@ -70,6 +70,7 @@
     "fast-check": "^4.9.0",
     "fast-glob": "^3.3.3",
     "husky": "^9.1.7",
+    "msgpackr": "^2.0.5",
     "playwright": "^1.62.1",
     "prettier": "^3.9.6",
     "terser": "^5.49.0",

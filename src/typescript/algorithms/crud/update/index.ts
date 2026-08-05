@@ -103,7 +103,7 @@ export function __update<T>(
   ]
 
   // Append Footage, transfer the Strip, and invoke native insert ordering.
-  state.footage.push(...values)
+  void state.footage.push(...values)
   write_strip_to_buffer(0, frame_count, footage_frame_index, coordinate)
   merge_strip_into_sequence(state.id)
   reel.push([0, frame_count, coordinate, values])

@@ -52,11 +52,11 @@ export function __create<T>(data?: unknown): Replica<T> {
     const [meta, footage] = chunk
 
     // Resolve a stable append-only Footage span for supplied values.
-
     if (footage) {
       void meta.push(state.footage.length)
       void state.footage.push(...footage)
     }
+
     // Stage without resolution so native code can process the complete graph.
     write_strip_to_buffer(meta)
     stage_strip_for_sequence(state.id)

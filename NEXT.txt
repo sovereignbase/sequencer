@@ -1,3 +1,22 @@
+VÄLTÄ TURHAT DATAN KOPIOINNIT TYPESCRIPTISSA!! 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////
 Kyllä. Toteutan tämän täsmälleen tuolla mallilla: snapshotin rakenteellinen osa hydraataan samassa järjestyksessä, pendingit jäävät Reelissä tavallisiksi stripeiksi loppuun, ja maskifragmenttien jatkuvuus rakennetaan runtime-only source-linkeillä realm+counter-jatkumosta — ei sibling-ancestryä eikä pending-lippua. Käytän optimointiskilliä myös tämän muutoksen correctness- ja suorituskykyvarmennukseen.
 
 

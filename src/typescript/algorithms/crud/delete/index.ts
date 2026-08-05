@@ -3,20 +3,13 @@
  *
  * @module
  */
-import { is_safe_index } from '../../../helpers/index.js'
-import type {
-  Change,
-  Reel,
-  Replica,
-  SequenceCoordinate,
-  SequencePoint,
-} from '../../../types/type.js'
+import { is_safe_index, issue_virtual_strip } from '../../../helpers/index.js'
+import type { Change, Reel, Replica, Strip } from '../../../types/type.js'
 import {
   get_projection_frame_count,
   merge_strip_into_sequence,
   read_strip_from_buffer,
   write_strip_at_projection_frame_index_to_buffer,
-  write_strip_to_buffer,
 } from '../../../wasm/index.js'
 
 /**
@@ -59,8 +52,8 @@ export function __delete<T>(
   const deletion_end_index = end_index ?? projection_frame_count
 
   if (
-    !is_safe_index(projection_frame_count, start_index, true) ||
-    !is_safe_index(projection_frame_count, deletion_end_index, true) ||
+    !is_safe_index(start_index, projection_frame_count, true) ||
+    !is_safe_index(deletion_end_index, projection_frame_count, true) ||
     start_index >= deletion_end_index
   )
     return false
@@ -84,35 +77,25 @@ export function __delete<T>(
     const selected_footage_frame_index =
       write_strip_at_projection_frame_index_to_buffer(state.id, start_index)
 
-    const [
-      ,
-      containing_strip_frame_count,
-      containing_strip_footage_frame_index,
-      [, containing_strip_start],
-    ] = read_strip_from_buffer()
+    const containing_strip = read_strip_from_buffer()
 
     // Derive the bounded span and its first existing masked Frame point.
     const strip_frame_offset =
-      selected_footage_frame_index - containing_strip_footage_frame_index
+      selected_footage_frame_index - containing_strip[1]
 
     const mask_frame_count = Math.min(
       remaining_frame_count,
-      containing_strip_frame_count - strip_frame_offset
+      containing_strip[1] - strip_frame_offset
     )
 
-    const mask_strip_start: SequencePoint = [
-      containing_strip_start[0],
-      containing_strip_start[1] + strip_frame_offset,
-      containing_strip_start[2],
-    ]
-
-    const mask_coordinate: SequenceCoordinate = [
-      containing_strip_start,
-      mask_strip_start,
-    ]
-
-    // Transfer and merge the Mask without issuing Sequence Points.
-    write_strip_to_buffer(1, mask_frame_count, 0, mask_coordinate)
+    // Transfer and merge the Mask.
+    const meta: Strip<T>[0] = issue_virtual_strip(
+      1,
+      mask_frame_count,
+      containing_strip[5],
+      containing_strip[6],
+      containing_strip[7]
+    )
     const projection_frame_index = merge_strip_into_sequence(state.id)
 
     // Release accepted hard-deletion Footage without compacting its array.
@@ -125,7 +108,7 @@ export function __delete<T>(
     }
 
     // Record the transferable Mask and advance the unresolved span.
-    reel.push([1, mask_frame_count, mask_coordinate])
+    void reel.push([meta])
     remaining_frame_count -= mask_frame_count
   }
 

@@ -7,10 +7,10 @@ import create_module from './raw/sequencer_wasm.mjs'
 import type { Frontier, VirtualStrip } from '../types/type.js'
 
 /** Synchronously initialized native Sequencer module shared by this adapter. */
-const wasm = create_module()
+export const wasm = create_module()
 
 /** Stable unsigned-word index of the shared nine-word StripBuffer. */
-const strip_buffer_start_index = wasm._get_strip_buffer_pointer() >>> 2
+export const strip_buffer_start_index = wasm._get_strip_buffer_pointer() >>> 2
 
 /** Native sentinel indicating that a merged Strip has no Projection position. */
 export const no_projection_frame_index = 0xffff_ffff
@@ -183,7 +183,7 @@ export function get_acknowledgement_frontier(
   sequence_id: number
 ): Frontier | false {
   // Materialize one greatest indexed Strip start per represented Realm.
-  const frontier_count =
+  const frontier_count: number =
     wasm._write_acknowledgement_frontier_to_buffer(sequence_id) >>> 0
   if (frontier_count === 0) return false
 

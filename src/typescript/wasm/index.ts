@@ -4,11 +4,7 @@
  * @module
  */
 import create_module from './raw/sequencer_wasm.mjs'
-import type {
-  Frontier,
-  SequenceCoordinate,
-  SequencePoint,
-} from '../types/type.js'
+import type { Frontier, StripMeta } from '../types/type.js'
 
 /** Synchronously initialized native Sequencer module shared by this adapter. */
 const wasm = create_module()
@@ -20,34 +16,26 @@ const strip_buffer_start_index = wasm._get_strip_buffer_pointer() >>> 2
 const no_projection_frame_index = 0xffff_ffff
 
 /**
- * Reads the Strip currently held by the shared WebAssembly transfer buffer.
+ * Copies the eight Strip metadata words from the shared WebAssembly transfer
+ * buffer into a new tuple.
  *
- * The returned coordinate follows the TypeScript order
- * `[previous_strip_start, this_strip_start]` even though the native buffer
- * stores the current strip start first.
+ * Later writes to the transfer buffer cannot mutate the returned metadata.
  *
- * @returns A copied visibility word, Frame count, Footage frame index, and
- * Sequence Coordinate. Later buffer writes cannot mutate the returned tuple.
+ * @returns The copied Strip metadata.
  */
-export function read_strip_from_buffer(): [
-  is_masked: number,
-  frame_count: number,
-  footage_frame_index: number,
-  sequence_coordinate: SequenceCoordinate,
-] {
-  // Resolve the current WebAssembly memory view and stable StripBuffer offset.
+export function read_strip_from_buffer<T>(): StripMeta<T> {
   const buffer = wasm.HEAPU32
   const start = strip_buffer_start_index
 
-  // Copy transferable Strip words into their public tuple order.
   return [
     buffer[start],
     buffer[start + 1],
     buffer[start + 2],
-    [
-      [buffer[start + 7], buffer[start + 8], buffer[start + 6]],
-      [buffer[start + 4], buffer[start + 5], buffer[start + 3]],
-    ],
+    buffer[start + 3],
+    buffer[start + 4],
+    buffer[start + 5],
+    buffer[start + 6],
+    buffer[start + 7],
   ]
 }
 

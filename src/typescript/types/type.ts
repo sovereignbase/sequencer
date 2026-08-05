@@ -42,7 +42,7 @@ export type Replica<T> = {
 export type Strip<T> = [
   meta: [
     /** Zero for visible; nonzero Mask states retain source-fragment boundaries. */
-    is_masked: 0 | 1,
+    is_masked: number,
 
     /** Positive number of consecutive Frames represented by the Strip. */
     frame_count: number,

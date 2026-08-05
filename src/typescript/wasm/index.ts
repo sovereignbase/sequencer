@@ -40,38 +40,22 @@ export function read_strip_from_buffer<T>(): StripMeta<T> {
 }
 
 /**
- * Writes one Strip to the shared WebAssembly transfer buffer.
+ * Copies eight Strip metadata words to the shared WebAssembly transfer buffer.
  *
- * The next native merge consumes these nine unsigned words. Runtime-only
- * structural links are not transferred because the Projector derives them.
- *
- * @param is_masked Zero for a visible Strip; nonzero for a Mask.
- * @param frame_count Number of consecutive Frames represented by the Strip.
- * @param footage_frame_index Footage index corresponding to its first Frame.
- * @param sequence_coordinate Stable placement coordinate of the Strip.
+ * @param strip_meta Strip metadata to transfer.
  */
-export function write_strip_to_buffer(
-  is_masked: number,
-  frame_count: number,
-  footage_frame_index: number,
-  sequence_coordinate: SequenceCoordinate
-): void {
-  // Resolve shared memory and both Sequence Coordinate points.
+export function write_strip_to_buffer<T>(strip_meta: StripMeta<T>): void {
   const buffer = wasm.HEAPU32
   const start = strip_buffer_start_index
-  const previous_strip_start = sequence_coordinate[0]
-  const this_strip_start = sequence_coordinate[1]
 
-  // Encode the transferable Strip in native lane order.
-  buffer[start] = is_masked
-  buffer[start + 1] = frame_count
-  buffer[start + 2] = footage_frame_index
-  buffer[start + 3] = this_strip_start[2]
-  buffer[start + 4] = this_strip_start[0]
-  buffer[start + 5] = this_strip_start[1]
-  buffer[start + 6] = previous_strip_start[2]
-  buffer[start + 7] = previous_strip_start[0]
-  buffer[start + 8] = previous_strip_start[1]
+  buffer[start] = strip_meta[0]
+  buffer[start + 1] = strip_meta[1]
+  buffer[start + 2] = strip_meta[2]
+  buffer[start + 3] = strip_meta[3]
+  buffer[start + 4] = strip_meta[4]
+  buffer[start + 5] = strip_meta[5]
+  buffer[start + 6] = strip_meta[6]
+  buffer[start + 7] = strip_meta[7]
 }
 
 /**
@@ -94,7 +78,7 @@ export function initialize_sequence(): number {
  */
 export function clear_sequence(sequence_id: number): void {
   // Release the selected native Projector registry slot.
-  wasm._clear_sequence(sequence_id)
+  void wasm._clear_sequence(sequence_id)
 }
 
 /**
@@ -170,20 +154,6 @@ export function write_next_structural_strip_to_buffer(
   return wasm._write_next_structural_strip_to_buffer(sequence_id) !== 0
 }
 
-/** Writes the first runtime-pending Strip to the Snapshot buffer. */
-export function write_first_pending_strip_to_buffer(
-  sequence_id: number
-): boolean {
-  return wasm._write_first_pending_strip_to_buffer(sequence_id) !== 0
-}
-
-/** Advances runtime-pending Snapshot traversal. */
-export function write_next_pending_strip_to_buffer(
-  sequence_id: number
-): boolean {
-  return wasm._write_next_pending_strip_to_buffer(sequence_id) !== 0
-}
-
 /** Stages one buffered Strip without resolving its dependency. */
 export function stage_strip_for_sequence(sequence_id: number): void {
   wasm._stage_strip_for_sequence(sequence_id)
@@ -212,7 +182,7 @@ export function get_acknowledgement_frontier(
   // Resolve the current zero-copy FrontierBuffer view.
   const buffer = wasm.HEAPU32
   let buffer_index = wasm._get_acknowledgement_frontier_buffer_pointer() >>> 2
-  const frontier = new Array<SequencePoint>(frontier_count)
+  const frontier = new Array<Frontier[number]>(frontier_count)
 
   // Copy every native Realm entry into a TypeScript Sequence Point.
   for (let realm_index = 0; realm_index < frontier_count; realm_index++) {

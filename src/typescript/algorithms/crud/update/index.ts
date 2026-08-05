@@ -43,7 +43,8 @@ export function __update<T>(
   state: Replica<T>,
   index: number,
   values: Array<T>,
-  mode: 'overwrite' | 'before' | 'after'
+  mode: 'overwrite' | 'insert',
+  hard = false
 ):
   | {
       /** Minimal patch for the consumer's currently visible state. */
@@ -53,11 +54,20 @@ export function __update<T>(
       reel: Reel<T>
     }
   | false {
-  // Validate inserted values and the requested Projection position.
-  if (!Array.isArray(values) || values.length === 0) return false
-
   const projection_frame_count = get_projection_frame_count(state.id)
-  if (!is_safe_index(projection_frame_count, index, true)) return false
+
+  // Validate inserted values and the requested Projection position.
+  if (
+    !Array.isArray(values) ||
+    values.length === 0 ||
+    !is_safe_index(projection_frame_count, index, true)
+  )
+    return false
+
+  const footage_frame_index = write_strip_at_projection_frame_index_to_buffer(
+    state.id,
+    previous_projection_frame_index
+  )
 
   // Resolve the insertion boundary and optional overwrite Masks.
   const insertion_frame_index =
@@ -79,11 +89,6 @@ export function __update<T>(
   // Resolve the preceding visible Frame to its stable Sequence Point.
   if (insertion_frame_index > 0) {
     const previous_projection_frame_index = insertion_frame_index - 1
-    const previous_footage_frame_index =
-      write_strip_at_projection_frame_index_to_buffer(
-        state.id,
-        previous_projection_frame_index
-      )
 
     const [, , strip_footage_frame_index, [, strip_start]] =
       read_strip_from_buffer()

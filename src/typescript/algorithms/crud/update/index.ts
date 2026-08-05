@@ -70,8 +70,6 @@ export function __update<T>(
   )
 
   // Resolve the insertion boundary and optional overwrite Masks.
-  const insertion_frame_index =
-    mode === 'after' ? Math.min(index + 1, projection_frame_count) : index
   const masking_result =
     mode === 'overwrite'
       ? __delete(

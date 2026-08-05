@@ -10,7 +10,6 @@ import {
   stage_strip_for_sequence,
   try_to_resolve_pending,
   write_strip_to_buffer,
-  no_projection_frame_index,
 } from '../../../wasm/index.js'
 import type { Replica } from '../../../types/type.js'
 import { isUint32 as is_uint32 } from '@sovereignbase/utils'

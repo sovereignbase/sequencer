@@ -175,6 +175,7 @@ write_strip_at_projection_frame_index_to_buffer(
   run_projector_to_frame_index(projector, projection_frame_index);
   const Strip &strip = *projector->strip_index.get(projector->gate_strip_start);
   strip_buffer.write_strip(strip);
+  // Return exact footage_frame_index of projection_frame_index.
   return strip.footage_frame_index + projection_frame_index -
          projector->gate_projection_frame_index;
 }
@@ -239,8 +240,8 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_next_structural_strip_to_buffer(
  * @retval 1 A pending insertion or Mask was written.
  * @retval 0 Both pending indexes are empty.
  */
-EMSCRIPTEN_KEEPALIVE std::uint32_t write_first_pending_strip_to_buffer(
-    const std::uint32_t sequence_id) noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+write_first_pending_strip_to_buffer(const std::uint32_t sequence_id) noexcept {
   Projector &projector = *projectors[sequence_id];
   pending_strip_kind = 0;
   const Strip *strip = projector.pending_inserts.first(pending_strip_cursor);
@@ -260,12 +261,13 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_first_pending_strip_to_buffer(
  * @retval 1 Another pending insertion or Mask was written.
  * @retval 0 Both pending indexes have been exhausted.
  */
-EMSCRIPTEN_KEEPALIVE std::uint32_t write_next_pending_strip_to_buffer(
-    const std::uint32_t sequence_id) noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+write_next_pending_strip_to_buffer(const std::uint32_t sequence_id) noexcept {
   Projector &projector = *projectors[sequence_id];
-  const Strip *strip = pending_strip_kind == 0
-                           ? projector.pending_inserts.next(pending_strip_cursor)
-                           : projector.pending_masks.next(pending_strip_cursor);
+  const Strip *strip =
+      pending_strip_kind == 0
+          ? projector.pending_inserts.next(pending_strip_cursor)
+          : projector.pending_masks.next(pending_strip_cursor);
   if (strip == nullptr && pending_strip_kind == 0) {
     pending_strip_kind = 1;
     strip = projector.pending_masks.first(pending_strip_cursor);

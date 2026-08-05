@@ -74,14 +74,15 @@ export function __delete<T>(
   // Resolve and mask one containing materialized Strip at a time.
   while (remaining_frame_count > 0) {
     // Resolve the containing Strip and its Footage position.
-    const selected_footage_frame_index =
-      write_strip_at_projection_frame_index_to_buffer(state.id, start_index)
+    const footage_frame_index = write_strip_at_projection_frame_index_to_buffer(
+      state.id,
+      start_index
+    )
 
     const containing_strip = read_strip_from_buffer()
 
     // Derive the bounded span and its first existing masked Frame point.
-    const strip_frame_offset =
-      selected_footage_frame_index - containing_strip[1]
+    const strip_frame_offset = footage_frame_index - containing_strip[1]
 
     const mask_frame_count = Math.min(
       remaining_frame_count,
@@ -102,8 +103,8 @@ export function __delete<T>(
     if (hard && projection_frame_index !== false) {
       state.footage.fill(
         undefined,
-        selected_footage_frame_index,
-        selected_footage_frame_index + mask_frame_count
+        footage_frame_index,
+        footage_frame_index + mask_frame_count
       )
     }
 

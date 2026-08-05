@@ -10,6 +10,7 @@ import {
   stage_strip_for_sequence,
   try_to_resolve_pending,
   write_strip_to_buffer,
+  no_projection_frame_index,
 } from '../../../wasm/index.js'
 import type { Replica } from '../../../types/type.js'
 import { isUint32 as is_uint32 } from '@sovereignbase/utils'
@@ -48,25 +49,16 @@ export function __create<T>(data?: unknown): Replica<T> {
   for (const chunk of data) {
     // Validate the transferable Strip tuple.
     if (!is_strip<T>(chunk)) continue
-    const [is_masked, frame_count, coordinate, footage] = chunk
-    if (
-      (is_masked === 0 && footage?.length !== frame_count) ||
-      (footage !== undefined && footage.length !== frame_count)
-    )
-      continue
+    const [meta, footage] = chunk
+
     // Resolve a stable append-only Footage span for supplied values.
-    const footage_frame_index = state.footage.length
 
-    if (footage) void state.footage.push(...footage)
-    else state.footage.length += frame_count
-
+    if (footage) {
+      void meta.push(state.footage.length)
+      void state.footage.push(...footage)
+    }
     // Stage without resolution so native code can process the complete graph.
-    write_strip_to_buffer(
-      is_masked,
-      frame_count,
-      footage_frame_index,
-      coordinate
-    )
+    write_strip_to_buffer(meta)
     stage_strip_for_sequence(state.id)
   }
 

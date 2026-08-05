@@ -41,6 +41,7 @@ export function __merge<T>(
   const id = state.id
   const stored_footage = state.footage
   let change: Change<T> | undefined
+  let footage_frame_index: number
 
   for (const chunk of data) {
     if (!is_strip<T>(chunk)) continue
@@ -51,10 +52,11 @@ export function __merge<T>(
 
     if (visible) {
       previous_projection_frame_count = get_projection_frame_count(id)
+      footage_frame_index = stored_footage.length
       stored_footage.push(...chunk[1]!)
     }
 
-    write_strip_to_buffer(meta)
+    void write_strip_to_buffer(meta, footage_frame_index ?? 0)
 
     const projection_frame_index = merge_strip_into_sequence(id)
     if (projection_frame_index === false) continue

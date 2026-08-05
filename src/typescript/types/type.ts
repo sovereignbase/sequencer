@@ -70,7 +70,7 @@ export type Strip<T> = [
   footage?: T[],
 ]
 
-export type StripMeta<T> = Strip<T>[0]
+export type VirtualStrip<T> = [...Strip<T>[0], footage_frame_index?: number]
 
 // Transferable Reel collection contract.
 /**

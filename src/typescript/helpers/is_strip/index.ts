@@ -1,5 +1,5 @@
-import { isUint32 as is_uint32 } from '@sovereignbase/utils'
 import type { Strip } from '../../types/type.js'
+import { is_uint32 } from '../is_uint32/index.js'
 
 /**
  * Checks whether an unknown value has the transferable `Strip<T>` tuple shape.

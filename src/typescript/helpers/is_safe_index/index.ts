@@ -1,21 +1,19 @@
 /**
- * Determines whether a value is a valid zero-based index for a given length.
+ * Determines whether an index falls within the bounds of a given length.
  *
- * @param length Non-negative collection length defining the upper boundary.
- * @param position Candidate index.
- * @param allow_end Whether the boundary immediately after the final value is
- * accepted.
- * @returns Whether `position` is a safe integer inside the selected bounds.
+ * This function checks only the lower and upper numeric boundaries. It does not
+ * verify that `index` or `length` is an integer.
+ *
+ * @param index Candidate index.
+ * @param length Exclusive upper boundary, or inclusive when `allow_end` is true.
+ * @param allow_end Whether an index equal to `length` is accepted.
+ * @returns Whether `index` falls within the selected bounds.
  */
 export function is_safe_index(
+  index: number,
   length: number,
-  position: unknown,
   allow_end = false
-): position is number {
+): index is number {
   // Validate the integer domain and selected inclusive or exclusive boundary.
-  return (
-    Number.isSafeInteger(position) &&
-    (position as number) >= 0 &&
-    (allow_end ? (position as number) <= length : (position as number) < length)
-  )
+  return index >= 0 && (allow_end ? index <= length : index < length)
 }

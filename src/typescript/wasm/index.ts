@@ -4,7 +4,7 @@
  * @module
  */
 import create_module from './raw/sequencer_wasm.mjs'
-import type { Frontier, StripMeta } from '../types/type.js'
+import type { Frontier, VirtualStrip } from '../types/type.js'
 
 /** Synchronously initialized native Sequencer module shared by this adapter. */
 const wasm = create_module()
@@ -13,17 +13,17 @@ const wasm = create_module()
 const strip_buffer_start_index = wasm._get_strip_buffer_pointer() >>> 2
 
 /** Native sentinel indicating that a merged Strip has no Projection position. */
-const no_projection_frame_index = 0xffff_ffff
+export const no_projection_frame_index = 0xffff_ffff
 
 /**
- * Copies the eight Strip metadata words from the shared WebAssembly transfer
+ * Copies the flattened Virtual Strip from the shared WebAssembly transfer
  * buffer into a new tuple.
  *
- * Later writes to the transfer buffer cannot mutate the returned metadata.
+ * Later writes to the transfer buffer cannot mutate the returned tuple.
  *
- * @returns The copied Strip metadata.
+ * @returns The copied Virtual Strip.
  */
-export function read_strip_from_buffer<T>(): StripMeta<T> {
+export function read_strip_from_buffer<T>(): VirtualStrip<T> {
   const buffer = wasm.HEAPU32
   const start = strip_buffer_start_index
 
@@ -36,26 +36,34 @@ export function read_strip_from_buffer<T>(): StripMeta<T> {
     buffer[start + 5],
     buffer[start + 6],
     buffer[start + 7],
+    buffer[start + 8],
   ]
 }
 
 /**
- * Copies eight Strip metadata words to the shared WebAssembly transfer buffer.
+ * Copies a flattened Virtual Strip to the shared WebAssembly transfer buffer.
  *
- * @param strip_meta Strip metadata to transfer.
+ * The optional Footage frame index is written only when present.
+ *
+ * @param strip Virtual Strip to transfer.
  */
-export function write_strip_to_buffer<T>(strip_meta: StripMeta<T>): void {
+export function write_strip_to_buffer<T>(strip: VirtualStrip<T>): void {
   const buffer = wasm.HEAPU32
   const start = strip_buffer_start_index
 
-  buffer[start] = strip_meta[0]
-  buffer[start + 1] = strip_meta[1]
-  buffer[start + 2] = strip_meta[2]
-  buffer[start + 3] = strip_meta[3]
-  buffer[start + 4] = strip_meta[4]
-  buffer[start + 5] = strip_meta[5]
-  buffer[start + 6] = strip_meta[6]
-  buffer[start + 7] = strip_meta[7]
+  buffer[start] = strip[0]
+  buffer[start + 1] = strip[1]
+  buffer[start + 2] = strip[2]
+  buffer[start + 3] = strip[3]
+  buffer[start + 4] = strip[4]
+  buffer[start + 5] = strip[5]
+  buffer[start + 6] = strip[6]
+  buffer[start + 7] = strip[7]
+
+  const footage_frame_index = strip[8]
+  if (footage_frame_index !== undefined) {
+    buffer[start + 8] = footage_frame_index
+  }
 }
 
 /**
@@ -156,12 +164,12 @@ export function write_next_structural_strip_to_buffer(
 
 /** Stages one buffered Strip without resolving its dependency. */
 export function stage_strip_for_sequence(sequence_id: number): void {
-  wasm._stage_strip_for_sequence(sequence_id)
+  void wasm._stage_strip_for_sequence(sequence_id)
 }
 
 /** Resolves every staged dependency reachable from Root. */
 export function try_to_resolve_pending(sequence_id: number): void {
-  wasm._try_to_resolve_pending(sequence_id)
+  void wasm._try_to_resolve_pending(sequence_id)
 }
 
 /**

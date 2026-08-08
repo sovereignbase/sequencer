@@ -12,6 +12,7 @@
 #include "../../classes/strip_index/index.hpp"
 #include "../strip/index.hpp"
 #include <cstdint>
+#include <vector>
 
 /**
  * @brief Owned runtime state that materializes one Sequence and its Projection.
@@ -48,6 +49,15 @@
  */
 struct Projector {
   // Authoritative materialized Sequence and Projection state.
+
+  /**
+   * @brief Materialized Strips indexed by their own stable start points.
+   *
+   * This is the authoritative runtime representation of structural membership.
+   * Each stored Strip has derived predecessor and successor links while its
+   * Sequence Coordinate remains immutable.
+   */
+  std::vector<Strip> strips;
 
   /**
    * @brief Materialized Strips indexed by their own stable start points.

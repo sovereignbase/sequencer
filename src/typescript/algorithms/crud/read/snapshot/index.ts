@@ -1,5 +1,5 @@
 /**
- * MAGS capture of complete retained Replica state without point issuance.
+ * Capture of complete retained Replica state without issuing new Sequence Points.
  *
  * @module
  */
@@ -11,27 +11,37 @@ import {
 } from '../../../../wasm/index.js'
 
 /**
- * Captures materialized state and unresolved operations.
+ * Captures the complete retained state of a Replica as a transferable Delta.
  *
- * Every Mask remains structural after hard deletion and garbage collection.
- * A Mask omits Footage after its JavaScript references are released. Visible
- * Strips and unreleased soft-deleted Masks include independent Footage arrays.
- * Pending indexes are runtime-only and are not serialized.
+ * Every materialized visible Strip and Mask is serialized in Sequence order,
+ * followed by any unresolved pending Strips. Runtime-only indexes and Footage
+ * positions are omitted from the serialized representation.
+ *
+ * Visible Strips include independent copies of their referenced Footage. Masks
+ * omit Footage once their consumer-owned values have been released.
+ *
+ * Snapshotting only reads already-issued Sequence material and never issues new
+ * Sequence Points.
  *
  * @typeParam T Consumer-owned value represented by one Frame.
  * @param state Replica whose complete retained state is captured.
- * @returns Complete retained state, including unresolved operations.
+ * @returns Complete transferable retained state, including unresolved pending
+ * Strips.
  */
 export function __snapshot<T>(state: Replica<T>): Delta<T> {
   const { id, footage } = state
-  // Initialize the Delta.
+
+  // Initialize the transferable retained state.
   const delta: Delta<T> = []
-  //Initialize a buffered-Strip encoder
+
+  // Append the Strip currently exposed through the shared native buffer.
   const append_buffered_strip = (): void => {
-    const meta = read_strip_from_buffer<T>()
+    const meta = read_strip_from_buffer()
     const values =
       meta[0] === 0 ? footage.slice(meta[9]!, meta[9]! + meta[2]) : undefined
+
     delete meta[9]
+
     if (values === undefined) void delta.push([meta as Strip<T>[0]])
     else
       void delta.push([
@@ -45,7 +55,7 @@ export function __snapshot<T>(state: Replica<T>): Delta<T> {
     do void append_buffered_strip()
     while (write_next_structural_strip_to_buffer(id))
 
-  // Append runtime-pending entries last without changing their Strip shape.
+  // Append unresolved pending Strips after materialized Sequence state.
   if (write_first_pending_strip_to_buffer(id))
     do void append_buffered_strip()
     while (write_next_pending_strip_to_buffer(id))

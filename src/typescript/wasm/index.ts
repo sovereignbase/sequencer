@@ -124,6 +124,8 @@ export function get_footage_frame_index(
  *
  * @param sequence_id Active local Projector identifier.
  * @param projection_frame_index Valid zero-based Frame index in the Projection.
+ *
+ * @returns The exact footage_frame_index of the requested projection_frame_index
  */
 export function write_strip_at_projection_frame_index_to_buffer(
   sequence_id: number,

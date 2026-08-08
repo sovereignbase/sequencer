@@ -44,6 +44,9 @@ export type Strip<T> = [
     /** Zero for visible; nonzero Mask states retain source-fragment boundaries. */
     is_masked: number,
 
+    /** Whether `previous` should be interpreted from right to left instead of the usual left to right. */
+    is_inverse: number,
+
     /** Positive number of consecutive Frames represented by the Strip. */
     frame_count: number,
 

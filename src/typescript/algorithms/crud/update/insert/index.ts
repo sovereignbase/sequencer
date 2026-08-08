@@ -3,22 +3,17 @@
  *
  * @module
  */
-import { is_safe_index, issue_strip_start } from '../../../helpers/index.js'
-import type {
-  Change,
-  Reel,
-  Replica,
-  SequenceCoordinate,
-  SequencePoint,
-} from '../../../types/type.js'
+import {
+  is_safe_index,
+  issue_virtual_strip,
+} from '../../../../helpers/index.js'
+import type { Change, Reel, Replica } from '../../../../types/type.js'
 import {
   get_projection_frame_count,
   merge_strip_into_sequence,
   read_strip_from_buffer,
   write_strip_at_projection_frame_index_to_buffer,
-  write_strip_to_buffer,
-} from '../../../wasm/index.js'
-import { __delete } from '../delete/index.js'
+} from '../../../../wasm/index.js'
 
 /**
  * Inserts values relative to one visible index.
@@ -39,12 +34,10 @@ import { __delete } from '../delete/index.js'
  * @returns The consumer-facing Change and transferable Reel, or `false` when
  * `values` or `index` is invalid.
  */
-export function __update<T>(
+export function __insert<T>(
   state: Replica<T>,
   index: number,
-  values: Array<T>,
-  mode: 'overwrite' | 'insert',
-  hard = false
+  values: Array<T>
 ):
   | {
       /** Minimal patch for the consumer's currently visible state. */
@@ -64,56 +57,39 @@ export function __update<T>(
   )
     return false
 
+  // Initialize the consumer Change, transferable Reel, and Root context.
+  const change: Change<T> = {}
+  const reel: Reel<T> = []
+
+  // Cache frame count
+  const frame_count = values.length
+
+  // Resolve the containing Strip and its Footage position.
   const footage_frame_index = write_strip_at_projection_frame_index_to_buffer(
     state.id,
     index
   )
+  const containing_strip = read_strip_from_buffer<T>()
 
-  // Resolve the insertion boundary and optional overwrite Masks.
-  const masking_result =
-    mode === 'overwrite'
-      ? __delete(
-          state,
-          index,
-          Math.min(index + values.length, projection_frame_count)
-        )
-      : false
+  // Derive the bounded span and its first existing Frame point.
+  const strip_frame_offset = footage_frame_index - containing_strip[9]!
 
-  // Initialize the consumer Change, transferable Reel, and Root context.
-  const change: Change<T> = masking_result ? masking_result.change : {}
-  const reel: Reel<T> = masking_result ? masking_result.reel : []
-  let previous_strip_start: SequencePoint = [0, 0, 0]
-
-  // Resolve the preceding visible Frame to its stable Sequence Point.
-  if (insertion_frame_index > 0) {
-    const previous_projection_frame_index = insertion_frame_index - 1
-
-    const [, , strip_footage_frame_index, [, strip_start]] =
-      read_strip_from_buffer()
-    previous_strip_start = [
-      strip_start[0],
-      strip_start[1] + previous_footage_frame_index - strip_footage_frame_index,
-      strip_start[2],
-    ]
-  }
-
-  // Issue the only new Sequence Point span created by this update.
-  const frame_count = values.length
-  const footage_frame_index = state.footage.length
-  const coordinate: SequenceCoordinate = [
-    previous_strip_start,
-    issue_strip_start(frame_count),
-  ]
-
-  // Append Footage, transfer the Strip, and invoke native insert ordering.
+  const meta = issue_virtual_strip<T>(
+    0,
+    index > 0 ? 0 : 1,
+    frame_count,
+    containing_strip[6],
+    containing_strip[7] + strip_frame_offset,
+    containing_strip[8],
+    state.footage.length
+  )
   void state.footage.push(...values)
-  write_strip_to_buffer(0, frame_count, footage_frame_index, coordinate)
-  merge_strip_into_sequence(state.id)
-  reel.push([])
+  void merge_strip_into_sequence(state.id)
+  void reel.push([meta, values])
 
   // Build the consumer-facing visible Change.
   for (let frame_offset = 0; frame_offset < frame_count; frame_offset++)
-    change[insertion_frame_index + frame_offset] = values[frame_offset]
+    change[index + frame_offset] = values[frame_offset]
 
   // Return both local and transferable update results.
   return { change, reel }

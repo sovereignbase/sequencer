@@ -78,30 +78,30 @@ export function __delete<T>(
       state.id,
       start_index
     )
-
-    const containing_strip = read_strip_from_buffer()
+    const containing_strip = read_strip_from_buffer<T>()
 
     // Derive the bounded span and its first existing masked Frame point.
-    const strip_frame_offset = footage_frame_index - containing_strip[1]
+    const strip_frame_offset = footage_frame_index - containing_strip[9]!
 
     const mask_frame_count = Math.min(
       remaining_frame_count,
-      containing_strip[1] - strip_frame_offset
+      containing_strip[2] - strip_frame_offset
     )
 
     // Transfer and merge the Mask.
-    const meta: Strip<T>[0] = issue_virtual_strip(
+    const meta: Strip<T>[0] = issue_virtual_strip<T>(
       1,
+      0,
       mask_frame_count,
-      containing_strip[5],
       containing_strip[6],
-      containing_strip[7]
+      containing_strip[7] + strip_frame_offset,
+      containing_strip[8]
     )
     const projection_frame_index = merge_strip_into_sequence(state.id)
 
     // Release accepted hard-deletion Footage without compacting its array.
     if (hard && projection_frame_index !== false) {
-      state.footage.fill(
+      void state.footage.fill(
         undefined,
         footage_frame_index,
         footage_frame_index + mask_frame_count

@@ -45,6 +45,7 @@ let next_counter_bits = 0x1_0000_0000
  */
 export function issue_virtual_strip<T>(
   is_masked: number,
+  is_inverse: number,
   frame_count: number,
   previous_unix_lower_bits: number,
   previous_counter_bits: number,
@@ -62,6 +63,7 @@ export function issue_virtual_strip<T>(
   }
   const meta: VirtualStrip<T> = [
     is_masked,
+    is_inverse,
     frame_count,
     realm_unix_lower_bits,
     next_counter_bits,
@@ -74,6 +76,6 @@ export function issue_virtual_strip<T>(
 
   void write_strip_to_buffer<T>(meta)
   next_counter_bits += frame_count
-  delete meta[8]
+  delete meta[9]
   return meta as Strip<T>[0]
 }

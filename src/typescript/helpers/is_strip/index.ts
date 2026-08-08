@@ -29,9 +29,10 @@ export function is_strip<T>(data: unknown): data is Strip<T> {
     is_uint32(meta[5]) &&
     is_uint32(meta[6]) &&
     is_uint32(meta[7]) &&
+    is_uint32(meta[8]) &&
     ((meta[0] === 0 && footage === undefined) ||
       (Array.isArray(footage) &&
         footage.length > 0 &&
-        footage.length === meta[1]))
+        footage.length === meta[2]))
   )
 }

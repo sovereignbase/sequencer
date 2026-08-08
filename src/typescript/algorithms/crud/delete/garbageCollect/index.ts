@@ -3,34 +3,34 @@
  *
  * @module
  */
-import type { Frontier, Replica } from '../../../types/type.js'
-import { garbage_collect_sequence } from '../../../wasm/index.js'
+import type { Acknowledgement, Replica } from '../../../../types/type.js'
+import { garbage_collect_sequence } from '../../../../wasm/index.js'
 
 /**
  * Releases Footage covered by the supplied Replica Frontiers.
  *
- * For every Realm in the first Frontier, the smallest corresponding point
+ * For every Realm in the first Acknowledgement, the smallest corresponding point
  * found in later Frontiers becomes the garbage-collection boundary. Native
  * code retains every Mask and coordinate as dependency data and returns only
  * the Footage spans whose JavaScript references may be released.
  *
- * The first supplied Frontier is reused as the selected boundary and may be
+ * The first supplied Acknowledgement is reused as the selected boundary and may be
  * overwritten. Other Frontiers are read without mutation. Every Realm eligible
  * for collection must have a corresponding point in each participating Replica
- * Frontier.
+ * Acknowledgement.
  *
  * @typeParam T Consumer-owned value represented by one Frame.
  * @param frontiers Acknowledgement Frontiers from participating Replicas.
  * @param state Replica whose acknowledged Mask Footage is released.
  */
 export function __garbageCollect<T>(
-  frontiers: Array<Frontier>,
+  frontiers: Array<Acknowledgement>,
   state: Replica<T>
 ): void {
-  // Validate that at least one participating Frontier was supplied.
+  // Validate that at least one participating Acknowledgement was supplied.
   if (frontiers.length === 0) return
 
-  // Reuse the first Frontier as the mutable Realm-wise boundary.
+  // Reuse the first Acknowledgement as the mutable Realm-wise boundary.
   const frontier = frontiers[0]
 
   // Reduce every represented Realm to the least participating counter.

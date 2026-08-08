@@ -66,7 +66,9 @@ struct Projector {
    * Each stored Strip has derived predecessor and successor links while its
    * Sequence Coordinate remains immutable.
    */
-  StripIndex<> strip_index;
+  HashTable<> hash_table;
+
+  length_table;
 
   /** @brief Total number of visible frames in the current Projection. */
   std::uint32_t projection_frame_count{0};

@@ -2,7 +2,7 @@
  * @file
  * @brief Defines the cache-oriented index for materialized and pending Strips.
  *
- * StripIndex groups stable Sequence Point keys by Realm and stores each Realm's
+ * HashTable groups stable Sequence Point keys by Realm and stores each Realm's
  * Strips in counter order. Realm lookup uses open addressing with linear
  * probing; exact point lookup within one Realm uses binary search. This keeps
  * the common Realm-local insertion and traversal paths contiguous in memory.
@@ -45,12 +45,12 @@
  * by `get` corrupts index ordering and lookup.
  * @note Any mutating index operation may invalidate every pointer returned by
  * `get` because a Realm vector or the Realm table may move.
- * @note StripIndex stores coordinates exactly as supplied. Projector algorithms
+ * @note HashTable stores coordinates exactly as supplied. Projector algorithms
  * derive runtime structural links without modifying them.
  */
 template <SequencePoint SequenceCoordinate::*indexed_sequence_point =
               &SequenceCoordinate::this_strip_start>
-class StripIndex {
+class HashTable {
 public:
   // Realm-local owned storage.
 
@@ -109,7 +109,7 @@ public:
    * @complexity O(initial_realm_capacity) initialization time and storage.
    * @throws std::bad_alloc when table allocation fails.
    */
-  explicit StripIndex(
+  explicit HashTable(
       const std::uint32_t initial_realm_capacity = minimum_realm_capacity)
       : realm_capacity(initial_realm_capacity),
         realm_index_mask(initial_realm_capacity - 1),
@@ -221,7 +221,7 @@ public:
    * point is absent.
    * @post The index is unchanged.
    * @note The pointer remains valid only until the next mutating index
-   * operation or destruction of this StripIndex.
+   * operation or destruction of this HashTable.
    * @warning The selected coordinate key must not be changed through the
    * returned pointer.
    * @complexity Expected O(1) Realm lookup plus O(log n) within one Realm;
@@ -425,7 +425,7 @@ public:
    *
    * The selected boundary is expected to be the least corresponding Frontier
    * point acknowledged across the participating Replicas. Frontier selection
-   * remains outside StripIndex; this operation applies the supplied result.
+   * remains outside HashTable; this operation applies the supplied result.
    *
    * @param frontier_buffer Selected Realm boundaries acknowledged by all
    * participating Replicas.
@@ -435,7 +435,7 @@ public:
    * @pre The Frontier contains at most one selected point per Realm.
    * @post The output buffer contains exactly the Footage ranges belonging to
    * eligible Masks; its previous contents are discarded.
-   * @post This StripIndex and all structural Projector state remain unchanged.
+   * @post This HashTable and all structural Projector state remain unchanged.
    * @note Pending Masks are unaffected because they have no resolved Footage
    * span.
    * @warning Allocation failure while writing output to this `noexcept`

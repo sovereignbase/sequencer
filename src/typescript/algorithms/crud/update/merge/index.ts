@@ -44,15 +44,16 @@ export function __merge<T>(
 
     const meta: VirtualStrip<T> = chunk[0]
     const visible: boolean = meta[0] === 0
-    if (visible) void meta.push(footage.length)
+    if (visible) {
+      void meta.push(footage.length)
+      void footage.push(...chunk[1]!)
+    }
 
     void write_strip_to_buffer<T>(meta)
 
     const projection_frame_index = merge_strip_into_sequence(id)
     if (projection_frame_index === false) continue
-
     change ??= {}
-    void footage.push(...chunk[1]!)
 
     const projection_end = projection_frame_index + meta[2]
 

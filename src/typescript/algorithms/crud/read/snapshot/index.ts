@@ -3,12 +3,12 @@
  *
  * @module
  */
-import type { Reel, Replica } from '../../../types/type.js'
+import type { Delta, Replica, Strip } from '../../../../types/type.js'
 import {
   read_strip_from_buffer,
   write_first_structural_strip_to_buffer,
   write_next_structural_strip_to_buffer,
-} from '../../../wasm/index.js'
+} from '../../../../wasm/index.js'
 
 /**
  * Captures materialized state and unresolved operations.
@@ -22,34 +22,34 @@ import {
  * @param state Replica whose complete retained state is captured.
  * @returns Complete retained state, including unresolved operations.
  */
-export function __snapshot<T>(state: Replica<T>): Reel<T> {
-  // Initialize the Reel.
-  const reel: Reel<T> = []
+export function __snapshot<T>(state: Replica<T>): Delta<T> {
+  const { id, footage } = state
+  // Initialize the Delta.
+  const delta: Delta<T> = []
   //Initialize a buffered-Strip encoder
   const append_buffered_strip = (): void => {
-    const meta = read_strip_from_buffer()
-    const footage =
-      meta[0] !== 0 && state.footage[meta[8]] === undefined
-        ? undefined
-        : (state.footage.slice(
-            state.footage[meta[8]],
-            state.footage[meta[8]] + strip_frame_count
-          ) as Array<T>)
-
-    if (footage === undefined) void reel.push([meta])
-    else void reel.push([meta, footage])
+    const meta = read_strip_from_buffer<T>()
+    const values =
+      meta[0] === 0 ? footage.slice(meta[9]!, meta[9]! + meta[2]) : undefined
+    delete meta[9]
+    if (values === undefined) void delta.push([meta as Strip<T>[0]])
+    else
+      void delta.push([
+        meta as Strip<T>[0],
+        values as Array<T>,
+      ] satisfies Strip<T>)
   }
 
   // Traverse every materialized visible Strip and Mask in Sequence order.
-  if (write_first_structural_strip_to_buffer(state.id))
+  if (write_first_structural_strip_to_buffer(id))
     do void append_buffered_strip()
-    while (write_next_structural_strip_to_buffer(state.id))
+    while (write_next_structural_strip_to_buffer(id))
 
   // Append runtime-pending entries last without changing their Strip shape.
-  if (write_first_pending_strip_to_buffer(state.id))
+  if (write_first_pending_strip_to_buffer(id))
     do void append_buffered_strip()
-    while (write_next_pending_strip_to_buffer(state.id))
+    while (write_next_pending_strip_to_buffer(id))
 
-  // Return the complete retained Reel.
-  return reel
+  // Return the complete retained Delta.
+  return delta
 }

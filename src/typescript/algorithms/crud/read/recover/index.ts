@@ -1,22 +1,4 @@
 /**
- * Projection reads, visible length inspection, and retained Footage recovery.
- *
- * @module
- */
-import type { Replica } from '../../../types/type.js'
-
-import {
-  get_footage_frame_index,
-  get_projection_frame_count,
-  read_strip_from_buffer,
-  write_first_structural_strip_to_buffer,
-  write_next_structural_strip_to_buffer,
-} from '../../../wasm/index.js'
-import { is_safe_index } from '../../../helpers/index.js'
-
-export { __find } from './find/index.js'
-export { __length } from './length/index.js'
-/**
  * Recovers every retained Footage value in structural Sequence order.
  *
  * Unlike a Projection read, recovery includes values represented by Masks.

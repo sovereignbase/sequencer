@@ -7,10 +7,8 @@ project(
   LANGUAGES CXX
 )
 
-
 add_executable(sequencer_wasm src/c++/main.cpp)
 target_compile_features(sequencer_wasm PRIVATE cxx_std_23)
-
 
 if(MSVC)
   target_compile_options(sequencer_wasm PRIVATE /W4 /permissive-)
@@ -21,12 +19,21 @@ endif()
 if(EMSCRIPTEN)
   set_target_properties(
     sequencer_wasm
-    PROPERTIES OUTPUT_NAME "sequencer_wasm" SUFFIX ".mjs"
+    PROPERTIES
+      OUTPUT_NAME "sequencer_wasm"
+      SUFFIX ".mjs"
+  )
+
+  target_compile_options(
+    sequencer_wasm
+    PRIVATE
+      -msimd128
   )
 
   target_link_options(
     sequencer_wasm
     PRIVATE
+      -msimd128
       "-sWASM=1"
       "-sMODULARIZE=1"
       "-sEXPORT_ES6=1"
@@ -42,6 +49,10 @@ if(EMSCRIPTEN)
 endif()
 
 install(TARGETS sequencer_wasm RUNTIME DESTINATION .)
+
 if(EMSCRIPTEN)
-  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/sequencer_wasm.d.mts" DESTINATION .)
+  install(
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/sequencer_wasm.d.mts"
+    DESTINATION .
+  )
 endif()

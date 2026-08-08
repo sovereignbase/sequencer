@@ -146,6 +146,30 @@ export function write_strip_at_projection_frame_index_to_buffer(
  * @param sequence_id Active local Projector identifier.
  * @returns Whether a first Snapshot Strip exists and was written.
  */
+export function write_first_pending_strip_to_buffer(
+  sequence_id: number
+): boolean {
+  return wasm._write_first_pending_strip_to_buffer(sequence_id) !== 0
+}
+
+/**
+ * Advances the materialized pending Snapshot stream.
+ *
+ * @param sequence_id Active local Projector identifier.
+ * @returns Whether another Snapshot Strip was written.
+ */
+export function write_next_pending_strip_to_buffer(
+  sequence_id: number
+): boolean {
+  return wasm._write_next_pending_strip_to_buffer(sequence_id) !== 0
+}
+
+/**
+ * Writes the first materialized Snapshot Strip to the shared buffer.
+ *
+ * @param sequence_id Active local Projector identifier.
+ * @returns Whether a first Snapshot Strip exists and was written.
+ */
 export function write_first_structural_strip_to_buffer(
   sequence_id: number
 ): boolean {
@@ -164,11 +188,6 @@ export function write_next_structural_strip_to_buffer(
   return wasm._write_next_structural_strip_to_buffer(sequence_id) !== 0
 }
 
-/** Stages one buffered Strip without resolving its dependency. */
-export function stage_strip_for_sequence(sequence_id: number): void {
-  void wasm._stage_strip_for_sequence(sequence_id)
-}
-
 /** Resolves every staged dependency reachable from Root. */
 export function try_to_resolve_pending(sequence_id: number): void {
   void wasm._try_to_resolve_pending(sequence_id)
@@ -183,7 +202,7 @@ export function try_to_resolve_pending(sequence_id: number): void {
  */
 export function get_acknowledgement_frontier(
   sequence_id: number
-): Frontier | false {
+): Acknowledgement | false {
   // Materialize one greatest indexed Strip start per represented Realm.
   const frontier_count: number =
     wasm._write_acknowledgement_frontier_to_buffer(sequence_id) >>> 0
@@ -192,7 +211,7 @@ export function get_acknowledgement_frontier(
   // Resolve the current zero-copy FrontierBuffer view.
   const buffer = wasm.HEAPU32
   let buffer_index = wasm._get_acknowledgement_frontier_buffer_pointer() >>> 2
-  const frontier = new Array<Frontier[number]>(frontier_count)
+  const frontier = new Array<Acknowledgement[number]>(frontier_count)
 
   // Copy every native Realm entry into a TypeScript Sequence Point.
   for (let realm_index = 0; realm_index < frontier_count; realm_index++) {
@@ -221,7 +240,7 @@ export function get_acknowledgement_frontier(
  */
 export function garbage_collect_sequence(
   sequence_id: number,
-  frontier: Frontier
+  frontier: Acknowledgement
 ): Uint32Array | false {
   // Validate that at least one selected Realm boundary exists.
   if (frontier.length === 0) return false

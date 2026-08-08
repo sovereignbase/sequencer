@@ -35,7 +35,7 @@
  * algorithms to update non-key Strip fields in place.
  *
  * @invariant Every occupied table slot represents exactly one Realm, identified
- * by the pair `(unix_lower_bits, random_bits)`.
+ * by the pair `(unix_lower_bits, crypto_random_bits)`.
  * @invariant Each occupied Realm vector is non-empty and ordered by the
  * selected point's `counter_bits`. Pending Strips sharing a dependency are
  * ordered by `this_strip_start`.
@@ -62,11 +62,10 @@ public:
    * `indexed_sequence_point`.
    */
   struct Realm {
-    /** @brief Random identity component shared by all indexed Realm points. */
-    std::uint32_t random_bits{0};
-
     /** @brief Unix identity component shared by all indexed Realm points. */
     std::uint32_t unix_lower_bits{0};
+    /** @brief Random identity component shared by all indexed Realm points. */
+    std::uint32_t crypto_crypto_random_bits{0};
 
     /**
      * @brief Owned Strips ordered by the selected point's counter component.
@@ -138,11 +137,12 @@ public:
    */
   inline void set(const SequencePoint &point, Strip strip) noexcept {
     // Probe for the Realm identified by the point.
-    std::uint32_t realm_index = point.random_bits & realm_index_mask;
+    std::uint32_t realm_index =
+        point.crypto_crypto_random_bits & realm_index_mask;
 
     while (!realms[realm_index].strips.empty()) {
       Realm &realm = realms[realm_index];
-      if (realm.random_bits == point.random_bits &&
+      if (realm.crypto_random_bits == point.crypto_random_bits &&
           realm.unix_lower_bits == point.unix_lower_bits) {
         // Append monotonically increasing counters without a binary search.
         if ((realm.strips.back().coordinate.*indexed_sequence_point)
@@ -203,7 +203,7 @@ public:
 
     // Initialize the first Strip of a previously unrepresented Realm.
     Realm &realm = realms[realm_index];
-    realm.random_bits = point.random_bits;
+    realm.crypto_random_bits = point.crypto_random_bits;
     realm.unix_lower_bits = point.unix_lower_bits;
     realm.strips.push_back(strip);
     realm_count++;
@@ -229,11 +229,11 @@ public:
    */
   [[nodiscard]] inline Strip *get(const SequencePoint &point) noexcept {
     // Probe for the Realm identified by the point.
-    std::uint32_t realm_index = point.random_bits & realm_index_mask;
+    std::uint32_t realm_index = point.crypto_random_bits & realm_index_mask;
 
     while (!realms[realm_index].strips.empty()) {
       Realm &realm = realms[realm_index];
-      if (realm.random_bits == point.random_bits &&
+      if (realm.crypto_random_bits == point.crypto_random_bits &&
           realm.unix_lower_bits == point.unix_lower_bits) {
         // Search the counter-ordered Realm vector for the exact key.
         const auto strip_iterator = std::lower_bound(
@@ -269,16 +269,15 @@ public:
    * @pre `frame_count > 0` and the span remains within one Realm.
    * @complexity Expected O(1) Realm lookup plus O(log n) Realm search.
    */
-  [[nodiscard]] inline Strip *
-  get(const SequencePoint &frame_span_start,
-      const std::uint32_t frame_count) noexcept {
+  [[nodiscard]] inline Strip *get(const SequencePoint &frame_span_start,
+                                  const std::uint32_t frame_count) noexcept {
     // Probe for the Realm containing the complete Frame Span.
     std::uint32_t realm_index =
-        frame_span_start.random_bits & realm_index_mask;
+        frame_span_start.crypto_random_bits & realm_index_mask;
 
     while (!realms[realm_index].strips.empty()) {
       Realm &realm = realms[realm_index];
-      if (realm.random_bits == frame_span_start.random_bits &&
+      if (realm.crypto_random_bits == frame_span_start.crypto_random_bits &&
           realm.unix_lower_bits == frame_span_start.unix_lower_bits) {
         const auto strip_iterator = std::lower_bound(
             realm.strips.begin(), realm.strips.end(),
@@ -360,11 +359,11 @@ public:
    */
   inline void remove(const SequencePoint &point) {
     // Probe for the Realm identified by the point.
-    std::uint32_t realm_index = point.random_bits & realm_index_mask;
+    std::uint32_t realm_index = point.crypto_random_bits & realm_index_mask;
 
     while (!realms[realm_index].strips.empty()) {
       Realm &realm = realms[realm_index];
-      if (realm.random_bits == point.random_bits &&
+      if (realm.crypto_random_bits == point.crypto_random_bits &&
           realm.unix_lower_bits == point.unix_lower_bits) {
         // Locate the exact counter without scanning the Realm vector.
         const auto strip_iterator = std::lower_bound(
@@ -392,7 +391,7 @@ public:
 
         while (!realms[next_realm_index].strips.empty()) {
           const std::uint32_t home_realm_index =
-              realms[next_realm_index].random_bits & realm_index_mask;
+              realms[next_realm_index].crypto_random_bits & realm_index_mask;
           if (((next_realm_index - home_realm_index) & realm_index_mask) >
               ((empty_realm_index - home_realm_index) & realm_index_mask)) {
             realms[empty_realm_index] = std::move(realms[next_realm_index]);
@@ -444,9 +443,9 @@ public:
    * @complexity Expected O(f + sum(n_r)) time for f Frontier entries and the
    * Strips scanned in each matching Realm, with O(k) output for k Masks.
    */
-  inline void garbage_collect(
-      const FrontierBuffer &frontier_buffer,
-      FootageSpanBuffer &footage_span_buffer) const noexcept {
+  inline void
+  garbage_collect(const FrontierBuffer &frontier_buffer,
+                  FootageSpanBuffer &footage_span_buffer) const noexcept {
     // Replace the previously reported Footage ranges.
     footage_span_buffer.clear();
 
@@ -457,11 +456,12 @@ public:
       const SequencePoint frontier =
           frontier_buffer.read_frontier(frontier_index);
       // Probe for the Realm represented by this Frontier entry.
-      std::uint32_t realm_index = frontier.random_bits & realm_index_mask;
+      std::uint32_t realm_index =
+          frontier.crypto_random_bits & realm_index_mask;
 
       while (!realms[realm_index].strips.empty()) {
         const Realm &realm = realms[realm_index];
-        if (realm.random_bits == frontier.random_bits &&
+        if (realm.crypto_random_bits == frontier.crypto_random_bits &&
             realm.unix_lower_bits == frontier.unix_lower_bits) {
           // Report every Mask in the acknowledged counter prefix.
           for (const Strip &strip : realm.strips) {
@@ -527,7 +527,8 @@ public:
 
     // Resolve the overwhelmingly common single Realm directly from its hash.
     if (realm_count == 1) {
-      const Realm &realm = realms[realm_hint.random_bits & realm_index_mask];
+      const Realm &realm =
+          realms[realm_hint.crypto_random_bits & realm_index_mask];
       frontier_buffer->write_frontier(realm.strips.back().coordinate.*
                                       indexed_sequence_point);
       return;
@@ -578,7 +579,8 @@ private:
         continue;
 
       std::uint32_t realm_index =
-          previous_realms[previous_realm_index].random_bits & realm_index_mask;
+          previous_realms[previous_realm_index].crypto_random_bits &
+          realm_index_mask;
       while (!realms[realm_index].strips.empty())
         realm_index = (realm_index + 1) & realm_index_mask;
 

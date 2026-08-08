@@ -1,3 +1,2 @@
 footage_span API and usage in recover + garbageCollect
 
-work on update.

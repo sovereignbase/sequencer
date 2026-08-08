@@ -30,10 +30,7 @@ import {
  * @returns The immediately materialized visible Change, or `false` when no
  * immediate Projection change is produced.
  */
-export function __merge<T>(
-  state: Replica<T>,
-  data: unknown
-): Change<T> | false {
+export function merge<T>(state: Replica<T>, data: unknown): Change<T> | false {
   if (!Array.isArray(data) || data.length < 1) return false
 
   const { id, footage } = state

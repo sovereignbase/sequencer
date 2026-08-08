@@ -4,7 +4,7 @@
  * @module
  */
 import { get_acknowledgement_frontier } from '../../../wasm/index.js'
-import type { Frontier, Replica } from '../../../types/type.js'
+import type { Acknowledgement, Replica } from '../../../types/type.js'
 
 /**
  * Reports one Replica's realm-indexed acknowledgement Frontier.
@@ -17,7 +17,7 @@ import type { Frontier, Replica } from '../../../types/type.js'
  * @param state Replica whose materialized Sequence is acknowledged.
  * @returns The Replica Frontier, or `false` when no Strip is materialized.
  */
-export function __acknowledge<T>(state: Replica<T>): Frontier | false {
+export function acknowledge<T>(state: Replica<T>): Acknowledgement | false {
   // Copy the native Realm Frontier into TypeScript-owned tuples.
   return get_acknowledgement_frontier(state.id)
 }

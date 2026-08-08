@@ -1,3 +1,10 @@
+import type { Replica } from '../../../types/type.js'
+import {
+  read_strip_from_buffer,
+  write_first_structural_strip_to_buffer,
+  write_next_structural_strip_to_buffer,
+} from '../../../wasm/index.js'
+
 /**
  * Recovers every retained Footage value in structural Sequence order.
  *
@@ -9,7 +16,7 @@
  * @param state Replica whose retained values are recovered.
  * @returns Dense values in structural Sequence order.
  */
-export function __recover<T>(state: Replica<T>): Array<T> {
+export function recover<T>(state: Replica<T>): Array<T> {
   // Initialize structural traversal and defer result allocation while Footage
   // remains contiguous in Sequence order.
   if (!write_first_structural_strip_to_buffer(state.id)) return []

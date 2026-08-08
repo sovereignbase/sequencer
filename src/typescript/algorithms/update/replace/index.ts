@@ -4,9 +4,9 @@
  * @module
  */
 
-import { __delete } from '../../delete/index.js'
-import { __insert } from '../insert/index.js'
-import type { Replica, Result } from '../../../../types/type.js'
+import { remove } from '../../delete/index.js'
+import { insert } from '../insert/index.js'
+import type { Replica, Result } from '../../../types/type.js'
 
 /**
  * Replaces visible Frames starting at one Projection index.
@@ -25,17 +25,17 @@ import type { Replica, Result } from '../../../../types/type.js'
  * @returns The combined local Change and transferable Delta, or `false` when
  * the deletion cannot be performed.
  */
-export function __replace<T>(
+export function replace<T>(
   state: Replica<T>,
   index: number,
   values: Array<T>,
   hard = false
 ): Result<T> {
-  const result = __delete(state, index, index + values.length, hard)
+  const result = remove(state, index, index + values.length, hard)
 
   if (!result) return false
 
-  const additional_result = __insert(state, index, values)
+  const additional_result = insert(state, index, values)
 
   if (!additional_result) return result
 

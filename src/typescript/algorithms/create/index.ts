@@ -3,8 +3,8 @@
  *
  * @module
  */
-import { clear_sequence, initialize_sequence } from '../../../wasm/index.js'
-import type { Replica } from '../../../types/type.js'
+import { clear_sequence, initialize_sequence } from '../../wasm/index.js'
+import type { Replica } from '../../types/type.js'
 import { __merge } from '../update/index.js'
 
 /** Releases the native Projector after its JavaScript Replica is collected. */

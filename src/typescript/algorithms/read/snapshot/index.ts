@@ -3,12 +3,14 @@
  *
  * @module
  */
-import type { Delta, Replica, Strip } from '../../../../types/type.js'
+import type { Delta, Replica, Strip } from '../../../types/type.js'
 import {
   read_strip_from_buffer,
   write_first_structural_strip_to_buffer,
   write_next_structural_strip_to_buffer,
-} from '../../../../wasm/index.js'
+  write_first_pending_strip_to_buffer,
+  write_next_pending_strip_to_buffer,
+} from '../../../wasm/index.js'
 
 /**
  * Captures the complete retained state of a Replica as a transferable Delta.
@@ -28,7 +30,7 @@ import {
  * @returns Complete transferable retained state, including unresolved pending
  * Strips.
  */
-export function __snapshot<T>(state: Replica<T>): Delta<T> {
+export function snapshot<T>(state: Replica<T>): Delta<T> {
   const { id, footage } = state
 
   // Initialize the transferable retained state.

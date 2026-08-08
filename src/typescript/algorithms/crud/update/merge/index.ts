@@ -34,7 +34,7 @@ export function __merge<T>(
   state: Replica<T>,
   data: unknown
 ): Change<T> | false {
-  if (!Array.isArray(data)) return false
+  if (!Array.isArray(data) || data.length < 1) return false
 
   const { id, footage } = state
   let change: Change<T>

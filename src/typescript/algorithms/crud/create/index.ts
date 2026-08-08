@@ -13,12 +13,10 @@ import {
 } from '../../../wasm/index.js'
 import type { Replica } from '../../../types/type.js'
 import { isUint32 as is_uint32 } from '@sovereignbase/utils'
+import { __merge } from '../update/index.js'
 
 /** Releases the native Projector after its JavaScript Replica is collected. */
-const finalization_registry = new FinalizationRegistry((held_value) => {
-  if (!is_uint32(held_value)) return
-  void clear_sequence(held_value)
-})
+const finalization_registry = new FinalizationRegistry<number>(clear_sequence)
 
 /**
  * Creates an independently maintained sequence state.
@@ -41,28 +39,7 @@ export function __create<T>(data?: unknown): Replica<T> {
   }
   void finalization_registry.register(state, state.id)
 
-  // Validate the optional initialization Reel container.
-  if (!Array.isArray(data) || data.length < 1) return state
-
-  // Integrate structurally valid retained Strips in supplied Reel order.
-  for (const chunk of data) {
-    // Validate the transferable Strip tuple.
-    if (!is_strip<T>(chunk)) continue
-    const [meta, footage] = chunk
-
-    // Resolve a stable append-only Footage span for supplied values.
-    if (footage) {
-      void meta.push(state.footage.length)
-      void state.footage.push(...footage)
-    }
-
-    // Stage without resolution so native code can process the complete graph.
-    write_strip_to_buffer(meta)
-    stage_strip_for_sequence(state.id)
-  }
-
-  // Resolve the complete staged dependency graph once, beginning at Root.
-  try_to_resolve_pending(state.id)
+  void __merge<T>(state, data)
 
   // Return the independently maintained Replica.
   return state

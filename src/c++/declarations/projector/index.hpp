@@ -93,7 +93,7 @@ struct Projector {
    * names the exact primary-index key of its containing visible Strip. Its
    * `coordinate.this_strip_start` already names the first masked Frame.
    */
-  StripIndex<&SequenceCoordinate::previous_strip_start> pending_masks;
+  StripIndex<&SequenceCoordinate::previous_strip_end> pending_masks;
 
   /**
    * @brief Visible Strips awaiting their placement Frame.
@@ -102,5 +102,5 @@ struct Projector {
    * `coordinate.previous_strip_start`, the Root or Frame after which it is to
    * be placed. Materialization preserves that dependency.
    */
-  StripIndex<&SequenceCoordinate::previous_strip_start> pending_inserts;
+  StripIndex<&SequenceCoordinate::previous_strip_end> pending_inserts;
 };

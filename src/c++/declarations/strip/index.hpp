@@ -51,6 +51,13 @@ struct Strip {
   std::uint32_t is_masked;
 
   /**
+   * Whether `previous` is interpreted from right to left instead of left to
+   * right.
+   *
+   */
+  std::uint32_t is_inverse;
+
+  /**
    * @brief Number of consecutive frames in the represented Frame Span.
    *
    * This is also the length of the corresponding Footage region.
@@ -82,16 +89,25 @@ struct Strip {
    * The first retained Strip stores the Root. This runtime link is derived by
    * the Projector and is deliberately absent from serialized Reels.
    */
-  SequencePoint previous_structural_strip_start;
+  SequencePoint previous_strip_end;
 
   /**
-   * @brief Start point of the next materialized Strip.
+   * @brief Start point of the right materialized Strip.
    *
    * The last retained Strip stores `unlinked_strip_start`. This runtime link is
    * derived by the Projector, is not trusted from transferred data, and is
    * deliberately absent from serialized Reels.
    */
-  SequencePoint next_strip_start;
+  SequencePoint right_strip_start;
+
+  /**
+   * @brief Start point of the left materialized Strip.
+   *
+   * The last retained Strip stores `unlinked_strip_start`. This runtime link is
+   * derived by the Projector, is not trusted from transferred data, and is
+   * deliberately absent from serialized Reels.
+   */
+  SequencePoint left_strip_start;
 
   /**
    * @brief Previous material fragment of the same originally issued Strip.
@@ -99,7 +115,7 @@ struct Strip {
    * Root means this fragment begins its source. The link is runtime-only and
    * is rebuilt by splitting or Snapshot resolution.
    */
-  SequencePoint previous_source_strip_start;
+  SequencePoint right_sibling_frames_start;
 
   /**
    * @brief Next material fragment of the same originally issued Strip.
@@ -107,20 +123,10 @@ struct Strip {
    * `unlinked_strip_start` means this fragment ends its source. The link is
    * runtime-only and never participates in sibling conflict resolution.
    */
-  SequencePoint next_source_strip_start;
+  SequencePoint left_siblings_frames_start;
 };
 
-/** @brief Visibility bit identifying a materialized Mask. */
-inline constexpr std::uint32_t masked_strip_state = 1;
-
-/** @brief Mask-state bit identifying a following source-Strip fragment. */
-inline constexpr std::uint32_t mask_has_source_successor = 2;
-
-/** @brief Mask-state bit identifying continuation from a source prefix. */
-inline constexpr std::uint32_t mask_is_source_continuation = 4;
-
 // Sequence-point containment result sentinel.
-
 /**
  * @brief Offset sentinel denoting that a Sequence Point is outside a Strip.
  *

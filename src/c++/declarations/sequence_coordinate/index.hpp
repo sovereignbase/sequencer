@@ -51,5 +51,5 @@ struct SequenceCoordinate {
    * that value as their dependency key. The Projector never rewrites it as a
    * runtime link.
    */
-  SequencePoint previous_strip_start;
+  SequencePoint previous_strip_end;
 };

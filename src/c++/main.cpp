@@ -52,8 +52,8 @@ static FrontierBuffer frontier_buffer;
 static FootageSpanBuffer footage_span_buffer;
 
 /** @brief Shared cursor for synchronous pending-Strip Snapshot traversal. */
-static StripIndex<&SequenceCoordinate::previous_strip_start>::Cursor
-    pending_strip_cursor;
+static StripIndex <
+    &SequenceCoordinate::previous_strip_end::Cursor pending_strip_cursor;
 
 /** @brief Pending index currently traversed: zero inserts, one Masks. */
 static std::uint32_t pending_strip_kind{0};
@@ -115,6 +115,10 @@ clear_sequence(const std::uint32_t sequence_id) noexcept {
   available_sequence_ids.push_back(sequence_id);
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// READS
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /**
  * @brief Return the Frame count of one Replica's Projection.
  *
@@ -154,6 +158,255 @@ get_footage_frame_index(const std::uint32_t sequence_id,
   return strip.footage_frame_index + projection_frame_index -
          projector->gate_projection_frame_index;
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// MERGING
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @brief Integrate the Strip currently encoded in StripBuffer into a Replica.
+ *
+ * A Reel crosses this interface one Strip at a time; locally issued Strips use
+ * the same integration path. The incoming Sequence Coordinate is resolved
+ * against the retained Sequence. A Mask's `previous_strip_start` names the
+ * indexed start of its containing Strip and its `this_strip_start` names the
+ * first masked Frame point within that Strip. Only visible updates issue new
+ * Sequence Points; Masks reuse existing points.
+ * If its previous point is not materialized, the Strip remains pending under
+ * that exact dependency. A Mask is accepted only when its complete Frame Span
+ * fits within one visible Strip; a Mask targeting another Mask or extending
+ * beyond its containing Strip is discarded without retention. A visible Strip
+ * is inserted after the located Frame. Concurrent visible successors are
+ * ordered by `this_strip_start`: ascending after a non-Root point and
+ * descending after the Root. This direction is derived during placement and
+ * adds no flag, auxiliary index, or retained ordering metadata.
+ *
+ * @param sequence_id Identifier of the sequence receiving the buffered strip.
+ * @return Projection frame index at which the incoming Strip begins. For a
+ * Mask, the index is measured before its Frame Span leaves the Projection.
+ * `no_projection_frame_index` means the Strip remained pending or was
+ * discarded.
+ * @pre `sequence_id` identifies an active Projector.
+ * @pre StripBuffer contains one valid transferable Strip representation.
+ * @post Every accepted Strip is linked into retained Sequence order.
+ * @post A visible insertion resolves pending dependencies made satisfiable by
+ * its newly materialized start; applying a Mask does not traverse pending
+ * indexes.
+ */
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
+  // Decode the incoming Strip and its coordinate dependency.
+  Projector *projector = &*projectors[sequence_id];
+  const Strip incoming_strip = strip_buffer.read_strip();
+  const SequencePoint &incoming_strip_start =
+      incoming_strip.coordinate.this_strip_start;
+  const SequencePoint &previous_strip_start =
+      incoming_strip.coordinate.previous_strip_end;
+
+  const auto containing_strip_result =
+      run_projector_to_sequence_point(projector, &previous_strip_start);
+
+  // Validate and apply a Mask against its exact containing Strip start.
+  if (incoming_strip.is_masked > 0) {
+    // Use the containing-start shortcut while it still contains the target.
+    const Strip *containing_strip =
+        projector->strip_index.get(previous_strip_start);
+    std::uint32_t mask_frame_offset =
+        containing_strip == nullptr
+            ? sequence_point_outside_strip
+            : strip_contains_sequence_point(containing_strip,
+                                            &incoming_strip_start);
+
+    // Resolve a split target by its immutable logical Sequence Point.
+    if (mask_frame_offset == sequence_point_outside_strip ||
+        !(projector->gate_strip_start ==
+          containing_strip->coordinate.this_strip_start)) {
+      const auto containing_strip_result =
+          run_projector_to_sequence_point(projector, &incoming_strip_start);
+      if (std::holds_alternative<bool>(containing_strip_result)) {
+        projector->pending_masks.set(previous_strip_start, incoming_strip);
+        return no_projection_frame_index;
+      }
+      containing_strip = std::get<0>(containing_strip_result).first;
+      mask_frame_offset = std::get<0>(containing_strip_result).second;
+    }
+
+    // Apply the logical Frame Span and return its former Projection position.
+    const std::uint32_t strip_projection_frame_index =
+        projector->gate_projection_frame_index +
+        (containing_strip->is_masked == 0 ? mask_frame_offset : 0);
+    mask_strip(projector, containing_strip, mask_frame_offset, incoming_strip);
+    return strip_projection_frame_index;
+  }
+
+  // Make repeated visible Reel delivery idempotent before rewriting linkage.
+  if (projector->strip_index.get(incoming_strip_start) != nullptr)
+    return no_projection_frame_index;
+
+  // Place a visible Root successor in descending Strip-start order.
+  if (previous_strip_start == SequencePoint{})
+    return insert_strip(projector, nullptr, 0, incoming_strip);
+
+  // Resolve the non-Root Frame after which the visible Strip belongs.
+  const auto containing_strip_result =
+      run_projector_to_sequence_point(projector, &previous_strip_start);
+
+  // Retain the visible Strip while its coordinate dependency is absent.
+  if (std::holds_alternative<bool>(containing_strip_result)) {
+    projector->pending_inserts.set(previous_strip_start, incoming_strip);
+    return no_projection_frame_index;
+  }
+
+  // Resolve the base Projection position of the visible insertion.
+  const auto [previous_strip, previous_strip_frame_offset] =
+      std::get<0>(containing_strip_result);
+  const std::uint32_t strip_projection_frame_index =
+      projector->gate_projection_frame_index +
+      (previous_strip->is_masked == 0 ? previous_strip_frame_offset + 1 : 0);
+
+  // Insert in ascending non-Root order and add any crossed visible span.
+  return strip_projection_frame_index +
+         insert_strip(projector, previous_strip, previous_strip_frame_offset,
+                      incoming_strip);
+}
+
+/**
+ * @brief Resolve every staged dependency reachable from Root.
+ *
+ * Root-visible Strips seed ordinary native insertion. `insert_strip` then
+ * drains pending insertions and Masks for each newly materialized Frame Span.
+ * Entries whose dependency remains absent stay in their pending index.
+ *
+ * @param sequence_id Identifier of the sequence whose staged graph is resolved.
+ * @pre `sequence_id` identifies an active Projector.
+ */
+EMSCRIPTEN_KEEPALIVE void
+resolve_pending(const std::uint32_t sequence_id) noexcept {
+  Projector *projector = &*projectors[sequence_id];
+  const SequencePoint root{};
+
+  while (const Strip *root_strip = projector->pending_inserts.get(root)) {
+    const Strip root_strip_copy = *root_strip;
+    projector->pending_inserts.remove(root);
+    if (projector->strip_index.get(
+            root_strip_copy.coordinate.this_strip_start) != nullptr)
+      continue;
+    static_cast<void>(insert_strip(projector, nullptr, 0, root_strip_copy));
+  }
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ACKNOWLEDGING
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @brief Return the current shared Frontier buffer address.
+ *
+ * Each three-word entry is one Sequence Point in the current Frontier. Its Unix
+ * and random components identify a Realm; its counter is the greatest locally
+ * materialized Strip start in that Realm.
+ *
+ * @return Pointer to the first Frontier entry, or `nullptr` when empty.
+ * @note The address remains valid only until another operation resizes or
+ * rewrites FrontierBuffer.
+ * @see FrontierBuffer
+ */
+EMSCRIPTEN_KEEPALIVE std::uint32_t *
+get_acknowledgement_frontier_buffer_pointer() noexcept {
+  // Expose the current shared Frontier transfer storage.
+  return frontier_buffer.get_memory_pointer();
+}
+
+/**
+ * @brief Materialize one Replica's Frontier in the shared buffer.
+ *
+ * StripIndex writes the greatest materialized Strip start of every represented
+ * Realm directly to FrontierBuffer. Visible Strips and Masks contribute
+ * equally: acknowledgement concerns materialized Sequence state, while Mask
+ * eligibility is decided during garbage collection. Entry order is unspecified.
+ *
+ * @param sequence_id Identifier of the active sequence to acknowledge.
+ * @return Number of Realm entries written to the Frontier buffer.
+ * @pre `sequence_id` identifies an active Projector.
+ * @post FrontierBuffer contains exactly one Sequence Point for every Realm
+ * represented by a materialized Strip in this Replica.
+ * @complexity O(c) time and O(r) retained output space, where c is the realm
+ * table capacity and r is its occupied realm count.
+ */
+EMSCRIPTEN_KEEPALIVE std::uint32_t write_acknowledgement_frontier_to_buffer(
+    const std::uint32_t sequence_id) noexcept {
+  // Replace the shared buffer with this Replica's Frontier.
+  const Projector *projector = &*projectors[sequence_id];
+  projector->strip_index.write_acknowledgement_frontier(
+      &frontier_buffer, projector->last_strip_start);
+  return frontier_buffer.get_frontier_count();
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// GARBAGE COLLECTION
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @brief Prepare FrontierBuffer to receive a garbage-collection Frontier.
+ *
+ * The returned memory contains `frontier_count` writable three-word entries.
+ * The caller fills those entries with the Realm-wise least points selected
+ * across the participating Replica Frontiers. Preparing the buffer may change
+ * its address, so callers must use this return value rather than a previously
+ * observed pointer.
+ *
+ * @param frontier_count Number of Realm entries in the selected Frontier.
+ * @return Pointer to the first writable Frontier word, or `nullptr` for zero.
+ * @post FrontierBuffer has space for exactly `frontier_count` complete entries.
+ * @note Every prepared word must be initialized before collection begins.
+ */
+EMSCRIPTEN_KEEPALIVE std::uint32_t *prepare_garbage_collection_frontier_buffer(
+    const std::uint32_t frontier_count) noexcept {
+  // Allocate the exact writable Frontier transfer span.
+  frontier_buffer.resize(frontier_count);
+  return frontier_buffer.get_memory_pointer();
+}
+
+/**
+ * @brief Return the buffer of Footage spans released by garbage collection.
+ *
+ * Every result entry is `(footage_frame_index, frame_count)`. The address may
+ * change whenever another garbage collection rewrites FootageSpanBuffer.
+ *
+ * @return Pointer to the first released span, or `nullptr` when empty.
+ * @note The buffer describes only the most recent collection.
+ * @see FootageSpanBuffer
+ */
+EMSCRIPTEN_KEEPALIVE std::uint32_t *
+get_garbage_collection_footage_span_buffer_pointer() noexcept {
+  // Expose Footage spans released by the most recent collection.
+  return footage_span_buffer.get_memory_pointer();
+}
+
+/**
+ * @brief Release Footage covered by acknowledged Masks.
+ *
+ * For every Frontier entry, Masks in the same Realm at or below its counter
+ * report their consumer-owned Footage spans. Every Mask, coordinate, and
+ * structural link remains materialized as permanent dependency data.
+ *
+ * @param sequence_id Identifier of the active sequence to collect.
+ * @return Number of released Footage spans written to the result buffer.
+ * @pre `sequence_id` identifies an active Projector.
+ * @pre FrontierBuffer contains at most one selected point per represented
+ * Realm, derived from the required Replica Frontiers.
+ * @post Projector state and retained Strip metadata are unchanged.
+ */
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+garbage_collect_sequence(const std::uint32_t sequence_id) noexcept {
+  // Apply the prepared Frontier and replace the released Footage spans.
+  Projector &projector = *projectors[sequence_id];
+  projector.strip_index.garbage_collect(frontier_buffer, footage_span_buffer);
+  return footage_span_buffer.get_span_count();
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SEMANTIC STRIP WRITES
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * @brief Write the Strip containing a Projection frame index to StripBuffer.
@@ -289,259 +542,5 @@ write_next_pending_strip_to_buffer(const std::uint32_t sequence_id) noexcept {
 EMSCRIPTEN_KEEPALIVE std::uint32_t *get_strip_buffer_pointer() noexcept {
   // Expose the fixed shared Strip transfer storage.
   return strip_buffer.get_memory_pointer();
-}
-
-/**
- * @brief Return the current shared Frontier buffer address.
- *
- * Each three-word entry is one Sequence Point in the current Frontier. Its Unix
- * and random components identify a Realm; its counter is the greatest locally
- * materialized Strip start in that Realm.
- *
- * @return Pointer to the first Frontier entry, or `nullptr` when empty.
- * @note The address remains valid only until another operation resizes or
- * rewrites FrontierBuffer.
- * @see FrontierBuffer
- */
-EMSCRIPTEN_KEEPALIVE std::uint32_t *
-get_acknowledgement_frontier_buffer_pointer() noexcept {
-  // Expose the current shared Frontier transfer storage.
-  return frontier_buffer.get_memory_pointer();
-}
-
-/**
- * @brief Materialize one Replica's Frontier in the shared buffer.
- *
- * StripIndex writes the greatest materialized Strip start of every represented
- * Realm directly to FrontierBuffer. Visible Strips and Masks contribute
- * equally: acknowledgement concerns materialized Sequence state, while Mask
- * eligibility is decided during garbage collection. Entry order is unspecified.
- *
- * @param sequence_id Identifier of the active sequence to acknowledge.
- * @return Number of Realm entries written to the Frontier buffer.
- * @pre `sequence_id` identifies an active Projector.
- * @post FrontierBuffer contains exactly one Sequence Point for every Realm
- * represented by a materialized Strip in this Replica.
- * @complexity O(c) time and O(r) retained output space, where c is the realm
- * table capacity and r is its occupied realm count.
- */
-EMSCRIPTEN_KEEPALIVE std::uint32_t write_acknowledgement_frontier_to_buffer(
-    const std::uint32_t sequence_id) noexcept {
-  // Replace the shared buffer with this Replica's Frontier.
-  const Projector *projector = &*projectors[sequence_id];
-  projector->strip_index.write_acknowledgement_frontier(
-      &frontier_buffer, projector->last_strip_start);
-  return frontier_buffer.get_frontier_count();
-}
-
-/**
- * @brief Prepare FrontierBuffer to receive a garbage-collection Frontier.
- *
- * The returned memory contains `frontier_count` writable three-word entries.
- * The caller fills those entries with the Realm-wise least points selected
- * across the participating Replica Frontiers. Preparing the buffer may change
- * its address, so callers must use this return value rather than a previously
- * observed pointer.
- *
- * @param frontier_count Number of Realm entries in the selected Frontier.
- * @return Pointer to the first writable Frontier word, or `nullptr` for zero.
- * @post FrontierBuffer has space for exactly `frontier_count` complete entries.
- * @note Every prepared word must be initialized before collection begins.
- */
-EMSCRIPTEN_KEEPALIVE std::uint32_t *prepare_garbage_collection_frontier_buffer(
-    const std::uint32_t frontier_count) noexcept {
-  // Allocate the exact writable Frontier transfer span.
-  frontier_buffer.resize(frontier_count);
-  return frontier_buffer.get_memory_pointer();
-}
-
-/**
- * @brief Return the buffer of Footage spans released by garbage collection.
- *
- * Every result entry is `(footage_frame_index, frame_count)`. The address may
- * change whenever another garbage collection rewrites FootageSpanBuffer.
- *
- * @return Pointer to the first released span, or `nullptr` when empty.
- * @note The buffer describes only the most recent collection.
- * @see FootageSpanBuffer
- */
-EMSCRIPTEN_KEEPALIVE std::uint32_t *
-get_garbage_collection_footage_span_buffer_pointer() noexcept {
-  // Expose Footage spans released by the most recent collection.
-  return footage_span_buffer.get_memory_pointer();
-}
-
-/**
- * @brief Release Footage covered by acknowledged Masks.
- *
- * For every Frontier entry, Masks in the same Realm at or below its counter
- * report their consumer-owned Footage spans. Every Mask, coordinate, and
- * structural link remains materialized as permanent dependency data.
- *
- * @param sequence_id Identifier of the active sequence to collect.
- * @return Number of released Footage spans written to the result buffer.
- * @pre `sequence_id` identifies an active Projector.
- * @pre FrontierBuffer contains at most one selected point per represented
- * Realm, derived from the required Replica Frontiers.
- * @post Projector state and retained Strip metadata are unchanged.
- */
-EMSCRIPTEN_KEEPALIVE std::uint32_t
-garbage_collect_sequence(const std::uint32_t sequence_id) noexcept {
-  // Apply the prepared Frontier and replace the released Footage spans.
-  Projector &projector = *projectors[sequence_id];
-  projector.strip_index.garbage_collect(frontier_buffer, footage_span_buffer);
-  return footage_span_buffer.get_span_count();
-}
-
-/**
- * @brief Stage one buffered Strip without resolving its dependency.
- *
- * Visible Strips and Masks enter their dedicated pending index under the
- * transferred previous point. Staging the complete input first lets one later
- * Root traversal resolve the graph without TypeScript-driven replay.
- *
- * @param sequence_id Identifier of the sequence receiving staged input.
- * @pre `sequence_id` identifies an active Projector.
- * @pre StripBuffer contains one structurally valid Strip.
- */
-EMSCRIPTEN_KEEPALIVE void
-stage_strip_for_sequence(const std::uint32_t sequence_id) noexcept {
-  Projector &projector = *projectors[sequence_id];
-  const Strip staged_strip = strip_buffer.read_strip();
-  const SequencePoint &dependency =
-      staged_strip.coordinate.previous_strip_start;
-  if (staged_strip.is_masked == 0)
-    projector.pending_inserts.set(dependency, staged_strip);
-  else
-    projector.pending_masks.set(dependency, staged_strip);
-}
-
-/**
- * @brief Resolve every staged dependency reachable from Root.
- *
- * Root-visible Strips seed ordinary native insertion. `insert_strip` then
- * drains pending insertions and Masks for each newly materialized Frame Span.
- * Entries whose dependency remains absent stay in their pending index.
- *
- * @param sequence_id Identifier of the sequence whose staged graph is resolved.
- * @pre `sequence_id` identifies an active Projector.
- */
-EMSCRIPTEN_KEEPALIVE void
-try_to_resolve_pending(const std::uint32_t sequence_id) noexcept {
-  Projector *projector = &*projectors[sequence_id];
-  const SequencePoint root{};
-
-  while (const Strip *root_strip = projector->pending_inserts.get(root)) {
-    const Strip root_strip_copy = *root_strip;
-    projector->pending_inserts.remove(root);
-    if (projector->strip_index.get(
-            root_strip_copy.coordinate.this_strip_start) != nullptr)
-      continue;
-    static_cast<void>(insert_strip(projector, nullptr, 0, root_strip_copy));
-  }
-}
-
-/**
- * @brief Integrate the Strip currently encoded in StripBuffer into a Replica.
- *
- * A Reel crosses this interface one Strip at a time; locally issued Strips use
- * the same integration path. The incoming Sequence Coordinate is resolved
- * against the retained Sequence. A Mask's `previous_strip_start` names the
- * indexed start of its containing Strip and its `this_strip_start` names the
- * first masked Frame point within that Strip. Only visible updates issue new
- * Sequence Points; Masks reuse existing points.
- * If its previous point is not materialized, the Strip remains pending under
- * that exact dependency. A Mask is accepted only when its complete Frame Span
- * fits within one visible Strip; a Mask targeting another Mask or extending
- * beyond its containing Strip is discarded without retention. A visible Strip
- * is inserted after the located Frame. Concurrent visible successors are
- * ordered by `this_strip_start`: ascending after a non-Root point and
- * descending after the Root. This direction is derived during placement and
- * adds no flag, auxiliary index, or retained ordering metadata.
- *
- * @param sequence_id Identifier of the sequence receiving the buffered strip.
- * @return Projection frame index at which the incoming Strip begins. For a
- * Mask, the index is measured before its Frame Span leaves the Projection.
- * `no_projection_frame_index` means the Strip remained pending or was
- * discarded.
- * @pre `sequence_id` identifies an active Projector.
- * @pre StripBuffer contains one valid transferable Strip representation.
- * @post Every accepted Strip is linked into retained Sequence order.
- * @post A visible insertion resolves pending dependencies made satisfiable by
- * its newly materialized start; applying a Mask does not traverse pending
- * indexes.
- */
-EMSCRIPTEN_KEEPALIVE std::uint32_t
-merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
-  // Decode the incoming Strip and its coordinate dependency.
-  Projector *projector = &*projectors[sequence_id];
-  const Strip incoming_strip = strip_buffer.read_strip();
-  const SequencePoint &incoming_strip_start =
-      incoming_strip.coordinate.this_strip_start;
-  const SequencePoint &previous_strip_start =
-      incoming_strip.coordinate.previous_strip_start;
-
-  // Validate and apply a Mask against its exact containing Strip start.
-  if (incoming_strip.is_masked != 0) {
-    // Use the containing-start shortcut while it still contains the target.
-    const Strip *containing_strip =
-        projector->strip_index.get(previous_strip_start);
-    std::uint32_t mask_frame_offset =
-        containing_strip == nullptr
-            ? sequence_point_outside_strip
-            : strip_contains_sequence_point(containing_strip,
-                                            &incoming_strip_start);
-
-    // Resolve a split target by its immutable logical Sequence Point.
-    if (mask_frame_offset == sequence_point_outside_strip ||
-        !(projector->gate_strip_start ==
-          containing_strip->coordinate.this_strip_start)) {
-      const auto containing_strip_result =
-          run_projector_to_sequence_point(projector, &incoming_strip_start);
-      if (std::holds_alternative<bool>(containing_strip_result)) {
-        projector->pending_masks.set(previous_strip_start, incoming_strip);
-        return no_projection_frame_index;
-      }
-      containing_strip = std::get<0>(containing_strip_result).first;
-      mask_frame_offset = std::get<0>(containing_strip_result).second;
-    }
-
-    // Apply the logical Frame Span and return its former Projection position.
-    const std::uint32_t strip_projection_frame_index =
-        projector->gate_projection_frame_index +
-        (containing_strip->is_masked == 0 ? mask_frame_offset : 0);
-    mask_strip(projector, containing_strip, mask_frame_offset, incoming_strip);
-    return strip_projection_frame_index;
-  }
-
-  // Make repeated visible Reel delivery idempotent before rewriting linkage.
-  if (projector->strip_index.get(incoming_strip_start) != nullptr)
-    return no_projection_frame_index;
-
-  // Place a visible Root successor in descending Strip-start order.
-  if (previous_strip_start == SequencePoint{})
-    return insert_strip(projector, nullptr, 0, incoming_strip);
-
-  // Resolve the non-Root Frame after which the visible Strip belongs.
-  const auto containing_strip_result =
-      run_projector_to_sequence_point(projector, &previous_strip_start);
-
-  // Retain the visible Strip while its coordinate dependency is absent.
-  if (std::holds_alternative<bool>(containing_strip_result)) {
-    projector->pending_inserts.set(previous_strip_start, incoming_strip);
-    return no_projection_frame_index;
-  }
-
-  // Resolve the base Projection position of the visible insertion.
-  const auto [previous_strip, previous_strip_frame_offset] =
-      std::get<0>(containing_strip_result);
-  const std::uint32_t strip_projection_frame_index =
-      projector->gate_projection_frame_index +
-      (previous_strip->is_masked == 0 ? previous_strip_frame_offset + 1 : 0);
-
-  // Insert in ascending non-Root order and add any crossed visible span.
-  return strip_projection_frame_index +
-         insert_strip(projector, previous_strip, previous_strip_frame_offset,
-                      incoming_strip);
 }
 } // extern "C"

@@ -35,6 +35,14 @@ struct SequencePoint {
   // Realm identity and lineage lanes.
 
   /**
+   * @brief Random component of the Realm identity.
+   *
+   * This component is the final deterministic cross-Realm tie-break, never the
+   * primary ordering component.
+   */
+  std::uint32_t crypto_random_bits;
+
+  /**
    * @brief Lower 32 bits of the issuing Realm's Unix-time component.
    *
    * Together with `random_bits`, this identifies the Realm to which an ordinary
@@ -48,14 +56,6 @@ struct SequencePoint {
    * Adding a frame offset within one Strip advances this component only.
    */
   std::uint32_t counter_bits;
-
-  /**
-   * @brief Random component of the Realm identity.
-   *
-   * This component is the final deterministic cross-Realm tie-break, never the
-   * primary ordering component.
-   */
-  std::uint32_t random_bits;
 
   /**
    * @brief Compare all three components for exact point identity.
@@ -81,7 +81,7 @@ struct SequencePoint {
  * @invariant No issued SequencePoint may equal this value.
  */
 inline constexpr SequencePoint unlinked_strip_start{
+    .crypto_random_bits = std::numeric_limits<std::uint32_t>::max(),
     .unix_lower_bits = std::numeric_limits<std::uint32_t>::max(),
     .counter_bits = std::numeric_limits<std::uint32_t>::max(),
-    .random_bits = std::numeric_limits<std::uint32_t>::max(),
 };

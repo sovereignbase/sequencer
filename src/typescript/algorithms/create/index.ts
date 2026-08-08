@@ -5,7 +5,7 @@
  */
 import { clear_sequence, initialize_sequence } from '../../wasm/index.js'
 import type { Replica } from '../../types/type.js'
-import { __merge } from '../update/index.js'
+import { merge } from '../update/index.js'
 
 /** Releases the native Projector after its JavaScript Replica is collected. */
 const finalization_registry = new FinalizationRegistry<number>(clear_sequence)
@@ -23,7 +23,7 @@ const finalization_registry = new FinalizationRegistry<number>(clear_sequence)
  * @param data Optional candidate Reel used to initialize retained state.
  * @returns A new Replica owning its JavaScript Footage and native Projector.
  */
-export function __create<T>(data?: unknown): Replica<T> {
+export function create<T>(data?: unknown): Replica<T> {
   // Initialize consumer-owned Footage and an empty native Projector.
   const state: Replica<T> = {
     id: initialize_sequence(),
@@ -31,7 +31,7 @@ export function __create<T>(data?: unknown): Replica<T> {
   }
   void finalization_registry.register(state, state.id)
 
-  void __merge<T>(state, data)
+  void merge<T>(state, data)
 
   // Return the independently maintained Replica.
   return state

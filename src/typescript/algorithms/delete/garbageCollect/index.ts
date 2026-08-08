@@ -3,8 +3,8 @@
  *
  * @module
  */
-import type { Acknowledgement, Replica } from '../../../../types/type.js'
-import { garbage_collect_sequence } from '../../../../wasm/index.js'
+import type { Acknowledgement, Replica } from '../../../types/type.js'
+import { garbage_collect_sequence } from '../../../wasm/index.js'
 
 /**
  * Releases Footage covered by the supplied Replica Frontiers.
@@ -23,7 +23,7 @@ import { garbage_collect_sequence } from '../../../../wasm/index.js'
  * @param frontiers Acknowledgement Frontiers from participating Replicas.
  * @param state Replica whose acknowledged Mask Footage is released.
  */
-export function __garbageCollect<T>(
+export function garbageCollect<T>(
   frontiers: Array<Acknowledgement>,
   state: Replica<T>
 ): void {

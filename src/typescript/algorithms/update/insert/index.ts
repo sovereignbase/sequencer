@@ -3,17 +3,14 @@
  *
  * @module
  */
-import {
-  is_safe_index,
-  issue_virtual_strip,
-} from '../../../../helpers/index.js'
-import type { Change, Delta, Replica, Result } from '../../../../types/type.js'
+import { is_safe_index, issue_virtual_strip } from '../../../helpers/index.js'
+import type { Change, Delta, Replica, Result } from '../../../types/type.js'
 import {
   get_projection_frame_count,
   merge_strip_into_sequence,
   read_strip_from_buffer,
   write_strip_at_projection_frame_index_to_buffer,
-} from '../../../../wasm/index.js'
+} from '../../../wasm/index.js'
 
 /**
  * Inserts values at one visible Projection index.
@@ -33,7 +30,7 @@ import {
  * @returns The consumer-facing Change and transferable Delta, or `false` when
  * `values` or `index` is invalid.
  */
-export function __insert<T>(
+export function insert<T>(
   state: Replica<T>,
   index: number,
   values: Array<T>

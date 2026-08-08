@@ -1,3 +1,3 @@
-export { __merge } from './merge/index.js'
-export { __insert } from './insert/index.js'
-export { __replace } from './replace/index.js'
+export { merge } from './merge/index.js'
+export { insert } from './insert/index.js'
+export { replace } from './replace/index.js'

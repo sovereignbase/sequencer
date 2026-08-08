@@ -3,13 +3,13 @@
  *
  * @module
  */
-import type { Replica } from '../../../../types/type.js'
+import type { Replica } from '../../../types/type.js'
 
 import {
   get_footage_frame_index,
   get_projection_frame_count,
-} from '../../../../wasm/index.js'
-import { is_safe_index } from '../../../../helpers/index.js'
+} from '../../../wasm/index.js'
+import { is_safe_index } from '../../../helpers/index.js'
 
 /**
  * Reads one visible value by zero-based index.
@@ -20,7 +20,7 @@ import { is_safe_index } from '../../../../helpers/index.js'
  * @returns The value at `index`, or `undefined` when the index is invalid or its
  * Footage has been released.
  */
-export function __find<T>(state: Replica<T>, index: number): T | undefined {
+export function find<T>(state: Replica<T>, index: number): T | undefined {
   // Validate the requested visible Projection index.
   if (!is_safe_index(get_projection_frame_count(state.id), index))
     return undefined

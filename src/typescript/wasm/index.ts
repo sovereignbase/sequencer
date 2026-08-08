@@ -4,7 +4,7 @@
  * @module
  */
 import create_module from './raw/sequencer_wasm.mjs'
-import type { Frontier, VirtualStrip } from '../types/type.js'
+import type { Acknowledgement, VirtualStrip } from '../types/type.js'
 
 /** Synchronously initialized native Sequencer module shared by this adapter. */
 export const wasm = create_module()

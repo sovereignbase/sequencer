@@ -3,23 +3,20 @@
  *
  * @module
  */
-import {
-  is_safe_index,
-  issue_virtual_strip,
-} from '../../../../helpers/index.js'
+import { is_safe_index, issue_virtual_strip } from '../../../helpers/index.js'
 import type {
   Change,
   Delta,
   Replica,
   Result,
   Strip,
-} from '../../../../types/type.js'
+} from '../../../types/type.js'
 import {
   get_projection_frame_count,
   merge_strip_into_sequence,
   read_strip_from_buffer,
   write_strip_at_projection_frame_index_to_buffer,
-} from '../../../../wasm/index.js'
+} from '../../../wasm/index.js'
 
 /**
  * Deletes the half-open visible range `[start_index, end_index)` by masking it.
@@ -42,7 +39,7 @@ import {
  * @returns The consumer-facing Change and transferable Delta, or `false` when
  * the requested range is invalid or empty.
  */
-export function __remove<T>(
+export function remove<T>(
   state: Replica<T>,
   start_index = 0,
   end_index?: number,

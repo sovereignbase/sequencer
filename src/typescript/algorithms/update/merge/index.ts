@@ -3,12 +3,12 @@
  *
  * @module
  */
-import { is_strip } from '../../../../helpers/index.js'
-import type { Change, Replica, VirtualStrip } from '../../../../types/type.js'
+import { is_strip } from '../../../helpers/index.js'
+import type { Change, Replica, VirtualStrip } from '../../../types/type.js'
 import {
   merge_strip_into_sequence,
   write_strip_to_buffer,
-} from '../../../../wasm/index.js'
+} from '../../../wasm/index.js'
 
 /**
  * Integrates remotely supplied Strips into a Replica.

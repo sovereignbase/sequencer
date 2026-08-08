@@ -3,16 +3,8 @@
  *
  * @module
  */
-import { is_strip } from '../../../helpers/index.js'
-import {
-  clear_sequence,
-  initialize_sequence,
-  stage_strip_for_sequence,
-  try_to_resolve_pending,
-  write_strip_to_buffer,
-} from '../../../wasm/index.js'
+import { clear_sequence, initialize_sequence } from '../../../wasm/index.js'
 import type { Replica } from '../../../types/type.js'
-import { isUint32 as is_uint32 } from '@sovereignbase/utils'
 import { __merge } from '../update/index.js'
 
 /** Releases the native Projector after its JavaScript Replica is collected. */

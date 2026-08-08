@@ -4,7 +4,13 @@
  * @module
  */
 import { is_safe_index, issue_virtual_strip } from '../../../helpers/index.js'
-import type { Change, Reel, Replica, Strip } from '../../../types/type.js'
+import type {
+  Change,
+  Delta,
+  Replica,
+  Result,
+  Strip,
+} from '../../../types/type.js'
 import {
   get_projection_frame_count,
   merge_strip_into_sequence,
@@ -30,7 +36,7 @@ import {
  * defaults to the current length.
  * @param hard Whether to release deleted values immediately instead of
  * retaining them for recovery until garbage collection.
- * @returns The consumer-facing Change and transferable Reel, or `false` when
+ * @returns The consumer-facing Change and transferable Delta, or `false` when
  * the requested range is invalid or empty.
  */
 export function __delete<T>(
@@ -38,15 +44,7 @@ export function __delete<T>(
   start_index = 0,
   end_index?: number,
   hard = false
-):
-  | {
-      /** Minimal patch for the consumer's currently visible state. */
-      change: Change<T>
-
-      /** Masks to exchange with other Replicas. */
-      reel: Reel<T>
-    }
-  | false {
+): Result<T> {
   // Validate the requested half-open Projection range.
   const projection_frame_count = get_projection_frame_count(state.id)
   const deletion_end_index = end_index ?? projection_frame_count
@@ -60,7 +58,7 @@ export function __delete<T>(
 
   // Initialize the consumer result and unresolved deletion span.
   const change: Change<T> = {}
-  const reel: Reel<T> = []
+  const delta: Delta<T> = []
   let remaining_frame_count = deletion_end_index - start_index
 
   // Build removals at the original visible Projection positions.
@@ -109,10 +107,10 @@ export function __delete<T>(
     }
 
     // Record the transferable Mask and advance the unresolved span.
-    void reel.push([meta])
+    void delta.push([meta])
     remaining_frame_count -= mask_frame_count
   }
 
-  // Return the local Projection Change and Mask Reel.
-  return { change, reel }
+  // Return the local Projection Change and Mask Delta.
+  return { change, delta }
 }

@@ -6,7 +6,7 @@ A causality encoding engine that represents replicated sequences as coordinated 
 
 An independently maintained state of one sequence that may integrate the same strips in a different arrival order and still converge on the same projection.
 
-### Frontier
+### Acknowledgement
 
 A replica's realm-indexed acknowledgement boundary, containing the greatest materialized strip start in each represented realm. Across replicas, the least corresponding point defines how far acknowledged masks may be collected in each realm.
 
@@ -66,7 +66,7 @@ A soft deletion retains a mask's footage for recovery. A hard deletion releases 
 
 The native projector deterministically orders visible strips competing for the same placement context by their `this_strip_start` values. Successors of an ordinary sequence point are ordered from the smaller point to the larger point. Strips placed after the root use the reverse direction, from the larger point to the smaller point.
 
-## Reel
+## Delta
 
 A serializable collection of strips used to transfer sequence material between replicas; a complete reel can reconstruct retained sequence state.
 

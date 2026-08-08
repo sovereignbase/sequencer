@@ -1,5 +1,5 @@
 /**
- * Point-issuing visible insertion and overwrite operations.
+ * Point-issuing visible insertion operations.
  *
  * @module
  */
@@ -7,7 +7,7 @@ import {
   is_safe_index,
   issue_virtual_strip,
 } from '../../../../helpers/index.js'
-import type { Change, Reel, Replica } from '../../../../types/type.js'
+import type { Change, Delta, Replica, Result } from '../../../../types/type.js'
 import {
   get_projection_frame_count,
   merge_strip_into_sequence,
@@ -16,37 +16,28 @@ import {
 } from '../../../../wasm/index.js'
 
 /**
- * Inserts values relative to one visible index.
+ * Inserts values at one visible Projection index.
  *
- * `before` inserts at `index`, `after` inserts after it, and `overwrite` first
- * masks as many existing values as the insertion can cover before inserting at
- * the original index. Every call issues one contiguous visible Strip and
- * returns the local Change together with the Reel to exchange with Replicas.
- * Update is the only operation that issues new Sequence Points. Native
- * integration orders competing starts ascending after an ordinary point and
- * descending after the Root.
+ * The inserted values begin at `index`. Any value previously visible at that
+ * index, together with all following visible values, shifts right by
+ * `values.length` Frames.
  *
- * @typeParam T Consumer-owned value represented by one Frame.
- * @param state Replica to update.
- * @param index Zero-based visible index interpreted according to `mode`.
+ * Every successful call issues one contiguous visible Strip and returns the
+ * resulting local Change together with the Delta to exchange with other
+ * Replicas.
+ *
+ * @param state Replica to modify.
+ * @param index Zero-based visible index at which insertion begins. The
+ * Projection end is also a valid insertion position.
  * @param values Non-empty contiguous values to insert.
- * @param mode Placement or overwrite behavior.
- * @returns The consumer-facing Change and transferable Reel, or `false` when
+ * @returns The consumer-facing Change and transferable Delta, or `false` when
  * `values` or `index` is invalid.
  */
 export function __insert<T>(
   state: Replica<T>,
   index: number,
   values: Array<T>
-):
-  | {
-      /** Minimal patch for the consumer's currently visible state. */
-      change: Change<T>
-
-      /** Visible Strip and optional Masks to exchange with other Replicas. */
-      reel: Reel<T>
-    }
-  | false {
+): Result<T> {
   const projection_frame_count = get_projection_frame_count(state.id)
 
   // Validate inserted values and the requested Projection position.
@@ -57,11 +48,11 @@ export function __insert<T>(
   )
     return false
 
-  // Initialize the consumer Change, transferable Reel, and Root context.
+  // Initialize the consumer Change and transferable Delta.
   const change: Change<T> = {}
-  const reel: Reel<T> = []
+  const delta: Delta<T> = []
 
-  // Cache frame count
+  // Cache Frame count.
   const frame_count = values.length
 
   // Resolve the containing Strip and its Footage position.
@@ -71,7 +62,7 @@ export function __insert<T>(
   )
   const containing_strip = read_strip_from_buffer<T>()
 
-  // Derive the bounded span and its first existing Frame point.
+  // Derive the inserted point from the containing Strip.
   const strip_frame_offset = footage_frame_index - containing_strip[9]!
 
   const meta = issue_virtual_strip<T>(
@@ -83,14 +74,15 @@ export function __insert<T>(
     containing_strip[8],
     state.footage.length
   )
+
   void state.footage.push(...values)
   void merge_strip_into_sequence(state.id)
-  void reel.push([meta, values])
+  void delta.push([meta, values])
 
   // Build the consumer-facing visible Change.
   for (let frame_offset = 0; frame_offset < frame_count; frame_offset++)
     change[index + frame_offset] = values[frame_offset]
 
-  // Return both local and transferable update results.
-  return { change, reel }
+  // Return both local and transferable insertion results.
+  return { change, delta }
 }

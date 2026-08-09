@@ -53,13 +53,14 @@ export function write_benchmark_report(
   )
   const diamond_types_row = (
     name: string,
-    sequence_length: number
+    sequence_frame_count: number
   ): (typeof function_results.rows)[number] | undefined =>
     function_results.rows.find(
       (row) =>
         row.implementation === 'Diamond Types' &&
         row.name === name &&
-        row.sequence_length === sequence_length
+        row.sequence_frame_count === sequence_frame_count &&
+        row.strip_frame_count === 1
     )
   const optional_throughput = (
     row: (typeof function_results.rows)[number] | undefined
@@ -95,11 +96,18 @@ export function write_benchmark_report(
   const performance_markdown = [
     `JavaScript/WASM performance measured using Node.js \`${function_results.environment.node}\` on ${cpu_name}. Diamond Types 1.0.2 is included under its upstream description, “The world's fastest CRDT. WIP.” Results use equivalent public operations where available; \`—\` means Diamond Types has no public equivalent. [See the full benchmark report](https://sovereignbase.dev/sequencer/benchmarks) for methodology, API differences, and variability.`,
     '',
-    '| function | Sequence length | Sequencer retained Strips | Sequencer ops/sec | Diamond Types ops/sec | Sequencer calls | Diamond Types calls | Sequencer avg µs/op | Diamond Types avg µs/op |',
-    '| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |',
+    '| function | Sequence Frames | Strip Frames | retained Strips | operation Frames | Sequencer ops/sec | Diamond Types ops/sec | Sequencer calls | Diamond Types calls | Sequencer avg µs/op | Diamond Types avg µs/op |',
+    '| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |',
     ...comparison_rows.map((row) => {
-      const diamond_types = diamond_types_row(row.name, row.sequence_length)
-      return `| \`${row.name}\` | ${number.format(row.sequence_length)} | ${number.format(row.sequencer_strip_count)} | ${throughput(row.average_time_microseconds)} | ${optional_throughput(diamond_types)} | ${number.format(row.calls)} | ${optional_calls(diamond_types)} | ${average_time(row.average_time_microseconds)} | ${optional_average_time(diamond_types)} |`
+      const diamond_types = diamond_types_row(
+        row.name,
+        row.sequence_frame_count
+      )
+      const operation_frame_count =
+        row.operation_frame_count === null
+          ? '—'
+          : number.format(row.operation_frame_count)
+      return `| \`${row.name}\` | ${number.format(row.sequence_frame_count)} | ${number.format(row.strip_frame_count)} | ${number.format(row.retained_strip_count)} | ${operation_frame_count} | ${throughput(row.average_time_microseconds)} | ${optional_throughput(diamond_types)} | ${number.format(row.calls)} | ${optional_calls(diamond_types)} | ${average_time(row.average_time_microseconds)} | ${optional_average_time(diamond_types)} |`
     }),
   ].join('\n')
   const bundle_markdown = [
@@ -156,8 +164,15 @@ export function write_benchmark_report(
 
   const status_rows = comparison_rows
     .map((row) => {
-      const diamond_types = diamond_types_row(row.name, row.sequence_length)
-      return `<tr><th scope="row"><code>${row.name}</code></th><td>${number.format(row.sequence_length)}</td><td>${number.format(row.sequencer_strip_count)}</td><td>${row.workload}</td><td>${throughput(row.average_time_microseconds)}</td><td>${optional_throughput(diamond_types)}</td><td>${number.format(row.calls)}</td><td>${optional_calls(diamond_types)}</td><td>${average_time(row.average_time_microseconds)}</td><td>${optional_average_time(diamond_types)}</td><td>±${row.relative_margin_of_error.toFixed(2)}%</td><td>${optional_margin(diamond_types)}</td></tr>`
+      const diamond_types = diamond_types_row(
+        row.name,
+        row.sequence_frame_count
+      )
+      const operation_frame_count =
+        row.operation_frame_count === null
+          ? '—'
+          : number.format(row.operation_frame_count)
+      return `<tr><th scope="row"><code>${row.name}</code></th><td>${number.format(row.sequence_frame_count)}</td><td>${number.format(row.strip_frame_count)}</td><td>${number.format(row.retained_strip_count)}</td><td>${operation_frame_count}</td><td>${row.workload}</td><td>${throughput(row.average_time_microseconds)}</td><td>${optional_throughput(diamond_types)}</td><td>${number.format(row.calls)}</td><td>${optional_calls(diamond_types)}</td><td>${average_time(row.average_time_microseconds)}</td><td>${optional_average_time(diamond_types)}</td><td>±${row.relative_margin_of_error.toFixed(2)}%</td><td>${optional_margin(diamond_types)}</td></tr>`
     })
     .join('')
   const bundle_rows = bundle_results
@@ -201,7 +216,7 @@ export function write_benchmark_report(
       table { width: 100%; min-width: 64rem; border-collapse: collapse; }
       th, td { padding: .9rem 1rem; border-bottom: 1px solid rgba(255,255,255,.09); text-align: right; white-space: nowrap; }
       th:first-child, td:first-child { text-align: left; }
-      .performance-table th:nth-child(4), .performance-table td:nth-child(4) { text-align: left; }
+      .performance-table th:nth-child(6), .performance-table td:nth-child(6) { text-align: left; }
       thead th { color: rgba(255,255,255,.58); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; }
       tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
       code { color: #c9a9ff; font-size: .92rem; }
@@ -224,8 +239,8 @@ export function write_benchmark_report(
       </header>
       <section>
         <h2>JavaScript/WASM performance</h2>
-        <div class="table-shell"><table class="performance-table"><thead><tr><th>Function</th><th>Sequence length</th><th>Sequencer retained Strips</th><th>Timed Sequencer workload</th><th>Sequencer ops/sec</th><th>Diamond Types ops/sec</th><th>Sequencer calls</th><th>Diamond Types calls</th><th>Sequencer avg µs/op</th><th>Diamond Types avg µs/op</th><th>Sequencer RME</th><th>Diamond Types RME</th></tr></thead><tbody>${status_rows}</tbody></table></div>
-        <p class="note"><strong>Diamond Types 1.0.2:</strong> “The world's fastest CRDT. WIP.” At every size, both implementations are built with exactly the displayed number of public single-character insert calls. Sequencer consequently retains exactly one visible single-Frame Strip per call: the 1,000,000 row means 1,000,000 Frames in 1,000,000 Strips, not chunked Frames. Both implementations use midpoint mutations, equal warm-up and measured sample counts, and their public native snapshot and patch formats. Diamond Types has no direct indexed-read API, so its read result calls <code>get()</code> before selecting one character; its clean-state <code>get()</code> is the closest recovery equivalent. Diamond Types exposes no public compaction operation, shown as —.</p>
+        <div class="table-shell"><table class="performance-table"><thead><tr><th>Function</th><th>Sequence Frames</th><th>Strip Frames</th><th>Retained Strips</th><th>Operation Frames</th><th>Timed Sequencer workload</th><th>Sequencer ops/sec</th><th>Diamond Types ops/sec</th><th>Sequencer calls</th><th>Diamond Types calls</th><th>Sequencer avg µs/op</th><th>Diamond Types avg µs/op</th><th>Sequencer RME</th><th>Diamond Types RME</th></tr></thead><tbody>${status_rows}</tbody></table></div>
+        <p class="note"><strong>Diamond Types 1.0.2:</strong> “The world's fastest CRDT. WIP.” Sequencer's Sequence Frames, Frames per retained Strip, retained Strip count, and Frames handled by one timed operation are reported independently. Diamond Types comparisons apply only to the one-Frame Strip scenarios. Both implementations use midpoint mutations, equal warm-up and measured sample counts, and their public native snapshot and patch formats. Diamond Types has no direct indexed-read API, so its read result calls <code>get()</code> before selecting one character; its clean-state <code>get()</code> is the closest recovery equivalent. Diamond Types exposes no public compaction operation, shown as —.</p>
         <p class="note"><strong>Methodology:</strong> avg µs/op is the arithmetic mean of the measured per-call latencies. Ops/sec is its reciprocal; displayed values are rounded as one reciprocal pair. Setup, cleanup, and warmup calls are excluded. Mutating operations receive a fresh prepared state for every sample; read-only operations use stable state. Batch sizes only amortize timer overhead and are reported through call counts. These Node.js results do not represent browser runtimes.</p>
       </section>
       <section>

@@ -9,6 +9,9 @@ const bundle_results = await measure_bundle_sizes()
 const disk_results = measure_data_sizes()
 
 console.log('\nThroughput efficiency')
+console.log(
+  'Sequence Frames = visible Frames in the prepared Replica; Strip Frames = Frames per retained setup Strip; Operation Frames = Frames read or mutated by one timed call; — = no Frame-range operand.'
+)
 console.table(
   throughput_results.rows.map((row) => {
     const decimal_places =
@@ -22,8 +25,10 @@ console.table(
     )
     return {
       function: row.name,
-      length: row.sequence_length,
-      strips: row.sequencer_strip_count,
+      'sequence Frames': row.sequence_frame_count,
+      'Strip Frames': row.strip_frame_count,
+      'retained Strips': row.retained_strip_count,
+      'operation Frames': row.operation_frame_count ?? '—',
       'ops/sec': Math.round(1_000_000 / average_time_microseconds),
       calls: row.calls,
       'avg µs/op': average_time_microseconds.toFixed(decimal_places),

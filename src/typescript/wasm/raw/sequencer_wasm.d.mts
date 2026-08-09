@@ -26,9 +26,9 @@ interface WasmModule {
   _resolve_initial_projection(_0: number): void;
   _get_acknowledgement_frontier_buffer_pointer(): number;
   _write_acknowledgement_frontier_to_buffer(_0: number): number;
-  _prepare_garbage_collection_frontier_buffer(_0: number): number;
+  _prepare_compaction_frontier_buffer(_0: number): number;
   _get_footage_span_buffer_pointer(): number;
-  _garbage_collect_sequence(_0: number): number;
+  _compact_sequence(_0: number): number;
   _write_strip_at_projection_frame_index_to_buffer(_0: number, _1: number): number;
   _write_first_structural_strip_to_buffer(_0: number): number;
   _write_next_structural_strip_to_buffer(_0: number): number;

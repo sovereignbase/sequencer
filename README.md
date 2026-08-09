@@ -4,10 +4,6 @@ A causality-encoding engine written in TypeScript and C++ to build high-performa
 
 Sequencer provides a deterministic total ordering for distributed data. It allows independently operating replicas to make concurrent changes and later converge on the same logical state without relying on network arrival order or perfectly synchronized clocks.
 
-### Table of contents
-
-- //links to headlines per hierarchy
-
 ## Usage
 
 ### Simple typed api
@@ -36,7 +32,7 @@ JavaScript/WASM performance measured using Node.js `24.16.0` on Intel Core i5-10
 | `__delete`         |             100 |           259,538 |               290,698 |             256 |                 256 |               3.853 |                   3.440 |
 | `__merge`          |             100 |           116,904 |                56,117 |             256 |                 256 |               8.554 |                  17.820 |
 | `__acknowledge`    |             100 |         6,729,475 |             1,395,089 |           4,096 |               4,096 |              0.1486 |                  0.7168 |
-| `__garbageCollect` |             100 |           270,856 |                     — |             256 |                   — |               3.692 |                       — |
+| `compact` |             100 |           270,856 |                     — |             256 |                   — |               3.692 |                       — |
 | `__snapshot`       |             100 |           255,558 |                73,779 |             256 |                 256 |               3.913 |                  13.554 |
 | `__create`         |           1,000 |            79,853 |                39,769 |             128 |                 128 |              12.523 |                  25.145 |
 | `__read`           |           1,000 |         9,861,933 |               434,972 |          65,536 |                 128 |              0.1014 |                   2.299 |
@@ -46,7 +42,7 @@ JavaScript/WASM performance measured using Node.js `24.16.0` on Intel Core i5-10
 | `__delete`         |           1,000 |           302,663 |                93,853 |             128 |                 128 |               3.304 |                  10.655 |
 | `__merge`          |           1,000 |           252,589 |                37,518 |             128 |                 128 |               3.959 |                  26.654 |
 | `__acknowledge`    |           1,000 |         2,948,983 |             1,162,520 |           2,048 |               2,048 |              0.3391 |                  0.8602 |
-| `__garbageCollect` |           1,000 |           527,704 |                     — |             128 |                   — |               1.895 |                       — |
+| `compact` |           1,000 |           527,704 |                     — |             128 |                   — |               1.895 |                       — |
 | `__snapshot`       |           1,000 |           156,715 |                54,864 |             128 |                 128 |               6.381 |                  18.227 |
 | `__create`         |          10,000 |             2,573 |                17,225 |              64 |                  64 |             388.702 |                  58.055 |
 | `__read`           |          10,000 |         5,020,080 |               103,040 |          32,768 |                  64 |              0.1992 |                   9.705 |
@@ -56,7 +52,7 @@ JavaScript/WASM performance measured using Node.js `24.16.0` on Intel Core i5-10
 | `__delete`         |          10,000 |           172,891 |                13,819 |              64 |                  64 |               5.784 |                  72.364 |
 | `__merge`          |          10,000 |            46,100 |                10,454 |              64 |                  64 |              21.692 |                  95.656 |
 | `__acknowledge`    |          10,000 |         3,225,806 |               968,054 |           1,024 |               1,024 |              0.3100 |                   1.033 |
-| `__garbageCollect` |          10,000 |            46,893 |                     — |              64 |                   — |              21.325 |                       — |
+| `compact` |          10,000 |            46,893 |                     — |              64 |                   — |              21.325 |                       — |
 | `__snapshot`       |          10,000 |            43,301 |                22,213 |              64 |                  64 |              23.094 |                  45.019 |
 | `__create`         |         100,000 |               142 |                 1,438 |              16 |                  16 |           7,056.825 |                 695.625 |
 | `__read`           |         100,000 |         4,083,299 |                10,018 |           8,192 |                  16 |              0.2449 |                  99.819 |
@@ -66,7 +62,7 @@ JavaScript/WASM performance measured using Node.js `24.16.0` on Intel Core i5-10
 | `__delete`         |         100,000 |           190,694 |                 1,930 |              16 |                  16 |               5.244 |                 518.012 |
 | `__merge`          |         100,000 |            89,485 |                 1,372 |              16 |                  16 |              11.175 |                 728.825 |
 | `__acknowledge`    |         100,000 |         4,182,350 |             1,050,089 |             256 |                 256 |              0.2391 |                  0.9523 |
-| `__garbageCollect` |         100,000 |           320,616 |                     — |              16 |                   — |               3.119 |                       — |
+| `compact` |         100,000 |           320,616 |                     — |              16 |                   — |               3.119 |                       — |
 | `__snapshot`       |         100,000 |             1,559 |                 4,558 |              16 |                  16 |             641.431 |                 219.381 |
 | `__create`         |       1,000,000 |                18 |                   267 |              16 |                  16 |          56,965.988 |               3,747.700 |
 | `__read`           |       1,000,000 |         2,768,549 |                   754 |           8,192 |                  16 |              0.3612 |               1,327.000 |
@@ -76,7 +72,7 @@ JavaScript/WASM performance measured using Node.js `24.16.0` on Intel Core i5-10
 | `__delete`         |       1,000,000 |           108,401 |                   269 |              16 |                  16 |               9.225 |               3,723.856 |
 | `__merge`          |       1,000,000 |            59,018 |                   262 |              16 |                  16 |              16.944 |               3,811.575 |
 | `__acknowledge`    |       1,000,000 |         6,385,696 |             1,419,849 |             256 |                 256 |              0.1566 |                  0.7043 |
-| `__garbageCollect` |       1,000,000 |           235,627 |                     — |              16 |                   — |               4.244 |                       — |
+| `compact` |       1,000,000 |           235,627 |                     — |              16 |                   — |               4.244 |                       — |
 | `__snapshot`       |       1,000,000 |               156 |                   912 |              16 |                  16 |           6,398.656 |               1,096.031 |
 
 ## Memory effiency

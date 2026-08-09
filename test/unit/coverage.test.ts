@@ -39,14 +39,14 @@ describe('TypeScript boundaries', () => {
   })
 
   it('returns no spans for empty collection input', async () => {
-    const { create, garbageCollect, snapshot } =
+    const { compact, create, snapshot } =
       await import('../../src/typescript/index.js')
-    const { garbage_collect_sequence } =
+    const { compact_sequence } =
       await import('../../src/typescript/wasm/index.js')
     const state = create()
 
     expect(snapshot(state)).toEqual([])
-    expect(garbage_collect_sequence(state.id, [])).toBe(false)
-    expect(garbageCollect([], state)).toBeUndefined()
+    expect(compact_sequence(state.id, [])).toBe(false)
+    expect(compact([], state)).toBeUndefined()
   })
 })

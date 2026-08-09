@@ -37,7 +37,7 @@ import {
  * @param end_index Boundary immediately after the final value to delete;
  * defaults to the current length.
  * @param hard Whether to release deleted values immediately instead of
- * retaining them for recovery until garbage collection.
+ * retaining them for recovery until compaction.
  * @returns The consumer-facing Change and transferable Delta, or `false` when
  * the requested range is invalid or empty.
  * @remarks Every iteration resolves the same visible `start_index`, because the

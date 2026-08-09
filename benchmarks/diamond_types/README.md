@@ -20,5 +20,5 @@ The comparison uses each library's public Node.js API and natural snapshot and
 patch formats. Diamond Types supports plain text, so both implementations use
 one-character strings. Diamond Types has no direct indexed-read API: its
 `__read` comparison necessarily materializes the public full string with
-`get()` before selecting a character. It also has no public garbage-collection
+`get()` before selecting a character. It also has no public compaction
 operation, which is reported as unsupported rather than approximated.

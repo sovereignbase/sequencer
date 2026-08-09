@@ -1,31 +1,31 @@
 /**
- * MAGS garbageCollect selection and acknowledged Footage release.
+ * MAGS compaction selection and acknowledged Footage release.
  *
  * @module
  */
 import type { Acknowledgement, Replica } from '../../../types/type.js'
-import { garbage_collect_sequence } from '../../../wasm/index.js'
+import { compact_sequence } from '../../../wasm/index.js'
 
 /**
  * Releases Footage covered by the supplied Replica Frontiers.
  *
  * For every Realm in the first Acknowledgement, the smallest matching counter
- * supplied by later Frontiers becomes the garbage-collection boundary. Native
- * code retains every Mask, coordinate, and structural link and returns only the
+ * supplied by later Frontiers becomes the compaction boundary. Native code
+ * retains every Mask, coordinate, and structural link and returns only the
  * Footage Spans whose JavaScript references may be released.
  *
  * The first supplied Acknowledgement is reused as the selected boundary and may
  * be overwritten. Other Frontiers are read without mutation. The caller must
- * ensure that every Realm selected for safe collection has a matching entry in
+ * ensure that every Realm selected for safe compaction has a matching entry in
  * every required Replica Acknowledgement; this reducer ignores a missing match.
  *
  * @typeParam T Consumer-owned value represented by one Frame.
  * @param frontiers Acknowledgement Frontiers from participating Replicas.
  * @param state Replica whose acknowledged Mask Footage is released.
  * @returns Nothing. Released entries are replaced with `undefined` in-place and
- * the Footage array is never compacted.
+ * the Footage array is never physically compacted.
  */
-export function garbageCollect<T>(
+export function compact<T>(
   frontiers: Array<Acknowledgement>,
   state: Replica<T>
 ): void {
@@ -52,7 +52,7 @@ export function garbageCollect<T>(
     }
 
   // Transfer selected boundaries and resolve matching Mask Footage.
-  const footage_spans = garbage_collect_sequence(state.id, frontier)
+  const footage_spans = compact_sequence(state.id, frontier)
   if (!footage_spans) return
 
   // Release returned Footage spans without compacting stable indexes.

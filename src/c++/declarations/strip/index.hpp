@@ -66,7 +66,7 @@ struct Strip {
   /**
    * @brief Index of the Strip's first frame in consumer-owned Footage.
    *
-   * The payload and its lifetime remain outside C++; garbage collection reports
+   * The payload and its lifetime remain outside C++; compaction reports
    * this index and `frame_count` when the region may be released.
    */
   std::uint32_t footage_frame_index;

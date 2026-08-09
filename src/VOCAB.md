@@ -28,7 +28,7 @@ random bits first, Unix bits second, and counter bits last. Equality uses all
 three components. Realm equality uses the first two components.
 
 Only visible local insertion issues new Sequence Points. Creation, Merge,
-masking, acknowledgement, garbage collection, Snapshot, and reads only
+masking, acknowledgement, Compaction, Snapshot, and reads only
 integrate, reference, report, or traverse existing points.
 
 ## Initial Root Candidate
@@ -153,7 +153,7 @@ A Mask is a Strip state that excludes an existing Frame Span from the
 Projection without removing it from Structural Order.
 
 A soft removal retains the Mask's Footage for Recovery. A hard removal releases
-the corresponding JavaScript Footage immediately. Garbage Collection releases
+the corresponding JavaScript Footage immediately. Compaction releases
 acknowledged Mask Footage later. Neither operation removes the Mask, its
 coordinate, or its structural links.
 
@@ -178,7 +178,7 @@ write ordered spans to the shared Footage Span Buffer instead of copying
 consumer values through WebAssembly.
 
 The same buffer is reused for visible `values` ranges, retained `recover`
-ranges, and garbage-collection results.
+ranges, and Compaction results.
 
 # Runtime Materialization
 
@@ -382,7 +382,7 @@ Visible Strips and Masks both contribute.
 A Frontier is a Realm-indexed collection of acknowledgement Sequence Points.
 Entry order has no semantic meaning.
 
-Across participating Replicas, garbage collection selects the least matching
+Across participating Replicas, Compaction selects the least matching
 counter supplied for each Realm. The caller is responsible for supplying a
 matching entry from every Replica required for safety; the reducer lowers
 matching counters and does not infer safety from a missing Realm entry.
@@ -390,16 +390,16 @@ matching counters and does not infer safety from a missing Realm entry.
 ## Frontier Buffer
 
 The Frontier Buffer is the shared WebAssembly transfer area for Acknowledgement
-and garbage-collection boundaries. Each entry contains crypto-random bits, Unix
+and Compaction boundaries. Each entry contains crypto-random bits, Unix
 bits, and counter bits in that order.
 
-## Garbage Collection
+## Compaction
 
-Garbage Collection finds Mask Footage at or below the selected Realm Frontiers
+Compaction finds Mask Footage at or below the selected Realm Frontiers
 and returns its Footage Spans. TypeScript releases those Footage entries by
 assigning `undefined`.
 
-Garbage Collection does not unlink Strips, delete Sequence Coordinates, compact
+Compaction does not unlink Strips, delete Sequence Coordinates, reindex
 Footage, or change the visible Projection.
 
 # Operation Families
@@ -412,7 +412,7 @@ insertion; `remove` masks existing points.
 
 ## MAGS
 
-MAGS groups `merge`, `acknowledge`, `garbageCollect`, and `snapshot`: the
+MAGS groups `merge`, `acknowledge`, `compact`, and `snapshot`: the
 operations used to exchange, summarize, collect, and persist retained Replica
-state. The spelling `MAGS` and public operation name `garbageCollect` are stable
+state. The spelling `MAGS` and public operation name `compact` are stable
 project vocabulary.

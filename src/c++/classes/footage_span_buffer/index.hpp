@@ -3,7 +3,7 @@
  * @brief Defines the WebAssembly transfer buffer for Footage ranges.
  *
  * FootageSpanBuffer transfers contiguous regions of consumer-owned Footage for
- * visible range reads, recovery, and garbage collection. Only indexes and
+ * visible range reads, recovery, and compaction. Only indexes and
  * counts cross the WebAssembly boundary; payload values are never copied or
  * owned by C++. Capacity is retained between writes.
  *

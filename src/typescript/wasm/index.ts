@@ -297,11 +297,11 @@ export function get_acknowledgement_frontier(
  * Footage-span buffer.
  *
  * @param sequence_id Active local Projector identifier.
- * @param frontier Selected garbage-collection boundary for each included Realm.
+ * @param frontier Selected compaction boundary for each included Realm.
  * @returns A zero-copy view of released Footage spans, or `false` when the
  * Frontier is empty or no Mask Footage is releasable.
  */
-export function garbage_collect_sequence(
+export function compact_sequence(
   sequence_id: number,
   frontier: Acknowledgement
 ): Uint32Array | false {
@@ -310,7 +310,7 @@ export function garbage_collect_sequence(
 
   // Prepare zero-copy input memory for the selected Frontier.
   let buffer_index =
-    wasm._prepare_garbage_collection_frontier_buffer(frontier.length) >>> 2
+    wasm._prepare_compaction_frontier_buffer(frontier.length) >>> 2
   const buffer = wasm.HEAPU32
 
   // Encode every selected Realm boundary in native lane order.
@@ -322,7 +322,7 @@ export function garbage_collect_sequence(
   }
 
   // Resolve covered native Mask Footage and the released-span count.
-  const span_count = wasm._garbage_collect_sequence(sequence_id) >>> 0
+  const span_count = wasm._compact_sequence(sequence_id) >>> 0
   if (span_count === 0) return false
 
   // Return a zero-copy view over the latest Footage-span result.

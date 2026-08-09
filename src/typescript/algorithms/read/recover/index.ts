@@ -10,7 +10,7 @@ import { get_recovery_footage_spans } from '../../../wasm/index.js'
  * Recovers every retained Footage value in structural Sequence order.
  *
  * Unlike a Projection read, recovery includes values represented by Masks.
- * Values released by hard deletion or garbage collection remain `undefined`
+ * Values released by hard deletion or compaction remain `undefined`
  * and are omitted from the dense result.
  *
  * @typeParam T Consumer-owned sequence value.

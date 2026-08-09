@@ -2,7 +2,7 @@ import { assert, describe, expect, it } from 'vitest'
 import {
   acknowledge,
   create,
-  garbageCollect,
+  compact,
   insert,
   merge,
   recover,
@@ -68,7 +68,7 @@ describe('runtime merge and retained state', () => {
     assert(frontier)
     expect(frontier).toHaveLength(1)
 
-    garbageCollect([frontier], state)
+    compact([frontier], state)
 
     expect(values(state)).toEqual(['a', 'c'])
     expect(recover(state)).toEqual(['a', 'c'])
@@ -88,7 +88,7 @@ describe('runtime merge and retained state', () => {
     ]
     const third: Acknowledgement = [[10, 20, 6]]
 
-    garbageCollect([selected, second, third], state)
+    compact([selected, second, third], state)
 
     expect(selected).toEqual(second)
   })

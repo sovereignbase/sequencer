@@ -1,12 +1,12 @@
 /**
  * Deterministic convergence invariants for sibling ordering, hostile Delta
- * staging, dependencies, Masks, Snapshot restarts, and garbage collection.
+ * staging, dependencies, Masks, Snapshot restarts, and compaction.
  */
 import { assert, describe, expect, it } from 'vitest'
 import {
   acknowledge,
   create,
-  garbageCollect,
+  compact,
   insert,
   length,
   merge,
@@ -185,11 +185,11 @@ describe('restart and collection continuity', () => {
 
     const clone_frontier = (frontier: Acknowledgement): Acknowledgement =>
       frontier.map((point) => [point[0], point[1], point[2]])
-    garbageCollect(
+    compact(
       [clone_frontier(source_frontier), clone_frontier(peer_frontier)],
       source
     )
-    garbageCollect(
+    compact(
       [clone_frontier(source_frontier), clone_frontier(peer_frontier)],
       peer
     )

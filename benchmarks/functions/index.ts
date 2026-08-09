@@ -201,21 +201,21 @@ export async function run_function_benchmarks() {
       },
       {
         implementation: 'Sequencer',
-        name: '__garbageCollect',
+        name: 'compact',
         workload: 'Release one soft-deleted Frame',
         batch_size: 1,
         prepare: (sample_count) => {
-          type GarbageCollectionCase = {
+          type CompactionCase = {
             frontiers: Array<Frontier>
             state: Replica<string>
           }
-          const case_pool: Array<GarbageCollectionCase> = Array.from(
+          const case_pool: Array<CompactionCase> = Array.from(
             { length: sample_count },
             () => {
               const state = create_state()
               require_result(
                 api.__delete(state, middle_frame_index, middle_frame_index + 1),
-                '__garbageCollect'
+                'compact'
               )
               const frontier = require_result(
                 api.__acknowledge(state),
@@ -227,7 +227,7 @@ export async function run_function_benchmarks() {
               }
             }
           )
-          let current_case: GarbageCollectionCase | undefined
+          let current_case: CompactionCase | undefined
           return {
             before_each: () => {
               current_case = case_pool.pop()
@@ -235,7 +235,7 @@ export async function run_function_benchmarks() {
                 throw new TypeError('Benchmark case pool was exhausted.')
             },
             run: () => {
-              result_sink = api.__garbageCollect(
+              result_sink = api.compact(
                 current_case!.frontiers,
                 current_case!.state
               )
@@ -345,7 +345,7 @@ export async function run_function_benchmarks() {
       throughput: '1,000,000 divided by average_time_microseconds.',
       calls: 'Measured calls; setup and warmup calls are excluded.',
       comparison:
-        'Both implementations are built with one public single-character insert call per visible Frame: one million calls at the largest size. Sequencer therefore retains exactly one single-Frame Strip per visible Frame. Diamond Types indexed reads use get() because it has no direct indexed-read API; garbage collection is unsupported.',
+        'Both implementations are built with one public single-character insert call per visible Frame: one million calls at the largest size. Sequencer therefore retains exactly one single-Frame Strip per visible Frame. Diamond Types indexed reads use get() because it has no direct indexed-read API; compaction is unsupported.',
     },
     implementations: [
       {

@@ -352,7 +352,7 @@ get_acknowledgement_frontier_buffer_pointer() noexcept {
  * Structural traversal writes the greatest materialized Strip start of every
  * represented Realm directly to FrontierBuffer. Visible Strips and Masks contribute
  * equally: acknowledgement concerns materialized Sequence state, while Mask
- * eligibility is decided during garbage collection. Entry order is unspecified.
+ * eligibility is decided during compaction. Entry order is unspecified.
  *
  * @param sequence_id Identifier of the active sequence to acknowledge.
  * @return Number of Realm entries written to the Frontier buffer.
@@ -395,11 +395,11 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_acknowledgement_frontier_to_buffer(
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// GARBAGE COLLECTION
+// COMPACTION
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * @brief Prepare FrontierBuffer to receive a garbage-collection Frontier.
+ * @brief Prepare FrontierBuffer to receive a compaction Frontier.
  *
  * The returned memory contains `frontier_count` writable three-word entries.
  * The caller fills those entries with the Realm-wise least points selected
@@ -412,7 +412,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_acknowledgement_frontier_to_buffer(
  * @post FrontierBuffer has space for exactly `frontier_count` complete entries.
  * @note Every prepared word must be initialized before collection begins.
  */
-EMSCRIPTEN_KEEPALIVE std::uint32_t *prepare_garbage_collection_frontier_buffer(
+EMSCRIPTEN_KEEPALIVE std::uint32_t *prepare_compaction_frontier_buffer(
     const std::uint32_t frontier_count) noexcept {
   // Allocate the exact writable Frontier transfer span.
   frontier_buffer.resize(frontier_count);
@@ -450,7 +450,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *get_footage_span_buffer_pointer() noexcept {
  * @post Projector state and retained Strip metadata are unchanged.
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t
-garbage_collect_sequence(const std::uint32_t sequence_id) noexcept {
+compact_sequence(const std::uint32_t sequence_id) noexcept {
   const Projector &projector = *projectors[sequence_id];
   footage_span_buffer.clear();
   if (projector.length_table.is_empty())

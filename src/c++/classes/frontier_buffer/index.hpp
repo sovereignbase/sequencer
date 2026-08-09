@@ -5,7 +5,7 @@
  * A Frontier is a Replica's Realm-indexed acknowledgement boundary. Each Realm
  * represented in that Frontier contributes one Sequence Point, and
  * FrontierBuffer stores those entries in one owned contiguous vector. Capacity
- * is retained across acknowledgement and garbage-collection cycles.
+ * is retained across acknowledgement and compaction cycles.
  *
  * Every Realm entry uses three consecutive words:
  *

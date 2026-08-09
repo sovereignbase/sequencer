@@ -28,18 +28,17 @@ import {
 
 describe('concurrent Strip ordering', () => {
   it('orders initial inverse siblings by descending point', () => {
-    const left_result = insert(create<string>(), 0, ['left'])
-    const right_result = insert(create<string>(), 0, ['right'])
-    const left_strip = visible_strip(left_result)
-    const right_strip = visible_strip(right_result)
-    const expected = [left_strip, right_strip]
+    const root_strips = ['first', 'second', 'third', 'fourth'].map((value) =>
+      visible_strip(insert(create<string>(), 0, [value]))
+    )
+    const expected = [...root_strips]
       .sort((left, right) =>
         compare_points(strip_start(right), strip_start(left))
       )
       .flatMap((strip) => strip[1] ?? [])
 
-    const forward = deliver([], [left_strip, right_strip])
-    const reverse = deliver([], [right_strip, left_strip])
+    const forward = deliver([], root_strips)
+    const reverse = deliver([], [...root_strips].reverse())
 
     expect(projection_values(forward)).toEqual(expected)
     expect_converged(forward, reverse)

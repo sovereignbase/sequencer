@@ -5,10 +5,10 @@
 #pragma once
 
 #include "../../auxiliary/compare_sequence_points/index.hpp"
-#include "../../auxiliary/insert_between/index.hpp"
 #include "../../declarations/projector/index.hpp"
 #include "../insert_strip/index.hpp"
 #include "../mask_strip/index.hpp"
+#include <algorithm>
 #include <cstdint>
 #include <vector>
 
@@ -16,10 +16,10 @@
  * @brief Resolve every reachable creation-time dependency into one Projection.
  *
  * Visible Strips whose previous point is absent seed the sentinel-free circular
- * Structural Order. Roots are ordered deterministically with the same Sequence
- * Point comparator and inverse semantics used by insertion. Remaining visible
- * Strips and Masks are then materialized dependency-first through the ordinary
- * insert and Mask algorithms. Cycles and unresolved dependencies stay Pending.
+ * Structural Order. Initial inverse Roots are ordered by descending Sequence
+ * Point before their ring is linked. Remaining visible Strips and Masks are
+ * then materialized dependency-first through the ordinary insert and Mask
+ * algorithms. Cycles and unresolved dependencies stay Pending.
  *
  * The LengthTable and Gate are initialized after the root ring is created and
  * rebuilt after dependency resolution so no input arrival order becomes
@@ -30,8 +30,8 @@
  * to the root ring during this call.
  * @post Every reachable valid Strip is materialized exactly once; unresolved
  * Strips remain self-linked.
- * @complexity O(n) staging-state storage plus HashTable lookups and the cost of
- * ordinary materialization for n Strips.
+ * @complexity O(n log n) Root ordering plus staging-state storage, HashTable
+ * lookups, and ordinary materialization for n Strips.
  */
 inline void resolve_initial_projection(Projector *projector) noexcept {
   const std::uint32_t strip_count =
@@ -51,29 +51,24 @@ inline void resolve_initial_projection(Projector *projector) noexcept {
   if (roots.empty())
     return;
 
-  std::uint32_t first_position = roots[0];
-  for (const std::uint32_t position : roots) {
-    const Strip &strip = projector->strips[position];
-    const Strip &first = projector->strips[first_position];
-    const std::int8_t comparison = compare_sequence_points(
-        &strip.coordinate.this_strip_start,
-        &first.coordinate.this_strip_start);
-    if ((strip.is_inverse == 0 && comparison < 0) ||
-        (strip.is_inverse != 0 && comparison > 0))
-      first_position = position;
-  }
+  std::sort(roots.begin(), roots.end(), [projector](const std::uint32_t left,
+                                                    const std::uint32_t right) {
+    return compare_sequence_points(
+               &projector->strips[left].coordinate.this_strip_start,
+               &projector->strips[right].coordinate.this_strip_start) > 0;
+  });
+  const std::uint32_t first_position = roots.front();
 
   projector->projection_frame_count = 0;
-  for (const std::uint32_t position : roots) {
-    projector->left[position] = position;
-    projector->right[position] = position;
+  const std::uint32_t root_count = static_cast<std::uint32_t>(roots.size());
+  for (std::uint32_t root_index = 0; root_index < root_count; ++root_index) {
+    const std::uint32_t position = roots[root_index];
+    projector->left[position] =
+        roots[(root_index + root_count - 1) % root_count];
+    projector->right[position] = roots[(root_index + 1) % root_count];
     state[position] = 2;
     projector->projection_frame_count += projector->strips[position].frame_count;
   }
-  for (const std::uint32_t position : roots)
-    if (position != first_position)
-      insert_between(projector, projector->left[first_position], position,
-                     first_position);
 
   projector->gate_strip_index = first_position;
   projector->gate_projection_frame_index = 0;

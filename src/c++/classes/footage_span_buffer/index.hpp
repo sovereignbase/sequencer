@@ -1,11 +1,11 @@
 /**
  * @file
- * @brief Defines the WebAssembly transfer buffer for released Footage ranges.
+ * @brief Defines the WebAssembly transfer buffer for Footage ranges.
  *
- * FootageSpanBuffer reports which contiguous regions of consumer-owned Footage
- * correspond to Masks permanently removed by garbage collection. Only indexes
- * and counts cross the WebAssembly boundary; payload values are never copied or
- * owned by C++. Capacity is retained between collection cycles.
+ * FootageSpanBuffer transfers contiguous regions of consumer-owned Footage for
+ * recovery and garbage collection. Only indexes and counts cross the
+ * WebAssembly boundary; payload values are never copied or owned by C++.
+ * Capacity is retained between writes.
  *
  * Every released range uses two consecutive words:
  *
@@ -21,11 +21,11 @@
 #include <vector>
 
 /**
- * @brief Owned contiguous transfer representation of released Footage ranges.
+ * @brief Owned contiguous transfer representation of Footage ranges.
  *
  * Entries describe independent half-open ranges
  * `[footage_frame_index, footage_frame_index + frame_count)`. Their order is
- * the native collection order and carries no Projection ordering guarantee.
+ * the order chosen by the operation that most recently populated the buffer.
  *
  * @invariant `words.size()` is a multiple of `words_per_span`.
  * @note One instance is shared by the exported runtime. Any mutating operation
@@ -44,10 +44,10 @@ private:
   std::vector<std::uint32_t> words;
 
 public:
-  // Result lifecycle and released-range encoding.
+  // Result lifecycle and range encoding.
 
   /**
-   * @brief Remove every released range while retaining allocated capacity.
+   * @brief Remove every range while retaining allocated capacity.
    *
    * @post `get_span_count()` returns zero.
    * @note Previously returned pointers must no longer be dereferenced.
@@ -55,12 +55,12 @@ public:
    * `std::vector::clear`.
    */
   inline void clear() noexcept {
-    // Discard released ranges while retaining their allocation for reuse.
+    // Discard ranges while retaining their allocation for reuse.
     words.clear();
   }
 
   /**
-   * @brief Append one released contiguous Footage range.
+   * @brief Append one contiguous Footage range.
    *
    * @param footage_frame_index First consumer-owned Footage index in the range.
    * @param frame_count Number of consecutive Footage entries in the range.
@@ -70,13 +70,13 @@ public:
    */
   inline void write_span(const std::uint32_t footage_frame_index,
                          const std::uint32_t frame_count) noexcept {
-    // Append one released Footage range in stable ABI order.
+    // Append one Footage range in stable ABI order.
     words.push_back(footage_frame_index);
     words.push_back(frame_count);
   }
 
   /**
-   * @brief Return the number of complete released Footage ranges.
+   * @brief Return the number of complete Footage ranges.
    *
    * @return `words.size() / words_per_span`.
    * @complexity O(1) time and O(1) space.

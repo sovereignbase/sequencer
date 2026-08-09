@@ -54,7 +54,7 @@ template <SequencePoint SequenceCoordinate::*indexed_sequence_point =
 class LengthTable {
 
 private:
-  std::vector<uint32_t> checkpoints;
+  std::vector<uint8_t> checkpoints;
 
 public:
   // Exact-key index lifecycle and mutation.

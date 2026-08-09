@@ -1,2 +1,1 @@
-footage_span API and usage in recover + garbageCollect
-
+Lenght table + hash table search optimization

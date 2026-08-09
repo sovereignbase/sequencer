@@ -36,15 +36,17 @@ export function garbageCollect<T>(
   // Reduce every represented Realm to the least participating counter.
   for (let replica_index = 1; replica_index < frontiers.length; replica_index++)
     for (let realm_index = 0; realm_index < frontier.length; realm_index++) {
-      const [unix_lower_bits, counter_bits, random_bits] = frontier[realm_index]
+      const [crypto_random_bits, unix_lower_bits, counter_bits] =
+        frontier[realm_index]
       const replica_point = frontiers[replica_index].find(
-        ([replica_unix_lower_bits, , replica_random_bits]) =>
-          replica_unix_lower_bits === unix_lower_bits &&
-          replica_random_bits === random_bits
+        ([realm_crypto_random, realm_unix_lower_bits]) =>
+          realm_crypto_random === crypto_random_bits &&
+          realm_unix_lower_bits &&
+          unix_lower_bits
       )
 
       // Lower the selected boundary when this Replica is further behind.
-      if (replica_point && replica_point[1] < counter_bits)
+      if (replica_point && replica_point[2] < counter_bits)
         frontier[realm_index] = replica_point
     }
 

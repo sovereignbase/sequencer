@@ -98,7 +98,7 @@ struct Strip {
    * derived by the Projector, is not trusted from transferred data, and is
    * deliberately absent from serialized Reels.
    */
-  SequencePoint right_strip_start;
+  SequencePoint right_strip;
 
   /**
    * @brief Start point of the left materialized Strip.
@@ -107,7 +107,7 @@ struct Strip {
    * derived by the Projector, is not trusted from transferred data, and is
    * deliberately absent from serialized Reels.
    */
-  SequencePoint left_strip_start;
+  SequencePoint left_strip;
 
   /**
    * @brief Previous material fragment of the same originally issued Strip.
@@ -115,7 +115,7 @@ struct Strip {
    * Root means this fragment begins its source. The link is runtime-only and
    * is rebuilt by splitting or Snapshot resolution.
    */
-  SequencePoint right_sibling_frames_start;
+  SequencePoint right_sibling_frames;
 
   /**
    * @brief Next material fragment of the same originally issued Strip.
@@ -123,7 +123,7 @@ struct Strip {
    * `unlinked_strip_start` means this fragment ends its source. The link is
    * runtime-only and never participates in sibling conflict resolution.
    */
-  SequencePoint left_siblings_frames_start;
+  SequencePoint left_siblings_frames;
 };
 
 // Sequence-point containment result sentinel.

@@ -48,7 +48,7 @@ static StripBuffer strip_buffer;
 /** @brief Shared variable-width transfer buffer for one Frontier. */
 static FrontierBuffer frontier_buffer;
 
-/** @brief Shared result buffer for Footage spans released by collection. */
+/** @brief Shared result buffer for ordered or released Footage spans. */
 static FootageSpanBuffer footage_span_buffer;
 
 /** @brief Shared cursor for synchronous pending-Strip Snapshot traversal. */
@@ -157,6 +157,40 @@ get_footage_frame_index(const std::uint32_t sequence_id,
   // Translate the Projection offset through the Strip's Footage mapping.
   return strip.footage_frame_index + projection_frame_index -
          projector->gate_projection_frame_index;
+}
+
+/**
+ * @brief Write every retained Footage span in structural Sequence order.
+ *
+ * Visible Strips and Masks contribute their stable Footage ranges equally.
+ * Pending Strips are excluded because they have not joined the retained
+ * structural chain.
+ *
+ * @param sequence_id Identifier of the active sequence to recover.
+ * @return Number of Footage spans written to FootageSpanBuffer.
+ * @pre `sequence_id` identifies an active Projector.
+ * @post FootageSpanBuffer contains one range per materialized Strip in
+ * structural Sequence order.
+ */
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+write_recovery_footage_spans_to_buffer(
+    const std::uint32_t sequence_id) noexcept {
+  Projector &projector = *projectors[sequence_id];
+  footage_span_buffer.clear();
+  if (projector.strip_index.is_empty())
+    return 0;
+
+  SequencePoint strip_start = projector.first_strip_start;
+  while (true) {
+    const Strip &strip = *projector.strip_index.get(strip_start);
+    footage_span_buffer.write_span(strip.footage_frame_index,
+                                   strip.frame_count);
+    if (strip.next_strip_start == unlinked_strip_start)
+      break;
+    strip_start = strip.next_strip_start;
+  }
+
+  return footage_span_buffer.get_span_count();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -367,18 +401,18 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *prepare_garbage_collection_frontier_buffer(
 }
 
 /**
- * @brief Return the buffer of Footage spans released by garbage collection.
+ * @brief Return the shared Footage-span buffer.
  *
  * Every result entry is `(footage_frame_index, frame_count)`. The address may
  * change whenever another garbage collection rewrites FootageSpanBuffer.
  *
- * @return Pointer to the first released span, or `nullptr` when empty.
- * @note The buffer describes only the most recent collection.
+ * @return Pointer to the first span, or `nullptr` when empty.
+ * @note The buffer describes only the most recent operation that populated it.
  * @see FootageSpanBuffer
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t *
-get_garbage_collection_footage_span_buffer_pointer() noexcept {
-  // Expose Footage spans released by the most recent collection.
+get_footage_span_buffer_pointer() noexcept {
+  // Expose Footage spans written by the most recent operation.
   return footage_span_buffer.get_memory_pointer();
 }
 

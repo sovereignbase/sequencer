@@ -1,9 +1,5 @@
 import type { Replica } from '../../../types/type.js'
-import {
-  read_strip_from_buffer,
-  write_first_structural_strip_to_buffer,
-  write_next_structural_strip_to_buffer,
-} from '../../../wasm/index.js'
+import { get_recovery_footage_spans } from '../../../wasm/index.js'
 
 /**
  * Recovers every retained Footage value in structural Sequence order.
@@ -17,63 +13,22 @@ import {
  * @returns Dense values in structural Sequence order.
  */
 export function recover<T>(state: Replica<T>): Array<T> {
-  // Initialize structural traversal and defer result allocation while Footage
-  // remains contiguous in Sequence order.
-  if (!write_first_structural_strip_to_buffer(state.id)) return []
-  const footage = state.footage
-  let contiguous_footage_end = 0
-  let values: Array<T> | undefined
+  const footage_spans = get_recovery_footage_spans(state.id)
+  if (!footage_spans) return []
+
+  const values = new Array<T>(state.footage.length)
   let value_count = 0
 
-  // Traverse every retained visible Strip and Mask in Sequence order.
-  do {
-    // Resolve the current Strip's stable Footage span.
-    const [, frame_count, footage_frame_index] = read_strip_from_buffer()
-    const footage_end_index = footage_frame_index + frame_count
-
-    // Prove the common append and hydration layout without copying each Frame.
-    if (
-      values === undefined &&
-      footage_frame_index === contiguous_footage_end
-    ) {
-      contiguous_footage_end = footage_end_index
-      continue
-    }
-
-    // Materialize the proven prefix only when structural order diverges.
-    if (values === undefined) {
-      values = new Array<T>(footage.length)
-      for (let index = 0; index < contiguous_footage_end; index++) {
-        const value = footage[index]
-        if (value !== undefined) values[value_count++] = value
-      }
-    }
-
-    // Append only Frames whose Footage has not been released.
+  for (let span_index = 0; span_index < footage_spans.length; span_index += 2) {
+    const footage_frame_index = footage_spans[span_index]
+    const footage_end_index =
+      footage_frame_index + footage_spans[span_index + 1]
     for (let index = footage_frame_index; index < footage_end_index; index++) {
-      const value = footage[index]
-      if (value !== undefined) values[value_count++] = value
-    }
-  } while (write_next_structural_strip_to_buffer(state.id))
-
-  // Copy a complete contiguous layout through optimized array primitives.
-  if (
-    values === undefined &&
-    contiguous_footage_end === footage.length &&
-    !footage.includes(undefined)
-  )
-    return footage.slice() as Array<T>
-
-  // Densify a contiguous prefix containing released or pending Footage.
-  if (values === undefined) {
-    values = new Array<T>(contiguous_footage_end)
-    for (let index = 0; index < contiguous_footage_end; index++) {
-      const value = footage[index]
+      const value = state.footage[index]
       if (value !== undefined) values[value_count++] = value
     }
   }
 
-  // Return retained values as one dense structural sequence.
   values.length = value_count
   return values
 }

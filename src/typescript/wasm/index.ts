@@ -118,6 +118,28 @@ export function get_footage_frame_index(
 }
 
 /**
+ * Writes every materialized Strip's Footage span in structural Sequence order.
+ *
+ * The returned view contains `(footage_frame_index, frame_count)` pairs and is
+ * valid only until another WebAssembly call rewrites or moves the shared
+ * Footage-span buffer.
+ *
+ * @param sequence_id Active local Projector identifier.
+ * @returns A zero-copy view of ordered Footage spans, or `false` when the
+ * retained Sequence is empty.
+ */
+export function get_recovery_footage_spans(
+  sequence_id: number
+): Uint32Array | false {
+  const span_count =
+    wasm._write_recovery_footage_spans_to_buffer(sequence_id) >>> 0
+  if (span_count === 0) return false
+
+  const span_start = wasm._get_footage_span_buffer_pointer() >>> 2
+  return wasm.HEAPU32.subarray(span_start, span_start + span_count * 2)
+}
+
+/**
  * Writes the Strip containing one Projection frame index to the shared buffer.
  *
  * The call also positions the Projector Gate at that Strip.
@@ -263,8 +285,7 @@ export function garbage_collect_sequence(
   if (span_count === 0) return false
 
   // Return a zero-copy view over the latest Footage-span result.
-  const span_start =
-    wasm._get_garbage_collection_footage_span_buffer_pointer() >>> 2
+  const span_start = wasm._get_footage_span_buffer_pointer() >>> 2
   return wasm.HEAPU32.subarray(span_start, span_start + span_count * 2)
 }
 

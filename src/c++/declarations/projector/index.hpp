@@ -9,8 +9,8 @@
 #pragma once
 
 #include "../../classes/hash_table/index.hpp"
-#include "../../classes/length_table/index.hpp"
 #include "../strip/index.hpp"
+#include "../../classes/length_table/index.hpp"
 #include <cstdint>
 #include <vector>
 

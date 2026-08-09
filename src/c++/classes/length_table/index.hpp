@@ -7,7 +7,6 @@
  * checkpoint and follow the Projector's compact `left` or `right` link vector.
  */
 #pragma once
-#include <algorithm>
 #include <cstdint>
 #include <utility>
 #include <vector>
@@ -107,45 +106,53 @@ public:
     if (next_frame_count == 0) {
       checkpoints.resize(1);
       checkpoints[0] = {previous[0].stable_position, 0};
-      return;
-    }
-    const std::uint32_t next_checkpoint_count =
-        (next_frame_count + checkpoint_frequency - 1u) / checkpoint_frequency;
-    checkpoints.resize(next_checkpoint_count);
-    if (first_affected_checkpoint >= next_checkpoint_count)
-      return;
+    } else {
+      const std::uint32_t next_checkpoint_count =
+          (next_frame_count + checkpoint_frequency - 1u) /
+          checkpoint_frequency;
+      checkpoints.resize(next_checkpoint_count);
 
-    for (std::uint32_t checkpoint_index = first_affected_checkpoint;
-         checkpoint_index < next_checkpoint_count; ++checkpoint_index) {
-      const std::uint32_t checkpoint_frame_index =
-          checkpoint_index * checkpoint_frequency;
-      const std::uint32_t previous_target_frame_index =
-          remove ? checkpoint_frame_index + length
-          : checkpoint_frame_index < after_index + length
-              ? after_index
-              : checkpoint_frame_index - length;
-      std::uint32_t previous_checkpoint_index =
-          (previous_target_frame_index >> 7) +
-          static_cast<std::uint32_t>((previous_target_frame_index & 127u) >
-                                     64u);
-      if (previous_checkpoint_index >= previous.size())
-        previous_checkpoint_index =
-            static_cast<std::uint32_t>(previous.size()) - 1u;
+      for (std::uint32_t checkpoint_index = first_affected_checkpoint;
+           checkpoint_index < next_checkpoint_count; ++checkpoint_index) {
+        const std::uint32_t checkpoint_frame_index =
+            checkpoint_index * checkpoint_frequency;
+        const std::uint32_t previous_target_frame_index =
+            remove ? checkpoint_frame_index + length
+            : checkpoint_frame_index < after_index + length
+                ? after_index
+                : checkpoint_frame_index - length;
+        std::uint32_t previous_checkpoint_index =
+            (previous_target_frame_index >> 7) +
+            static_cast<std::uint32_t>((previous_target_frame_index & 127u) >
+                                       64u);
+        if (previous_checkpoint_index >= previous.size())
+          previous_checkpoint_index =
+              static_cast<std::uint32_t>(previous.size()) - 1u;
 
-      Checkpoint origin = previous[previous_checkpoint_index];
-      if (remove) {
-        if (origin.projection_frame_index >= after_index + length)
-          origin.projection_frame_index -= length;
-        else if (origin.projection_frame_index >= after_index)
-          origin.projection_frame_index = after_index;
-      } else if (origin.projection_frame_index >= after_index) {
-        origin.projection_frame_index += length;
+        Checkpoint origin = previous[previous_checkpoint_index];
+        if (remove) {
+          if (origin.projection_frame_index >= after_index + length)
+            origin.projection_frame_index -= length;
+          else if (origin.projection_frame_index >= after_index)
+            origin.projection_frame_index = after_index;
+        } else if (origin.projection_frame_index >= after_index) {
+          origin.projection_frame_index += length;
+        }
+
+        checkpoints[checkpoint_index] = locate_checkpoint(
+            origin.stable_position, origin.projection_frame_index,
+            checkpoint_frame_index, projector);
       }
-
-      checkpoints[checkpoint_index] = locate_checkpoint(
-          origin.stable_position, origin.projection_frame_index,
-          checkpoint_frame_index, projector);
     }
+
+    for (const Checkpoint &checkpoint : previous)
+      projector->strips[checkpoint.stable_position]
+          .checkpoint_projection_frame_index =
+          no_checkpoint_projection_frame_index;
+    for (const Checkpoint &checkpoint : checkpoints)
+      projector->strips[checkpoint.stable_position]
+          .checkpoint_projection_frame_index =
+          checkpoint.projection_frame_index;
   }
 
   /**
@@ -176,10 +183,10 @@ public:
   /**
    * @brief Derive the visible Projection start of one Stable Position.
    *
-   * Traversal follows `right` until it reaches a stored checkpoint, summing
-   * only visible Strip lengths. If the circular walk crosses Projection origin,
-   * the total visible Projection length corrects the checkpoint index before
-   * subtracting the walked distance.
+   * Traversal follows `right` until a Strip's direct checkpoint marker is set,
+   * summing only visible Strip lengths. If the circular walk crosses Projection
+   * origin, the total visible Projection length corrects the checkpoint index
+   * before subtracting the walked distance.
    *
    * @tparam ProjectorType Type exposing `strips`, `right`, and
    * `projection_frame_count`.
@@ -200,21 +207,17 @@ public:
     std::uint32_t walked_frame_count = 0;
 
     while (true) {
-      const auto checkpoint =
-          std::find_if(checkpoints.begin(), checkpoints.end(),
-                       [position](const Checkpoint &candidate) noexcept {
-                         return candidate.stable_position == position;
-                       });
-      if (checkpoint != checkpoints.end()) {
+      const auto &strip = projector->strips[position];
+      if (strip.checkpoint_projection_frame_index !=
+          no_checkpoint_projection_frame_index) {
         std::uint32_t checkpoint_projection_frame_index =
-            checkpoint->projection_frame_index;
+            strip.checkpoint_projection_frame_index;
         if (checkpoint_projection_frame_index < walked_frame_count)
           checkpoint_projection_frame_index +=
               projector->projection_frame_count;
         return checkpoint_projection_frame_index - walked_frame_count;
       }
 
-      const auto &strip = projector->strips[position];
       if (strip.is_masked == 0)
         walked_frame_count += strip.frame_count;
       position = projector->right[position];
@@ -240,10 +243,11 @@ public:
    */
   template <typename ProjectorType>
   inline void initialize(const std::uint32_t first_position,
-                         const ProjectorType *projector) noexcept {
+                         ProjectorType *projector) noexcept {
     checkpoints.clear();
     if (projector->projection_frame_count == 0) {
       checkpoints.push_back({first_position, 0});
+      projector->strips[first_position].checkpoint_projection_frame_index = 0;
       return;
     }
 
@@ -251,13 +255,16 @@ public:
     std::uint32_t projection_frame_index = 0;
     std::uint32_t next_checkpoint = 0;
     do {
-      const auto &strip = projector->strips[position];
+      auto &strip = projector->strips[position];
+      strip.checkpoint_projection_frame_index =
+          no_checkpoint_projection_frame_index;
       if (strip.is_masked == 0) {
         const std::uint32_t strip_end =
             projection_frame_index + strip.frame_count;
         while (next_checkpoint < projector->projection_frame_count &&
                next_checkpoint < strip_end) {
           checkpoints.push_back({position, projection_frame_index});
+          strip.checkpoint_projection_frame_index = projection_frame_index;
           next_checkpoint += 128;
         }
         projection_frame_index = strip_end;

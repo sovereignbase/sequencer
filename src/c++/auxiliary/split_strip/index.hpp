@@ -40,6 +40,8 @@ split_strip(Projector *projector, const std::uint32_t stable_position,
   --suffix.coordinate.previous_strip_end.counter_bits;
   suffix.is_inverse = 0;
   suffix.left_siblings_frames += frame_offset;
+  suffix.checkpoint_projection_frame_index =
+      no_checkpoint_projection_frame_index;
 
   projector->strips.push_back(suffix);
   projector->left.push_back(suffix_position);

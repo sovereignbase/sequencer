@@ -6,11 +6,11 @@ import {
 import { resolve } from 'node:path'
 import type { measure_bundle_sizes } from '../bundle/index.ts'
 import type { measure_data_sizes } from '../data/index.ts'
-import type { run_function_benchmarks } from '../functions/index.ts'
+import type { run_throughput_benchmarks } from '../throughput/index.ts'
 
 /** Writes README tables plus HTML and JSON reports from the same measurements. */
 export function write_benchmark_report(
-  function_results: Awaited<ReturnType<typeof run_function_benchmarks>>,
+  function_results: Awaited<ReturnType<typeof run_throughput_benchmarks>>,
   bundle_results: Awaited<ReturnType<typeof measure_bundle_sizes>>,
   data_results: ReturnType<typeof measure_data_sizes>
 ) {

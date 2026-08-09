@@ -58,7 +58,7 @@ export function compact<T>(
   // Release returned Footage spans without compacting stable indexes.
   for (let span_index = 0; span_index < footage_spans.length; span_index += 2) {
     const footage_frame_index = footage_spans[span_index]
-    state.footage.fill(
+    void state.footage.fill(
       undefined,
       footage_frame_index,
       footage_frame_index + footage_spans[span_index + 1]

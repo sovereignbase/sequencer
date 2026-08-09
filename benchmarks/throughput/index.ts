@@ -1,13 +1,7 @@
 import { arch, cpus, platform } from 'node:os'
 import { Bench } from 'tinybench'
 import * as api from '../../dist/index.js'
-import { create_diamond_types_benchmarks } from '../diamond_types/index.ts'
-import type {
-  Frontier,
-  Reel,
-  Replica,
-  SequencePoint,
-} from '../../dist/index.js'
+import type { Acknowledgement, Delta, Replica } from '../../dist/index.js'
 
 type BenchmarkExecution = {
   after_each?: () => void
@@ -18,7 +12,6 @@ type BenchmarkExecution = {
 
 type BenchmarkDefinition = {
   batch_size: number
-  implementation: string
   name: string
   prepare: (sample_count: number) => BenchmarkExecution
   workload: string
@@ -32,9 +25,9 @@ const benchmark_sizes = [
   [1_000_000, 16],
 ] as const
 
-/** Measures every public operation at each documented Sequence length. */
-export async function run_function_benchmarks() {
-  const base_state = api.__create<string>()
+/** Measures every public Sequencer function at each Sequence length. */
+export async function run_throughput_benchmarks() {
+  const base_state = api.create<string>()
   const rows = []
   let base_length = 0
   let result_sink: unknown
@@ -44,8 +37,8 @@ export async function run_function_benchmarks() {
       throw new TypeError(`Benchmark setup failed for ${operation}.`)
     return result
   }
-  const clone_frontier = (frontier: Frontier): Frontier =>
-    frontier.map((point): SequencePoint => [point[0], point[1], point[2]])
+  const clone_frontier = (frontier: Acknowledgement): Acknowledgement =>
+    frontier.map((point) => [point[0], point[1], point[2]])
   const release_memory = async (): Promise<void> => {
     const collect_garbage = (
       globalThis as typeof globalThis & { gc?: () => void }
@@ -57,31 +50,27 @@ export async function run_function_benchmarks() {
   }
 
   for (const [sequence_length, measured_samples] of benchmark_sizes) {
-    // Grow one stable baseline as one visible Frame per retained Strip.
     while (base_length < sequence_length) {
-      require_result(
-        api.__update(base_state, base_length, ['a'], 'after'),
-        '__update'
-      )
+      require_result(api.insert(base_state, base_length, ['a']), 'insert')
       base_length++
     }
 
     console.log(
       `Benchmarking ${sequence_length.toLocaleString('en-US')} Frames in ${sequence_length.toLocaleString('en-US')} retained Strips...`
     )
-    const snapshot: Reel<string> = api.__snapshot(base_state)
-    if (snapshot.length !== sequence_length)
+    const retained: Delta<string> = api.snapshot(base_state)
+    if (retained.length !== sequence_length)
       throw new TypeError(
-        `Expected ${sequence_length} retained Strips, received ${snapshot.length}.`
+        `Expected ${sequence_length} retained Strips, received ${retained.length}.`
       )
-    const create_state = (): Replica<string> => api.__create<string>(snapshot)
+    const create_state = (): Replica<string> => api.create<string>(retained)
     const middle_frame_index = sequence_length >> 1
     const merge_source = create_state()
-    const merge_reel = require_result(
-      api.__update(merge_source, middle_frame_index, ['b'], 'after'),
-      '__merge'
-    ).reel
-    let read_index = 0
+    const merge_delta = require_result(
+      api.insert(merge_source, middle_frame_index, ['b']),
+      'merge'
+    ).delta
+    let find_index = 0
 
     const prepare_state_pool = (
       sample_count: number,
@@ -108,12 +97,11 @@ export async function run_function_benchmarks() {
 
     const definitions: Array<BenchmarkDefinition> = [
       {
-        implementation: 'Sequencer',
-        name: '__create',
-        workload: 'Hydrate the retained Reel',
+        name: 'create',
+        workload: 'Hydrate retained state',
         batch_size: 1,
         prepare: () => {
-          const created_states: Array<Replica<number>> = []
+          const created_states: Array<Replica<string>> = []
           return {
             run: () => {
               created_states.push(create_state())
@@ -125,88 +113,89 @@ export async function run_function_benchmarks() {
         },
       },
       {
-        implementation: 'Sequencer',
-        name: '__read',
-        workload: 'Read a rotating visible index',
+        name: 'find',
+        workload: 'Read one rotating visible index',
         batch_size: 512,
         prepare: () => ({
           run: () => {
-            result_sink = api.__read(base_state, read_index)
-            read_index = (read_index + 1) % sequence_length
+            result_sink = api.find(base_state, find_index)
+            find_index = (find_index + 1) % sequence_length
           },
         }),
       },
       {
-        implementation: 'Sequencer',
-        name: '__length',
-        workload: 'Read the visible length',
+        name: 'length',
+        workload: 'Read visible length',
         batch_size: 512,
         prepare: () => ({
           run: () => {
-            result_sink = api.__length(base_state)
+            result_sink = api.length(base_state)
           },
         }),
       },
       {
-        implementation: 'Sequencer',
-        name: '__recover',
+        name: 'recover',
         workload: 'Recover all retained values',
         batch_size: 1,
         prepare: () => ({
           run: () => {
-            result_sink = api.__recover(base_state)
+            result_sink = api.recover(base_state)
           },
         }),
       },
       {
-        implementation: 'Sequencer',
-        name: '__update',
+        name: 'values',
+        workload: 'Read the complete visible Projection',
+        batch_size: 1,
+        prepare: () => ({
+          run: () => {
+            result_sink = api.values(base_state)
+          },
+        }),
+      },
+      {
+        name: 'insert',
         workload: 'Insert one Frame at the midpoint',
         batch_size: 1,
         prepare: (sample_count) =>
           prepare_state_pool(sample_count, (state) =>
-            api.__update(state, middle_frame_index, ['b'], 'after')
+            api.insert(state, middle_frame_index, ['b'])
           ),
       },
       {
-        implementation: 'Sequencer',
-        name: '__delete',
-        workload: 'Soft-delete one midpoint Frame',
-        batch_size: 1,
-        prepare: (sample_count) =>
-          prepare_state_pool(sample_count, (state) =>
-            api.__delete(state, middle_frame_index, middle_frame_index + 1)
-          ),
-      },
-      {
-        implementation: 'Sequencer',
-        name: '__merge',
+        name: 'merge',
         workload: 'Merge one new midpoint Frame',
         batch_size: 1,
         prepare: (sample_count) =>
           prepare_state_pool(sample_count, (state) =>
-            api.__merge(state, merge_reel)
+            api.merge(state, merge_delta)
           ),
       },
       {
-        implementation: 'Sequencer',
-        name: '__acknowledge',
-        workload: 'Acknowledge materialized Realm progress',
-        batch_size: 16,
-        prepare: () => ({
-          run: () => {
-            result_sink = api.__acknowledge(base_state)
-          },
-        }),
+        name: 'replace',
+        workload: 'Replace one midpoint Frame',
+        batch_size: 1,
+        prepare: (sample_count) =>
+          prepare_state_pool(sample_count, (state) =>
+            api.replace(state, middle_frame_index, ['b'])
+          ),
       },
       {
-        implementation: 'Sequencer',
+        name: 'remove',
+        workload: 'Soft-delete one midpoint Frame',
+        batch_size: 1,
+        prepare: (sample_count) =>
+          prepare_state_pool(sample_count, (state) =>
+            api.remove(state, middle_frame_index, middle_frame_index + 1)
+          ),
+      },
+      {
         name: 'compact',
         workload: 'Release one soft-deleted Frame',
         batch_size: 1,
         prepare: (sample_count) => {
           type CompactionCase = {
-            frontiers: Array<Frontier>
+            frontiers: Array<Acknowledgement>
             state: Replica<string>
           }
           const case_pool: Array<CompactionCase> = Array.from(
@@ -214,12 +203,12 @@ export async function run_function_benchmarks() {
             () => {
               const state = create_state()
               require_result(
-                api.__delete(state, middle_frame_index, middle_frame_index + 1),
+                api.remove(state, middle_frame_index, middle_frame_index + 1),
                 'compact'
               )
               const frontier = require_result(
-                api.__acknowledge(state),
-                '__acknowledge'
+                api.acknowledge(state),
+                'acknowledge'
               )
               return {
                 state,
@@ -248,25 +237,26 @@ export async function run_function_benchmarks() {
         },
       },
       {
-        implementation: 'Sequencer',
-        name: '__snapshot',
+        name: 'acknowledge',
+        workload: 'Acknowledge materialized Realm progress',
+        batch_size: 16,
+        prepare: () => ({
+          run: () => {
+            result_sink = api.acknowledge(base_state)
+          },
+        }),
+      },
+      {
+        name: 'snapshot',
         workload: 'Snapshot complete retained state',
         batch_size: 1,
         prepare: () => ({
           run: () => {
-            result_sink = api.__snapshot(base_state)
+            result_sink = api.snapshot(base_state)
           },
         }),
       },
     ]
-
-    const diamond_types = create_diamond_types_benchmarks(
-      sequence_length,
-      (result) => {
-        result_sink = result
-      }
-    )
-    definitions.push(...diamond_types.definitions)
 
     for (const definition of definitions) {
       const warmup_samples = Math.max(1, measured_samples >> 2)
@@ -309,7 +299,7 @@ export async function run_function_benchmarks() {
         throw new TypeError(`Benchmark failed for ${definition.name}.`)
       const average_time_microseconds = result.latency.mean * 1_000
       rows.push({
-        implementation: definition.implementation,
+        implementation: 'Sequencer',
         name: definition.name,
         sequence_length,
         sequencer_strip_count: sequence_length,
@@ -326,8 +316,6 @@ export async function run_function_benchmarks() {
       result_sink = undefined
       await release_memory()
     }
-
-    diamond_types.release()
   }
 
   void result_sink
@@ -344,18 +332,11 @@ export async function run_function_benchmarks() {
       average_time: 'Arithmetic mean of measured per-call latency samples.',
       throughput: '1,000,000 divided by average_time_microseconds.',
       calls: 'Measured calls; setup and warmup calls are excluded.',
-      comparison:
-        'Both implementations are built with one public single-character insert call per visible Frame: one million calls at the largest size. Sequencer therefore retains exactly one single-Frame Strip per visible Frame. Diamond Types indexed reads use get() because it has no direct indexed-read API; compaction is unsupported.',
     },
     implementations: [
       {
         name: 'Sequencer',
         description: 'The package under test.',
-      },
-      {
-        name: 'Diamond Types',
-        version: '1.0.2',
-        description: "The world's fastest CRDT. WIP.",
       },
     ],
     rows,

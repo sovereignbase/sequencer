@@ -21,7 +21,8 @@
  * considered in the same deterministic order and materialized dependency-first
  * through the ordinary insert and Mask algorithms. A Mask also materializes
  * the visible Strip containing its first Frame before masking it. Cycles and
- * unresolved dependencies stay Pending.
+ * unresolved dependencies stay Pending. Dependency traversal uses an explicit
+ * stack, so chain depth does not consume the WebAssembly call stack.
  *
  * The LengthTable and Gate are initialized after the root ring is created and
  * rebuilt after dependency resolution so no input arrival order becomes
@@ -81,44 +82,98 @@ inline void resolve_initial_projection(Projector *projector) noexcept {
   projector->gate_projection_frame_index = 0;
   projector->length_table.initialize(first_position, projector);
 
-  const auto materialize = [&](const auto &self,
-                               const std::uint32_t position) noexcept -> bool {
-    if (position >= strip_count || state[position] == 2)
-      return true;
-    if (state[position] == 1)
-      return false;
-
-    state[position] = 1;
-    const Strip strip = projector->strips[position];
-    const std::uint32_t dependency_position =
-        projector->hash_table.get(strip.coordinate.previous_strip_end);
-    if (dependency_position == HashTable::no_stable_position ||
-        dependency_position == position ||
-        !self(self, dependency_position)) {
-      state[position] = 0;
-      return false;
-    }
-
-    const std::uint32_t containing_position = projector->hash_table.get(
-        strip.is_masked == 0 ? strip.coordinate.previous_strip_end
-                             : strip.coordinate.this_strip_start);
-    if (containing_position == HashTable::no_stable_position ||
-        (strip.is_masked != 0 && !self(self, containing_position))) {
-      state[position] = 0;
-      return false;
-    }
-
-    if (strip.is_masked == 0)
-      static_cast<void>(insert_strip(projector, containing_position, position));
-    else
-      static_cast<void>(mask_strip(projector, containing_position, position));
-    state[position] = 2;
-    return true;
+  struct ResolutionFrame {
+    std::uint32_t position;
+    std::uint8_t phase;
+  };
+  std::vector<ResolutionFrame> resolution_stack;
+  resolution_stack.reserve(strip_count);
+  const auto is_materialized = [&state, strip_count](
+                                   const std::uint32_t position) noexcept {
+    return position >= strip_count || state[position] == 2;
   };
 
-  for (const std::uint32_t position : resolution_order)
-    if (state[position] == 0)
-      static_cast<void>(materialize(materialize, position));
+  for (const std::uint32_t initial_position : resolution_order) {
+    if (state[initial_position] != 0)
+      continue;
+
+    resolution_stack.push_back({initial_position, 0});
+    while (!resolution_stack.empty()) {
+      ResolutionFrame &frame = resolution_stack.back();
+      const std::uint32_t position = frame.position;
+      if (is_materialized(position)) {
+        resolution_stack.pop_back();
+        continue;
+      }
+
+      const Strip strip = projector->strips[position];
+      if (frame.phase == 0) {
+        state[position] = 1;
+        const std::uint32_t dependency_position =
+            projector->hash_table.get(strip.coordinate.previous_strip_end);
+        if (dependency_position == HashTable::no_stable_position ||
+            dependency_position == position ||
+            (dependency_position < strip_count &&
+             state[dependency_position] == 1)) {
+          state[position] = 0;
+          resolution_stack.pop_back();
+          continue;
+        }
+
+        frame.phase = 1;
+        if (!is_materialized(dependency_position))
+          resolution_stack.push_back({dependency_position, 0});
+        continue;
+      }
+
+      const std::uint32_t dependency_position =
+          projector->hash_table.get(strip.coordinate.previous_strip_end);
+      if (dependency_position == HashTable::no_stable_position ||
+          dependency_position == position ||
+          !is_materialized(dependency_position)) {
+        state[position] = 0;
+        resolution_stack.pop_back();
+        continue;
+      }
+
+      const std::uint32_t containing_position = projector->hash_table.get(
+          strip.is_masked == 0 ? strip.coordinate.previous_strip_end
+                               : strip.coordinate.this_strip_start);
+      if (containing_position == HashTable::no_stable_position) {
+        state[position] = 0;
+        resolution_stack.pop_back();
+        continue;
+      }
+
+      if (strip.is_masked != 0 && frame.phase == 1) {
+        if (containing_position < strip_count &&
+            state[containing_position] == 1) {
+          state[position] = 0;
+          resolution_stack.pop_back();
+          continue;
+        }
+        frame.phase = 2;
+        if (!is_materialized(containing_position))
+          resolution_stack.push_back({containing_position, 0});
+        continue;
+      }
+
+      if (!is_materialized(containing_position)) {
+        state[position] = 0;
+        resolution_stack.pop_back();
+        continue;
+      }
+
+      if (strip.is_masked == 0)
+        static_cast<void>(
+            insert_strip(projector, containing_position, position));
+      else
+        static_cast<void>(
+            mask_strip(projector, containing_position, position));
+      state[position] = 2;
+      resolution_stack.pop_back();
+    }
+  }
 
   projector->length_table.initialize(first_position, projector);
   projector->gate_strip_index = first_position;

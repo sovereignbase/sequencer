@@ -37,7 +37,7 @@ export function create<T>(data?: unknown): Replica<T> {
   void finalization_registry.register(state, state.id)
 
   void merge<T>(state, data)
-  resolve_initial_projection(state.id)
+  void resolve_initial_projection(state.id)
 
   // Return the independently maintained Replica.
   return state

@@ -27,8 +27,8 @@
       "default": "./dist/index.js"
     },
     "./wasm": {
-      "types": "./wasm/dist/index.d.mts",
-      "import": "./wasm/dist/index.mjs"
+      "types": "./src/typescript/wasm/raw/index.d.mts",
+      "import": "./src/typescript/wasm/raw/index.mjs"
     },
     "./package.json": "./package.json"
   },
@@ -52,6 +52,7 @@
     "test:stress": "npm run build && vitest run test/stress --coverage",
     "test:runtimes": "node scripts/run-runtime-tests.mjs",
     "test:browser": "node scripts/run-browser-tests.mjs",
+    "test:compare": "",
     "bench": "npm run build && node --expose-gc --experimental-strip-types benchmarks/index.ts",
     "bench:compare": "npm run build && node --expose-gc --experimental-strip-types benchmarks/index.ts",
     "prepare": "husky",

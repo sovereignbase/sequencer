@@ -27,7 +27,8 @@
  * @pre The inserted Strip is visible and its referenced Frame is contained by
  * `containing_position`.
  * @post The inserted Strip belongs to Structural Order and contributes its
- * complete Frame Span to the Projection.
+ * complete Frame Span to the Projection. The Gate describes the inserted
+ * Strip at its resulting Projection index.
  * @complexity Bounded LengthTable adjustment plus sibling traversal and at
  * most one Strip split.
  */
@@ -65,6 +66,10 @@ insert_strip(Projector *projector, const std::uint32_t containing_position,
       false, insertion_projection_frame_index, inserted_strip.frame_count,
       projector);
   projector->projection_frame_count += inserted_strip.frame_count;
-  return projector->length_table.projection_frame_index(inserted_position,
-                                                        projector);
+  const std::uint32_t projection_frame_index =
+      projector->length_table.projection_frame_index(inserted_position,
+                                                     projector);
+  projector->gate_strip_index = inserted_position;
+  projector->gate_projection_frame_index = projection_frame_index;
+  return projection_frame_index;
 }

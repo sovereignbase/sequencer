@@ -81,7 +81,7 @@ JavaScript/WASM performance measured using Node.js `24.16.0` on Intel Core i5-10
 
 ## Memory effiency
 
-|heap usage ....
+|heap usage .... what ever is professional/smart
 
 ### Small bundle size
 
@@ -92,7 +92,7 @@ JavaScript/WASM performance measured using Node.js `24.16.0` on Intel Core i5-10
 
 ### Compact data model
 
-Average delta size
+Average delta size and average replica/snapshot size
 
 | Delta workload                             | average bytes per operation | MessagePack | MessagePack + gzip | gzip reduction |
 | ------------------------------------------ | --------------------------: | ----------: | -----------------: | -------------: |

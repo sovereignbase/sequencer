@@ -18,8 +18,9 @@
  * Visible Strips whose previous point is absent seed the sentinel-free circular
  * Structural Order. Initial inverse Roots are ordered by descending Sequence
  * Point before their ring is linked. Remaining visible Strips and Masks are
- * then materialized dependency-first through the ordinary insert and Mask
- * algorithms. Cycles and unresolved dependencies stay Pending.
+ * considered in the same deterministic order and materialized dependency-first
+ * through the ordinary insert and Mask algorithms. Cycles and unresolved
+ * dependencies stay Pending.
  *
  * The LengthTable and Gate are initialized after the root ring is created and
  * rebuilt after dependency resolution so no input arrival order becomes
@@ -41,7 +42,10 @@ inline void resolve_initial_projection(Projector *projector) noexcept {
 
   std::vector<std::uint8_t> state(strip_count, 0);
   std::vector<std::uint32_t> roots;
+  std::vector<std::uint32_t> resolution_order;
+  resolution_order.reserve(strip_count);
   for (std::uint32_t position = 0; position < strip_count; ++position) {
+    resolution_order.push_back(position);
     const Strip &strip = projector->strips[position];
     if (strip.is_masked == 0 &&
         projector->hash_table.get(strip.coordinate.previous_strip_end) ==
@@ -51,12 +55,14 @@ inline void resolve_initial_projection(Projector *projector) noexcept {
   if (roots.empty())
     return;
 
-  std::sort(roots.begin(), roots.end(), [projector](const std::uint32_t left,
-                                                    const std::uint32_t right) {
+  const auto descending_point = [projector](const std::uint32_t left,
+                                            const std::uint32_t right) {
     return compare_sequence_points(
                &projector->strips[left].coordinate.this_strip_start,
                &projector->strips[right].coordinate.this_strip_start) > 0;
-  });
+  };
+  std::sort(roots.begin(), roots.end(), descending_point);
+  std::sort(resolution_order.begin(), resolution_order.end(), descending_point);
   const std::uint32_t first_position = roots.front();
 
   projector->projection_frame_count = 0;
@@ -108,7 +114,7 @@ inline void resolve_initial_projection(Projector *projector) noexcept {
     return true;
   };
 
-  for (std::uint32_t position = 0; position < strip_count; ++position)
+  for (const std::uint32_t position : resolution_order)
     if (state[position] == 0)
       static_cast<void>(materialize(materialize, position));
 

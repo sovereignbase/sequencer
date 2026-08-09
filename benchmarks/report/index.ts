@@ -93,7 +93,7 @@ export function write_benchmark_report(
   }
 
   const performance_markdown = [
-    `JavaScript/WASM performance measured using Node.js \`${function_results.environment.node}\` on ${cpu_name}. Diamond Types 1.0.2 is included under its upstream description, “The world's fastest CRDT. WIP.” Results use equivalent public operations where available; \`—\` means Diamond Types has no public equivalent. [See the full benchmark report](./docs/benchmarks/index.html) for methodology, API differences, and variability.`,
+    `JavaScript/WASM performance measured using Node.js \`${function_results.environment.node}\` on ${cpu_name}. Diamond Types 1.0.2 is included under its upstream description, “The world's fastest CRDT. WIP.” Results use equivalent public operations where available; \`—\` means Diamond Types has no public equivalent. [See the full benchmark report](https://sovereignbase.dev/sequencer/benchmarks) for methodology, API differences, and variability.`,
     '',
     '| function | Sequence length | Sequencer retained Strips | Sequencer ops/sec | Diamond Types ops/sec | Sequencer calls | Diamond Types calls | Sequencer avg µs/op | Diamond Types avg µs/op |',
     '| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |',

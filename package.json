@@ -40,8 +40,9 @@
   "sideEffects": false,
   "scripts": {
     "format": "prettier . --write",
-    "build": "tsdown && typedoc",
+    "build": "tsdown && npm run docs",
     "build:wasm": "cmake --build --preset wasm-release && cmake --install temp/build/wasm-release --prefix src/typescript/wasm/raw && node -e \"const fs=require('node:fs');const p='src/typescript/wasm/raw/sequencer_wasm.mjs';const b=fs.readFileSync(p);const a=Buffer.from('async function Module');const c=Buffer.from('function Module');if(b.subarray(0,a.length).equals(a))fs.writeFileSync(p,Buffer.concat([c,b.subarray(a.length)]))\" && npm run docs:c++",
+    "docs": "typedoc",
     "docs:c++": "node scripts/build-cpp-docs.mjs",
     "configure:wasm": "emcmake cmake --preset wasm-release",
     "test": "node scripts/run-tests.mjs",
@@ -52,6 +53,7 @@
     "test:runtimes": "node scripts/run-runtime-tests.mjs",
     "test:browser": "node scripts/run-browser-tests.mjs",
     "bench": "npm run build && node --expose-gc --experimental-strip-types benchmarks/index.ts",
+    "bench:compare": "npm run build && node --expose-gc --experimental-strip-types benchmarks/index.ts",
     "prepare": "husky",
     "prepublishOnly": "npm run test && npm run bench"
   },

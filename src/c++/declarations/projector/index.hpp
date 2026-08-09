@@ -94,8 +94,8 @@ struct Projector {
    */
   std::uint32_t gate_projection_frame_index{0};
 
-  /** @brief Stable start of the materialized Strip cached by the Gate. */
-  SequencePoint gate_strip_start{};
+  /** @brief Dense index of the materialized Strip cached by the Gate. */
+  std::uint32_t gate_strip_index{0};
 
   ////////////////////////////////////////////////////////
   // Incoming Strips awaiting coordinate dependencies. //

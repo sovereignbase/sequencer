@@ -2,15 +2,14 @@
  * @file
  * @brief Positions a projector gate at a requested projection frame index.
  *
- * The search begins at the current Gate unless the beginning of the Projection
- * is closer. It traverses linked Strip spans rather than individual Frames.
+ * The search begins at the current Gate when the target is fewer than 64
+ * Projection positions away. Longer searches begin at the nearest LengthTable
+ * checkpoint. Traversal proceeds from either start in the target direction.
  */
 #pragma once
 
 #include "../../declarations/projector/index.hpp"
 #include "../absolute_distance/index.hpp"
-#include "../run_projector_backward/index.hpp"
-#include "../run_projector_forward/index.hpp"
 #include "../strip_contains_frame_index/index.hpp"
 #include <cstdint>
 
@@ -18,7 +17,7 @@
  * @brief Move the Gate to the Strip containing a Projection frame index.
  *
  * Masks remain part of retained strip order but contribute no Frames to the
- * Projection. On success, `gate_strip_start` identifies the containing Strip
+ * Projection. On success, `gate_strip_index` identifies the containing Strip
  * and `gate_projection_frame_index` is the Projection frame index at which
  * that Strip begins.
  *
@@ -39,9 +38,9 @@ inline void run_projector_to_frame_index(
   if (projector->projection_frame_count == 0)
     return;
 
-  // Test the current Gate before traversing.
-  const Strip *gate_strip =
-      projector->strip_index.get(projector->gate_strip_start);
+  // Test the current dense Gate before traversing.
+  std::uint32_t &gate_strip_index = projector->gate_strip_index;
+  const Strip *gate_strip = &projector->strips[gate_strip_index];
 
   if (strip_contains_frame_index(gate_strip,
                                  projector->gate_projection_frame_index,
@@ -51,11 +50,14 @@ inline void run_projector_to_frame_index(
   const std::uint32_t gate_distance = absolute_distance(
       projector->gate_projection_frame_index, projection_frame_index);
 
-  // Restart at the first Strip when the Projection beginning is closer.
-  if (projection_frame_index < gate_distance) {
-    projector->gate_projection_frame_index = 0;
-    projector->gate_strip_start = projector->first_strip_start;
-    gate_strip = projector->strip_index.get(projector->gate_strip_start);
+  // Replace a distant Gate with the nearest bounded LengthTable checkpoint.
+  if (gate_distance >= 64u) {
+    const auto [checkpoint, checkpoint_projection_frame_index] =
+        projector->length_table.nearest_chekpoint(projection_frame_index);
+    projector->gate_projection_frame_index =
+        checkpoint_projection_frame_index;
+    gate_strip_index = checkpoint;
+    gate_strip = &projector->strips[gate_strip_index];
   }
 
   // Accept the selected starting Strip when it contains the Frame.
@@ -64,19 +66,25 @@ inline void run_projector_to_frame_index(
                                  projection_frame_index))
     return;
 
-  // Traverse forward by complete Strip spans.
+  // Traverse right by complete Strip spans.
   if (projector->gate_projection_frame_index <= projection_frame_index) {
     do {
-      gate_strip = &run_projector_forward(projector, gate_strip);
+      if (gate_strip->is_masked == 0)
+        projector->gate_projection_frame_index += gate_strip->frame_count;
+      gate_strip_index = projector->right[gate_strip_index];
+      gate_strip = &projector->strips[gate_strip_index];
     } while (!strip_contains_frame_index(gate_strip,
                                          projector->gate_projection_frame_index,
                                          projection_frame_index));
     return;
   }
 
-  // Traverse backward by complete Strip spans.
+  // Traverse left by complete Strip spans.
   do {
-    gate_strip = &run_projector_backward(projector, gate_strip);
+    gate_strip_index = projector->left[gate_strip_index];
+    gate_strip = &projector->strips[gate_strip_index];
+    if (gate_strip->is_masked == 0)
+      projector->gate_projection_frame_index -= gate_strip->frame_count;
   } while (!strip_contains_frame_index(gate_strip,
                                        projector->gate_projection_frame_index,
                                        projection_frame_index));

@@ -82,8 +82,8 @@ public:
     if (length == 0 || checkpoints.empty())
       return;
 
-    constexpr std::uint32_t walker_count = 16;
-    constexpr std::uint32_t checkpoint_frequency = 128;
+    constexpr std::uint32_t walker_count = 16u;
+    constexpr std::uint32_t checkpoint_frequency = 128u;
     const std::uint32_t first_affected_checkpoint =
         after_index / checkpoint_frequency;
     if (first_affected_checkpoint >= checkpoints.size())
@@ -157,23 +157,24 @@ public:
   }
 
   /**
-   * @brief Return the nearest checkpoint and its direction from a position.
+   * @brief Return the nearest checkpoint and its visible Projection index.
    *
-   * Positions with an interval offset from zero through 64 select the left
+   * Positions with an interval offset from zero through 64 select the current
    * checkpoint. Offsets from 65 through 127 select the following checkpoint.
-   * The Boolean result is `true` exactly when the selected checkpoint lies to
-   * the right of the requested position.
+   * The checkpoint's visible index is derived once from its table index and
+   * fixed frequency. Callers infer traversal direction by comparing that index
+   * with their target.
    *
-   * @param index Zero-based Projection position to resolve.
-   * @return Pair containing the selected dense Strip index and whether
-   * traversal from it proceeds from the right.
-   * @pre The selected checkpoint index exists in `checkpoints`.
+   * @param index Zero-based visible Projection position to resolve.
+   * @return Pair containing the checkpoint's stable dense position and its
+   * visible Projection index.
+   * @pre The selected checkpoint exists in `checkpoints`.
    * @complexity O(1) time and O(1) space.
    */
-  [[nodiscard]] inline std::pair<std::uint32_t, bool>
+  [[nodiscard]] inline std::pair<std::uint32_t, std::uint32_t>
   nearest_chekpoint(std::uint32_t index) const noexcept {
-    const bool right = (index & 127u) > 64u;
-    const std::uint32_t i = (index >> 7) + static_cast<std::uint32_t>(right);
-    return {checkpoints[i], right};
+    const std::uint32_t checkpoint_index =
+        (index >> 7) + static_cast<std::uint32_t>((index & 127u) > 64u);
+    return {checkpoints[checkpoint_index], checkpoint_index * 128u};
   }
 };

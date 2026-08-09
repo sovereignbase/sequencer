@@ -19,7 +19,6 @@
 #include "./algorithms/mask_strip/index.hpp"
 #include "./auxiliary/run_projector_forward/index.hpp"
 #include "./auxiliary/run_projector_to_frame_index/index.hpp"
-#include "./auxiliary/run_projector_to_sequence_point/index.hpp"
 #include "./classes/footage_span_buffer/index.hpp"
 #include "./classes/frontier_buffer/index.hpp"
 #include "./classes/strip_buffer/index.hpp"
@@ -27,7 +26,6 @@
 #include <cstdint>
 #include <limits>
 #include <optional>
-#include <variant>
 #include <vector>
 
 #ifdef __EMSCRIPTEN__
@@ -221,43 +219,41 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_recovery_footage_spans_to_buffer(
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
-  // Decode the incoming Strip and its coordinate dependency.
   Projector *projector = &*projectors[sequence_id];
-  const std::uint32_t stable_position = strip_buffer.read_strip();
-
-  const Strip *incoming_strip = &projector->strips[stable_position];
-
-  const SequencePoint &incoming_strip_start =
-      incoming_strip.coordinate.this_strip_start;
-  const SequencePoint &previous_strip_end =
-      incoming_strip.coordinate.previous_strip_end;
-
-  const uint32_t containing_strip_result =
+  const std::uint32_t *words = strip_buffer.get_memory_pointer();
+  const SequencePoint previous_strip_end{
+      .crypto_random_bits = words[6],
+      .unix_lower_bits = words[7],
+      .counter_bits = words[8],
+  };
+  const std::uint32_t containing_position =
       projector->hash_table.get(previous_strip_end);
+  const std::size_t previous_strip_count = projector->strips.size();
+  const std::uint32_t stable_position =
+      strip_buffer.read_strip(projector->strips, projector->hash_table);
 
-  if (containing_strip_result == no_projection_frame_index) {
+  if (projector->strips.size() == previous_strip_count)
+    return no_projection_frame_index;
+
+  projector->left.push_back(stable_position);
+  projector->right.push_back(stable_position);
+  const Strip &incoming_strip = projector->strips[stable_position];
+
+  if (containing_position == HashTable<>::no_stable_position) {
     if (incoming_strip.is_masked > 0)
       projector->pending_masks.set(previous_strip_end,
-                                   incoming_strip.frame_count, stable_position);
+                                   incoming_strip.frame_count,
+                                   stable_position);
     else
-      projector->pending_inserts.set(
-          previous_strip_end, incoming_strip.frame_count, stable_position);
-
+      projector->pending_inserts.set(previous_strip_end,
+                                     incoming_strip.frame_count,
+                                     stable_position);
     return no_projection_frame_index;
   }
 
-  const Strip *containing_strip = &projector->strips[containing_strip_result];
-
-  // Validate and apply a Mask against its exact containing Strip start.
-  if (containing_strip->is_masked > 0) {
-    const std::uint32_t strip_projection_frame_index =
-        projector->gate_projection_frame_index +
-        (containing_strip->is_masked == 0 ? mask_frame_offset : 0);
-    mask_strip(projector, containing_strip, mask_frame_offset, incoming_strip);
-    return strip_projection_frame_index;
-  }
-
-  return insert_strip(projector, containing_strip, 0, incoming_strip);
+  return incoming_strip.is_masked > 0
+             ? mask_strip(projector, containing_position, stable_position)
+             : insert_strip(projector, containing_position, stable_position);
 }
 
 /**

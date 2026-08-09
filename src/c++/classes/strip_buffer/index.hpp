@@ -101,10 +101,22 @@ public:
     };
     const std::uint32_t existing_stable_position =
         hash_table.get(this_strip_start);
-    if (existing_stable_position != HashTable<>::no_stable_position &&
-        strips[existing_stable_position]
-                .coordinate.this_strip_start.counter_bits == words[5])
-      return existing_stable_position;
+    if (existing_stable_position != HashTable<>::no_stable_position) {
+      const Strip &existing_strip = strips[existing_stable_position];
+      if (existing_strip.coordinate.this_strip_start.counter_bits == words[5] &&
+          existing_strip.is_masked == words[0] &&
+          existing_strip.is_inverse == words[1] &&
+          existing_strip.left_siblings_frames + existing_strip.frame_count +
+                  existing_strip.right_sibling_frames ==
+              words[2] &&
+          existing_strip.coordinate.previous_strip_end ==
+              SequencePoint{
+                  .crypto_random_bits = words[6],
+                  .unix_lower_bits = words[7],
+                  .counter_bits = words[8],
+              })
+        return existing_stable_position;
+    }
 
     const std::uint32_t stable_position =
         static_cast<std::uint32_t>(strips.size());

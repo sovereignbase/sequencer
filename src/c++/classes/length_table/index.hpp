@@ -10,6 +10,7 @@
  */
 #pragma once
 #include "../../declarations/projector/index.hpp"
+#include <algorithm>
 #include <cstdint>
 #include <utility>
 #include <vector>
@@ -176,5 +177,30 @@ public:
     const std::uint32_t checkpoint_index =
         (index >> 7) + static_cast<std::uint32_t>((index & 127u) > 64u);
     return {checkpoints[checkpoint_index], checkpoint_index * 128u};
+  }
+
+  [[nodiscard]] inline std::uint32_t
+  projection_frame_index(const std::uint32_t stable_position,
+                         const Projector *projector) const noexcept {
+    std::uint32_t position = stable_position;
+    std::uint32_t walked_frame_count = 0;
+
+    while (true) {
+      const auto checkpoint =
+          std::find(checkpoints.begin(), checkpoints.end(), position);
+      if (checkpoint != checkpoints.end()) {
+        std::uint32_t checkpoint_projection_frame_index =
+            static_cast<std::uint32_t>(checkpoint - checkpoints.begin()) << 7;
+        if (checkpoint_projection_frame_index < walked_frame_count)
+          checkpoint_projection_frame_index +=
+              projector->projection_frame_count;
+        return checkpoint_projection_frame_index - walked_frame_count;
+      }
+
+      const Strip &strip = projector->strips[position];
+      if (strip.is_masked == 0)
+        walked_frame_count += strip.frame_count;
+      position = projector->right[position];
+    }
   }
 };

@@ -35,4 +35,24 @@ describe('initial Projection resolution', () => {
       expect(recover(target)).toEqual(['a', 'b', 'c', 'd'])
     }
   })
+
+  it('materializes a Mask source that is still Pending', () => {
+    const base = create<string>()
+    assert(insert(base, 0, ['base']))
+    const base_delta = snapshot(base)
+    const source = create<string>(base_delta)
+    const insertion = insert(source, 1, ['a', 'b', 'c'])
+    assert(insertion !== false)
+    const deletion = remove(source, 2, 3)
+    assert(deletion !== false)
+
+    const target = create<string>([
+      ...base_delta,
+      ...deletion.delta,
+      ...insertion.delta,
+    ])
+
+    expect(values(target)).toEqual(['base', 'a', 'c'])
+    expect(recover(target)).toEqual(['base', 'a', 'b', 'c'])
+  })
 })

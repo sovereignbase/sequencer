@@ -35,15 +35,18 @@ const signature = (state) => {
 // Stage Strips through create and optionally restart from a mid-stream snapshot.
 const deliver = (base_delta, strips, restart_index, label = 'delivery') => {
   mark(label, 'create')
-  const state =
-    restart_index === undefined
-      ? create([...base_delta, ...strips])
-      : create([
-          ...snapshot(
-            create([...base_delta, ...strips.slice(0, restart_index)])
-          ),
-          ...strips.slice(restart_index),
-        ])
+  if (restart_index === undefined) {
+    const state = create([...base_delta, ...strips])
+    mark(label, 'done')
+    return state
+  }
+
+  mark(label, 'partial-create')
+  const partial = create([...base_delta, ...strips.slice(0, restart_index)])
+  mark(label, 'snapshot')
+  const retained = snapshot(partial)
+  mark(label, 'final-create')
+  const state = create([...retained, ...strips.slice(restart_index)])
   mark(label, 'done')
   return state
 }

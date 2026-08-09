@@ -19,8 +19,9 @@
  * Structural Order. Initial inverse Roots are ordered by descending Sequence
  * Point before their ring is linked. Remaining visible Strips and Masks are
  * considered in the same deterministic order and materialized dependency-first
- * through the ordinary insert and Mask algorithms. Cycles and unresolved
- * dependencies stay Pending.
+ * through the ordinary insert and Mask algorithms. A Mask also materializes
+ * the visible Strip containing its first Frame before masking it. Cycles and
+ * unresolved dependencies stay Pending.
  *
  * The LengthTable and Gate are initialized after the root ring is created and
  * rebuilt after dependency resolution so no input arrival order becomes
@@ -101,7 +102,8 @@ inline void resolve_initial_projection(Projector *projector) noexcept {
     const std::uint32_t containing_position = projector->hash_table.get(
         strip.is_masked == 0 ? strip.coordinate.previous_strip_end
                              : strip.coordinate.this_strip_start);
-    if (containing_position == HashTable::no_stable_position) {
+    if (containing_position == HashTable::no_stable_position ||
+        (strip.is_masked != 0 && !self(self, containing_position))) {
       state[position] = 0;
       return false;
     }

@@ -1,9 +1,31 @@
+/**
+ * @file
+ * @brief Splits one material Strip without copying Footage.
+ */
 #pragma once
 
 #include "../insert_between/index.hpp"
 #include "../../declarations/projector/index.hpp"
 #include <cstdint>
 
+/**
+ * @brief Divide a Strip into prefix and suffix fragments at a Frame offset.
+ *
+ * The existing Stable Position becomes the prefix. A new append-only Stable
+ * Position becomes the suffix with advanced Sequence and Footage starts. Source
+ * sibling distances preserve the originally issued start and length. Both Hash
+ * Table containment ranges and the dense Structural Order are updated.
+ *
+ * @param projector Owning Projector.
+ * @param stable_position Stable Position of the source Strip and resulting
+ * prefix.
+ * @param frame_offset Positive suffix start offset within the source Strip.
+ * @return Newly appended Stable Position of the suffix.
+ * @pre `0 < frame_offset < source.frame_count`.
+ * @post Prefix and suffix cover the exact original Frame and Footage spans with
+ * no overlap or gap.
+ * @complexity Amortized O(1), excluding vector reallocation.
+ */
 [[nodiscard]] inline std::uint32_t
 split_strip(Projector *projector, const std::uint32_t stable_position,
             const std::uint32_t frame_offset) noexcept {

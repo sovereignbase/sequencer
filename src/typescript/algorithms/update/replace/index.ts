@@ -18,12 +18,15 @@ import type { Replica, Result } from '../../../types/type.js'
  * `hard` controls whether the replaced Footage is released while deleting the
  * existing Frames.
  *
+ * @typeParam T Consumer-owned value represented by one Frame.
  * @param state Replica to modify.
  * @param index Zero-based visible index at which replacement begins.
  * @param values Contiguous values replacing the existing visible Frames.
  * @param hard Whether replaced Footage should be released.
  * @returns The combined local Change and transferable Delta, or `false` when
  * the deletion cannot be performed.
+ * @remarks Replacement is intentionally a composition of the public Mask and
+ * insertion paths; it introduces no separate native operation.
  */
 export function replace<T>(
   state: Replica<T>,

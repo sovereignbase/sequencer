@@ -24,8 +24,9 @@ import {
  *
  * One Mask is created for each containing Strip crossed by the range, ensuring
  * that every Mask remains contained within one materialized Strip. Its
- * previous point is the containing Strip start and its own start is the first
- * masked Frame's existing Sequence Point; masking issues no new points. A hard
+ * `previous_strip_end` is the containing Strip start and `this_strip_start` is
+ * the first masked Frame's existing Sequence Point; masking issues no new
+ * points. A hard
  * deletion also releases the corresponding JavaScript Footage immediately.
  * Released entries become `undefined`; the Footage array is not compacted, so
  * all retained indexes stay stable.
@@ -39,6 +40,8 @@ import {
  * retaining them for recovery until garbage collection.
  * @returns The consumer-facing Change and transferable Delta, or `false` when
  * the requested range is invalid or empty.
+ * @remarks Every iteration resolves the same visible `start_index`, because the
+ * preceding accepted Mask removes that fragment from the Projection.
  */
 export function remove<T>(
   state: Replica<T>,

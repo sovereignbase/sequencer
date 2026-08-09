@@ -1,3 +1,8 @@
+/**
+ * Dense recovery of all retained visible and masked Footage.
+ *
+ * @module
+ */
 import type { Replica } from '../../../types/type.js'
 import { get_recovery_footage_spans } from '../../../wasm/index.js'
 
@@ -11,6 +16,8 @@ import { get_recovery_footage_spans } from '../../../wasm/index.js'
  * @typeParam T Consumer-owned sequence value.
  * @param state Replica whose retained values are recovered.
  * @returns Dense values in structural Sequence order.
+ * @remarks Native code returns only ordered Footage Spans. Consumer values
+ * remain JavaScript-owned and never cross the Wasm boundary.
  */
 export function recover<T>(state: Replica<T>): Array<T> {
   const footage_spans = get_recovery_footage_spans(state.id)

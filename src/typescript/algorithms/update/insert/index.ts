@@ -24,6 +24,12 @@ import {
  * resulting local Change together with the Delta to exchange with other
  * Replicas.
  *
+ * Insertion before an existing Frame uses inverse placement. Insertion at
+ * Projection end references the final visible Frame and uses forward placement.
+ * The first insertion stages its Strip and initializes the sentinel-free native
+ * Projection through Initial Projection Resolution.
+ *
+ * @typeParam T Consumer-owned value represented by one Frame.
  * @param state Replica to modify.
  * @param index Zero-based visible index at which insertion begins. The
  * Projection end is also a valid insertion position.

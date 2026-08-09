@@ -92,7 +92,9 @@ JavaScript/WASM performance measured using Node.js `24.16.0` on Intel Core i5-10
 
 ### Compact data model
 
-| Reel workload                              | average bytes per operation | MessagePack | MessagePack + gzip | gzip reduction |
+Average delta size
+
+| Delta workload                             | average bytes per operation | MessagePack | MessagePack + gzip | gzip reduction |
 | ------------------------------------------ | --------------------------: | ----------: | -----------------: | -------------: |
 | 1,000 one-frame updates                    |                      39.6 B |     39.6 kB |             7.8 kB |          80.2% |
 | 1,000 one-frame masks                      |                      36.0 B |     36.0 kB |             5.1 kB |          85.9% |

@@ -6,7 +6,7 @@
  * Clearing that state leaves a reusable registry slot, so a later
  * initialization can reuse the identifier before growing the registry.
  *
- * Strip, Frontier, and released Footage spans cross the application binary
+ * Strip, Frontier, and ordered Footage spans cross the application binary
  * interface through three shared transfer buffers. Their addresses expose
  * WebAssembly memory directly; callers must finish each read or write before an
  * operation that may replace or resize the corresponding buffer. Exported
@@ -50,8 +50,13 @@ static FrontierBuffer frontier_buffer;
 /** @brief Shared result buffer for ordered or released Footage spans. */
 static FootageSpanBuffer footage_span_buffer;
 
+/** @brief Current Stable Position in structural Snapshot traversal. */
 static std::uint32_t structural_cursor;
+
+/** @brief First Stable Position of the active circular Snapshot traversal. */
 static std::uint32_t structural_start;
+
+/** @brief Current Stable Position in self-linked Pending traversal. */
 static std::uint32_t pending_cursor;
 
 /**
@@ -72,7 +77,7 @@ extern "C" {
  * @return Registry identifier of the initialized Sequence state.
  * @post The returned identifier selects an active Projector with an empty
  * retained Sequence and empty Projection.
- * @post The Projector's first, Gate, and last starts contain the Root.
+ * @post Strip storage, dense links, indexes, and the Projection are empty.
  * @complexity Amortized O(1) time.
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t initialize_sequence() noexcept {
@@ -188,6 +193,23 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_recovery_footage_spans_to_buffer(
   return footage_span_buffer.get_span_count();
 }
 
+/**
+ * @brief Write Footage spans for one half-open visible Projection range.
+ *
+ * Traversal starts at the Gate-selected containing Strip, clips the first and
+ * last visible spans to `[start_index, end_index)`, and skips Masks without
+ * advancing the visible Projection position.
+ *
+ * @param sequence_id Identifier of the active sequence.
+ * @param start_index First visible Projection Frame to include.
+ * @param end_index Boundary after the final visible Frame.
+ * @return Number of ordered Footage spans written to FootageSpanBuffer.
+ * @pre `0 <= start_index <= end_index <= projection_frame_count`.
+ * @post Concatenating the reported Footage ranges yields exactly the requested
+ * visible Projection range.
+ * @complexity Linear in the structural Strips crossed by the selected range,
+ * after bounded Gate positioning.
+ */
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 write_projection_footage_spans_to_buffer(
     const std::uint32_t sequence_id, const std::uint32_t start_index,
@@ -226,32 +248,28 @@ write_projection_footage_spans_to_buffer(
 /**
  * @brief Integrate the Strip currently encoded in StripBuffer into a Replica.
  *
- * A Reel crosses this interface one Strip at a time; locally issued Strips use
- * the same integration path. The incoming Sequence Coordinate is resolved
- * against the retained Sequence. A Mask's `previous_strip_start` names the
- * indexed start of its containing Strip and its `this_strip_start` names the
- * first masked Frame point within that Strip. Only visible updates issue new
- * Sequence Points; Masks reuse existing points.
- * If its previous point is not materialized, the Strip remains pending under
- * that exact dependency. A Mask is accepted only when its complete Frame Span
- * fits within one visible Strip; a Mask targeting another Mask or extending
- * beyond its containing Strip is discarded without retention. A visible Strip
- * is inserted after the located Frame. Concurrent visible successors are
- * ordered by `this_strip_start`: ascending after a non-Root point and
- * descending after the Root. This direction is derived during placement and
- * adds no flag, auxiliary index, or retained ordering metadata.
+ * A Delta crosses this interface one Strip at a time; locally issued Strips use
+ * the same path. StripBuffer appends the Strip directly to Projector storage and
+ * HashTable indexes visible Frame containment. Duplicate transfer metadata is
+ * dropped before dense storage grows.
+ *
+ * Every new Strip initially receives self-links. If the Projector has no
+ * initial Projection or the referenced containment is absent or still Pending,
+ * the Strip remains staged and no Projection index is returned. Otherwise a
+ * visible Strip is integrated through `insert_strip`; a Mask resolves its first
+ * existing Frame and is integrated through `mask_strip`. Sibling order is
+ * handled centrally by `insert_between` using `is_inverse`.
  *
  * @param sequence_id Identifier of the sequence receiving the buffered strip.
  * @return Projection frame index at which the incoming Strip begins. For a
  * Mask, the index is measured before its Frame Span leaves the Projection.
- * `no_projection_frame_index` means the Strip remained pending or was
- * discarded.
+ * `no_projection_frame_index` means the Strip was a duplicate or remains
+ * Pending/staged.
  * @pre `sequence_id` identifies an active Projector.
  * @pre StripBuffer contains one valid transferable Strip representation.
- * @post Every accepted Strip is linked into retained Sequence order.
- * @post A visible insertion resolves pending dependencies made satisfiable by
- * its newly materialized start; applying a Mask does not traverse pending
- * indexes.
+ * @post An immediately materializable Strip joins Structural Order; otherwise
+ * a newly retained Strip remains self-linked.
+ * @note This operation performs no dependency walk.
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
@@ -293,11 +311,11 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
 }
 
 /**
- * @brief Resolve every staged dependency reachable from Root.
+ * @brief Build the first Projection from all currently staged Strips.
  *
- * Root-visible Strips seed ordinary native insertion. `insert_strip` then
- * drains pending insertions and Masks for each newly materialized Frame Span.
- * Entries whose dependency remains absent stay in their pending index.
+ * Initial Root Candidates seed a sentinel-free circular Structural Order.
+ * Reachable visible and Mask dependencies are materialized through the ordinary
+ * algorithms; unresolved entries remain self-linked.
  *
  * @param sequence_id Identifier of the sequence whose staged graph is resolved.
  * @pre `sequence_id` identifies an active Projector.
@@ -313,9 +331,9 @@ EMSCRIPTEN_KEEPALIVE void resolve_initial_projection(
 /**
  * @brief Return the current shared Frontier buffer address.
  *
- * Each three-word entry is one Sequence Point in the current Frontier. Its Unix
- * and random components identify a Realm; its counter is the greatest locally
- * materialized Strip start in that Realm.
+ * Each three-word entry is one Sequence Point in the current Frontier. Its
+ * crypto-random and Unix components identify a Realm; its counter is the
+ * greatest locally materialized Strip start in that Realm.
  *
  * @return Pointer to the first Frontier entry, or `nullptr` when empty.
  * @note The address remains valid only until another operation resizes or
@@ -331,8 +349,8 @@ get_acknowledgement_frontier_buffer_pointer() noexcept {
 /**
  * @brief Materialize one Replica's Frontier in the shared buffer.
  *
- * StripIndex writes the greatest materialized Strip start of every represented
- * Realm directly to FrontierBuffer. Visible Strips and Masks contribute
+ * Structural traversal writes the greatest materialized Strip start of every
+ * represented Realm directly to FrontierBuffer. Visible Strips and Masks contribute
  * equally: acknowledgement concerns materialized Sequence state, while Mask
  * eligibility is decided during garbage collection. Entry order is unspecified.
  *
@@ -341,8 +359,8 @@ get_acknowledgement_frontier_buffer_pointer() noexcept {
  * @pre `sequence_id` identifies an active Projector.
  * @post FrontierBuffer contains exactly one Sequence Point for every Realm
  * represented by a materialized Strip in this Replica.
- * @complexity O(c) time and O(r) retained output space, where c is the realm
- * table capacity and r is its occupied realm count.
+ * @complexity O(sr) worst-case time and O(r) temporary/output space for s
+ * structural Strips and r represented Realms.
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t write_acknowledgement_frontier_to_buffer(
     const std::uint32_t sequence_id) noexcept {
@@ -405,7 +423,8 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *prepare_garbage_collection_frontier_buffer(
  * @brief Return the shared Footage-span buffer.
  *
  * Every result entry is `(footage_frame_index, frame_count)`. The address may
- * change whenever another garbage collection rewrites FootageSpanBuffer.
+ * change whenever any range read, recovery, or collection rewrites
+ * FootageSpanBuffer.
  *
  * @return Pointer to the first span, or `nullptr` when empty.
  * @note The buffer describes only the most recent operation that populated it.
@@ -528,7 +547,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_first_structural_strip_to_buffer(
  *
  * @param sequence_id Identifier of the active sequence.
  * @retval 1 The succeeding Strip was written and became the Gate Strip.
- * @retval 0 The Gate already identifies the last retained Strip; the Gate and
+ * @retval 0 The next dense link returns to the traversal start; the Gate and
  * StripBuffer remain unchanged.
  * @pre `sequence_id` identifies an active Projector.
  * @pre A successful first retained Strip write positioned the Projector Gate.
@@ -550,10 +569,12 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_next_structural_strip_to_buffer(
 }
 
 /**
- * @brief Write the first pending Snapshot Strip to StripBuffer.
+ * @brief Write the first self-linked Pending Snapshot Strip to StripBuffer.
  * @param sequence_id Identifier of the active sequence.
  * @retval 1 A pending insertion or Mask was written.
- * @retval 0 Both pending indexes are empty.
+ * @retval 0 No Pending Strip exists.
+ * @pre `sequence_id` identifies an active Projector.
+ * @post On success, `pending_cursor` identifies the written Stable Position.
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 write_first_pending_strip_to_buffer(const std::uint32_t sequence_id) noexcept {
@@ -577,7 +598,8 @@ write_first_pending_strip_to_buffer(const std::uint32_t sequence_id) noexcept {
  * @brief Advance the pending Snapshot traversal and write its next Strip.
  * @param sequence_id Identifier of the active sequence.
  * @retval 1 Another pending insertion or Mask was written.
- * @retval 0 Both pending indexes have been exhausted.
+ * @retval 0 Dense storage contains no later self-linked Strip.
+ * @pre A successful first Pending write initialized `pending_cursor`.
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 write_next_pending_strip_to_buffer(const std::uint32_t sequence_id) noexcept {
@@ -593,9 +615,9 @@ write_next_pending_strip_to_buffer(const std::uint32_t sequence_id) noexcept {
 }
 
 /**
- * @brief Return the mutable address of the shared nine-word StripBuffer.
+ * @brief Return the mutable address of the shared ten-word StripBuffer.
  *
- * @return Pointer to the first transferable `std::uint32_t` word.
+ * @return Pointer to the first of ten `std::uint32_t` words.
  * @note The address remains valid for the lifetime of the module, but every
  * StripBuffer read or write may replace its contents.
  * @see StripBuffer

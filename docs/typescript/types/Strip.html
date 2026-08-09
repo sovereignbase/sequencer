@@ -10,12 +10,13 @@
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
 <li><a href="" aria-current="page">Strip</a></li></ul>
 <h1>Type Alias Strip&lt;T&gt;</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Strip</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">[</span><br/>    is_masked<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">0</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">1</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">3</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">5</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">7</span><span class="tsd-signature-symbol">,</span><br/>    frame_count<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>    coordinate<span class="tsd-signature-symbol">:</span> <a href="SequenceCoordinate.html" class="tsd-signature-type tsd-kind-type-alias">SequenceCoordinate</a><span class="tsd-signature-symbol">,</span><br/>    footage<span class="tsd-signature-symbol">?:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">]</span></div>
-<div class="tsd-comment tsd-typography"><p>Serializable material representation of one contiguous Frame Span.</p>
-<p>A visible Strip contributes its Frames to the Projection. A Mask remains in
-retained Sequence order while contributing none. Footage may be omitted only
-when a Mask's consumer-owned values have already been released. Pending is
-exclusively runtime Projector state and is never serialized into a Strip.</p>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Strip</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">[</span><br/>    meta<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">[</span><br/>        is_masked<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>        is_inverse<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>        frame_count<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>        this_crypto_random_bits<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>        this_unix_lower_bits<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>        this_counter_bits<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>        previous_crypto_random_bits<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>        previous_unix_lower_bits<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>        previous_counter_bits<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">,</span><br/>    footage<span class="tsd-signature-symbol">?:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">]</span></div>
+<div class="tsd-comment tsd-typography"><p>Serializable representation of one contiguous Frame Span.</p>
+<p>A visible Strip contributes its Frames to the Projection and carries an
+equally long Footage array. A Mask remains in retained Structural Order while
+contributing no visible Frames and carries no Footage in transfer form.
+Pending state is represented by native linkage, not by an extra serialized
+Strip field.</p>
 </div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -24,7 +25,7 @@ exclusively runtime Projector state and is never serialized into a Strip.</p>
 <div class="tsd-comment tsd-typography"><p>Consumer-owned value represented by one Frame.</p>
 </div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/d7ab0f4c9d92f4cc3cdebbac6315bf3c8d53037f/src/typescript/types/type.ts#L88">types/type.ts:88</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/9aa56b8f7047468b0cdd800810991ae2cce322e8/src/typescript/types/type.ts#L41">types/type.ts:41</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

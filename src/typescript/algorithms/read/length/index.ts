@@ -1,3 +1,8 @@
+/**
+ * Constant-time visible Projection length reads.
+ *
+ * @module
+ */
 import { get_projection_frame_count } from '../../../wasm/index.js'
 import type { Replica } from '../../../types/type.js'
 
@@ -7,6 +12,7 @@ import type { Replica } from '../../../types/type.js'
  * @typeParam T Consumer-owned sequence value.
  * @param state Replica to measure.
  * @returns Current Projection Frame count.
+ * @remarks Runs in O(1); the Projector maintains the count during edits.
  */
 export function length<T>(state: Replica<T>): number {
   // Read the native visible Frame count without traversing Strips.

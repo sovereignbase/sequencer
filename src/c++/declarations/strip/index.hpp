@@ -3,7 +3,8 @@
  * @brief Defines the material representation of one contiguous Frame Span.
  *
  * A Strip joins a Sequence Coordinate, equally long contiguous Footage, one
- * visibility state, and runtime structural linkage in a fixed-size value.
+ * visibility state, insertion direction, and sibling-fragment distances in a
+ * fixed-size value.
  * Splitting a Strip changes its material boundaries while each resulting
  * Strip's coordinate identifies the start of its represented Frame Span.
  */
@@ -17,20 +18,19 @@
  * @brief Material representation of one contiguous Frame Span.
  *
  * A visible Strip contributes `frame_count` frames to the Projection. A Mask
- * contributes none while retaining the same structural position in the
- * Sequence until garbage collection. In both states, `footage_frame_index`
+ * contributes none while retaining its Structural Order position. In both
+ * states, `footage_frame_index`
  * maps the Strip to an equally long contiguous region of consumer-owned
  * Footage; C++ stores the index only and never owns the payload.
  *
- * A transferred Strip carries an immutable integration coordinate and no
- * trusted runtime links. The Projector derives
- * `previous_structural_strip_start` and `next_strip_start` independently from
- * retained Sequence order. `coordinate.this_strip_start` remains the
- * StripIndex key, while `coordinate.previous_strip_start` permanently retains
- * the logical dependency used for deterministic integration.
+ * A transferred Strip carries integration metadata and no trusted runtime
+ * links. The Projector owns Structural Order in dense `left` and `right`
+ * vectors. `coordinate.this_strip_start` is indexed through HashTable, while
+ * `coordinate.previous_strip_end` retains the logical dependency used for
+ * deterministic integration.
  *
  * A transferred Mask specifically names its containing visible Strip with
- * `coordinate.previous_strip_start` and its first masked Frame with
+ * `coordinate.previous_strip_end` and its first masked Frame with
  * `coordinate.this_strip_start`. Materialization preserves both points.
  *
  * @invariant Every materialized Strip represents a positive `frame_count`.
@@ -44,16 +44,15 @@ struct Strip {
   /**
    * @brief Visibility state encoded as an unsigned WebAssembly word.
    *
-   * Zero denotes a visible Strip. Bit zero denotes a Mask. The remaining Mask
-   * bits retain source-fragment boundaries without adding storage to the
-   * fixed-size Strip.
+   * Zero denotes a visible Strip. Any nonzero value denotes a Mask.
    */
   std::uint32_t is_masked;
 
   /**
-   * Whether `previous` is interpreted from right to left instead of left to
-   * right.
+   * @brief Direction used to interpret the referenced placement Frame.
    *
+   * Zero inserts after the referenced Frame and orders siblings forward;
+   * nonzero inserts before it and orders siblings in the opposite direction.
    */
   std::uint32_t is_inverse;
 
@@ -72,30 +71,30 @@ struct Strip {
    */
   std::uint32_t footage_frame_index;
 
-  // Stable coordinate and Projector-owned structural linkage.
+  // Sequence coordinate and runtime-only source-fragment distances.
 
   /**
-   * @brief Immutable Sequence Coordinate defining logical placement.
+   * @brief Sequence Coordinate defining logical placement.
    *
-   * `this_strip_start` identifies this Frame Span and `previous_strip_start`
-   * retains the original logical dependency. Materialization never rewrites
-   * either point.
+   * `this_strip_start` identifies this Frame Span and `previous_strip_end`
+   * retains its placement or containment dependency. A derived split suffix
+   * receives the corresponding derived coordinate.
    */
   SequenceCoordinate coordinate;
 
   /**
-   * @brief Previous material fragment of the same originally issued Strip.
+   * @brief Number of source-strip Frames represented by fragments to the right.
    *
-   * Root means this fragment begins its source. The link is runtime-only and
-   * is rebuilt by splitting or Snapshot resolution.
+   * Together with `frame_count` and `left_siblings_frames`, this reconstructs
+   * the originally issued Strip length without a fragment pointer.
    */
   std::uint32_t right_sibling_frames;
 
   /**
-   * @brief Next material fragment of the same originally issued Strip.
+   * @brief Number of source-strip Frames represented by fragments to the left.
    *
-   * `unlinked_strip_start` means this fragment ends its source. The link is
-   * runtime-only and never participates in sibling conflict resolution.
+   * Subtracting this distance from the fragment start counter reconstructs the
+   * originally issued Strip start for sibling comparison.
    */
   std::uint32_t left_siblings_frames;
 };

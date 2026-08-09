@@ -21,8 +21,8 @@
  * 9  footage_frame_index
  * @endcode
  *
- * Both structural links are Projector-owned runtime state and intentionally
- * absent from the transfer representation.
+ * Dense structural links and sibling-fragment distances are Projector-local
+ * runtime state and intentionally absent from the transfer representation.
  */
 #pragma once
 
@@ -59,8 +59,8 @@ public:
    * @brief Encode a strip into the stable ten-word memory layout.
    *
    * @param strip Strip whose transferable fields replace the buffer contents.
-   * @post All transferable Strip fields are represented by `words`; runtime
-   * successor linkage is omitted.
+   * @post All transferable Strip fields are represented by `words`; dense
+   * links and sibling-fragment distances are omitted.
    * @note Previously obtained memory pointers remain valid but observe the new
    * contents.
    * @complexity O(1) time and O(1) auxiliary space.
@@ -84,12 +84,20 @@ public:
   }
 
   /**
-   * @brief Decode the current words directly into the Strip vector.
+   * @brief Decode the current words directly into Projector-owned storage.
    *
-   * @return Stable position of the existing or appended Strip.
+   * Exact duplicate metadata resolves to its existing original Stable Position
+   * even after that source has been split. Otherwise one Strip is appended
+   * directly. Visible Frame containment is indexed immediately; Mask commands
+   * are indexed when they materialize over existing fragments.
+   *
+   * @param strips Append-only Projector Strip storage.
+   * @param hash_table Sequence Point containment index for the same Projector.
+   * @return Stable Position of the existing duplicate or appended Strip.
    * @pre The words contain a valid transferable Strip representation.
-   * @post The buffer contents are unchanged.
-   * @complexity O(1) time and O(1) auxiliary space.
+   * @post The buffer contents are unchanged; a nonduplicate visible Strip is
+   * indexed by its complete Frame Span.
+   * @complexity HashTable lookup/insertion plus amortized O(1) Strip append.
    */
   [[nodiscard]] inline std::uint32_t
   read_strip(std::vector<Strip> &strips, HashTable &hash_table) const

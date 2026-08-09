@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Materializes one staged visible Strip in Structural Order.
+ */
 #pragma once
 
 #include "../../auxiliary/insert_between/index.hpp"
@@ -5,6 +9,28 @@
 #include "../../declarations/projector/index.hpp"
 #include <cstdint>
 
+/**
+ * @brief Insert one visible Strip at its coordinate-defined Frame boundary.
+ *
+ * `is_inverse` selects the boundary before or after the referenced Frame. An
+ * interior boundary splits the containing Strip, after which `insert_between`
+ * performs sibling ordering and dense-link updates. The LengthTable and visible
+ * Projection count are adjusted exactly once.
+ *
+ * @param projector Owning Projector.
+ * @param containing_position Stable Position containing
+ * `inserted_position`'s `previous_strip_end`.
+ * @param inserted_position Self-linked Stable Position of the visible Strip to
+ * materialize.
+ * @return Visible Projection Index at which the inserted Strip begins.
+ * @pre All positions are valid in the Projector's dense storage.
+ * @pre The inserted Strip is visible and its referenced Frame is contained by
+ * `containing_position`.
+ * @post The inserted Strip belongs to Structural Order and contributes its
+ * complete Frame Span to the Projection.
+ * @complexity Bounded LengthTable adjustment plus sibling traversal and at
+ * most one Strip split.
+ */
 [[nodiscard]] inline std::uint32_t
 insert_strip(Projector *projector, const std::uint32_t containing_position,
              const std::uint32_t inserted_position) noexcept {

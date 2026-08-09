@@ -2,10 +2,9 @@
  * @file
  * @brief Defines the Projector state for one materialized Sequence.
  *
- * A Projector owns the structural Strip indexes, tracks the resulting
- * Projection, and maintains a movable Gate for locality-aware navigation. It
- * introduces no second source of Sequence order: structural references are
- * Sequence Points resolved through the primary StripIndex.
+ * A Projector owns Strip storage, dense Structural Order, point containment,
+ * bounded Projection navigation, and a movable Gate. It references but never
+ * owns consumer Footage.
  */
 #pragma once
 
@@ -18,73 +17,65 @@
 /**
  * @brief Owned runtime state that materializes one Sequence and its Projection.
  *
- * The primary index owns all materialized Strips under their stable starts.
- * Pending indexes own incoming Strips under unresolved transfer dependencies.
- * For a pending Mask that dependency is the exact indexed start of its
- * containing Strip; for a pending visible Strip it is the Frame after which it
- * is placed. The Gate caches one materialized Strip and the Projection position
- * at which it begins; it accelerates navigation but never determines Sequence
- * order.
+ * `strips`, `left`, and `right` share the Stable Position index domain.
+ * Materialized Strips form one circular bidirectional chain. A valid unresolved
+ * Strip remains self-linked until Initial Projection Resolution or a later
+ * operation materializes it. HashTable maps Sequence Point containment to this
+ * dense domain; LengthTable stores periodic entry points into it.
  *
- * Integration preserves every transfer coordinate and derives separate
- * structural links. Every retained non-first Strip stores its immediate
- * predecessor's indexed start in `previous_structural_strip_start`; the first
- * stores the Root. The predecessor names the same Strip through
- * `next_strip_start`.
+ * The Gate caches one materialized Stable Position and its visible Projection
+ * start. It accelerates navigation but never determines Sequence order.
  *
- * @invariant The structural chain contains every materialized Strip, including
- * Masks, exactly once from `first_strip_start` through `last_strip_start`.
+ * @invariant `strips.size() == left.size() == right.size()`.
+ * @invariant The materialized circular chain contains each materialized Strip,
+ * including Masks, exactly once.
  * @invariant Adjacent structural Strips have mutually consistent forward and
  * backward links.
- * @invariant The first retained Strip has the Root as its previous point, every
- * other retained Strip has its immediate predecessor's `this_strip_start` in
- * `previous_structural_strip_start`, and the last retained Strip has
- * `unlinked_strip_start` as its successor.
  * @invariant `projection_frame_count` equals the sum of `frame_count` over all
  * visible materialized Strips.
- * @invariant When the primary index is non-empty, the first, Gate, and last
- * starts resolve to materialized Strips; when it is empty, their values are the
- * Root and the Projection frame count is zero.
- * @note The Projector owns Strip values and index storage. It references
- * consumer-owned Footage only through each Strip's `footage_frame_index`.
+ * @invariant A non-empty LengthTable and Gate refer to materialized Stable
+ * Positions.
  */
 struct Projector {
   // Authoritative materialized Sequence and Projection state.
 
   /**
-   * @brief Materialized Strips indexed by their own stable start points.
+   * @brief Append-only Strip storage indexed by Stable Position.
    *
-   * This is the authoritative runtime representation of structural membership.
-   * Each stored Strip has derived predecessor and successor links while its
-   * Sequence Coordinate remains immutable.
+   * It contains materialized and Pending Strips. Structural membership is
+   * determined by the matching dense link entries.
    */
   std::vector<Strip> strips;
 
   /**
-   * @brief Dense traversal vector
+   * @brief Stable Position immediately to the right in Structural Order.
+   *
+   * A Pending Strip points to itself until materialized.
    */
   std::vector<uint32_t> right;
 
   /**
-   * @brief Dense traversal vector
+   * @brief Stable Position immediately to the left in Structural Order.
+   *
+   * A Pending Strip points to itself until materialized.
    */
   std::vector<uint32_t> left;
 
   /**
-   * @brief Materialized Strips indexed by their own stable start points.
+   * @brief Sequence Point containment index returning Stable Positions.
    *
-   * This is the authoritative runtime representation of structural membership.
-   * Each stored Strip has derived predecessor and successor links while its
-   * Sequence Coordinate remains immutable.
+   * HashTable owns compact Realm entries only; Strip objects remain owned by
+   * `strips`.
    */
   HashTable hash_table;
 
+  /** @brief Fixed-frequency entry points for bounded Projection traversal. */
   LengthTable length_table;
 
   /** @brief Total number of visible frames in the current Projection. */
   std::uint32_t projection_frame_count{0};
 
-  // Movable Gate and retained structural boundaries.
+  // Movable Projection traversal Gate.
 
   /**
    * @brief Projection frame index at which the Gate Strip begins.

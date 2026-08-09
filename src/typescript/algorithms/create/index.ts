@@ -1,5 +1,5 @@
 /**
- * Replica creation from an optional Reel of already-issued Strips.
+ * Replica creation from an optional Delta of already-issued Strips.
  *
  * @module
  */
@@ -17,14 +17,15 @@ const finalization_registry = new FinalizationRegistry<number>(clear_sequence)
 /**
  * Creates an independently maintained sequence state.
  *
- * Entries are staged without integration, then one native Root traversal
- * resolves every reachable dependency. Pending is never represented in
- * transferred data. Invalid input and invalid entries are ignored; an empty
- * Replica is still returned. Creation preserves coordinates and issues no
- * points.
+ * `merge` first validates and stages every supplied Strip. One subsequent
+ * `resolve_initial_projection` call selects Initial Root Candidates and
+ * materializes every reachable dependency independently of input order.
+ * Unresolved valid Strips remain Pending and are retained by Snapshot. Invalid
+ * input and invalid entries are ignored; an empty Replica is still returned.
+ * Creation preserves coordinates and issues no Sequence Points.
  *
  * @typeParam T Consumer-owned value represented by one Frame.
- * @param data Optional candidate Reel used to initialize retained state.
+ * @param data Optional candidate Delta used to initialize retained state.
  * @returns A new Replica owning its JavaScript Footage and native Projector.
  */
 export function create<T>(data?: unknown): Replica<T> {

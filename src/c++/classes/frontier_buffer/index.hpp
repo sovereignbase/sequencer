@@ -26,8 +26,9 @@
  * @brief Owned contiguous WebAssembly representation of one Frontier.
  *
  * Entry order carries no Realm priority and need not match structural Sequence
- * order; the Unix and random components identify each entry's Realm. The class
- * transfers boundary metadata only and owns no Replica, Sequence, or Strip.
+ * order; the crypto-random and Unix components identify each entry's Realm.
+ * The class transfers boundary metadata only and owns no Replica, Sequence, or
+ * Strip.
  *
  * @invariant `words.size()` is a multiple of `words_per_frontier_entry`.
  * @note One instance is shared by the exported runtime. Any mutating operation

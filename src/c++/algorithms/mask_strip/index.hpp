@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Materializes a Mask over existing Sequence Frames.
+ */
 #pragma once
 
 #include "../../auxiliary/split_strip/index.hpp"
@@ -5,6 +9,26 @@
 #include <algorithm>
 #include <cstdint>
 
+/**
+ * @brief Convert the requested existing Frame Span into materialized Masks.
+ *
+ * Source Strips are split at the Mask boundaries when necessary. Already
+ * masked fragments remain unchanged; only newly hidden Frames reduce the
+ * Projection count. HashTable containment is refreshed for every converted
+ * fragment, and the detached incoming Mask command is associated with the
+ * materialized fragment through its dense links.
+ *
+ * @param projector Owning Projector.
+ * @param containing_position Stable Position containing the Mask's first Frame.
+ * @param incoming_mask_position Stable Position of the staged Mask command.
+ * @return Projection Index formerly occupied by the first newly addressed
+ * Frame, derived from the nearest surviving LengthTable checkpoint.
+ * @pre The Mask names a valid retained Frame Span.
+ * @post Every addressed visible fragment is masked and Structural Order is
+ * preserved.
+ * @complexity Linear in crossed material fragments plus bounded checkpoint
+ * adjustment.
+ */
 [[nodiscard]] inline std::uint32_t
 mask_strip(Projector *projector, const std::uint32_t containing_position,
            const std::uint32_t incoming_mask_position) noexcept {

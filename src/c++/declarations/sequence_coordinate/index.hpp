@@ -2,32 +2,30 @@
  * @file
  * @brief Defines the Sequence Coordinate carried by a Strip.
  *
- * A Sequence Coordinate expresses Strip placement entirely with stable
- * Sequence Points. It retains the same logical meaning before and after
- * materialization and never depends on a mutable Projection frame index.
+ * A Sequence Coordinate expresses Strip placement entirely with Sequence
+ * Points and never depends on a mutable Projection frame index.
  */
 #pragma once
 
 #include "../sequence_point/index.hpp"
 
 /**
- * @brief Immutable logical placement carried by one Strip.
+ * @brief Logical placement carried by one Strip or derived fragment.
  *
- * In vocabulary order, the coordinate is the pair
- * `(previous_strip_start, this_strip_start)`. `this_strip_start` always
- * identifies the first Frame of the Strip's Frame Span.
+ * The coordinate is the pair `(this_strip_start, previous_strip_end)`.
+ * `this_strip_start` always identifies the first Frame of the represented Frame
+ * Span.
  *
- * For a visible Strip, `previous_strip_start` is the Root or the stable point
- * of the Frame after which the Strip is placed. For a Mask, it is the exact
- * indexed start of the visible Strip containing the complete masked Frame
- * Span, while `this_strip_start` is the existing Sequence Point of the first
- * masked Frame. Masking therefore issues no new Sequence Point.
+ * For a visible transfer, `previous_strip_end` is the referenced existing
+ * Frame; `is_inverse` determines whether placement occurs before or after it.
+ * For a Mask, `previous_strip_end` is the start of its containing material
+ * Strip and `this_strip_start` is the first existing Frame to mask.
  *
- * @invariant `this_strip_start` identifies the first Frame represented by its
- * @invariant Materialization never modifies either Sequence Point.
+ * A split suffix derives both points from the source fragment: its own start
+ * advances by the split offset and its previous point becomes the immediately
+ * preceding Frame. No Frame identity is changed.
  *
- * @note Member declaration order is a C++ storage detail and does not redefine
- * the vocabulary order of the pair.
+ * @invariant `this_strip_start` identifies the first represented Frame.
  */
 struct SequenceCoordinate {
   // Stable identity of the represented Frame Span.
@@ -41,15 +39,14 @@ struct SequenceCoordinate {
    */
   SequencePoint this_strip_start;
 
-  // Immutable logical dependency.
+  // Logical placement or containment dependency.
 
   /**
    * @brief Stable logical dependency used for deterministic integration.
    *
-   * A transferable visible Strip names its placement Frame; a transferable Mask
-   * names the exact indexed start of its containing Strip. Pending indexes use
-   * that value as their dependency key. The Projector never rewrites it as a
-   * runtime link.
+   * A visible Strip names its referenced placement Frame. A Mask names the
+   * start of its containing material Strip. Structural links are stored
+   * separately in the Projector's dense traversal vectors.
    */
   SequencePoint previous_strip_end;
 };

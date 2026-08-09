@@ -25,7 +25,7 @@
  * @pre Both pointers are non-null.
  * @note An offset of zero means that the point equals `this_strip_start`.
  * @note For an incoming Mask, testing its `this_strip_start` against the Strip
- * indexed by its `previous_strip_start` yields the first masked Frame offset;
+ * indexed by its `previous_strip_end` yields the first masked Frame offset;
  * both points already exist in the retained Sequence.
  * @complexity O(1) time and O(1) space.
  */

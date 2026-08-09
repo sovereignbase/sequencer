@@ -2,8 +2,8 @@
  * @file
  * @brief Defines deterministic total ordering for sequence points.
  *
- * Ordering compares the random component first, the Unix component second,
- * and the counter component last.
+ * Ordering compares the crypto-random component first, the Unix component
+ * second, and the counter component last.
  */
 #pragma once
 

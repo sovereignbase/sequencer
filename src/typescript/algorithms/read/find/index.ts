@@ -1,5 +1,5 @@
 /**
- * Projection reads, visible length inspection, and retained Footage recovery.
+ * Single-Frame visible Projection reads.
  *
  * @module
  */
@@ -19,6 +19,8 @@ import { is_safe_index } from '../../../helpers/index.js'
  * @param index Zero-based visible index.
  * @returns The value at `index`, or `undefined` when the index is invalid or its
  * Footage has been released.
+ * @remarks Native code resolves only the Footage Index. The value itself stays
+ * in the Replica-owned JavaScript array.
  */
 export function find<T>(state: Replica<T>, index: number): T | undefined {
   // Validate the requested visible Projection index.

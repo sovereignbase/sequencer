@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Builds the first Projection from a batch of staged Strips.
+ */
 #pragma once
 
 #include "../../auxiliary/compare_sequence_points/index.hpp"
@@ -8,6 +12,27 @@
 #include <cstdint>
 #include <vector>
 
+/**
+ * @brief Resolve every reachable creation-time dependency into one Projection.
+ *
+ * Visible Strips whose previous point is absent seed the sentinel-free circular
+ * Structural Order. Roots are ordered deterministically with the same Sequence
+ * Point comparator and inverse semantics used by insertion. Remaining visible
+ * Strips and Masks are then materialized dependency-first through the ordinary
+ * insert and Mask algorithms. Cycles and unresolved dependencies stay Pending.
+ *
+ * The LengthTable and Gate are initialized after the root ring is created and
+ * rebuilt after dependency resolution so no input arrival order becomes
+ * Projection order.
+ *
+ * @param projector Projector containing a complete staged creation batch.
+ * @pre Every Strip has matching self-linked dense entries unless already joined
+ * to the root ring during this call.
+ * @post Every reachable valid Strip is materialized exactly once; unresolved
+ * Strips remain self-linked.
+ * @complexity O(n) staging-state storage plus HashTable lookups and the cost of
+ * ordinary materialization for n Strips.
+ */
 inline void resolve_initial_projection(Projector *projector) noexcept {
   const std::uint32_t strip_count =
       static_cast<std::uint32_t>(projector->strips.size());

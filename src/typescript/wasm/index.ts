@@ -141,6 +141,20 @@ export function get_recovery_footage_spans(
   return wasm.HEAPU32.subarray(span_start, span_start + span_count * 2)
 }
 
+/**
+ * Returns ordered Footage Spans for one visible Projection range.
+ *
+ * Native traversal clips boundary Strips and omits Masks. The returned view is
+ * valid only until another Wasm operation rewrites or grows the shared Footage
+ * Span Buffer.
+ *
+ * @param sequence_id Active local Projector identifier.
+ * @param start_index First visible Projection Frame to include.
+ * @param end_index Boundary after the final visible Frame.
+ * @returns A zero-copy view of `(footage_frame_index, frame_count)` pairs, or
+ * `false` for an empty range.
+ * @pre The half-open range is valid for the current Projection.
+ */
 export function get_projection_footage_spans(
   sequence_id: number,
   start_index: number,
@@ -182,10 +196,10 @@ export function write_strip_at_projection_frame_index_to_buffer(
 }
 
 /**
- * Writes the first materialized Snapshot Strip to the shared buffer.
+ * Writes the first self-linked Pending Strip to the shared buffer.
  *
  * @param sequence_id Active local Projector identifier.
- * @returns Whether a first Snapshot Strip exists and was written.
+ * @returns Whether a Pending Strip exists and was written.
  */
 export function write_first_pending_strip_to_buffer(
   sequence_id: number
@@ -194,7 +208,7 @@ export function write_first_pending_strip_to_buffer(
 }
 
 /**
- * Advances the materialized pending Snapshot stream.
+ * Advances the self-linked Pending Snapshot stream.
  *
  * @param sequence_id Active local Projector identifier.
  * @returns Whether another Snapshot Strip was written.
@@ -206,10 +220,10 @@ export function write_next_pending_strip_to_buffer(
 }
 
 /**
- * Writes the first materialized Snapshot Strip to the shared buffer.
+ * Writes the first materialized Structural Order Strip to the shared buffer.
  *
  * @param sequence_id Active local Projector identifier.
- * @returns Whether a first Snapshot Strip exists and was written.
+ * @returns Whether Structural Order is non-empty and a Strip was written.
  */
 export function write_first_structural_strip_to_buffer(
   sequence_id: number
@@ -218,7 +232,7 @@ export function write_first_structural_strip_to_buffer(
 }
 
 /**
- * Advances the materialized structural Snapshot stream.
+ * Advances the circular materialized Structural Order Snapshot stream.
  *
  * @param sequence_id Active local Projector identifier.
  * @returns Whether another Snapshot Strip was written.
@@ -229,7 +243,15 @@ export function write_next_structural_strip_to_buffer(
   return wasm._write_next_structural_strip_to_buffer(sequence_id) !== 0
 }
 
-/** Builds the Projection after all creation-time Strips have been staged. */
+/**
+ * Builds the initial Projection after all creation-time Strips are staged.
+ *
+ * Reachable dependencies join sentinel-free Structural Order; unresolved
+ * Strips stay Pending. The call also initializes the native LengthTable and
+ * Gate.
+ *
+ * @param sequence_id Active local Projector identifier.
+ */
 export function resolve_initial_projection(sequence_id: number): void {
   void wasm._resolve_initial_projection(sequence_id)
 }
@@ -312,11 +334,10 @@ export function garbage_collect_sequence(
  * Merges the buffered Strip into one materialized Sequence.
  *
  * A visible Strip is reported at its resulting Projection start. A Mask is
- * reported at the position its first Frame occupied before masking. A Strip
- * whose previous point has not materialized remains pending; an invalid Mask is
- * discarded. A Mask coordinate uses its containing Strip's indexed start as
- * the previous point and its first masked Frame's existing point as its own
- * start.
+ * reported at the position its first Frame occupied before masking. A duplicate
+ * produces no position. A new Strip whose dependency is absent, still Pending,
+ * or waiting for Initial Projection Resolution remains self-linked and likewise
+ * produces no position.
  *
  * @param sequence_id Active local Projector identifier.
  * @returns The relevant Projection frame index, or `false` when the Strip stays
@@ -324,7 +345,7 @@ export function garbage_collect_sequence(
  * @remarks `write_strip_to_buffer` must have supplied the incoming Strip.
  */
 export function merge_strip_into_sequence(sequence_id: number): number | false {
-  // Invoke native dependency, Mask, and deterministic insert resolution.
+  // Invoke native staging, Mask, or deterministic insertion.
   const projection_frame_index =
     wasm._merge_strip_into_sequence(sequence_id) >>> 0
   // Translate the native no-position sentinel into the TypeScript contract.

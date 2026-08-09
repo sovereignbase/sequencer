@@ -179,6 +179,25 @@ public:
     return {checkpoints[checkpoint_index], checkpoint_index * 128u};
   }
 
+  /**
+   * @brief Derive the visible Projection start of one Stable Position.
+   *
+   * Traversal follows `right` until it reaches a stored checkpoint, summing
+   * only visible Strip lengths. If the circular walk crosses Projection origin,
+   * the total visible Projection length corrects the checkpoint index before
+   * subtracting the walked distance.
+   *
+   * @tparam ProjectorType Type exposing `strips`, `right`, and
+   * `projection_frame_count`.
+   * @param stable_position Stable Position whose visible start is required.
+   * @param projector Owning Projector.
+   * @return Projection Index at which the Strip begins; a Mask may share the
+   * returned index with an adjacent Strip.
+   * @pre The Stable Position belongs to the materialized circular chain and at
+   * least one checkpoint exists.
+   * @complexity O(s) for the structural Strips between the position and first
+   * encountered checkpoint.
+   */
   template <typename ProjectorType>
   [[nodiscard]] inline std::uint32_t
   projection_frame_index(const std::uint32_t stable_position,
@@ -205,6 +224,23 @@ public:
     }
   }
 
+  /**
+   * @brief Rebuild all checkpoints from one Structural Order origin.
+   *
+   * The first Stable Position becomes checkpoint zero. One further entry is
+   * emitted for every crossed 128-Frame visible boundary; Masks advance
+   * Structural Order but not the visible counter.
+   *
+   * @tparam ProjectorType Type exposing `strips`, `right`, and
+   * `projection_frame_count`.
+   * @param first_position Stable Position representing Projection Index zero.
+   * @param projector Owning Projector.
+   * @pre `first_position` belongs to a valid circular Structural Order.
+   * @post Existing checkpoint storage is replaced by the complete current
+   * table.
+   * @complexity O(s + p), where s is the structural Strip count and p the
+   * checkpoint count.
+   */
   template <typename ProjectorType>
   inline void initialize(const std::uint32_t first_position,
                          const ProjectorType *projector) noexcept {
@@ -228,6 +264,11 @@ public:
     } while (position != first_position);
   }
 
+  /**
+   * @brief Report whether Projection navigation has been initialized.
+   * @return `true` when no checkpoint exists.
+   * @complexity O(1).
+   */
   [[nodiscard]] inline bool is_empty() const noexcept {
     return checkpoints.empty();
   }

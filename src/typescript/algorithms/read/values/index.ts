@@ -1,3 +1,8 @@
+/**
+ * Batched visible Projection range reads through Footage Spans.
+ *
+ * @module
+ */
 import { is_safe_index } from '../../../helpers/index.js'
 import type { Replica } from '../../../types/type.js'
 import {
@@ -13,6 +18,8 @@ import {
  * @param end_index Boundary after the final frame; defaults to Projection end.
  * @returns The selected visible values, or an empty array for an invalid or
  * empty range.
+ * @remarks Masks are skipped natively. The resulting spans are consumed before
+ * another Wasm call can reuse the shared Footage Span Buffer.
  */
 export function values<T>(
   state: Replica<T>,

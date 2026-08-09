@@ -15,12 +15,16 @@ import {
 /**
  * Captures the complete retained state of a Replica as a transferable Delta.
  *
- * Every materialized visible Strip and Mask is serialized in Sequence order,
- * followed by any unresolved pending Strips. Runtime-only indexes and Footage
- * positions are omitted from the serialized representation.
+ * Every materialized visible Strip and Mask is serialized in Structural Order,
+ * followed by unresolved Pending Strips. Stable Positions, dense links, sibling
+ * distances, and Footage Indexes are omitted because they are local runtime
+ * state.
  *
- * Visible Strips include independent copies of their referenced Footage. Masks
- * omit Footage once their consumer-owned values have been released.
+ * Visible Strips include independent copies of their referenced Footage. A
+ * materialized Mask is encoded as a reconstructable visible source fragment
+ * followed by its Footage-free Mask command; released source entries remain
+ * `undefined` in the copied array. This lets creation rebuild split Mask state
+ * without serializing sibling metadata.
  *
  * Snapshotting only reads already-issued Sequence material and never issues new
  * Sequence Points.
@@ -29,6 +33,8 @@ import {
  * @param state Replica whose complete retained state is captured.
  * @returns Complete transferable retained state, including unresolved pending
  * Strips.
+ * @remarks Snapshot order is deterministic output, but creation still derives
+ * Projection order from coordinates rather than trusting array order.
  */
 export function snapshot<T>(state: Replica<T>): Delta<T> {
   const { id, footage } = state

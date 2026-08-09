@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>SequenceCoordinate | @sovereignbase/sequencer</title><link rel="icon" href="https://sovereignbase.dev/sovereignbase_logo.png"/><meta name="description" content="Documentation for @sovereignbase/sequencer"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Delta | @sovereignbase/sequencer</title><link rel="icon" href="https://sovereignbase.dev/sovereignbase_logo.png"/><meta name="description" content="Documentation for @sovereignbase/sequencer"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container"><a href="../index.html" class="title">@sovereignbase/sequencer</a>
 <div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
 <ul role="listbox" id="tsd-search-results"></ul>
@@ -8,21 +8,23 @@
 <div class="col-content">
 <div class="tsd-page-title">
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
-<li><a href="" aria-current="page">SequenceCoordinate</a></li></ul>
-<h1>Type Alias SequenceCoordinate</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">SequenceCoordinate</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">[</span><br/>    previous_strip_start<span class="tsd-signature-symbol">:</span> <a href="SequencePoint.html" class="tsd-signature-type tsd-kind-type-alias">SequencePoint</a><span class="tsd-signature-symbol">,</span><br/>    this_strip_start<span class="tsd-signature-symbol">:</span> <a href="SequencePoint.html" class="tsd-signature-type tsd-kind-type-alias">SequencePoint</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">]</span></div>
-<div class="tsd-comment tsd-typography"><p>Stable placement relationship carried by one Strip.</p>
-<p><code>previous_strip_start</code> supplies the established sequence context against
-which the Strip is placed. For a Mask it is the indexed start of the
-containing Strip. <code>this_strip_start</code> identifies the first Frame of the
-Strip's own Frame Span, including an existing frame-specific point for a
-Mask. Masks issue no Sequence Points. A visible Strip placed at the
-beginning uses the Root as its previous point; native integration orders
-competing Root successors in descending point order and ordinary successors
-in ascending point order.</p>
-</div><aside class="tsd-sources">
+<li><a href="" aria-current="page">Delta</a></li></ul>
+<h1>Type Alias Delta&lt;T&gt;</h1></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Delta</span><span class="tsd-signature-symbol">:</span> <a href="Strip.html" class="tsd-signature-type tsd-kind-type-alias">Strip</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></div>
+<div class="tsd-comment tsd-typography"><p>Serializable collection of Strips used to store or exchange Sequence
+material.</p>
+<p>A Delta may contain only material produced by one local change or every
+retained Strip. Completeness is determined by the operation producing the
+Delta rather than by its representation.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="t"><span class="tsd-kind-type-parameter">T</span></span>
+<div class="tsd-comment tsd-typography"><p>Consumer-owned value represented by one Frame.</p>
+</div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/d7ab0f4c9d92f4cc3cdebbac6315bf3c8d53037f/src/typescript/types/type.ts#L69">types/type.ts:69</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/9aa56b8f7047468b0cdd800810991ae2cce322e8/src/typescript/types/type.ts#L112">types/type.ts:112</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

@@ -1,5 +1,5 @@
 /**
- * Internal Realm state and Virtual Strip issuance for the update operation.
+ * Internal Realm state and visible Virtual Strip issuance.
  *
  * @module
  */
@@ -7,7 +7,7 @@ import { is_uint32 } from '../is_uint32/index.js'
 import { write_strip_to_buffer } from '../../wasm/index.js'
 import type { Strip, VirtualStrip } from '../../types/type.js'
 
-/** Mutable storage for the current Realm's random discriminator. */
+/** Mutable storage for the current Realm's crypto-random discriminator. */
 const realm_random_bits = new Uint32Array(1)
 
 /** Low 32 bits of the Unix timestamp identifying the current Realm. */
@@ -31,16 +31,21 @@ let next_counter_bits = 0x1_0000_0000
  * initialized before the reservation. This ensures that one Frame Span never
  * crosses a Realm boundary.
  *
- * The written buffer lanes contain the Mask state, Frame count, issued Strip
- * start, previous Strip start, and Footage frame index. The Realm counter is
+ * The ten written buffer lanes contain visibility, inverse direction, Frame
+ * count, issued start, previous end, and optional Footage Index. The returned
+ * nine-word metadata excludes that local Footage Index. The Realm counter is
  * advanced by `frame_count` after the transfer.
  *
  * @param is_masked Zero for a visible Strip; nonzero for a Mask.
+ * @param is_inverse Zero to insert after the referenced Frame; nonzero to
+ * insert before it.
  * @param frame_count Positive number of consecutive Frames to reserve.
  * @param previous_crypto_random_bits Random discriminator of the previous point.
  * @param previous_unix_lower_bits Low Unix-time bits of the previous point.
  * @param previous_counter_bits Counter bits of the previous point.
- * @param footage_frame_index Optional footage index corresponding to the first Frame.
+ * @param footage_frame_index Optional Footage Index corresponding to the first
+ * Frame.
+ * @returns Transferable nine-word Strip metadata for the issued Frame Span.
  * @remarks All transferred values must fit within an unsigned 32-bit integer.
  */
 export function issue_virtual_strip<T>(

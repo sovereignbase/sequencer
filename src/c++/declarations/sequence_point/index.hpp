@@ -1,16 +1,15 @@
 /**
  * @file
- * @brief Defines stable identities for the root and frames in sequence space.
+ * @brief Defines stable Frame identities in Sequence space.
  *
- * A SequencePoint identifies either the Root or one Frame independently of the
- * frame's current Projection index and containing Strip. The value is composed
- * of three unsigned 32-bit lanes and crosses the WebAssembly application binary
- * interface without an owning allocation.
+ * A SequencePoint identifies one Frame independently of its current Projection
+ * index, Footage index, Stable Position, and containing Strip. The value is
+ * composed of three unsigned 32-bit lanes and crosses the WebAssembly boundary
+ * without allocation.
  *
  * Ordinary points belong to a Realm. Points issued by the same Realm share
- * their Unix and random components, while their counters identify consecutive
- * frames in that Realm's lineage. The all-zero value is the Root defined by the
- * vocabulary; it identifies no frame and belongs to no Realm.
+ * their crypto-random and Unix components, while counters identify consecutive
+ * Frames in that Realm's lineage.
  */
 #pragma once
 
@@ -18,15 +17,13 @@
 #include <limits>
 
 /**
- * @brief Stable identity value for the Root or one frame in sequence space.
+ * @brief Stable identity value for one Frame in Sequence space.
  *
  * The three components form a value: equality requires all components to be
- * equal. Deterministic cross-Realm comparison considers the Unix component,
- * then the counter, and finally the random component. Within one Realm, only
- * the counter varies.
+ * equal. Deterministic comparison considers `crypto_random_bits` first,
+ * `unix_lower_bits` second, and `counter_bits` last. Within one Realm, only the
+ * counter varies.
  *
- * @invariant An ordinary point issued by a Realm is distinct from the Root and
- * `unlinked_strip_start` sentinels.
  * @note Stability describes the identified sequence position. The aggregate is
  * intentionally writable while a point is being constructed or advanced to a
  * derived frame boundary.
@@ -37,16 +34,15 @@ struct SequencePoint {
   /**
    * @brief Random component of the Realm identity.
    *
-   * This component is the final deterministic cross-Realm tie-break, never the
-   * primary ordering component.
+   * This component is the primary deterministic comparison component.
    */
   std::uint32_t crypto_random_bits;
 
   /**
    * @brief Lower 32 bits of the issuing Realm's Unix-time component.
    *
-   * Together with `random_bits`, this identifies the Realm to which an ordinary
-   * point belongs. The value is not a complete timestamp.
+   * Together with `crypto_random_bits`, this identifies the Realm. The value is
+   * not a complete timestamp.
    */
   std::uint32_t unix_lower_bits;
 
@@ -68,17 +64,15 @@ struct SequencePoint {
   operator==(const SequencePoint &other) const noexcept = default;
 };
 
-// Structural-link sentinel outside sequence space.
+// Reserved point value outside issued Sequence space.
 
 /**
- * @brief Internal point sentinel denoting no structural successor.
+ * @brief Reserved maximum-valued point outside issued Sequence space.
  *
- * This value is distinct from the Root: the Root is a valid sequence context,
- * whereas this sentinel belongs to no Sequence and identifies no frame. It is
- * stored only in `Strip::next_strip_start` and is omitted from StripBuffer's
- * transfer representation.
+ * The current dense circular Structural Order does not require a sentinel
+ * successor. This constant remains available to code that needs an impossible
+ * SequencePoint value and is never transferred through StripBuffer.
  *
- * @invariant No issued SequencePoint may equal this value.
  */
 inline constexpr SequencePoint unlinked_strip_start{
     .crypto_random_bits = std::numeric_limits<std::uint32_t>::max(),

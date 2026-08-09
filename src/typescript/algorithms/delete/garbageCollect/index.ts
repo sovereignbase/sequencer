@@ -9,19 +9,21 @@ import { garbage_collect_sequence } from '../../../wasm/index.js'
 /**
  * Releases Footage covered by the supplied Replica Frontiers.
  *
- * For every Realm in the first Acknowledgement, the smallest corresponding point
- * found in later Frontiers becomes the garbage-collection boundary. Native
- * code retains every Mask and coordinate as dependency data and returns only
- * the Footage spans whose JavaScript references may be released.
+ * For every Realm in the first Acknowledgement, the smallest matching counter
+ * supplied by later Frontiers becomes the garbage-collection boundary. Native
+ * code retains every Mask, coordinate, and structural link and returns only the
+ * Footage Spans whose JavaScript references may be released.
  *
- * The first supplied Acknowledgement is reused as the selected boundary and may be
- * overwritten. Other Frontiers are read without mutation. Every Realm eligible
- * for collection must have a corresponding point in each participating Replica
- * Acknowledgement.
+ * The first supplied Acknowledgement is reused as the selected boundary and may
+ * be overwritten. Other Frontiers are read without mutation. The caller must
+ * ensure that every Realm selected for safe collection has a matching entry in
+ * every required Replica Acknowledgement; this reducer ignores a missing match.
  *
  * @typeParam T Consumer-owned value represented by one Frame.
  * @param frontiers Acknowledgement Frontiers from participating Replicas.
  * @param state Replica whose acknowledged Mask Footage is released.
+ * @returns Nothing. Released entries are replaced with `undefined` in-place and
+ * the Footage array is never compacted.
  */
 export function garbageCollect<T>(
   frontiers: Array<Acknowledgement>,

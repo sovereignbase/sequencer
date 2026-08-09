@@ -3,9 +3,9 @@
  * @brief Defines the WebAssembly transfer buffer for Footage ranges.
  *
  * FootageSpanBuffer transfers contiguous regions of consumer-owned Footage for
- * recovery and garbage collection. Only indexes and counts cross the
- * WebAssembly boundary; payload values are never copied or owned by C++.
- * Capacity is retained between writes.
+ * visible range reads, recovery, and garbage collection. Only indexes and
+ * counts cross the WebAssembly boundary; payload values are never copied or
+ * owned by C++. Capacity is retained between writes.
  *
  * Every released range uses two consecutive words:
  *
@@ -37,10 +37,10 @@ class FootageSpanBuffer {
 private:
   // Variable-width owned ABI storage.
 
-  /** @brief Number of unsigned 32-bit words in one released range entry. */
+  /** @brief Number of unsigned 32-bit words in one Footage Span entry. */
   static constexpr std::size_t words_per_span = 2;
 
-  /** @brief Owned storage containing zero or more complete range entries. */
+  /** @brief Owned storage containing zero or more complete Footage Spans. */
   std::vector<std::uint32_t> words;
 
 public:

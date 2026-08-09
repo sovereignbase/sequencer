@@ -1,6 +1,11 @@
 /**
  * @file
- * @brief Maps a Sequence Point to the stable position of its containing Strip.
+ * @brief Maps Sequence Point containment to Stable Positions.
+ *
+ * Realm selection uses a power-of-two bit mask and linear probing. Each
+ * occupied Realm owns a counter-sorted vector of compact span entries, allowing
+ * containment to be resolved with one equality probe sequence followed by
+ * binary search. Strip objects remain Projector-owned.
  */
 #pragma once
 
@@ -12,36 +17,92 @@
 #include <utility>
 #include <vector>
 
+/**
+ * @brief Open-addressed Realm table with binary-searched Frame Span entries.
+ *
+ * A Realm key is `(crypto_random_bits, unix_lower_bits)`. Each Entry describes
+ * the half-open counter interval `[counter_bits, counter_bits + frame_count)`
+ * and the Stable Position of its containing Strip.
+ *
+ * @invariant `realm_capacity` is a power of two and
+ * `realm_index_mask == realm_capacity - 1`.
+ * @invariant Entries within one Realm are sorted by `counter_bits`.
+ * @invariant An empty Entry vector denotes an unoccupied Realm slot.
+ */
 class HashTable {
+  /** @brief Compact containment interval stored inside one Realm. */
   struct Entry {
+    /** @brief Counter of the first represented Frame. */
     std::uint32_t counter_bits;
+
+    /** @brief Positive length of the represented counter interval. */
     std::uint32_t frame_count;
+
+    /** @brief Projector-owned Stable Position for the interval. */
     std::uint32_t stable_position;
   };
 
+  /** @brief One occupied or empty open-addressing slot. */
   struct Realm {
+    /** @brief Primary identity and initial-slot hash input. */
     std::uint32_t crypto_random_bits{0};
+
+    /** @brief Secondary Realm identity component. */
     std::uint32_t unix_lower_bits{0};
+
+    /** @brief Counter-sorted containment intervals for this Realm. */
     std::vector<Entry> entries;
   };
 
+  /** @brief Smallest allocated Realm slot count. */
   static constexpr std::uint32_t minimum_realm_capacity = 256;
 
+  /** @brief Current power-of-two Realm slot count. */
   std::uint32_t realm_capacity;
+
+  /** @brief Mask converting crypto-random bits into an initial slot. */
   std::uint32_t realm_index_mask;
+
+  /** @brief Number of occupied Realm slots. */
   std::uint32_t realm_count{0};
+
+  /** @brief Contiguous open-addressing slot array. */
   std::unique_ptr<Realm[]> realms;
 
 public:
+  /** @brief Lookup result indicating that no Strip contains the Point. */
   static constexpr std::uint32_t no_stable_position =
       std::numeric_limits<std::uint32_t>::max();
 
+  /**
+   * @brief Construct an empty containment table.
+   *
+   * @param initial_realm_capacity Initial power-of-two slot count.
+   * @pre `initial_realm_capacity` is a nonzero power of two.
+   * @complexity O(initial_realm_capacity) value initialization.
+   */
   explicit HashTable(
       const std::uint32_t initial_realm_capacity = minimum_realm_capacity)
       : realm_capacity(initial_realm_capacity),
         realm_index_mask(initial_realm_capacity - 1),
         realms(std::make_unique<Realm[]>(initial_realm_capacity)) {}
 
+  /**
+   * @brief Insert or replace one Frame Span containment entry.
+   *
+   * The common append case writes directly to the Realm vector. Earlier or
+   * replacement starts use `lower_bound` to preserve counter order. Creating a
+   * new Realm may trigger a capacity doubling at 50 percent occupancy.
+   *
+   * @param point First Sequence Point in the represented Frame Span.
+   * @param frame_count Number of consecutive counters in the span.
+   * @param stable_position Projector-owned Stable Position containing it.
+   * @pre `frame_count > 0` and the span stays within `point`'s Realm.
+   * @post `get` resolves every Point inside the stored interval to
+   * `stable_position` unless a later overlapping entry replaces containment.
+   * @complexity Expected O(1 + log e), excluding vector insertion and resize,
+   * for e entries in the selected Realm.
+   */
   inline void set(const SequencePoint &point, const std::uint32_t frame_count,
                   const std::uint32_t stable_position) noexcept {
     std::uint32_t realm_index = point.crypto_random_bits & realm_index_mask;
@@ -84,6 +145,17 @@ public:
       resize(realm_capacity * 2);
   }
 
+  /**
+   * @brief Return the Stable Position of the Strip containing a Point.
+   *
+   * Lookup performs bit-mask slot selection, Realm equality probing, then an
+   * `upper_bound` search for the greatest span start not exceeding the target
+   * counter. A final subtraction verifies half-open interval containment.
+   *
+   * @param point Sequence Point to resolve.
+   * @return Containing Stable Position, or `no_stable_position` when absent.
+   * @complexity Expected O(1 + log e) for e entries in the matching Realm.
+   */
   [[nodiscard]] inline std::uint32_t
   get(const SequencePoint &point) const noexcept {
     std::uint32_t realm_index = point.crypto_random_bits & realm_index_mask;
@@ -112,11 +184,26 @@ public:
     return no_stable_position;
   }
 
+  /**
+   * @brief Report whether the table contains any Realm.
+   * @return `true` when no Realm slot is occupied.
+   * @complexity O(1).
+   */
   [[nodiscard]] inline bool is_empty() const noexcept {
     return realm_count == 0;
   }
 
 private:
+  /**
+   * @brief Rehash every occupied Realm into a larger slot array.
+   *
+   * Realm entry vectors are moved intact, so their counter order and storage
+   * model are preserved.
+   *
+   * @param new_realm_capacity New power-of-two slot count.
+   * @pre `new_realm_capacity > realm_capacity`.
+   * @complexity O(realm_capacity) plus expected probe cost.
+   */
   void resize(const std::uint32_t new_realm_capacity) {
     auto previous_realms = std::move(realms);
     const std::uint32_t previous_realm_capacity = realm_capacity;

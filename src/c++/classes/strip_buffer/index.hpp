@@ -86,10 +86,12 @@ public:
   /**
    * @brief Decode the current words directly into Projector-owned storage.
    *
-   * Exact duplicate metadata resolves to its existing original Stable Position
-   * even after that source has been split. Otherwise one Strip is appended
-   * directly. Visible Frame containment is indexed immediately; Mask commands
-   * are indexed when they materialize over existing fragments.
+   * A visible Strip is a duplicate when its issued start is already contained
+   * by the HashTable, including inside a split sibling fragment. A Mask is a
+   * duplicate only when that containing fragment already has the same masked
+   * state. Otherwise one Strip is appended directly. Visible Frame containment
+   * is indexed immediately; Mask commands are indexed when they materialize
+   * over existing fragments.
    *
    * @param strips Append-only Projector Strip storage.
    * @param hash_table Sequence Point containment index for the same Projector.
@@ -97,7 +99,8 @@ public:
    * @pre The words contain a valid transferable Strip representation.
    * @post The buffer contents are unchanged; a nonduplicate visible Strip is
    * indexed by its complete Frame Span.
-   * @complexity HashTable lookup/insertion plus amortized O(1) Strip append.
+   * @complexity Expected O(1 + log e), excluding vector append and HashTable
+   * insertion, for e entries in the matching Realm.
    */
   [[nodiscard]] inline std::uint32_t
   read_strip(std::vector<Strip> &strips, HashTable &hash_table) const
@@ -109,22 +112,10 @@ public:
     };
     const std::uint32_t existing_stable_position =
         hash_table.get(this_strip_start);
-    if (existing_stable_position != HashTable::no_stable_position) {
-      const Strip &existing_strip = strips[existing_stable_position];
-      if (existing_strip.coordinate.this_strip_start.counter_bits == words[5] &&
-          existing_strip.is_masked == words[0] &&
-          existing_strip.is_inverse == words[1] &&
-          existing_strip.left_siblings_frames + existing_strip.frame_count +
-                  existing_strip.right_sibling_frames ==
-              words[2] &&
-          existing_strip.coordinate.previous_strip_end ==
-              SequencePoint{
-                  .crypto_random_bits = words[6],
-                  .unix_lower_bits = words[7],
-                  .counter_bits = words[8],
-              })
-        return existing_stable_position;
-    }
+    if (existing_stable_position != HashTable::no_stable_position &&
+        (words[0] == 0 ||
+         strips[existing_stable_position].is_masked == words[0]))
+      return existing_stable_position;
 
     const std::uint32_t stable_position =
         static_cast<std::uint32_t>(strips.size());

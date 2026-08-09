@@ -10,6 +10,8 @@
 
 #include "../../declarations/projector/index.hpp"
 #include "../absolute_distance/index.hpp"
+#include "../run_projector_left/index.hpp"
+#include "../run_projector_right/index.hpp"
 #include "../strip_contains_frame_index/index.hpp"
 #include <cstdint>
 
@@ -54,8 +56,7 @@ inline void run_projector_to_frame_index(
   if (gate_distance >= 64u) {
     const auto [checkpoint, checkpoint_projection_frame_index] =
         projector->length_table.nearest_chekpoint(projection_frame_index);
-    projector->gate_projection_frame_index =
-        checkpoint_projection_frame_index;
+    projector->gate_projection_frame_index = checkpoint_projection_frame_index;
     gate_strip_index = checkpoint;
     gate_strip = &projector->strips[gate_strip_index];
   }
@@ -69,10 +70,7 @@ inline void run_projector_to_frame_index(
   // Traverse right by complete Strip spans.
   if (projector->gate_projection_frame_index <= projection_frame_index) {
     do {
-      if (gate_strip->is_masked == 0)
-        projector->gate_projection_frame_index += gate_strip->frame_count;
-      gate_strip_index = projector->right[gate_strip_index];
-      gate_strip = &projector->strips[gate_strip_index];
+      gate_strip = &run_projector_right(projector);
     } while (!strip_contains_frame_index(gate_strip,
                                          projector->gate_projection_frame_index,
                                          projection_frame_index));
@@ -81,10 +79,7 @@ inline void run_projector_to_frame_index(
 
   // Traverse left by complete Strip spans.
   do {
-    gate_strip_index = projector->left[gate_strip_index];
-    gate_strip = &projector->strips[gate_strip_index];
-    if (gate_strip->is_masked == 0)
-      projector->gate_projection_frame_index -= gate_strip->frame_count;
+    gate_strip = &run_projector_left(projector);
   } while (!strip_contains_frame_index(gate_strip,
                                        projector->gate_projection_frame_index,
                                        projection_frame_index));

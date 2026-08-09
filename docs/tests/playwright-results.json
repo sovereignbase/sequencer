@@ -1,0 +1,150 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Users\\jorts\\AppData\\Local\\fnm_multishells\\15552_1786301442006\\node.exe",
+      "C:\\Users\\jorts\\sequencer\\node_modules\\@playwright\\test\\cli.js",
+      "test"
+    ],
+    "configFile": "C:\\Users\\jorts\\sequencer\\playwright.config.ts",
+    "rootDir": "C:/Users/jorts/sequencer/test",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 240000,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/jorts/sequencer/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/jorts/sequencer/test",
+        "testIgnore": [],
+        "testMatch": [
+          "browser/**/*.spec.ts",
+          "convergence/**/*.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Users/jorts/sequencer/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "C:/Users/jorts/sequencer/test",
+        "testIgnore": [],
+        "testMatch": [
+          "browser/**/*.spec.ts",
+          "convergence/**/*.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Users/jorts/sequencer/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "C:/Users/jorts/sequencer/test",
+        "testIgnore": [],
+        "testMatch": [
+          "browser/**/*.spec.ts",
+          "convergence/**/*.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Users/jorts/sequencer/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "mobile_chromium",
+        "name": "mobile_chromium",
+        "testDir": "C:/Users/jorts/sequencer/test",
+        "testIgnore": [],
+        "testMatch": [
+          "browser/**/*.spec.ts",
+          "convergence/**/*.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/Users/jorts/sequencer/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "mobile_webkit",
+        "name": "mobile_webkit",
+        "testDir": "C:/Users/jorts/sequencer/test",
+        "testIgnore": [],
+        "testMatch": [
+          "browser/**/*.spec.ts",
+          "convergence/**/*.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "docs/tests/playwright",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "docs/tests/playwright-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.1",
+    "workers": 1,
+    "webServer": {
+      "command": "\"C:\\Users\\jorts\\AppData\\Local\\fnm_multishells\\15552_1786301442006\\node.exe\" node_modules/vite/bin/vite.js --host 127.0.0.1 --port 4173 --strictPort",
+      "url": "http://127.0.0.1:4173/test/browser/index.html",
+      "reuseExistingServer": false,
+      "timeout": 30000
+    }
+  },
+  "suites": [],
+  "errors": [
+    {
+      "message": "Error: http://127.0.0.1:4173/test/browser/index.html is already used, make sure that nothing is running on the port/url or set reuseExistingServer:true in config.webServer.",
+      "stack": "Error: http://127.0.0.1:4173/test/browser/index.html is already used, make sure that nothing is running on the port/url or set reuseExistingServer:true in config.webServer."
+    }
+  ],
+  "stats": {
+    "startTime": "2026-08-09T18:58:59.179Z",
+    "duration": 1582.0819999999999,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -229,14 +229,14 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
   const Strip incoming_strip = strip_buffer.read_strip();
   const SequencePoint &incoming_strip_start =
       incoming_strip.coordinate.this_strip_start;
-  const SequencePoint &previous_strip_start =
+  const SequencePoint &previous_strip_end =
       incoming_strip.coordinate.previous_strip_end;
 
-  const auto containing_strip_result =
-      run_projector_to_sequence_point(projector, &previous_strip_start);
+  const containing_strip_result =
+      projector->hash_table.get(previous_strip_end)
 
-  // Validate and apply a Mask against its exact containing Strip start.
-  if (incoming_strip.is_masked > 0) {
+      // Validate and apply a Mask against its exact containing Strip start.
+      if (incoming_strip.is_masked > 0) {
     // Use the containing-start shortcut while it still contains the target.
     const Strip *containing_strip =
         projector->strip_index.get(previous_strip_start);

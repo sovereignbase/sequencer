@@ -3,8 +3,8 @@ import { fileURLToPath as file_url_to_path } from 'node:url'
 import { memoryUsage as memory_usage } from 'node:process'
 import * as api from '../../dist/index.js'
 
-const sequence_frame_counts = [100, 1_000, 10_000, 100_000, 1_000_000] as const
-const strip_frame_counts = [1, 10] as const
+const sequence_frame_counts = [100, 1_000, 10_000, 100_000] as const
+const strip_frame_counts = [1, 10, 100] as const
 
 const collect_garbage = async (): Promise<void> => {
   const collect = (globalThis as typeof globalThis & { gc?: () => void }).gc

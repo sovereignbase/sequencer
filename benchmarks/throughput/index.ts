@@ -23,10 +23,9 @@ const sequence_configurations = [
   [1_000, 128],
   [10_000, 64],
   [100_000, 16],
-  [1_000_000, 16],
 ] as const
 
-const strip_frame_counts = [1, 10] as const
+const strip_frame_counts = [1, 10, 100] as const
 
 /** Measures every public function across the Sequence/Strip length matrix. */
 export async function run_throughput_benchmarks() {

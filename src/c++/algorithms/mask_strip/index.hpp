@@ -87,6 +87,8 @@ mask_strip(Projector *projector, const std::uint32_t containing_position,
     projector->left[incoming_mask_position] = materialized_position;
     projector->right[incoming_mask_position] = materialized_position;
   }
+  if (projector->projection_frame_count == 0)
+    return mask_projection_frame_index;
   return projector->length_table.projection_frame_index(materialized_position,
                                                         projector);
 }

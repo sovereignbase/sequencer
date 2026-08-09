@@ -7,6 +7,7 @@ import {
   recover,
   remove,
   replace,
+  snapshot,
   values,
 } from '../../src/typescript/index.js'
 
@@ -35,6 +36,29 @@ describe('runtime CRUD', () => {
     expect(recover(state)).toEqual(['a', 'x', 'b', 'c', 'd'])
   })
 
+  it('resolves distant indexes across multi-Frame Strip checkpoints', () => {
+    const frame_count = 1_024
+    const indexes = [100, 900, 127, 512, 128, 1_023, 129, 0]
+
+    for (const strip_frame_count of [1, 10, 100, 256]) {
+      const source = create<number>()
+      for (
+        let frame_index = 0;
+        frame_index < frame_count;
+        frame_index += strip_frame_count
+      ) {
+        const values = Array.from(
+          { length: Math.min(strip_frame_count, frame_count - frame_index) },
+          (_, frame_offset) => frame_index + frame_offset
+        )
+        expect(insert(source, frame_index, values)).not.toBe(false)
+      }
+
+      for (const state of [source, create(snapshot(source))])
+        for (const index of indexes) expect(find(state, index)).toBe(index)
+    }
+  })
+
   it('soft deletion hides a range while retaining recovery Footage', () => {
     const state = create<string>()
     assert(insert(state, 0, ['a', 'b', 'c', 'd']))
@@ -44,6 +68,17 @@ describe('runtime CRUD', () => {
     expect(result).not.toBe(false)
     expect(values(state)).toEqual(['a', 'd'])
     expect(recover(state)).toEqual(['a', 'b', 'c', 'd'])
+  })
+
+  it('removes the complete multi-Frame Projection without a checkpoint', () => {
+    const state = create<number>()
+    const frames = Array.from({ length: 256 }, (_, index) => index)
+    assert(insert(state, 0, frames))
+
+    expect(remove(state, 0, frames.length)).not.toBe(false)
+    expect(length(state)).toBe(0)
+    expect(values(state)).toEqual([])
+    expect(recover(state)).toEqual(frames)
   })
 
   it('hard deletion releases only the removed Footage', () => {

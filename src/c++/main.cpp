@@ -51,9 +51,6 @@ static FrontierBuffer frontier_buffer;
 /** @brief Shared result buffer for ordered or released Footage spans. */
 static FootageSpanBuffer footage_span_buffer;
 
-/** @brief Pending index currently traversed: zero inserts, one Masks. */
-static std::uint32_t pending_strip_kind{0};
-
 /**
  * @brief ABI sentinel indicating that no Projection frame index was produced.
  */
@@ -226,77 +223,68 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t
 merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
   // Decode the incoming Strip and its coordinate dependency.
   Projector *projector = &*projectors[sequence_id];
-  const Strip incoming_strip = strip_buffer.read_strip();
+  const std::uint32_t stable_position = strip_buffer.read_strip();
+
+  const Strip *incoming_strip = &projector->strips[stable_position];
+
   const SequencePoint &incoming_strip_start =
       incoming_strip.coordinate.this_strip_start;
   const SequencePoint &previous_strip_end =
       incoming_strip.coordinate.previous_strip_end;
 
-  const containing_strip_result =
-      projector->hash_table.get(previous_strip_end)
+  const uint32_t containing_strip_result =
+      projector->hash_table.get(previous_strip_end);
 
-      // Validate and apply a Mask against its exact containing Strip start.
-      if (incoming_strip.is_masked > 0) {
-    // Use the containing-start shortcut while it still contains the target.
-    const Strip *containing_strip =
-        projector->strip_index.get(previous_strip_start);
-    std::uint32_t mask_frame_offset =
-        containing_strip == nullptr
-            ? sequence_point_outside_strip
-            : strip_contains_sequence_point(containing_strip,
-                                            &incoming_strip_start);
-
-    // Resolve a split target by its immutable logical Sequence Point.
-    if (mask_frame_offset == sequence_point_outside_strip ||
-        !(projector->gate_strip_start ==
-          containing_strip->coordinate.this_strip_start)) {
-      const auto containing_strip_result =
-          run_projector_to_sequence_point(projector, &incoming_strip_start);
-      if (std::holds_alternative<bool>(containing_strip_result)) {
-        projector->pending_masks.set(previous_strip_start, incoming_strip);
-        return no_projection_frame_index;
-      }
-      containing_strip = std::get<0>(containing_strip_result).first;
-      mask_frame_offset = std::get<0>(containing_strip_result).second;
-    }
-
-    // Apply the logical Frame Span and return its former Projection position.
-    const std::uint32_t strip_projection_frame_index =
-        projector->gate_projection_frame_index +
-        (containing_strip->is_masked == 0 ? mask_frame_offset : 0);
-    mask_strip(projector, containing_strip, mask_frame_offset, incoming_strip);
-    return strip_projection_frame_index;
+  if (containing_strip_result == no_projection_frame_index) {
+    if (incoming_strip.is_masked > 0)
+      projector->pending_masks.set(
+          previous_strip_end,
+          incoming_strip.frame_count, ) return no_projection_frame_index;
   }
 
-  // Make repeated visible Reel delivery idempotent before rewriting linkage.
-  if (projector->strip_index.get(incoming_strip_start) != nullptr)
-    return no_projection_frame_index;
+  const Strip *containing_strip =
+      &projector->strips[containing_strip_result]
 
-  // Place a visible Root successor in descending Strip-start order.
-  if (previous_strip_start == SequencePoint{})
-    return insert_strip(projector, nullptr, 0, incoming_strip);
+       // Validate and apply a Mask against its exact containing Strip start.
+       if (incoming_strip.is_masked > 0) {}
 
-  // Resolve the non-Root Frame after which the visible Strip belongs.
-  const auto containing_strip_result =
-      run_projector_to_sequence_point(projector, &previous_strip_start);
-
-  // Retain the visible Strip while its coordinate dependency is absent.
-  if (std::holds_alternative<bool>(containing_strip_result)) {
-    projector->pending_inserts.set(previous_strip_start, incoming_strip);
-    return no_projection_frame_index;
-  }
-
-  // Resolve the base Projection position of the visible insertion.
-  const auto [previous_strip, previous_strip_frame_offset] =
-      std::get<0>(containing_strip_result);
+  // Apply the logical Frame Span and return its former Projection position.
   const std::uint32_t strip_projection_frame_index =
       projector->gate_projection_frame_index +
-      (previous_strip->is_masked == 0 ? previous_strip_frame_offset + 1 : 0);
+      (containing_strip->is_masked == 0 ? mask_frame_offset : 0);
+  mask_strip(projector, containing_strip, mask_frame_offset, incoming_strip);
+  return strip_projection_frame_index;
+}
 
-  // Insert in ascending non-Root order and add any crossed visible span.
-  return strip_projection_frame_index +
-         insert_strip(projector, previous_strip, previous_strip_frame_offset,
-                      incoming_strip);
+// Make repeated visible Reel delivery idempotent before rewriting linkage.
+if (projector->strip_index.get(incoming_strip_start) != nullptr)
+  return no_projection_frame_index;
+
+// Place a visible Root successor in descending Strip-start order.
+if (previous_strip_start == SequencePoint{})
+  return insert_strip(projector, nullptr, 0, incoming_strip);
+
+// Resolve the non-Root Frame after which the visible Strip belongs.
+const auto containing_strip_result =
+    run_projector_to_sequence_point(projector, &previous_strip_start);
+
+// Retain the visible Strip while its coordinate dependency is absent.
+if (std::holds_alternative<bool>(containing_strip_result)) {
+  projector->pending_inserts.set(previous_strip_start, incoming_strip);
+  return no_projection_frame_index;
+}
+
+// Resolve the base Projection position of the visible insertion.
+const auto [previous_strip, previous_strip_frame_offset] =
+    std::get<0>(containing_strip_result);
+const std::uint32_t strip_projection_frame_index =
+    projector->gate_projection_frame_index +
+    (previous_strip->is_masked == 0 ? previous_strip_frame_offset + 1 : 0);
+
+// Insert in ascending non-Root order and add any crossed visible span.
+return strip_projection_frame_index + insert_strip(projector, previous_strip,
+                                                   previous_strip_frame_offset,
+                                                   incoming_strip);
 }
 
 /**

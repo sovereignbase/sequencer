@@ -14,6 +14,9 @@ split_strip(Projector *projector, const std::uint32_t stable_position,
   suffix.frame_count -= frame_offset;
   suffix.footage_frame_index += frame_offset;
   suffix.coordinate.this_strip_start.counter_bits += frame_offset;
+  suffix.coordinate.previous_strip_end = suffix.coordinate.this_strip_start;
+  --suffix.coordinate.previous_strip_end.counter_bits;
+  suffix.is_inverse = 0;
   suffix.left_siblings_frames += frame_offset;
 
   projector->strips.push_back(suffix);

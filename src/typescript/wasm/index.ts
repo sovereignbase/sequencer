@@ -9,7 +9,7 @@ import type { Acknowledgement, VirtualStrip } from '../types/type.js'
 /** Synchronously initialized native Sequencer module shared by this adapter. */
 export const wasm = create_module()
 
-/** Stable unsigned-word index of the shared nine-word StripBuffer. */
+/** Stable unsigned-word index of the shared ten-word StripBuffer. */
 export const strip_buffer_start_index = wasm._get_strip_buffer_pointer() >>> 2
 
 /** Native sentinel indicating that a merged Strip has no Projection position. */
@@ -37,6 +37,7 @@ export function read_strip_from_buffer<T>(): VirtualStrip<T> {
     buffer[start + 6],
     buffer[start + 7],
     buffer[start + 8],
+    buffer[start + 9],
   ]
 }
 
@@ -59,10 +60,11 @@ export function write_strip_to_buffer<T>(strip: VirtualStrip<T>): void {
   buffer[start + 5] = strip[5]
   buffer[start + 6] = strip[6]
   buffer[start + 7] = strip[7]
+  buffer[start + 8] = strip[8]
 
-  const footage_frame_index = strip[8]
+  const footage_frame_index = strip[9]
   if (footage_frame_index !== undefined) {
-    buffer[start + 8] = footage_frame_index
+    buffer[start + 9] = footage_frame_index
   }
 }
 
@@ -133,6 +135,23 @@ export function get_recovery_footage_spans(
 ): Uint32Array | false {
   const span_count =
     wasm._write_recovery_footage_spans_to_buffer(sequence_id) >>> 0
+  if (span_count === 0) return false
+
+  const span_start = wasm._get_footage_span_buffer_pointer() >>> 2
+  return wasm.HEAPU32.subarray(span_start, span_start + span_count * 2)
+}
+
+export function get_projection_footage_spans(
+  sequence_id: number,
+  start_index: number,
+  end_index: number
+): Uint32Array | false {
+  const span_count =
+    wasm._write_projection_footage_spans_to_buffer(
+      sequence_id,
+      start_index,
+      end_index
+    ) >>> 0
   if (span_count === 0) return false
 
   const span_start = wasm._get_footage_span_buffer_pointer() >>> 2
@@ -210,9 +229,9 @@ export function write_next_structural_strip_to_buffer(
   return wasm._write_next_structural_strip_to_buffer(sequence_id) !== 0
 }
 
-/** Resolves every staged dependency reachable from Root. */
-export function try_to_resolve_pending(sequence_id: number): void {
-  void wasm._try_to_resolve_pending(sequence_id)
+/** Builds the Projection after all creation-time Strips have been staged. */
+export function resolve_initial_projection(sequence_id: number): void {
+  void wasm._resolve_initial_projection(sequence_id)
 }
 
 /**
@@ -273,10 +292,10 @@ export function garbage_collect_sequence(
   const buffer = wasm.HEAPU32
 
   // Encode every selected Realm boundary in native lane order.
-  for (const [unix_lower_bits, counter_bits, random_bits] of frontier) {
-    buffer[buffer_index] = unix_lower_bits
-    buffer[buffer_index + 1] = counter_bits
-    buffer[buffer_index + 2] = random_bits
+  for (const [crypto_random_bits, unix_lower_bits, counter_bits] of frontier) {
+    buffer[buffer_index] = crypto_random_bits
+    buffer[buffer_index + 1] = unix_lower_bits
+    buffer[buffer_index + 2] = counter_bits
     buffer_index += 3
   }
 

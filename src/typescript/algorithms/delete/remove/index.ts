@@ -3,7 +3,7 @@
  *
  * @module
  */
-import { is_safe_index, issue_virtual_strip } from '../../../helpers/index.js'
+import { is_safe_index } from '../../../helpers/index.js'
 import type {
   Change,
   Delta,
@@ -16,6 +16,7 @@ import {
   merge_strip_into_sequence,
   read_strip_from_buffer,
   write_strip_at_projection_frame_index_to_buffer,
+  write_strip_to_buffer,
 } from '../../../wasm/index.js'
 
 /**
@@ -87,14 +88,18 @@ export function remove<T>(
     )
 
     // Transfer and merge the Mask.
-    const meta: Strip<T>[0] = issue_virtual_strip<T>(
+    const meta: Strip<T>[0] = [
       1,
       0,
       mask_frame_count,
-      containing_strip[6],
-      containing_strip[7] + strip_frame_offset,
-      containing_strip[8]
-    )
+      containing_strip[3],
+      containing_strip[4],
+      containing_strip[5] + strip_frame_offset,
+      containing_strip[3],
+      containing_strip[4],
+      containing_strip[5],
+    ]
+    void write_strip_to_buffer<T>(meta)
     const projection_frame_index = merge_strip_into_sequence(state.id)
 
     // Release accepted hard-deletion Footage without compacting its array.

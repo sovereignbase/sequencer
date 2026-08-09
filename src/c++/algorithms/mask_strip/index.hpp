@@ -42,9 +42,6 @@ mask_strip(Projector *projector, const std::uint32_t containing_position,
 
       Strip &materialized_mask = projector->strips[current_position];
       materialized_mask.is_masked = incoming_mask.is_masked;
-      materialized_mask.is_inverse = incoming_mask.is_inverse;
-      materialized_mask.coordinate.previous_strip_end =
-          incoming_mask.coordinate.previous_strip_end;
       projector->hash_table.set(materialized_mask.coordinate.this_strip_start,
                                 materialized_mask.frame_count,
                                 current_position);
@@ -60,7 +57,12 @@ mask_strip(Projector *projector, const std::uint32_t containing_position,
   projector->length_table.adjust_chekpoints(
       true, mask_projection_frame_index, removed_frame_count, projector);
   projector->projection_frame_count -= removed_frame_count;
-  return projector->length_table.projection_frame_index(
-      projector->hash_table.get(incoming_mask.coordinate.this_strip_start),
-      projector);
+  const std::uint32_t materialized_position =
+      projector->hash_table.get(incoming_mask.coordinate.this_strip_start);
+  if (incoming_mask_position != materialized_position) {
+    projector->left[incoming_mask_position] = materialized_position;
+    projector->right[incoming_mask_position] = materialized_position;
+  }
+  return projector->length_table.projection_frame_index(materialized_position,
+                                                        projector);
 }

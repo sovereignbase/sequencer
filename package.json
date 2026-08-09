@@ -56,6 +56,7 @@
     "prepublishOnly": "npm run test && npm run bench"
   },
   "devDependencies": {
+    "@automerge/automerge": "^3.4.0",
     "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.2.0",
     "@playwright/test": "^1.62.1",
@@ -70,6 +71,8 @@
     "fast-check": "^4.9.0",
     "fast-glob": "^3.3.3",
     "husky": "^9.1.7",
+    "json-joy": "^18.28.0",
+    "loro-crdt": "^1.14.0",
     "msgpackr": "^2.0.5",
     "playwright": "^1.62.1",
     "prettier": "^3.9.6",
@@ -81,7 +84,8 @@
     "unrun": "^0.3.1",
     "vite": "^8.2.1",
     "vitest": "^4.1.10",
-    "wrangler": "^4.120.0"
+    "wrangler": "^4.120.0",
+    "yjs": "^13.6.32"
   },
   "repository": {
     "type": "git",

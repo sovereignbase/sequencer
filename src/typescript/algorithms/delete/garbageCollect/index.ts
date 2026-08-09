@@ -41,8 +41,7 @@ export function garbageCollect<T>(
       const replica_point = frontiers[replica_index].find(
         ([realm_crypto_random, realm_unix_lower_bits]) =>
           realm_crypto_random === crypto_random_bits &&
-          realm_unix_lower_bits &&
-          unix_lower_bits
+          realm_unix_lower_bits === unix_lower_bits
       )
 
       // Lower the selected boundary when this Replica is further behind.

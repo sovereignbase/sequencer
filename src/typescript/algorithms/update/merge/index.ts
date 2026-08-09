@@ -39,7 +39,7 @@ export function merge<T>(state: Replica<T>, data: unknown): Change<T> | false {
   for (const chunk of data) {
     if (!is_strip<T>(chunk)) continue
 
-    const meta: VirtualStrip<T> = chunk[0]
+    const meta: VirtualStrip<T> = [...chunk[0]]
     const visible: boolean = meta[0] === 0
     if (visible) {
       void meta.push(footage.length)

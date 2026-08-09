@@ -3,7 +3,11 @@
  *
  * @module
  */
-import { clear_sequence, initialize_sequence } from '../../wasm/index.js'
+import {
+  clear_sequence,
+  initialize_sequence,
+  resolve_initial_projection,
+} from '../../wasm/index.js'
 import type { Replica } from '../../types/type.js'
 import { merge } from '../update/index.js'
 
@@ -32,6 +36,7 @@ export function create<T>(data?: unknown): Replica<T> {
   void finalization_registry.register(state, state.id)
 
   void merge<T>(state, data)
+  resolve_initial_projection(state.id)
 
   // Return the independently maintained Replica.
   return state

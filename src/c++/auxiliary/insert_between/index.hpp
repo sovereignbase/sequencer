@@ -15,6 +15,7 @@ inline void insert_between(Projector *projector, std::uint32_t left,
       inserted_strip.left_siblings_frames == 0 &&
       inserted_strip.right_sibling_frames == 0) {
     if (inserted_strip.is_inverse == 0) {
+      const std::uint32_t first_candidate = right;
       while (projector->strips[right].coordinate.previous_strip_end ==
              previous_strip_end) {
         const Strip &sibling = projector->strips[right];
@@ -26,8 +27,11 @@ inline void insert_between(Projector *projector, std::uint32_t left,
           break;
         left = right;
         right = projector->right[right];
+        if (right == first_candidate)
+          break;
       }
     } else {
+      const std::uint32_t first_candidate = left;
       while (projector->strips[left].coordinate.previous_strip_end ==
              previous_strip_end) {
         const Strip &sibling = projector->strips[left];
@@ -39,6 +43,8 @@ inline void insert_between(Projector *projector, std::uint32_t left,
           break;
         right = left;
         left = projector->left[left];
+        if (left == first_candidate)
+          break;
       }
     }
   }

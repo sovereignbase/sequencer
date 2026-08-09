@@ -9,6 +9,7 @@ import {
   get_projection_frame_count,
   merge_strip_into_sequence,
   read_strip_from_buffer,
+  resolve_initial_projection,
   write_strip_at_projection_frame_index_to_buffer,
 } from '../../../wasm/index.js'
 
@@ -41,7 +42,7 @@ export function insert<T>(
   if (
     !Array.isArray(values) ||
     values.length === 0 ||
-    !is_safe_index(projection_frame_count, index, true)
+    !is_safe_index(index, projection_frame_count, true)
   )
     return false
 
@@ -52,10 +53,30 @@ export function insert<T>(
   // Cache Frame count.
   const frame_count = values.length
 
-  // Resolve the containing Strip and its Footage position.
+  if (projection_frame_count === 0) {
+    const meta = issue_virtual_strip<T>(
+      0,
+      1,
+      frame_count,
+      0,
+      0,
+      0,
+      state.footage.length
+    )
+    void state.footage.push(...values)
+    void merge_strip_into_sequence(state.id)
+    resolve_initial_projection(state.id)
+    void delta.push([meta, values])
+    for (let frame_offset = 0; frame_offset < frame_count; frame_offset++)
+      change[frame_offset] = values[frame_offset]
+    return { change, delta }
+  }
+
+  const is_inverse = index < projection_frame_count ? 1 : 0
+  const containing_frame_index = is_inverse !== 0 ? index : index - 1
   const footage_frame_index = write_strip_at_projection_frame_index_to_buffer(
     state.id,
-    index
+    containing_frame_index
   )
   const containing_strip = read_strip_from_buffer<T>()
 
@@ -64,11 +85,11 @@ export function insert<T>(
 
   const meta = issue_virtual_strip<T>(
     0,
-    index > 0 ? 0 : 1,
+    is_inverse,
     frame_count,
-    containing_strip[6],
-    containing_strip[7] + strip_frame_offset,
-    containing_strip[8],
+    containing_strip[3],
+    containing_strip[4],
+    containing_strip[5] + strip_frame_offset,
     state.footage.length
   )
 

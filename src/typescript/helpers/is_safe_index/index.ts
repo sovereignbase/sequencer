@@ -1,9 +1,6 @@
 /**
  * Determines whether an index falls within the bounds of a given length.
  *
- * This function checks only the lower and upper numeric boundaries. It does not
- * verify that `index` or `length` is an integer.
- *
  * @param index Candidate index.
  * @param length Exclusive upper boundary, or inclusive when `allow_end` is true.
  * @param allow_end Whether an index equal to `length` is accepted.
@@ -15,5 +12,10 @@ export function is_safe_index(
   allow_end = false
 ): index is number {
   // Validate the integer domain and selected inclusive or exclusive boundary.
-  return index >= 0 && (allow_end ? index <= length : index < length)
+  return (
+    Number.isSafeInteger(index) &&
+    Number.isSafeInteger(length) &&
+    index >= 0 &&
+    (allow_end ? index <= length : index < length)
+  )
 }

@@ -39,17 +39,22 @@ export function snapshot<T>(state: Replica<T>): Delta<T> {
   // Append the Strip currently exposed through the shared native buffer.
   const append_buffered_strip = (): void => {
     const meta = read_strip_from_buffer()
-    const values =
-      meta[0] === 0 ? footage.slice(meta[9]!, meta[9]! + meta[2]) : undefined
+    const values = footage.slice(meta[9]!, meta[9]! + meta[2])
+    void meta.pop()
 
-    delete meta[9]
+    if (meta[0] === 0) {
+      void delta.push([meta as Strip<T>[0], values as Array<T>])
+      return
+    }
 
-    if (values === undefined) void delta.push([meta as Strip<T>[0]])
-    else
-      void delta.push([
-        meta as Strip<T>[0],
-        values as Array<T>,
-      ] satisfies Strip<T>)
+    const source_meta = [...meta] as Strip<T>[0]
+    source_meta[0] = 0
+    void delta.push([source_meta, values as Array<T>])
+    meta[1] = 0
+    meta[6] = meta[3]
+    meta[7] = meta[4]
+    meta[8] = meta[5]
+    void delta.push([meta as Strip<T>[0]])
   }
 
   // Traverse every materialized visible Strip and Mask in Sequence order.

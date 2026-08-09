@@ -12,8 +12,6 @@
 #include <utility>
 #include <vector>
 
-template <SequencePoint SequenceCoordinate::*indexed_sequence_point =
-              &SequenceCoordinate::this_strip_start>
 class HashTable {
   struct Entry {
     std::uint32_t counter_bits;

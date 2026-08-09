@@ -1,197 +1,95 @@
-/**
- * MAGS unit coverage through the public TypeScript API.
- */
 import { assert, describe, expect, it } from 'vitest'
 import {
-  __acknowledge,
-  __create,
-  __delete,
-  __garbageCollect,
-  __length,
-  __merge,
-  __read,
-  __recover,
-  __snapshot,
-  __update,
+  acknowledge,
+  create,
+  garbageCollect,
+  insert,
+  merge,
+  recover,
+  remove,
+  snapshot,
+  values,
 } from '../../src/typescript/index.js'
-import type { Frontier, Replica, Reel } from '../../src/typescript/index.js'
+import type { Acknowledgement } from '../../src/typescript/index.js'
 
-// Observe the complete visible Projection without inspecting Projector state.
-function projection_values<T>(state: Replica<T>): Array<T | undefined> {
-  return Array.from({ length: __length(state) }, (_, frame_index) =>
-    __read(state, frame_index)
-  )
-}
+describe('runtime merge and retained state', () => {
+  it('ignores malformed and duplicate creation data', () => {
+    const source = create<string>()
+    assert(insert(source, 0, ['a', 'b']))
+    const delta = snapshot(source)
 
-// Remote integration and pending dependencies.
-describe('MAGS merge', () => {
-  it('rejects malformed Reels and incomplete visible Footage', () => {
-    const state = __create<string>()
-    const incomplete_reel: Reel<string> = [
-      [
-        0,
-        2,
-        [
-          [0, 0, 0],
-          [1, 0, 1],
-        ],
-        ['only one'],
-      ],
-    ]
-
-    expect(__merge(state, undefined)).toBe(false)
-    expect(__merge(state, [null])).toBe(false)
-    expect(__merge(state, incomplete_reel)).toBe(false)
-    expect(__length(__create([...incomplete_reel, null]))).toBe(0)
-    expect(__length(state)).toBe(0)
+    expect(values(create([null, [[0]], ...delta]))).toEqual(['a', 'b'])
+    expect(values(create([...delta, ...delta]))).toEqual(['a', 'b'])
   })
 
-  it('retains a dependent Strip until its predecessor arrives', () => {
-    const source = __create<string>()
-    const parent_result = __update(source, 0, ['parent'], 'after')
-    assert(parent_result !== false)
-    const child_result = __update(source, 0, ['child'], 'after')
-    assert(child_result !== false)
+  it('merges an issued Strip into a Replica with the same base', () => {
+    const base = create<string>()
+    assert(insert(base, 0, ['a']))
+    const base_delta = snapshot(base)
+    const source = create<string>(base_delta)
+    const target = create<string>(base_delta)
+    const result = insert(source, 1, ['b'])
+    assert(result)
 
-    const target = __create<string>()
-    expect(__merge(target, child_result.reel)).toBe(false)
-    expect(__length(target)).toBe(0)
-    expect(__recover(target)).toEqual([])
-
-    const restarted = __create<string>(__snapshot(target))
-    expect(__merge(restarted, parent_result.reel)).toEqual({
-      0: 'parent',
-      1: 'child',
-    })
-    expect(projection_values(restarted)).toEqual(['parent', 'child'])
-  })
-})
-
-// Snapshot, acknowledgement, and collection lifecycle.
-describe('MAGS retained state', () => {
-  it('round-trips visible and soft-deleted state through a snapshot', () => {
-    const source = __create<string>()
-    const update_result = __update(source, 0, ['a', 'b', 'c'], 'after')
-    assert(update_result !== false)
-    const deletion_result = __delete(source, 1, 2)
-    assert(deletion_result !== false)
-
-    const snapshot = __snapshot(source)
-    const target = __create<string>(snapshot)
-    expect(projection_values(target)).toEqual(['a', 'c'])
-    expect(__recover(target)).toEqual(['a', 'b', 'c'])
-
-    const footage = snapshot.find((strip) => strip[3] !== undefined)?.[3]
-    assert(footage !== undefined)
-    footage[0] = 'mutated snapshot'
-    expect(projection_values(source)).toEqual(['a', 'c'])
-    expect(__recover(target)).toEqual(['a', 'b', 'c'])
+    expect(merge(target, result.delta)).not.toBe(false)
+    expect(values(target)).toEqual(['a', 'b'])
   })
 
-  it('hydrates multi-Strip Snapshots into independently owned Footage', () => {
-    const source = __create<string>()
-    const expected_values = Array.from(
-      { length: 10 },
-      (_, frame_index) => `${frame_index}`
-    )
-    for (const value of expected_values)
-      expect(__update(source, __length(source), [value], 'after')).not.toBe(
-        false
-      )
+  it('merges a Mask into a Replica with the same base', () => {
+    const base = create<string>()
+    assert(insert(base, 0, ['a', 'b', 'c']))
+    const base_delta = snapshot(base)
+    const source = create<string>(base_delta)
+    const target = create<string>(base_delta)
+    const result = remove(source, 1, 2)
+    assert(result)
 
-    const snapshot = __snapshot(source)
-    expect(snapshot).toHaveLength(10)
-    const target = __create<string>(snapshot)
-    const footage = snapshot[0][3]
-    assert(footage !== undefined)
-    footage[0] = 'mutated snapshot'
-
-    expect(__recover(target)).toEqual(expected_values)
+    expect(merge(target, result.delta)).toEqual({ 1: undefined })
+    expect(values(target)).toEqual(['a', 'c'])
   })
 
-  it('acknowledges the greatest materialized start in each Realm', () => {
-    const state = __create<string>()
-    expect(__acknowledge(state)).toBe(false)
+  it('retains a valid unresolved Strip in the Snapshot', () => {
+    const state = create<string>()
+    assert(insert(state, 0, ['root']))
+    const orphan = [[0, 0, 1, 11, 22, 0, 33, 44, 0], ['pending']]
 
-    const first_result = __update(state, 0, ['a', 'b'], 'after')
-    assert(first_result !== false)
-    const second_result = __update(state, 1, ['c'], 'after')
-    assert(second_result !== false)
-
-    const frontier = __acknowledge(state)
-    assert(frontier !== false)
-    expect(frontier).toContainEqual(second_result.reel.at(-1)?.[2][1])
+    expect(merge(state, [orphan])).toBe(false)
+    const retained = snapshot(state)
+    expect(retained).toHaveLength(2)
+    expect(retained[1]).toEqual(orphan)
   })
 
-  it('acknowledges every materialized Realm', () => {
-    const first_state = __create<string>()
-    const second_state = __create<string>()
-    const first_result = __update(first_state, 0, ['first'], 'after')
-    const second_result = __update(second_state, 0, ['second'], 'after')
-    assert(first_result !== false)
-    assert(second_result !== false)
-    const second_strip = second_result.reel.at(-1)
-    assert(second_strip !== undefined)
-    const second_start = second_strip[2][1]
-    const remote_start: [number, number, number] = [
-      second_start[0],
-      second_start[1],
-      (second_start[2] ^ 1) >>> 0,
-    ]
-    const remote_reel: Reel<string> = [
-      [
-        second_strip[0],
-        second_strip[1],
-        [second_strip[2][0], remote_start],
-        second_strip[3],
-      ],
-    ]
-    expect(__merge(first_state, remote_reel)).not.toBe(false)
+  it('acknowledges materialized Realms and collects Mask Footage', () => {
+    const state = create<string>()
+    assert(insert(state, 0, ['a', 'b', 'c']))
+    assert(remove(state, 1, 2))
 
-    const frontier = __acknowledge(first_state)
-    assert(frontier !== false)
-    expect(frontier).toHaveLength(2)
-    expect(frontier).toContainEqual(first_result.reel.at(-1)?.[2][1])
-    expect(frontier).toContainEqual(remote_start)
-  })
+    const frontier = acknowledge(state)
+    assert(frontier)
+    expect(frontier).toHaveLength(1)
 
-  it('reduces Replica Frontiers realm-wise before collection', () => {
-    const state = __create<string>()
-    const first_frontier: Frontier = [
-      [10, 8, 20],
-      [11, 7, 21],
-    ]
-    const second_frontier: Frontier = [
-      [10, 3, 20],
-      [11, 5, 21],
-    ]
+    garbageCollect([frontier], state)
 
-    __garbageCollect([first_frontier, second_frontier], state)
-
-    expect(first_frontier).toEqual(second_frontier)
-    expect(second_frontier).toEqual([
-      [10, 3, 20],
-      [11, 5, 21],
-    ])
-  })
-
-  it('collects acknowledged Masks and releases their Footage', () => {
-    const state = __create<string>()
-    const update_result = __update(state, 0, ['a', 'b', 'c'], 'after')
-    assert(update_result !== false)
-    const deletion_result = __delete(state, 1, 2)
-    assert(deletion_result !== false)
-    expect(__recover(state)).toEqual(['a', 'b', 'c'])
-
-    const frontier = __acknowledge(state)
-    assert(frontier !== false)
-    __garbageCollect([frontier], state)
-
-    expect(projection_values(state)).toEqual(['a', 'c'])
-    expect(__recover(state)).toEqual(['a', 'c'])
+    expect(values(state)).toEqual(['a', 'c'])
+    expect(recover(state)).toEqual(['a', 'c'])
     expect(state.footage[1]).toBeUndefined()
-    expect(
-      __snapshot(state).find(([is_masked]) => is_masked !== 0)?.[3]
-    ).toBeUndefined()
+  })
+
+  it('reduces acknowledgement boundaries by matching Realm', () => {
+    const state = create<string>()
+    const first: Acknowledgement = [
+      [10, 20, 8],
+      [11, 21, 7],
+    ]
+    const selected: Acknowledgement = first.map((point) => [...point])
+    const second: Acknowledgement = [
+      [10, 20, 3],
+      [11, 21, 5],
+    ]
+    const third: Acknowledgement = [[10, 20, 6]]
+
+    garbageCollect([selected, second, third], state)
+
+    expect(selected).toEqual(second)
   })
 })

@@ -10,9 +10,9 @@
  * Every Realm entry uses three consecutive words:
  *
  * @code
- * 0  unix_lower_bits
- * 1  counter_bits
- * 2  random_bits
+ * 0  crypto_random_bits
+ * 1  unix_lower_bits
+ * 2  counter_bits
  * @endcode
  */
 #pragma once
@@ -110,9 +110,9 @@ public:
    */
   inline void write_frontier(const SequencePoint &frontier) noexcept {
     // Append one Realm boundary in stable ABI lane order.
+    words.push_back(frontier.crypto_random_bits);
     words.push_back(frontier.unix_lower_bits);
     words.push_back(frontier.counter_bits);
-    words.push_back(frontier.random_bits);
   }
 
   /**
@@ -141,9 +141,9 @@ public:
     const std::size_t word_index =
         static_cast<std::size_t>(frontier_index) * words_per_frontier_entry;
     return SequencePoint{
-        .unix_lower_bits = words[word_index],
-        .counter_bits = words[word_index + 1],
-        .random_bits = words[word_index + 2],
+        .crypto_random_bits = words[word_index],
+        .unix_lower_bits = words[word_index + 1],
+        .counter_bits = words[word_index + 2],
     };
   }
 

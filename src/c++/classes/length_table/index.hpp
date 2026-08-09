@@ -9,7 +9,6 @@
  * the remaining sub-interval displacement through the existing suffix.
  */
 #pragma once
-#include "../../declarations/projector/index.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <utility>
@@ -77,16 +76,17 @@ public:
    * `c`; insertion costs O(c + 128q + ar). Linked suffix work is always
    * O(127a) or less.
    */
+  template <typename ProjectorType>
   inline void adjust_chekpoints(bool remove, std::uint32_t after_index,
                                 std::uint32_t length,
-                                Projector *projector) noexcept {
+                                ProjectorType *projector) noexcept {
     if (length == 0 || checkpoints.empty())
       return;
 
     constexpr std::uint32_t walker_count = 16u;
     constexpr std::uint32_t checkpoint_frequency = 128u;
     const std::uint32_t first_affected_checkpoint =
-        after_index / checkpoint_frequency;
+        (after_index + checkpoint_frequency - 1u) / checkpoint_frequency;
     if (first_affected_checkpoint >= checkpoints.size())
       return;
 
@@ -179,9 +179,10 @@ public:
     return {checkpoints[checkpoint_index], checkpoint_index * 128u};
   }
 
+  template <typename ProjectorType>
   [[nodiscard]] inline std::uint32_t
   projection_frame_index(const std::uint32_t stable_position,
-                         const Projector *projector) const noexcept {
+                         const ProjectorType *projector) const noexcept {
     std::uint32_t position = stable_position;
     std::uint32_t walked_frame_count = 0;
 
@@ -197,10 +198,37 @@ public:
         return checkpoint_projection_frame_index - walked_frame_count;
       }
 
-      const Strip &strip = projector->strips[position];
+      const auto &strip = projector->strips[position];
       if (strip.is_masked == 0)
         walked_frame_count += strip.frame_count;
       position = projector->right[position];
     }
+  }
+
+  template <typename ProjectorType>
+  inline void initialize(const std::uint32_t first_position,
+                         const ProjectorType *projector) noexcept {
+    checkpoints.clear();
+    checkpoints.push_back(first_position);
+
+    std::uint32_t position = first_position;
+    std::uint32_t projection_frame_index = 0;
+    std::uint32_t next_checkpoint = 128;
+    do {
+      const auto &strip = projector->strips[position];
+      if (strip.is_masked == 0) {
+        projection_frame_index += strip.frame_count;
+        while (next_checkpoint < projector->projection_frame_count &&
+               projection_frame_index >= next_checkpoint) {
+          checkpoints.push_back(projector->right[position]);
+          next_checkpoint += 128;
+        }
+      }
+      position = projector->right[position];
+    } while (position != first_position);
+  }
+
+  [[nodiscard]] inline bool is_empty() const noexcept {
+    return checkpoints.empty();
   }
 };

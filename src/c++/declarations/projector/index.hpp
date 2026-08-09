@@ -77,7 +77,7 @@ struct Projector {
    * Each stored Strip has derived predecessor and successor links while its
    * Sequence Coordinate remains immutable.
    */
-  HashTable<> hash_table;
+  HashTable hash_table;
 
   LengthTable length_table;
 
@@ -97,24 +97,4 @@ struct Projector {
   /** @brief Dense index of the materialized Strip cached by the Gate. */
   std::uint32_t gate_strip_index{0};
 
-  ////////////////////////////////////////////////////////
-  // Incoming Strips awaiting coordinate dependencies. //
-  //////////////////////////////////////////////////////
-  /**
-   * @brief Masks awaiting their containing Strip's indexed start.
-   *
-   * Each incoming Mask is keyed by `coordinate.previous_strip_start`, which
-   * names the exact primary-index key of its containing visible Strip. Its
-   * `coordinate.this_strip_start` already names the first masked Frame.
-   */
-  HashTable<&SequenceCoordinate::previous_strip_end> pending_masks;
-
-  /**
-   * @brief Visible Strips awaiting their placement Frame.
-   *
-   * Each pending insertion is keyed by the transferred
-   * `coordinate.previous_strip_start`, the Root or Frame after which it is to
-   * be placed. Materialization preserves that dependency.
-   */
-  HashTable<&SequenceCoordinate::previous_strip_end> pending_inserts;
 };

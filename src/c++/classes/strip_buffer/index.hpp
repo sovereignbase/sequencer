@@ -92,7 +92,7 @@ public:
    * @complexity O(1) time and O(1) auxiliary space.
    */
   [[nodiscard]] inline std::uint32_t
-  read_strip(std::vector<Strip> &strips, HashTable<> &hash_table) const
+  read_strip(std::vector<Strip> &strips, HashTable &hash_table) const
       noexcept {
     const SequencePoint this_strip_start{
         .crypto_random_bits = words[3],
@@ -101,7 +101,7 @@ public:
     };
     const std::uint32_t existing_stable_position =
         hash_table.get(this_strip_start);
-    if (existing_stable_position != HashTable<>::no_stable_position) {
+    if (existing_stable_position != HashTable::no_stable_position) {
       const Strip &existing_strip = strips[existing_stable_position];
       if (existing_strip.coordinate.this_strip_start.counter_bits == words[5] &&
           existing_strip.is_masked == words[0] &&
@@ -131,7 +131,8 @@ public:
             },
         },
         0, 0);
-    hash_table.set(this_strip_start, words[2], stable_position);
+    if (words[0] == 0)
+      hash_table.set(this_strip_start, words[2], stable_position);
     return stable_position;
   }
 

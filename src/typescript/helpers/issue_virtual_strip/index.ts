@@ -37,9 +37,9 @@ let next_counter_bits = 0x1_0000_0000
  *
  * @param is_masked Zero for a visible Strip; nonzero for a Mask.
  * @param frame_count Positive number of consecutive Frames to reserve.
- * @param previous_unix_lower_bits Low Unix-time bits of the previous Strip start.
- * @param previous_counter_bits Counter bits of the previous Strip start.
- * @param previous_random_bits Random discriminator of the previous Strip start.
+ * @param previous_crypto_random_bits Random discriminator of the previous point.
+ * @param previous_unix_lower_bits Low Unix-time bits of the previous point.
+ * @param previous_counter_bits Counter bits of the previous point.
  * @param footage_frame_index Optional footage index corresponding to the first Frame.
  * @remarks All transferred values must fit within an unsigned 32-bit integer.
  */
@@ -47,9 +47,9 @@ export function issue_virtual_strip<T>(
   is_masked: number,
   is_inverse: number,
   frame_count: number,
+  previous_crypto_random_bits: number,
   previous_unix_lower_bits: number,
   previous_counter_bits: number,
-  previous_random_bits: number,
   footage_frame_index?: number
 ): Strip<T>[0] {
   // Resolve the final counter required by this Frame reservation.
@@ -65,17 +65,17 @@ export function issue_virtual_strip<T>(
     is_masked,
     is_inverse,
     frame_count,
+    realm_random_bits[0],
     realm_unix_lower_bits,
     next_counter_bits,
-    realm_random_bits[0],
+    previous_crypto_random_bits,
     previous_unix_lower_bits,
     previous_counter_bits,
-    previous_random_bits,
     footage_frame_index,
   ]
 
   void write_strip_to_buffer<T>(meta)
   next_counter_bits += frame_count
-  delete meta[9]
+  void meta.pop()
   return meta as Strip<T>[0]
 }

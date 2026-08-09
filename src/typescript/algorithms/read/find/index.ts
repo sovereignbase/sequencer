@@ -22,7 +22,7 @@ import { is_safe_index } from '../../../helpers/index.js'
  */
 export function find<T>(state: Replica<T>, index: number): T | undefined {
   // Validate the requested visible Projection index.
-  if (!is_safe_index(get_projection_frame_count(state.id), index))
+  if (!is_safe_index(index, get_projection_frame_count(state.id)))
     return undefined
 
   // Resolve the native Footage index and return its consumer-owned value.

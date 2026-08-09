@@ -9,9 +9,19 @@ private:
 
 public:
   inline void adjust(bool remove, std::uint32_t after_index,
-                     Projector *projector) noexcept {}
+                     std::uint32_t length, Projector *projector) noexcept {
+    if (remove) {
+      // Start from the checkpoint at/before after_index.
+      // Walk projection forward by `length`,
+      // updating affected checkpoints left -> right.
+    } else {
+      // Start from the checkpoint at/after the affected
+      // range. Walk projection backward by `length`,
+      // updating affected checkpoints right -> left.
+    }
+  }
 
   [[nodiscard]] inline std::uint32_t closest(std::uint32_t index) noexcept {
-    return (index / 20u) * 20u;
+    return checkpoints[index / 20u];
   }
 };

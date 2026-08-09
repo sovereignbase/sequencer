@@ -89,6 +89,7 @@ public:
     if (first_affected_checkpoint >= checkpoints.size())
       return;
 
+    /// HELPER START
     const auto adjust_suffix = [&](const std::uint32_t suffix_start,
                                    const std::uint32_t steps,
                                    const std::uint32_t *links) noexcept {
@@ -99,19 +100,24 @@ public:
       for (; checkpoint_count - checkpoint_index >= walker_count;
            checkpoint_index += walker_count) {
         std::uint32_t walkers[walker_count];
+        // SIMD: contiguous checkpoint lanes are candidates for v128 loads.
         for (std::uint32_t walker = 0; walker < walker_count; ++walker)
           walkers[walker] = checkpoints[checkpoint_index + walker];
+        // ILP: sixteen independent dependency chains remain live per step.
+        // MLP: their indexed link loads should overlap across the memory
+        // hierarchy.
         for (std::uint32_t step = 0; step < steps; ++step)
           for (std::uint32_t walker = 0; walker < walker_count; ++walker)
             walkers[walker] = links[walkers[walker]];
+        // SIMD: contiguous corrected lanes are candidates for v128 stores.
         for (std::uint32_t walker = 0; walker < walker_count; ++walker)
           checkpoints[checkpoint_index + walker] = walkers[walker];
       }
       for (; checkpoint_index < checkpoint_count; ++checkpoint_index)
         for (std::uint32_t step = 0; step < steps; ++step)
-          checkpoints[checkpoint_index] =
-              links[checkpoints[checkpoint_index]];
+          checkpoints[checkpoint_index] = links[checkpoints[checkpoint_index]];
     };
+    /// HELPER END
 
     std::uint32_t complete_intervals = length / checkpoint_frequency;
     const std::uint32_t remainder = length & 127u;

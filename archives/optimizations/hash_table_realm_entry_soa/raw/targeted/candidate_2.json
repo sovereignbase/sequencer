@@ -1,0 +1,37 @@
+{
+  "environment": {
+    "node": "24.16.0",
+    "v8": "13.6.233.17-node.49",
+    "cpu": "Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz"
+  },
+  "entry_count": 100000,
+  "sample_count": 9,
+  "random_lookup": {
+    "raw_nanoseconds": [
+      306970100, 245926500, 249241600, 247028700, 217422500, 194815000,
+      218224600, 235028300, 232498800
+    ],
+    "median_nanoseconds_per_operation": 117.51415
+  },
+  "hot_lookup": {
+    "raw_nanoseconds": [
+      300300000, 275447100, 285955100, 263082200, 262570100, 234299000,
+      249699700, 261181900, 281534500
+    ],
+    "median_nanoseconds_per_operation": 52.61644
+  },
+  "populate": {
+    "raw_nanoseconds": [
+      5010800, 4514300, 4853500, 4476600, 4277600, 4612800, 4812100, 4539300,
+      5859000
+    ],
+    "median_nanoseconds_per_operation": 46.128
+  },
+  "middle_insert": {
+    "raw_nanoseconds": [
+      293400, 62400, 87100, 92900, 100400, 102200, 63400, 80300, 152300
+    ],
+    "median_nanoseconds_per_operation": 92900
+  },
+  "checksum": 130189
+}

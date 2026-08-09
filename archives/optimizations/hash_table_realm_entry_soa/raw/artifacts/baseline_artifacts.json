@@ -1,0 +1,27 @@
+{
+  "embedded_wasm": {
+    "raw_bytes": 29925,
+    "gzip_bytes": 12361,
+    "brotli_bytes": 10370
+  },
+  "generated_glue_without_base64_payload": {
+    "raw_bytes": 12614,
+    "gzip_bytes": 3993,
+    "brotli_bytes": 3599
+  },
+  "generated_single_file": {
+    "raw_bytes": 44402,
+    "gzip_bytes": 17373,
+    "brotli_bytes": 14340
+  },
+  "esm_bundle": {
+    "raw_bytes": 87369,
+    "gzip_bytes": 26646,
+    "brotli_bytes": 22602
+  },
+  "commonjs_bundle": {
+    "raw_bytes": 87673,
+    "gzip_bytes": 26761,
+    "brotli_bytes": 22717
+  }
+}

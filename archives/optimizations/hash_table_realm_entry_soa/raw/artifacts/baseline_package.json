@@ -1,0 +1,71 @@
+[
+  {
+    "id": "@sovereignbase/sequencer@0.0.0",
+    "name": "@sovereignbase/sequencer",
+    "version": "0.0.0",
+    "size": 141648,
+    "unpackedSize": 594863,
+    "shasum": "c707932482a9f2d166e8f4275d0125895dfd24af",
+    "integrity": "sha512-7Wnb1vN9hvB5Ue81z2Yit/hJV+J5Qi6uS0Fyw3whdP9IwDKBgd2QytV8ULqT9r6GmuTqW9cLzQLSa60i9J0s5Q==",
+    "filename": "sovereignbase-sequencer-0.0.0.tgz",
+    "files": [
+      {
+        "path": "LICENSE",
+        "size": 11558,
+        "mode": 420
+      },
+      {
+        "path": "README.md",
+        "size": 15006,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.cjs",
+        "size": 87673,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.cjs.map",
+        "size": 176610,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.d.cts",
+        "size": 16453,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.d.cts.map",
+        "size": 1829,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.d.ts",
+        "size": 16452,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.d.ts.map",
+        "size": 1828,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.js",
+        "size": 87369,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.js.map",
+        "size": 176573,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 3512,
+        "mode": 420
+      }
+    ],
+    "entryCount": 11,
+    "bundled": []
+  }
+]

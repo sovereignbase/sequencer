@@ -1,0 +1,176 @@
+
+> @sovereignbase/sequencer@0.0.0 test
+> node scripts/run-tests.mjs
+
+
+=== C++ and Wasm build ===
+
+> @sovereignbase/sequencer@0.0.0 build:wasm
+> cmake --build --preset wasm-release && cmake --install temp/build/wasm-release --prefix src/typescript/wasm/raw && node -e "const fs=require('node:fs');const p='src/typescript/wasm/raw/sequencer_wasm.mjs';const b=fs.readFileSync(p);const a=Buffer.from('async function Module');const c=Buffer.from('function Module');if(b.subarray(0,a.length).equals(a))fs.writeFileSync(p,Buffer.concat([c,b.subarray(a.length)]))" && npm run docs:c++
+
+ninja: no work to do.
+-- Install configuration: "Release"
+-- Up-to-date: C:/Users/jorts/sequencer/src/typescript/wasm/raw/./sequencer_wasm.mjs
+-- Up-to-date: C:/Users/jorts/sequencer/src/typescript/wasm/raw/./sequencer_wasm.d.mts
+
+> @sovereignbase/sequencer@0.0.0 docs:c++
+> node scripts/build-cpp-docs.mjs
+
+[01mRunning Sphinx v9.1.0[39;49;00m
+[01mloading translations [en]... [39;49;00mdone
+[01mbuilding [mo]: [39;49;00mall of 0 po files
+[01mwriting output... [39;49;00m
+[01mbuilding [html]: [39;49;00mall source files
+[01mupdating environment: [39;49;00m[new config] 1 added, 0 changed, 0 removed
+[2K[01mreading sources... [39;49;00m[100%] [35mindex[39;49;00m
+
+[01mlooking for now-outdated files... [39;49;00mnone found
+[01mpickling environment... [39;49;00mdone
+[01mchecking consistency... [39;49;00mdone
+[01mpreparing documents... [39;49;00mdone
+[01mcopying assets... [39;49;00m
+[01mcopying static files... [39;49;00m
+Writing evaluated template result to C:\Users\jorts\sequencer\docs\c++\_static\basic.css
+Writing evaluated template result to C:\Users\jorts\sequencer\docs\c++\_static\documentation_options.js
+Writing evaluated template result to C:\Users\jorts\sequencer\docs\c++\_static\language_data.js
+Writing evaluated template result to C:\Users\jorts\sequencer\docs\c++\_static\alabaster.css
+[01mcopying static files: [39;49;00mdone
+[01mcopying extra files... [39;49;00m
+[01mcopying extra files: [39;49;00mdone
+[01mcopying assets: [39;49;00mdone
+[2K[01mwriting output... [39;49;00m[100%] [32mindex[39;49;00m
+
+[01mgenerating indices... [39;49;00mgenindex done
+[01mwriting additional pages... [39;49;00msearch done
+[01mdumping search index in English (code: en)... [39;49;00mdone
+[01mdumping object inventory... [39;49;00mdone
+[01mbuild succeeded.[39;49;00m
+
+The HTML pages are in docs\c++.
+=== TypeScript build ===
+
+> @sovereignbase/sequencer@0.0.0 build
+> tsdown && npm run docs
+
+ℹ tsdown v0.22.14 powered by rolldown v1.2.3
+ℹ config file: C:\Users\jorts\sequencer\tsdown.config.ts 
+ℹ entry: src/typescript/index.ts
+ℹ target: es2024
+ℹ tsconfig: tsconfig.json
+ℹ Build start
+ℹ Cleaning 9 files
+ℹ [CJS] dist\index.cjs       88.44 kB │ gzip: 27.03 kB
+ℹ [CJS] dist\index.cjs.map  179.30 kB │ gzip: 36.81 kB
+ℹ [CJS] 2 files, total: 267.74 kB
+ℹ [CJS] dist\index.d.cts.map   1.83 kB │ gzip: 0.52 kB
+ℹ [CJS] dist\index.d.cts      16.45 kB │ gzip: 4.84 kB
+ℹ [CJS] 2 files, total: 18.28 kB
+✔ Build complete in 1893ms
+ℹ [ESM] dist\index.js         88.14 kB │ gzip: 26.91 kB
+ℹ [ESM] dist\index.js.map    179.26 kB │ gzip: 36.79 kB
+ℹ [ESM] dist\index.d.ts.map    1.83 kB │ gzip:  0.52 kB
+ℹ [ESM] dist\index.d.ts       16.45 kB │ gzip:  4.84 kB
+ℹ [ESM] 4 files, total: 285.68 kB
+✔ Build complete in 2060ms
+
+> @sovereignbase/sequencer@0.0.0 docs
+> typedoc
+
+[96m[info][0m html generated at ./docs/typescript
+
+=== Unit, convergence, and stress ===
+
+> @sovereignbase/sequencer@0.0.0 test:vitest
+> vitest run --coverage
+
+
+ RUN  v4.1.10 C:/Users/jorts/sequencer
+      Coverage enabled with v8
+
+ ✓ test/stress/convergence.stress.test.ts (1 test) 3877ms
+     ✓ converges or reports a bounded replayable native hang  3874ms
+ ✓ test/unit/coverage.test.ts (3 tests) 763ms
+ ✓ test/unit/crud.test.ts (9 tests) 77ms
+ ✓ test/unit/structural.test.ts (3 tests) 16ms
+ ✓ test/unit/mags.test.ts (6 tests) 18ms
+ ✓ test/convergence/convergence.test.ts (7 tests) 23ms
+
+ Test Files  6 passed (6)
+      Tests  29 passed (29)
+   Start at  01:43:34
+   Duration  8.35s (transform 1.03s, setup 0ms, import 1.15s, tests 4.77s, environment 1ms)
+
+JSON report written to C:/Users/jorts/sequencer/docs/tests/vitest-results.json
+ HTML  Report is generated
+       You can run npx vite preview --outDir docs/tests/vitest to see the test results.
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   98.49 |    97.63 |     100 |   99.15 |                   
+ .../read/snapshot |    93.1 |     87.5 |     100 |   92.59 |                   
+  index.ts         |    93.1 |     87.5 |     100 |   92.59 | 62-63             
+ ...update/replace |      90 |       80 |     100 |     100 |                   
+  index.ts         |      90 |       80 |     100 |     100 | 43                
+ typescript/wasm   |    98.5 |    92.85 |     100 |     100 |                   
+  index.ts         |    98.5 |    92.85 |     100 |     100 | 272               
+-------------------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : 98.49% ( 261/265 )
+Branches     : 97.63% ( 124/127 )
+Functions    : 100% ( 35/35 )
+Lines        : 99.15% ( 235/237 )
+================================================================================
+
+=== Runtime matrix ===
+
+> @sovereignbase/sequencer@0.0.0 test:runtimes
+> node scripts/run-runtime-tests.mjs
+
+
+[Runtime] Node.js
+
+[Runtime] Deno
+
+[Runtime] Bun
+
+[Runtime] Edge Runtime
+
+[Runtime] Cloudflare Workers
+SEQUENCER_RUNTIME_RESULT={"runtime":"Node.js","version":"24.16.0","passed":true,"assertions":8,"projection":["alpha","gamma"],"converged_projection":["base","left","right"]}
+SEQUENCER_RUNTIME_RESULT={"runtime":"Bun","version":"1.3.14","passed":true,"assertions":8,"projection":["alpha","gamma"],"converged_projection":["base","left","right"]}
+SEQUENCER_RUNTIME_RESULT={"runtime":"Deno","version":"2.9.5","passed":true,"assertions":8,"projection":["alpha","gamma"],"converged_projection":["base","left","right"]}
+SEQUENCER_RUNTIME_RESULT={"runtime":"Edge Runtime","version":"edge-runtime","passed":true,"assertions":8,"projection":["alpha","gamma"],"converged_projection":["base","left","right"]}
+SEQUENCER_RUNTIME_RESULT={"runtime":"Cloudflare Workers","version":"workerd via Wrangler 4.120.0","passed":true,"assertions":8,"projection":["alpha","gamma"],"converged_projection":["base","left","right"]}
+PASS Node.js 24.16.0 (2418 ms)
+PASS Deno 2.9.5 (2804 ms)
+PASS Bun 1.3.14 (552 ms)
+PASS Edge Runtime edge-runtime (1743 ms)
+PASS Cloudflare Workers workerd via Wrangler 4.120.0 (11932 ms)
+
+=== Browser matrix ===
+
+> @sovereignbase/sequencer@0.0.0 test:browser
+> node scripts/run-browser-tests.mjs
+
+
+Running 15 tests using 1 worker
+
+  ok  1 [chromium] › test\browser\sequencer.spec.ts:22:1 › executes the public sequence API in a browser (2.1s)
+  ok  2 [chromium] › test\browser\web_worker.spec.ts:4:1 › executes the public sequence API in a Web Worker (440ms)
+  ok  3 [chromium] › test\convergence\browser.spec.ts:14:1 › converges after opposite Delta staging orders in a browser (451ms)
+  ok  4 [firefox] › test\browser\sequencer.spec.ts:22:1 › executes the public sequence API in a browser (5.9s)
+  ok  5 [firefox] › test\browser\web_worker.spec.ts:4:1 › executes the public sequence API in a Web Worker (4.7s)
+  ok  6 [firefox] › test\convergence\browser.spec.ts:14:1 › converges after opposite Delta staging orders in a browser (1.8s)
+  ok  7 [webkit] › test\browser\sequencer.spec.ts:22:1 › executes the public sequence API in a browser (1.8s)
+  ok  8 [webkit] › test\browser\web_worker.spec.ts:4:1 › executes the public sequence API in a Web Worker (1.7s)
+  ok  9 [webkit] › test\convergence\browser.spec.ts:14:1 › converges after opposite Delta staging orders in a browser (1.4s)
+  ok 10 [mobile_chromium] › test\browser\sequencer.spec.ts:22:1 › executes the public sequence API in a browser (798ms)
+  ok 11 [mobile_chromium] › test\browser\web_worker.spec.ts:4:1 › executes the public sequence API in a Web Worker (591ms)
+  ok 12 [mobile_chromium] › test\convergence\browser.spec.ts:14:1 › converges after opposite Delta staging orders in a browser (554ms)
+  ok 13 [mobile_webkit] › test\browser\sequencer.spec.ts:22:1 › executes the public sequence API in a browser (1.2s)
+  ok 14 [mobile_webkit] › test\browser\web_worker.spec.ts:4:1 › executes the public sequence API in a Web Worker (1.0s)
+  ok 15 [mobile_webkit] › test\convergence\browser.spec.ts:14:1 › converges after opposite Delta staging orders in a browser (1.1s)
+
+  15 passed (43.0s)

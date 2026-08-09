@@ -1,0 +1,37 @@
+Metrics
+total
+ [exports]      : 24      
+ [funcs]        : 47      
+ [globals]      : 1       
+ [imports]      : 3       
+ [memories]     : 1       
+ [memory-data]  : 602     
+ [table-data]   : 0       
+ [tables]       : 1       
+ [tags]         : 0       
+ [total]        : 14243   
+ [vars]         : 298     
+ Binary         : 2326    
+ Block          : 660     
+ Break          : 756     
+ Call           : 173     
+ CallIndirect   : 1       
+ Const          : 1702    
+ Drop           : 13      
+ GlobalGet      : 15      
+ GlobalSet      : 28      
+ If             : 342     
+ Load           : 1258    
+ LocalGet       : 4122    
+ LocalSet       : 1717    
+ Loop           : 103     
+ MemoryCopy     : 19      
+ MemoryFill     : 10      
+ MemorySize     : 1       
+ Return         : 20      
+ Select         : 99      
+ Store          : 726     
+ Switch         : 3       
+ Unary          : 114     
+ Unreachable    : 35      
+warning: no output file specified, not emitting output

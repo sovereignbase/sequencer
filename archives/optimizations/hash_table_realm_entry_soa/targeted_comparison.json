@@ -1,0 +1,70 @@
+{
+  "random_lookup": {
+    "baseline": {
+      "samples": 27,
+      "median_nanoseconds": 119.68795,
+      "first_quartile_nanoseconds": 113.2509,
+      "third_quartile_nanoseconds": 125.3404,
+      "process_median_nanoseconds": [113.01885, 120.81875, 125.1954]
+    },
+    "candidate": {
+      "samples": 27,
+      "median_nanoseconds": 116.2494,
+      "first_quartile_nanoseconds": 97.4075,
+      "third_quartile_nanoseconds": 123.51435,
+      "process_median_nanoseconds": [93.425, 117.51415, 122.55985]
+    },
+    "change_percent": -2.872929146167184
+  },
+  "hot_lookup": {
+    "baseline": {
+      "samples": 27,
+      "median_nanoseconds": 52.1583,
+      "first_quartile_nanoseconds": 51.2962,
+      "third_quartile_nanoseconds": 53.38746,
+      "process_median_nanoseconds": [51.13226, 52.1583, 52.97012]
+    },
+    "candidate": {
+      "samples": 27,
+      "median_nanoseconds": 51.79656,
+      "first_quartile_nanoseconds": 45.70578,
+      "third_quartile_nanoseconds": 55.08942,
+      "process_median_nanoseconds": [45.49992, 52.61644, 53.93778]
+    },
+    "change_percent": -0.6935425426058701
+  },
+  "populate": {
+    "baseline": {
+      "samples": 27,
+      "median_nanoseconds": 25.118,
+      "first_quartile_nanoseconds": 22.091,
+      "third_quartile_nanoseconds": 27.179,
+      "process_median_nanoseconds": [24.791, 25.927, 22.49]
+    },
+    "candidate": {
+      "samples": 27,
+      "median_nanoseconds": 37.844,
+      "first_quartile_nanoseconds": 33.397,
+      "third_quartile_nanoseconds": 45.143,
+      "process_median_nanoseconds": [33.006, 46.128, 37.646]
+    },
+    "change_percent": 50.664861852058294
+  },
+  "middle_insert": {
+    "baseline": {
+      "samples": 27,
+      "median_nanoseconds": 41200,
+      "first_quartile_nanoseconds": 31000,
+      "third_quartile_nanoseconds": 63500,
+      "process_median_nanoseconds": [31300, 49700, 40800]
+    },
+    "candidate": {
+      "samples": 27,
+      "median_nanoseconds": 89200,
+      "first_quartile_nanoseconds": 62400,
+      "third_quartile_nanoseconds": 152300,
+      "process_median_nanoseconds": [92700, 92900, 77700]
+    },
+    "change_percent": 116.50485436893203
+  }
+}

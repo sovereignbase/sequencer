@@ -61,6 +61,16 @@ struct Projector {
   std::vector<Strip> strips;
 
   /**
+   * @brief Dense traversal vector
+   */
+  std::vector<uint32_t> right;
+
+  /**
+   * @brief Dense traversal vector
+   */
+  std::vector<uint32_t> left;
+
+  /**
    * @brief Materialized Strips indexed by their own stable start points.
    *
    * This is the authoritative runtime representation of structural membership.
@@ -84,21 +94,12 @@ struct Projector {
    */
   std::uint32_t gate_projection_frame_index{0};
 
-  /**
-   * @brief Stable start of the first structural Strip, or Root when empty.
-   */
-  SequencePoint first_strip_start{};
-
   /** @brief Stable start of the materialized Strip cached by the Gate. */
   SequencePoint gate_strip_start{};
 
-  /**
-   * @brief Stable start of the last structural Strip, or Root when empty.
-   */
-  SequencePoint last_strip_start{};
-
-  // Incoming Strips awaiting coordinate dependencies.
-
+  ////////////////////////////////////////////////////////
+  // Incoming Strips awaiting coordinate dependencies. //
+  //////////////////////////////////////////////////////
   /**
    * @brief Masks awaiting their containing Strip's indexed start.
    *

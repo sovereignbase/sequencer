@@ -84,38 +84,12 @@ struct Strip {
   SequenceCoordinate coordinate;
 
   /**
-   * @brief Start point of the previous materialized Strip.
-   *
-   * The first retained Strip stores the Root. This runtime link is derived by
-   * the Projector and is deliberately absent from serialized Reels.
-   */
-  SequencePoint previous_strip_end;
-
-  /**
-   * @brief Start point of the right materialized Strip.
-   *
-   * The last retained Strip stores `unlinked_strip_start`. This runtime link is
-   * derived by the Projector, is not trusted from transferred data, and is
-   * deliberately absent from serialized Reels.
-   */
-  SequencePoint right_strip;
-
-  /**
-   * @brief Start point of the left materialized Strip.
-   *
-   * The last retained Strip stores `unlinked_strip_start`. This runtime link is
-   * derived by the Projector, is not trusted from transferred data, and is
-   * deliberately absent from serialized Reels.
-   */
-  SequencePoint left_strip;
-
-  /**
    * @brief Previous material fragment of the same originally issued Strip.
    *
    * Root means this fragment begins its source. The link is runtime-only and
    * is rebuilt by splitting or Snapshot resolution.
    */
-  SequencePoint right_sibling_frames;
+  std::uint32_t right_sibling_frames;
 
   /**
    * @brief Next material fragment of the same originally issued Strip.
@@ -123,7 +97,7 @@ struct Strip {
    * `unlinked_strip_start` means this fragment ends its source. The link is
    * runtime-only and never participates in sibling conflict resolution.
    */
-  SequencePoint left_siblings_frames;
+  std::uint32_t left_siblings_frames;
 };
 
 // Sequence-point containment result sentinel.

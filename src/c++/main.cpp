@@ -51,10 +51,6 @@ static FrontierBuffer frontier_buffer;
 /** @brief Shared result buffer for ordered or released Footage spans. */
 static FootageSpanBuffer footage_span_buffer;
 
-/** @brief Shared cursor for synchronous pending-Strip Snapshot traversal. */
-static StripIndex <
-    &SequenceCoordinate::previous_strip_end::Cursor pending_strip_cursor;
-
 /** @brief Pending index currently traversed: zero inserts, one Masks. */
 static std::uint32_t pending_strip_kind{0};
 
@@ -172,8 +168,7 @@ get_footage_frame_index(const std::uint32_t sequence_id,
  * @post FootageSpanBuffer contains one range per materialized Strip in
  * structural Sequence order.
  */
-EMSCRIPTEN_KEEPALIVE std::uint32_t
-write_recovery_footage_spans_to_buffer(
+EMSCRIPTEN_KEEPALIVE std::uint32_t write_recovery_footage_spans_to_buffer(
     const std::uint32_t sequence_id) noexcept {
   Projector &projector = *projectors[sequence_id];
   footage_span_buffer.clear();
@@ -410,8 +405,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *prepare_garbage_collection_frontier_buffer(
  * @note The buffer describes only the most recent operation that populated it.
  * @see FootageSpanBuffer
  */
-EMSCRIPTEN_KEEPALIVE std::uint32_t *
-get_footage_span_buffer_pointer() noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t *get_footage_span_buffer_pointer() noexcept {
   // Expose Footage spans written by the most recent operation.
   return footage_span_buffer.get_memory_pointer();
 }

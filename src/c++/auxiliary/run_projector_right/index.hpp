@@ -23,8 +23,7 @@
  * @complexity One StripIndex lookup and O(1) additional work and space.
  */
 [[nodiscard]] inline const Strip &
-run_projector_forward(Projector *projector,
-                      const Strip *current_strip) noexcept {
+run_projector_right(Projector *projector, const Strip *current_strip) noexcept {
   // Move the Gate key to the current Strip's successor.
   projector->gate_strip_start = current_strip->next_strip_start;
 

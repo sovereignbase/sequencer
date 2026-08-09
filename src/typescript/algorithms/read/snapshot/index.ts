@@ -24,7 +24,8 @@ import {
  * materialized Mask is encoded as a reconstructable visible source fragment
  * followed by its Footage-free Mask command; released source entries remain
  * `undefined` in the copied array. This lets creation rebuild split Mask state
- * without serializing sibling metadata.
+ * without serializing sibling metadata. A Pending Mask is serialized directly
+ * because it has not acquired a materialized source Footage mapping.
  *
  * Snapshotting only reads already-issued Sequence material and never issues new
  * Sequence Points.
@@ -43,18 +44,31 @@ export function snapshot<T>(state: Replica<T>): Delta<T> {
   const delta: Delta<T> = []
 
   // Append the Strip currently exposed through the shared native buffer.
-  const append_buffered_strip = (): void => {
+  const append_buffered_strip = (materialized: boolean): void => {
     const meta = read_strip_from_buffer()
-    const values = footage.slice(meta[9]!, meta[9]! + meta[2])
+    const footage_frame_index = meta[9]!
     void meta.pop()
 
     if (meta[0] === 0) {
+      const values = footage.slice(
+        footage_frame_index,
+        footage_frame_index + meta[2]
+      )
       void delta.push([meta as Strip<T>[0], values as Array<T>])
+      return
+    }
+
+    if (!materialized) {
+      void delta.push([meta as Strip<T>[0]])
       return
     }
 
     const source_meta = [...meta] as Strip<T>[0]
     source_meta[0] = 0
+    const values = footage.slice(
+      footage_frame_index,
+      footage_frame_index + meta[2]
+    )
     void delta.push([source_meta, values as Array<T>])
     meta[1] = 0
     meta[6] = meta[3]
@@ -65,12 +79,12 @@ export function snapshot<T>(state: Replica<T>): Delta<T> {
 
   // Traverse every materialized visible Strip and Mask in Sequence order.
   if (write_first_structural_strip_to_buffer(id))
-    do void append_buffered_strip()
+    do void append_buffered_strip(true)
     while (write_next_structural_strip_to_buffer(id))
 
   // Append unresolved pending Strips after materialized Sequence state.
   if (write_first_pending_strip_to_buffer(id))
-    do void append_buffered_strip()
+    do void append_buffered_strip(false)
     while (write_next_pending_strip_to_buffer(id))
 
   // Return the complete retained Delta.

@@ -4,18 +4,15 @@ export function run_runtime_contract(api) {
     if (!condition)
       throw new TypeError(`Sequencer runtime contract: ${message}`)
   }
-  const read_projection = (state) =>
-    Array.from({ length: api.__length(state) }, (_, index) =>
-      api.__read(state, index)
-    )
+  const read_projection = (state) => api.values(state)
 
-  const state = api.__create()
+  const state = api.create()
   require_condition(
-    api.__update(state, 0, ['alpha', 'beta', 'gamma'], 'after') !== false,
+    api.insert(state, 0, ['alpha', 'beta', 'gamma']) !== false,
     'initial update was rejected'
   )
   require_condition(
-    api.__delete(state, 1, 2) !== false,
+    api.remove(state, 1, 2) !== false,
     'soft deletion was rejected'
   )
   require_condition(
@@ -24,30 +21,30 @@ export function run_runtime_contract(api) {
     'projection is incorrect after deletion'
   )
   require_condition(
-    JSON.stringify(api.__recover(state)) ===
+    JSON.stringify(api.recover(state)) ===
       JSON.stringify(['alpha', 'beta', 'gamma']),
     'soft-deleted footage was not retained'
   )
 
-  const base = api.__create()
+  const base = api.create()
   require_condition(
-    api.__update(base, 0, ['base'], 'after') !== false,
+    api.insert(base, 0, ['base']) !== false,
     'base update was rejected'
   )
-  const snapshot = api.__snapshot(base)
-  const left = api.__create(snapshot)
-  const right = api.__create(snapshot)
-  const left_result = api.__update(left, 0, ['left'], 'after')
-  const right_result = api.__update(right, 0, ['right'], 'after')
+  const snapshot = api.snapshot(base)
+  const left = api.create(snapshot)
+  const right = api.create(snapshot)
+  const left_result = api.insert(left, 1, ['left'])
+  const right_result = api.insert(right, 1, ['right'])
   require_condition(left_result !== false, 'left update was rejected')
   require_condition(right_result !== false, 'right update was rejected')
 
-  const forward = api.__create(snapshot)
-  const reverse = api.__create(snapshot)
-  api.__merge(forward, left_result.reel)
-  api.__merge(forward, right_result.reel)
-  api.__merge(reverse, right_result.reel)
-  api.__merge(reverse, left_result.reel)
+  const forward = api.create(snapshot)
+  const reverse = api.create(snapshot)
+  api.merge(forward, left_result.delta)
+  api.merge(forward, right_result.delta)
+  api.merge(reverse, right_result.delta)
+  api.merge(reverse, left_result.delta)
   const forward_projection = read_projection(forward)
   const reverse_projection = read_projection(reverse)
   require_condition(
@@ -55,7 +52,7 @@ export function run_runtime_contract(api) {
     'opposite delivery orders did not converge'
   )
 
-  const hydrated = api.__create(api.__snapshot(state))
+  const hydrated = api.create(api.snapshot(state))
   require_condition(
     JSON.stringify(read_projection(hydrated)) ===
       JSON.stringify(read_projection(state)),

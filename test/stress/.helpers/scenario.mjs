@@ -2,13 +2,13 @@
 import { parentPort, workerData as scenario } from 'node:worker_threads'
 import { writeSync as write_sync } from 'node:fs'
 import {
-  __create,
-  __delete,
-  __length,
-  __merge,
-  __read,
-  __snapshot,
-  __update,
+  create,
+  insert,
+  length,
+  remove,
+  replace,
+  snapshot,
+  values,
 } from '../../../dist/index.js'
 
 const debug = process.env.SEQUENCER_STRESS_DEBUG === 'true'
@@ -26,48 +26,45 @@ const finish = (ok, message) => {
 
 // Convert one Replica into its deterministic visible Projection signature.
 const signature = (state) => {
-  mark('signature', 'start', __length(state))
-  const result = JSON.stringify(
-    Array.from({ length: __length(state) }, (_, index) => __read(state, index))
-  )
+  mark('signature', 'start', length(state))
+  const result = JSON.stringify(values(state))
   mark('signature', 'done')
   return result
 }
 
-// Integrate individual Strips and optionally restart from a mid-stream snapshot.
-const deliver = (base_reel, strips, restart_index, label = 'delivery') => {
+// Stage Strips through create and optionally restart from a mid-stream snapshot.
+const deliver = (base_delta, strips, restart_index, label = 'delivery') => {
   mark(label, 'create')
-  let state = __create(base_reel)
-  for (let index = 0; index < strips.length; index++) {
-    mark(label, 'merge', index, JSON.stringify(strips[index].slice(0, 3)))
-    void __merge(state, [strips[index]])
-    if (index + 1 === restart_index) {
-      mark(label, 'restart', index)
-      state = __create(__snapshot(state))
-    }
-  }
+  const state =
+    restart_index === undefined
+      ? create([...base_delta, ...strips])
+      : create([
+          ...snapshot(
+            create([...base_delta, ...strips.slice(0, restart_index)])
+          ),
+          ...strips.slice(restart_index),
+        ])
   mark(label, 'done')
   return state
 }
 
 // Build the common base and independent concurrent writer branches.
-const base = __create()
+const base = create()
 if (scenario.base_frame_count > 0) {
-  const result = __update(
+  const result = insert(
     base,
     0,
     Array.from(
       { length: scenario.base_frame_count },
       (_, index) => `base-${index}`
-    ),
-    'after'
+    )
   )
   if (result === false) finish(false, 'base update was rejected')
 }
 
-const base_reel = __snapshot(base)
+const base_delta = snapshot(base)
 const replicas = Array.from({ length: scenario.replica_count }, () =>
-  __create(base_reel)
+  create(base_delta)
 )
 const strips = []
 
@@ -81,18 +78,18 @@ for (
   const operation = scenario.operations[operation_index]
   const replica_index = operation.replica_selector % scenario.replica_count
   const replica = replicas[replica_index]
-  const length = __length(replica)
+  const projection_length = length(replica)
 
-  if (operation.kind === 'delete') {
-    if (length === 0) continue
-    const start_index = operation.index_selector % length
-    const result = __delete(
+  if (operation.kind === 'remove') {
+    if (projection_length === 0) continue
+    const start_index = operation.index_selector % projection_length
+    const result = remove(
       replica,
       start_index,
-      Math.min(length, start_index + operation.frame_count),
+      Math.min(projection_length, start_index + operation.frame_count),
       operation.hard
     )
-    if (result !== false) strips.push(...result.reel)
+    if (result !== false) strips.push(...result.delta)
     continue
   }
 
@@ -101,17 +98,26 @@ for (
     (_, frame_index) =>
       `replica-${replica_index}-operation-${operation_index}-frame-${frame_index}`
   )
-  const result = __update(
-    replica,
-    operation.index_selector % (length + 1),
-    values,
-    operation.kind
-  )
+  const selected_index =
+    operation.index_selector % (projection_length + 1)
+  let result
+  if (operation.kind === 'replace') {
+    if (projection_length === 0) continue
+    const replacement_index = operation.index_selector % projection_length
+    result = replace(
+      replica,
+      replacement_index,
+      values.slice(0, projection_length - replacement_index),
+      operation.hard
+    )
+  } else {
+    result = insert(replica, selected_index, values)
+  }
   if (result === false) {
     finish(false, `operation ${operation_index} rejected`)
     continue
   }
-  strips.push(...result.reel)
+  strips.push(...result.delta)
   mark('operation', operation_index, 'done')
 }
 
@@ -127,19 +133,18 @@ const shuffled = strips
 const duplicated = shuffled.flatMap((strip, index) =>
   index % 3 === 0 ? [strip, strip] : [strip]
 )
-const ordered = deliver(base_reel, strips, undefined, 'ordered')
+const ordered = deliver(base_delta, strips, undefined, 'ordered')
 const expected = signature(ordered)
 const targets = [
-  ['reverse', deliver(base_reel, [...strips].reverse(), undefined, 'reverse')],
-  ['shuffle', deliver(base_reel, shuffled, undefined, 'shuffle')],
-  ['duplicate', deliver(base_reel, duplicated, undefined, 'duplicate')],
+  ['reverse', deliver(base_delta, [...strips].reverse(), undefined, 'reverse')],
+  ['shuffle', deliver(base_delta, shuffled, undefined, 'shuffle')],
+  ['duplicate', deliver(base_delta, duplicated, undefined, 'duplicate')],
   [
     'restart',
-    deliver(base_reel, shuffled, Math.ceil(shuffled.length / 2), 'restart'),
+    deliver(base_delta, shuffled, Math.ceil(shuffled.length / 2), 'restart'),
   ],
 ]
-const batched = __create(base_reel)
-void __merge(batched, strips)
+const batched = create([...base_delta, ...strips])
 targets.push(['batch', batched])
 
 // Compare every hostile target with the chronological reference state.

@@ -57,7 +57,7 @@ public:
    * checkpoints.
    *
    * Removal compacts the affected suffix and applies the remainder through the
-   * Projector's `left` links. Insertion materializes new interval checkpoints
+   * Projector's `right` links. Insertion materializes new interval checkpoints
    * through `right`, then applies the remainder only to the pre-existing
    * suffix.
    *
@@ -136,7 +136,7 @@ public:
       }
       if (remainder != 0)
         adjust_suffix(first_affected_checkpoint, remainder,
-                      projector->left.data());
+                      projector->right.data());
       return;
     }
 

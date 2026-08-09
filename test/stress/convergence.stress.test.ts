@@ -14,7 +14,7 @@ const scenario_arbitrary = fc.record({
   operations: fc.array(
     fc.record({
       replica_selector: fc.nat(),
-      kind: fc.constantFrom('before', 'after', 'overwrite', 'delete'),
+      kind: fc.constantFrom('insert', 'replace', 'remove'),
       index_selector: fc.nat(),
       frame_count: fc.integer({ min: 1, max: 4 }),
       hard: fc.boolean(),

@@ -1,5 +1,5 @@
 /**
- * Browser proof that opposite Reel delivery orders converge through the same
+ * Browser proof that opposite Delta delivery orders converge through the same
  * TypeScript and WebAssembly surface exercised by the Vitest convergence suite.
  */
 import { expect, test } from '@playwright/test'
@@ -11,42 +11,44 @@ type SequencerWindow = Window & {
   sequencer: SequencerApi
 }
 
-test('converges after opposite Reel delivery orders in a browser', async ({
+test('converges after opposite Delta staging orders in a browser', async ({
   page,
 }) => {
   // Load the browser module before constructing concurrent replicas.
   await page.goto('/test/browser/index.html')
   await page.waitForFunction(
     () =>
-      typeof (window as unknown as SequencerWindow).sequencer?.__create ===
+      typeof (window as unknown as SequencerWindow).sequencer?.create ===
       'function'
   )
 
-  // Fork two concurrent edits and integrate their Reels in opposite orders.
+  // Fork two concurrent edits and stage their Deltas in opposite orders.
   const projections = await page.evaluate(() => {
     const api = (window as unknown as SequencerWindow).sequencer
-    const base = api.__create<string>()
-    void api.__update(base, 0, ['base'], 'after')
-    const snapshot = api.__snapshot(base)
-    const left = api.__create<string>(snapshot)
-    const right = api.__create<string>(snapshot)
-    const left_result = api.__update(left, 0, ['left'], 'after')
-    const right_result = api.__update(right, 0, ['right'], 'after')
+    const base = api.create<string>()
+    void api.insert(base, 0, ['base'])
+    const retained = api.snapshot(base)
+    const left = api.create<string>(retained)
+    const right = api.create<string>(retained)
+    const left_result = api.insert(left, 1, ['left'])
+    const right_result = api.insert(right, 1, ['right'])
 
     if (left_result === false || right_result === false)
       return { forward: [], reverse: ['update rejected'] }
 
-    const forward = api.__create<string>(snapshot)
-    const reverse = api.__create<string>(snapshot)
-    void api.__merge(forward, left_result.reel)
-    void api.__merge(forward, right_result.reel)
-    void api.__merge(reverse, right_result.reel)
-    void api.__merge(reverse, left_result.reel)
+    const forward = api.create<string>([
+      ...retained,
+      ...left_result.delta,
+      ...right_result.delta,
+    ])
+    const reverse = api.create<string>([
+      ...retained,
+      ...right_result.delta,
+      ...left_result.delta,
+    ])
 
     const project = (state: Replica<string>): Array<string> =>
-      Array.from({ length: api.__length(state) }, (_, index) =>
-        api.__read(state, index)
-      ) as Array<string>
+      api.values(state) as Array<string>
 
     return { forward: project(forward), reverse: project(reverse) }
   })

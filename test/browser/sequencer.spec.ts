@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/test/browser/index.html')
   await page.waitForFunction(
     () =>
-      typeof (window as unknown as SequencerWindow).sequencer?.__create ===
+      typeof (window as unknown as SequencerWindow).sequencer?.create ===
       'function'
   )
 })
@@ -23,13 +23,13 @@ test('executes the public sequence API in a browser', async ({ page }) => {
   // Exercise one complete local update through the browser WebAssembly module.
   const observation = await page.evaluate(() => {
     const api = (window as unknown as SequencerWindow).sequencer
-    const state = api.__create<string>()
-    const result = api.__update(state, 0, ['alpha', 'beta'], 'after')
+    const state = api.create<string>()
+    const result = api.insert(state, 0, ['alpha', 'beta'])
 
     return {
       accepted: result !== false,
-      length: api.__length(state),
-      values: [api.__read(state, 0), api.__read(state, 1)],
+      length: api.length(state),
+      values: api.values(state),
     }
   })
 

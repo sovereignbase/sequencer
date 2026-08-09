@@ -1,45 +1,52 @@
 /** Shared current-API fixtures for deterministic Replica tests. */
 import { assert, expect } from 'vitest'
 import {
-  __create,
-  __length,
-  __merge,
-  __read,
-  __snapshot,
-  __update,
+  create,
+  insert,
+  length,
+  snapshot,
+  values,
 } from '../../src/typescript/index.js'
 import type {
-  Reel,
+  Delta,
   Replica,
-  SequencePoint,
+  Result,
   Strip,
 } from '../../src/typescript/index.js'
 
-/** Creates a Replica containing one visible seed Strip. */
-export function create_seed<T>(values: Array<T>): Replica<T> {
-  const state = __create<T>()
-  if (values.length === 0) return state
+/** Three unsigned lanes forming one Sequence Point. */
+export type SequencePoint = [
+  crypto_random_bits: number,
+  unix_lower_bits: number,
+  counter_bits: number,
+]
 
-  const result = __update(state, 0, values, 'after')
+/** Creates a Replica containing one visible seed Strip. */
+export function create_seed<T>(seed_values: Array<T>): Replica<T> {
+  const state = create<T>()
+  if (seed_values.length === 0) return state
+
+  const result = insert(state, 0, seed_values)
   assert(result !== false)
   return state
 }
 
-/** Reads the complete visible Projection through the public point-read API. */
-export function projection_values<T>(state: Replica<T>): Array<T> {
-  return Array.from({ length: __length(state) }, (_, index) =>
-    __read(state, index)
-  ) as Array<T>
+/** Reads the complete visible Projection through the batched public API. */
+export function projection_values<T>(state: Replica<T>): Array<T | undefined> {
+  return values(state)
 }
 
-/** Extracts the visible Strip issued by one accepted update. */
-export function visible_strip<T>(
-  result: ReturnType<typeof __update<T>>
-): Strip<T> {
+/** Extracts the visible Strip issued by one accepted local operation. */
+export function visible_strip<T>(result: Result<T>): Strip<T> {
   assert(result !== false)
-  const strip = result.reel.find(([is_masked]) => is_masked === 0)
+  const strip = result.delta.find(([meta]) => meta[0] === 0)
   assert(strip !== undefined)
   return strip
+}
+
+/** Reads one Strip's `this_strip_start` from its transferable metadata. */
+export function strip_start<T>(strip: Strip<T>): SequencePoint {
+  return [strip[0][3], strip[0][4], strip[0][5]]
 }
 
 /** Compares Sequence Points in the same lane order as the native comparator. */
@@ -50,7 +57,7 @@ export function compare_points(
   return left[0] - right[0] || left[1] - right[1] || left[2] - right[2]
 }
 
-/** Produces a deterministic hostile delivery order for one supplied seed. */
+/** Produces a deterministic hostile staging order for one supplied seed. */
 export function shuffle_strips<T>(
   strips: Array<Strip<T>>,
   seed: number
@@ -70,26 +77,23 @@ export function shuffle_strips<T>(
   return shuffled
 }
 
-/** Integrates individual Strips and optionally snapshot-restarts mid-delivery. */
+/** Stages Strips through create and optionally snapshot-restarts mid-batch. */
 export function deliver<T>(
-  base: Reel<T>,
+  base: Delta<T>,
   strips: Array<Strip<T>>,
   restart_index?: number
 ): Replica<T> {
-  let state = __create<T>(base)
+  if (restart_index === undefined) return create<T>([...base, ...strips])
 
-  for (let index = 0; index < strips.length; index++) {
-    void __merge(state, [strips[index]])
-    if (index + 1 === restart_index) state = __create<T>(__snapshot(state))
-  }
-
-  return state
+  const first = create<T>([...base, ...strips.slice(0, restart_index)])
+  return create<T>([...snapshot(first), ...strips.slice(restart_index)])
 }
 
-/** Requires equal visible Projection length, indexes, and values. */
+/** Requires equal visible Projection length and values. */
 export function expect_converged<T>(
   expected: Replica<T>,
   actual: Replica<T>
 ): void {
   expect(projection_values(actual)).toEqual(projection_values(expected))
+  expect(length(actual)).toBe(length(expected))
 }

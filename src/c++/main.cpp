@@ -17,7 +17,6 @@
  */
 #include "./algorithms/insert_strip/index.hpp"
 #include "./algorithms/mask_strip/index.hpp"
-#include "./algorithms/resolve_initial_projection/index.hpp"
 #include "./auxiliary/run_projector_to_frame_index/index.hpp"
 #include "./auxiliary/strip_contains_sequence_point/index.hpp"
 #include "./classes/footage_span_buffer/index.hpp"
@@ -329,7 +328,60 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
  * @pre `sequence_id` identifies an active Projector.
  */
 EMSCRIPTEN_KEEPALIVE void
-resolve_initial_projection(const std::uint32_t sequence_id) noexcept {}
+resolve_initial_projection(const std::uint32_t sequence_id) noexcept {
+  Projector *projector = &*projectors[sequence_id];
+  const std::uint32_t strip_count =
+      static_cast<std::uint32_t>(projector->strips.size());
+
+  std::uint32_t root_index = 0;
+  for (std::uint32_t strip_index = 0; strip_index < strip_count;
+       ++strip_index) {
+    const Strip &strip = projector->strips[strip_index];
+    if (strip.is_masked == 0 &&
+        projector->hash_table.get(strip.coordinate.previous_strip_end).first ==
+            u32_max) {
+      root_index = strip_index;
+      break;
+    }
+  }
+
+  projector->projection_frame_count = projector->strips[root_index].frame_count;
+  projector->gate_strip_index = root_index;
+  projector->gate_projection_frame_index = 0;
+  projector->strips[root_index].checkpoint_projection_frame_index = 0;
+
+  const auto is_linked = [projector](const std::uint32_t strip_index) {
+    return projector->strips[strip_index].checkpoint_projection_frame_index ==
+               0 ||
+           projector->left[strip_index] != strip_index ||
+           projector->right[strip_index] != strip_index;
+  };
+
+  const auto resolve_insert = [&](auto &&self,
+                                  const std::uint32_t strip_index) -> void {
+    if (is_linked(strip_index))
+      return;
+    const auto [containing_strip_index, offset] = projector->hash_table.get(
+        projector->strips[strip_index].coordinate.previous_strip_end);
+    self(self, containing_strip_index);
+    static_cast<void>(
+        insert_strip(projector, containing_strip_index, strip_index, offset));
+  };
+
+  for (std::uint32_t strip_index = 0; strip_index < strip_count; ++strip_index)
+    if (projector->strips[strip_index].is_masked == 0)
+      resolve_insert(resolve_insert, strip_index);
+
+  for (std::uint32_t strip_index = 0; strip_index < strip_count;
+       ++strip_index) {
+    if (projector->strips[strip_index].is_masked == 0)
+      continue;
+    const auto [containing_strip_index, offset] = projector->hash_table.get(
+        projector->strips[strip_index].coordinate.previous_strip_end);
+    static_cast<void>(
+        mask_strip(projector, containing_strip_index, strip_index, offset));
+  }
+}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ACKNOWLEDGING
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

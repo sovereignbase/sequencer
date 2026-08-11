@@ -66,7 +66,7 @@ insert_strip(Projector *projector, const std::uint32_t incoming_strip_index,
       offset + static_cast<std::uint32_t>(inserted_strip.is_inverse == 0);
   run_projector_to_strip(resolved_containing_strip_index, containing_strip,
                          projector);
-  const std::uint32_t projection_frame_index =
+  const std::uint32_t boundary_projection_frame_index =
       projector->gate_projection_frame_index + split_frame_offset;
 
   std::uint32_t left_position;
@@ -83,8 +83,10 @@ insert_strip(Projector *projector, const std::uint32_t incoming_strip_index,
                                  split_frame_offset);
   }
 
-  insert_between(projector, left_position, incoming_strip_index,
-                 right_position);
+  const std::int64_t sibling_frame_offset = insert_between(
+      projector, left_position, incoming_strip_index, right_position);
+  const std::uint32_t projection_frame_index = static_cast<std::uint32_t>(
+      boundary_projection_frame_index + sibling_frame_offset);
   projector->length_table.adjust_checkpoints(projector, projection_frame_index,
                                              inserted_strip.frame_count, false);
   projector->projection_frame_count += inserted_strip.frame_count;

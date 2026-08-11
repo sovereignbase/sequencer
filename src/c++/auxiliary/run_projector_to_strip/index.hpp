@@ -42,34 +42,17 @@ inline void run_projector_to_strip(std::uint32_t stable_index,
     return;
   }
 
-  std::uint32_t left_index = stable_index;
-  std::uint32_t right_index = stable_index;
   std::uint32_t offset = 0;
+  do {
+    stable_index = projector->left[stable_index];
+    const Strip &left_strip = projector->strips[stable_index];
+    if (left_strip.is_masked == 0)
+      offset += left_strip.frame_count;
+  } while (projector->strips[stable_index]
+               .checkpoint_projection_frame_index == u32_max);
 
-  while (true) {
-    ++offset;
-
-    left_index = projector->left[left_index];
-    right_index = projector->right[right_index];
-
-    const std::uint32_t left_projection_frame_index =
-        projector->strips[left_index].checkpoint_projection_frame_index;
-
-    const std::uint32_t right_projection_frame_index =
-        projector->strips[right_index].checkpoint_projection_frame_index;
-
-    if (left_projection_frame_index != u32_max) {
-      projector->gate_strip_index = left_index;
-      projector->gate_projection_frame_index =
-          left_projection_frame_index + offset;
-      return;
-    }
-
-    if (right_projection_frame_index != u32_max) {
-      projector->gate_strip_index = right_index;
-      projector->gate_projection_frame_index =
-          right_projection_frame_index - offset;
-      return;
-    }
-  }
+  projector->gate_strip_index = stable_index;
+  projector->gate_projection_frame_index =
+      projector->strips[stable_index].checkpoint_projection_frame_index +
+      offset;
 }

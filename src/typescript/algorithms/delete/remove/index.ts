@@ -91,9 +91,9 @@ export function remove<T>(
       1,
       0,
       mask_frame_count,
-      containing_strip[6],
-      containing_strip[7] + strip_frame_offset,
-      containing_strip[8]
+      containing_strip[3],
+      containing_strip[4],
+      containing_strip[5] + strip_frame_offset
     )
     const projection_frame_index = merge_strip_into_sequence(state.id)
 

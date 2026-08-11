@@ -123,6 +123,12 @@ describe('hostile Delta staging', () => {
       Math.ceil(restart_order.length / 2)
     )
 
+    console.log(
+      'hostile',
+      [ordered, reversed, shuffled, duplicated, restarted].map(
+        projection_values
+      )
+    )
     for (const target of [reversed, shuffled, duplicated, restarted])
       expect_converged(ordered, target)
   })

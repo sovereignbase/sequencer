@@ -24,18 +24,20 @@
  * @param middle Stable Position being inserted.
  * @param right Initial Stable Position on the insertion's right.
  * @param sort_siblings Whether to apply deterministic sibling ordering.
+ * @return Projection Frame displacement caused by sibling ordering.
  * @pre All positions index `strips`, `left`, and `right`.
  * @post `middle` has mutually consistent dense neighbours and the surrounding
  * chain remains bidirectional.
  * @complexity O(s) for s adjacent competing siblings; O(1) without sorting.
  */
-inline void insert_between(Projector *projector, std::uint32_t left,
-                           const std::uint32_t middle,
-                           std::uint32_t right,
-                           const bool sort_siblings = true) noexcept {
+inline std::int64_t insert_between(Projector *projector, std::uint32_t left,
+                                  const std::uint32_t middle,
+                                  std::uint32_t right,
+                                  const bool sort_siblings = true) noexcept {
   const Strip &inserted_strip = projector->strips[middle];
   const SequencePoint &previous_strip_end =
       inserted_strip.coordinate.previous_strip_end;
+  std::int64_t projection_frame_offset = 0;
 
   if (sort_siblings && inserted_strip.is_masked == 0) {
     if (inserted_strip.is_inverse == 0) {
@@ -48,6 +50,9 @@ inline void insert_between(Projector *projector, std::uint32_t left,
                 &sibling_start,
                 &inserted_strip.coordinate.this_strip_start) >= 0)
           break;
+        projection_frame_offset += sibling.is_masked == 0
+                                       ? sibling.frame_count
+                                       : 0;
         left = right;
         right = projector->right[right];
         if (right == first_candidate)
@@ -61,8 +66,11 @@ inline void insert_between(Projector *projector, std::uint32_t left,
         SequencePoint sibling_start = sibling.coordinate.this_strip_start;
         if (compare_sequence_points(
                 &sibling_start,
-                &inserted_strip.coordinate.this_strip_start) <= 0)
+                &inserted_strip.coordinate.this_strip_start) >= 0)
           break;
+        projection_frame_offset -= sibling.is_masked == 0
+                                       ? sibling.frame_count
+                                       : 0;
         right = left;
         left = projector->left[left];
         if (left == first_candidate)
@@ -75,4 +83,5 @@ inline void insert_between(Projector *projector, std::uint32_t left,
   projector->left[middle] = left;
   projector->right[middle] = right;
   projector->left[right] = middle;
+  return projection_frame_offset;
 }

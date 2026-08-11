@@ -282,8 +282,9 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
     const std::uint32_t strip_count =
         static_cast<std::uint32_t>(projector->strips.size());
     for (std::uint32_t index = 0; index < strip_count; ++index)
-      static_cast<void>(
-          insert_strip(projector, index, &footage_span_buffer));
+      if (projector->strips[index].is_masked == 0)
+        static_cast<void>(
+            insert_strip(projector, index, &footage_span_buffer));
 
     for (std::uint32_t index = 0; index < strip_count; ++index) {
       const Strip &pending_mask = projector->strips[index];
@@ -363,22 +364,37 @@ resolve_initial_projection(const std::uint32_t sequence_id) noexcept {
   const std::uint32_t strip_count =
       static_cast<std::uint32_t>(projector->strips.size());
 
-  std::uint32_t root_index = 0;
+  std::uint32_t root_index = u32_max;
   for (std::uint32_t strip_index = 0; strip_index < strip_count;
        ++strip_index) {
     const Strip &strip = projector->strips[strip_index];
     if (strip.is_masked == 0 &&
         projector->hash_table.get(strip.coordinate.previous_strip_end).first ==
-            u32_max) {
+            u32_max &&
+        (root_index == u32_max ||
+         compare_sequence_points(
+             &strip.coordinate.this_strip_start,
+             &projector->strips[root_index].coordinate.this_strip_start) > 0))
       root_index = strip_index;
-      break;
-    }
   }
 
   projector->projection_frame_count = projector->strips[root_index].frame_count;
   projector->gate_strip_index = root_index;
   projector->gate_projection_frame_index = 0;
   projector->strips[root_index].checkpoint_projection_frame_index = 0;
+
+  for (std::uint32_t strip_index = 0; strip_index < strip_count;
+       ++strip_index) {
+    const Strip &strip = projector->strips[strip_index];
+    if (strip_index != root_index && strip.is_masked == 0 &&
+        projector->hash_table.get(strip.coordinate.previous_strip_end).first ==
+            u32_max) {
+      static_cast<void>(insert_between(
+          projector, projector->left[root_index], strip_index, root_index));
+      projector->projection_frame_count += strip.frame_count;
+    }
+  }
+  projector->length_table.initialize(root_index);
 
   for (std::uint32_t strip_index = 0; strip_index < strip_count; ++strip_index)
     if (projector->strips[strip_index].is_masked == 0)

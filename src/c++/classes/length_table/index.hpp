@@ -37,6 +37,10 @@ private:
   std::vector<std::uint32_t> checkpoints;
 
 public:
+  inline void initialize(const std::uint32_t stable_position) noexcept {
+    checkpoints.push_back(stable_position);
+  }
+
   [[nodiscard]] inline bool is_empty() const noexcept {
     return checkpoints.empty();
   }
@@ -65,6 +69,10 @@ public:
   inline void adjust_checkpoints(ProjectorType *projector,
                                  std::uint32_t projection_frame_index,
                                  std::uint32_t length, bool remove) noexcept {
+
+    if ((remove ? projector->projection_frame_count - length
+                : projector->projection_frame_count + length) < 256u)
+      return;
 
     // The next checkpoint after the edit area.
     std::uint32_t checkpoint_index = projection_frame_index / 256u + 1u;

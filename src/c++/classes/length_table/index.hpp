@@ -170,43 +170,311 @@ public:
       projector->strips[strip_index16].checkpoint_projection_frame_index =
           u32_max;
 
+      std::uint32_t moved_frame_count1 = 0;
+      std::uint32_t moved_frame_count2 = 0;
+      std::uint32_t moved_frame_count3 = 0;
+      std::uint32_t moved_frame_count4 = 0;
+      std::uint32_t moved_frame_count5 = 0;
+      std::uint32_t moved_frame_count6 = 0;
+      std::uint32_t moved_frame_count7 = 0;
+      std::uint32_t moved_frame_count8 = 0;
+      std::uint32_t moved_frame_count9 = 0;
+      std::uint32_t moved_frame_count10 = 0;
+      std::uint32_t moved_frame_count11 = 0;
+      std::uint32_t moved_frame_count12 = 0;
+      std::uint32_t moved_frame_count13 = 0;
+      std::uint32_t moved_frame_count14 = 0;
+      std::uint32_t moved_frame_count15 = 0;
+      std::uint32_t moved_frame_count16 = 0;
+
       if (remove) {
-        for (std::uint32_t i = 0; i < length; ++i) {
-          strip_index1 = projector->left[strip_index1];
-          strip_index2 = projector->left[strip_index2];
-          strip_index3 = projector->left[strip_index3];
-          strip_index4 = projector->left[strip_index4];
-          strip_index5 = projector->left[strip_index5];
-          strip_index6 = projector->left[strip_index6];
-          strip_index7 = projector->left[strip_index7];
-          strip_index8 = projector->left[strip_index8];
-          strip_index9 = projector->left[strip_index9];
-          strip_index10 = projector->left[strip_index10];
-          strip_index11 = projector->left[strip_index11];
-          strip_index12 = projector->left[strip_index12];
-          strip_index13 = projector->left[strip_index13];
-          strip_index14 = projector->left[strip_index14];
-          strip_index15 = projector->left[strip_index15];
-          strip_index16 = projector->left[strip_index16];
+        while (moved_frame_count1 < length || moved_frame_count2 < length ||
+               moved_frame_count3 < length || moved_frame_count4 < length ||
+               moved_frame_count5 < length || moved_frame_count6 < length ||
+               moved_frame_count7 < length || moved_frame_count8 < length ||
+               moved_frame_count9 < length || moved_frame_count10 < length ||
+               moved_frame_count11 < length || moved_frame_count12 < length ||
+               moved_frame_count13 < length || moved_frame_count14 < length ||
+               moved_frame_count15 < length || moved_frame_count16 < length) {
+          if (moved_frame_count1 < length) {
+            strip_index1 = projector->left[strip_index1];
+            if (projector->strips[strip_index1].is_masked == 0)
+              moved_frame_count1 += projector->strips[strip_index1].frame_count;
+          }
+          if (moved_frame_count2 < length) {
+            strip_index2 = projector->left[strip_index2];
+            if (projector->strips[strip_index2].is_masked == 0)
+              moved_frame_count2 += projector->strips[strip_index2].frame_count;
+          }
+          if (moved_frame_count3 < length) {
+            strip_index3 = projector->left[strip_index3];
+            if (projector->strips[strip_index3].is_masked == 0)
+              moved_frame_count3 += projector->strips[strip_index3].frame_count;
+          }
+          if (moved_frame_count4 < length) {
+            strip_index4 = projector->left[strip_index4];
+            if (projector->strips[strip_index4].is_masked == 0)
+              moved_frame_count4 += projector->strips[strip_index4].frame_count;
+          }
+          if (moved_frame_count5 < length) {
+            strip_index5 = projector->left[strip_index5];
+            if (projector->strips[strip_index5].is_masked == 0)
+              moved_frame_count5 += projector->strips[strip_index5].frame_count;
+          }
+          if (moved_frame_count6 < length) {
+            strip_index6 = projector->left[strip_index6];
+            if (projector->strips[strip_index6].is_masked == 0)
+              moved_frame_count6 += projector->strips[strip_index6].frame_count;
+          }
+          if (moved_frame_count7 < length) {
+            strip_index7 = projector->left[strip_index7];
+            if (projector->strips[strip_index7].is_masked == 0)
+              moved_frame_count7 += projector->strips[strip_index7].frame_count;
+          }
+          if (moved_frame_count8 < length) {
+            strip_index8 = projector->left[strip_index8];
+            if (projector->strips[strip_index8].is_masked == 0)
+              moved_frame_count8 += projector->strips[strip_index8].frame_count;
+          }
+          if (moved_frame_count9 < length) {
+            strip_index9 = projector->left[strip_index9];
+            if (projector->strips[strip_index9].is_masked == 0)
+              moved_frame_count9 += projector->strips[strip_index9].frame_count;
+          }
+          if (moved_frame_count10 < length) {
+            strip_index10 = projector->left[strip_index10];
+            if (projector->strips[strip_index10].is_masked == 0)
+              moved_frame_count10 +=
+                  projector->strips[strip_index10].frame_count;
+          }
+          if (moved_frame_count11 < length) {
+            strip_index11 = projector->left[strip_index11];
+            if (projector->strips[strip_index11].is_masked == 0)
+              moved_frame_count11 +=
+                  projector->strips[strip_index11].frame_count;
+          }
+          if (moved_frame_count12 < length) {
+            strip_index12 = projector->left[strip_index12];
+            if (projector->strips[strip_index12].is_masked == 0)
+              moved_frame_count12 +=
+                  projector->strips[strip_index12].frame_count;
+          }
+          if (moved_frame_count13 < length) {
+            strip_index13 = projector->left[strip_index13];
+            if (projector->strips[strip_index13].is_masked == 0)
+              moved_frame_count13 +=
+                  projector->strips[strip_index13].frame_count;
+          }
+          if (moved_frame_count14 < length) {
+            strip_index14 = projector->left[strip_index14];
+            if (projector->strips[strip_index14].is_masked == 0)
+              moved_frame_count14 +=
+                  projector->strips[strip_index14].frame_count;
+          }
+          if (moved_frame_count15 < length) {
+            strip_index15 = projector->left[strip_index15];
+            if (projector->strips[strip_index15].is_masked == 0)
+              moved_frame_count15 +=
+                  projector->strips[strip_index15].frame_count;
+          }
+          if (moved_frame_count16 < length) {
+            strip_index16 = projector->left[strip_index16];
+            if (projector->strips[strip_index16].is_masked == 0)
+              moved_frame_count16 +=
+                  projector->strips[strip_index16].frame_count;
+          }
         }
       } else {
-        for (std::uint32_t i = 0; i < length; ++i) {
-          strip_index1 = projector->right[strip_index1];
-          strip_index2 = projector->right[strip_index2];
-          strip_index3 = projector->right[strip_index3];
-          strip_index4 = projector->right[strip_index4];
-          strip_index5 = projector->right[strip_index5];
-          strip_index6 = projector->right[strip_index6];
-          strip_index7 = projector->right[strip_index7];
-          strip_index8 = projector->right[strip_index8];
-          strip_index9 = projector->right[strip_index9];
-          strip_index10 = projector->right[strip_index10];
-          strip_index11 = projector->right[strip_index11];
-          strip_index12 = projector->right[strip_index12];
-          strip_index13 = projector->right[strip_index13];
-          strip_index14 = projector->right[strip_index14];
-          strip_index15 = projector->right[strip_index15];
-          strip_index16 = projector->right[strip_index16];
+        while (projector->strips[strip_index1].is_masked != 0 ||
+               moved_frame_count1 +
+                       projector->strips[strip_index1].frame_count <=
+                   length ||
+               projector->strips[strip_index2].is_masked != 0 ||
+               moved_frame_count2 +
+                       projector->strips[strip_index2].frame_count <=
+                   length ||
+               projector->strips[strip_index3].is_masked != 0 ||
+               moved_frame_count3 +
+                       projector->strips[strip_index3].frame_count <=
+                   length ||
+               projector->strips[strip_index4].is_masked != 0 ||
+               moved_frame_count4 +
+                       projector->strips[strip_index4].frame_count <=
+                   length ||
+               projector->strips[strip_index5].is_masked != 0 ||
+               moved_frame_count5 +
+                       projector->strips[strip_index5].frame_count <=
+                   length ||
+               projector->strips[strip_index6].is_masked != 0 ||
+               moved_frame_count6 +
+                       projector->strips[strip_index6].frame_count <=
+                   length ||
+               projector->strips[strip_index7].is_masked != 0 ||
+               moved_frame_count7 +
+                       projector->strips[strip_index7].frame_count <=
+                   length ||
+               projector->strips[strip_index8].is_masked != 0 ||
+               moved_frame_count8 +
+                       projector->strips[strip_index8].frame_count <=
+                   length ||
+               projector->strips[strip_index9].is_masked != 0 ||
+               moved_frame_count9 +
+                       projector->strips[strip_index9].frame_count <=
+                   length ||
+               projector->strips[strip_index10].is_masked != 0 ||
+               moved_frame_count10 +
+                       projector->strips[strip_index10].frame_count <=
+                   length ||
+               projector->strips[strip_index11].is_masked != 0 ||
+               moved_frame_count11 +
+                       projector->strips[strip_index11].frame_count <=
+                   length ||
+               projector->strips[strip_index12].is_masked != 0 ||
+               moved_frame_count12 +
+                       projector->strips[strip_index12].frame_count <=
+                   length ||
+               projector->strips[strip_index13].is_masked != 0 ||
+               moved_frame_count13 +
+                       projector->strips[strip_index13].frame_count <=
+                   length ||
+               projector->strips[strip_index14].is_masked != 0 ||
+               moved_frame_count14 +
+                       projector->strips[strip_index14].frame_count <=
+                   length ||
+               projector->strips[strip_index15].is_masked != 0 ||
+               moved_frame_count15 +
+                       projector->strips[strip_index15].frame_count <=
+                   length ||
+               projector->strips[strip_index16].is_masked != 0 ||
+               moved_frame_count16 +
+                       projector->strips[strip_index16].frame_count <=
+                   length) {
+          if (projector->strips[strip_index1].is_masked != 0 ||
+              moved_frame_count1 + projector->strips[strip_index1].frame_count <=
+                  length) {
+            if (projector->strips[strip_index1].is_masked == 0)
+              moved_frame_count1 += projector->strips[strip_index1].frame_count;
+            strip_index1 = projector->right[strip_index1];
+          }
+          if (projector->strips[strip_index2].is_masked != 0 ||
+              moved_frame_count2 + projector->strips[strip_index2].frame_count <=
+                  length) {
+            if (projector->strips[strip_index2].is_masked == 0)
+              moved_frame_count2 += projector->strips[strip_index2].frame_count;
+            strip_index2 = projector->right[strip_index2];
+          }
+          if (projector->strips[strip_index3].is_masked != 0 ||
+              moved_frame_count3 + projector->strips[strip_index3].frame_count <=
+                  length) {
+            if (projector->strips[strip_index3].is_masked == 0)
+              moved_frame_count3 += projector->strips[strip_index3].frame_count;
+            strip_index3 = projector->right[strip_index3];
+          }
+          if (projector->strips[strip_index4].is_masked != 0 ||
+              moved_frame_count4 + projector->strips[strip_index4].frame_count <=
+                  length) {
+            if (projector->strips[strip_index4].is_masked == 0)
+              moved_frame_count4 += projector->strips[strip_index4].frame_count;
+            strip_index4 = projector->right[strip_index4];
+          }
+          if (projector->strips[strip_index5].is_masked != 0 ||
+              moved_frame_count5 + projector->strips[strip_index5].frame_count <=
+                  length) {
+            if (projector->strips[strip_index5].is_masked == 0)
+              moved_frame_count5 += projector->strips[strip_index5].frame_count;
+            strip_index5 = projector->right[strip_index5];
+          }
+          if (projector->strips[strip_index6].is_masked != 0 ||
+              moved_frame_count6 + projector->strips[strip_index6].frame_count <=
+                  length) {
+            if (projector->strips[strip_index6].is_masked == 0)
+              moved_frame_count6 += projector->strips[strip_index6].frame_count;
+            strip_index6 = projector->right[strip_index6];
+          }
+          if (projector->strips[strip_index7].is_masked != 0 ||
+              moved_frame_count7 + projector->strips[strip_index7].frame_count <=
+                  length) {
+            if (projector->strips[strip_index7].is_masked == 0)
+              moved_frame_count7 += projector->strips[strip_index7].frame_count;
+            strip_index7 = projector->right[strip_index7];
+          }
+          if (projector->strips[strip_index8].is_masked != 0 ||
+              moved_frame_count8 + projector->strips[strip_index8].frame_count <=
+                  length) {
+            if (projector->strips[strip_index8].is_masked == 0)
+              moved_frame_count8 += projector->strips[strip_index8].frame_count;
+            strip_index8 = projector->right[strip_index8];
+          }
+          if (projector->strips[strip_index9].is_masked != 0 ||
+              moved_frame_count9 + projector->strips[strip_index9].frame_count <=
+                  length) {
+            if (projector->strips[strip_index9].is_masked == 0)
+              moved_frame_count9 += projector->strips[strip_index9].frame_count;
+            strip_index9 = projector->right[strip_index9];
+          }
+          if (projector->strips[strip_index10].is_masked != 0 ||
+              moved_frame_count10 +
+                      projector->strips[strip_index10].frame_count <=
+                  length) {
+            if (projector->strips[strip_index10].is_masked == 0)
+              moved_frame_count10 +=
+                  projector->strips[strip_index10].frame_count;
+            strip_index10 = projector->right[strip_index10];
+          }
+          if (projector->strips[strip_index11].is_masked != 0 ||
+              moved_frame_count11 +
+                      projector->strips[strip_index11].frame_count <=
+                  length) {
+            if (projector->strips[strip_index11].is_masked == 0)
+              moved_frame_count11 +=
+                  projector->strips[strip_index11].frame_count;
+            strip_index11 = projector->right[strip_index11];
+          }
+          if (projector->strips[strip_index12].is_masked != 0 ||
+              moved_frame_count12 +
+                      projector->strips[strip_index12].frame_count <=
+                  length) {
+            if (projector->strips[strip_index12].is_masked == 0)
+              moved_frame_count12 +=
+                  projector->strips[strip_index12].frame_count;
+            strip_index12 = projector->right[strip_index12];
+          }
+          if (projector->strips[strip_index13].is_masked != 0 ||
+              moved_frame_count13 +
+                      projector->strips[strip_index13].frame_count <=
+                  length) {
+            if (projector->strips[strip_index13].is_masked == 0)
+              moved_frame_count13 +=
+                  projector->strips[strip_index13].frame_count;
+            strip_index13 = projector->right[strip_index13];
+          }
+          if (projector->strips[strip_index14].is_masked != 0 ||
+              moved_frame_count14 +
+                      projector->strips[strip_index14].frame_count <=
+                  length) {
+            if (projector->strips[strip_index14].is_masked == 0)
+              moved_frame_count14 +=
+                  projector->strips[strip_index14].frame_count;
+            strip_index14 = projector->right[strip_index14];
+          }
+          if (projector->strips[strip_index15].is_masked != 0 ||
+              moved_frame_count15 +
+                      projector->strips[strip_index15].frame_count <=
+                  length) {
+            if (projector->strips[strip_index15].is_masked == 0)
+              moved_frame_count15 +=
+                  projector->strips[strip_index15].frame_count;
+            strip_index15 = projector->right[strip_index15];
+          }
+          if (projector->strips[strip_index16].is_masked != 0 ||
+              moved_frame_count16 +
+                      projector->strips[strip_index16].frame_count <=
+                  length) {
+            if (projector->strips[strip_index16].is_masked == 0)
+              moved_frame_count16 +=
+                  projector->strips[strip_index16].frame_count;
+            strip_index16 = projector->right[strip_index16];
+          }
         }
       }
 

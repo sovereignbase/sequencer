@@ -74,15 +74,23 @@ public:
                                  std::uint32_t projection_frame_index,
                                  std::uint32_t length, bool remove) noexcept {
 
-    if ((remove ? projector->projection_frame_count - length
-                : projector->projection_frame_count + length) < 256u)
+    const std::uint32_t projection_frame_count =
+        remove ? projector->projection_frame_count - length
+               : projector->projection_frame_count + length;
+    if (projection_frame_count < 256u)
       return;
 
     // The next checkpoint after the edit area.
-    std::uint32_t checkpoint_index = projection_frame_index / 256u + 1u;
+    std::uint32_t checkpoint_index =
+        (projection_frame_index + 255u) / 256u;
+    if (checkpoint_index == 0)
+      checkpoint_index = 1;
 
-    if (!remove)
-      checkpoints.resize(checkpoints.size() + length);
+    const std::uint32_t previous_checkpoint_count =
+        static_cast<std::uint32_t>(checkpoints.size());
+    const std::uint32_t last_checkpoint = checkpoints.back();
+    checkpoints.resize((projection_frame_count + 255u) / 256u,
+                       last_checkpoint);
 
     const std::uint32_t checkpoint_count =
         static_cast<std::uint32_t>(checkpoints.size());
@@ -262,25 +270,44 @@ public:
 
       // Load checkpoint Strip by stable position.
       std::uint32_t strip_index = checkpoints[checkpoint_index];
+      const std::uint32_t checkpoint_projection_frame_index =
+          projector->strips[strip_index].checkpoint_projection_frame_index;
 
       // Mark old checkpoint Strip as not a checkpoint.
-      projector->strips[strip_index].checkpoint_projection_frame_index =
-          u32_max;
+      if (checkpoint_index < previous_checkpoint_count)
+        projector->strips[strip_index].checkpoint_projection_frame_index =
+            u32_max;
+
+      const std::uint32_t frame_count =
+          checkpoint_index < previous_checkpoint_count
+              ? length
+              : checkpoint_index * 256u -
+                    checkpoint_projection_frame_index;
+      std::uint32_t moved_frame_count = 0;
 
       if (remove) {
-        for (std::uint32_t i = 0; i < length; ++i)
+        while (moved_frame_count < frame_count) {
           strip_index = projector->left[strip_index];
+          if (projector->strips[strip_index].is_masked == 0)
+            moved_frame_count += projector->strips[strip_index].frame_count;
+        }
       } else {
-        for (std::uint32_t i = 0; i < length; ++i)
+        while (projector->strips[strip_index].is_masked != 0 ||
+               moved_frame_count + projector->strips[strip_index].frame_count <=
+                   frame_count) {
+          if (projector->strips[strip_index].is_masked == 0)
+            moved_frame_count += projector->strips[strip_index].frame_count;
           strip_index = projector->right[strip_index];
+        }
       }
 
       // Store new checkpoint Strip by stable position.
       checkpoints[checkpoint_index] = strip_index;
 
-      // Set index of the new checkpoint multiplied at requester.
+      // Set the exact Projection index of the new checkpoint Strip.
       projector->strips[strip_index].checkpoint_projection_frame_index =
-          checkpoint_index;
+          remove ? checkpoint_projection_frame_index - moved_frame_count
+                 : checkpoint_projection_frame_index + moved_frame_count;
 
       ++checkpoint_index;
     }
@@ -304,9 +331,11 @@ public:
    */
   [[nodiscard]] inline std::pair<std::uint32_t, std::uint32_t>
   nearest_checkpoint(std::uint32_t projection_frame_index) const noexcept {
-    const std::uint32_t checkpoint_index =
+    std::uint32_t checkpoint_index =
         (projection_frame_index >> 8) +
         static_cast<std::uint32_t>((projection_frame_index & 255u) > 128u);
+    if (checkpoint_index >= checkpoints.size())
+      checkpoint_index = static_cast<std::uint32_t>(checkpoints.size()) - 1u;
 
     return {checkpoints[checkpoint_index], checkpoint_index * 256u};
   }

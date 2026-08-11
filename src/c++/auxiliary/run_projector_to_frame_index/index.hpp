@@ -51,11 +51,13 @@ inline void run_projector_to_frame_index(
 
   // Replace a distant Gate with the nearest bounded LengthTable checkpoint.
   if (gate_distance >= 64u) {
-    const auto [checkpoint, checkpoint_projection_frame_index] =
-        projector->length_table.nearest_checkpoint(projection_frame_index);
-    projector->gate_projection_frame_index = checkpoint_projection_frame_index;
+    const std::uint32_t checkpoint =
+        projector->length_table.nearest_checkpoint(projection_frame_index)
+            .first;
     gate_strip_index = checkpoint;
     gate_strip = &projector->strips[gate_strip_index];
+    projector->gate_projection_frame_index =
+        gate_strip->checkpoint_projection_frame_index;
   }
 
   // Accept the selected starting Strip when it contains the Frame.

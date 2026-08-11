@@ -7,6 +7,7 @@
 #include "../../auxiliary/insert_between/index.hpp"
 #include "../../auxiliary/run_projector_to_strip/index.hpp"
 #include "../../auxiliary/split_strip/index.hpp"
+#include "../../classes/footage_span_buffer/index.hpp"
 #include "../../declarations/projector/index.hpp"
 #include <cstdint>
 
@@ -19,17 +20,12 @@
  * Projection count are adjusted exactly once.
  *
  * @param projector Owning Projector.
- * @param containing_strip_index Stable Position containing
- * `strip_index`'s `previous_strip_end`.
- * @param strip_index Self-linked Stable Position of the visible Strip to
- * materialize.
- * @param offset Frame offset of `previous_strip_end` in the containing Strip.
- * @param projection_frame_index Visible start of the containing Strip, or
- * `u32_max` when it must be resolved from the LengthTable.
+ * @param incoming_strip_index Self-linked Stable Position to materialize.
+ * @param pending_footage_spans Optional output for pending Strips materialized
+ * while resolving the incoming Strip's dependency chain.
  * @return Visible Projection Index at which the inserted Strip begins.
  * @pre All positions are valid in the Projector's dense storage.
- * @pre The inserted Strip is visible and its referenced Frame is contained by
- * `containing_position`.
+ * @pre The inserted Strip is visible.
  * @post The inserted Strip belongs to Structural Order and contributes its
  * complete Frame Span to the Projection. The Gate describes the inserted
  * Strip at its resulting Projection index.
@@ -37,38 +33,54 @@
  * most one Strip split.
  */
 [[nodiscard]] inline std::uint32_t
-insert_strip(Projector *projector, const std::uint32_t containing_strip_index,
-             const std::uint32_t incoming_strip_index,
-             std::uint32_t offset = u32_max,
-             std::uint32_t projection_frame_index = u32_max) noexcept {
-  const Strip containing_strip = projector->strips[containing_strip_index];
+insert_strip(Projector *projector, const std::uint32_t incoming_strip_index,
+             FootageSpanBuffer *pending_footage_spans = nullptr) noexcept {
+  const auto is_linked = [projector](const std::uint32_t strip_index) {
+    return projector->strips[strip_index].checkpoint_projection_frame_index ==
+               0 ||
+           projector->left[strip_index] != strip_index ||
+           projector->right[strip_index] != strip_index;
+  };
+  if (is_linked(incoming_strip_index))
+    return u32_max;
+
   const Strip inserted_strip = projector->strips[incoming_strip_index];
+  auto [resolved_containing_strip_index, offset] = projector->hash_table.get(
+      inserted_strip.coordinate.previous_strip_end);
+  if (resolved_containing_strip_index == u32_max)
+    return u32_max;
+  if (!is_linked(resolved_containing_strip_index)) {
+    static_cast<void>(insert_strip(projector, resolved_containing_strip_index,
+                                   pending_footage_spans));
+    if (!is_linked(resolved_containing_strip_index))
+      return u32_max;
+    const auto resolved = projector->hash_table.get(
+        inserted_strip.coordinate.previous_strip_end);
+    resolved_containing_strip_index = resolved.first;
+    offset = resolved.second;
+  }
 
-  if (offset == u32_max)
-    offset = inserted_strip.coordinate.previous_strip_end.counter_bits -
-             containing_strip.coordinate.this_strip_start.counter_bits;
-
+  const Strip containing_strip =
+      projector->strips[resolved_containing_strip_index];
   const std::uint32_t split_frame_offset =
       offset + static_cast<std::uint32_t>(inserted_strip.is_inverse == 0);
-
-  if (projection_frame_index == u32_max) {
-    run_projector_to_strip(containing_strip_index, containing_strip, projector);
-    projection_frame_index =
-        projector->gate_projection_frame_index + split_frame_offset;
-  }
+  run_projector_to_strip(resolved_containing_strip_index, containing_strip,
+                         projector);
+  const std::uint32_t projection_frame_index =
+      projector->gate_projection_frame_index + split_frame_offset;
 
   std::uint32_t left_position;
   std::uint32_t right_position;
   if (split_frame_offset == 0) {
-    left_position = projector->left[containing_strip_index];
-    right_position = containing_strip_index;
+    left_position = projector->left[resolved_containing_strip_index];
+    right_position = resolved_containing_strip_index;
   } else if (split_frame_offset == containing_strip.frame_count) {
-    left_position = containing_strip_index;
-    right_position = projector->right[containing_strip_index];
+    left_position = resolved_containing_strip_index;
+    right_position = projector->right[resolved_containing_strip_index];
   } else {
-    left_position = containing_strip_index;
-    right_position =
-        split_strip(projector, containing_strip_index, split_frame_offset);
+    left_position = resolved_containing_strip_index;
+    right_position = split_strip(projector, resolved_containing_strip_index,
+                                 split_frame_offset);
   }
 
   insert_between(projector, left_position, incoming_strip_index,
@@ -78,5 +90,8 @@ insert_strip(Projector *projector, const std::uint32_t containing_strip_index,
   projector->projection_frame_count += inserted_strip.frame_count;
   projector->gate_strip_index = incoming_strip_index;
   projector->gate_projection_frame_index = projection_frame_index;
+  if (pending_footage_spans != nullptr)
+    pending_footage_spans->write_span(inserted_strip.footage_frame_index,
+                                     inserted_strip.frame_count);
   return projection_frame_index;
 }

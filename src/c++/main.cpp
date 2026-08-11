@@ -266,13 +266,27 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_projection_footage_spans_to_buffer(
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
   Projector *projector = &*projectors[sequence_id];
+  footage_span_buffer.clear();
 
   const std::uint32_t strip_index = strip_buffer.read_strip(projector);
 
   if (strip_index == u32_max)
     return u32_max;
 
-  const Strip &incoming_strip = projector->strips[strip_index];
+  const Strip incoming_strip = projector->strips[strip_index];
+  if (incoming_strip.is_masked == 0) {
+    const std::uint32_t result = insert_strip(projector, strip_index);
+    if (result == u32_max)
+      return u32_max;
+
+    const std::uint32_t strip_count =
+        static_cast<std::uint32_t>(projector->strips.size());
+    for (std::uint32_t index = 0; index < strip_count; ++index)
+      static_cast<void>(
+          insert_strip(projector, index, &footage_span_buffer));
+    return result;
+  }
+
   const SequencePoint &previous_strip_end =
       incoming_strip.coordinate.previous_strip_end;
 
@@ -310,11 +324,14 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
     offset = result.second;
   }
 
-  const uint32_t result =
-      incoming_strip.is_masked > 0
-          ? mask_strip(projector, containing_strip_index, strip_index, offset)
-          : insert_strip(projector, containing_strip_index, strip_index,
-                         offset);
+  const auto is_linked = [projector](const std::uint32_t index) {
+    return projector->strips[index].checkpoint_projection_frame_index == 0 ||
+           projector->left[index] != index || projector->right[index] != index;
+  };
+  if (containing_strip_index == u32_max || !is_linked(containing_strip_index))
+    return u32_max;
+
+  return mask_strip(projector, containing_strip_index, strip_index, offset);
 }
 
 /**
@@ -350,27 +367,9 @@ resolve_initial_projection(const std::uint32_t sequence_id) noexcept {
   projector->gate_projection_frame_index = 0;
   projector->strips[root_index].checkpoint_projection_frame_index = 0;
 
-  const auto is_linked = [projector](const std::uint32_t strip_index) {
-    return projector->strips[strip_index].checkpoint_projection_frame_index ==
-               0 ||
-           projector->left[strip_index] != strip_index ||
-           projector->right[strip_index] != strip_index;
-  };
-
-  const auto resolve_insert = [&](auto &&self,
-                                  const std::uint32_t strip_index) -> void {
-    if (is_linked(strip_index))
-      return;
-    const auto [containing_strip_index, offset] = projector->hash_table.get(
-        projector->strips[strip_index].coordinate.previous_strip_end);
-    self(self, containing_strip_index);
-    static_cast<void>(
-        insert_strip(projector, containing_strip_index, strip_index, offset));
-  };
-
   for (std::uint32_t strip_index = 0; strip_index < strip_count; ++strip_index)
     if (projector->strips[strip_index].is_masked == 0)
-      resolve_insert(resolve_insert, strip_index);
+      static_cast<void>(insert_strip(projector, strip_index));
 
   for (std::uint32_t strip_index = 0; strip_index < strip_count;
        ++strip_index) {
@@ -492,6 +491,10 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *prepare_compaction_frontier_buffer(
 EMSCRIPTEN_KEEPALIVE std::uint32_t *get_footage_span_buffer_pointer() noexcept {
   // Expose Footage spans written by the most recent operation.
   return footage_span_buffer.get_memory_pointer();
+}
+
+EMSCRIPTEN_KEEPALIVE std::uint32_t get_footage_span_count() noexcept {
+  return footage_span_buffer.get_span_count();
 }
 
 /**

@@ -353,3 +353,12 @@ export function merge_strip_into_sequence(sequence_id: number): number | false {
     ? false
     : projection_frame_index
 }
+
+/** Returns pending visible Footage spans materialized by the latest merge. */
+export function get_pending_footage_spans(): Uint32Array | false {
+  const span_count = wasm._get_footage_span_count() >>> 0
+  if (span_count === 0) return false
+
+  const span_start = wasm._get_footage_span_buffer_pointer() >>> 2
+  return wasm.HEAPU32.subarray(span_start, span_start + span_count * 2)
+}

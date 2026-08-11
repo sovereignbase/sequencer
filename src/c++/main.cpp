@@ -19,6 +19,7 @@
 #include "./algorithms/mask_strip/index.hpp"
 #include "./algorithms/resolve_initial_projection/index.hpp"
 #include "./auxiliary/run_projector_to_frame_index/index.hpp"
+#include "./auxiliary/strip_contains_sequence_point/index.hpp"
 #include "./classes/footage_span_buffer/index.hpp"
 #include "./classes/frontier_buffer/index.hpp"
 #include "./classes/strip_buffer/index.hpp"
@@ -266,41 +267,54 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_projection_footage_spans_to_buffer(
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
   Projector *projector = &*projectors[sequence_id];
-  const std::uint32_t *words = strip_buffer.get_memory_pointer();
-  const SequencePoint previous_strip_end{
-      .crypto_random_bits = words[6],
-      .unix_lower_bits = words[7],
-      .counter_bits = words[8],
-  };
-  const auto [containing_position, offset] =
-      projector->hash_table.get(previous_strip_end);
 
-  const std::size_t previous_strip_count = projector->strips.size();
-  const std::uint32_t stable_position =
-      strip_buffer.read_strip(projector->strips, projector->hash_table);
+  const std::uint32_t strip_index = strip_buffer.read_strip(projector);
 
-  if (projector->strips.size() == previous_strip_count)
+  if (strip_index == u32_max)
     return u32_max;
 
-  projector->left.push_back(stable_position);
-  projector->right.push_back(stable_position);
-  const Strip &incoming_strip = projector->strips[stable_position];
+  const Strip &incoming_strip = projector->strips[strip_index];
+  const SequencePoint &previous_strip_end =
+      incoming_strip.coordinate.previous_strip_end;
 
-  if (containing_position != u32_max)
-    projector->left[stable_position] = containing_position;
+  // Resolve the Gate and its immediate retained Sequence neighbours.
+  const std::uint32_t gate_strip_index = projector->gate_strip_index;
+  const std::uint32_t left_strip_index = projector->left[gate_strip_index];
+  const std::uint32_t right_strip_index = projector->right[gate_strip_index];
 
-  if (projector->length_table.is_empty() ||
-      containing_position == u32_max ||
-      (projector->right[containing_position] == containing_position &&
-       projector->gate_strip_index != containing_position))
-    return u32_max;
+  // Test the three independent candidates together to expose ILP/MLP.
+  const std::uint32_t gate_offset = strip_contains_sequence_point(
+      &projector->strips[gate_strip_index], &previous_strip_end);
+
+  const std::uint32_t left_offset = strip_contains_sequence_point(
+      &projector->strips[left_strip_index], &previous_strip_end);
+
+  const std::uint32_t right_offset = strip_contains_sequence_point(
+      &projector->strips[right_strip_index], &previous_strip_end);
+
+  std::uint32_t containing_strip_index;
+  std::uint32_t offset;
+
+  if (gate_offset != u32_max) {
+    containing_strip_index = gate_strip_index;
+    offset = gate_offset;
+  } else if (left_offset != u32_max) {
+    containing_strip_index = left_strip_index;
+    offset = left_offset;
+  } else if (right_offset != u32_max) {
+    containing_strip_index = right_strip_index;
+    offset = right_offset;
+  } else {
+    const auto result = projector->hash_table.get(previous_strip_end);
+
+    containing_strip_index = result.first;
+    offset = result.second;
+  }
 
   return incoming_strip.is_masked > 0
-             ? mask_strip(projector,
-                          projector->hash_table.get(
-                              incoming_strip.coordinate.this_strip_start),
-                          stable_position)
-             : insert_strip(projector, containing_position, stable_position);
+             ? mask_strip(projector, containing_strip_index, strip_index,
+                          offset)
+             : insert_strip(projector, containing_strip_index, strip_index);
 }
 
 /**
@@ -365,7 +379,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_acknowledgement_frontier_to_buffer(
 
   std::vector<SequencePoint> frontiers;
   const std::uint32_t first_position =
-      projector.length_table.nearest_chekpoint(0).first;
+      projector.length_table.nearest_checkpoint(0).first;
   std::uint32_t position = first_position;
   do {
     const SequencePoint &point =
@@ -573,7 +587,7 @@ write_first_pending_strip_to_buffer(const std::uint32_t sequence_id) noexcept {
   const std::uint32_t materialized_single_position =
       projector.length_table.is_empty()
           ? u32_max
-          : projector.length_table.nearest_chekpoint(0).first;
+          : projector.length_table.nearest_checkpoint(0).first;
   for (pending_cursor = 0; pending_cursor < projector.strips.size();
        ++pending_cursor)
     if (projector.left[pending_cursor] == pending_cursor &&

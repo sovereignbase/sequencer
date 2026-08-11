@@ -20,9 +20,9 @@
  * materialized fragment through its dense links.
  *
  * @param projector Owning Projector.
- * @param containing_stable_index Stable Position containing the Mask's first
+ * @param containing_strip_index Stable Position containing the Mask's first
  * Frame.
- * @param incoming_mask_stable_index Stable Position of the staged Mask command.
+ * @param incoming_index_index Stable Position of the staged Mask command.
  * @return Projection Index formerly occupied by the first newly addressed
  * Frame, derived from the nearest surviving LengthTable checkpoint.
  * @pre The Mask names a valid retained Frame Span.
@@ -32,45 +32,52 @@
  * adjustment.
  */
 [[nodiscard]] inline std::uint32_t
-mask_strip(Projector *projector, const std::uint32_t containing_stable_index,
-           const std::uint32_t incoming_mask_stable_index) noexcept {
-  const Strip &containing_strip = projector->strips[containing_stable_index];
-  const Strip &incoming_mask = projector->strips[incoming_mask_stable_index];
-  run_projector_to_strip(containing_stable_index, containing_strip, projector);
+mask_strip(Projector *projector, std::uint32_t containing_strip_index,
+           const std::uint32_t incoming_index_index,
+           std::uint32_t offset = u32_max,
+           std::uint32_t projection_frame_index = u32_max) noexcept {
+  const Strip incoming_strip = projector->strips[incoming_index_index];
+  if (offset == u32_max)
+    offset = incoming_strip.coordinate.previous_strip_end.counter_bits -
+             projector->strips[containing_strip_index]
+                 .coordinate.this_strip_start.counter_bits;
 
-  std::uint32_t remaining_frame_count = incoming_mask.frame_count;
-  std::uint32_t current_position = containing_stable_index;
+  if (projection_frame_index == u32_max) {
+    run_projector_to_strip(containing_strip_index,
+                           projector->strips[containing_strip_index],
+                           projector);
+    projection_frame_index = projector->gate_projection_frame_index + offset;
+  }
+
+  std::uint32_t remaining_frame_count = incoming_strip.frame_count;
+  std::uint32_t removed_frame_count = 0;
 
   while (remaining_frame_count != 0) {
-    const Strip &source = projector->strips[current_position];
-    const std::uint32_t frame_offset =
-        masked_frame_start.counter_bits -
-        source.coordinate.this_strip_start.counter_bits;
+    const Strip &source = projector->strips[containing_strip_index];
     const std::uint32_t masked_frame_count =
-        std::min(remaining_frame_count, source.frame_count - frame_offset);
+        std::min(remaining_frame_count, source.frame_count - offset);
 
     if (source.is_masked == 0) {
-      if (frame_offset != 0)
-        current_position =
-            split_strip(projector, current_position, frame_offset);
-      if (masked_frame_count != projector->strips[current_position].frame_count)
+      if (offset != 0)
+        containing_strip_index =
+            split_strip(projector, containing_strip_index, offset);
+      if (masked_frame_count !=
+          projector->strips[containing_strip_index].frame_count)
         static_cast<void>(
-            split_strip(projector, current_position, masked_frame_count));
+            split_strip(projector, containing_strip_index, masked_frame_count));
 
-      containing_strip.is_masked = incoming_mask.is_masked;
-      projector->hash_table.set(containing_strip.coordinate.this_strip_start,
-                                containing_strip.frame_count, current_position);
+      projector->strips[containing_strip_index].is_masked =
+          incoming_strip.is_masked;
       removed_frame_count += masked_frame_count;
     }
 
-    masked_frame_start.counter_bits += masked_frame_count;
     remaining_frame_count -= masked_frame_count;
-    if (remaining_frame_count != 0)
-      current_position = projector->hash_table.get(masked_frame_start);
+    if (remaining_frame_count != 0) {
+      containing_strip_index = projector->strips[containing_strip_index]
+                                   .right_sibling_frames_strip_index;
+      offset = 0;
+    }
   }
-
-  const std::uint32_t projection_frame_index =
-      projector->gate_projection_frame_index;
 
   projector->length_table.adjust_checkpoints<Projector>(
       projector, projection_frame_index, removed_frame_count, true);

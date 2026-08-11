@@ -83,20 +83,11 @@ struct Strip {
   SequenceCoordinate coordinate;
 
   /**
-   * @brief Number of source-strip Frames represented by fragments to the right.
+   * @brief Next right-hand fragment of the same originally issued Strip.
    *
-   * Together with `frame_count` and `left_siblings_frames`, this reconstructs
-   * the originally issued Strip length without a fragment pointer.
+   * `u32_max` denotes that this is the rightmost remaining fragment.
    */
-  std::uint32_t right_sibling_frames;
-
-  /**
-   * @brief Number of source-strip Frames represented by fragments to the left.
-   *
-   * Subtracting this distance from the fragment start counter reconstructs the
-   * originally issued Strip start for sibling comparison.
-   */
-  std::uint32_t left_siblings_frames;
+  std::uint32_t right_sibling_frames_strip_index{u32_max};
 
   /**
    * @brief Exact visible Projection start when this Strip is a checkpoint.

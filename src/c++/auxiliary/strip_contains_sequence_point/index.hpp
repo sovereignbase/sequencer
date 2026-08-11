@@ -36,16 +36,15 @@ strip_contains_sequence_point(const Strip *strip,
   const SequencePoint &strip_start = strip->coordinate.this_strip_start;
 
   // Reject another Realm or a point preceding the Strip start.
-  if (sequence_point->random_bits != strip_start.random_bits ||
+  if (sequence_point->crypto_random_bits != strip_start.crypto_random_bits ||
       sequence_point->unix_lower_bits != strip_start.unix_lower_bits ||
       sequence_point->counter_bits < strip_start.counter_bits)
-    return sequence_point_outside_strip;
+    return u32_max;
 
   // Resolve the Realm-local zero-based Frame offset.
   const std::uint32_t strip_frame_offset =
       sequence_point->counter_bits - strip_start.counter_bits;
 
   // Accept only offsets inside the Strip's half-open Frame Span.
-  return strip_frame_offset < strip->frame_count ? strip_frame_offset
-                                                 : sequence_point_outside_strip;
+  return strip_frame_offset < strip->frame_count ? strip_frame_offset : u32_max;
 }

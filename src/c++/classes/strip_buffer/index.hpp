@@ -26,8 +26,8 @@
  */
 #pragma once
 
-#include "../../declarations/strip/index.hpp"
 #include "../../declarations/sentinels/index.hpp"
+#include "../../declarations/strip/index.hpp"
 #include "../hash_table/index.hpp"
 #include <cstdint>
 #include <vector>
@@ -96,7 +96,7 @@ public:
    *
    * @param strips Append-only Projector Strip storage.
    * @param hash_table Sequence Point containment index for the same Projector.
-   * @return Stable Position of the existing duplicate or appended Strip.
+   * @return `false` for a duplicate, otherwise the appended Stable Position.
    * @pre The words contain a valid transferable Strip representation.
    * @post The buffer contents are unchanged; a nonduplicate visible Strip is
    * indexed by its complete Frame Span.
@@ -104,33 +104,34 @@ public:
    * insertion, for e entries in the matching Realm.
    */
   [[nodiscard]] inline std::uint32_t
-  read_strip(std::vector<Strip> &strips, HashTable &hash_table) const noexcept {
+  read_strip(Projector *projector) const noexcept {
     const SequencePoint this_strip_start{
         .crypto_random_bits = words[3],
         .unix_lower_bits = words[4],
         .counter_bits = words[5],
     };
-    const auto [existing_stable_position, ] = hash_table.get(this_strip_start);
-    if ([existing_stable_position] != u32_max &&
-        (words[0] == 0 ||
-         strips [[existing_stable_position]].is_masked == words[0]))
-      return [existing_stable_position];
+    const auto [existing_strip_index, _] =
+        projector->hash_table.get(this_strip_start);
+    if (existing_strip_index != u32_max)
+      return u32_max;
 
-    const std::uint32_t stable_position =
-        static_cast<std::uint32_t>(strips.size());
-    strips.emplace_back(words[0], words[1], words[2], words[9],
-                        SequenceCoordinate{
-                            .this_strip_start = this_strip_start,
-                            .previous_strip_end{
-                                .crypto_random_bits = words[6],
-                                .unix_lower_bits = words[7],
-                                .counter_bits = words[8],
-                            },
-                        },
-                        0, 0);
-    if (words[0] == 0)
-      hash_table.set(this_strip_start, words[2], stable_position);
-    return stable_position;
+    const std::uint32_t strip_index =
+        static_cast<std::uint32_t>(projector->strips.size());
+    projector->strips.emplace_back(words[0], words[1], words[2], words[9],
+                                   SequenceCoordinate{
+                                       .this_strip_start = this_strip_start,
+                                       .previous_strip_end{
+                                           .crypto_random_bits = words[6],
+                                           .unix_lower_bits = words[7],
+                                           .counter_bits = words[8],
+                                       },
+                                   });
+
+    projector->left.push_back(strip_index);
+    projector->right.push_back(strip_index);
+    projector->hash_table.set(this_strip_start, words[2], strip_index);
+
+    return strip_index;
   }
 
   // Host memory access.

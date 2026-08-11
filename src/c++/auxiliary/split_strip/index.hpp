@@ -40,7 +40,6 @@ split_strip(Projector *projector, const std::uint32_t stable_position,
   suffix.coordinate.previous_strip_end = suffix.coordinate.this_strip_start;
   --suffix.coordinate.previous_strip_end.counter_bits;
   suffix.is_inverse = 0;
-  suffix.left_siblings_frames += frame_offset;
   suffix.checkpoint_projection_frame_index = u32_max;
 
   projector->strips.push_back(suffix);
@@ -49,7 +48,7 @@ split_strip(Projector *projector, const std::uint32_t stable_position,
 
   Strip &prefix = projector->strips[stable_position];
   prefix.frame_count = frame_offset;
-  prefix.right_sibling_frames += suffix.frame_count;
+  prefix.right_sibling_frames_strip_index = suffix_position;
 
   insert_between(projector, stable_position, suffix_position,
                  projector->right[stable_position]);

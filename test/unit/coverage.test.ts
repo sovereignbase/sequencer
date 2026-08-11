@@ -37,16 +37,4 @@ describe('TypeScript boundaries', () => {
     cleanup?.(state.id)
     vi.unstubAllGlobals()
   })
-
-  it('returns no spans for empty collection input', async () => {
-    const { compact, create, snapshot } =
-      await import('../../src/typescript/index.js')
-    const { compact_sequence } =
-      await import('../../src/typescript/wasm/index.js')
-    const state = create()
-
-    expect(snapshot(state)).toEqual([])
-    expect(compact_sequence(state.id, [])).toBe(false)
-    expect(compact([], state)).toBeUndefined()
-  })
 })

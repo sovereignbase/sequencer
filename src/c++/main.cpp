@@ -311,11 +311,11 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
     offset = result.second;
   }
 
-  return incoming_strip.is_masked > 0
-             ? mask_strip(projector, containing_strip_index, strip_index,
-                          offset)
-             : insert_strip(projector, containing_strip_index, strip_index,
-                            offset);
+  const uint32_t result =
+      incoming_strip.is_masked > 0
+          ? mask_strip(projector, containing_strip_index, strip_index, offset)
+          : insert_strip(projector, containing_strip_index, strip_index,
+                         offset);
 }
 
 /**
@@ -329,9 +329,7 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
  * @pre `sequence_id` identifies an active Projector.
  */
 EMSCRIPTEN_KEEPALIVE void
-resolve_initial_projection(const std::uint32_t sequence_id) noexcept {
-  resolve_initial_projection(&*projectors[sequence_id]);
-}
+resolve_initial_projection(const std::uint32_t sequence_id) noexcept {}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ACKNOWLEDGING
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

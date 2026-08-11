@@ -334,6 +334,10 @@ resolve_initial_projection(const std::uint32_t sequence_id) noexcept {
 
   for (std::uint32_t strip_index = 0; strip_index < strip_count; ++strip_index)
     static_cast<void>(insert_strip(projector, strip_index));
+
+  projector->gate_strip_index =
+      projector->length_table.nearest_checkpoint(0).first;
+  projector->gate_projection_frame_index = 0;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ACKNOWLEDGING

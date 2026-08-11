@@ -74,11 +74,6 @@ export function snapshot<T>(state: Replica<T>): Delta<T> {
       footage_frame_index + meta[2]
     )
     void delta.push([source_meta, values as Array<T>])
-    meta[1] = 0
-    meta[6] = meta[3]
-    meta[7] = meta[4]
-    meta[8] = meta[5]
-    void delta.push([meta as Strip<T>[0]])
   }
 
   // Traverse every materialized visible Strip and Mask in Sequence order.

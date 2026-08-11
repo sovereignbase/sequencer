@@ -51,7 +51,7 @@ split_strip(Projector *projector, const std::uint32_t stable_position,
   prefix.right_sibling_frames_strip_index = suffix_position;
 
   insert_between(projector, stable_position, suffix_position,
-                 projector->right[stable_position]);
+                 projector->right[stable_position], false);
   projector->hash_table.set(prefix.coordinate.this_strip_start,
                             prefix.frame_count, stable_position);
   projector->hash_table.set(suffix.coordinate.this_strip_start,

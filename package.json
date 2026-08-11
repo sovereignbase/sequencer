@@ -48,7 +48,7 @@
     "test": "node scripts/run-tests.mjs",
     "test:vitest": "vitest run --coverage",
     "test:unit": "vitest run test/unit --coverage",
-    "test:convergence": "vitest run test/convergence --coverage",
+    "test:convergence": "npm run build && npm run build:wasm && vitest run test/convergence --coverage",
     "test:stress": "npm run build && vitest run test/stress --coverage",
     "test:runtimes": "node scripts/run-runtime-tests.mjs",
     "test:browser": "node scripts/run-browser-tests.mjs",

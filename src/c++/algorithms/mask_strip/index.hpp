@@ -33,8 +33,7 @@
 mask_strip(Projector *projector, const std::uint32_t containing_position,
            const std::uint32_t incoming_mask_position) noexcept {
   const Strip incoming_mask = projector->strips[incoming_mask_position];
-  SequencePoint masked_frame_start =
-      incoming_mask.coordinate.this_strip_start;
+  SequencePoint masked_frame_start = incoming_mask.coordinate.this_strip_start;
   std::uint32_t remaining_frame_count = incoming_mask.frame_count;
   std::uint32_t current_position = containing_position;
   std::uint32_t removed_frame_count = 0;
@@ -79,7 +78,7 @@ mask_strip(Projector *projector, const std::uint32_t containing_position,
   }
 
   projector->length_table.adjust_chekpoints(
-      true, mask_projection_frame_index, removed_frame_count, projector);
+      projector, mask_projection_frame_index, removed_frame_count, true);
   projector->projection_frame_count -= removed_frame_count;
   const std::uint32_t materialized_position =
       projector->hash_table.get(incoming_mask.coordinate.this_strip_start);

@@ -34,8 +34,9 @@
  * @complexity O(s) time and O(1) space, where s is the number of linked Strips
  * traversed from the selected starting position.
  */
-inline void run_projector_to_frame_index(
-    Projector *projector, const std::uint32_t projection_frame_index) noexcept {
+inline void
+run_projector_to_strip(Projector *projector,
+                       const std::uint32_t projection_frame_index) noexcept {
 
   // Test the current dense Gate before traversing.
   std::uint32_t &gate_strip_index = projector->gate_strip_index;
@@ -68,9 +69,7 @@ inline void run_projector_to_frame_index(
   if (projector->gate_projection_frame_index <= projection_frame_index) {
     do {
       gate_strip = &run_projector_right(projector);
-    } while (!strip_contains_frame_index(gate_strip,
-                                         projector->gate_projection_frame_index,
-                                         projection_frame_index));
+    } while (gate));
     return;
   }
 

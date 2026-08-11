@@ -21,11 +21,11 @@ import {
  * state.
  *
  * Visible Strips include independent copies of their referenced Footage. A
- * materialized Mask is encoded as a reconstructable visible source fragment
- * followed by its Footage-free Mask command; released source entries remain
- * `undefined` in the copied array. This lets creation rebuild split Mask state
- * without serializing sibling metadata. A Pending Mask is serialized directly
- * because it has not acquired a materialized source Footage mapping.
+ * materialized Mask with retained Footage is encoded as a reconstructable
+ * visible source fragment followed by its Footage-free Mask command. A source
+ * whose Footage has been released is omitted. The original Pending Mask remains
+ * transferable without a Footage mapping, allowing snapshots to compact the
+ * released insertion metadata eventually.
  *
  * Snapshotting only reads already-issued Sequence material and never issues new
  * Sequence Points.
@@ -50,6 +50,8 @@ export function snapshot<T>(state: Replica<T>): Delta<T> {
     void meta.pop()
 
     if (meta[0] === 0) {
+      if (footage[footage_frame_index] === undefined) return
+
       const values = footage.slice(
         footage_frame_index,
         footage_frame_index + meta[2]
@@ -62,6 +64,8 @@ export function snapshot<T>(state: Replica<T>): Delta<T> {
       void delta.push([meta as Strip<T>[0]])
       return
     }
+
+    if (footage[footage_frame_index] === undefined) return
 
     const source_meta = [...meta] as Strip<T>[0]
     source_meta[0] = 0

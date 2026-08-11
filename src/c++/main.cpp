@@ -284,6 +284,19 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
     for (std::uint32_t index = 0; index < strip_count; ++index)
       static_cast<void>(
           insert_strip(projector, index, &footage_span_buffer));
+
+    for (std::uint32_t index = 0; index < strip_count; ++index) {
+      const Strip &pending_mask = projector->strips[index];
+      if (pending_mask.is_masked == 0 || projector->left[index] != index ||
+          projector->right[index] != index)
+        continue;
+      const auto [masked_strip_index, masked_offset] =
+          projector->hash_table.get(
+              pending_mask.coordinate.previous_strip_end);
+      if (masked_strip_index != u32_max)
+        static_cast<void>(mask_strip(projector, masked_strip_index, index,
+                                    masked_offset));
+    }
     return result;
   }
 

@@ -34,9 +34,13 @@
 class LengthTable {
 
 private:
-  std::vector<std::uint32_t> checkpoints = std::vector<std::uint32_t>(16);
+  std::vector<std::uint32_t> checkpoints;
 
 public:
+  [[nodiscard]] inline bool is_empty() const noexcept {
+    return checkpoints.empty();
+  }
+
   /**
    * @brief Adjust checkpoints following one Projection insertion or removal.
    *

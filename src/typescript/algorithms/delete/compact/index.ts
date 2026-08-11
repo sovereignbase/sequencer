@@ -33,7 +33,14 @@ export function compact<T>(
   if (frontiers.length === 0) return
 
   // Reuse the first Acknowledgement as the mutable Realm-wise boundary.
-  const frontier = frontiers[0]
+  const frontier = frontiers[0].filter((point) =>
+    frontiers.every((candidate) =>
+      candidate.some(
+        (candidate_point) =>
+          candidate_point[0] === point[0] && candidate_point[1] === point[1]
+      )
+    )
+  )
 
   // Reduce every represented Realm to the least participating counter.
   for (let replica_index = 1; replica_index < frontiers.length; replica_index++)

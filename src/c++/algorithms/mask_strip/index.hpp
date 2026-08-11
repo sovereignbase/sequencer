@@ -23,6 +23,8 @@
  * @param containing_strip_index Stable Position containing the Mask's first
  * Frame.
  * @param incoming_index_index Stable Position of the staged Mask command.
+ * @param offset Frame offset within the containing Strip.
+ * @param projection_frame_index Projection index of the first masked Frame.
  * @return Projection Index formerly occupied by the first newly addressed
  * Frame, derived from the nearest surviving LengthTable checkpoint.
  * @pre The Mask names a valid retained Frame Span.

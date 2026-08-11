@@ -418,8 +418,8 @@ Doxygen documentation maintained beside every implementation unit in
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4NK9HashTable3getERK13SequencePoint">
-<span id="_CPPv3NK9HashTable3getERK13SequencePoint"></span><span id="_CPPv2NK9HashTable3getERK13SequencePoint"></span><span id="HashTable::get__SequencePointCRC"></span><span class="target" id="classHashTable_1a0fc930fd0ea1bc953aeebc19531fd779"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">point</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK9HashTable3getERK13SequencePoint" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Return the Stable Position of the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> containing a Point. </p>
+<span id="_CPPv3NK9HashTable3getERK13SequencePoint"></span><span id="_CPPv2NK9HashTable3getERK13SequencePoint"></span><span id="HashTable::get__SequencePointCRC"></span><span class="target" id="classHashTable_1a1b4d74984e9aa60e916c1ec304b6df44"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">point</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK9HashTable3getERK13SequencePoint" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Return the Stable Position and Frame offset containing a Point. </p>
 <p>Lookup performs bit-mask slot selection, Realm equality probing, then an <code class="docutils literal notranslate"><span class="pre">upper_bound</span></code> search for the greatest span start not exceeding the target counter. A final subtraction verifies half-open interval containment.</p>
 <p><dl class="simple">
 <dt><strong>Complexity:</strong></dt><dd><p>Expected O(1 + log e) for e entries in the matching Realm. </p>
@@ -431,7 +431,7 @@ Doxygen documentation maintained beside every implementation unit in
 <dd class="field-odd"><p><strong>point</strong> – Sequence Point to resolve. </p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Containing Stable Position, or <code class="docutils literal notranslate"><a class="reference internal" href="#classHashTable_1a4867b973dff400ace0f9b3dc1074a3e8"><span class="std std-ref"><span class="pre">no_stable_position</span></span></a></code> when absent. </p>
+<dd class="field-even"><p>Containing Stable Position and zero-based Frame offset, or two <code class="docutils literal notranslate"><span class="pre">u32_max</span></code> values when absent. </p>
 </dd>
 </dl>
 </dd></dl>
@@ -493,18 +493,9 @@ Doxygen documentation maintained beside every implementation unit in
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">frame_count</span> <span class="pre">&gt;</span> <span class="pre">0</span></code> and the span stays within <code class="docutils literal notranslate"><span class="pre">point</span></code>’s Realm. </p>
 </dd>
 <dt class="field-odd">Post<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><a class="reference internal" href="#classHashTable_1a0fc930fd0ea1bc953aeebc19531fd779"><span class="std std-ref"><span class="pre">get</span></span></a></code> resolves every Point inside the stored interval to <code class="docutils literal notranslate"><span class="pre">stable_position</span></code> unless a later overlapping entry replaces containment. </p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><a class="reference internal" href="#classHashTable_1a1b4d74984e9aa60e916c1ec304b6df44"><span class="std std-ref"><span class="pre">get</span></span></a></code> resolves every Point inside the stored interval to <code class="docutils literal notranslate"><span class="pre">stable_position</span></code> unless a later overlapping entry replaces containment. </p>
 </dd>
 </dl>
-</dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-attributes">Public Static Attributes</p>
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N9HashTable18no_stable_positionE">
-<span id="_CPPv3N9HashTable18no_stable_positionE"></span><span id="_CPPv2N9HashTable18no_stable_positionE"></span><span id="HashTable::no_stable_position__std::uint32_t"></span><span class="target" id="classHashTable_1a4867b973dff400ace0f9b3dc1074a3e8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">no_stable_position</span></span></span><a class="headerlink" href="#_CPPv4N9HashTable18no_stable_positionE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Lookup result indicating that no <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> contains the Point. </p>
 </dd></dl>
 
 </div>
@@ -629,41 +620,32 @@ Doxygen documentation maintained beside every implementation unit in
 <dd><div class="docutils container">
 <em>#include &lt;index.hpp&gt;</em></div>
 <p>Periodic dense-index entry points into one <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> Projection. </p>
-<p>Checkpoint <code class="docutils literal notranslate"><span class="pre">i</span></code> identifies the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> at Projection position <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">*</span> <span class="pre">128</span></code>. The table contains no independent ordering information: every stored value is an index into Projector-owned dense storage, and traversal follows the <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>’s <code class="docutils literal notranslate"><span class="pre">left</span></code> and <code class="docutils literal notranslate"><span class="pre">right</span></code> Structure-of-Arrays links.</p>
-<p>An edit length is decomposed as <code class="docutils literal notranslate"><span class="pre">length</span> <span class="pre">=</span> <span class="pre">128q</span> <span class="pre">+</span> <span class="pre">r</span></code>, where <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">&lt;</span> <span class="pre">128</span></code>. Complete intervals are represented by inserting or erasing <code class="docutils literal notranslate"><span class="pre">q</span></code> checkpoint entries. Only <code class="docutils literal notranslate"><span class="pre">r</span></code> is applied to the surviving suffix through linked traversal, keeping its adjustment distance strictly below the checkpoint frequency. Suffix traversal processes sixteen independent checkpoint chains per full batch so an optimizing WebAssembly compiler may expose instruction- and memory-level parallelism.</p>
+<p>Checkpoint <code class="docutils literal notranslate"><span class="pre">i</span></code> identifies the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> containing Projection boundary <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">*</span> <span class="pre">256</span></code>. Because a boundary may fall inside a multi-Frame <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>, each entry stores that <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s stable dense position. The table contains no independent ordering information: stable positions remain indexes into Projector-owned dense storage, and traversal follows the <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>’s <code class="docutils literal notranslate"><span class="pre">left</span></code> and <code class="docutils literal notranslate"><span class="pre">right</span></code> Structure-of-Arrays links.</p>
 <p><dl class="simple">
-<dt><strong>Invariant</strong></dt><dd><p>Checkpoints occur in ascending Projection order at a frequency of 128 positions. </p>
+<dt><strong>Invariant</strong></dt><dd><p>Checkpoints occur in ascending Projection order at a frequency of 256 positions. </p>
 </dd>
 <dt><strong>Invariant</strong></dt><dd><p>Every checkpoint is a valid index for the owning <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>’s dense <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> and traversal-link vectors. </p>
 </dd>
-<dt><strong>Invariant</strong></dt><dd><p>Adjacent checkpoints represent exactly 128 Projection positions when both positions exist. </p>
+<dt><strong>Invariant</strong></dt><dd><p>Entry <code class="docutils literal notranslate"><span class="pre">i</span></code> contains Projection boundary <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">*</span> <span class="pre">256</span></code> within its <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+</dd>
+<dt><strong>Invariant</strong></dt><dd><p>Every checkpoint position is stable within dense <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> storage. </p>
 </dd>
 </dl>
 </p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Allocation failure during insertion terminates because mutation is exposed through a <code class="docutils literal notranslate"><span class="pre">noexcept</span></code> operation. </p>
-</div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4I0EN11LengthTable17adjust_chekpointsEvbNSt8uint32_tENSt8uint32_tEP13ProjectorType">
-<span id="_CPPv3I0EN11LengthTable17adjust_chekpointsEbNSt8uint32_tENSt8uint32_tEP13ProjectorType"></span><span id="_CPPv2I0EN11LengthTable17adjust_chekpointsEbNSt8uint32_tENSt8uint32_tEP13ProjectorType"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ProjectorType</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classLengthTable_1a874513747a3a065e762b8a37b740020f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">adjust_chekpoints</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">remove</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">after_index</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">length</span></span>, <a class="reference internal" href="#_CPPv4I0EN11LengthTable17adjust_chekpointsEvbNSt8uint32_tENSt8uint32_tEP13ProjectorType" title="LengthTable::adjust_chekpoints::ProjectorType"><span class="n"><span class="pre">ProjectorType</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4I0EN11LengthTable17adjust_chekpointsEvbNSt8uint32_tENSt8uint32_tEP13ProjectorType" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4I0EN11LengthTable18adjust_checkpointsEvP13ProjectorTypeNSt8uint32_tENSt8uint32_tEb">
+<span id="_CPPv3I0EN11LengthTable18adjust_checkpointsEP13ProjectorTypeNSt8uint32_tENSt8uint32_tEb"></span><span id="_CPPv2I0EN11LengthTable18adjust_checkpointsEP13ProjectorTypeNSt8uint32_tENSt8uint32_tEb"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ProjectorType</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classLengthTable_1ad0b1d373e172c3eeb44ccb39d72b7d03"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">adjust_checkpoints</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0EN11LengthTable18adjust_checkpointsEvP13ProjectorTypeNSt8uint32_tENSt8uint32_tEb" title="LengthTable::adjust_checkpoints::ProjectorType"><span class="n"><span class="pre">ProjectorType</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">projection_frame_index</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">length</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">remove</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4I0EN11LengthTable18adjust_checkpointsEvP13ProjectorTypeNSt8uint32_tENSt8uint32_tEb" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Adjust checkpoints following one Projection insertion or removal. </p>
-<p>The first affected table entry is selected directly from <code class="docutils literal notranslate"><span class="pre">after_index</span></code>. Complete 128-position intervals are handled structurally in <code class="docutils literal notranslate"><span class="pre">checkpoints</span></code>: removal erases entries, while insertion creates entries by walking the new region once. The surviving suffix walks only <code class="docutils literal notranslate"><span class="pre">length</span> <span class="pre">&amp;</span> <span class="pre">127u</span></code> links in sixteen-chain batches, followed by a scalar tail of at most fifteen checkpoints.</p>
-<p>Removal compacts the affected suffix and applies the remainder through the <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>’s <code class="docutils literal notranslate"><span class="pre">right</span></code> links. Insertion materializes new interval checkpoints through <code class="docutils literal notranslate"><span class="pre">right</span></code>, then applies the remainder only to the pre-existing suffix.</p>
-<p><dl class="simple">
-<dt><strong>Complexity:</strong></dt><dd><p>For <code class="docutils literal notranslate"><span class="pre">q</span> <span class="pre">=</span> <span class="pre">length</span> <span class="pre">/</span> <span class="pre">128</span></code>, <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">=</span> <span class="pre">length</span> <span class="pre">%</span> <span class="pre">128</span></code>, and <code class="docutils literal notranslate"><span class="pre">a</span></code> surviving affected checkpoints, removal costs O(c + ar) for table compaction size <code class="docutils literal notranslate"><span class="pre">c</span></code>; insertion costs O(c + 128q + ar). Linked suffix work is always O(127a) or less. </p>
-</dd>
-</dl>
-</p>
+<p>Unaffected entries before the edit remain in place. Every following fixed boundary is relocated from the nearest old checkpoint through the new dense links. Frame displacement and <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> traversal remain distinct, so a multi-Frame <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> never becomes multiple link steps.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>remove</strong> – <code class="docutils literal notranslate"><span class="pre">true</span></code> for removal and <code class="docutils literal notranslate"><span class="pre">false</span></code> for insertion. </p></li>
-<li><p><strong>after_index</strong> – Projection position selecting the first affected checkpoint interval. </p></li>
-<li><p><strong>length</strong> – Number of Projection positions inserted or removed. </p></li>
 <li><p><strong>projector</strong> – Owning <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> whose dense bidirectional links are traversed. </p></li>
+<li><p><strong>projection_frame_index</strong> – Projection position selecting the first affected checkpoint interval. </p></li>
+<li><p><strong>length</strong> – Number of Projection positions inserted or removed. </p></li>
+<li><p><strong>remove</strong> – <code class="docutils literal notranslate"><span class="pre">true</span></code> for removal and <code class="docutils literal notranslate"><span class="pre">false</span></code> for insertion. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Pre<span class="colon">:</span></dt>
@@ -673,39 +655,7 @@ Doxygen documentation maintained beside every implementation unit in
 <dd class="field-odd"><p>Every traversed checkpoint and link is a valid dense <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> index. </p>
 </dd>
 <dt class="field-even">Post<span class="colon">:</span></dt>
-<dd class="field-even"><p>Complete checkpoint intervals reflect the edit structurally. </p>
-</dd>
-<dt class="field-odd">Post<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Every surviving affected checkpoint reflects the sub-128 remainder. </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4I0EN11LengthTable10initializeEvKNSt8uint32_tEPK13ProjectorType">
-<span id="_CPPv3I0EN11LengthTable10initializeEKNSt8uint32_tEPK13ProjectorType"></span><span id="_CPPv2I0EN11LengthTable10initializeEKNSt8uint32_tEPK13ProjectorType"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ProjectorType</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classLengthTable_1ab20f6777d73b11fa53ebc1a4381d9528"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">initialize</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">first_position</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0EN11LengthTable10initializeEvKNSt8uint32_tEPK13ProjectorType" title="LengthTable::initialize::ProjectorType"><span class="n"><span class="pre">ProjectorType</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4I0EN11LengthTable10initializeEvKNSt8uint32_tEPK13ProjectorType" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Rebuild all checkpoints from one Structural Order origin. </p>
-<p>The first Stable Position becomes checkpoint zero. One further entry is emitted for every crossed 128-Frame visible boundary; Masks advance Structural Order but not the visible counter.</p>
-<p><dl class="simple">
-<dt><strong>Complexity:</strong></dt><dd><p>O(s + p), where s is the structural <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> count and p the checkpoint count. </p>
-</dd>
-</dl>
-</p>
-<dl class="field-list simple">
-<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ProjectorType</strong> – Type exposing <code class="docutils literal notranslate"><span class="pre">strips</span></code>, <code class="docutils literal notranslate"><span class="pre">right</span></code>, and <code class="docutils literal notranslate"><span class="pre">projection_frame_count</span></code>. </p>
-</dd>
-<dt class="field-even">Parameters<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>first_position</strong> – Stable Position representing Projection Index zero. </p></li>
-<li><p><strong>projector</strong> – Owning <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>. </p></li>
-</ul>
-</dd>
-<dt class="field-odd">Pre<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">first_position</span></code> belongs to a valid circular Structural Order. </p>
-</dd>
-<dt class="field-even">Post<span class="colon">:</span></dt>
-<dd class="field-even"><p>Existing checkpoint storage is replaced by the complete current table. </p>
+<dd class="field-even"><p>Every affected entry contains its fixed Projection boundary and reports its containing <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s stable dense position. </p>
 </dd>
 </dl>
 </dd></dl>
@@ -713,24 +663,13 @@ Doxygen documentation maintained beside every implementation unit in
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4NK11LengthTable8is_emptyEv">
 <span id="_CPPv3NK11LengthTable8is_emptyEv"></span><span id="_CPPv2NK11LengthTable8is_emptyEv"></span><span id="LengthTable::is_emptyC"></span><span class="target" id="classLengthTable_1a59a8b09cb24a78d3cbe925b174610d98"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_empty</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK11LengthTable8is_emptyEv" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Report whether Projection navigation has been initialized. </p>
-<p><dl class="simple">
-<dt><strong>Complexity:</strong></dt><dd><p>O(1). </p>
-</dd>
-</dl>
-</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">true</span></code> when no checkpoint exists. </p>
-</dd>
-</dl>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4NK11LengthTable17nearest_chekpointENSt8uint32_tE">
-<span id="_CPPv3NK11LengthTable17nearest_chekpointENSt8uint32_tE"></span><span id="_CPPv2NK11LengthTable17nearest_chekpointENSt8uint32_tE"></span><span id="LengthTable::nearest_chekpoint__std::uint32_tC"></span><span class="target" id="classLengthTable_1a42a63c9e4da788acb3c200b488d6eba1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nearest_chekpoint</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK11LengthTable17nearest_chekpointENSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4NK11LengthTable18nearest_checkpointENSt8uint32_tE">
+<span id="_CPPv3NK11LengthTable18nearest_checkpointENSt8uint32_tE"></span><span id="_CPPv2NK11LengthTable18nearest_checkpointENSt8uint32_tE"></span><span id="LengthTable::nearest_checkpoint__std::uint32_tC"></span><span class="target" id="classLengthTable_1a37e686d7b057f8d33e3577e6e7630739"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nearest_checkpoint</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">projection_frame_index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK11LengthTable18nearest_checkpointENSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the nearest checkpoint and its visible Projection index. </p>
-<p>Positions with an interval offset from zero through 64 select the current checkpoint. Offsets from 65 through 127 select the following checkpoint. The checkpoint’s visible index is derived once from its table index and fixed frequency. Callers infer traversal direction by comparing that index with their target.</p>
+<p>Positions with an interval offset from zero through 128 select the current checkpoint. Offsets from 129 through 255 select the following checkpoint. The checkpoint’s visible index is derived once from its table index and fixed frequency. Callers infer traversal direction by comparing that index with their target.</p>
 <p><dl class="simple">
 <dt><strong>Complexity:</strong></dt><dd><p>O(1) time and O(1) space. </p>
 </dd>
@@ -738,7 +677,7 @@ Doxygen documentation maintained beside every implementation unit in
 </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>index</strong> – Zero-based visible Projection position to resolve. </p>
+<dd class="field-odd"><p><strong>projection_frame_index</strong> – Zero-based visible Projection position to resolve. </p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Pair containing the checkpoint’s stable dense position and its visible Projection index. </p>
@@ -749,43 +688,13 @@ Doxygen documentation maintained beside every implementation unit in
 </dl>
 </dd></dl>
 
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4I0ENK11LengthTable22projection_frame_indexENSt8uint32_tEKNSt8uint32_tEPK13ProjectorType">
-<span id="_CPPv3I0ENK11LengthTable22projection_frame_indexEKNSt8uint32_tEPK13ProjectorType"></span><span id="_CPPv2I0ENK11LengthTable22projection_frame_indexEKNSt8uint32_tEPK13ProjectorType"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ProjectorType</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classLengthTable_1abe6622d9b5af06fcaea3d68114bf68fd"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">projection_frame_index</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">stable_position</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0ENK11LengthTable22projection_frame_indexENSt8uint32_tEKNSt8uint32_tEPK13ProjectorType" title="LengthTable::projection_frame_index::ProjectorType"><span class="n"><span class="pre">ProjectorType</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4I0ENK11LengthTable22projection_frame_indexENSt8uint32_tEKNSt8uint32_tEPK13ProjectorType" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Derive the visible Projection start of one Stable Position. </p>
-<p>Traversal follows <code class="docutils literal notranslate"><span class="pre">right</span></code> until it reaches a stored checkpoint, summing only visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> lengths. If the circular walk crosses Projection origin, the total visible Projection length corrects the checkpoint index before subtracting the walked distance.</p>
-<p><dl class="simple">
-<dt><strong>Complexity:</strong></dt><dd><p>O(s) for the structural Strips between the position and first encountered checkpoint. </p>
-</dd>
-</dl>
-</p>
-<dl class="field-list simple">
-<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ProjectorType</strong> – Type exposing <code class="docutils literal notranslate"><span class="pre">strips</span></code>, <code class="docutils literal notranslate"><span class="pre">right</span></code>, and <code class="docutils literal notranslate"><span class="pre">projection_frame_count</span></code>. </p>
-</dd>
-<dt class="field-even">Parameters<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>stable_position</strong> – Stable Position whose visible start is required. </p></li>
-<li><p><strong>projector</strong> – Owning <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>. </p></li>
-</ul>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Projection Index at which the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> begins; a Mask may share the returned index with an adjacent <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
-</dd>
-<dt class="field-even">Pre<span class="colon">:</span></dt>
-<dd class="field-even"><p>The Stable Position belongs to the materialized circular chain and at least one checkpoint exists. </p>
-</dd>
-</dl>
-</dd></dl>
-
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-private-members">Private Members</p>
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N11LengthTable11checkpointsE">
-<span id="_CPPv3N11LengthTable11checkpointsE"></span><span id="_CPPv2N11LengthTable11checkpointsE"></span><span id="LengthTable::checkpoints__std::vector:uint32_t:"></span><span class="target" id="classLengthTable_1ab07520c3b81064d5555d64c87bd8e876"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">checkpoints</span></span></span><a class="headerlink" href="#_CPPv4N11LengthTable11checkpointsE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Dense <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> index stored at each 128-position boundary. </p>
-</dd></dl>
+<span id="_CPPv3N11LengthTable11checkpointsE"></span><span id="_CPPv2N11LengthTable11checkpointsE"></span><span id="LengthTable::checkpoints__std::vector:std::uint32_t:"></span><span class="target" id="classLengthTable_1a9ceb9d6b21a42a336ae1612b7e191f15"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">checkpoints</span></span></span><a class="headerlink" href="#_CPPv4N11LengthTable11checkpointsE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
 
 </div>
 </dd></dl>
@@ -982,6 +891,13 @@ Doxygen documentation maintained beside every implementation unit in
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
 <dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N5Strip33checkpoint_projection_frame_indexE">
+<span id="_CPPv3N5Strip33checkpoint_projection_frame_indexE"></span><span id="_CPPv2N5Strip33checkpoint_projection_frame_indexE"></span><span id="Strip::checkpoint_projection_frame_index__std::uint32_t"></span><span class="target" id="structStrip_1ad74ef25997c81ff0d92391c6ee7738ad"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">checkpoint_projection_frame_index</span></span></span><a class="headerlink" href="#_CPPv4N5Strip33checkpoint_projection_frame_indexE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Exact visible Projection start when this <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is a checkpoint. </p>
+<p><code class="docutils literal notranslate"><span class="pre">u32_max</span></code> denotes an ordinary <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. This runtime-only marker lets Structural Order traversal recognize a checkpoint with one direct <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> load instead of searching the <a class="reference internal" href="#classLengthTable"><span class="std std-ref">LengthTable</span></a>. </p>
+</dd></dl>
+
+<dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N5Strip10coordinateE">
 <span id="_CPPv3N5Strip10coordinateE"></span><span id="_CPPv2N5Strip10coordinateE"></span><span id="Strip::coordinate__SequenceCoordinate"></span><span class="target" id="structStrip_1a20a05655f8b9df199f1ed2b312f75ad3"></span><a class="reference internal" href="#_CPPv418SequenceCoordinate" title="SequenceCoordinate"><span class="n"><span class="pre">SequenceCoordinate</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">coordinate</span></span></span><a class="headerlink" href="#_CPPv4N5Strip10coordinateE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Sequence Coordinate defining logical placement. </p>
@@ -1017,17 +933,10 @@ Doxygen documentation maintained beside every implementation unit in
 </dd></dl>
 
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N5Strip20left_siblings_framesE">
-<span id="_CPPv3N5Strip20left_siblings_framesE"></span><span id="_CPPv2N5Strip20left_siblings_framesE"></span><span id="Strip::left_siblings_frames__std::uint32_t"></span><span class="target" id="structStrip_1a84ff958ff95e69f572275388ae7d2a3b"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">left_siblings_frames</span></span></span><a class="headerlink" href="#_CPPv4N5Strip20left_siblings_framesE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Number of source-strip Frames represented by fragments to the left. </p>
-<p>Subtracting this distance from the fragment start counter reconstructs the originally issued <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> start for sibling comparison. </p>
-</dd></dl>
-
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N5Strip20right_sibling_framesE">
-<span id="_CPPv3N5Strip20right_sibling_framesE"></span><span id="_CPPv2N5Strip20right_sibling_framesE"></span><span id="Strip::right_sibling_frames__std::uint32_t"></span><span class="target" id="structStrip_1a00dc114c277e25a6e5ca083ee23d1b8a"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">right_sibling_frames</span></span></span><a class="headerlink" href="#_CPPv4N5Strip20right_sibling_framesE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Number of source-strip Frames represented by fragments to the right. </p>
-<p>Together with <code class="docutils literal notranslate"><a class="reference internal" href="#structStrip_1a073d3a2a53b4174dea9358ecd0d4bfe6"><span class="std std-ref"><span class="pre">frame_count</span></span></a></code> and <code class="docutils literal notranslate"><a class="reference internal" href="#structStrip_1a84ff958ff95e69f572275388ae7d2a3b"><span class="std std-ref"><span class="pre">left_siblings_frames</span></span></a></code>, this reconstructs the originally issued <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> length without a fragment pointer. </p>
+<dt class="sig sig-object cpp" id="_CPPv4N5Strip32right_sibling_frames_strip_indexE">
+<span id="_CPPv3N5Strip32right_sibling_frames_strip_indexE"></span><span id="_CPPv2N5Strip32right_sibling_frames_strip_indexE"></span><span id="Strip::right_sibling_frames_strip_index__std::uint32_t"></span><span class="target" id="structStrip_1aab35a37c5a273a65cab3ed91ba3e6aa7"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">right_sibling_frames_strip_index</span></span></span><a class="headerlink" href="#_CPPv4N5Strip32right_sibling_frames_strip_indexE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Next right-hand fragment of the same originally issued <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+<p><code class="docutils literal notranslate"><span class="pre">u32_max</span></code> denotes that this is the rightmost remaining fragment. </p>
 </dd></dl>
 
 </div>
@@ -1072,8 +981,8 @@ Doxygen documentation maintained beside every implementation unit in
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4NK11StripBuffer10read_stripERNSt6vectorI5StripEER9HashTable">
-<span id="_CPPv3NK11StripBuffer10read_stripERNSt6vectorI5StripEER9HashTable"></span><span id="_CPPv2NK11StripBuffer10read_stripERNSt6vectorI5StripEER9HashTable"></span><span id="StripBuffer::read_strip__std::vector:Strip:R.HashTableRC"></span><span class="target" id="classStripBuffer_1a0d2697c791287a0670d81f508d9e85ac"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">read_strip</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">strips</span></span>, <a class="reference internal" href="#_CPPv49HashTable" title="HashTable"><span class="n"><span class="pre">HashTable</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">hash_table</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK11StripBuffer10read_stripERNSt6vectorI5StripEER9HashTable" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4NK11StripBuffer10read_stripEP9Projector">
+<span id="_CPPv3NK11StripBuffer10read_stripEP9Projector"></span><span id="_CPPv2NK11StripBuffer10read_stripEP9Projector"></span><span id="StripBuffer::read_strip__ProjectorPC"></span><span class="target" id="classStripBuffer_1a39e2861ca3792a48644594c1f8f1c608"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">read_strip</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK11StripBuffer10read_stripEP9Projector" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Decode the current words directly into Projector-owned storage. </p>
 <p>A visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is a duplicate when its issued start is already contained by the <a class="reference internal" href="#classHashTable"><span class="std std-ref">HashTable</span></a>, including inside a split sibling fragment. A Mask is a duplicate only when that containing fragment already has the same masked state. Otherwise one <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is appended directly. Visible Frame containment is indexed immediately; Mask commands are indexed when they materialize over existing fragments.</p>
 <p><dl class="simple">
@@ -1083,13 +992,10 @@ Doxygen documentation maintained beside every implementation unit in
 </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>strips</strong> – Append-only <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> storage. </p></li>
-<li><p><strong>hash_table</strong> – Sequence Point containment index for the same <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>. </p></li>
-</ul>
+<dd class="field-odd"><p><strong>projector</strong> – <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> receiving the decoded <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Stable Position of the existing duplicate or appended <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">false</span></code> for a duplicate, otherwise the appended Stable Position. </p>
 </dd>
 <dt class="field-odd">Pre<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The words contain a valid transferable <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> representation. </p>
@@ -1147,7 +1053,11 @@ Doxygen documentation maintained beside every implementation unit in
 <dd><div class="docutils container">
 <em>#include “<a class="reference internal" href="#auxiliary_2insert__between_2index_8hpp"><span class="std std-ref">../../auxiliary/insert_between/index.hpp</span></a>”</em></div>
 <div class="docutils container">
+<em>#include “<a class="reference internal" href="#auxiliary_2run__projector__to__strip_2index_8hpp"><span class="std std-ref">../../auxiliary/run_projector_to_strip/index.hpp</span></a>”</em></div>
+<div class="docutils container">
 <em>#include “<a class="reference internal" href="#auxiliary_2split__strip_2index_8hpp"><span class="std std-ref">../../auxiliary/split_strip/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#classes_2footage__span__buffer_2index_8hpp"><span class="std std-ref">../../classes/footage_span_buffer/index.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">../../declarations/projector/index.hpp</span></a>”</em></div>
 <div class="docutils container">
@@ -1156,10 +1066,10 @@ Doxygen documentation maintained beside every implementation unit in
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv412insert_stripP9ProjectorKNSt8uint32_tEKNSt8uint32_tE">
-<span id="_CPPv312insert_stripP9ProjectorKNSt8uint32_tEKNSt8uint32_tE"></span><span id="_CPPv212insert_stripP9ProjectorKNSt8uint32_tEKNSt8uint32_tE"></span><span id="insert_strip__ProjectorP.std::uint32_tC.std::uint32_tC"></span><span class="target" id="algorithms_2insert__strip_2index_8hpp_1af5f9c1522d23ee10ff841d19a7e6e264"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">insert_strip</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">containing_position</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">inserted_position</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv412insert_stripP9ProjectorKNSt8uint32_tEKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv412insert_stripP9ProjectorKNSt8uint32_tEP17FootageSpanBuffer">
+<span id="_CPPv312insert_stripP9ProjectorKNSt8uint32_tEP17FootageSpanBuffer"></span><span id="_CPPv212insert_stripP9ProjectorKNSt8uint32_tEP17FootageSpanBuffer"></span><span id="insert_strip__ProjectorP.std::uint32_tC.FootageSpanBufferP"></span><span class="target" id="algorithms_2insert__strip_2index_8hpp_1a7bb9be3bb8f0f5fb7a4f434ba03f632b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">insert_strip</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">incoming_strip_index</span></span>, <a class="reference internal" href="#_CPPv417FootageSpanBuffer" title="FootageSpanBuffer"><span class="n"><span class="pre">FootageSpanBuffer</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">pending_footage_spans</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">nullptr</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv412insert_stripP9ProjectorKNSt8uint32_tEP17FootageSpanBuffer" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Insert one visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> at its coordinate-defined Frame boundary. </p>
-<p><code class="docutils literal notranslate"><span class="pre">is_inverse</span></code> selects the boundary before or after the referenced Frame. An interior boundary splits the containing <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>, after which <code class="docutils literal notranslate"><a class="reference internal" href="#auxiliary_2insert__between_2index_8hpp_1ac4daffc666a3149b71f646f9d86a9d07"><span class="std std-ref"><span class="pre">insert_between</span></span></a></code> performs sibling ordering and dense-link updates. The <a class="reference internal" href="#classLengthTable"><span class="std std-ref">LengthTable</span></a> and visible Projection count are adjusted exactly once.</p>
+<p><code class="docutils literal notranslate"><span class="pre">is_inverse</span></code> selects the boundary before or after the referenced Frame. An interior boundary splits the containing <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>, after which <code class="docutils literal notranslate"><a class="reference internal" href="#auxiliary_2insert__between_2index_8hpp_1a390ab272be1d632f2914d20282c7b2e3"><span class="std std-ref"><span class="pre">insert_between</span></span></a></code> performs sibling ordering and dense-link updates. The <a class="reference internal" href="#classLengthTable"><span class="std std-ref">LengthTable</span></a> and visible Projection count are adjusted exactly once.</p>
 <p><dl class="simple">
 <dt><strong>Complexity:</strong></dt><dd><p>Bounded <a class="reference internal" href="#classLengthTable"><span class="std std-ref">LengthTable</span></a> adjustment plus sibling traversal and at most one <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> split. </p>
 </dd>
@@ -1169,8 +1079,8 @@ Doxygen documentation maintained beside every implementation unit in
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>projector</strong> – Owning <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>. </p></li>
-<li><p><strong>containing_position</strong> – Stable Position containing <code class="docutils literal notranslate"><span class="pre">inserted_position</span></code>’s <code class="docutils literal notranslate"><span class="pre">previous_strip_end</span></code>. </p></li>
-<li><p><strong>inserted_position</strong> – Self-linked Stable Position of the visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> to materialize. </p></li>
+<li><p><strong>incoming_strip_index</strong> – Self-linked Stable Position to materialize. </p></li>
+<li><p><strong>pending_footage_spans</strong> – Optional output for pending Strips materialized while resolving the incoming <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s dependency chain. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1180,7 +1090,7 @@ Doxygen documentation maintained beside every implementation unit in
 <dd class="field-odd"><p>All positions are valid in the <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>’s dense storage. </p>
 </dd>
 <dt class="field-even">Pre<span class="colon">:</span></dt>
-<dd class="field-even"><p>The inserted <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is visible and its referenced Frame is contained by <code class="docutils literal notranslate"><span class="pre">containing_position</span></code>. </p>
+<dd class="field-even"><p>The inserted <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is visible. </p>
 </dd>
 <dt class="field-odd">Post<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The inserted <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> belongs to Structural Order and contributes its complete Frame Span to the Projection. The Gate describes the inserted <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> at its resulting Projection index. </p>
@@ -1195,6 +1105,8 @@ Doxygen documentation maintained beside every implementation unit in
 <dt class="sig sig-object cpp">
 <span class="target" id="algorithms_2mask__strip_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
 <dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#auxiliary_2run__projector__to__strip_2index_8hpp"><span class="std std-ref">../../auxiliary/run_projector_to_strip/index.hpp</span></a>”</em></div>
+<div class="docutils container">
 <em>#include “<a class="reference internal" href="#auxiliary_2split__strip_2index_8hpp"><span class="std std-ref">../../auxiliary/split_strip/index.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">../../declarations/projector/index.hpp</span></a>”</em></div>
@@ -1206,8 +1118,8 @@ Doxygen documentation maintained beside every implementation unit in
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv410mask_stripP9ProjectorKNSt8uint32_tEKNSt8uint32_tE">
-<span id="_CPPv310mask_stripP9ProjectorKNSt8uint32_tEKNSt8uint32_tE"></span><span id="_CPPv210mask_stripP9ProjectorKNSt8uint32_tEKNSt8uint32_tE"></span><span id="mask_strip__ProjectorP.std::uint32_tC.std::uint32_tC"></span><span class="target" id="algorithms_2mask__strip_2index_8hpp_1a29ceca3adb3dd99bcf9e1294bb5db668"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mask_strip</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">containing_position</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">incoming_mask_position</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv410mask_stripP9ProjectorKNSt8uint32_tEKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv410mask_stripP9ProjectorNSt8uint32_tEKNSt8uint32_tENSt8uint32_tENSt8uint32_tE">
+<span id="_CPPv310mask_stripP9ProjectorNSt8uint32_tEKNSt8uint32_tENSt8uint32_tENSt8uint32_tE"></span><span id="_CPPv210mask_stripP9ProjectorNSt8uint32_tEKNSt8uint32_tENSt8uint32_tENSt8uint32_tE"></span><span id="mask_strip__ProjectorP.std::uint32_t.std::uint32_tC.std::uint32_t.std::uint32_t"></span><span class="target" id="algorithms_2mask__strip_2index_8hpp_1a7eeb3635edb679a9a73786248e1355bc"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mask_strip</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">containing_strip_index</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">incoming_index_index</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">offset</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv47u32_max" title="u32_max"><span class="n"><span class="pre">u32_max</span></span></a>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">projection_frame_index</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv47u32_max" title="u32_max"><span class="n"><span class="pre">u32_max</span></span></a><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv410mask_stripP9ProjectorNSt8uint32_tEKNSt8uint32_tENSt8uint32_tENSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Convert the requested existing Frame Span into materialized Masks. </p>
 <p>Source Strips are split at the Mask boundaries when necessary. Already masked fragments remain unchanged; only newly hidden Frames reduce the Projection count. <a class="reference internal" href="#classHashTable"><span class="std std-ref">HashTable</span></a> containment is refreshed for every converted fragment, and the detached incoming Mask command is associated with the materialized fragment through its dense links.</p>
 <p><dl class="simple">
@@ -1219,8 +1131,10 @@ Doxygen documentation maintained beside every implementation unit in
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>projector</strong> – Owning <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>. </p></li>
-<li><p><strong>containing_position</strong> – Stable Position containing the Mask’s first Frame. </p></li>
-<li><p><strong>incoming_mask_position</strong> – Stable Position of the staged Mask command. </p></li>
+<li><p><strong>containing_strip_index</strong> – Stable Position containing the Mask’s first Frame. </p></li>
+<li><p><strong>incoming_index_index</strong> – Stable Position of the staged Mask command. </p></li>
+<li><p><strong>offset</strong> – Frame offset within the containing <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p></li>
+<li><p><strong>projection_frame_index</strong> – Projection index of the first masked Frame. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1231,53 +1145,6 @@ Doxygen documentation maintained beside every implementation unit in
 </dd>
 <dt class="field-even">Post<span class="colon">:</span></dt>
 <dd class="field-even"><p>Every addressed visible fragment is masked and Structural Order is preserved. </p>
-</dd>
-</dl>
-</dd></dl>
-
-</div>
-</dd></dl>
-
-<dl>
-<dt class="sig sig-object cpp">
-<span class="target" id="algorithms_2resolve__initial__projection_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
-<dd><div class="docutils container">
-<em>#include “<a class="reference internal" href="#auxiliary_2compare__sequence__points_2index_8hpp"><span class="std std-ref">../../auxiliary/compare_sequence_points/index.hpp</span></a>”</em></div>
-<div class="docutils container">
-<em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">../../declarations/projector/index.hpp</span></a>”</em></div>
-<div class="docutils container">
-<em>#include “<a class="reference internal" href="#algorithms_2insert__strip_2index_8hpp"><span class="std std-ref">../insert_strip/index.hpp</span></a>”</em></div>
-<div class="docutils container">
-<em>#include “<a class="reference internal" href="#algorithms_2mask__strip_2index_8hpp"><span class="std std-ref">../mask_strip/index.hpp</span></a>”</em></div>
-<div class="docutils container">
-<em>#include &lt;algorithm&gt;</em></div>
-<div class="docutils container">
-<em>#include &lt;cstdint&gt;</em></div>
-<div class="docutils container">
-<em>#include &lt;vector&gt;</em></div>
-<p>Builds the first Projection from a batch of staged Strips. </p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv426resolve_initial_projectionP9Projector">
-<span id="_CPPv326resolve_initial_projectionP9Projector"></span><span id="_CPPv226resolve_initial_projectionP9Projector"></span><span id="resolve_initial_projection__ProjectorP"></span><span class="target" id="algorithms_2resolve__initial__projection_2index_8hpp_1a8761c51f70a7c1c65f7e0e28a96ae1de"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">resolve_initial_projection</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv426resolve_initial_projectionP9Projector" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Resolve every reachable creation-time dependency into one Projection. </p>
-<p>Visible Strips whose previous point is absent seed the sentinel-free circular Structural Order. Initial inverse Roots are ordered by descending Sequence Point before their ring is linked. Remaining visible Strips and Masks are considered in the same deterministic order and materialized dependency-first through the ordinary insert and Mask algorithms. A Mask also materializes the visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> containing its first Frame before masking it. Cycles and unresolved dependencies stay Pending. Dependency traversal uses an explicit stack, so chain depth does not consume the WebAssembly call stack.</p>
-<p>The <a class="reference internal" href="#classLengthTable"><span class="std std-ref">LengthTable</span></a> and Gate are initialized after the root ring is created and rebuilt after dependency resolution so no input arrival order becomes Projection order.</p>
-<p><dl class="simple">
-<dt><strong>Complexity:</strong></dt><dd><p>O(n log n) Root ordering plus staging-state storage, <a class="reference internal" href="#classHashTable"><span class="std std-ref">HashTable</span></a> lookups, and ordinary materialization for n Strips. </p>
-</dd>
-</dl>
-</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>projector</strong> – <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> containing a complete staged creation batch. </p>
-</dd>
-<dt class="field-even">Pre<span class="colon">:</span></dt>
-<dd class="field-even"><p>Every <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> has matching self-linked dense entries unless already joined to the root ring during this call. </p>
-</dd>
-<dt class="field-odd">Post<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Every reachable valid <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is materialized exactly once; unresolved Strips remain self-linked. </p>
 </dd>
 </dl>
 </dd></dl>
@@ -1371,8 +1238,8 @@ Doxygen documentation maintained beside every implementation unit in
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv414insert_betweenP9ProjectorNSt8uint32_tEKNSt8uint32_tENSt8uint32_tE">
-<span id="_CPPv314insert_betweenP9ProjectorNSt8uint32_tEKNSt8uint32_tENSt8uint32_tE"></span><span id="_CPPv214insert_betweenP9ProjectorNSt8uint32_tEKNSt8uint32_tENSt8uint32_tE"></span><span id="insert_between__ProjectorP.std::uint32_t.std::uint32_tC.std::uint32_t"></span><span class="target" id="auxiliary_2insert__between_2index_8hpp_1ac4daffc666a3149b71f646f9d86a9d07"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">insert_between</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">left</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">middle</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">right</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv414insert_betweenP9ProjectorNSt8uint32_tEKNSt8uint32_tENSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv414insert_betweenP9ProjectorNSt8uint32_tEKNSt8uint32_tENSt8uint32_tEKb">
+<span id="_CPPv314insert_betweenP9ProjectorNSt8uint32_tEKNSt8uint32_tENSt8uint32_tEKb"></span><span id="_CPPv214insert_betweenP9ProjectorNSt8uint32_tEKNSt8uint32_tENSt8uint32_tEKb"></span><span id="insert_between__ProjectorP.std::uint32_t.std::uint32_tC.std::uint32_t.bC"></span><span class="target" id="auxiliary_2insert__between_2index_8hpp_1a390ab272be1d632f2914d20282c7b2e3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">insert_between</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">left</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">middle</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">right</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sort_siblings</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv414insert_betweenP9ProjectorNSt8uint32_tEKNSt8uint32_tENSt8uint32_tEKb" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Sibling-sort and link one <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> into the dense circular chain. </p>
 <p>A visible unsplit <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> scans only adjacent siblings whose <code class="docutils literal notranslate"><span class="pre">previous_strip_end</span></code> exactly matches its own. Forward placement advances across smaller original source starts; inverse placement advances in the opposite dense direction across larger starts. Split fragments bypass this sort because their source position has already been established.</p>
 <p>The final four assignments update both directions of both affected edges.</p>
@@ -1388,6 +1255,7 @@ Doxygen documentation maintained beside every implementation unit in
 <li><p><strong>left</strong> – Initial Stable Position on the insertion’s left. </p></li>
 <li><p><strong>middle</strong> – Stable Position being inserted. </p></li>
 <li><p><strong>right</strong> – Initial Stable Position on the insertion’s right. </p></li>
+<li><p><strong>sort_siblings</strong> – Whether to apply deterministic sibling ordering. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Pre<span class="colon">:</span></dt>
@@ -1537,11 +1405,58 @@ Doxygen documentation maintained beside every implementation unit in
 
 <dl>
 <dt class="sig sig-object cpp">
+<span class="target" id="auxiliary_2run__projector__to__strip_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">../../declarations/projector/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2sentinels_2index_8hpp"><span class="std std-ref">../../declarations/sentinels/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2strip_2index_8hpp"><span class="std std-ref">../../declarations/strip/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<p>Positions a projector gate at a requested projection frame index. </p>
+<p>The search begins at the current Gate when the target is fewer than 64 Projection positions away. Longer searches begin at the nearest <a class="reference internal" href="#classLengthTable"><span class="std std-ref">LengthTable</span></a> checkpoint. Traversal proceeds from either start in the target direction. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv422run_projector_to_stripNSt8uint32_tERK5StripP9Projector">
+<span id="_CPPv322run_projector_to_stripNSt8uint32_tERK5StripP9Projector"></span><span id="_CPPv222run_projector_to_stripNSt8uint32_tERK5StripP9Projector"></span><span id="run_projector_to_strip__std::uint32_t.StripCR.ProjectorP"></span><span class="target" id="auxiliary_2run__projector__to__strip_2index_8hpp_1a6d5ff7ad597f1b7d931ff7f02850f189"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">run_projector_to_strip</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">stable_index</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">strip</span></span>, <a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv422run_projector_to_stripNSt8uint32_tERK5StripP9Projector" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Move the Gate to the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> containing a Projection frame index. </p>
+<p>Masks remain part of retained strip order but contribute no Frames to the Projection. On success, <code class="docutils literal notranslate"><span class="pre">gate_strip_index</span></code> identifies the containing <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> and <code class="docutils literal notranslate"><span class="pre">gate_projection_frame_index</span></code> is the Projection frame index at which that <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> begins.</p>
+<p><dl class="simple">
+<dt><strong>Complexity:</strong></dt><dd><p>O(s) time and O(1) space, where s is the number of linked Strips traversed to the nearest checkpoint. </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stable_index</strong> – Stable dense index from which checkpoint resolution begins. </p></li>
+<li><p><strong>strip</strong> – <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> at <code class="docutils literal notranslate"><span class="pre">stable_index</span></code>. </p></li>
+<li><p><strong>projector</strong> – <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> whose gate is repositioned. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Pre<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">projector</span></code> contains valid bidirectional links for every traversed <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
+</dd>
+<dt class="field-odd">Post<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The Gate describes the nearest checkpoint <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> and its visible Projection frame index. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
 <span class="target" id="auxiliary_2split__strip_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
 <dd><div class="docutils container">
 <em>#include “<a class="reference internal" href="#auxiliary_2insert__between_2index_8hpp"><span class="std std-ref">../insert_between/index.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">../../declarations/projector/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2sentinels_2index_8hpp"><span class="std std-ref">../../declarations/sentinels/index.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include &lt;cstdint&gt;</em></div>
 <p>Splits one material <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> without copying Footage. </p>
@@ -1658,7 +1573,7 @@ Doxygen documentation maintained beside every implementation unit in
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Zero-based frame offset from the strip start when contained; <code class="docutils literal notranslate"><a class="reference internal" href="#declarations_2strip_2index_8hpp_1a04bbea591b11d617ca2bb1c1184bac8b"><span class="std std-ref"><span class="pre">sequence_point_outside_strip</span></span></a></code> otherwise. </p>
+<dd class="field-even"><p>Zero-based frame offset from the strip start when contained; <code class="docutils literal notranslate"><span class="pre">sequence_point_outside_strip</span></code> otherwise. </p>
 </dd>
 <dt class="field-odd">Pre<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Both pointers are non-null. </p>
@@ -1714,11 +1629,11 @@ Doxygen documentation maintained beside every implementation unit in
 <dd><div class="docutils container">
 <em>#include “<a class="reference internal" href="#declarations_2sequence__coordinate_2index_8hpp"><span class="std std-ref">../../declarations/sequence_coordinate/index.hpp</span></a>”</em></div>
 <div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2sentinels_2index_8hpp"><span class="std std-ref">../../declarations/sentinels/index.hpp</span></a>”</em></div>
+<div class="docutils container">
 <em>#include &lt;algorithm&gt;</em></div>
 <div class="docutils container">
 <em>#include &lt;cstdint&gt;</em></div>
-<div class="docutils container">
-<em>#include &lt;limits&gt;</em></div>
 <div class="docutils container">
 <em>#include &lt;memory&gt;</em></div>
 <div class="docutils container">
@@ -1733,7 +1648,9 @@ Doxygen documentation maintained beside every implementation unit in
 <dt class="sig sig-object cpp">
 <span class="target" id="classes_2length__table_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
 <dd><div class="docutils container">
-<em>#include &lt;algorithm&gt;</em></div>
+<em>#include “<a class="reference internal" href="#declarations_2sentinels_2index_8hpp"><span class="std std-ref">../../declarations/sentinels/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2strip_2index_8hpp"><span class="std std-ref">../../declarations/strip/index.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include &lt;cstdint&gt;</em></div>
 <div class="docutils container">
@@ -1741,16 +1658,18 @@ Doxygen documentation maintained beside every implementation unit in
 <div class="docutils container">
 <em>#include &lt;vector&gt;</em></div>
 <p>Defines the fixed-frequency index for bounded Projection traversal. </p>
-<p><a class="reference internal" href="#classLengthTable"><span class="std std-ref">LengthTable</span></a> stores one dense <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> index for every 128 Projection positions. Reads begin at the nearest checkpoint and follow the <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>’s compact <code class="docutils literal notranslate"><span class="pre">left</span></code> or <code class="docutils literal notranslate"><span class="pre">right</span></code> link vector for at most 64 positions. Structural edits update the table in complete 128-position intervals and propagate only the remaining sub-interval displacement through the existing suffix. </p>
+<p><a class="reference internal" href="#classLengthTable"><span class="std std-ref">LengthTable</span></a> stores the containing dense <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> and its visible checkpoint index for every 256-Frame Projection boundary. Reads begin at the nearest checkpoint and follow the <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>’s compact <code class="docutils literal notranslate"><span class="pre">left</span></code> or <code class="docutils literal notranslate"><span class="pre">right</span></code> link vector. </p>
 </dd></dl>
 
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="classes_2strip__buffer_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
 <dd><div class="docutils container">
-<em>#include “<a class="reference internal" href="#classes_2hash__table_2index_8hpp"><span class="std std-ref">../hash_table/index.hpp</span></a>”</em></div>
+<em>#include “<a class="reference internal" href="#declarations_2sentinels_2index_8hpp"><span class="std std-ref">../../declarations/sentinels/index.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include “<a class="reference internal" href="#declarations_2strip_2index_8hpp"><span class="std std-ref">../../declarations/strip/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#classes_2hash__table_2index_8hpp"><span class="std std-ref">../hash_table/index.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include &lt;cstdint&gt;</em></div>
 <div class="docutils container">
@@ -1792,6 +1711,25 @@ Doxygen documentation maintained beside every implementation unit in
 
 <dl>
 <dt class="sig sig-object cpp">
+<span class="target" id="declarations_2sentinels_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<div class="docutils container">
+<em>#include &lt;limits&gt;</em></div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv47u32_max">
+<span id="_CPPv37u32_max"></span><span id="_CPPv27u32_max"></span><span id="u32_max__std::uint32_t"></span><span class="target" id="declarations_2sentinels_2index_8hpp_1a145c8c1a92db0319c15578b98d9b3ea0"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">u32_max</span></span></span><a class="headerlink" href="#_CPPv47u32_max" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Shared sentinel for unavailable unsigned 32-bit values. </p>
+<p>Every sentinel-bearing domain reserves the maximum unsigned 32-bit value. No file or class defines a domain-specific alias for this value. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
 <span class="target" id="declarations_2sequence__coordinate_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
 <dd><div class="docutils container">
 <em>#include “<a class="reference internal" href="#declarations_2sequence__point_2index_8hpp"><span class="std std-ref">../sequence_point/index.hpp</span></a>”</em></div>
@@ -1804,44 +1742,22 @@ Doxygen documentation maintained beside every implementation unit in
 <span class="target" id="declarations_2sequence__point_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
 <dd><div class="docutils container">
 <em>#include &lt;cstdint&gt;</em></div>
-<div class="docutils container">
-<em>#include &lt;limits&gt;</em></div>
 <p>Defines stable Frame identities in Sequence space. </p>
 <p>A <a class="reference internal" href="#structSequencePoint"><span class="std std-ref">SequencePoint</span></a> identifies one Frame independently of its current Projection index, Footage index, Stable Position, and containing <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. The value is composed of three unsigned 32-bit lanes and crosses the WebAssembly boundary without allocation.</p>
 <p>Ordinary points belong to a Realm. Points issued by the same Realm share their crypto-random and Unix components, while counters identify consecutive Frames in that Realm’s lineage. </p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv420unlinked_strip_start">
-<span id="_CPPv320unlinked_strip_start"></span><span id="_CPPv220unlinked_strip_start"></span><span id="unlinked_strip_start__SequencePoint"></span><span class="target" id="declarations_2sequence__point_2index_8hpp_1a9e716f5b43419e6224231e28028de70c"></span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">unlinked_strip_start</span></span></span><a class="headerlink" href="#_CPPv420unlinked_strip_start" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Reserved maximum-valued point outside issued Sequence space. </p>
-<p>The current dense circular Structural Order does not require a sentinel successor. This constant remains available to code that needs an impossible <a class="reference internal" href="#structSequencePoint"><span class="std std-ref">SequencePoint</span></a> value and is never transferred through <a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a>. </p>
-</dd></dl>
-
-</div>
 </dd></dl>
 
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="declarations_2strip_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
 <dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2sentinels_2index_8hpp"><span class="std std-ref">../sentinels/index.hpp</span></a>”</em></div>
+<div class="docutils container">
 <em>#include “<a class="reference internal" href="#declarations_2sequence__coordinate_2index_8hpp"><span class="std std-ref">../sequence_coordinate/index.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include &lt;cstdint&gt;</em></div>
-<div class="docutils container">
-<em>#include &lt;limits&gt;</em></div>
 <p>Defines the material representation of one contiguous Frame Span. </p>
 <p>A <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> joins a Sequence Coordinate, equally long contiguous Footage, one visibility state, insertion direction, and sibling-fragment distances in a fixed-size value. Splitting a <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> changes its material boundaries while each resulting <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s coordinate identifies the start of its represented Frame Span. </p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv428sequence_point_outside_strip">
-<span id="_CPPv328sequence_point_outside_strip"></span><span id="_CPPv228sequence_point_outside_strip"></span><span id="sequence_point_outside_strip__std::uint32_t"></span><span class="target" id="declarations_2strip_2index_8hpp_1a04bbea591b11d617ca2bb1c1184bac8b"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">sequence_point_outside_strip</span></span></span><a class="headerlink" href="#_CPPv428sequence_point_outside_strip" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Offset sentinel denoting that a Sequence Point is outside a <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>. </p>
-<p>Every valid zero-based <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> offset is strictly less than <code class="docutils literal notranslate"><span class="pre">frame_count</span></code>, so the maximum unsigned 32-bit value is never a valid result. </p>
-</dd></dl>
-
-</div>
 </dd></dl>
 
 <dl>
@@ -1852,9 +1768,9 @@ Doxygen documentation maintained beside every implementation unit in
 <div class="docutils container">
 <em>#include “<a class="reference internal" href="#algorithms_2mask__strip_2index_8hpp"><span class="std std-ref">./algorithms/mask_strip/index.hpp</span></a>”</em></div>
 <div class="docutils container">
-<em>#include “<a class="reference internal" href="#algorithms_2resolve__initial__projection_2index_8hpp"><span class="std std-ref">./algorithms/resolve_initial_projection/index.hpp</span></a>”</em></div>
-<div class="docutils container">
 <em>#include “<a class="reference internal" href="#auxiliary_2run__projector__to__frame__index_2index_8hpp"><span class="std std-ref">./auxiliary/run_projector_to_frame_index/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#auxiliary_2strip__contains__sequence__point_2index_8hpp"><span class="std std-ref">./auxiliary/strip_contains_sequence_point/index.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include “<a class="reference internal" href="#classes_2footage__span__buffer_2index_8hpp"><span class="std std-ref">./classes/footage_span_buffer/index.hpp</span></a>”</em></div>
 <div class="docutils container">
@@ -1864,11 +1780,11 @@ Doxygen documentation maintained beside every implementation unit in
 <div class="docutils container">
 <em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">./declarations/projector/index.hpp</span></a>”</em></div>
 <div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2sentinels_2index_8hpp"><span class="std std-ref">./declarations/sentinels/index.hpp</span></a>”</em></div>
+<div class="docutils container">
 <em>#include &lt;algorithm&gt;</em></div>
 <div class="docutils container">
 <em>#include &lt;cstdint&gt;</em></div>
-<div class="docutils container">
-<em>#include &lt;limits&gt;</em></div>
 <div class="docutils container">
 <em>#include &lt;optional&gt;</em></div>
 <div class="docutils container">
@@ -1998,6 +1914,11 @@ Doxygen documentation maintained beside every implementation unit in
 </dd></dl>
 
 <dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv422get_footage_span_countv">
+<span id="_CPPv322get_footage_span_countv"></span><span id="_CPPv222get_footage_span_countv"></span><span id="get_footage_span_count"></span><span class="target" id="main_8cpp_1abad50689821735c9dc2cac63e169071b"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_footage_span_count</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv422get_footage_span_countv" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv426get_projection_frame_countKNSt8uint32_tE">
 <span id="_CPPv326get_projection_frame_countKNSt8uint32_tE"></span><span id="_CPPv226get_projection_frame_countKNSt8uint32_tE"></span><span id="get_projection_frame_count__std::uint32_tC"></span><span class="target" id="main_8cpp_1a0fe77fde3cbbb4e3190b29d915a89e31"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_projection_frame_count</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv426get_projection_frame_countKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Return the Frame count of one Replica’s Projection. </p>
@@ -2067,7 +1988,7 @@ Doxygen documentation maintained beside every implementation unit in
 <span id="_CPPv325merge_strip_into_sequenceKNSt8uint32_tE"></span><span id="_CPPv225merge_strip_into_sequenceKNSt8uint32_tE"></span><span id="merge_strip_into_sequence__std::uint32_tC"></span><span class="target" id="main_8cpp_1a5c96e83a8d3b81b22f3b60106c8c9f62"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">merge_strip_into_sequence</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sequence_id</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv425merge_strip_into_sequenceKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Integrate the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> currently encoded in <a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a> into a Replica. </p>
 <p>A Delta crosses this interface one <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> at a time; locally issued Strips use the same path. <a class="reference internal" href="#classStripBuffer"><span class="std std-ref">StripBuffer</span></a> appends the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> directly to <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> storage and <a class="reference internal" href="#classHashTable"><span class="std std-ref">HashTable</span></a> indexes visible Frame containment. Duplicate transfer metadata is dropped before dense storage grows.</p>
-<p>Every new <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> initially receives self-links. If the <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> has no initial Projection or the referenced containment is absent or still Pending, the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> remains staged and no Projection index is returned. Otherwise a visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is integrated through <code class="docutils literal notranslate"><a class="reference internal" href="#algorithms_2insert__strip_2index_8hpp_1af5f9c1522d23ee10ff841d19a7e6e264"><span class="std std-ref"><span class="pre">insert_strip</span></span></a></code>; a Mask resolves its first existing Frame and is integrated through <code class="docutils literal notranslate"><a class="reference internal" href="#algorithms_2mask__strip_2index_8hpp_1a29ceca3adb3dd99bcf9e1294bb5db668"><span class="std std-ref"><span class="pre">mask_strip</span></span></a></code>. Sibling order is handled centrally by <code class="docutils literal notranslate"><a class="reference internal" href="#auxiliary_2insert__between_2index_8hpp_1ac4daffc666a3149b71f646f9d86a9d07"><span class="std std-ref"><span class="pre">insert_between</span></span></a></code> using <code class="docutils literal notranslate"><span class="pre">is_inverse</span></code>.</p>
+<p>Every new <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> initially receives self-links. If the <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a> has no initial Projection or the referenced containment is absent or still Pending, the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> remains staged and no Projection index is returned. Otherwise a visible <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> is integrated through <code class="docutils literal notranslate"><a class="reference internal" href="#algorithms_2insert__strip_2index_8hpp_1a7bb9be3bb8f0f5fb7a4f434ba03f632b"><span class="std std-ref"><span class="pre">insert_strip</span></span></a></code>; a Mask resolves its first existing Frame and is integrated through <code class="docutils literal notranslate"><a class="reference internal" href="#algorithms_2mask__strip_2index_8hpp_1a7eeb3635edb679a9a73786248e1355bc"><span class="std std-ref"><span class="pre">mask_strip</span></span></a></code>. Sibling order is handled centrally by <code class="docutils literal notranslate"><a class="reference internal" href="#auxiliary_2insert__between_2index_8hpp_1a390ab272be1d632f2914d20282c7b2e3"><span class="std std-ref"><span class="pre">insert_between</span></span></a></code> using <code class="docutils literal notranslate"><span class="pre">is_inverse</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This operation performs no dependency walk. </p>
@@ -2077,7 +1998,7 @@ Doxygen documentation maintained beside every implementation unit in
 <dd class="field-odd"><p><strong>sequence_id</strong> – Identifier of the sequence receiving the buffered strip. </p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Projection frame index at which the incoming <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> begins. For a Mask, the index is measured before its Frame Span leaves the Projection. <code class="docutils literal notranslate"><span class="pre">no_projection_frame_index</span></code> means the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> was a duplicate or remains Pending/staged. </p>
+<dd class="field-even"><p>Projection frame index at which the incoming <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> begins. For a Mask, the index is measured before its Frame Span leaves the Projection. <code class="docutils literal notranslate"><span class="pre">u32_max</span></code> means the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> was a duplicate or remains Pending/staged. </p>
 </dd>
 <dt class="field-odd">Pre<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">sequence_id</span></code> identifies an active <a class="reference internal" href="#structProjector"><span class="std std-ref">Projector</span></a>. </p>
@@ -2341,12 +2262,6 @@ Doxygen documentation maintained beside every implementation unit in
 </dd></dl>
 
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv425no_projection_frame_index">
-<span id="_CPPv325no_projection_frame_index"></span><span id="_CPPv225no_projection_frame_index"></span><span id="no_projection_frame_index__std::uint32_t"></span><span class="target" id="main_8cpp_1ac5dfc095d7c2935d25ce542a055e94dd"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">no_projection_frame_index</span></span></span><a class="headerlink" href="#_CPPv425no_projection_frame_index" title="Link to this definition">¶</a><br /></dt>
-<dd><p>ABI sentinel indicating that no Projection frame index was produced. </p>
-</dd></dl>
-
-<dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv414pending_cursor">
 <span id="_CPPv314pending_cursor"></span><span id="_CPPv214pending_cursor"></span><span id="pending_cursor__std::uint32_t"></span><span class="target" id="main_8cpp_1a37ed3abc9eb1d4c81bb6b095e73bb095"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pending_cursor</span></span></span><a class="headerlink" href="#_CPPv414pending_cursor" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Current Stable Position in self-linked Pending traversal. </p>
@@ -2451,11 +2366,6 @@ Doxygen documentation maintained beside every implementation unit in
 
 <dl>
 <dt class="sig sig-object cpp">
-<span class="target" id="dir_f816cecb1c12476b91cab57f2b1d5aed"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">algorithms/resolve_initial_projection</span></span></dt>
-<dd></dd></dl>
-
-<dl>
-<dt class="sig sig-object cpp">
 <span class="target" id="dir_2c2c38cc5e51ee8768ad3d5990a68d4b"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">auxiliary/run_projector_left</span></span></dt>
 <dd></dd></dl>
 
@@ -2467,6 +2377,16 @@ Doxygen documentation maintained beside every implementation unit in
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="dir_f87ef282f8f510671f7c5d62e9da2d90"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">auxiliary/run_projector_to_frame_index</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_6839aa891d1c593588aa9875b90f8908"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">auxiliary/run_projector_to_strip</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_fb641f2075b1dcf063bcedbfc9649236"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">declarations/sentinels</span></span></dt>
 <dd></dd></dl>
 
 <dl>

@@ -94,8 +94,7 @@ public:
    * is indexed immediately; Mask commands are indexed when they materialize
    * over existing fragments.
    *
-   * @param strips Append-only Projector Strip storage.
-   * @param hash_table Sequence Point containment index for the same Projector.
+   * @param projector Projector receiving the decoded Strip.
    * @return `false` for a duplicate, otherwise the appended Stable Position.
    * @pre The words contain a valid transferable Strip representation.
    * @post The buffer contents are unchanged; a nonduplicate visible Strip is

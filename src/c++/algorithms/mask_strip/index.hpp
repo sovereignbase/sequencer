@@ -80,6 +80,7 @@ mask_strip(Projector *projector, const std::uint32_t containing_position,
   projector->length_table.adjust_chekpoints(
       projector, mask_projection_frame_index, removed_frame_count, true);
   projector->projection_frame_count -= removed_frame_count;
+
   const std::uint32_t materialized_position =
       projector->hash_table.get(incoming_mask.coordinate.this_strip_start);
   if (incoming_mask_position != materialized_position) {

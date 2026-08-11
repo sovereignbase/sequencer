@@ -3,7 +3,7 @@
  *
  * @module
  */
-import { is_safe_index } from '../../../helpers/index.js'
+import { is_safe_index, issue_virtual_strip } from '../../../helpers/index.js'
 import type {
   Change,
   Delta,
@@ -16,7 +16,6 @@ import {
   merge_strip_into_sequence,
   read_strip_from_buffer,
   write_strip_at_projection_frame_index_to_buffer,
-  write_strip_to_buffer,
 } from '../../../wasm/index.js'
 
 /**
@@ -24,9 +23,8 @@ import {
  *
  * One Mask is created for each containing Strip crossed by the range, ensuring
  * that every Mask remains contained within one materialized Strip. Its
- * `previous_strip_end` is the containing Strip start and `this_strip_start` is
- * the first masked Frame's existing Sequence Point; masking issues no new
- * points. A hard
+ * previous point is the containing Strip start and its own start is the first
+ * masked Frame's existing Sequence Point; masking issues no new points. A hard
  * deletion also releases the corresponding JavaScript Footage immediately.
  * Released entries become `undefined`; the Footage array is not compacted, so
  * all retained indexes stay stable.
@@ -37,11 +35,9 @@ import {
  * @param end_index Boundary immediately after the final value to delete;
  * defaults to the current length.
  * @param hard Whether to release deleted values immediately instead of
- * retaining them for recovery until compaction.
+ * retaining them for recovery until garbage collection.
  * @returns The consumer-facing Change and transferable Delta, or `false` when
  * the requested range is invalid or empty.
- * @remarks Every iteration resolves the same visible `start_index`, because the
- * preceding accepted Mask removes that fragment from the Projection.
  */
 export function remove<T>(
   state: Replica<T>,
@@ -91,18 +87,14 @@ export function remove<T>(
     )
 
     // Transfer and merge the Mask.
-    const meta: Strip<T>[0] = [
+    const meta: Strip<T>[0] = issue_virtual_strip<T>(
       1,
       0,
       mask_frame_count,
-      containing_strip[3],
-      containing_strip[4],
-      containing_strip[5] + strip_frame_offset,
-      containing_strip[3],
-      containing_strip[4],
-      containing_strip[5],
-    ]
-    void write_strip_to_buffer<T>(meta)
+      containing_strip[6],
+      containing_strip[7] + strip_frame_offset,
+      containing_strip[8]
+    )
     const projection_frame_index = merge_strip_into_sequence(state.id)
 
     // Release accepted hard-deletion Footage without compacting its array.

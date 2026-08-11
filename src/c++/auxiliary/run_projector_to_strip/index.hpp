@@ -31,12 +31,13 @@
  * @complexity O(s) time and O(1) space, where s is the number of linked Strips
  * traversed to the nearest checkpoint.
  */
-inline void run_projector_to_strip(std::uint32_t stable_index, Strip &strip,
-                                   Projector &projector) noexcept {
+inline void run_projector_to_strip(std::uint32_t stable_index,
+                                   const Strip &strip,
+                                   Projector *projector) noexcept {
   if (strip.checkpoint_projection_frame_index !=
       no_checkpoint_projection_frame_index) {
-    projector.gate_strip_index = stable_index;
-    projector.gate_projection_frame_index =
+    projector->gate_strip_index = stable_index;
+    projector->gate_projection_frame_index =
         strip.checkpoint_projection_frame_index;
     return;
   }
@@ -48,25 +49,25 @@ inline void run_projector_to_strip(std::uint32_t stable_index, Strip &strip,
   while (true) {
     ++offset;
 
-    left_index = projector.left[left_index];
-    right_index = projector.right[right_index];
+    left_index = projector->left[left_index];
+    right_index = projector->right[right_index];
 
     const std::uint32_t left_projection_frame_index =
-        projector.strips[left_index].checkpoint_projection_frame_index;
+        projector->strips[left_index].checkpoint_projection_frame_index;
 
     const std::uint32_t right_projection_frame_index =
-        projector.strips[right_index].checkpoint_projection_frame_index;
+        projector->strips[right_index].checkpoint_projection_frame_index;
 
     if (left_projection_frame_index != no_checkpoint_projection_frame_index) {
-      projector.gate_strip_index = left_index;
-      projector.gate_projection_frame_index =
+      projector->gate_strip_index = left_index;
+      projector->gate_projection_frame_index =
           left_projection_frame_index + offset;
       return;
     }
 
     if (right_projection_frame_index != no_checkpoint_projection_frame_index) {
-      projector.gate_strip_index = right_index;
-      projector.gate_projection_frame_index =
+      projector->gate_strip_index = right_index;
+      projector->gate_projection_frame_index =
           right_projection_frame_index - offset;
       return;
     }

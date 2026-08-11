@@ -9,8 +9,8 @@
 #pragma once
 
 #include "../../classes/hash_table/index.hpp"
-#include "../strip/index.hpp"
 #include "../../classes/length_table/index.hpp"
+#include "../strip/index.hpp"
 #include <cstdint>
 #include <vector>
 
@@ -87,5 +87,4 @@ struct Projector {
 
   /** @brief Dense index of the materialized Strip cached by the Gate. */
   std::uint32_t gate_strip_index{0};
-
 };

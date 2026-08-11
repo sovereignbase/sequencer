@@ -18,7 +18,6 @@
 #include "./algorithms/insert_strip/index.hpp"
 #include "./algorithms/mask_strip/index.hpp"
 #include "./auxiliary/run_projector_to_frame_index/index.hpp"
-#include "./auxiliary/strip_contains_sequence_point/index.hpp"
 #include "./classes/footage_span_buffer/index.hpp"
 #include "./classes/frontier_buffer/index.hpp"
 #include "./classes/strip_buffer/index.hpp"
@@ -274,78 +273,15 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
     return u32_max;
 
   const Strip incoming_strip = projector->strips[strip_index];
-  if (incoming_strip.is_masked == 0) {
-    const std::uint32_t result = insert_strip(projector, strip_index);
-    if (result == u32_max)
-      return u32_max;
-
-    const std::uint32_t strip_count =
-        static_cast<std::uint32_t>(projector->strips.size());
-    for (std::uint32_t index = 0; index < strip_count; ++index)
-      if (projector->strips[index].is_masked == 0)
-        static_cast<void>(
-            insert_strip(projector, index, &footage_span_buffer));
-
-    for (std::uint32_t index = 0; index < strip_count; ++index) {
-      const Strip &pending_mask = projector->strips[index];
-      if (pending_mask.is_masked == 0 || projector->left[index] != index ||
-          projector->right[index] != index)
-        continue;
-      const auto [masked_strip_index, masked_offset] =
-          projector->hash_table.get(
-              pending_mask.coordinate.previous_strip_end);
-      if (masked_strip_index != u32_max)
-        static_cast<void>(mask_strip(projector, masked_strip_index, index,
-                                    masked_offset));
-    }
+  const std::uint32_t result = insert_strip(projector, strip_index);
+  if (result == u32_max || incoming_strip.is_masked != 0)
     return result;
-  }
 
-  const SequencePoint &previous_strip_end =
-      incoming_strip.coordinate.previous_strip_end;
-
-  // Resolve the Gate and its immediate retained Sequence neighbours.
-  const std::uint32_t gate_strip_index = projector->gate_strip_index;
-  const std::uint32_t left_strip_index = projector->left[gate_strip_index];
-  const std::uint32_t right_strip_index = projector->right[gate_strip_index];
-
-  // Test the three independent candidates together to expose ILP/MLP.
-  const std::uint32_t gate_offset = strip_contains_sequence_point(
-      &projector->strips[gate_strip_index], &previous_strip_end);
-
-  const std::uint32_t left_offset = strip_contains_sequence_point(
-      &projector->strips[left_strip_index], &previous_strip_end);
-
-  const std::uint32_t right_offset = strip_contains_sequence_point(
-      &projector->strips[right_strip_index], &previous_strip_end);
-
-  std::uint32_t containing_strip_index;
-  std::uint32_t offset;
-
-  if (gate_offset != u32_max) {
-    containing_strip_index = gate_strip_index;
-    offset = gate_offset;
-  } else if (left_offset != u32_max) {
-    containing_strip_index = left_strip_index;
-    offset = left_offset;
-  } else if (right_offset != u32_max) {
-    containing_strip_index = right_strip_index;
-    offset = right_offset;
-  } else {
-    const auto result = projector->hash_table.get(previous_strip_end);
-
-    containing_strip_index = result.first;
-    offset = result.second;
-  }
-
-  const auto is_linked = [projector](const std::uint32_t index) {
-    return projector->strips[index].checkpoint_projection_frame_index == 0 ||
-           projector->left[index] != index || projector->right[index] != index;
-  };
-  if (containing_strip_index == u32_max || !is_linked(containing_strip_index))
-    return u32_max;
-
-  return mask_strip(projector, containing_strip_index, strip_index, offset);
+  const std::uint32_t strip_count =
+      static_cast<std::uint32_t>(projector->strips.size());
+  for (std::uint32_t index = 0; index < strip_count; ++index)
+    static_cast<void>(insert_strip(projector, index, &footage_span_buffer));
+  return result;
 }
 
 /**
@@ -397,18 +333,7 @@ resolve_initial_projection(const std::uint32_t sequence_id) noexcept {
   projector->length_table.initialize(root_index);
 
   for (std::uint32_t strip_index = 0; strip_index < strip_count; ++strip_index)
-    if (projector->strips[strip_index].is_masked == 0)
-      static_cast<void>(insert_strip(projector, strip_index));
-
-  for (std::uint32_t strip_index = 0; strip_index < strip_count;
-       ++strip_index) {
-    if (projector->strips[strip_index].is_masked == 0)
-      continue;
-    const auto [containing_strip_index, offset] = projector->hash_table.get(
-        projector->strips[strip_index].coordinate.previous_strip_end);
-    static_cast<void>(
-        mask_strip(projector, containing_strip_index, strip_index, offset));
-  }
+    static_cast<void>(insert_strip(projector, strip_index));
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ACKNOWLEDGING

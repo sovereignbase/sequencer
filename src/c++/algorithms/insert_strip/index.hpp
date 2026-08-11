@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include "../mask_strip/index.hpp"
 #include "../../auxiliary/insert_between/index.hpp"
 #include "../../auxiliary/run_projector_to_strip/index.hpp"
 #include "../../auxiliary/split_strip/index.hpp"
@@ -60,6 +61,10 @@ insert_strip(Projector *projector, const std::uint32_t incoming_strip_index,
     offset = resolved.second;
   }
 
+  if (inserted_strip.is_masked != 0)
+    return mask_strip(projector, resolved_containing_strip_index,
+                      incoming_strip_index, offset);
+
   const Strip containing_strip =
       projector->strips[resolved_containing_strip_index];
   const std::uint32_t split_frame_offset =
@@ -89,6 +94,13 @@ insert_strip(Projector *projector, const std::uint32_t incoming_strip_index,
       boundary_projection_frame_index + sibling_frame_offset);
   projector->length_table.adjust_checkpoints(projector, projection_frame_index,
                                              inserted_strip.frame_count, false);
+  if (projection_frame_index == 0) {
+    projector->strips[projector->length_table.nearest_checkpoint(0).first]
+        .checkpoint_projection_frame_index = u32_max;
+    projector->length_table.set_first(incoming_strip_index);
+    projector->strips[incoming_strip_index]
+        .checkpoint_projection_frame_index = 0;
+  }
   projector->projection_frame_count += inserted_strip.frame_count;
   projector->gate_strip_index = incoming_strip_index;
   projector->gate_projection_frame_index = projection_frame_index;

@@ -41,6 +41,10 @@ public:
     checkpoints.push_back(stable_position);
   }
 
+  inline void set_first(const std::uint32_t stable_position) noexcept {
+    checkpoints[0] = stable_position;
+  }
+
   [[nodiscard]] inline bool is_empty() const noexcept {
     return checkpoints.empty();
   }

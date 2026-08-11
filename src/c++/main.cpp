@@ -314,7 +314,8 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
   return incoming_strip.is_masked > 0
              ? mask_strip(projector, containing_strip_index, strip_index,
                           offset)
-             : insert_strip(projector, containing_strip_index, strip_index);
+             : insert_strip(projector, containing_strip_index, strip_index,
+                            offset);
 }
 
 /**

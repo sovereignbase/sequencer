@@ -42,6 +42,7 @@ inline void run_projector_to_strip(std::uint32_t stable_index,
     return;
   }
 
+  const std::uint32_t gate_strip_index = stable_index;
   std::uint32_t offset = 0;
   do {
     stable_index = projector->left[stable_index];
@@ -51,7 +52,7 @@ inline void run_projector_to_strip(std::uint32_t stable_index,
   } while (projector->strips[stable_index]
                .checkpoint_projection_frame_index == u32_max);
 
-  projector->gate_strip_index = stable_index;
+  projector->gate_strip_index = gate_strip_index;
   projector->gate_projection_frame_index =
       projector->strips[stable_index].checkpoint_projection_frame_index +
       offset;

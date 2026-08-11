@@ -23,9 +23,9 @@
 #include "./classes/frontier_buffer/index.hpp"
 #include "./classes/strip_buffer/index.hpp"
 #include "./declarations/projector/index.hpp"
+#include "./declarations/sentinels/index.hpp"
 #include <algorithm>
 #include <cstdint>
-#include <limits>
 #include <optional>
 #include <vector>
 
@@ -58,12 +58,6 @@ static std::uint32_t structural_start;
 
 /** @brief Current Stable Position in self-linked Pending traversal. */
 static std::uint32_t pending_cursor;
-
-/**
- * @brief ABI sentinel indicating that no Projection frame index was produced.
- */
-static constexpr std::uint32_t no_projection_frame_index =
-    std::numeric_limits<std::uint32_t>::max();
 
 extern "C" {
 
@@ -181,7 +175,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_recovery_footage_spans_to_buffer(
     return 0;
 
   const std::uint32_t first_position =
-      projector.length_table.nearest_chekpoint(0).first;
+      projector.length_table.nearest_checkpoint(0).first;
   std::uint32_t position = first_position;
   do {
     const Strip &strip = projector.strips[position];
@@ -210,8 +204,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_recovery_footage_spans_to_buffer(
  * @complexity Linear in the structural Strips crossed by the selected range,
  * after bounded Gate positioning.
  */
-EMSCRIPTEN_KEEPALIVE std::uint32_t
-write_projection_footage_spans_to_buffer(
+EMSCRIPTEN_KEEPALIVE std::uint32_t write_projection_footage_spans_to_buffer(
     const std::uint32_t sequence_id, const std::uint32_t start_index,
     const std::uint32_t end_index) noexcept {
   Projector *projector = &*projectors[sequence_id];
@@ -221,8 +214,7 @@ write_projection_footage_spans_to_buffer(
 
   run_projector_to_frame_index(projector, start_index);
   std::uint32_t position = projector->gate_strip_index;
-  std::uint32_t projection_frame_index =
-      projector->gate_projection_frame_index;
+  std::uint32_t projection_frame_index = projector->gate_projection_frame_index;
   while (projection_frame_index < end_index) {
     const Strip &strip = projector->strips[position];
     if (strip.is_masked == 0) {
@@ -249,9 +241,9 @@ write_projection_footage_spans_to_buffer(
  * @brief Integrate the Strip currently encoded in StripBuffer into a Replica.
  *
  * A Delta crosses this interface one Strip at a time; locally issued Strips use
- * the same path. StripBuffer appends the Strip directly to Projector storage and
- * HashTable indexes visible Frame containment. Duplicate transfer metadata is
- * dropped before dense storage grows.
+ * the same path. StripBuffer appends the Strip directly to Projector storage
+ * and HashTable indexes visible Frame containment. Duplicate transfer metadata
+ * is dropped before dense storage grows.
  *
  * Every new Strip initially receives self-links. If the Projector has no
  * initial Projection or the referenced containment is absent or still Pending,
@@ -263,7 +255,7 @@ write_projection_footage_spans_to_buffer(
  * @param sequence_id Identifier of the sequence receiving the buffered strip.
  * @return Projection frame index at which the incoming Strip begins. For a
  * Mask, the index is measured before its Frame Span leaves the Projection.
- * `no_projection_frame_index` means the Strip was a duplicate or remains
+ * `u32_max` means the Strip was a duplicate or remains
  * Pending/staged.
  * @pre `sequence_id` identifies an active Projector.
  * @pre StripBuffer contains one valid transferable Strip representation.
@@ -280,27 +272,28 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
       .unix_lower_bits = words[7],
       .counter_bits = words[8],
   };
-  const std::uint32_t containing_position =
+  const auto [containing_position, offset] =
       projector->hash_table.get(previous_strip_end);
+
   const std::size_t previous_strip_count = projector->strips.size();
   const std::uint32_t stable_position =
       strip_buffer.read_strip(projector->strips, projector->hash_table);
 
   if (projector->strips.size() == previous_strip_count)
-    return no_projection_frame_index;
+    return u32_max;
 
   projector->left.push_back(stable_position);
   projector->right.push_back(stable_position);
   const Strip &incoming_strip = projector->strips[stable_position];
 
-  if (containing_position != HashTable::no_stable_position)
+  if (containing_position != u32_max)
     projector->left[stable_position] = containing_position;
 
   if (projector->length_table.is_empty() ||
-      containing_position == HashTable::no_stable_position ||
+      containing_position == u32_max ||
       (projector->right[containing_position] == containing_position &&
        projector->gate_strip_index != containing_position))
-    return no_projection_frame_index;
+    return u32_max;
 
   return incoming_strip.is_masked > 0
              ? mask_strip(projector,
@@ -320,8 +313,8 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
  * @param sequence_id Identifier of the sequence whose staged graph is resolved.
  * @pre `sequence_id` identifies an active Projector.
  */
-EMSCRIPTEN_KEEPALIVE void resolve_initial_projection(
-    const std::uint32_t sequence_id) noexcept {
+EMSCRIPTEN_KEEPALIVE void
+resolve_initial_projection(const std::uint32_t sequence_id) noexcept {
   resolve_initial_projection(&*projectors[sequence_id]);
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -350,9 +343,10 @@ get_acknowledgement_frontier_buffer_pointer() noexcept {
  * @brief Materialize one Replica's Frontier in the shared buffer.
  *
  * Structural traversal writes the greatest materialized Strip start of every
- * represented Realm directly to FrontierBuffer. Visible Strips and Masks contribute
- * equally: acknowledgement concerns materialized Sequence state, while Mask
- * eligibility is decided during compaction. Entry order is unspecified.
+ * represented Realm directly to FrontierBuffer. Visible Strips and Masks
+ * contribute equally: acknowledgement concerns materialized Sequence state,
+ * while Mask eligibility is decided during compaction. Entry order is
+ * unspecified.
  *
  * @param sequence_id Identifier of the active sequence to acknowledge.
  * @return Number of Realm entries written to the Frontier buffer.
@@ -457,7 +451,7 @@ compact_sequence(const std::uint32_t sequence_id) noexcept {
     return 0;
 
   const std::uint32_t first_position =
-      projector.length_table.nearest_chekpoint(0).first;
+      projector.length_table.nearest_checkpoint(0).first;
   std::uint32_t position = first_position;
   do {
     const Strip &strip = projector.strips[position];
@@ -527,11 +521,8 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_first_structural_strip_to_buffer(
     const std::uint32_t sequence_id) noexcept {
   // Reject an empty retained Sequence without changing shared state.
   Projector *projector = &*projectors[sequence_id];
-  if (projector->length_table.is_empty())
-    return 0;
 
-  structural_start =
-      projector->length_table.nearest_chekpoint(0).first;
+  structural_start = projector->length_table.nearest_checkpoint(0).first;
   structural_cursor = structural_start;
   projector->gate_strip_index = structural_start;
   projector->gate_projection_frame_index = 0;
@@ -581,7 +572,7 @@ write_first_pending_strip_to_buffer(const std::uint32_t sequence_id) noexcept {
   Projector &projector = *projectors[sequence_id];
   const std::uint32_t materialized_single_position =
       projector.length_table.is_empty()
-          ? HashTable::no_stable_position
+          ? u32_max
           : projector.length_table.nearest_chekpoint(0).first;
   for (pending_cursor = 0; pending_cursor < projector.strips.size();
        ++pending_cursor)

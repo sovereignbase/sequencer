@@ -38,15 +38,8 @@ mask_strip(Projector *projector, const std::uint32_t containing_stable_index,
   const Strip &incoming_mask = projector->strips[incoming_mask_stable_index];
   run_projector_to_strip(containing_stable_index, containing_strip, projector);
 
-  SequencePoint masked_frame_start = incoming_mask.coordinate.this_strip_start;
   std::uint32_t remaining_frame_count = incoming_mask.frame_count;
   std::uint32_t current_position = containing_stable_index;
-  std::uint32_t removed_frame_count = 0;
-
-  const Strip &containing_strip = projector->strips[containing_stable_index];
-  const std::uint32_t first_frame_offset =
-      masked_frame_start.counter_bits -
-      containing_strip.coordinate.this_strip_start.counter_bits;
 
   while (remaining_frame_count != 0) {
     const Strip &source = projector->strips[current_position];

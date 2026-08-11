@@ -7,6 +7,7 @@
  * checkpoint and follow the Projector's compact `left` or `right` link vector.
  */
 #pragma once
+#include "../../declarations/sentinels/index.hpp"
 #include "../../declarations/strip/index.hpp"
 #include <cstdint>
 #include <utility>
@@ -113,37 +114,37 @@ public:
 
       // Mark old checkpoint strips as not checkpoints.
       projector->strips[strip_index1].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
       projector->strips[strip_index2].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
       projector->strips[strip_index3].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
       projector->strips[strip_index4].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
       projector->strips[strip_index5].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
       projector->strips[strip_index6].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
       projector->strips[strip_index7].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
       projector->strips[strip_index8].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
       projector->strips[strip_index9].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
       projector->strips[strip_index10].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
       projector->strips[strip_index11].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
       projector->strips[strip_index12].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
       projector->strips[strip_index13].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
       projector->strips[strip_index14].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
       projector->strips[strip_index15].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
       projector->strips[strip_index16].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
 
       if (remove) {
         for (std::uint32_t i = 0; i < length; ++i) {
@@ -248,7 +249,7 @@ public:
 
       // Mark old checkpoint Strip as not a checkpoint.
       projector->strips[strip_index].checkpoint_projection_frame_index =
-          no_checkpoint_projection_frame_index;
+          u32_max;
 
       if (remove) {
         for (std::uint32_t i = 0; i < length; ++i)

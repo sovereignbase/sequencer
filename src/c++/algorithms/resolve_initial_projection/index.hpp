@@ -6,6 +6,7 @@
 
 #include "../../auxiliary/compare_sequence_points/index.hpp"
 #include "../../declarations/projector/index.hpp"
+#include "../../declarations/sentinels/index.hpp"
 #include "../insert_strip/index.hpp"
 #include "../mask_strip/index.hpp"
 #include <algorithm>
@@ -51,7 +52,7 @@ inline void resolve_initial_projection(Projector *projector) noexcept {
     const Strip &strip = projector->strips[position];
     if (strip.is_masked == 0 &&
         projector->hash_table.get(strip.coordinate.previous_strip_end) ==
-            HashTable::no_stable_position)
+            u32_max)
       roots.push_back(position);
   }
   if (roots.empty())
@@ -111,7 +112,7 @@ inline void resolve_initial_projection(Projector *projector) noexcept {
         state[position] = 1;
         const std::uint32_t dependency_position =
             projector->hash_table.get(strip.coordinate.previous_strip_end);
-        if (dependency_position == HashTable::no_stable_position ||
+        if (dependency_position == u32_max ||
             dependency_position == position ||
             (dependency_position < strip_count &&
              state[dependency_position] == 1)) {
@@ -128,7 +129,7 @@ inline void resolve_initial_projection(Projector *projector) noexcept {
 
       const std::uint32_t dependency_position =
           projector->hash_table.get(strip.coordinate.previous_strip_end);
-      if (dependency_position == HashTable::no_stable_position ||
+      if (dependency_position == u32_max ||
           dependency_position == position ||
           !is_materialized(dependency_position)) {
         state[position] = 0;
@@ -139,7 +140,7 @@ inline void resolve_initial_projection(Projector *projector) noexcept {
       const std::uint32_t containing_position = projector->hash_table.get(
           strip.is_masked == 0 ? strip.coordinate.previous_strip_end
                                : strip.coordinate.this_strip_start);
-      if (containing_position == HashTable::no_stable_position) {
+      if (containing_position == u32_max) {
         state[position] = 0;
         resolution_stack.pop_back();
         continue;

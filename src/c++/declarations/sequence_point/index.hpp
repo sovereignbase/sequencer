@@ -14,7 +14,6 @@
 #pragma once
 
 #include <cstdint>
-#include <limits>
 
 /**
  * @brief Stable identity value for one Frame in Sequence space.
@@ -64,18 +63,3 @@ struct SequencePoint {
   operator==(const SequencePoint &other) const noexcept = default;
 };
 
-// Reserved point value outside issued Sequence space.
-
-/**
- * @brief Reserved maximum-valued point outside issued Sequence space.
- *
- * The current dense circular Structural Order does not require a sentinel
- * successor. This constant remains available to code that needs an impossible
- * SequencePoint value and is never transferred through StripBuffer.
- *
- */
-inline constexpr SequencePoint unlinked_strip_start{
-    .crypto_random_bits = std::numeric_limits<std::uint32_t>::max(),
-    .unix_lower_bits = std::numeric_limits<std::uint32_t>::max(),
-    .counter_bits = std::numeric_limits<std::uint32_t>::max(),
-};

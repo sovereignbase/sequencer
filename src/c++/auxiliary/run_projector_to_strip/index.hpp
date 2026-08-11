@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../../declarations/projector/index.hpp"
+#include "../../declarations/sentinels/index.hpp"
 #include "../../declarations/strip/index.hpp"
 #include <cstdint>
 
@@ -34,8 +35,7 @@
 inline void run_projector_to_strip(std::uint32_t stable_index,
                                    const Strip &strip,
                                    Projector *projector) noexcept {
-  if (strip.checkpoint_projection_frame_index !=
-      no_checkpoint_projection_frame_index) {
+  if (strip.checkpoint_projection_frame_index != u32_max) {
     projector->gate_strip_index = stable_index;
     projector->gate_projection_frame_index =
         strip.checkpoint_projection_frame_index;
@@ -58,14 +58,14 @@ inline void run_projector_to_strip(std::uint32_t stable_index,
     const std::uint32_t right_projection_frame_index =
         projector->strips[right_index].checkpoint_projection_frame_index;
 
-    if (left_projection_frame_index != no_checkpoint_projection_frame_index) {
+    if (left_projection_frame_index != u32_max) {
       projector->gate_strip_index = left_index;
       projector->gate_projection_frame_index =
           left_projection_frame_index + offset;
       return;
     }
 
-    if (right_projection_frame_index != no_checkpoint_projection_frame_index) {
+    if (right_projection_frame_index != u32_max) {
       projector->gate_strip_index = right_index;
       projector->gate_projection_frame_index =
           right_projection_frame_index - offset;

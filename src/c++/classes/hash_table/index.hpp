@@ -10,9 +10,9 @@
 #pragma once
 
 #include "../../declarations/sequence_coordinate/index.hpp"
+#include "../../declarations/sentinels/index.hpp"
 #include <algorithm>
 #include <cstdint>
-#include <limits>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -70,10 +70,6 @@ class HashTable {
   std::unique_ptr<Realm[]> realms;
 
 public:
-  /** @brief Lookup result indicating that no Strip contains the Point. */
-  static constexpr std::uint32_t no_stable_position =
-      std::numeric_limits<std::uint32_t>::max();
-
   /**
    * @brief Construct an empty containment table.
    *
@@ -146,17 +142,18 @@ public:
   }
 
   /**
-   * @brief Return the Stable Position of the Strip containing a Point.
+   * @brief Return the Stable Position and Frame offset containing a Point.
    *
    * Lookup performs bit-mask slot selection, Realm equality probing, then an
    * `upper_bound` search for the greatest span start not exceeding the target
    * counter. A final subtraction verifies half-open interval containment.
    *
    * @param point Sequence Point to resolve.
-   * @return Containing Stable Position, or `no_stable_position` when absent.
+   * @return Containing Stable Position and zero-based Frame offset, or two
+   * `u32_max` values when absent.
    * @complexity Expected O(1 + log e) for e entries in the matching Realm.
    */
-  [[nodiscard]] inline std::uint32_t
+  [[nodiscard]] inline std::pair<std::uint32_t, std::uint32_t>
   get(const SequencePoint &point) const noexcept {
     std::uint32_t realm_index = point.crypto_random_bits & realm_index_mask;
 
@@ -172,16 +169,18 @@ public:
             });
 
         if (entry == realm.entries.begin())
-          return no_stable_position;
+          return {u32_max, u32_max};
 
         --entry;
-        return point.counter_bits - entry->counter_bits < entry->frame_count
-                   ? entry->stable_position
-                   : no_stable_position;
+        const std::uint32_t offset =
+            point.counter_bits - entry->counter_bits;
+        return offset < entry->frame_count
+                   ? std::pair{entry->stable_position, offset}
+                   : std::pair{u32_max, u32_max};
       }
       realm_index = (realm_index + 1) & realm_index_mask;
     }
-    return no_stable_position;
+    return {u32_max, u32_max};
   }
 
   /**

@@ -10,13 +10,9 @@
  */
 #pragma once
 
+#include "../sentinels/index.hpp"
 #include "../sequence_coordinate/index.hpp"
 #include <cstdint>
-#include <limits>
-
-/** @brief Sentinel denoting that a Strip is not a LengthTable checkpoint. */
-inline constexpr std::uint32_t no_checkpoint_projection_frame_index =
-    std::numeric_limits<std::uint32_t>::max();
 
 /**
  * @brief Material representation of one contiguous Frame Span.
@@ -105,20 +101,9 @@ struct Strip {
   /**
    * @brief Exact visible Projection start when this Strip is a checkpoint.
    *
-   * `no_checkpoint_projection_frame_index` denotes an ordinary Strip. This
+   * `u32_max` denotes an ordinary Strip. This
    * runtime-only marker lets Structural Order traversal recognize a checkpoint
    * with one direct Strip load instead of searching the LengthTable.
    */
-  std::uint32_t checkpoint_projection_frame_index{
-      no_checkpoint_projection_frame_index};
+  std::uint32_t checkpoint_projection_frame_index{u32_max};
 };
-
-// Sequence-point containment result sentinel.
-/**
- * @brief Offset sentinel denoting that a Sequence Point is outside a Strip.
- *
- * Every valid zero-based Strip offset is strictly less than `frame_count`, so
- * the maximum unsigned 32-bit value is never a valid result.
- */
-inline constexpr std::uint32_t sequence_point_outside_strip =
-    std::numeric_limits<std::uint32_t>::max();

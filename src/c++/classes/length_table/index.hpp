@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <utility>
 #include <vector>
+#include <wasm_simd128.h>
 
 /**
  * @brief Periodic dense-index entry points into one Projector Projection.
@@ -61,8 +62,9 @@ public:
    * traversed.
    * @param projection_frame_index Projection position selecting the first
    * affected checkpoint interval.
-   * @param length Number of Projection positions inserted or removed.
-   * @param remove `true` for removal and `false` for insertion.
+   * @param strip_steps Number of strips to move.
+   * @param remove `true` for removal and `false` for insertion determines
+   * direction to move.
    * @pre `projector` is non-null.
    * @pre Every traversed checkpoint and link is a valid dense Projector
    * index.
@@ -72,515 +74,158 @@ public:
   template <typename ProjectorType>
   inline void adjust_checkpoints(ProjectorType *projector,
                                  std::uint32_t projection_frame_index,
-                                 std::uint32_t length, bool remove) noexcept {
-
-    const std::uint32_t projection_frame_count =
-        remove ? projector->projection_frame_count - length
-               : projector->projection_frame_count + length;
-    if (projection_frame_count < 256u)
-      return;
-
-    // The next checkpoint after the edit area.
-    std::uint32_t checkpoint_index =
-        (projection_frame_index + 255u) / 256u;
-    if (checkpoint_index == 0)
-      checkpoint_index = 1;
-
-    const std::uint32_t previous_checkpoint_count =
-        static_cast<std::uint32_t>(checkpoints.size());
-    const std::uint32_t last_checkpoint = checkpoints.back();
-    checkpoints.resize((projection_frame_count + 255u) / 256u,
-                       last_checkpoint);
+                                 std::uint32_t strip_steps,
+                                 bool remove) noexcept {
+    std::uint32_t checkpoint_index = (projection_frame_index >> 8) + 1u;
 
     const std::uint32_t checkpoint_count =
         static_cast<std::uint32_t>(checkpoints.size());
 
+    if (checkpoint_index >= checkpoint_count)
+      return;
+
     const std::uint32_t block_end =
         checkpoint_index + ((checkpoint_count - checkpoint_index) & ~15u);
 
+    const std::uint32_t *links =
+        remove ? projector->left.data() : projector->right.data();
+
+    std::uint32_t *checkpoint_data = checkpoints.data();
+
     while (checkpoint_index < block_end) {
+      alignas(32) std::uint32_t strip_indices[16];
 
-      // MLP/ILP.
-      std::uint32_t checkpoint_index1 = checkpoint_index;
-      std::uint32_t checkpoint_index2 = checkpoint_index + 1u;
-      std::uint32_t checkpoint_index3 = checkpoint_index + 2u;
-      std::uint32_t checkpoint_index4 = checkpoint_index + 3u;
-      std::uint32_t checkpoint_index5 = checkpoint_index + 4u;
-      std::uint32_t checkpoint_index6 = checkpoint_index + 5u;
-      std::uint32_t checkpoint_index7 = checkpoint_index + 6u;
-      std::uint32_t checkpoint_index8 = checkpoint_index + 7u;
-      std::uint32_t checkpoint_index9 = checkpoint_index + 8u;
-      std::uint32_t checkpoint_index10 = checkpoint_index + 9u;
-      std::uint32_t checkpoint_index11 = checkpoint_index + 10u;
-      std::uint32_t checkpoint_index12 = checkpoint_index + 11u;
-      std::uint32_t checkpoint_index13 = checkpoint_index + 12u;
-      std::uint32_t checkpoint_index14 = checkpoint_index + 13u;
-      std::uint32_t checkpoint_index15 = checkpoint_index + 14u;
-      std::uint32_t checkpoint_index16 = checkpoint_index + 15u;
+      // Explicit SIMD load of 16 checkpoint Strip indices.
+      const v128_t v0 = *reinterpret_cast<volatile const v128_t *>(
+          checkpoint_data + checkpoint_index + 0u);
+      const v128_t v1 = *reinterpret_cast<volatile const v128_t *>(
+          checkpoint_data + checkpoint_index + 4u);
+      const v128_t v2 = *reinterpret_cast<volatile const v128_t *>(
+          checkpoint_data + checkpoint_index + 8u);
+      const v128_t v3 = *reinterpret_cast<volatile const v128_t *>(
+          checkpoint_data + checkpoint_index + 12u);
 
-      // Load checkpoint strips by stable position.
-      std::uint32_t strip_index1 = checkpoints[checkpoint_index1];
-      std::uint32_t strip_index2 = checkpoints[checkpoint_index2];
-      std::uint32_t strip_index3 = checkpoints[checkpoint_index3];
-      std::uint32_t strip_index4 = checkpoints[checkpoint_index4];
-      std::uint32_t strip_index5 = checkpoints[checkpoint_index5];
-      std::uint32_t strip_index6 = checkpoints[checkpoint_index6];
-      std::uint32_t strip_index7 = checkpoints[checkpoint_index7];
-      std::uint32_t strip_index8 = checkpoints[checkpoint_index8];
-      std::uint32_t strip_index9 = checkpoints[checkpoint_index9];
-      std::uint32_t strip_index10 = checkpoints[checkpoint_index10];
-      std::uint32_t strip_index11 = checkpoints[checkpoint_index11];
-      std::uint32_t strip_index12 = checkpoints[checkpoint_index12];
-      std::uint32_t strip_index13 = checkpoints[checkpoint_index13];
-      std::uint32_t strip_index14 = checkpoints[checkpoint_index14];
-      std::uint32_t strip_index15 = checkpoints[checkpoint_index15];
-      std::uint32_t strip_index16 = checkpoints[checkpoint_index16];
+      strip_indices[0] =
+          static_cast<std::uint32_t>(wasm_i32x4_extract_lane(v0, 0));
+      strip_indices[1] =
+          static_cast<std::uint32_t>(wasm_i32x4_extract_lane(v0, 1));
+      strip_indices[2] =
+          static_cast<std::uint32_t>(wasm_i32x4_extract_lane(v0, 2));
+      strip_indices[3] =
+          static_cast<std::uint32_t>(wasm_i32x4_extract_lane(v0, 3));
 
-      // Mark old checkpoint strips as not checkpoints.
-      projector->strips[strip_index1].checkpoint_projection_frame_index =
-          u32_max;
-      projector->strips[strip_index2].checkpoint_projection_frame_index =
-          u32_max;
-      projector->strips[strip_index3].checkpoint_projection_frame_index =
-          u32_max;
-      projector->strips[strip_index4].checkpoint_projection_frame_index =
-          u32_max;
-      projector->strips[strip_index5].checkpoint_projection_frame_index =
-          u32_max;
-      projector->strips[strip_index6].checkpoint_projection_frame_index =
-          u32_max;
-      projector->strips[strip_index7].checkpoint_projection_frame_index =
-          u32_max;
-      projector->strips[strip_index8].checkpoint_projection_frame_index =
-          u32_max;
-      projector->strips[strip_index9].checkpoint_projection_frame_index =
-          u32_max;
-      projector->strips[strip_index10].checkpoint_projection_frame_index =
-          u32_max;
-      projector->strips[strip_index11].checkpoint_projection_frame_index =
-          u32_max;
-      projector->strips[strip_index12].checkpoint_projection_frame_index =
-          u32_max;
-      projector->strips[strip_index13].checkpoint_projection_frame_index =
-          u32_max;
-      projector->strips[strip_index14].checkpoint_projection_frame_index =
-          u32_max;
-      projector->strips[strip_index15].checkpoint_projection_frame_index =
-          u32_max;
-      projector->strips[strip_index16].checkpoint_projection_frame_index =
-          u32_max;
+      strip_indices[4] =
+          static_cast<std::uint32_t>(wasm_i32x4_extract_lane(v1, 0));
+      strip_indices[5] =
+          static_cast<std::uint32_t>(wasm_i32x4_extract_lane(v1, 1));
+      strip_indices[6] =
+          static_cast<std::uint32_t>(wasm_i32x4_extract_lane(v1, 2));
+      strip_indices[7] =
+          static_cast<std::uint32_t>(wasm_i32x4_extract_lane(v1, 3));
 
-      std::uint32_t moved_frame_count1 = 0;
-      std::uint32_t moved_frame_count2 = 0;
-      std::uint32_t moved_frame_count3 = 0;
-      std::uint32_t moved_frame_count4 = 0;
-      std::uint32_t moved_frame_count5 = 0;
-      std::uint32_t moved_frame_count6 = 0;
-      std::uint32_t moved_frame_count7 = 0;
-      std::uint32_t moved_frame_count8 = 0;
-      std::uint32_t moved_frame_count9 = 0;
-      std::uint32_t moved_frame_count10 = 0;
-      std::uint32_t moved_frame_count11 = 0;
-      std::uint32_t moved_frame_count12 = 0;
-      std::uint32_t moved_frame_count13 = 0;
-      std::uint32_t moved_frame_count14 = 0;
-      std::uint32_t moved_frame_count15 = 0;
-      std::uint32_t moved_frame_count16 = 0;
+      strip_indices[8] =
+          static_cast<std::uint32_t>(wasm_i32x4_extract_lane(v2, 0));
+      strip_indices[9] =
+          static_cast<std::uint32_t>(wasm_i32x4_extract_lane(v2, 1));
+      strip_indices[10] =
+          static_cast<std::uint32_t>(wasm_i32x4_extract_lane(v2, 2));
+      strip_indices[11] =
+          static_cast<std::uint32_t>(wasm_i32x4_extract_lane(v2, 3));
 
-      if (remove) {
-        while (moved_frame_count1 < length || moved_frame_count2 < length ||
-               moved_frame_count3 < length || moved_frame_count4 < length ||
-               moved_frame_count5 < length || moved_frame_count6 < length ||
-               moved_frame_count7 < length || moved_frame_count8 < length ||
-               moved_frame_count9 < length || moved_frame_count10 < length ||
-               moved_frame_count11 < length || moved_frame_count12 < length ||
-               moved_frame_count13 < length || moved_frame_count14 < length ||
-               moved_frame_count15 < length || moved_frame_count16 < length) {
-          if (moved_frame_count1 < length) {
-            strip_index1 = projector->left[strip_index1];
-            if (projector->strips[strip_index1].is_masked == 0)
-              moved_frame_count1 += projector->strips[strip_index1].frame_count;
-          }
-          if (moved_frame_count2 < length) {
-            strip_index2 = projector->left[strip_index2];
-            if (projector->strips[strip_index2].is_masked == 0)
-              moved_frame_count2 += projector->strips[strip_index2].frame_count;
-          }
-          if (moved_frame_count3 < length) {
-            strip_index3 = projector->left[strip_index3];
-            if (projector->strips[strip_index3].is_masked == 0)
-              moved_frame_count3 += projector->strips[strip_index3].frame_count;
-          }
-          if (moved_frame_count4 < length) {
-            strip_index4 = projector->left[strip_index4];
-            if (projector->strips[strip_index4].is_masked == 0)
-              moved_frame_count4 += projector->strips[strip_index4].frame_count;
-          }
-          if (moved_frame_count5 < length) {
-            strip_index5 = projector->left[strip_index5];
-            if (projector->strips[strip_index5].is_masked == 0)
-              moved_frame_count5 += projector->strips[strip_index5].frame_count;
-          }
-          if (moved_frame_count6 < length) {
-            strip_index6 = projector->left[strip_index6];
-            if (projector->strips[strip_index6].is_masked == 0)
-              moved_frame_count6 += projector->strips[strip_index6].frame_count;
-          }
-          if (moved_frame_count7 < length) {
-            strip_index7 = projector->left[strip_index7];
-            if (projector->strips[strip_index7].is_masked == 0)
-              moved_frame_count7 += projector->strips[strip_index7].frame_count;
-          }
-          if (moved_frame_count8 < length) {
-            strip_index8 = projector->left[strip_index8];
-            if (projector->strips[strip_index8].is_masked == 0)
-              moved_frame_count8 += projector->strips[strip_index8].frame_count;
-          }
-          if (moved_frame_count9 < length) {
-            strip_index9 = projector->left[strip_index9];
-            if (projector->strips[strip_index9].is_masked == 0)
-              moved_frame_count9 += projector->strips[strip_index9].frame_count;
-          }
-          if (moved_frame_count10 < length) {
-            strip_index10 = projector->left[strip_index10];
-            if (projector->strips[strip_index10].is_masked == 0)
-              moved_frame_count10 +=
-                  projector->strips[strip_index10].frame_count;
-          }
-          if (moved_frame_count11 < length) {
-            strip_index11 = projector->left[strip_index11];
-            if (projector->strips[strip_index11].is_masked == 0)
-              moved_frame_count11 +=
-                  projector->strips[strip_index11].frame_count;
-          }
-          if (moved_frame_count12 < length) {
-            strip_index12 = projector->left[strip_index12];
-            if (projector->strips[strip_index12].is_masked == 0)
-              moved_frame_count12 +=
-                  projector->strips[strip_index12].frame_count;
-          }
-          if (moved_frame_count13 < length) {
-            strip_index13 = projector->left[strip_index13];
-            if (projector->strips[strip_index13].is_masked == 0)
-              moved_frame_count13 +=
-                  projector->strips[strip_index13].frame_count;
-          }
-          if (moved_frame_count14 < length) {
-            strip_index14 = projector->left[strip_index14];
-            if (projector->strips[strip_index14].is_masked == 0)
-              moved_frame_count14 +=
-                  projector->strips[strip_index14].frame_count;
-          }
-          if (moved_frame_count15 < length) {
-            strip_index15 = projector->left[strip_index15];
-            if (projector->strips[strip_index15].is_masked == 0)
-              moved_frame_count15 +=
-                  projector->strips[strip_index15].frame_count;
-          }
-          if (moved_frame_count16 < length) {
-            strip_index16 = projector->left[strip_index16];
-            if (projector->strips[strip_index16].is_masked == 0)
-              moved_frame_count16 +=
-                  projector->strips[strip_index16].frame_count;
-          }
-        }
-      } else {
-        while (projector->strips[strip_index1].is_masked != 0 ||
-               moved_frame_count1 +
-                       projector->strips[strip_index1].frame_count <=
-                   length ||
-               projector->strips[strip_index2].is_masked != 0 ||
-               moved_frame_count2 +
-                       projector->strips[strip_index2].frame_count <=
-                   length ||
-               projector->strips[strip_index3].is_masked != 0 ||
-               moved_frame_count3 +
-                       projector->strips[strip_index3].frame_count <=
-                   length ||
-               projector->strips[strip_index4].is_masked != 0 ||
-               moved_frame_count4 +
-                       projector->strips[strip_index4].frame_count <=
-                   length ||
-               projector->strips[strip_index5].is_masked != 0 ||
-               moved_frame_count5 +
-                       projector->strips[strip_index5].frame_count <=
-                   length ||
-               projector->strips[strip_index6].is_masked != 0 ||
-               moved_frame_count6 +
-                       projector->strips[strip_index6].frame_count <=
-                   length ||
-               projector->strips[strip_index7].is_masked != 0 ||
-               moved_frame_count7 +
-                       projector->strips[strip_index7].frame_count <=
-                   length ||
-               projector->strips[strip_index8].is_masked != 0 ||
-               moved_frame_count8 +
-                       projector->strips[strip_index8].frame_count <=
-                   length ||
-               projector->strips[strip_index9].is_masked != 0 ||
-               moved_frame_count9 +
-                       projector->strips[strip_index9].frame_count <=
-                   length ||
-               projector->strips[strip_index10].is_masked != 0 ||
-               moved_frame_count10 +
-                       projector->strips[strip_index10].frame_count <=
-                   length ||
-               projector->strips[strip_index11].is_masked != 0 ||
-               moved_frame_count11 +
-                       projector->strips[strip_index11].frame_count <=
-                   length ||
-               projector->strips[strip_index12].is_masked != 0 ||
-               moved_frame_count12 +
-                       projector->strips[strip_index12].frame_count <=
-                   length ||
-               projector->strips[strip_index13].is_masked != 0 ||
-               moved_frame_count13 +
-                       projector->strips[strip_index13].frame_count <=
-                   length ||
-               projector->strips[strip_index14].is_masked != 0 ||
-               moved_frame_count14 +
-                       projector->strips[strip_index14].frame_count <=
-                   length ||
-               projector->strips[strip_index15].is_masked != 0 ||
-               moved_frame_count15 +
-                       projector->strips[strip_index15].frame_count <=
-                   length ||
-               projector->strips[strip_index16].is_masked != 0 ||
-               moved_frame_count16 +
-                       projector->strips[strip_index16].frame_count <=
-                   length) {
-          if (projector->strips[strip_index1].is_masked != 0 ||
-              moved_frame_count1 + projector->strips[strip_index1].frame_count <=
-                  length) {
-            if (projector->strips[strip_index1].is_masked == 0)
-              moved_frame_count1 += projector->strips[strip_index1].frame_count;
-            strip_index1 = projector->right[strip_index1];
-          }
-          if (projector->strips[strip_index2].is_masked != 0 ||
-              moved_frame_count2 + projector->strips[strip_index2].frame_count <=
-                  length) {
-            if (projector->strips[strip_index2].is_masked == 0)
-              moved_frame_count2 += projector->strips[strip_index2].frame_count;
-            strip_index2 = projector->right[strip_index2];
-          }
-          if (projector->strips[strip_index3].is_masked != 0 ||
-              moved_frame_count3 + projector->strips[strip_index3].frame_count <=
-                  length) {
-            if (projector->strips[strip_index3].is_masked == 0)
-              moved_frame_count3 += projector->strips[strip_index3].frame_count;
-            strip_index3 = projector->right[strip_index3];
-          }
-          if (projector->strips[strip_index4].is_masked != 0 ||
-              moved_frame_count4 + projector->strips[strip_index4].frame_count <=
-                  length) {
-            if (projector->strips[strip_index4].is_masked == 0)
-              moved_frame_count4 += projector->strips[strip_index4].frame_count;
-            strip_index4 = projector->right[strip_index4];
-          }
-          if (projector->strips[strip_index5].is_masked != 0 ||
-              moved_frame_count5 + projector->strips[strip_index5].frame_count <=
-                  length) {
-            if (projector->strips[strip_index5].is_masked == 0)
-              moved_frame_count5 += projector->strips[strip_index5].frame_count;
-            strip_index5 = projector->right[strip_index5];
-          }
-          if (projector->strips[strip_index6].is_masked != 0 ||
-              moved_frame_count6 + projector->strips[strip_index6].frame_count <=
-                  length) {
-            if (projector->strips[strip_index6].is_masked == 0)
-              moved_frame_count6 += projector->strips[strip_index6].frame_count;
-            strip_index6 = projector->right[strip_index6];
-          }
-          if (projector->strips[strip_index7].is_masked != 0 ||
-              moved_frame_count7 + projector->strips[strip_index7].frame_count <=
-                  length) {
-            if (projector->strips[strip_index7].is_masked == 0)
-              moved_frame_count7 += projector->strips[strip_index7].frame_count;
-            strip_index7 = projector->right[strip_index7];
-          }
-          if (projector->strips[strip_index8].is_masked != 0 ||
-              moved_frame_count8 + projector->strips[strip_index8].frame_count <=
-                  length) {
-            if (projector->strips[strip_index8].is_masked == 0)
-              moved_frame_count8 += projector->strips[strip_index8].frame_count;
-            strip_index8 = projector->right[strip_index8];
-          }
-          if (projector->strips[strip_index9].is_masked != 0 ||
-              moved_frame_count9 + projector->strips[strip_index9].frame_count <=
-                  length) {
-            if (projector->strips[strip_index9].is_masked == 0)
-              moved_frame_count9 += projector->strips[strip_index9].frame_count;
-            strip_index9 = projector->right[strip_index9];
-          }
-          if (projector->strips[strip_index10].is_masked != 0 ||
-              moved_frame_count10 +
-                      projector->strips[strip_index10].frame_count <=
-                  length) {
-            if (projector->strips[strip_index10].is_masked == 0)
-              moved_frame_count10 +=
-                  projector->strips[strip_index10].frame_count;
-            strip_index10 = projector->right[strip_index10];
-          }
-          if (projector->strips[strip_index11].is_masked != 0 ||
-              moved_frame_count11 +
-                      projector->strips[strip_index11].frame_count <=
-                  length) {
-            if (projector->strips[strip_index11].is_masked == 0)
-              moved_frame_count11 +=
-                  projector->strips[strip_index11].frame_count;
-            strip_index11 = projector->right[strip_index11];
-          }
-          if (projector->strips[strip_index12].is_masked != 0 ||
-              moved_frame_count12 +
-                      projector->strips[strip_index12].frame_count <=
-                  length) {
-            if (projector->strips[strip_index12].is_masked == 0)
-              moved_frame_count12 +=
-                  projector->strips[strip_index12].frame_count;
-            strip_index12 = projector->right[strip_index12];
-          }
-          if (projector->strips[strip_index13].is_masked != 0 ||
-              moved_frame_count13 +
-                      projector->strips[strip_index13].frame_count <=
-                  length) {
-            if (projector->strips[strip_index13].is_masked == 0)
-              moved_frame_count13 +=
-                  projector->strips[strip_index13].frame_count;
-            strip_index13 = projector->right[strip_index13];
-          }
-          if (projector->strips[strip_index14].is_masked != 0 ||
-              moved_frame_count14 +
-                      projector->strips[strip_index14].frame_count <=
-                  length) {
-            if (projector->strips[strip_index14].is_masked == 0)
-              moved_frame_count14 +=
-                  projector->strips[strip_index14].frame_count;
-            strip_index14 = projector->right[strip_index14];
-          }
-          if (projector->strips[strip_index15].is_masked != 0 ||
-              moved_frame_count15 +
-                      projector->strips[strip_index15].frame_count <=
-                  length) {
-            if (projector->strips[strip_index15].is_masked == 0)
-              moved_frame_count15 +=
-                  projector->strips[strip_index15].frame_count;
-            strip_index15 = projector->right[strip_index15];
-          }
-          if (projector->strips[strip_index16].is_masked != 0 ||
-              moved_frame_count16 +
-                      projector->strips[strip_index16].frame_count <=
-                  length) {
-            if (projector->strips[strip_index16].is_masked == 0)
-              moved_frame_count16 +=
-                  projector->strips[strip_index16].frame_count;
-            strip_index16 = projector->right[strip_index16];
-          }
-        }
+      strip_indices[12] =
+          static_cast<std::uint32_t>(wasm_i32x4_extract_lane(v3, 0));
+      strip_indices[13] =
+          static_cast<std::uint32_t>(wasm_i32x4_extract_lane(v3, 1));
+      strip_indices[14] =
+          static_cast<std::uint32_t>(wasm_i32x4_extract_lane(v3, 2));
+      strip_indices[15] =
+          static_cast<std::uint32_t>(wasm_i32x4_extract_lane(v3, 3));
+
+      // Clear old checkpoint markers.
+      for (std::uint32_t lane = 0; lane < 16u; ++lane)
+        projector->strips[strip_indices[lane]]
+            .checkpoint_projection_frame_index = u32_max;
+
+      // 16 independent scalar gather chains.
+      for (std::uint32_t step = 0; step < strip_steps; ++step) {
+        strip_indices[0] = links[strip_indices[0]];
+        strip_indices[1] = links[strip_indices[1]];
+        strip_indices[2] = links[strip_indices[2]];
+        strip_indices[3] = links[strip_indices[3]];
+        strip_indices[4] = links[strip_indices[4]];
+        strip_indices[5] = links[strip_indices[5]];
+        strip_indices[6] = links[strip_indices[6]];
+        strip_indices[7] = links[strip_indices[7]];
+        strip_indices[8] = links[strip_indices[8]];
+        strip_indices[9] = links[strip_indices[9]];
+        strip_indices[10] = links[strip_indices[10]];
+        strip_indices[11] = links[strip_indices[11]];
+        strip_indices[12] = links[strip_indices[12]];
+        strip_indices[13] = links[strip_indices[13]];
+        strip_indices[14] = links[strip_indices[14]];
+        strip_indices[15] = links[strip_indices[15]];
       }
 
-      // Store new checkpoint strips by stable position.
-      checkpoints[checkpoint_index1] = strip_index1;
-      checkpoints[checkpoint_index2] = strip_index2;
-      checkpoints[checkpoint_index3] = strip_index3;
-      checkpoints[checkpoint_index4] = strip_index4;
-      checkpoints[checkpoint_index5] = strip_index5;
-      checkpoints[checkpoint_index6] = strip_index6;
-      checkpoints[checkpoint_index7] = strip_index7;
-      checkpoints[checkpoint_index8] = strip_index8;
-      checkpoints[checkpoint_index9] = strip_index9;
-      checkpoints[checkpoint_index10] = strip_index10;
-      checkpoints[checkpoint_index11] = strip_index11;
-      checkpoints[checkpoint_index12] = strip_index12;
-      checkpoints[checkpoint_index13] = strip_index13;
-      checkpoints[checkpoint_index14] = strip_index14;
-      checkpoints[checkpoint_index15] = strip_index15;
-      checkpoints[checkpoint_index16] = strip_index16;
+      // Explicit SIMD store of the 16 new checkpoint Strip indices.
+      const v128_t o0 =
+          wasm_i32x4_make(static_cast<std::int32_t>(strip_indices[0]),
+                          static_cast<std::int32_t>(strip_indices[1]),
+                          static_cast<std::int32_t>(strip_indices[2]),
+                          static_cast<std::int32_t>(strip_indices[3]));
 
-      // Set indices of new checkpoints multiplied at requester.
-      projector->strips[strip_index1].checkpoint_projection_frame_index =
-          checkpoint_index1;
-      projector->strips[strip_index2].checkpoint_projection_frame_index =
-          checkpoint_index2;
-      projector->strips[strip_index3].checkpoint_projection_frame_index =
-          checkpoint_index3;
-      projector->strips[strip_index4].checkpoint_projection_frame_index =
-          checkpoint_index4;
-      projector->strips[strip_index5].checkpoint_projection_frame_index =
-          checkpoint_index5;
-      projector->strips[strip_index6].checkpoint_projection_frame_index =
-          checkpoint_index6;
-      projector->strips[strip_index7].checkpoint_projection_frame_index =
-          checkpoint_index7;
-      projector->strips[strip_index8].checkpoint_projection_frame_index =
-          checkpoint_index8;
-      projector->strips[strip_index9].checkpoint_projection_frame_index =
-          checkpoint_index9;
-      projector->strips[strip_index10].checkpoint_projection_frame_index =
-          checkpoint_index10;
-      projector->strips[strip_index11].checkpoint_projection_frame_index =
-          checkpoint_index11;
-      projector->strips[strip_index12].checkpoint_projection_frame_index =
-          checkpoint_index12;
-      projector->strips[strip_index13].checkpoint_projection_frame_index =
-          checkpoint_index13;
-      projector->strips[strip_index14].checkpoint_projection_frame_index =
-          checkpoint_index14;
-      projector->strips[strip_index15].checkpoint_projection_frame_index =
-          checkpoint_index15;
-      projector->strips[strip_index16].checkpoint_projection_frame_index =
-          checkpoint_index16;
+      const v128_t o1 =
+          wasm_i32x4_make(static_cast<std::int32_t>(strip_indices[4]),
+                          static_cast<std::int32_t>(strip_indices[5]),
+                          static_cast<std::int32_t>(strip_indices[6]),
+                          static_cast<std::int32_t>(strip_indices[7]));
+
+      const v128_t o2 =
+          wasm_i32x4_make(static_cast<std::int32_t>(strip_indices[8]),
+                          static_cast<std::int32_t>(strip_indices[9]),
+                          static_cast<std::int32_t>(strip_indices[10]),
+                          static_cast<std::int32_t>(strip_indices[11]));
+
+      const v128_t o3 =
+          wasm_i32x4_make(static_cast<std::int32_t>(strip_indices[12]),
+                          static_cast<std::int32_t>(strip_indices[13]),
+                          static_cast<std::int32_t>(strip_indices[14]),
+                          static_cast<std::int32_t>(strip_indices[15]));
+
+      *reinterpret_cast<volatile v128_t *>(checkpoint_data + checkpoint_index +
+                                           0u) = o0;
+      *reinterpret_cast<volatile v128_t *>(checkpoint_data + checkpoint_index +
+                                           4u) = o1;
+      *reinterpret_cast<volatile v128_t *>(checkpoint_data + checkpoint_index +
+                                           8u) = o2;
+      *reinterpret_cast<volatile v128_t *>(checkpoint_data + checkpoint_index +
+                                           12u) = o3;
+
+      // Mark the new checkpoint Strips.
+      for (std::uint32_t lane = 0; lane < 16u; ++lane)
+        projector->strips[strip_indices[lane]]
+            .checkpoint_projection_frame_index = (checkpoint_index + lane) << 8;
 
       checkpoint_index += 16u;
     }
 
-    // Process the remaining checkpoints that do not fill one 16-walker block.
+    // Scalar tail.
     while (checkpoint_index < checkpoint_count) {
+      std::uint32_t strip_index = checkpoint_data[checkpoint_index];
 
-      // Load checkpoint Strip by stable position.
-      std::uint32_t strip_index = checkpoints[checkpoint_index];
-      const std::uint32_t checkpoint_projection_frame_index =
-          projector->strips[strip_index].checkpoint_projection_frame_index;
-
-      // Mark old checkpoint Strip as not a checkpoint.
-      if (checkpoint_index < previous_checkpoint_count)
-        projector->strips[strip_index].checkpoint_projection_frame_index =
-            u32_max;
-
-      const std::uint32_t frame_count =
-          checkpoint_index < previous_checkpoint_count
-              ? length
-              : checkpoint_index * 256u -
-                    checkpoint_projection_frame_index;
-      std::uint32_t moved_frame_count = 0;
-
-      if (remove) {
-        while (moved_frame_count < frame_count) {
-          strip_index = projector->left[strip_index];
-          if (projector->strips[strip_index].is_masked == 0)
-            moved_frame_count += projector->strips[strip_index].frame_count;
-        }
-      } else {
-        while (projector->strips[strip_index].is_masked != 0 ||
-               moved_frame_count + projector->strips[strip_index].frame_count <=
-                   frame_count) {
-          if (projector->strips[strip_index].is_masked == 0)
-            moved_frame_count += projector->strips[strip_index].frame_count;
-          strip_index = projector->right[strip_index];
-        }
-      }
-
-      // Store new checkpoint Strip by stable position.
-      checkpoints[checkpoint_index] = strip_index;
-
-      // Set the exact Projection index of the new checkpoint Strip.
       projector->strips[strip_index].checkpoint_projection_frame_index =
-          remove ? checkpoint_projection_frame_index - moved_frame_count
-                 : checkpoint_projection_frame_index + moved_frame_count;
+          u32_max;
+
+      for (std::uint32_t step = 0; step < strip_steps; ++step)
+        strip_index = links[strip_index];
+
+      checkpoint_data[checkpoint_index] = strip_index;
+
+      projector->strips[strip_index].checkpoint_projection_frame_index =
+          checkpoint_index << 8;
 
       ++checkpoint_index;
     }
   }
-
   /**
    * @brief Return the nearest checkpoint and its visible Projection index.
    *

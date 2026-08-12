@@ -9,6 +9,7 @@
 #include "../../declarations/projector/index.hpp"
 #include <algorithm>
 #include <cstdint>
+#include <wasm_simd128.h>
 
 /**
  * @brief Convert the requested existing Frame Span into materialized Masks.

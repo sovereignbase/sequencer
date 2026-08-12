@@ -13,6 +13,8 @@
 #include "../sentinels/index.hpp"
 #include "../sequence_coordinate/index.hpp"
 #include <cstdint>
+#include <optional>
+#include <vector>
 
 /**
  * @brief Material representation of one contiguous Frame Span.
@@ -97,4 +99,6 @@ struct Strip {
    * with one direct Strip load instead of searching the LengthTable.
    */
   std::uint32_t checkpoint_projection_frame_index{u32_max};
+
+  std::vector<std::uint32_t> child_strip_indices;
 };

@@ -17,13 +17,13 @@
 /**
  * @brief Owned runtime state that materializes one Sequence and its Projection.
  *
- * `strips`, `left`, and `right` share the Stable Position index domain.
+ * `strips`, `left`, and `right` share the Strip Index index domain.
  * Materialized Strips form one circular bidirectional chain. A valid unresolved
  * Strip remains self-linked until Initial Projection Resolution or a later
  * operation materializes it. HashTable maps Sequence Point containment to this
  * dense domain; LengthTable stores periodic entry points into it.
  *
- * The Gate caches one materialized Stable Position and its visible Projection
+ * The Gate caches one materialized Strip Index and its visible Projection
  * start. It accelerates navigation but never determines Sequence order.
  *
  * @invariant `strips.size() == left.size() == right.size()`.
@@ -40,7 +40,7 @@ struct Projector {
   // Authoritative materialized Sequence and Projection state.
 
   /**
-   * @brief Append-only Strip storage indexed by Stable Position.
+   * @brief Append-only Strip storage indexed by Strip Index.
    *
    * It contains materialized and Pending Strips. Structural membership is
    * determined by the matching dense link entries.
@@ -48,29 +48,31 @@ struct Projector {
   std::vector<Strip> strips;
 
   /**
-   * @brief Stable Position immediately to the right in Structural Order.
+   * @brief Strip Index immediately to the right in Structural Order.
    *
    * A Pending Strip points to itself until materialized.
    */
   std::vector<uint32_t> right;
 
   /**
-   * @brief Stable Position immediately to the left in Structural Order.
+   * @brief Strip Index immediately to the left in Structural Order.
    *
    * A Pending Strip points to itself until materialized.
    */
   std::vector<uint32_t> left;
 
   /**
-   * @brief Sequence Point containment index returning Stable Positions.
+   * @brief Lengths indexed by Strip Index .
+   */
+  std::vector<uint32_t> length;
+
+  /**
+   * @brief Sequence Point containment index returning Strip Indexs.
    *
    * HashTable owns compact Realm entries only; Strip objects remain owned by
    * `strips`.
    */
   HashTable hash_table;
-
-  /** @brief Fixed-frequency entry points for bounded Projection traversal. */
-  LengthTable length_table;
 
   /** @brief Total number of visible frames in the current Projection. */
   std::uint32_t projection_frame_count{0};
@@ -85,6 +87,14 @@ struct Projector {
    */
   std::uint32_t gate_projection_frame_index{0};
 
-  /** @brief Dense index of the materialized Strip cached by the Gate. */
+  /** @brief Strip Index of the materialized Strip cached by the Gate. */
+  std::uint32_t head_strip_index{0};
+
+  /** @brief Strip Index of the materialized Strip holding the first projection
+   * frame. */
   std::uint32_t gate_strip_index{0};
+
+  /** @brief Strip Index of the materialized Strip holding the last projection
+   * frame. */
+  std::uint32_t tail_strip_index{0};
 };

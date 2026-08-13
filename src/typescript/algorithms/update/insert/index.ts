@@ -9,7 +9,6 @@ import {
   get_projection_frame_count,
   merge_strip_into_sequence,
   read_strip_from_buffer,
-  resolve_initial_projection,
   write_strip_at_projection_frame_index_to_buffer,
 } from '../../../wasm/index.js'
 
@@ -70,8 +69,7 @@ export function insert<T>(
       state.footage.length
     )
     void state.footage.push(...values)
-    void merge_strip_into_sequence(state.id)
-    resolve_initial_projection(state.id)
+    void merge_strip_into_sequence(state.id, 0)
     void delta.push([meta, values])
     for (let frame_offset = 0; frame_offset < frame_count; frame_offset++)
       change[frame_offset] = values[frame_offset]
@@ -100,7 +98,7 @@ export function insert<T>(
   )
 
   void state.footage.push(...values)
-  void merge_strip_into_sequence(state.id)
+  void merge_strip_into_sequence(state.id, index)
   void delta.push([meta, values])
 
   // Build the consumer-facing visible Change.

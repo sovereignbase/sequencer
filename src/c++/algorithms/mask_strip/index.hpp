@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Materializes a Mask over existing Sequence Frames.
+ * @brief Materializes a Mask over retained Sequence Frames.
  */
 #pragma once
 
@@ -9,30 +9,15 @@
 #include "../../declarations/projector/index.hpp"
 #include <algorithm>
 #include <cstdint>
-#include <wasm_simd128.h>
 
 /**
- * @brief Convert the requested existing Frame Span into materialized Masks.
- *
- * Source Strips are split at the Mask boundaries when necessary. Already
- * masked fragments remain unchanged; only newly hidden Frames reduce the
- * Projection count. HashTable containment is refreshed for every converted
- * fragment, and the detached incoming Mask command is associated with the
- * materialized fragment through its dense links.
- *
+ * @brief Convert the addressed retained Frame Span into materialized Masks.
  * @param projector Owning Projector.
- * @param containing_strip_index Stable Position containing the Mask's first
- * Frame.
- * @param incoming_index_index Stable Position of the staged Mask command.
- * @param offset Frame offset within the containing Strip.
- * @param projection_frame_index Projection index of the first masked Frame.
- * @return Projection Index formerly occupied by the first newly addressed
- * Frame, derived from the nearest surviving LengthTable checkpoint.
- * @pre The Mask names a valid retained Frame Span.
- * @post Every addressed visible fragment is masked and Structural Order is
- * preserved.
- * @complexity Linear in crossed material fragments plus bounded checkpoint
- * adjustment.
+ * @param containing_strip_index Stable Position containing the first Frame.
+ * @param incoming_index_index Stable Position of the Mask command.
+ * @param offset First masked Frame offset in the containing Strip.
+ * @param projection_frame_index Known local Projection position.
+ * @return Projection position occupied by the first masked Frame.
  */
 [[nodiscard]] inline std::uint32_t
 mask_strip(Projector *projector, std::uint32_t containing_strip_index,
@@ -46,25 +31,31 @@ mask_strip(Projector *projector, std::uint32_t containing_strip_index,
                  .coordinate.this_strip_start.counter_bits;
 
   if (projection_frame_index == u32_max) {
-    run_projector_to_strip(containing_strip_index,
-                           projector->strips[containing_strip_index],
-                           projector);
-    projection_frame_index = projector->gate_projection_frame_index + offset;
+    if (projector->projection_frame_count == 0) {
+      projection_frame_index = 0;
+    } else {
+      run_projector_to_strip(containing_strip_index, projector);
+      projection_frame_index = projector->gate_projection_frame_index;
+      if (projector->strips[containing_strip_index].is_masked == 0)
+        projection_frame_index += offset;
+    }
   }
-  std::uint32_t remaining_frame_count = incoming_strip.frame_count;
+
+  std::uint32_t remaining_frame_count =
+      projector->length[incoming_index_index];
   std::uint32_t removed_frame_count = 0;
 
   while (remaining_frame_count != 0) {
-    const Strip &source = projector->strips[containing_strip_index];
+    const std::uint32_t source_frame_count =
+        projector->length[containing_strip_index];
     const std::uint32_t masked_frame_count =
-        std::min(remaining_frame_count, source.frame_count - offset);
+        std::min(remaining_frame_count, source_frame_count - offset);
 
-    if (source.is_masked == 0) {
+    if (projector->strips[containing_strip_index].is_masked == 0) {
       if (offset != 0)
         containing_strip_index =
             split_strip(projector, containing_strip_index, offset);
-      if (masked_frame_count !=
-          projector->strips[containing_strip_index].frame_count)
+      if (masked_frame_count != projector->length[containing_strip_index])
         static_cast<void>(
             split_strip(projector, containing_strip_index, masked_frame_count));
 
@@ -76,24 +67,38 @@ mask_strip(Projector *projector, std::uint32_t containing_strip_index,
     remaining_frame_count -= masked_frame_count;
     if (remaining_frame_count != 0) {
       containing_strip_index = projector->strips[containing_strip_index]
-                                   .right_sibling_frames_strip_index;
+                                   .larger_sibling_frames_strip_index;
       offset = 0;
     }
   }
 
-  projector->length_table.adjust_checkpoints<Projector>(
-      projector, projection_frame_index, removed_frame_count, true);
-  if (projection_frame_index == 0 &&
-      removed_frame_count != projector->projection_frame_count) {
-    projector->strips[projector->length_table.nearest_checkpoint(0).first]
-        .checkpoint_projection_frame_index = u32_max;
-    std::uint32_t first_strip_index = projector->right[containing_strip_index];
-    while (projector->strips[first_strip_index].is_masked != 0)
-      first_strip_index = projector->right[first_strip_index];
-    projector->length_table.set_first(first_strip_index);
-    projector->strips[first_strip_index].checkpoint_projection_frame_index = 0;
+  if (removed_frame_count != 0) {
+    ++projector->projection_generation;
+    projector->projection_frame_count -= removed_frame_count;
+    if (projector->projection_frame_count == 0) {
+      projector->head_strip_index = u32_max;
+      projector->tail_strip_index = u32_max;
+      projector->gate_strip_index = projector->structural_root_strip_index;
+      projector->gate_projection_frame_index = 0;
+    } else {
+      if (projector->strips[projector->head_strip_index].is_masked != 0) {
+        std::uint32_t head_strip_index = projector->head_strip_index;
+        do
+          head_strip_index = projector->right[head_strip_index];
+        while (projector->strips[head_strip_index].is_masked != 0);
+        projector->head_strip_index = head_strip_index;
+      }
+      if (projector->strips[projector->tail_strip_index].is_masked != 0) {
+        std::uint32_t tail_strip_index = projector->tail_strip_index;
+        do
+          tail_strip_index = projector->left[tail_strip_index];
+        while (projector->strips[tail_strip_index].is_masked != 0);
+        projector->tail_strip_index = tail_strip_index;
+      }
+      projector->gate_strip_index = projector->head_strip_index;
+      projector->gate_projection_frame_index = 0;
+    }
   }
-  projector->projection_frame_count -= removed_frame_count;
 
   return projection_frame_index;
 }

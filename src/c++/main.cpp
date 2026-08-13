@@ -55,6 +55,25 @@ static std::uint32_t structural_cursor;
 /** @brief First Stable Position of the active circular Snapshot traversal. */
 static std::uint32_t structural_start;
 
+/** @brief Split fragments already combined into the active Snapshot. */
+static std::vector<bool> structural_skipped_strips;
+
+static inline void write_structural_strip(Projector *projector,
+                                          const std::uint32_t strip_index) {
+  Strip strip = projector->strips[strip_index];
+  std::uint32_t frame_count = projector->length[strip_index];
+  while (strip.larger_sibling_frames_strip_index != u32_max) {
+    const std::uint32_t sibling_strip_index =
+        strip.larger_sibling_frames_strip_index;
+    const Strip &sibling = projector->strips[sibling_strip_index];
+    structural_skipped_strips[sibling_strip_index] = true;
+    frame_count += projector->length[sibling_strip_index];
+    strip.larger_sibling_frames_strip_index =
+        sibling.larger_sibling_frames_strip_index;
+  }
+  strip_buffer.write_strip(strip, frame_count);
+}
+
 /** @brief Current Stable Position in self-linked Pending traversal. */
 static std::uint32_t pending_cursor;
 
@@ -170,16 +189,16 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_recovery_footage_spans_to_buffer(
     const std::uint32_t sequence_id) noexcept {
   Projector &projector = *projectors[sequence_id];
   footage_span_buffer.clear();
-  if (projector.length_table.is_empty())
+  if (projector.structural_root_strip_index == u32_max)
     return 0;
 
   const std::uint32_t first_position =
-      projector.length_table.nearest_checkpoint(0).first;
+      projector.structural_root_strip_index;
   std::uint32_t position = first_position;
   do {
     const Strip &strip = projector.strips[position];
     footage_span_buffer.write_span(strip.footage_frame_index,
-                                   strip.frame_count);
+                                   projector.length[position]);
     position = projector.right[position];
   } while (position != first_position);
 
@@ -221,11 +240,11 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_projection_footage_spans_to_buffer(
           projection_frame_index < start_index
               ? start_index - projection_frame_index
               : 0;
-      const std::uint32_t span_end =
-          std::min(strip.frame_count, end_index - projection_frame_index);
+      const std::uint32_t span_end = std::min(
+          projector->length[position], end_index - projection_frame_index);
       footage_span_buffer.write_span(strip.footage_frame_index + span_start,
                                      span_end - span_start);
-      projection_frame_index += strip.frame_count;
+      projection_frame_index += projector->length[position];
     }
     position = projector->right[position];
   }
@@ -252,6 +271,8 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_projection_footage_spans_to_buffer(
  * handled centrally by `insert_between` using `is_inverse`.
  *
  * @param sequence_id Identifier of the sequence receiving the buffered strip.
+ * @param projection_frame_index Known local Projection position, or `u32_max`
+ * when a remote merge must locate it.
  * @return Projection frame index at which the incoming Strip begins. For a
  * Mask, the index is measured before its Frame Span leaves the Projection.
  * `u32_max` means the Strip was a duplicate or remains
@@ -263,7 +284,9 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_projection_footage_spans_to_buffer(
  * @note This operation performs no dependency walk.
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t
-merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
+merge_strip_into_sequence(
+    const std::uint32_t sequence_id,
+    const std::uint32_t projection_frame_index = u32_max) noexcept {
   Projector *projector = &*projectors[sequence_id];
   footage_span_buffer.clear();
 
@@ -273,7 +296,19 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
     return u32_max;
 
   const Strip incoming_strip = projector->strips[strip_index];
-  const std::uint32_t result = insert_strip(projector, strip_index);
+  if (projector->structural_root_strip_index == u32_max &&
+      projection_frame_index != u32_max) {
+    projector->structural_root_strip_index = strip_index;
+    projector->head_strip_index = strip_index;
+    projector->tail_strip_index = strip_index;
+    projector->gate_strip_index = strip_index;
+    projector->gate_projection_frame_index = 0;
+    projector->projection_frame_count = projector->length[strip_index];
+    return 0;
+  }
+
+  const std::uint32_t result =
+      insert_strip(projector, strip_index, nullptr, projection_frame_index);
   if (result == u32_max || incoming_strip.is_masked != 0)
     return result;
 
@@ -314,10 +349,12 @@ resolve_initial_projection(const std::uint32_t sequence_id) noexcept {
       root_index = strip_index;
   }
 
-  projector->projection_frame_count = projector->strips[root_index].frame_count;
+  projector->projection_frame_count = projector->length[root_index];
+  projector->structural_root_strip_index = root_index;
+  projector->head_strip_index = root_index;
+  projector->tail_strip_index = root_index;
   projector->gate_strip_index = root_index;
   projector->gate_projection_frame_index = 0;
-  projector->strips[root_index].checkpoint_projection_frame_index = 0;
 
   for (std::uint32_t strip_index = 0; strip_index < strip_count;
        ++strip_index) {
@@ -327,17 +364,60 @@ resolve_initial_projection(const std::uint32_t sequence_id) noexcept {
             u32_max) {
       static_cast<void>(insert_between(
           projector, projector->left[root_index], strip_index, root_index));
-      projector->projection_frame_count += strip.frame_count;
+      projector->projection_frame_count += projector->length[strip_index];
     }
   }
-  projector->length_table.initialize(root_index);
+  projector->tail_strip_index = projector->left[root_index];
 
-  for (std::uint32_t strip_index = 0; strip_index < strip_count; ++strip_index)
+  for (std::uint32_t strip_index = 0; strip_index < strip_count; ++strip_index) {
     static_cast<void>(insert_strip(projector, strip_index));
+  }
 
-  projector->gate_strip_index =
-      projector->length_table.nearest_checkpoint(0).first;
+  if (projector->projection_frame_count == 0) {
+    projector->head_strip_index = u32_max;
+    projector->tail_strip_index = u32_max;
+    projector->gate_strip_index = root_index;
+    projector->gate_projection_frame_index = 0;
+    return;
+  }
+
+  projector->head_strip_index = root_index;
+  while (true) {
+    std::uint32_t inverse_child_index = u32_max;
+    for (const std::uint32_t child_index :
+         projector->strips[projector->head_strip_index].child_strip_indices) {
+      const Strip &child = projector->strips[child_index];
+      if (child.is_inverse != 0 &&
+          child.coordinate.previous_strip_end ==
+              projector->strips[projector->head_strip_index]
+                  .coordinate.this_strip_start &&
+          (inverse_child_index == u32_max ||
+           compare_sequence_points(
+               &projector->strips[inverse_child_index]
+                    .coordinate.this_strip_start,
+               &child.coordinate.this_strip_start) < 0))
+        inverse_child_index = child_index;
+    }
+    if (inverse_child_index == u32_max)
+      break;
+    projector->head_strip_index = inverse_child_index;
+  }
+  while (projector->strips[projector->head_strip_index].is_masked != 0)
+    projector->head_strip_index =
+        projector->right[projector->head_strip_index];
+  projector->tail_strip_index = projector->left[projector->head_strip_index];
+  while (projector->strips[projector->tail_strip_index].is_masked != 0)
+    projector->tail_strip_index =
+        projector->left[projector->tail_strip_index];
+  projector->gate_strip_index = projector->head_strip_index;
   projector->gate_projection_frame_index = 0;
+  if (projector->projection_frame_count >
+      projector->length[projector->head_strip_index]) {
+    run_projector_to_frame_index(projector,
+                                 projector->projection_frame_count - 1);
+    projector->gate_strip_index = projector->head_strip_index;
+    projector->gate_projection_frame_index = 0;
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -383,12 +463,12 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_acknowledgement_frontier_to_buffer(
     const std::uint32_t sequence_id) noexcept {
   const Projector &projector = *projectors[sequence_id];
   frontier_buffer.clear();
-  if (projector.length_table.is_empty())
+  if (projector.structural_root_strip_index == u32_max)
     return 0;
 
   std::vector<SequencePoint> frontiers;
   const std::uint32_t first_position =
-      projector.length_table.nearest_checkpoint(0).first;
+      projector.structural_root_strip_index;
   std::uint32_t position = first_position;
   do {
     const SequencePoint &point =
@@ -474,11 +554,11 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t
 compact_sequence(const std::uint32_t sequence_id) noexcept {
   const Projector &projector = *projectors[sequence_id];
   footage_span_buffer.clear();
-  if (projector.length_table.is_empty())
+  if (projector.structural_root_strip_index == u32_max)
     return 0;
 
   const std::uint32_t first_position =
-      projector.length_table.nearest_checkpoint(0).first;
+      projector.structural_root_strip_index;
   std::uint32_t position = first_position;
   do {
     const Strip &strip = projector.strips[position];
@@ -493,7 +573,7 @@ compact_sequence(const std::uint32_t sequence_id) noexcept {
             frontier.unix_lower_bits == point.unix_lower_bits &&
             frontier.counter_bits >= point.counter_bits) {
           footage_span_buffer.write_span(strip.footage_frame_index,
-                                         strip.frame_count);
+                                         projector.length[position]);
           break;
         }
       }
@@ -526,7 +606,8 @@ write_strip_at_projection_frame_index_to_buffer(
   Projector *projector = &*projectors[sequence_id];
   run_projector_to_frame_index(projector, projection_frame_index);
   const Strip &strip = projector->strips[projector->gate_strip_index];
-  strip_buffer.write_strip(strip);
+  strip_buffer.write_strip(strip,
+                           projector->length[projector->gate_strip_index]);
   // Return exact footage_frame_index of projection_frame_index.
   return strip.footage_frame_index + projection_frame_index -
          projector->gate_projection_frame_index;
@@ -548,12 +629,15 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_first_structural_strip_to_buffer(
     const std::uint32_t sequence_id) noexcept {
   // Reject an empty retained Sequence without changing shared state.
   Projector *projector = &*projectors[sequence_id];
+  if (projector->structural_root_strip_index == u32_max)
+    return 0;
 
-  structural_start = projector->length_table.nearest_checkpoint(0).first;
+  structural_start = projector->structural_root_strip_index;
   structural_cursor = structural_start;
+  structural_skipped_strips.assign(projector->strips.size(), false);
   projector->gate_strip_index = structural_start;
   projector->gate_projection_frame_index = 0;
-  strip_buffer.write_strip(projector->strips[structural_cursor]);
+  write_structural_strip(projector, structural_cursor);
   return 1;
 }
 
@@ -573,16 +657,18 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_first_structural_strip_to_buffer(
 EMSCRIPTEN_KEEPALIVE std::uint32_t write_next_structural_strip_to_buffer(
     const std::uint32_t sequence_id) noexcept {
   Projector *projector = &*projectors[sequence_id];
-  const std::uint32_t next_position = projector->right[structural_cursor];
-  if (next_position == structural_start)
-    return 0;
-
   const Strip &current_strip = projector->strips[structural_cursor];
   if (current_strip.is_masked == 0)
-    projector->gate_projection_frame_index += current_strip.frame_count;
-  structural_cursor = next_position;
+    projector->gate_projection_frame_index +=
+        projector->length[structural_cursor];
+  do
+    structural_cursor = projector->right[structural_cursor];
+  while (structural_cursor != structural_start &&
+         structural_skipped_strips[structural_cursor]);
+  if (structural_cursor == structural_start)
+    return 0;
   projector->gate_strip_index = structural_cursor;
-  strip_buffer.write_strip(projector->strips[structural_cursor]);
+  write_structural_strip(projector, structural_cursor);
   return 1;
 }
 
@@ -598,15 +684,14 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t
 write_first_pending_strip_to_buffer(const std::uint32_t sequence_id) noexcept {
   Projector &projector = *projectors[sequence_id];
   const std::uint32_t materialized_single_position =
-      projector.length_table.is_empty()
-          ? u32_max
-          : projector.length_table.nearest_checkpoint(0).first;
+      projector.structural_root_strip_index;
   for (pending_cursor = 0; pending_cursor < projector.strips.size();
        ++pending_cursor)
     if (projector.left[pending_cursor] == pending_cursor &&
         projector.right[pending_cursor] == pending_cursor &&
         pending_cursor != materialized_single_position) {
-      strip_buffer.write_strip(projector.strips[pending_cursor]);
+      strip_buffer.write_strip(projector.strips[pending_cursor],
+                               projector.length[pending_cursor]);
       return 1;
     }
   return 0;
@@ -626,7 +711,8 @@ write_next_pending_strip_to_buffer(const std::uint32_t sequence_id) noexcept {
        ++pending_cursor)
     if (projector.left[pending_cursor] == pending_cursor &&
         projector.right[pending_cursor] == pending_cursor) {
-      strip_buffer.write_strip(projector.strips[pending_cursor]);
+      strip_buffer.write_strip(projector.strips[pending_cursor],
+                               projector.length[pending_cursor]);
       return 1;
     }
   return 0;

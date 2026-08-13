@@ -22,13 +22,15 @@
  * @param strip_projection_frame_index Projection frame index at which the
  * strip begins.
  * @param projection_frame_index Projection frame index to test.
+ * @param frame_count Length of the Strip.
  * @return `true` when the strip is visible and contains the frame index.
  * @pre `strip` is non-null.
  * @complexity O(1) time and O(1) space.
  */
 [[nodiscard]] inline bool strip_contains_frame_index(
     const Strip *strip, const std::uint32_t strip_projection_frame_index,
-    const std::uint32_t projection_frame_index) noexcept {
+    const std::uint32_t projection_frame_index,
+    const std::uint32_t frame_count) noexcept {
   // Exclude Masks, which occupy no Projection Frame indexes.
   if (strip->is_masked != 0)
     return false;
@@ -36,5 +38,5 @@
   // Test the visible Strip's half-open Projection interval.
   return projection_frame_index >= strip_projection_frame_index &&
          projection_frame_index - strip_projection_frame_index <
-             strip->frame_count;
+             frame_count;
 }

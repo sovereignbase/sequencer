@@ -247,10 +247,11 @@ export function write_next_structural_strip_to_buffer(
  * Builds the initial Projection after all creation-time Strips are staged.
  *
  * Reachable dependencies join sentinel-free Structural Order; unresolved
- * Strips stay Pending. The call also initializes the native LengthTable and
- * Gate.
+ * Strips stay Pending. The call also initializes Projection traversal.
  *
  * @param sequence_id Active local Projector identifier.
+ * @param projection_frame_index Known local Projection position. Omit it for a
+ * remote merge that must locate the position from Structural Order.
  */
 export function resolve_initial_projection(sequence_id: number): void {
   void wasm._resolve_initial_projection(sequence_id)
@@ -344,14 +345,17 @@ export function compact_sequence(
  * pending or is discarded.
  * @remarks `write_strip_to_buffer` must have supplied the incoming Strip.
  */
-export function merge_strip_into_sequence(sequence_id: number): number | false {
+export function merge_strip_into_sequence(
+  sequence_id: number,
+  projection_frame_index = no_projection_frame_index
+): number | false {
   // Invoke native staging, Mask, or deterministic insertion.
-  const projection_frame_index =
-    wasm._merge_strip_into_sequence(sequence_id) >>> 0
+  const merged_projection_frame_index =
+    wasm._merge_strip_into_sequence(sequence_id, projection_frame_index) >>> 0
   // Translate the native no-position sentinel into the TypeScript contract.
-  return projection_frame_index === no_projection_frame_index
+  return merged_projection_frame_index === no_projection_frame_index
     ? false
-    : projection_frame_index
+    : merged_projection_frame_index
 }
 
 /** Returns pending visible Footage spans materialized by the latest merge. */

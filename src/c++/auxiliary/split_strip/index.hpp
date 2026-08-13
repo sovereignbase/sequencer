@@ -34,27 +34,35 @@ split_strip(Projector *projector, const std::uint32_t stable_position,
   const std::uint32_t suffix_position =
       static_cast<std::uint32_t>(projector->strips.size());
   Strip suffix = source;
-  suffix.frame_count -= frame_offset;
+  const std::uint32_t source_frame_count =
+      projector->length[stable_position];
   suffix.footage_frame_index += frame_offset;
   suffix.coordinate.this_strip_start.counter_bits += frame_offset;
   suffix.coordinate.previous_strip_end = suffix.coordinate.this_strip_start;
   --suffix.coordinate.previous_strip_end.counter_bits;
   suffix.is_inverse = 0;
-  suffix.checkpoint_projection_frame_index = u32_max;
+  suffix.larger_sibling_frames_strip_index =
+      source.larger_sibling_frames_strip_index;
+  suffix.left_jump_strip_index = u32_max;
+  suffix.right_jump_strip_index = u32_max;
+  suffix.jump_generation = 0;
 
   projector->strips.push_back(suffix);
   projector->left.push_back(suffix_position);
   projector->right.push_back(suffix_position);
+  projector->length.push_back(source_frame_count - frame_offset);
 
   Strip &prefix = projector->strips[stable_position];
-  prefix.frame_count = frame_offset;
-  prefix.right_sibling_frames_strip_index = suffix_position;
+  prefix.larger_sibling_frames_strip_index = suffix_position;
+  projector->length[stable_position] = frame_offset;
 
   insert_between(projector, stable_position, suffix_position,
                  projector->right[stable_position], false);
+  if (projector->tail_strip_index == stable_position)
+    projector->tail_strip_index = suffix_position;
   projector->hash_table.set(prefix.coordinate.this_strip_start,
-                            prefix.frame_count, stable_position);
+                            frame_offset, stable_position);
   projector->hash_table.set(suffix.coordinate.this_strip_start,
-                            suffix.frame_count, suffix_position);
+                            source_frame_count - frame_offset, suffix_position);
   return suffix_position;
 }

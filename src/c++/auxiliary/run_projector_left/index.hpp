@@ -27,6 +27,7 @@ run_projector_left(Projector *projector) noexcept {
       projector->left[projector->gate_strip_index];
   const Strip &strip = projector->strips[projector->gate_strip_index];
   if (strip.is_masked == 0)
-    projector->gate_projection_frame_index -= strip.frame_count;
+    projector->gate_projection_frame_index -=
+        projector->length[projector->gate_strip_index];
   return strip;
 }

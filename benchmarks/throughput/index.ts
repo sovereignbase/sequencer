@@ -19,13 +19,14 @@ type BenchmarkDefinition = {
 }
 
 const sequence_configurations = [
-  [100, 256],
-  [1_000, 128],
-  [10_000, 64],
-  [100_000, 16],
+  [100, 100],
+  [1_000, 100],
+  [10_000, 100],
+  [100_000, 100],
+  [1_000_000, 100],
 ] as const
 
-const strip_frame_counts = [1, 10, 100] as const
+const strip_frame_counts = [1, 10, 100, 1000] as const
 
 /** Measures every public function across the Sequence/Strip length matrix. */
 export async function run_throughput_benchmarks() {

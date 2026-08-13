@@ -95,7 +95,10 @@ export function remove<T>(
       containing_strip[4],
       containing_strip[5] + strip_frame_offset
     )
-    const projection_frame_index = merge_strip_into_sequence(state.id)
+    const projection_frame_index = merge_strip_into_sequence(
+      state.id,
+      start_index
+    )
 
     // Release accepted hard-deletion Footage without compacting its array.
     if (hard && projection_frame_index !== false) {

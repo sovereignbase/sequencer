@@ -60,17 +60,19 @@ public:
    * @brief Encode a strip into the stable ten-word memory layout.
    *
    * @param strip Strip whose transferable fields replace the buffer contents.
+   * @param frame_count Length transferred with the Strip.
    * @post All transferable Strip fields are represented by `words`; dense
    * links and sibling-fragment distances are omitted.
    * @note Previously obtained memory pointers remain valid but observe the new
    * contents.
    * @complexity O(1) time and O(1) auxiliary space.
    */
-  inline void write_strip(const Strip &strip) noexcept {
+  inline void write_strip(const Strip &strip,
+                          const std::uint32_t frame_count) noexcept {
     // Encode visibility, Frame count, and Footage mapping.
     words[0] = strip.is_masked;
     words[1] = strip.is_inverse;
-    words[2] = strip.frame_count;
+    words[2] = frame_count;
 
     // Encode the Strip's own stable Sequence Point.
     words[3] = strip.coordinate.this_strip_start.crypto_random_bits;
@@ -116,18 +118,23 @@ public:
 
     const std::uint32_t strip_index =
         static_cast<std::uint32_t>(projector->strips.size());
-    projector->strips.emplace_back(words[0], words[1], words[2], words[9],
-                                   SequenceCoordinate{
-                                       .this_strip_start = this_strip_start,
-                                       .previous_strip_end{
-                                           .crypto_random_bits = words[6],
-                                           .unix_lower_bits = words[7],
-                                           .counter_bits = words[8],
-                                       },
-                                   });
+    projector->strips.push_back(Strip{
+        .is_masked = words[0],
+        .is_inverse = words[1],
+        .footage_frame_index = words[9],
+        .coordinate{
+            .this_strip_start = this_strip_start,
+            .previous_strip_end{
+                .crypto_random_bits = words[6],
+                .unix_lower_bits = words[7],
+                .counter_bits = words[8],
+            },
+        },
+    });
 
     projector->left.push_back(strip_index);
     projector->right.push_back(strip_index);
+    projector->length.push_back(words[2]);
     projector->hash_table.set(this_strip_start, words[2], strip_index);
 
     return strip_index;

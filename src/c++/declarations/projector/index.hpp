@@ -9,7 +9,7 @@
 #pragma once
 
 #include "../../classes/hash_table/index.hpp"
-#include "../../classes/length_table/index.hpp"
+#include "../sentinels/index.hpp"
 #include "../strip/index.hpp"
 #include <cstdint>
 #include <vector>
@@ -21,7 +21,7 @@
  * Materialized Strips form one circular bidirectional chain. A valid unresolved
  * Strip remains self-linked until Initial Projection Resolution or a later
  * operation materializes it. HashTable maps Sequence Point containment to this
- * dense domain; LengthTable stores periodic entry points into it.
+ * dense domain; Strip-local jumps provide bounded Projection traversal.
  *
  * The Gate caches one materialized Strip Index and its visible Projection
  * start. It accelerates navigation but never determines Sequence order.
@@ -33,8 +33,7 @@
  * backward links.
  * @invariant `projection_frame_count` equals the sum of `frame_count` over all
  * visible materialized Strips.
- * @invariant A non-empty LengthTable and Gate refer to materialized Stable
- * Positions.
+ * @invariant A non-empty Projection has visible Head, Tail, and Gate Strips.
  */
 struct Projector {
   // Authoritative materialized Sequence and Projection state.
@@ -77,6 +76,12 @@ struct Projector {
   /** @brief Total number of visible frames in the current Projection. */
   std::uint32_t projection_frame_count{0};
 
+  /** @brief Version selecting currently valid Strip-local Projection jumps. */
+  std::uint32_t projection_generation{1};
+
+  /** @brief Canonical root of retained Structural Order. */
+  std::uint32_t structural_root_strip_index{u32_max};
+
   // Movable Projection traversal Gate.
 
   /**
@@ -87,14 +92,14 @@ struct Projector {
    */
   std::uint32_t gate_projection_frame_index{0};
 
-  /** @brief Strip Index of the materialized Strip cached by the Gate. */
-  std::uint32_t head_strip_index{0};
-
   /** @brief Strip Index of the materialized Strip holding the first projection
    * frame. */
-  std::uint32_t gate_strip_index{0};
+  std::uint32_t head_strip_index{u32_max};
+
+  /** @brief Strip Index of the materialized Strip cached by the Gate. */
+  std::uint32_t gate_strip_index{u32_max};
 
   /** @brief Strip Index of the materialized Strip holding the last projection
    * frame. */
-  std::uint32_t tail_strip_index{0};
+  std::uint32_t tail_strip_index{u32_max};
 };

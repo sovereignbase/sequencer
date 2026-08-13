@@ -13,7 +13,6 @@
 #include "../sentinels/index.hpp"
 #include "../sequence_coordinate/index.hpp"
 #include <cstdint>
-#include <optional>
 #include <vector>
 
 /**
@@ -77,12 +76,26 @@ struct Strip {
    */
   SequenceCoordinate coordinate;
 
-  /**
-   * @brief Next right-hand fragment of the same originally issued Strip.
-   *
-   * `u32_max` denotes that this is the rightmost remaining fragment.
-   */
-  std::uint32_t right_sibling_frames_strip_index{u32_max};
+  /** @brief Next larger fragment of the same originally issued Strip. */
+  std::uint32_t larger_sibling_frames_strip_index{u32_max};
+
+  /** @brief Visible Strip reached by the current left Projection jump. */
+  std::uint32_t left_jump_strip_index{u32_max};
+
+  /** @brief Projection Frame distance to `left_jump_strip_index`. */
+  std::uint32_t left_jump_frame_offset{0};
+
+  /** @brief Visible Strip reached by the current right Projection jump. */
+  std::uint32_t right_jump_strip_index{u32_max};
+
+  /** @brief Projection Frame distance to `right_jump_strip_index`. */
+  std::uint32_t right_jump_frame_offset{0};
+
+  /** @brief Projector generation in which the jump fields are valid. */
+  std::uint32_t jump_generation{0};
+
+  /** @brief Whether a self-linked Mask command has already been applied. */
+  std::uint32_t is_resolved{0};
 
   std::vector<std::uint32_t> child_strip_indices;
 };

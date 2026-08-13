@@ -6,7 +6,6 @@
 import { is_strip } from '../../../helpers/index.js'
 import type { Change, Replica, VirtualStrip } from '../../../types/type.js'
 import {
-  get_pending_footage_spans,
   merge_strip_into_sequence,
   write_strip_to_buffer,
 } from '../../../wasm/index.js'
@@ -65,23 +64,6 @@ export function merge<T>(state: Replica<T>, data: unknown): Change<T> | false {
       if (visible) footage_frame_index++
     }
 
-    const pending_footage_spans = get_pending_footage_spans()
-    if (!pending_footage_spans) continue
-
-    let pending_projection_frame_index = projection_end
-    for (
-      let span_index = 0;
-      span_index < pending_footage_spans.length;
-      span_index += 2
-    ) {
-      let pending_footage_frame_index = pending_footage_spans[span_index]
-      const pending_footage_end_index =
-        pending_footage_frame_index + pending_footage_spans[span_index + 1]
-      while (pending_footage_frame_index < pending_footage_end_index) {
-        change[pending_projection_frame_index++] =
-          footage[pending_footage_frame_index++]
-      }
-    }
   }
 
   return change! ?? false

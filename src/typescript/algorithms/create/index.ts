@@ -7,9 +7,11 @@ import {
   clear_sequence,
   initialize_sequence,
   resolve_initial_projection,
+  stage_strip,
+  write_strip_to_buffer,
 } from '../../wasm/index.js'
-import type { Replica } from '../../types/type.js'
-import { merge } from '../update/index.js'
+import { is_strip } from '../../helpers/index.js'
+import type { Replica, VirtualStrip } from '../../types/type.js'
 
 /** Releases the native Projector after its JavaScript Replica is collected. */
 const finalization_registry = new FinalizationRegistry<number>(clear_sequence)
@@ -17,7 +19,7 @@ const finalization_registry = new FinalizationRegistry<number>(clear_sequence)
 /**
  * Creates an independently maintained sequence state.
  *
- * `merge` first validates and stages every supplied Strip. One subsequent
+ * Every supplied Strip is validated and staged. One subsequent
  * `resolve_initial_projection` call selects Initial Root Candidates and
  * materializes every reachable dependency independently of input order.
  * Unresolved valid Strips remain Pending and are retained by Snapshot. Invalid
@@ -36,7 +38,17 @@ export function create<T>(data?: unknown): Replica<T> {
   }
   void finalization_registry.register(state, state.id)
 
-  void merge<T>(state, data)
+  if (Array.isArray(data))
+    for (const chunk of data) {
+      if (!is_strip<T>(chunk)) continue
+
+      const meta: VirtualStrip<T> = [...chunk[0]]
+      const visible = meta[0] === 0
+      if (visible) void meta.push(state.footage.length)
+      void write_strip_to_buffer(meta)
+      if (stage_strip(state.id) && visible) void state.footage.push(...chunk[1]!)
+    }
+
   if (state.footage.length !== 0) void resolve_initial_projection(state.id)
 
   // Return the independently maintained Replica.

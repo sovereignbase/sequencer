@@ -6,7 +6,6 @@
 
 #include "../../auxiliary/insert_between/index.hpp"
 #include "../../auxiliary/split_strip/index.hpp"
-#include "../../classes/footage_span_buffer/index.hpp"
 #include "../../declarations/projector/index.hpp"
 #include <cstdint>
 
@@ -17,14 +16,12 @@
  * @param incoming_strip_index Stable Position of the staged Strip.
  * @param offset Dependency Frame offset in the containing Strip.
  * @param projection_frame_index Known insertion Projection position.
- * @param pending_footage_spans Optional resolved Footage result buffer.
  * @return Materialized Projection position.
  */
 [[nodiscard]] inline std::uint32_t insert_strip(
     Projector *projector, const std::uint32_t containing_strip_index,
     const std::uint32_t incoming_strip_index, const std::uint32_t offset,
-    std::uint32_t projection_frame_index,
-    FootageSpanBuffer *pending_footage_spans = nullptr) noexcept {
+    std::uint32_t projection_frame_index) noexcept {
   const Strip inserted_strip = projector->strips[incoming_strip_index];
   const std::uint32_t containing_frame_count =
       projector->length[containing_strip_index];
@@ -87,9 +84,5 @@
   }
   projector->gate_strip_index = incoming_strip_index;
   projector->gate_projection_frame_index = projection_frame_index;
-  if (pending_footage_spans != nullptr)
-    pending_footage_spans->write_span(inserted_strip.footage_frame_index,
-                                     inserted_frame_count);
-
   return projection_frame_index;
 }

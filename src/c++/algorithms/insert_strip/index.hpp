@@ -51,7 +51,9 @@
   projector->strips[parent_strip_index].child_strip_indices.push_back(
       incoming_strip_index);
   projection_frame_index = static_cast<std::uint32_t>(
-      projection_frame_index + sibling_frame_offset);
+      projection_frame_index +
+      static_cast<std::uint32_t>(inserted_strip.is_inverse == 0) +
+      sibling_frame_offset);
   const std::uint32_t inserted_frame_count =
       projector->length[incoming_strip_index];
   const std::uint32_t previous_projection_frame_count =

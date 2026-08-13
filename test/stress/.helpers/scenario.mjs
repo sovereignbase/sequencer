@@ -92,7 +92,7 @@ for (
       Math.min(projection_length, start_index + operation.frame_count),
       operation.hard
     )
-    if (result !== false) strips.push(...result.delta)
+    if (result !== false) strips.push(...result)
     continue
   }
 
@@ -120,7 +120,7 @@ for (
     finish(false, `operation ${operation_index} rejected`)
     continue
   }
-  strips.push(...result.delta)
+  strips.push(...result)
   mark('operation', operation_index, 'done')
 }
 

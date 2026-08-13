@@ -69,9 +69,10 @@ export function insert<T>(
   }
 
   const is_inverse = index === 0 ? 1 : 0
+  const containing_frame_index = index - Number(is_inverse === 0)
   const footage_frame_index = write_strip_at_projection_frame_index_to_buffer(
     state.id,
-    index
+    containing_frame_index
   )
   const containing_strip = read_strip_from_buffer<T>()
 
@@ -89,6 +90,6 @@ export function insert<T>(
   )
 
   void state.footage.push(...values)
-  void merge_strip_into_sequence(state.id, index)
+  void merge_strip_into_sequence(state.id, containing_frame_index)
   return [[meta, values]]
 }

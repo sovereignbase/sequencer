@@ -1328,6 +1328,8 @@ Doxygen documentation maintained beside every implementation unit in
 <dt class="sig sig-object cpp">
 <span class="target" id="auxiliary_2run__projector__to__strip_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
 <dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#auxiliary_2strip__contains__sequence__point_2index_8hpp"><span class="std std-ref">../strip_contains_sequence_point/index.hpp</span></a>”</em></div>
+<div class="docutils container">
 <em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">../../declarations/projector/index.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include &lt;cstdint&gt;</em></div>
@@ -1457,10 +1459,10 @@ Doxygen documentation maintained beside every implementation unit in
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv429strip_contains_sequence_pointPK5StripPK13SequencePoint">
-<span id="_CPPv329strip_contains_sequence_pointPK5StripPK13SequencePoint"></span><span id="_CPPv229strip_contains_sequence_pointPK5StripPK13SequencePoint"></span><span id="strip_contains_sequence_point__StripCP.SequencePointCP"></span><span class="target" id="auxiliary_2strip__contains__sequence__point_2index_8hpp_1a1b9f94f97fd19dcdb8456bd1691364e3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">strip_contains_sequence_point</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">strip</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">sequence_point</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv429strip_contains_sequence_pointPK5StripPK13SequencePoint" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv429strip_contains_sequence_pointPK5StripPK13SequencePointKNSt8uint32_tE">
+<span id="_CPPv329strip_contains_sequence_pointPK5StripPK13SequencePointKNSt8uint32_tE"></span><span id="_CPPv229strip_contains_sequence_pointPK5StripPK13SequencePointKNSt8uint32_tE"></span><span id="strip_contains_sequence_point__StripCP.SequencePointCP.std::uint32_tC"></span><span class="target" id="auxiliary_2strip__contains__sequence__point_2index_8hpp_1a807feab04aaa14d06f717efd893a75e9"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">strip_contains_sequence_point</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv45Strip" title="Strip"><span class="n"><span class="pre">Strip</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">strip</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv413SequencePoint" title="SequencePoint"><span class="n"><span class="pre">SequencePoint</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">sequence_point</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">frame_count</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv429strip_contains_sequence_pointPK5StripPK13SequencePointKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Locate a Sequence Point within a <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a>’s Frame Span. </p>
-<p>Containment requires the same Realm components as the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> start and a counter in the half-open interval beginning at that start and extending for <code class="docutils literal notranslate"><span class="pre">strip-&gt;frame_count</span></code> Frames.</p>
+<p>Containment requires the same Realm components as the <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> start and a counter in the half-open interval beginning at that start and extending for <code class="docutils literal notranslate"><span class="pre">frame_count</span></code> Frames.</p>
 <p><dl class="simple">
 <dt><strong>Complexity:</strong></dt><dd><p>O(1) time and O(1) space. </p>
 </dd>
@@ -1479,6 +1481,7 @@ Doxygen documentation maintained beside every implementation unit in
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>strip</strong> – <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> whose half-open Sequence Point span is tested. </p></li>
 <li><p><strong>sequence_point</strong> – Stable sequence point to test. </p></li>
+<li><p><strong>frame_count</strong> – <a class="reference internal" href="#structStrip"><span class="std std-ref">Strip</span></a> Frame count. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1656,6 +1659,54 @@ Doxygen documentation maintained beside every implementation unit in
 
 <dl>
 <dt class="sig sig-object cpp">
+<span class="target" id="fast__paths_2first__insert_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="fast__paths_2first__insert__fast__path_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">../../declarations/projector/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv422first_insert_fast_pathP9ProjectorKNSt8uint32_tE">
+<span id="_CPPv322first_insert_fast_pathP9ProjectorKNSt8uint32_tE"></span><span id="_CPPv222first_insert_fast_pathP9ProjectorKNSt8uint32_tE"></span><span id="first_insert_fast_path__ProjectorP.std::uint32_tC"></span><span class="target" id="fast__paths_2first__insert__fast__path_2index_8hpp_1adcd456028bf731f4a2c73ea76e72fedf"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">first_insert_fast_path</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">strip_index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv422first_insert_fast_pathP9ProjectorKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="fast__paths_2root__insert_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="fast__paths_2root__insert__fast__path_2index_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">index.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#auxiliary_2compare__sequence__points_2index_8hpp"><span class="std std-ref">../../auxiliary/compare_sequence_points/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#auxiliary_2strip__contains__sequence__point_2index_8hpp"><span class="std std-ref">../../auxiliary/strip_contains_sequence_point/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">../../declarations/projector/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include &lt;cstdint&gt;</em></div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv421root_insert_fast_pathP9ProjectorKNSt8uint32_tERNSt8uint32_tE">
+<span id="_CPPv321root_insert_fast_pathP9ProjectorKNSt8uint32_tERNSt8uint32_tE"></span><span id="_CPPv221root_insert_fast_pathP9ProjectorKNSt8uint32_tERNSt8uint32_tE"></span><span id="root_insert_fast_path__ProjectorP.std::uint32_tC.std::uint32_tR"></span><span class="target" id="fast__paths_2root__insert__fast__path_2index_8hpp_1aff5922a4bc444e32b786c2f538200264"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">root_insert_fast_path</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv49Projector" title="Projector"><span class="n"><span class="pre">Projector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">projector</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">strip_index</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">projection_frame_index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv421root_insert_fast_pathP9ProjectorKNSt8uint32_tERNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
 <span class="target" id="main_8cpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">main.cpp</span></span></dt>
 <dd><div class="docutils container">
 <em>#include “<a class="reference internal" href="#algorithms_2insert__strip_2index_8hpp"><span class="std std-ref">./algorithms/insert_strip/index.hpp</span></a>”</em></div>
@@ -1675,6 +1726,10 @@ Doxygen documentation maintained beside every implementation unit in
 <em>#include “<a class="reference internal" href="#declarations_2projector_2index_8hpp"><span class="std std-ref">./declarations/projector/index.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include “<a class="reference internal" href="#declarations_2sentinels_2index_8hpp"><span class="std std-ref">./declarations/sentinels/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#fast__paths_2first__insert__fast__path_2index_8hpp"><span class="std std-ref">./fast_paths/first_insert_fast_path/index.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#fast__paths_2root__insert__fast__path_2index_8hpp"><span class="std std-ref">./fast_paths/root_insert_fast_path/index.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include &lt;algorithm&gt;</em></div>
 <div class="docutils container">
@@ -2243,6 +2298,21 @@ Doxygen documentation maintained beside every implementation unit in
 
 <dl>
 <dt class="sig sig-object cpp">
+<span class="target" id="dir_6e588e49ad0120706b07d702c2c3587f"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">fast_paths</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_ff760b80c0fcae84c28950fef3ffe3bc"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">fast_paths/first_insert</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_56e12ecc1d96e8b125d4ab405adcde09"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">fast_paths/first_insert_fast_path</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
 <span class="target" id="dir_ecada51e52024d31003f7f8099950948"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">classes/footage_span_buffer</span></span></dt>
 <dd></dd></dl>
 
@@ -2274,6 +2344,16 @@ Doxygen documentation maintained beside every implementation unit in
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="dir_0de3b766f64c9c79f9f60ea86c44c995"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">declarations/projector</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_9a5309ac21c7d0f12b9710dd1089072f"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">fast_paths/root_insert</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_a62e42c7ff7e421100ae58d82970fa7a"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">fast_paths/root_insert_fast_path</span></span></dt>
 <dd></dd></dl>
 
 <dl>

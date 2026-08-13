@@ -24,6 +24,8 @@
 #include "./classes/strip_buffer/index.hpp"
 #include "./declarations/projector/index.hpp"
 #include "./declarations/sentinels/index.hpp"
+#include "./fast_paths/first_insert_fast_path/index.hpp"
+#include "./fast_paths/root_insert_fast_path/index.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <optional>
@@ -305,17 +307,10 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t merge_strip_into_sequence(
 
   const Strip incoming_strip = projector->strips[strip_index];
 
-  // First strip fast path.
-  if (projector->structural_root_strip_index == u32_max &&
-      projection_frame_index != u32_max) {
-    projector->structural_root_strip_index = strip_index;
-    projector->head_strip_index = strip_index;
-    projector->tail_strip_index = strip_index;
-    projector->gate_strip_index = strip_index;
-    projector->gate_projection_frame_index = 0;
-    projector->projection_frame_count = projector->length[strip_index];
+  if (first_insert_fast_path(projector, strip_index))
     return 0;
-  }
+  if (root_insert_fast_path(projector, strip_index, projection_frame_index))
+    return projection_frame_index;
 
   std::uint32_t containing_strip_index;
   if (projection_frame_index != u32_max) {
@@ -323,7 +318,10 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t merge_strip_into_sequence(
     containing_strip_index = projector->gate_strip_index;
   } else {
     const auto containing = run_projector_to_strip(
-        &incoming_strip.coordinate.previous_strip_end, projector);
+        incoming_strip.is_masked != 0
+            ? &incoming_strip.coordinate.this_strip_start
+            : &incoming_strip.coordinate.previous_strip_end,
+        projector);
     projection_frame_index = containing.first;
     containing_strip_index = containing.second;
     if (containing_strip_index == u32_max)
@@ -333,9 +331,9 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t merge_strip_into_sequence(
       projection_frame_index - projector->gate_projection_frame_index;
 
   if (incoming_strip.is_masked != 0) {
-    projection_frame_index = mask_strip(projector, containing_strip_index,
-                                        strip_index, offset,
-                                        projection_frame_index);
+    projection_frame_index =
+        mask_strip(projector, containing_strip_index, strip_index, offset,
+                   projection_frame_index);
     projector->strips[strip_index].is_resolved = 1;
   } else {
     projection_frame_index =
@@ -405,7 +403,10 @@ resolve_initial_projection(const std::uint32_t sequence_id) noexcept {
 
     const Strip strip = projector->strips[strip_index];
     const auto [projection_frame_index, containing_strip_index] =
-        run_projector_to_strip(&strip.coordinate.previous_strip_end, projector);
+        run_projector_to_strip(strip.is_masked != 0
+                                   ? &strip.coordinate.this_strip_start
+                                   : &strip.coordinate.previous_strip_end,
+                               projector);
     if (containing_strip_index == u32_max)
       continue;
     const std::uint32_t offset =
@@ -431,40 +432,8 @@ resolve_initial_projection(const std::uint32_t sequence_id) noexcept {
     return;
   }
 
-  projector->head_strip_index = root_index;
-  while (true) {
-    std::uint32_t inverse_child_index = u32_max;
-    for (const std::uint32_t child_index :
-         projector->strips[projector->head_strip_index].child_strip_indices) {
-      const Strip &child = projector->strips[child_index];
-      if (child.is_inverse != 0 &&
-          child.coordinate.previous_strip_end ==
-              projector->strips[projector->head_strip_index]
-                  .coordinate.this_strip_start &&
-          (inverse_child_index == u32_max ||
-           compare_sequence_points(&projector->strips[inverse_child_index]
-                                        .coordinate.this_strip_start,
-                                   &child.coordinate.this_strip_start) < 0))
-        inverse_child_index = child_index;
-    }
-    if (inverse_child_index == u32_max)
-      break;
-    projector->head_strip_index = inverse_child_index;
-  }
-  while (projector->strips[projector->head_strip_index].is_masked != 0)
-    projector->head_strip_index = projector->right[projector->head_strip_index];
-  projector->tail_strip_index = projector->left[projector->head_strip_index];
-  while (projector->strips[projector->tail_strip_index].is_masked != 0)
-    projector->tail_strip_index = projector->left[projector->tail_strip_index];
   projector->gate_strip_index = projector->head_strip_index;
   projector->gate_projection_frame_index = 0;
-  if (projector->projection_frame_count >
-      projector->length[projector->head_strip_index]) {
-    run_projector_to_frame_index(projector,
-                                 projector->projection_frame_count - 1);
-    projector->gate_strip_index = projector->head_strip_index;
-    projector->gate_projection_frame_index = 0;
-  }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

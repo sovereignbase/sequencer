@@ -1,34 +1,34 @@
 {
-  "generated_at": "2026-08-13T19:36:17.785Z",
+  "generated_at": "2026-08-13T19:46:26.363Z",
   "results": [
     {
       "name": "Node.js",
       "status": "failed",
-      "duration_ms": 2616,
+      "duration_ms": 230,
       "error": "file:///C:/Users/jorts/sequencer/test/runtime/contract.mjs:5\r\n      throw new TypeError(`Sequencer runtime contract: ${message}`)\r\n            ^\r\n\r\nTypeError: Sequencer runtime contract: opposite delivery orders did not converge\r\n    at require_condition (file:///C:/Users/jorts/sequencer/test/runtime/contract.mjs:5:13)\r\n    at run_runtime_contract (file:///C:/Users/jorts/sequencer/test/runtime/contract.mjs:50:3)\r\n    at file:///C:/Users/jorts/sequencer/test/runtime/module.mjs:21:8\r\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)\r\n    at async node:internal/modules/esm/loader:633:26\r\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\r\n\r\nNode.js v24.16.0"
     },
     {
       "name": "Deno",
       "status": "failed",
-      "duration_ms": 2587,
+      "duration_ms": 493,
       "error": "\u001b[0m\u001b[1m\u001b[31merror\u001b[0m: Uncaught (in promise) TypeError: Sequencer runtime contract: opposite delivery orders did not converge\n      throw new TypeError(`Sequencer runtime contract: ${message}`)\n\u001b[0m\u001b[31m            ^\u001b[0m\n    at \u001b[0m\u001b[1m\u001b[3mrequire_condition\u001b[0m (\u001b[0m\u001b[2m\u001b[38;5;245mfile:///C:/Users/jorts/sequencer/\u001b[0m\u001b[0m\u001b[36mtest/runtime/contract.mjs\u001b[0m:\u001b[0m\u001b[33m5\u001b[0m:\u001b[0m\u001b[33m13\u001b[0m)\n    at \u001b[0m\u001b[1m\u001b[3mrun_runtime_contract\u001b[0m (\u001b[0m\u001b[2m\u001b[38;5;245mfile:///C:/Users/jorts/sequencer/\u001b[0m\u001b[0m\u001b[36mtest/runtime/contract.mjs\u001b[0m:\u001b[0m\u001b[33m50\u001b[0m:\u001b[0m\u001b[33m3\u001b[0m)\n    at \u001b[0m\u001b[2m\u001b[38;5;245mfile:///C:/Users/jorts/sequencer/\u001b[0m\u001b[0m\u001b[36mtest/runtime/module.mjs\u001b[0m:\u001b[0m\u001b[33m21\u001b[0m:\u001b[0m\u001b[33m8\u001b[0m"
     },
     {
       "name": "Bun",
       "status": "failed",
-      "duration_ms": 620,
+      "duration_ms": 421,
       "error": "1 | /** Exercises the built public API and its native Projector in any ESM runtime. */\n2 | export function run_runtime_contract(api) {\n3 |   const require_condition = (condition, message) => {\n4 |     if (!condition)\n5 |       throw new TypeError(`Sequencer runtime contract: ${message}`)\n                    ^\nTypeError: Sequencer runtime contract: opposite delivery orders did not converge\n      at require_condition (C:\\Users\\jorts\\sequencer\\test\\runtime\\contract.mjs:5:17)\n      at run_runtime_contract (C:\\Users\\jorts\\sequencer\\test\\runtime\\contract.mjs:50:3)\n      at C:\\Users\\jorts\\sequencer\\test\\runtime\\module.mjs:21:8\n\nBun v1.3.14 (Windows x64 baseline)"
     },
     {
       "name": "Edge Runtime",
       "status": "failed",
-      "duration_ms": 528,
+      "duration_ms": 555,
       "error": "evalmachine.<anonymous>:4\r\n      throw new TypeError(`Sequencer runtime contract: ${message}`)\r\n      ^\r\n\r\nTypeError: Sequencer runtime contract: opposite delivery orders did not converge\r\n    at require_condition (evalmachine.<anonymous>:4:13)\r\n    at run_runtime_contract (evalmachine.<anonymous>:49:3)\r\n    at evalmachine.<anonymous>:67:3\r\n    at Script.runInContext (node:vm:149:12)\r\n    at runInContext (node:vm:301:6)\r\n    at EdgeVM.evaluate (C:\\Users\\jorts\\sequencer\\node_modules\\@edge-runtime\\vm\\dist\\vm.js:26:38)\r\n    at file:///C:/Users/jorts/sequencer/test/runtime/edge_runtime.mjs:23:11\r\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\r\n\r\nNode.js v24.16.0"
     },
     {
       "name": "Cloudflare Workers",
       "status": "failed",
-      "duration_ms": 5457,
+      "duration_ms": 3864,
       "error": "node:internal/modules/run_main:107\r\n    triggerUncaughtException(\r\n    ^\r\n\r\nTypeError: Sequencer runtime contract: opposite delivery orders did not converge\r\n    at require_condition (file:///C:/Users/jorts/sequencer/test/runtime/contract.mjs:5:13)\r\n    at run_runtime_contract (file:///C:/Users/jorts/sequencer/test/runtime/contract.mjs:50:3)\r\n    at Object.fetch (file:///C:/Users/jorts/sequencer/test/runtime/cloudflare_worker.mjs:6:40) {\r\n  [cause]: undefined\r\n}\r\n\r\nNode.js v24.16.0"
     }
   ]

@@ -10,7 +10,6 @@ import {
 import type {
   Delta,
   Replica,
-  Result,
   Strip,
 } from '../../src/typescript/index.js'
 
@@ -37,9 +36,9 @@ export function projection_values<T>(state: Replica<T>): Array<T | undefined> {
 }
 
 /** Extracts the visible Strip issued by one accepted local operation. */
-export function visible_strip<T>(result: Result<T>): Strip<T> {
+export function visible_strip<T>(result: Delta<T> | false): Strip<T> {
   assert(result !== false)
-  const strip = result.delta.find(([meta]) => meta[0] === 0)
+  const strip = result.find(([meta]) => meta[0] === 0)
   assert(strip !== undefined)
   return strip
 }

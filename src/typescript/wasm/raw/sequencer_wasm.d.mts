@@ -22,8 +22,8 @@ interface WasmModule {
   _get_footage_frame_index(_0: number, _1: number): number;
   _write_recovery_footage_spans_to_buffer(_0: number): number;
   _write_projection_footage_spans_to_buffer(_0: number, _1: number, _2: number): number;
-  _merge_strip_into_sequence(_0: number, _1: number): number;
   _stage_strip(_0: number): number;
+  _merge_strip_into_sequence(_0: number, _1: number): number;
   _resolve_initial_projection(_0: number): void;
   _get_acknowledgement_frontier_buffer_pointer(): number;
   _write_acknowledgement_frontier_to_buffer(_0: number): number;

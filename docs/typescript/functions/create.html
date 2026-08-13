@@ -16,7 +16,7 @@
 <div class="tsd-signature tsd-anchor-link" id="create"><span class="tsd-kind-call-signature">create</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createt">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">data</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createt">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#create" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Creates an independently maintained sequence state.</p>
-<p><code>merge</code> first validates and stages every supplied Strip. One subsequent
+<p>Every supplied Strip is validated and staged. One subsequent
 <code>resolve_initial_projection</code> call selects Initial Root Candidates and
 materializes every reachable dependency independently of input order.
 Unresolved valid Strips remain Pending and are retained by Snapshot. Invalid
@@ -38,7 +38,7 @@ Creation preserves coordinates and issues no Sequence Points.</p>
 <h4 class="tsd-returns-title">Returns <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createt">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A new Replica owning its JavaScript Footage and native Projector.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/ab966a8547a3c1e6515d5cf56f7ca88300d4e929/src/typescript/algorithms/create/index.ts#L31">algorithms/create/index.ts:31</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/a235230bc22ec3fa90f6b34b6ce87acc62beccc7/src/typescript/algorithms/create/index.ts#L33">algorithms/create/index.ts:33</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

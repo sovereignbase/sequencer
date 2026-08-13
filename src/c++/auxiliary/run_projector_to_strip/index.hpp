@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include "../strip_contains_sequence_point/index.hpp"
 #include "../../declarations/projector/index.hpp"
 #include <cstdint>
 #include <utility>
@@ -33,16 +34,11 @@ run_projector_to_strip(const SequencePoint *sequence_point,
   const auto find = [projector, sequence_point](
                         const std::uint32_t strip_index,
                         const std::uint32_t strip_projection_frame_index) {
-    const SequencePoint &strip_start =
-        projector->strips[strip_index].coordinate.this_strip_start;
-    if (sequence_point->crypto_random_bits != strip_start.crypto_random_bits ||
-        sequence_point->unix_lower_bits != strip_start.unix_lower_bits ||
-        sequence_point->counter_bits < strip_start.counter_bits)
-      return std::pair{u32_max, u32_max};
-
     const std::uint32_t offset =
-        sequence_point->counter_bits - strip_start.counter_bits;
-    if (offset >= projector->length[strip_index])
+        strip_contains_sequence_point(&projector->strips[strip_index],
+                                      sequence_point,
+                                      projector->length[strip_index]);
+    if (offset == u32_max)
       return std::pair{u32_max, u32_max};
 
     projector->gate_strip_index = strip_index;

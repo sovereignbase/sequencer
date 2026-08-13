@@ -59,13 +59,6 @@ struct Strip {
   std::uint32_t is_inverse;
 
   /**
-   * @brief Number of consecutive frames in the represented Frame Span.
-   *
-   * This is also the length of the corresponding Footage region.
-   */
-  std::uint32_t frame_count;
-
-  /**
    * @brief Index of the Strip's first frame in consumer-owned Footage.
    *
    * The payload and its lifetime remain outside C++; compaction reports
@@ -90,15 +83,6 @@ struct Strip {
    * `u32_max` denotes that this is the rightmost remaining fragment.
    */
   std::uint32_t right_sibling_frames_strip_index{u32_max};
-
-  /**
-   * @brief Exact visible Projection start when this Strip is a checkpoint.
-   *
-   * `u32_max` denotes an ordinary Strip. This
-   * runtime-only marker lets Structural Order traversal recognize a checkpoint
-   * with one direct Strip load instead of searching the LengthTable.
-   */
-  std::uint32_t checkpoint_projection_frame_index{u32_max};
 
   std::vector<std::uint32_t> child_strip_indices;
 };

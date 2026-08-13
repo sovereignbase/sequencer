@@ -332,15 +332,9 @@ change or a complete Snapshot. Delta order is not trusted as Sequence order.
 
 ## Change
 
-A Change is a minimal consumer-facing Projection patch keyed by zero-based
-Projection Index. `undefined` removes a visible value; another value inserts or
-replaces it.
-
-## Result
-
-A Result is the successful return value of a local insertion, replacement, or
-removal. It contains both the local `change` and the transferable `delta`.
-Invalid or empty operations return `false`.
+A Change is the minimal consumer instruction returned by Merge, keyed by
+zero-based Projection Index. `undefined` removes a visible value; another value
+inserts or replaces it.
 
 ## Merge
 

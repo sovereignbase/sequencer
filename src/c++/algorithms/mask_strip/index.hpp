@@ -4,7 +4,6 @@
  */
 #pragma once
 
-#include "../../auxiliary/run_projector_to_strip/index.hpp"
 #include "../../auxiliary/split_strip/index.hpp"
 #include "../../declarations/projector/index.hpp"
 #include <algorithm>
@@ -21,25 +20,9 @@
  */
 [[nodiscard]] inline std::uint32_t
 mask_strip(Projector *projector, std::uint32_t containing_strip_index,
-           const std::uint32_t incoming_index_index,
-           std::uint32_t offset = u32_max,
-           std::uint32_t projection_frame_index = u32_max) noexcept {
+           const std::uint32_t incoming_index_index, std::uint32_t offset,
+           const std::uint32_t projection_frame_index) noexcept {
   const Strip incoming_strip = projector->strips[incoming_index_index];
-  if (offset == u32_max)
-    offset = incoming_strip.coordinate.previous_strip_end.counter_bits -
-             projector->strips[containing_strip_index]
-                 .coordinate.this_strip_start.counter_bits;
-
-  if (projection_frame_index == u32_max) {
-    if (projector->projection_frame_count == 0) {
-      projection_frame_index = 0;
-    } else {
-      run_projector_to_strip(containing_strip_index, projector);
-      projection_frame_index = projector->gate_projection_frame_index;
-      if (projector->strips[containing_strip_index].is_masked == 0)
-        projection_frame_index += offset;
-    }
-  }
 
   std::uint32_t remaining_frame_count =
       projector->length[incoming_index_index];

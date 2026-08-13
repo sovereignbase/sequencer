@@ -13,6 +13,7 @@
 #include "../../declarations/sentinels/index.hpp"
 #include <algorithm>
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -30,6 +31,17 @@
  * @invariant An empty Entry vector denotes an unoccupied Realm slot.
  */
 class HashTable {
+  struct SequencePointOrder {
+    [[nodiscard]] bool operator()(const SequencePoint &left,
+                                  const SequencePoint &right) const noexcept {
+      if (left.crypto_random_bits != right.crypto_random_bits)
+        return left.crypto_random_bits < right.crypto_random_bits;
+      if (left.unix_lower_bits != right.unix_lower_bits)
+        return left.unix_lower_bits < right.unix_lower_bits;
+      return left.counter_bits < right.counter_bits;
+    }
+  };
+
   /** @brief Compact containment interval stored inside one Realm. */
   struct Entry {
     /** @brief Counter of the first represented Frame. */
@@ -68,6 +80,9 @@ class HashTable {
 
   /** @brief Contiguous open-addressing slot array. */
   std::unique_ptr<Realm[]> realms;
+
+  std::map<SequencePoint, std::vector<std::uint32_t>, SequencePointOrder>
+      pending_children;
 
 public:
   /**
@@ -190,6 +205,27 @@ public:
    */
   [[nodiscard]] inline bool is_empty() const noexcept {
     return realm_count == 0;
+  }
+
+  inline void add_pending_child(const SequencePoint &point,
+                                const std::uint32_t strip_index) {
+    pending_children[point].push_back(strip_index);
+  }
+
+  inline void take_pending_children(
+      const SequencePoint &start, const std::uint32_t frame_count,
+      std::vector<std::uint32_t> &strip_indices) {
+    auto entry = pending_children.lower_bound(start);
+    const std::uint64_t end =
+        static_cast<std::uint64_t>(start.counter_bits) + frame_count;
+    while (entry != pending_children.end() &&
+           entry->first.crypto_random_bits == start.crypto_random_bits &&
+           entry->first.unix_lower_bits == start.unix_lower_bits &&
+           static_cast<std::uint64_t>(entry->first.counter_bits) < end) {
+      strip_indices.insert(strip_indices.end(), entry->second.begin(),
+                           entry->second.end());
+      entry = pending_children.erase(entry);
+    }
   }
 
 private:

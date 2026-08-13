@@ -8,15 +8,17 @@
 #include <cstdint>
 
 /**
- * @brief Position the Gate at a known materialized visible Strip.
+ * @brief Position the Gate at a known materialized Strip.
  *
  * Walkers advance from the Gate in both directions, from Head to the right,
  * and from Tail to the left while retaining each exact Projection start.
  * @param stable_index Stable Position to locate.
  * @param projector Projector whose Gate is moved.
+ * @return Projection Frame Index of `stable_index`.
  */
-inline void run_projector_to_strip(const std::uint32_t stable_index,
-                                   Projector *projector) noexcept {
+[[nodiscard]] inline std::uint32_t
+run_projector_to_strip(const std::uint32_t stable_index,
+                       Projector *projector) noexcept {
   std::uint32_t gate_left_strip_index = projector->gate_strip_index;
   std::uint32_t gate_left_projection_frame_index =
       projector->gate_projection_frame_index;
@@ -34,23 +36,23 @@ inline void run_projector_to_strip(const std::uint32_t stable_index,
       projector->gate_strip_index = stable_index;
       projector->gate_projection_frame_index =
           gate_left_projection_frame_index;
-      return;
+      return gate_left_projection_frame_index;
     }
     if (gate_right_strip_index == stable_index) {
       projector->gate_strip_index = stable_index;
       projector->gate_projection_frame_index =
           gate_right_projection_frame_index;
-      return;
+      return gate_right_projection_frame_index;
     }
     if (head_strip_index == stable_index) {
       projector->gate_strip_index = stable_index;
       projector->gate_projection_frame_index = head_projection_frame_index;
-      return;
+      return head_projection_frame_index;
     }
     if (tail_strip_index == stable_index) {
       projector->gate_strip_index = stable_index;
       projector->gate_projection_frame_index = tail_projection_frame_index;
-      return;
+      return tail_projection_frame_index;
     }
 
     gate_left_strip_index = projector->left[gate_left_strip_index];

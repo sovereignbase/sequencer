@@ -48,8 +48,8 @@ describe('initial Projection resolution', () => {
 
     const target = create<string>([
       ...base_delta,
-      ...deletion.delta,
-      ...insertion.delta,
+      ...deletion,
+      ...insertion,
     ])
 
     expect(values(target)).toEqual(['base', 'a', 'c'])

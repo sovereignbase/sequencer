@@ -31,7 +31,7 @@ describe('runtime merge and retained state', () => {
     const result = insert(source, 1, ['b'])
     assert(result)
 
-    expect(merge(target, result.delta)).not.toBe(false)
+    expect(merge(target, result)).not.toBe(false)
     expect(values(target)).toEqual(['a', 'b'])
   })
 
@@ -44,7 +44,7 @@ describe('runtime merge and retained state', () => {
     const result = remove(source, 1, 2)
     assert(result)
 
-    expect(merge(target, result.delta)).toEqual({ 1: undefined })
+    expect(merge(target, result)).toEqual({ 1: undefined })
     expect(values(target)).toEqual(['a', 'c'])
   })
 

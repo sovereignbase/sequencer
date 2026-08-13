@@ -38,13 +38,13 @@ test('converges after opposite Delta staging orders in a browser', async ({
 
     const forward = api.create<string>([
       ...retained,
-      ...left_result.delta,
-      ...right_result.delta,
+      ...left_result,
+      ...right_result,
     ])
     const reverse = api.create<string>([
       ...retained,
-      ...right_result.delta,
-      ...left_result.delta,
+      ...right_result,
+      ...left_result,
     ])
 
     const project = (state: Replica<string>): Array<string> =>

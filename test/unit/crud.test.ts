@@ -91,15 +91,14 @@ describe('runtime CRUD', () => {
     expect(state.footage).toEqual(['a', undefined, undefined, 'd'])
   })
 
-  it('replaces a visible range through one combined result', () => {
+  it('replaces a visible range through one combined Delta', () => {
     const state = create<string>()
     assert(insert(state, 0, ['a', 'b', 'c']))
 
     const result = replace(state, 1, ['x', 'y'], true)
 
     assert(result)
-    expect(result.delta).toHaveLength(2)
-    expect(result.change).toEqual({ 1: 'x', 2: 'y' })
+    expect(result).toHaveLength(2)
     expect(values(state)).toEqual(['a', 'x', 'y'])
     expect(recover(state)).toEqual(['a', 'x', 'y'])
     expect(replace(state, 3, ['z'])).toBe(false)

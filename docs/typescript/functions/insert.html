@@ -13,15 +13,13 @@
 <section class="tsd-panel">
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="insert"><span class="tsd-kind-call-signature">insert</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">state</span><span class="tsd-signature-symbol">:</span> <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">index</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">values</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../types/Result.html" class="tsd-signature-type tsd-kind-type-alias">Result</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#insert" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="insert"><span class="tsd-kind-call-signature">insert</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">state</span><span class="tsd-signature-symbol">:</span> <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">index</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">values</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">false</span> <span class="tsd-signature-symbol">|</span> <a href="../types/Delta.html" class="tsd-signature-type tsd-kind-type-alias">Delta</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#insert" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Inserts values at one visible Projection index.</p>
 <p>The inserted values begin at <code>index</code>. Any value previously visible at that
 index, together with all following visible values, shifts right by
 <code>values.length</code> Frames.</p>
-<p>Every successful call issues one contiguous visible Strip and returns the
-resulting local Change together with the Delta to exchange with other
-Replicas.</p>
+<p>Every successful call issues and returns one contiguous visible Strip.</p>
 <p>Insertion before an existing Frame uses inverse placement. Insertion at
 Projection end references the final visible Frame and uses forward placement.
 The first insertion stages its Strip and initializes the sentinel-free native
@@ -46,11 +44,11 @@ Projection end is also a valid insertion position.</p>
 <li><span><span class="tsd-kind-parameter">values</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">[]</span></span>
 <div class="tsd-comment tsd-typography"><p>Non-empty contiguous values to insert.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="../types/Result.html" class="tsd-signature-type tsd-kind-type-alias">Result</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The consumer-facing Change and transferable Delta, or <code>false</code> when
-<code>values</code> or <code>index</code> is invalid.</p>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">false</span> <span class="tsd-signature-symbol">|</span> <a href="../types/Delta.html" class="tsd-signature-type tsd-kind-type-alias">Delta</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The transferable Delta, or <code>false</code> when <code>values</code> or <code>index</code> is
+invalid.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/8ac26548d723e45e20b955d8bcc5a31606706f49/src/typescript/algorithms/update/insert/index.ts#L39">algorithms/update/insert/index.ts:39</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/ab966a8547a3c1e6515d5cf56f7ca88300d4e929/src/typescript/algorithms/update/insert/index.ts#L37">algorithms/update/insert/index.ts:37</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

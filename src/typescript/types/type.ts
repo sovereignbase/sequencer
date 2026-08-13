@@ -133,22 +133,3 @@ export type Acknowledgement = Array<
     frontier_counter_bits: number,
   ]
 >
-
-/**
- * Result of a local write or delete operation.
- *
- * A successful operation returns the minimal visible Projection change together
- * with the Delta required to reproduce the operation on other Replicas.
- * `false` indicates that the operation produced no change.
- *
- * @typeParam T Consumer-owned value represented by one Frame.
- */
-export type Result<T> =
-  | {
-      /** Minimal patch for the consumer's currently visible Projection. */
-      change: Change<T>
-
-      /** Strips produced by the operation for exchange with other Replicas. */
-      delta: Delta<T>
-    }
-  | false

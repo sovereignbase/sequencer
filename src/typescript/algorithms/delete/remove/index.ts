@@ -4,13 +4,7 @@
  * @module
  */
 import { is_safe_index, issue_virtual_strip } from '../../../helpers/index.js'
-import type {
-  Change,
-  Delta,
-  Replica,
-  Result,
-  Strip,
-} from '../../../types/type.js'
+import type { Delta, Replica, Strip } from '../../../types/type.js'
 import {
   get_projection_frame_count,
   merge_strip_into_sequence,
@@ -36,15 +30,15 @@ import {
  * defaults to the current length.
  * @param hard Whether to release deleted values immediately instead of
  * retaining them for recovery until garbage collection.
- * @returns The consumer-facing Change and transferable Delta, or `false` when
- * the requested range is invalid or empty.
+ * @returns The transferable Delta, or `false` when the requested range is
+ * invalid or empty.
  */
 export function remove<T>(
   state: Replica<T>,
   start_index = 0,
   end_index?: number,
   hard = false
-): Result<T> {
+): Delta<T> | false {
   // Validate the requested half-open Projection range.
   const projection_frame_count = get_projection_frame_count(state.id)
   const deletion_end_index = end_index ?? projection_frame_count
@@ -56,18 +50,9 @@ export function remove<T>(
   )
     return false
 
-  // Initialize the consumer result and unresolved deletion span.
-  const change: Change<T> = {}
+  // Initialize the transferable Delta and unresolved deletion span.
   const delta: Delta<T> = []
   let remaining_frame_count = deletion_end_index - start_index
-
-  // Build removals at the original visible Projection positions.
-  for (
-    let frame_index = start_index;
-    frame_index < deletion_end_index;
-    frame_index++
-  )
-    change[frame_index] = undefined
 
   // Resolve and mask one containing materialized Strip at a time.
   while (remaining_frame_count > 0) {
@@ -114,6 +99,5 @@ export function remove<T>(
     remaining_frame_count -= mask_frame_count
   }
 
-  // Return the local Projection Change and Mask Delta.
-  return { change, delta }
+  return delta
 }

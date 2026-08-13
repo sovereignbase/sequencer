@@ -33,7 +33,7 @@ export function measure_data_sizes() {
       api.insert(insert_state, index, [index]),
       'insert'
     )
-    insert_delta.push(...result.delta)
+    insert_delta.push(...result)
   }
 
   const remove_state = api.create<number>()
@@ -48,7 +48,7 @@ export function measure_data_sizes() {
   const remove_delta: Delta<number> = []
   for (let index = 0; index < operation_count; index++) {
     const result = require_result(api.remove(remove_state, 0, 1), 'remove')
-    remove_delta.push(...result.delta)
+    remove_delta.push(...result)
   }
 
   return [

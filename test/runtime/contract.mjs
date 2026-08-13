@@ -41,10 +41,10 @@ export function run_runtime_contract(api) {
 
   const forward = api.create(snapshot)
   const reverse = api.create(snapshot)
-  api.merge(forward, left_result.delta)
-  api.merge(forward, right_result.delta)
-  api.merge(reverse, right_result.delta)
-  api.merge(reverse, left_result.delta)
+  api.merge(forward, left_result)
+  api.merge(forward, right_result)
+  api.merge(reverse, right_result)
+  api.merge(reverse, left_result)
   const forward_projection = read_projection(forward)
   const reverse_projection = read_projection(reverse)
   require_condition(

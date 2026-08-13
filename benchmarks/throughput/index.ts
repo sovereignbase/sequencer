@@ -21,12 +21,9 @@ type BenchmarkDefinition = {
 const sequence_configurations = [
   [100, 100],
   [1_000, 100],
-  [10_000, 100],
-  [100_000, 100],
-  [1_000_000, 100],
 ] as const
 
-const strip_frame_counts = [1, 10, 100, 1000] as const
+const strip_frame_counts = [1, 10, 100, 1000, 10_000] as const
 
 /** Measures every public function across the Sequence/Strip length matrix. */
 export async function run_throughput_benchmarks() {
@@ -55,6 +52,7 @@ export async function run_throughput_benchmarks() {
     measured_samples,
   ] of sequence_configurations) {
     for (const strip_frame_count of strip_frame_counts) {
+      if (strip_frame_count > sequence_frame_count) continue
       const base_state = api.create<string>()
       const strip_values = Array.from({ length: strip_frame_count }, () => 'a')
       for (
@@ -87,7 +85,7 @@ export async function run_throughput_benchmarks() {
       const merge_delta = require_result(
         api.insert(merge_source, mutation_frame_index, operation_values),
         'merge'
-      ).delta
+      )
       let find_index = 0
 
       const prepare_state_pool = (
@@ -102,6 +100,10 @@ export async function run_throughput_benchmarks() {
             current_state = state_pool.pop()
             if (!current_state)
               throw new TypeError('Benchmark state pool was exhausted.')
+            result_sink = api.find(
+              current_state,
+              Math.max(0, mutation_frame_index - 1)
+            )
           },
           run: () => {
             result_sink = operation(current_state!)

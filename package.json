@@ -53,7 +53,7 @@
     "test:runtimes": "node scripts/run-runtime-tests.mjs",
     "test:browser": "node scripts/run-browser-tests.mjs",
     "test:compare": "",
-    "bench": "npm run build && node --expose-gc --experimental-strip-types benchmarks/index.ts",
+    "bench": "npm run build:wasm  && npm run build && node --expose-gc --experimental-strip-types benchmarks/index.ts",
     "bench:compare": "npm run build && node --expose-gc --experimental-strip-types benchmarks/index.ts",
     "prepare": "husky",
     "prepublishOnly": "npm run test && npm run bench"

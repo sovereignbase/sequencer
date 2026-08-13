@@ -74,8 +74,8 @@ describe('hostile Delta staging', () => {
     assert(child_result !== false)
 
     const target = create<string>([
-      ...child_result.delta,
-      ...parent_result.delta,
+      ...child_result,
+      ...parent_result,
     ])
 
     expect(projection_values(target)).toEqual(['parent', 'child'])
@@ -91,20 +91,20 @@ describe('hostile Delta staging', () => {
 
     const left_parent = insert(left, 1, ['left-0', 'left-1'])
     assert(left_parent !== false)
-    deltas.push(left_parent.delta)
+    deltas.push(left_parent)
     const left_child = insert(left, 2, ['left-child'])
     assert(left_child !== false)
-    deltas.push(left_child.delta)
+    deltas.push(left_child)
     const left_mask = remove(left, 2, 4)
     assert(left_mask !== false)
-    deltas.push(left_mask.delta)
+    deltas.push(left_mask)
 
     const right_replacement = replace(right, 1, ['right'])
     assert(right_replacement !== false)
-    deltas.push(right_replacement.delta)
+    deltas.push(right_replacement)
     const right_initial = insert(right, 0, ['right-initial'])
     assert(right_initial !== false)
-    deltas.push(right_initial.delta)
+    deltas.push(right_initial)
 
     const strips = deltas.flat()
     const ordered = deliver(base_delta, strips)
@@ -138,12 +138,12 @@ describe('hostile Delta staging', () => {
     assert(insertion !== false)
 
     const mask_first = deliver(base_delta, [
-      ...deletion.delta,
-      ...insertion.delta,
+      ...deletion,
+      ...insertion,
     ])
     const insert_first = deliver(base_delta, [
-      ...insertion.delta,
-      ...deletion.delta,
+      ...insertion,
+      ...deletion,
     ])
 
     expect_converged(mask_first, insert_first)
@@ -162,9 +162,9 @@ describe('restart and collection continuity', () => {
     let recovered = create<string>(snapshot(source))
     const later_result = insert(source, length(source), ['later'])
     assert(later_result !== false)
-    void merge(recovered, later_result.delta)
-    void merge(recovered, first_result.delta)
-    void merge(recovered, deletion_result.delta)
+    void merge(recovered, later_result)
+    void merge(recovered, first_result)
+    void merge(recovered, deletion_result)
     void merge(recovered, shared_delta)
     recovered = create<string>(snapshot(recovered))
 
@@ -176,7 +176,7 @@ describe('restart and collection continuity', () => {
     const peer = create<string>(snapshot(source))
     const deletion = remove(source, 1, 2)
     assert(deletion !== false)
-    void merge(peer, deletion.delta)
+    void merge(peer, deletion)
 
     const source_frontier = acknowledge(source)
     const peer_frontier = acknowledge(peer)
@@ -196,7 +196,7 @@ describe('restart and collection continuity', () => {
 
     const later = insert(source, length(source), ['later'])
     assert(later !== false)
-    void merge(peer, later.delta)
+    void merge(peer, later)
 
     expect_converged(source, peer)
   })

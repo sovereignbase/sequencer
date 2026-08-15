@@ -48,7 +48,7 @@ inline void run_projector_to_frame_index(
   // Calculate ideal jump distance.
   const std::uint32_t optimal_jump_distance = static_cast<std::uint32_t>(
       std::sqrt(projector.projection_frame_count) + 0.5);
-  //
+  // UPDATE AS YOU WALK
   std::uint32_t cursor_strip_index = projector.gate_strip_index;
   std::uint32_t cursor_projection_frame_index =
       projector.projection_frame_index;

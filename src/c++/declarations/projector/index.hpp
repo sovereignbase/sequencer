@@ -107,13 +107,21 @@ struct Projector {
   std::vector<std::uint32_t> left_jump_strip_index_of;
 
   /** @brief Projection Frame distance to `left_jump_strip_index`. */
-  std::vector<std::uint32_t> left_jump_frame_length_of;
+  std::vector<std::uint32_t> left_jump_length_of;
 
   /** @brief Visible Strip reached by the current right Projection jump. */
   std::vector<std::uint32_t> right_jump_strip_index_of;
 
   /** @brief Projection Frame distance to `right_jump_strip_index`. */
-  std::vector<std::uint32_t> right_jump_frame_length_of;
+  std::vector<std::uint32_t> right_jump_length_of;
+
+  /** @brief Determines jump length reliabity, a remove increments the
+   * generation */
+  std::vector<std::uint32_t> remove_generation_of;
+
+  std::vector<std::uint32_t> remove_generation_invalidates;
+
+  std::uint32_t remove_generation;
 
   /**
    * @brief Sequence Point containment index returning Strip Indexs.

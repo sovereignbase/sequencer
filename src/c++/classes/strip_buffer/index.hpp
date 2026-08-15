@@ -27,7 +27,6 @@
 #pragma once
 
 #include "../../declarations/sentinels/index.hpp"
-#include "../../declarations/strip/index.hpp"
 #include "../hash_table/index.hpp"
 #include <cstdint>
 #include <vector>
@@ -105,7 +104,7 @@ public:
    * insertion, for e entries in the matching Realm.
    */
   [[nodiscard]] inline std::uint32_t
-  read_strip(Projector *projector) const noexcept {
+  read_strip(Projector &projector) const noexcept {
     const SequencePoint this_strip_start{
         .crypto_random_bits = words[3],
         .unix_lower_bits = words[4],
@@ -117,25 +116,29 @@ public:
       return u32_max;
 
     const std::uint32_t strip_index =
-        static_cast<std::uint32_t>(projector->strips.size());
-    projector->strips.push_back(Strip{
-        .is_masked = words[0],
-        .is_inverse = words[1],
-        .footage_frame_index = words[9],
-        .coordinate{
-            .this_strip_start = this_strip_start,
-            .previous_strip_end{
-                .crypto_random_bits = words[6],
-                .unix_lower_bits = words[7],
-                .counter_bits = words[8],
-            },
-        },
-    });
+        static_cast<std::uint32_t>(projector.is_masked_of.size());
 
-    projector->left.push_back(strip_index);
-    projector->right.push_back(strip_index);
-    projector->length.push_back(words[2]);
-    projector->hash_table.set(this_strip_start, words[2], strip_index);
+    // encoding
+    projector.is_masked_of.push_back(words[0])
+        projector.is_inverse_of.push_back(words[1]);
+    projector.strip_length_of.push_back(words[2]);
+
+    projector.strip_start_of.push_back(this_strip_start);
+
+    const SequencePoint previous_strip_end{
+        .crypto_random_bits = words[6],
+        .unix_lower_bits = words[7],
+        .counter_bits = words[8],
+    };
+    projector.previous_strip_end_of.push_back(previous_strip_end);
+    projector.footage_frame_index_of.push_back(words[9]);
+
+    // runtime
+    projector.right_strip_index_of.push_back(u32_max);
+    projector.left_strip_index_of.push_back(u32_max);
+
+    //...
+    projector.hash_table.set(this_strip_start, words[2], strip_index);
 
     return strip_index;
   }

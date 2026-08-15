@@ -37,33 +37,61 @@
  */
 struct Projector {
   // Authoritative materialized Sequence and Projection state.
+  ///////////////
+  // ENCODING //
+  /////////////
+  /**
+   * @brief Is masked flags indexed by Strip Index .
+   */
+  std::vector<bool> is_masked_of;
+  /**
+   * @brief Is inverse flags indexed by Strip Index .
+   */
+  std::vector<bool> is_inverse_of;
 
   /**
-   * @brief Append-only Strip storage indexed by Strip Index.
-   *
-   * It contains materialized and Pending Strips. Structural membership is
-   * determined by the matching dense link entries.
+   * @brief Lengths indexed by Strip Index .
    */
-  std::vector<Strip> strips;
+  std::vector<uint32_t> strip_length_of;
+
+  /**
+   * @brief Strip start Sequence Points indexed by Strip Index .
+   */
+  std::vector<SequencePoint> strip_start_of;
+
+  /**
+   * @brief Previous Strip End Sequence Points indexed by Strip Index .
+   */
+  std::vector<SequencePoint> previous_strip_end_of;
+
+  //////////////
+  // RUNTIME //
+  ////////////
+
+  /** @brief Strip Index of the materialized Strip holding the first projection
+   * frame. */
+  std::uint32_t head_strip_index{u32_max};
+
+  /** @brief Strip Index of the materialized Strip cached by the Gate. */
+  std::uint32_t gate_strip_index{u32_max};
+
+  /** @brief Strip Index of the materialized Strip holding the last projection
+   * frame. */
+  std::uint32_t tail_strip_index{u32_max};
 
   /**
    * @brief Strip Index immediately to the right in Structural Order.
    *
    * A Pending Strip points to itself until materialized.
    */
-  std::vector<uint32_t> right;
+  std::vector<uint32_t> right_strip_index_of;
 
   /**
    * @brief Strip Index immediately to the left in Structural Order.
    *
    * A Pending Strip points to itself until materialized.
    */
-  std::vector<uint32_t> left;
-
-  /**
-   * @brief Lengths indexed by Strip Index .
-   */
-  std::vector<uint32_t> length;
+  std::vector<uint32_t> left_strip_index_of;
 
   /**
    * @brief Sequence Point containment index returning Strip Indexs.
@@ -72,9 +100,6 @@ struct Projector {
    * `strips`.
    */
   HashTable hash_table;
-
-  /** @brief Total number of visible frames in the current Projection. */
-  std::uint32_t projection_frame_count{0};
 
   /** @brief Version selecting currently valid Strip-local Projection jumps. */
   std::uint32_t jump_generation{1};
@@ -87,16 +112,8 @@ struct Projector {
    * A Mask has zero projected length, so it may share this position with an
    * adjacent Strip.
    */
-  std::uint32_t gate_projection_frame_index{0};
+  std::uint32_t projection_frame_index{0};
 
-  /** @brief Strip Index of the materialized Strip holding the first projection
-   * frame. */
-  std::uint32_t head_strip_index{u32_max};
-
-  /** @brief Strip Index of the materialized Strip cached by the Gate. */
-  std::uint32_t gate_strip_index{u32_max};
-
-  /** @brief Strip Index of the materialized Strip holding the last projection
-   * frame. */
-  std::uint32_t tail_strip_index{u32_max};
+  /** @brief Total number of visible frames in the current Projection. */
+  std::uint32_t projection_frame_count{0};
 };

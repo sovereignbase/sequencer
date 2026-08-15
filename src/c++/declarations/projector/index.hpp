@@ -77,10 +77,7 @@ struct Projector {
   std::uint32_t projection_frame_count{0};
 
   /** @brief Version selecting currently valid Strip-local Projection jumps. */
-  std::uint32_t projection_generation{1};
-
-  /** @brief Canonical root of retained Structural Order. */
-  std::uint32_t structural_root_strip_index{u32_max};
+  std::uint32_t jump_generation{1};
 
   // Movable Projection traversal Gate.
 

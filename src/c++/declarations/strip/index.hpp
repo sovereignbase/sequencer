@@ -76,8 +76,13 @@ struct Strip {
    */
   SequenceCoordinate coordinate;
 
+  /** @brief Strip Index of a Strip with the same previous_strip_end competing
+   * for recency by lexograpical larfeness.
+   */
+  std::uint32_t larger_competitor_strip_index{u32_max};
+
   /** @brief Next larger fragment of the same originally issued Strip. */
-  std::uint32_t larger_sibling_frames_strip_index{u32_max};
+  std::uint32_t larger_split_strip_index{u32_max};
 
   /** @brief Visible Strip reached by the current left Projection jump. */
   std::uint32_t left_jump_strip_index{u32_max};
@@ -93,9 +98,4 @@ struct Strip {
 
   /** @brief Projector generation in which the jump fields are valid. */
   std::uint32_t jump_generation{0};
-
-  /** @brief Whether a self-linked Mask command has already been applied. */
-  std::uint32_t is_resolved{0};
-
-  std::vector<std::uint32_t> child_strip_indices;
 };

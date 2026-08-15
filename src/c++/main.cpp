@@ -305,12 +305,13 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t merge_strip_into_sequence(
   if (strip_index == u32_max)
     return u32_max;
 
-  const Strip incoming_strip = projector->strips[strip_index];
+  Strip *incoming_strip = &projector->strips[strip_index];
 
-  if (first_insert_fast_path(projector, strip_index))
-    return 0;
-  if (root_insert_fast_path(projector, strip_index, projection_frame_index))
-    return projection_frame_index;
+  if (incoming_strip->is_inverse == 1) {
+    if (incoming_strip->is_masked == 1)
+      return u32_max;
+    root_insert_fast_path(projector, incoming_strip, projection_frame_index);
+  }
 
   std::uint32_t containing_strip_index;
   if (projection_frame_index != u32_max) {

@@ -4,8 +4,8 @@
  */
 #pragma once
 
-#include "../strip_contains_sequence_point/index.hpp"
 #include "../../declarations/projector/index.hpp"
+#include "../strip_contains_previous_strip_end/index.hpp"
 #include <cstdint>
 #include <utility>
 
@@ -34,10 +34,9 @@ run_projector_to_strip(const SequencePoint *sequence_point,
   const auto find = [projector, sequence_point](
                         const std::uint32_t strip_index,
                         const std::uint32_t strip_projection_frame_index) {
-    const std::uint32_t offset =
-        strip_contains_sequence_point(&projector->strips[strip_index],
-                                      sequence_point,
-                                      projector->length[strip_index]);
+    const std::uint32_t offset = strip_contains_sequence_point(
+        &projector->strips[strip_index], sequence_point,
+        projector->length[strip_index]);
     if (offset == u32_max)
       return std::pair{u32_max, u32_max};
 
@@ -47,8 +46,7 @@ run_projector_to_strip(const SequencePoint *sequence_point,
   };
 
   do {
-    auto result =
-        find(gate_left_strip_index, gate_left_projection_frame_index);
+    auto result = find(gate_left_strip_index, gate_left_projection_frame_index);
     if (result.first != u32_max)
       return result;
     result = find(gate_right_strip_index, gate_right_projection_frame_index);

@@ -103,16 +103,25 @@ struct Projector {
   /** @brief Next larger fragment of the same originally issued Strip. */
   std::vector<std::uint32_t> larger_split_strip_index_of;
 
+  /** @brief Visible Strip reached by the current left Projection jump. */
+  std::vector<std::uint32_t> left_jump_strip_index_of;
+
+  /** @brief Projection Frame distance to `left_jump_strip_index`. */
+  std::vector<std::uint32_t> left_jump_frame_length_of;
+
+  /** @brief Visible Strip reached by the current right Projection jump. */
+  std::vector<std::uint32_t> right_jump_strip_index_of;
+
+  /** @brief Projection Frame distance to `right_jump_strip_index`. */
+  std::vector<std::uint32_t> right_jump_frame_length_of;
+
   /**
    * @brief Sequence Point containment index returning Strip Indexs.
    *
-   * HashTable owns compact Realm entries only; Strip objects remain owned by
-   * `strips`.
+   * HashTable owns compact Realm entries only; Strip objects remain owned
+   * by `strips`.
    */
   HashTable hash_table;
-
-  /** @brief Version selecting currently valid Strip-local Projection jumps. */
-  std::uint32_t jump_generation{1};
 
   // Movable Projection traversal Gate.
 

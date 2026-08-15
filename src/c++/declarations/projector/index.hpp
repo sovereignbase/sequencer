@@ -84,14 +84,24 @@ struct Projector {
    *
    * A Pending Strip points to itself until materialized.
    */
-  std::vector<uint32_t> right_strip_index_of;
+  std::vector<std::uint32_t> right_strip_index_of;
 
   /**
    * @brief Strip Index immediately to the left in Structural Order.
    *
    * A Pending Strip points to itself until materialized.
    */
-  std::vector<uint32_t> left_strip_index_of;
+  std::vector<std::uint32_t> left_strip_index_of;
+
+  std::vector<std::uint32_t> footage_frame_index_of;
+
+  /** @brief Strip Index of a Strip with the same previous_strip_end competing
+   * for recency by lexograpical larfeness.
+   */
+  std::vector<std::uint32_t> larger_competitor_strip_index_of;
+
+  /** @brief Next larger fragment of the same originally issued Strip. */
+  std::vector<std::uint32_t> larger_split_strip_index_of;
 
   /**
    * @brief Sequence Point containment index returning Strip Indexs.

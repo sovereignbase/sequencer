@@ -40,49 +40,6 @@
  * @invariant A visible Strip has `is_masked == 0`; a Mask has bit zero set.
  */
 struct Strip {
-  // Transferable visibility, length, and Footage mapping.
-
-  /**
-   * @brief Visibility state encoded as an unsigned WebAssembly word.
-   *
-   * Zero denotes a visible Strip. Any nonzero value denotes a Mask.
-   */
-  std::uint32_t is_masked;
-
-  /**
-   * @brief Direction used to interpret the referenced placement Frame.
-   *
-   * Zero inserts after the referenced Frame and orders siblings forward;
-   * nonzero inserts before it and orders siblings in the opposite direction.
-   */
-  std::uint32_t is_inverse;
-
-  /**
-   * @brief Index of the Strip's first frame in consumer-owned Footage.
-   *
-   * The payload and its lifetime remain outside C++; compaction reports
-   * this index and `frame_count` when the region may be released.
-   */
-  std::uint32_t footage_frame_index;
-
-  // Sequence coordinate and runtime-only source-fragment distances.
-
-  /**
-   * @brief Sequence Coordinate defining logical placement.
-   *
-   * `this_strip_start` identifies this Frame Span and `previous_strip_end`
-   * retains its placement or containment dependency. A derived split suffix
-   * receives the corresponding derived coordinate.
-   */
-  SequenceCoordinate coordinate;
-
-  /** @brief Strip Index of a Strip with the same previous_strip_end competing
-   * for recency by lexograpical larfeness.
-   */
-  std::uint32_t larger_competitor_strip_index{u32_max};
-
-  /** @brief Next larger fragment of the same originally issued Strip. */
-  std::uint32_t larger_split_strip_index{u32_max};
 
   /** @brief Visible Strip reached by the current left Projection jump. */
   std::uint32_t left_jump_strip_index{u32_max};

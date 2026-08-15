@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Defines deterministic total ordering for sequence points.
+ * @brief Defines deterministic total ordering for Sequence Points.
  *
  * Ordering compares the crypto-random component first, the Unix component
  * second, and the counter component last.
@@ -11,12 +11,12 @@
 #include <cstdint>
 
 /**
- * @brief Compare two sequence points in deterministic total order.
+ * @brief Compare two Sequence Points in deterministic total order.
  *
  * @param left_sequence_point Left comparison operand.
  * @param right_sequence_point Right comparison operand.
- * @return `-1` when left precedes right, `1` when right precedes left, and `0`
- * when both points are equal.
+ * @return `-1` when left is smaller than right, `0` when left is the same as
+ * right, and `1` when left is larger than right.
  * @pre Both pointers are non-null.
  * @complexity O(1) time and O(1) space.
  */

@@ -16,6 +16,8 @@
  * @return Projection Frame Index and Strip Index, or two `u32_max` values.
  */
 [[nodiscard]] inline std::pair<std::uint32_t, std::uint32_t>
+
+// HASH TABLE TO HEAD OR TAIL VIA JUMP POINT TRAVERSE IS BEST LOL NOT THIS BS
 run_projector_to_strip(const SequencePoint *sequence_point,
                        Projector *projector) noexcept {
   std::uint32_t gate_left_strip_index = projector->gate_strip_index;

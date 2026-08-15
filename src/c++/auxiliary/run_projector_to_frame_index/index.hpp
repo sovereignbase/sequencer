@@ -55,11 +55,9 @@ inline void run_projector_to_frame_index(
 
   while (distance_to_walk > projector.strip_length_of[cursor_strip_index]) {
     if (cursor_projection_frame_index <= projection_frame_index) {
-      while () {
-      }
+      cursor_right_strip_index = while () {}
     } else {
-      while () {
-      }
+      cursor_left_strip_index = while () {}
     }
   }
 }

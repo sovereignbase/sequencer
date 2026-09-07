@@ -9,8 +9,9 @@
  */
 #pragma once
 
-#include "../../declarations/sequence_coordinate/index.hpp"
-#include "../../declarations/sentinels/index.hpp"
+#include "../.declarations/sentinels/index.hpp"
+#include "../.declarations/sequence_coordinate/index.hpp"
+#include "../.declarations/sequence_point/index.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <memory>
@@ -29,7 +30,7 @@
  * @invariant Entries within one Realm are sorted by `counter_bits`.
  * @invariant An empty Entry vector denotes an unoccupied Realm slot.
  */
-class HashTable {
+class ContainmentIndex {
   /** @brief Compact containment interval stored inside one Realm. */
   struct Entry {
     /** @brief Counter of the first represented Frame. */
@@ -77,7 +78,7 @@ public:
    * @pre `initial_realm_capacity` is a nonzero power of two.
    * @complexity O(initial_realm_capacity) value initialization.
    */
-  explicit HashTable(
+  explicit ContainmentIndex(
       const std::uint32_t initial_realm_capacity = minimum_realm_capacity)
       : realm_capacity(initial_realm_capacity),
         realm_index_mask(initial_realm_capacity - 1),
@@ -172,8 +173,7 @@ public:
           return {u32_max, u32_max};
 
         --entry;
-        const std::uint32_t offset =
-            point.counter_bits - entry->counter_bits;
+        const std::uint32_t offset = point.counter_bits - entry->counter_bits;
         return offset < entry->frame_count
                    ? std::pair{entry->stable_position, offset}
                    : std::pair{u32_max, u32_max};

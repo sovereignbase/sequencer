@@ -2,8 +2,8 @@
  * @file
  * @brief Defines the fixed-width WebAssembly transfer buffer for one Strip.
  *
- * StripBuffer is the translation boundary between the C++ Strip model and its
- * ten-word WebAssembly memory contract. It owns exactly ten `std::uint32_t`
+ * SnapshotBuffer is the translation boundary between the C++ Strip model and
+ * its ten-word WebAssembly memory contract. It owns exactly ten `std::uint32_t`
  * values, performs no dynamic allocation, and never owns Footage.
  *
  * The memory layout is stable:
@@ -26,8 +26,8 @@
  */
 #pragma once
 
-#include "../../declarations/sentinels/index.hpp"
-#include "../hash_table/index.hpp"
+#include "../../.containment_index/index.hpp"
+#include "../../.declarations/sentinels/index.hpp"
 #include <cstdint>
 #include <vector>
 
@@ -45,7 +45,7 @@
  * @note The class validates neither word values nor Strip invariants at the ABI
  * boundary; callers supply a valid transferable Strip representation.
  */
-class StripBuffer {
+class SequenceBuffer {
 private:
   // Fixed owned ABI storage.
 
@@ -66,8 +66,8 @@ public:
    * contents.
    * @complexity O(1) time and O(1) auxiliary space.
    */
-  inline void write_strip(const Strip &strip,
-                          const std::uint32_t frame_count) noexcept {
+  inline void write_sequence(const Strip &strip,
+                             const std::uint32_t frame_count) noexcept {
     // Encode visibility, Frame count, and Footage mapping.
     words[0] = strip.is_masked;
     words[1] = strip.is_inverse;
@@ -149,7 +149,7 @@ public:
    * @brief Return the first word of the contiguous transfer memory.
    *
    * @return Mutable pointer to exactly ten contiguous words.
-   * @note The pointer remains valid until this StripBuffer is destroyed. Its
+   * @note The pointer remains valid until this SnapshotBuffer is destroyed. Its
    * contents may change whenever `write_strip` or the WebAssembly host writes
    * through the pointer.
    * @complexity O(1) time and O(1) space.

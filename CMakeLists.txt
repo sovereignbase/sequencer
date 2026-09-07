@@ -7,10 +7,19 @@ project(
   LANGUAGES CXX
 )
 
-include(cmake/boost_endian.cmake)
+include(FetchContent)
+
+FetchContent_Declare(
+  Boost
+  URL https://archives.boost.io/release/1.92.0/source/boost_1_92_0.tar.gz
+)
+
+FetchContent_MakeAvailable(Boost)
 
 add_executable(sequencer_wasm src/c++/main.cpp)
+
 target_compile_features(sequencer_wasm PRIVATE cxx_std_23)
+
 target_link_libraries(sequencer_wasm PRIVATE Boost::endian)
 
 if(MSVC)

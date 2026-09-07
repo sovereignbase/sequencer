@@ -13,6 +13,8 @@ and the native runtime.
 
 A Realm is an identity space that issues one counter-ordered lineage of Sequence Points. A Realm is identified by the pair `(crypto_random_bits, unix_lower_bits)`. One Realm is normally issued per JavaScript Realm. An additional Realm is issued only if the `uint32` counter overflows, which is practically never expected to occur.
 
+## Snapshot
+
 ## Sequence Point
 
 A Sequence Point identifies one stable Frame in Sequence space independently of

@@ -45,7 +45,7 @@
  * @note The class validates neither word values nor Strip invariants at the ABI
  * boundary; callers supply a valid transferable Strip representation.
  */
-class SequenceBuffer {
+class ProjectionBuffer {
 private:
   // Fixed owned ABI storage.
 
@@ -66,8 +66,8 @@ public:
    * contents.
    * @complexity O(1) time and O(1) auxiliary space.
    */
-  inline void write_sequence(const Strip &strip,
-                             const std::uint32_t frame_count) noexcept {
+  inline void write_projection(const Strip &strip,
+                               const std::uint32_t frame_count) noexcept {
     // Encode visibility, Frame count, and Footage mapping.
     words[0] = strip.is_masked;
     words[1] = strip.is_inverse;
@@ -104,7 +104,7 @@ public:
    * insertion, for e entries in the matching Realm.
    */
   [[nodiscard]] inline std::uint32_t
-  read_strip(Projector &projector) const noexcept {
+  read_projection(Projector &projector) const noexcept {
     const SequencePoint this_strip_start{
         .crypto_random_bits = words[3],
         .unix_lower_bits = words[4],

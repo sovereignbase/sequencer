@@ -15,6 +15,8 @@
  * Sequence Points; Masks transfer coordinates composed entirely of existing
  * points.
  */
+#include "./.auxiliary/hydrate_projection/index.hpp"
+#include "./.auxiliary/strip_contains_previous_strip_end/index.hpp"
 #include "./.buffer/strip_buffer/index.hpp"
 #include "./.buffers/footage_span_buffer/index.hpp"
 #include "./.buffers/frontier_buffer/index.hpp"
@@ -24,6 +26,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <optional>
+#include <tuple>
 #include <vector>
 
 #ifdef __EMSCRIPTEN__
@@ -53,29 +56,31 @@ static ProjectionBuffer projection_buffer;
 extern "C" {
 
 /**
- * @brief Create an empty Projector for one Replica.
+ * @brief Create a Projector and consume an optional ordered snapshot.
  *
  * A cleared registry slot is reused before a new slot is appended. The returned
  * identifier remains assigned to this Replica until `clear_sequence` releases
  * it.
  *
  * @return Registry identifier of the initialized Sequence state.
- * @post The returned identifier selects an active Projector with an empty
- * retained Sequence and empty Projection.
- * @post Strip storage, dense links, indexes, and the Projection are empty.
- * @complexity Amortized O(1) time.
+ * @post An empty buffer leaves an empty Projector; otherwise the snapshot's
+ * Strips, links, containment, Footage indices, and navigation are restored.
+ * @post ProjectionBuffer is empty and no longer owns the snapshot allocation.
+ * @complexity Expected O(n) restoration plus per-Realm containment sorting.
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t initialize_sequence() noexcept {
-  // Grow the registry only when no cleared identifier is available.
+  std::uint32_t sequence_id;
   if (available_sequence_ids.empty()) {
+    sequence_id = static_cast<std::uint32_t>(projectors.size());
     projectors.emplace_back(std::in_place);
-    return static_cast<std::uint32_t>(projectors.size() - 1);
+  } else {
+    sequence_id = available_sequence_ids.back();
+    available_sequence_ids.pop_back();
+    projectors[sequence_id].emplace();
   }
-
-  // Reactivate the most recently cleared registry slot.
-  const std::uint32_t sequence_id = available_sequence_ids.back();
-  available_sequence_ids.pop_back();
-  projectors[sequence_id].emplace();
+  const auto projection = projection_buffer.read_buffer();
+  if (!projection.empty())
+    hydrate_projection(*projectors[sequence_id], projection);
   return sequence_id;
 }
 
@@ -113,19 +118,32 @@ clear_sequence(const std::uint32_t sequence_id) noexcept {
 EMSCRIPTEN_KEEPALIVE void
 snapshot_projection(const std::uint32_t sequence_id) noexcept {
   const Projector &projector = *projectors[sequence_id];
-  projection_buffer.resize(projector.strip_start_of.size());
-  std::size_t projection_strip_index = 0;
+  const auto count = projector.strip_start_of.size();
+  projection_buffer.resize(count);
+  std::vector<std::uint32_t> projection_indices(count);
+  std::uint32_t projection_strip_index = 0;
+  for (std::uint32_t strip_index = projector.head_strip_index;
+       strip_index != u32_max;
+       strip_index = projector.right_strip_index_of[strip_index])
+    projection_indices[strip_index] = projection_strip_index++;
+
+  projection_strip_index = 0;
   for (std::uint32_t strip_index = projector.head_strip_index;
        strip_index != u32_max;
        strip_index = projector.right_strip_index_of[strip_index]) {
     const auto &strip_start = projector.strip_start_of[strip_index];
     const auto &previous_strip_end =
         projector.previous_strip_end_of[strip_index];
+    const auto split = projector.larger_split_strip_index_of[strip_index];
+    const auto sibling =
+        projector.larger_competitor_strip_index_of[strip_index];
+    const std::uint32_t type = projector.is_masked_of[strip_index]    ? 2u
+                              : projector.is_inverse_of[strip_index] ? 0u
+                                                                     : 1u;
     projection_buffer.write_projection(
         projection_strip_index++,
         {
-            projector.is_masked_of[strip_index],
-            projector.is_inverse_of[strip_index],
+            type,
             projector.strip_length_of[strip_index],
             strip_start.crypto_random_bits,
             strip_start.unix_lower_bits,
@@ -133,7 +151,8 @@ snapshot_projection(const std::uint32_t sequence_id) noexcept {
             previous_strip_end.crypto_random_bits,
             previous_strip_end.unix_lower_bits,
             previous_strip_end.counter_bits,
-            projector.footage_frame_index_of[strip_index],
+            split == u32_max ? u32_max : projection_indices[split],
+            sibling == u32_max ? u32_max : projection_indices[sibling],
         });
   }
 }
@@ -302,9 +321,8 @@ stage_strip(const std::uint32_t sequence_id) noexcept {
  * a newly retained Strip remains self-linked.
  * @note A supplied Projection index selects the direct local fast path.
  */
-EMSCRIPTEN_KEEPALIVE std::uint32_t merge_strip_into_sequence(
-    const std::uint32_t sequence_id,
-    std::uint32_t projection_frame_index = u32_max) noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
   Projector &projector = projectors[sequence_id];
 
   const std::uint32_t incoming_strip_index = strip_buffer.read_strip(projector);
@@ -315,40 +333,31 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t merge_strip_into_sequence(
 
   // Handle root inserts trough a fast path
   if (projector.is_inverse_of[incoming_strip_index]) {
-    if (projector.is_masked_of[incoming_strip_index])
       return u32_max;
     return root_insert_fast_path(projector, incoming_strip_index);
   }
 
-  std::uint32_t containing_strip_index;
-  if (projection_frame_index != u32_max) {
-    if (!projector.projection_frame_index == projection_frame_index)
-      run_projector_to_frame_index(projector, projection_frame_index);
-    containing_strip_index = projector->gate_strip_index;
-  } else {
-    const auto containing = run_projector_to_strip(
-        incoming_strip.is_masked != 0
-            ? &incoming_strip.coordinate.this_strip_start
-            : &incoming_strip.coordinate.previous_strip_end,
-        projector);
-    projection_frame_index = containing.first;
-    containing_strip_index = containing.second;
-    if (containing_strip_index == u32_max)
-      return u32_max;
-  }
-  const std::uint32_t offset =
-      projection_frame_index - projector->gate_projection_frame_index;
+  std::uint32_t containing_strip_index = projector.gate_strip_index;
+  std::uint32_t offset = strip_contains_previous_strip_end(
+      projector.strip_start_of[containing_strip_index],
+      projector.strip_length_of[containing_strip_index],
+      projecor.previous_strip_end_of[incoming_strip_index]);
 
-  if (incoming_strip.is_masked != 0) {
-    projection_frame_index =
-        mask_strip(projector, containing_strip_index, strip_index, offset,
-                   projection_frame_index);
-    projector->strips[strip_index].is_resolved = 1;
-  } else {
-    projection_frame_index =
-        insert_strip(projector, containing_strip_index, strip_index, offset,
-                     projection_frame_index);
+  // If gate strip is not containing strip
+  if (offset == u32_max) {
+    // try resolving containing strip from containment index
+    std::tie(containing_strip_index, offset) = projector.containment_index.get(
+        projector.previous_strip_end_of[incoming_strip_index]);
+
+  // If resolving failed return u32_max sentinel
+    if (containing_strip_index == u32_max)
+      return u32_max
   }
+
+  if()
+
+
+
   return projection_frame_index;
 }
 
@@ -437,7 +446,8 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_acknowledgement_frontier_to_buffer(
  *
  * @param frontier_count Number of Realm entries in the selected Frontier.
  * @return Pointer to the first writable Frontier word, or `nullptr` for zero.
- * @post FrontierBuffer has space for exactly `frontier_count` complete entries.
+ * @post FrontierBuffer has space for exactly `frontier_count` complete
+ * entries.
  * @note Every prepared word must be initialized before collection begins.
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t *prepare_compaction_frontier_buffer(
@@ -455,7 +465,8 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *prepare_compaction_frontier_buffer(
  * FootageSpanBuffer.
  *
  * @return Pointer to the first span, or `nullptr` when empty.
- * @note The buffer describes only the most recent operation that populated it.
+ * @note The buffer describes only the most recent operation that populated
+ * it.
  * @see FootageSpanBuffer
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t *get_footage_span_buffer_pointer() noexcept {
@@ -542,9 +553,9 @@ write_strip_at_projection_frame_index_to_buffer(
 /**
  * @brief Write the first retained Strip of a Sequence to StripBuffer.
  *
- * Retained traversal includes visible Strips and Masks. On success, the Gate is
- * positioned at the written Strip and at Projection frame index zero. An empty
- * Sequence leaves both the Gate and StripBuffer unchanged.
+ * Retained traversal includes visible Strips and Masks. On success, the Gate
+ * is positioned at the written Strip and at Projection frame index zero. An
+ * empty Sequence leaves both the Gate and StripBuffer unchanged.
  *
  * @param sequence_id Identifier of the active sequence.
  * @retval 1 A Strip was written.

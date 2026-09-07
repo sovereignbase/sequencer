@@ -7,8 +7,11 @@ project(
   LANGUAGES CXX
 )
 
+include(cmake/boost_endian.cmake)
+
 add_executable(sequencer_wasm src/c++/main.cpp)
 target_compile_features(sequencer_wasm PRIVATE cxx_std_23)
+target_link_libraries(sequencer_wasm PRIVATE Boost::endian)
 
 if(MSVC)
   target_compile_options(sequencer_wasm PRIVATE /W4 /permissive-)

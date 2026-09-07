@@ -10,7 +10,6 @@
 #pragma once
 
 #include "../.declarations/sentinels/index.hpp"
-#include "../.declarations/sequence_coordinate/index.hpp"
 #include "../.declarations/sequence_point/index.hpp"
 #include <algorithm>
 #include <cstdint>
@@ -27,7 +26,7 @@
  *
  * @invariant `realm_capacity` is a power of two and
  * `realm_index_mask == realm_capacity - 1`.
- * @invariant Entries within one Realm are sorted by `counter_bits`.
+ * @invariant Entries are sorted by `counter_bits` outside a skip_sort batch.
  * @invariant An empty Entry vector denotes an unoccupied Realm slot.
  */
 class ContainmentIndex {
@@ -35,9 +34,6 @@ class ContainmentIndex {
   struct Entry {
     /** @brief Counter of the first represented Frame. */
     std::uint32_t counter_bits;
-
-    /** @brief Positive length of the represented counter interval. */
-    std::uint32_t frame_count;
 
     /** @brief Projector-owned Stable Position for the interval. */
     std::uint32_t stable_position;
@@ -94,21 +90,26 @@ public:
    * @param point First Sequence Point in the represented Frame Span.
    * @param frame_count Number of consecutive counters in the span.
    * @param stable_position Projector-owned Stable Position containing it.
+   * @param skip_sort Append a unique start without maintaining counter order.
    * @pre `frame_count > 0` and the span stays within `point`'s Realm.
-   * @post `get` resolves every Point inside the stored interval to
-   * `stable_position` unless a later overlapping entry replaces containment.
+   * @pre After skipped sorting, call sort_realms before get or normal set.
+   * @post After sorting, `get` resolves every Point inside the stored interval
+   * to `stable_position` unless a later overlapping entry replaces containment.
    * @complexity Expected O(1 + log e), excluding vector insertion and resize,
-   * for e entries in the selected Realm.
+   * for e entries in the selected Realm; amortized expected O(1) with
+   * skip_sort.
    */
   inline void set(const SequencePoint &point, const std::uint32_t frame_count,
-                  const std::uint32_t stable_position) noexcept {
+                  const std::uint32_t stable_position,
+                  const bool skip_sort = false) noexcept {
     std::uint32_t realm_index = point.crypto_random_bits & realm_index_mask;
 
     while (!realms[realm_index].entries.empty()) {
       Realm &realm = realms[realm_index];
       if (realm.crypto_random_bits == point.crypto_random_bits &&
           realm.unix_lower_bits == point.unix_lower_bits) {
-        if (realm.entries.back().counter_bits < point.counter_bits) {
+        if (skip_sort ||
+            realm.entries.back().counter_bits < point.counter_bits) {
           realm.entries.push_back(
               {point.counter_bits, frame_count, stable_position});
           return;
@@ -140,6 +141,21 @@ public:
 
     if (realm_count >= realm_capacity / 2)
       resize(realm_capacity * 2);
+  }
+
+  /**
+   * @brief Restore counter order once after a batch of unsorted appends.
+   * @pre Each Realm contains unique Strip starts.
+   * @complexity O(r + sum(e log e)) for r slots and e entries per Realm.
+   */
+  void sort_realms() noexcept {
+    for (std::uint32_t index = 0; index < realm_capacity; ++index) {
+      auto &entries = realms[index].entries;
+      std::sort(entries.begin(), entries.end(),
+                [](const Entry &left, const Entry &right) noexcept {
+                  return left.counter_bits < right.counter_bits;
+                });
+    }
   }
 
   /**

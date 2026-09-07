@@ -15,17 +15,11 @@
  * Sequence Points; Masks transfer coordinates composed entirely of existing
  * points.
  */
-#include "./algorithms/insert_strip/index.hpp"
-#include "./algorithms/mask_strip/index.hpp"
-#include "./auxiliary/run_projector_to_frame_index/index.hpp"
-#include "./auxiliary/run_projector_to_strip/index.hpp"
 #include "./classes/footage_span_buffer/index.hpp"
 #include "./classes/frontier_buffer/index.hpp"
 #include "./classes/strip_buffer/index.hpp"
 #include "./declarations/projector/index.hpp"
 #include "./declarations/sentinels/index.hpp"
-#include "./fast_paths/first_insert_fast_path/index.hpp"
-#include "./fast_paths/root_insert_fast_path/index.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <optional>

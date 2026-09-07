@@ -10,7 +10,6 @@
 
 #include "../../classes/hash_table/index.hpp"
 #include "../sentinels/index.hpp"
-#include "../strip/index.hpp"
 #include <cstdint>
 #include <vector>
 
@@ -114,14 +113,6 @@ struct Projector {
 
   /** @brief Projection Frame distance to `right_jump_strip_index`. */
   std::vector<std::uint32_t> right_jump_length_of;
-
-  /** @brief Determines jump length reliabity, a remove increments the
-   * generation */
-  std::vector<std::uint32_t> remove_generation_of;
-
-  std::vector<std::uint32_t> remove_generation_invalidates;
-
-  std::uint32_t remove_generation;
 
   /**
    * @brief Sequence Point containment index returning Strip Indexs.

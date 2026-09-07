@@ -18,6 +18,7 @@
 #include "./.buffer/strip_buffer/index.hpp"
 #include "./.buffers/footage_span_buffer/index.hpp"
 #include "./.buffers/frontier_buffer/index.hpp"
+#include "./.buffers/projection_buffer/index.hpp"
 #include "./.declarations/projector/index.hpp"
 #include "./.declarations/sentinels/index.hpp"
 #include <algorithm>
@@ -45,34 +46,6 @@ static FrontierBuffer frontier_buffer;
 
 /** @brief Shared result buffer for ordered or released Footage spans. */
 static FootageSpanBuffer footage_span_buffer;
-
-/** @brief Current Stable Position in structural Snapshot traversal. */
-static std::uint32_t structural_cursor;
-
-/** @brief First Stable Position of the active circular Snapshot traversal. */
-static std::uint32_t structural_start;
-
-/** @brief Split fragments already combined into the active Snapshot. */
-static std::vector<bool> structural_skipped_strips;
-
-static inline void write_structural_strip(Projector *projector,
-                                          const std::uint32_t strip_index) {
-  Strip strip = projector->strips[strip_index];
-  std::uint32_t frame_count = projector->length[strip_index];
-  while (strip.larger_sibling_frames_strip_index != u32_max) {
-    const std::uint32_t sibling_strip_index =
-        strip.larger_sibling_frames_strip_index;
-    const Strip &sibling = projector->strips[sibling_strip_index];
-    structural_skipped_strips[sibling_strip_index] = true;
-    frame_count += projector->length[sibling_strip_index];
-    strip.larger_sibling_frames_strip_index =
-        sibling.larger_sibling_frames_strip_index;
-  }
-  strip_buffer.write_strip(strip, frame_count);
-}
-
-/** @brief Current Stable Position in self-linked Pending traversal. */
-static std::uint32_t pending_cursor;
 
 extern "C" {
 

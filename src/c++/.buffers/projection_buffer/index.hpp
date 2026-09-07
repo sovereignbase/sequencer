@@ -47,6 +47,27 @@ public:
     strips.push_back(strip_words);
   }
 
+  /**
+   * @brief Consume the projection, leaving this buffer empty with no
+   * allocation.
+   * @return Owned Strips in projection order; the result releases their memory
+   * when destroyed. A subsequent read returns an empty vector.
+   * @note Previously returned pointers belong to the result after this call
+   * and must not be used after the result is destroyed.
+   */
+  [[nodiscard]] std::vector<std::array<std::uint32_t, words_per_strip>>
+  read_buffer() noexcept {
+    std::vector<std::array<std::uint32_t, words_per_strip>> result;
+    result.swap(strips);
+    return result;
+  }
+
+  /** @brief Discard all Strips and release storage, invalidating all pointers.
+   */
+  void clear() noexcept {
+    std::vector<std::array<std::uint32_t, words_per_strip>>{}.swap(strips);
+  }
+
   /** @brief Return the number of complete Strips in the buffer. */
   [[nodiscard]] std::size_t get_strip_count() const noexcept {
     return strips.size();

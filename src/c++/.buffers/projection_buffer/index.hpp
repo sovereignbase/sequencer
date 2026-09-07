@@ -41,10 +41,14 @@ public:
    */
   void resize(const std::size_t strip_count) { strips.resize(strip_count); }
 
-  /** @brief Append the next ten-word Strip in projection order. */
+  /**
+   * @brief Write a ten-word Strip at its prepared projection position.
+   * @pre projection_strip_index is within the previously resized storage.
+   */
   void write_projection(
-      const std::array<std::uint32_t, words_per_strip> &strip_words) {
-    strips.push_back(strip_words);
+      const std::size_t projection_strip_index,
+      const std::array<std::uint32_t, words_per_strip> &strip_words) noexcept {
+    strips[projection_strip_index] = strip_words;
   }
 
   /**

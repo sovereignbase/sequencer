@@ -47,6 +47,9 @@ static FrontierBuffer frontier_buffer;
 /** @brief Shared result buffer for ordered or released Footage spans. */
 static FootageSpanBuffer footage_span_buffer;
 
+/** @brief Shared dense snapshot in resolved projection order. */
+static ProjectionBuffer projection_buffer;
+
 extern "C" {
 
 /**
@@ -96,6 +99,43 @@ clear_sequence(const std::uint32_t sequence_id) noexcept {
   // Destroy the Projector and publish its reusable identifier.
   projectors[sequence_id].reset();
   available_sequence_ids.push_back(sequence_id);
+}
+
+/**
+ * @brief Write ten words per Strip in right-link order into the empty buffer.
+
+ * * @pre The active sequence's chain contains every stored Strip, starts at
+ * head,
+ * and ends at u32_max. The previous snapshot has been consumed.
+ *
+ * @complexity O(n) time and output space for n linked Strips, including Masks.
+ */
+EMSCRIPTEN_KEEPALIVE void
+snapshot_projection(const std::uint32_t sequence_id) noexcept {
+  const Projector &projector = *projectors[sequence_id];
+  projection_buffer.resize(projector.strip_start_of.size());
+  std::size_t projection_strip_index = 0;
+  for (std::uint32_t strip_index = projector.head_strip_index;
+       strip_index != u32_max;
+       strip_index = projector.right_strip_index_of[strip_index]) {
+    const auto &strip_start = projector.strip_start_of[strip_index];
+    const auto &previous_strip_end =
+        projector.previous_strip_end_of[strip_index];
+    projection_buffer.write_projection(
+        projection_strip_index++,
+        {
+            projector.is_masked_of[strip_index],
+            projector.is_inverse_of[strip_index],
+            projector.strip_length_of[strip_index],
+            strip_start.crypto_random_bits,
+            strip_start.unix_lower_bits,
+            strip_start.counter_bits,
+            previous_strip_end.crypto_random_bits,
+            previous_strip_end.unix_lower_bits,
+            previous_strip_end.counter_bits,
+            projector.footage_frame_index_of[strip_index],
+        });
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

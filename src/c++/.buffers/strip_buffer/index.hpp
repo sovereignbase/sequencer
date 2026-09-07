@@ -26,8 +26,10 @@
  */
 #pragma once
 
+#include "../../.containment_index/index.hpp"
+#include "../../.declarations/projector/index.hpp"
 #include "../../.declarations/sentinels/index.hpp"
-#include "../../hash_table/index.hpp"
+#include "../../.declarations/sequence_point/index.hpp"
 #include <cstdint>
 #include <vector>
 
@@ -66,23 +68,26 @@ public:
    * contents.
    * @complexity O(1) time and O(1) auxiliary space.
    */
-  inline void write_strip(const Strip &strip,
-                          const std::uint32_t frame_count) noexcept {
+  inline void write_strip(const Projector &projector,
+                          const std::uint32_t &strip_index) noexcept {
     // Encode visibility, Frame count, and Footage mapping.
-    words[0] = strip.is_masked;
-    words[1] = strip.is_inverse;
-    words[2] = frame_count;
+    words[0] = projector.is_masked_of[strip_index];
+    words[1] = projector.is_inverse_of[strip_index];
+    words[2] = projector.strip_length_of[strip_index];
 
+    const SequencePoint strip_start = projector.strip_start_of[strip_index];
     // Encode the Strip's own stable Sequence Point.
-    words[3] = strip.coordinate.this_strip_start.crypto_random_bits;
-    words[4] = strip.coordinate.this_strip_start.unix_lower_bits;
-    words[5] = strip.coordinate.this_strip_start.counter_bits;
+    words[3] = strip_start.crypto_random_bits;
+    words[4] = strip_start.unix_lower_bits;
+    words[5] = strip_start.counter_bits;
 
+    const SequencePoint previous_strip_end =
+        projector.previous_strip_end_of[strip_index];
     // Encode the transfer placement dependency.
-    words[6] = strip.coordinate.previous_strip_end.crypto_random_bits;
-    words[7] = strip.coordinate.previous_strip_end.unix_lower_bits;
-    words[8] = strip.coordinate.previous_strip_end.counter_bits;
-    words[9] = strip.footage_frame_index;
+    words[6] = previous_strip_end.crypto_random_bits;
+    words[7] = previous_strip_end.unix_lower_bits;
+    words[8] = previous_strip_end.counter_bits;
+    words[9] = projector.footage_frame_index_of[strip_index];
   }
 
   /**
@@ -111,7 +116,7 @@ public:
         .counter_bits = words[5],
     };
     const auto [existing_strip_index, _] =
-        projector->hash_table.get(this_strip_start);
+        projector.containment_index.get(this_strip_start);
     if (existing_strip_index != u32_max)
       return u32_max;
 
@@ -119,8 +124,8 @@ public:
         static_cast<std::uint32_t>(projector.is_masked_of.size());
 
     // encoding
-    projector.is_masked_of.push_back(words[0])
-        projector.is_inverse_of.push_back(words[1]);
+    projector.is_masked_of.push_back(words[0]);
+    projector.is_inverse_of.push_back(words[1]);
     projector.strip_length_of.push_back(words[2]);
 
     projector.strip_start_of.push_back(this_strip_start);
@@ -138,7 +143,7 @@ public:
     projector.left_strip_index_of.push_back(u32_max);
 
     //...
-    projector.hash_table.set(this_strip_start, words[2], strip_index);
+    projector.containment_index.set(this_strip_start, words[2], strip_index);
 
     return strip_index;
   }

@@ -8,7 +8,7 @@
  */
 #pragma once
 
-#include "../../classes/hash_table/index.hpp"
+#include "../../.containment_index/index.hpp"
 #include "../sentinels/index.hpp"
 #include <cstdint>
 #include <vector>
@@ -117,10 +117,10 @@ struct Projector {
   /**
    * @brief Sequence Point containment index returning Strip Indexs.
    *
-   * HashTable owns compact Realm entries only; Strip objects remain owned
-   * by `strips`.
+   * ContainmentIndex owns compact Realm entries only; Strip objects remain
+   * owned by `strips`.
    */
-  HashTable hash_table;
+  ContainmentIndex containment_index;
 
   // Movable Projection traversal Gate.
 

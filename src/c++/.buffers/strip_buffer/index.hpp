@@ -71,23 +71,23 @@ public:
   inline void write_strip(const Projector &projector,
                           const std::uint32_t &strip_index) noexcept {
     // Encode visibility, Frame count, and Footage mapping.
-    words[0] = projector.is_masked_of[strip_index];
-    words[1] = projector.is_inverse_of[strip_index];
-    words[2] = projector.strip_length_of[strip_index];
+    words[0] = projector.strip_type_of[strip_index];
+    words[1] = projector.strip_length_of[strip_index];
 
     const SequencePoint strip_start = projector.strip_start_of[strip_index];
     // Encode the Strip's own stable Sequence Point.
-    words[3] = strip_start.crypto_random_bits;
-    words[4] = strip_start.unix_lower_bits;
-    words[5] = strip_start.counter_bits;
+    words[2] = strip_start.crypto_random_bits;
+    words[3] = strip_start.unix_lower_bits;
+    words[4] = strip_start.counter_bits;
 
     const SequencePoint previous_strip_end =
         projector.previous_strip_end_of[strip_index];
     // Encode the transfer placement dependency.
-    words[6] = previous_strip_end.crypto_random_bits;
-    words[7] = previous_strip_end.unix_lower_bits;
-    words[8] = previous_strip_end.counter_bits;
-    words[9] = projector.footage_frame_index_of[strip_index];
+    words[5] = previous_strip_end.crypto_random_bits;
+    words[6] = previous_strip_end.unix_lower_bits;
+    words[7] = previous_strip_end.counter_bits;
+    words[8] = 0;
+    words[9] = 0;
   }
 
   /**
@@ -111,9 +111,9 @@ public:
   [[nodiscard]] inline std::uint32_t
   read_strip(Projector &projector) const noexcept {
     const SequencePoint this_strip_start{
-        .crypto_random_bits = words[3],
-        .unix_lower_bits = words[4],
-        .counter_bits = words[5],
+        .crypto_random_bits = words[2],
+        .unix_lower_bits = words[3],
+        .counter_bits = words[4],
     };
     const auto [existing_strip_index, _] =
         projector.containment_index.get(this_strip_start);
@@ -121,22 +121,20 @@ public:
       return u32_max;
 
     const std::uint32_t strip_index =
-        static_cast<std::uint32_t>(projector.is_masked_of.size());
+        static_cast<std::uint32_t>(projector.strip_start_of.size());
 
     // encoding
-    projector.is_masked_of.push_back(words[0]);
-    projector.is_inverse_of.push_back(words[1]);
-    projector.strip_length_of.push_back(words[2]);
+    projector.strip_type_of.push_back(words[0]);
+    projector.strip_length_of.push_back(words[1]);
 
     projector.strip_start_of.push_back(this_strip_start);
 
     const SequencePoint previous_strip_end{
-        .crypto_random_bits = words[6],
-        .unix_lower_bits = words[7],
-        .counter_bits = words[8],
+        .crypto_random_bits = words[5],
+        .unix_lower_bits = words[6],
+        .counter_bits = words[7],
     };
     projector.previous_strip_end_of.push_back(previous_strip_end);
-    projector.footage_frame_index_of.push_back(words[9]);
 
     // runtime
     projector.right_strip_index_of.push_back(u32_max);

@@ -36,7 +36,9 @@ class ContainmentIndex {
     std::uint32_t counter_bits;
 
     /** @brief Projector-owned Stable Position for the interval. */
-    std::uint32_t stable_position;
+    std::uint32_t strip_index;
+
+    std::uint32_t frame_count;
   };
 
   /** @brief One occupied or empty open-addressing slot. */
@@ -89,18 +91,18 @@ public:
    *
    * @param point First Sequence Point in the represented Frame Span.
    * @param frame_count Number of consecutive counters in the span.
-   * @param stable_position Projector-owned Stable Position containing it.
+   * @param strip_index Projector-owned Stable Position containing it.
    * @param skip_sort Append a unique start without maintaining counter order.
    * @pre `frame_count > 0` and the span stays within `point`'s Realm.
    * @pre After skipped sorting, call sort_realms before get or normal set.
    * @post After sorting, `get` resolves every Point inside the stored interval
-   * to `stable_position` unless a later overlapping entry replaces containment.
+   * to `strip_index` unless a later overlapping entry replaces containment.
    * @complexity Expected O(1 + log e), excluding vector insertion and resize,
    * for e entries in the selected Realm; amortized expected O(1) with
    * skip_sort.
    */
   inline void set(const SequencePoint &point, const std::uint32_t frame_count,
-                  const std::uint32_t stable_position,
+                  const std::uint32_t strip_index,
                   const bool skip_sort = false) noexcept {
     std::uint32_t realm_index = point.crypto_random_bits & realm_index_mask;
 
@@ -111,7 +113,7 @@ public:
         if (skip_sort ||
             realm.entries.back().counter_bits < point.counter_bits) {
           realm.entries.push_back(
-              {point.counter_bits, frame_count, stable_position});
+              {point.counter_bits, frame_count, strip_index});
           return;
         }
 
@@ -124,10 +126,10 @@ public:
 
         if (entry != realm.entries.end() &&
             entry->counter_bits == point.counter_bits)
-          *entry = {point.counter_bits, frame_count, stable_position};
+          *entry = {point.counter_bits, frame_count, strip_index};
         else
-          realm.entries.insert(
-              entry, {point.counter_bits, frame_count, stable_position});
+          realm.entries.insert(entry,
+                               {point.counter_bits, frame_count, strip_index});
         return;
       }
       realm_index = (realm_index + 1) & realm_index_mask;
@@ -136,7 +138,7 @@ public:
     Realm &realm = realms[realm_index];
     realm.crypto_random_bits = point.crypto_random_bits;
     realm.unix_lower_bits = point.unix_lower_bits;
-    realm.entries.push_back({point.counter_bits, frame_count, stable_position});
+    realm.entries.push_back({point.counter_bits, frame_count, strip_index});
     ++realm_count;
 
     if (realm_count >= realm_capacity / 2)
@@ -191,7 +193,7 @@ public:
         --entry;
         const std::uint32_t offset = point.counter_bits - entry->counter_bits;
         return offset < entry->frame_count
-                   ? std::pair{entry->stable_position, offset}
+                   ? std::pair{entry->strip_index, offset}
                    : std::pair{u32_max, u32_max};
       }
       realm_index = (realm_index + 1) & realm_index_mask;

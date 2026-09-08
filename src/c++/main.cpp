@@ -21,6 +21,8 @@
 #include "./.buffers/sequence_point_buffer/index.hpp"
 #include "./.declarations/projector/index.hpp"
 #include "./.declarations/sentinels/index.hpp"
+#include "./apply/insert/index.hpp"
+#include "./apply/mask/index.hpp"
 #include "./apply/root/index.hpp"
 #include "./find/containing_strip_index/index.hpp"
 #include "./find/projection_frame_index/index.hpp"
@@ -178,9 +180,10 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t update_projection(
   const std::uint32_t incoming_strip_index = projector.strip_type_of.size();
   projector.strip_type_of.push_back(operation_type);
   projector.strip_length_of.push_back(operation_length);
-  projector.strip_start_of.push_back({realm_crypto_random_bits,
-                                      realm_unix_lower_bits,
-                                      projector.operation_count});
+  const SequencePoint strip_start = {realm_crypto_random_bits,
+                                     realm_unix_lower_bits,
+                                     projector.operation_count};
+  projector.strip_start_of.push_back(strip_start);
   SequencePoint previous_strip_end =
       projector.strip_start_of[containing_strip_index];
   previous_strip_end.counter_bits += offset;
@@ -197,6 +200,9 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t update_projection(
   projector.right_jump_strip_count_of.push_back(0);
   projector.right_jump_length_of.push_back(0);
   projector.footage_frame_index_of.push_back(footage_frame_index);
+
+  projector.containment_index.set(strip_start, operation_length,
+                                  incoming_strip_index);
 
   projector.operation_count++;
 

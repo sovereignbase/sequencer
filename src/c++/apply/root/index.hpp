@@ -49,6 +49,8 @@ inline void prepend(Projector &projector, const std::uint32_t strip_index,
       incoming_strip_index;
   projector.left_strip_index_of[right_strip_index_of_incoming_strip] =
       incoming_strip_index;
+
+  ++projector.materialized_strip_count;
 }
 
 /**
@@ -62,8 +64,6 @@ inline void prepend(Projector &projector, const std::uint32_t strip_index,
  * inverse Strips until a Strip beginning at the incoming `previous_strip_end`
  * is found or the inverse prefix ends.
  *
- * After a traversal resolves the insertion, the matched Strip becomes the new
- * Gate for consecutive root inserts.
  *
  * @param projector Projector containing the structural and Projection state.
  * @param incoming_strip_index Stable dense index of the incoming Strip.
@@ -89,7 +89,7 @@ apply_root(Projector &projector, std::uint32_t &incoming_strip_index) noexcept {
   std::uint32_t projection_frame_index = 0;
   std::uint32_t cursor_strip_index = projector.head_strip_index;
 
-  while (projector.strip_type_of[cursor_strip_index]) {
+  while (projector.strip_type_of[cursor_strip_index] == 0) {
     // Resolve when the incoming previous Strip end equals the cursor Strip
     // start.
     if (projector.strip_start_of[cursor_strip_index] ==

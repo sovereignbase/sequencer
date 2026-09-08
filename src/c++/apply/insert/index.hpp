@@ -13,38 +13,46 @@
 /**
  * @brief Materialize one fully resolved visible Strip.
  * @param projector Owning Projector.
- * @param containing_strip_index Stable Position containing the dependency.
- * @param incoming_strip_index Stable Position of the staged Strip.
+ * @param containing_strip_index Strip containing the dependency.
+ * @param incoming_strip_index Strip Index of the staged Strip.
  * @param offset Dependency Frame offset in the containing Strip.
- * @return Materialized Projection position.
+ * @return Projection Frame count and materialized Strip count differences.
  */
-[[nodiscard]] inline std::pair<std::uint32_t, std::uint32_t>
+[[nodiscard]] inline std::pair<std::int32_t, std::int32_t>
 apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
              const std::uint32_t incoming_strip_index,
              const std::uint32_t offset) noexcept {
   const std::uint32_t containing_strip_length =
       projector.strip_length_of[containing_strip_index];
 
-  std::uint32_t strip_left_of_split_position;
-  std::uint32_t strip_right_of_split_position;
-  std::uint32_t parent_strip_index = containing_strip_index;
+  const std::uint32_t previous_materialized_strip_count =
+      projector.materialized_strip_count;
+
+  std::uint32_t left_strip_index;
+  std::uint32_t right_strip_index;
+
   if (offset == 0) {
-    strip_left_of_split_position =
-        projector.left_strip_index_of[containing_strip_index];
-    strip_right_of_split_position = containing_strip_index;
+    left_strip_index = projector.left_strip_index_of[containing_strip_index];
+    right_strip_index = containing_strip_index;
   } else if (offset == containing_strip_length) {
-    strip_left_of_split_position = containing_strip_index;
-    strip_right_of_split_position =
-        projector.right_strip_index_of[containing_strip_index];
+    left_strip_index = containing_strip_index;
+    right_strip_index = projector.right_strip_index_of[containing_strip_index];
   } else {
-    strip_left_of_split_position = containing_strip_index;
-    strip_right_of_split_position =
-        split_strip(projector, containing_strip_index, offset);
+    left_strip_index = containing_strip_index;
+    right_strip_index = split_strip(projector, containing_strip_index, offset);
   }
 
-  const std::int64_t sibling_frame_offset = insert_between(
-      projector, strip_left_of_split_position, incoming_strip_index,
-      strip_right_of_split_position, true, parent_strip_index);
+  insert_between(projector, left_strip_index, incoming_strip_index,
+                 right_strip_index);
 
-  return {}
+  const std::int32_t frame_count_diff = static_cast<std::int32_t>(
+      projector.strip_length_of[incoming_strip_index]);
+
+  projector.projection_frame_count +=
+      projector.strip_length_of[incoming_strip_index];
+
+  const std::int32_t strip_count_diff = static_cast<std::int32_t>(
+      projector.materialized_strip_count - previous_materialized_strip_count);
+
+  return {frame_count_diff, strip_count_diff};
 }

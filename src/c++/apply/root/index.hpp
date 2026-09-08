@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "../../declarations/projector/index.hpp"
+#include "../../.declarations/projector/index.hpp"
 #include <cstdint>
 
 /**
@@ -21,8 +21,8 @@
  * @complexity O(s) time, where `s` is the number of competing root Strips
  * traversed, and O(1) space.
  */
-inline void append_left(Projector &projector, const std::uint32_t strip_index,
-                        const std::uint32_t incoming_strip_index) noexcept {
+inline void prepend(Projector &projector, const std::uint32_t strip_index,
+                    const std::uint32_t incoming_strip_index) noexcept {
   // Start ordering immediately left of the resolved Strip.
   std::uint32_t &left_strip_index_of_incoming_strip =
       projector.left_strip_index_of[strip_index];
@@ -74,15 +74,14 @@ inline void append_left(Projector &projector, const std::uint32_t strip_index,
  * space.
  */
 [[nodiscard]] inline std::uint32_t
-root_insert(Projector &projector,
-            std::uint32_t &incoming_strip_index) noexcept {
+apply_root(Projector &projector, std::uint32_t &incoming_strip_index) noexcept {
   const std::uint32_t &gate_strip_index = projector.gate_strip_index;
 
   // Resolve immediately when the incoming previous Strip end equals the Gate
   // Strip start.
   if (projector.strip_start_of[gate_strip_index] ==
       projector.previous_strip_end_of[incoming_strip_index]) {
-    append_left(projector, gate_strip_index, incoming_strip_index);
+    prepend(projector, gate_strip_index, incoming_strip_index);
     return projector.projection_frame_index;
   }
 
@@ -90,16 +89,12 @@ root_insert(Projector &projector,
   std::uint32_t projection_frame_index = 0;
   std::uint32_t cursor_strip_index = projector.head_strip_index;
 
-  while (projector.is_inverse_of[cursor_strip_index]) {
+  while (projector.strip_type_of[cursor_strip_index]) {
     // Resolve when the incoming previous Strip end equals the cursor Strip
     // start.
     if (projector.strip_start_of[cursor_strip_index] ==
         projector.previous_strip_end_of[incoming_strip_index]) {
-      append_left(projector, cursor_strip_index, incoming_strip_index);
-
-      // Cache the resolved cursor as the Gate for consecutive root inserts.
-      projector.projection_frame_index = projection_frame_index;
-      projector.gate_strip_index = cursor_strip_index;
+      prepend(projector, cursor_strip_index, incoming_strip_index);
 
       return projection_frame_index;
     }

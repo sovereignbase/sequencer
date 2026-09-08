@@ -336,10 +336,8 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
     return u32_max;
 
   // Handle root inserts trough a fast path
-  if (incoming_strip_type == 0) {
-    return u32_max;
-    return root_insert_fast_path(projector, incoming_strip_index);
-  }
+  if (incoming_strip_type == 0)
+    return apply_root(projector, incoming_strip_index);
 
   bool was_gate = true;
   std::uint32_t containing_strip_index = projector.gate_strip_index;
@@ -365,8 +363,9 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
   } else if (incoming_strip_type == 2) {
   } else
     return u32_max;
-  if (was_gate)
-    return projector.projection_frame_index + 1;
+  return was_gate
+             ? projector.projection_frame_index + 1
+             : find_projection_frame_index_of(projector, incoming_strip_index);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

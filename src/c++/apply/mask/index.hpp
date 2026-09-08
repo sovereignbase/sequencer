@@ -18,7 +18,7 @@
  * @param offset First masked Frame offset in the containing Strip.
  * @return Number of previously visible Frames that became masked.
  */
-[[nodiscard]] inline std::uint32_t
+[[nodiscard]] inline std::pair<std::uint32_t, std::uint32_t>
 apply_mask(Projector *projector, std::uint32_t containing_strip_index,
            const std::uint32_t incoming_strip_index,
            std::uint32_t offset) noexcept {

@@ -61,6 +61,7 @@ find_projection_frame_index_of(
       }
     } else {
       left_cursor = next_left_cursor;
+      left_distance += projector.strip_length_of[left_cursor]
     }
 
     // USE RIGHT JUMP IF AVAILABLE
@@ -84,6 +85,7 @@ find_projection_frame_index_of(
       }
     } else {
       right_cursor = next_right_cursor;
+      right_distance += projector.strip_length_of[right_cursor]
     }
   }
 }

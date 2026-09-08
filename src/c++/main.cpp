@@ -75,6 +75,8 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t initialize_projection() noexcept {
   const auto projection = projection_buffer.read_buffer();
   if (!projection.empty())
     //  hydrate_projection(*projectors[projection_id], projection);
+    // else append empty "first" to avoid adding extra code to update / merge
+    // paths
     return projection_id;
 }
 

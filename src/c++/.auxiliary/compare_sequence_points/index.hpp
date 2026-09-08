@@ -7,7 +7,7 @@
  */
 #pragma once
 
-#include "../../declarations/sequence_point/index.hpp"
+#include "../../.declarations/sequence_point/index.hpp"
 #include <cstdint>
 
 /**

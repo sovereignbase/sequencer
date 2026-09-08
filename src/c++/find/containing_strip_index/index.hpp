@@ -12,6 +12,9 @@
 inline void
 find_strip_index_of(Projector &projector,
                     const std::uint32_t &projection_frame_index) noexcept {
+  if (projection_frame_index == projector.projection_frame_index)
+    return;
+
   // Calculate distances to the requested index.
   const std::uint32_t tail_projection_frame_index =
       projector.projection_frame_count -

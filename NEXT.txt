@@ -1,3 +1,0 @@
-IMPROVE MERGE, INSERT AND REMOVE
-
-Use little endian memory

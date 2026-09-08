@@ -9,12 +9,22 @@ project(
 
 include(FetchContent)
 
+# Boost.Endian 1.92.0 only depends on Boost.Config.
 FetchContent_Declare(
-  Boost
-  URL https://archives.boost.io/release/1.92.0/source/boost_1_92_0.tar.gz
+  boost_config
+  URL https://github.com/boostorg/config/archive/refs/tags/boost-1.92.0.tar.gz
+  URL_HASH SHA256=b4171037f13373203ba79cbc141d612982052283e696a315185ab5bea46102a0
+  EXCLUDE_FROM_ALL
 )
 
-FetchContent_MakeAvailable(Boost)
+FetchContent_Declare(
+  boost_endian
+  URL https://github.com/boostorg/endian/archive/refs/tags/boost-1.92.0.tar.gz
+  URL_HASH SHA256=5acc3f986b997db9927039e5a034ede1e923dc3576037e2c24b7363961931c03
+  EXCLUDE_FROM_ALL
+)
+
+FetchContent_MakeAvailable(boost_config boost_endian)
 
 add_executable(sequencer_wasm src/c++/main.cpp)
 

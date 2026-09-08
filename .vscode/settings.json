@@ -2,6 +2,26 @@
   "C_Cpp.default.compileCommands": "${workspaceFolder}/temp/build/wasm-release/compile_commands.json",
   "C_Cpp.default.compilerPath": "C:/Users/jorts/emsdk/upstream/emscripten/em++.bat",
   "C_Cpp.default.cppStandard": "c++23",
+  "C_Cpp.default.browse.path": ["${workspaceFolder}/src/c++"],
+  "C_Cpp.default.browse.limitSymbolsToIncludedHeaders": true,
+  "C_Cpp.files.exclude": {
+    "**/temp/**": true,
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/docs/**": true
+  },
+
+  "files.watcherExclude": {
+    "**/temp/**": true,
+    "**/dist/**": true,
+    "**/docs/**": true
+  },
+  "search.exclude": {
+    "**/temp/**": true,
+    "**/dist/**": true,
+    "**/docs/**": true
+  },
+  "python.analysis.exclude": ["**/temp/**", "**/dist/**", "**/docs/**"],
 
   "C_Cpp.formatting": "clangFormat",
   "C_Cpp.clang_format_path": "C:/Users/jorts/Documents/LLVM/bin/clang-format.exe",

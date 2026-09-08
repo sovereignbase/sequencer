@@ -5,7 +5,9 @@
 
 [[nodiscard]] inline std::uint32_t
 find_projection_frame_index_of(Projector &projector,
-                               const std::uint32_t strip_index) noexcept {
+                               const std::uint32_t &strip_index,
+                               const std::int32_t frame_count_diff,
+                               const std::int32_t strip_count_diff) noexcept {
   // CACHE
   const std::uint32_t projection_frame_count = projector.projection_frame_count;
 
@@ -18,6 +20,51 @@ find_projection_frame_index_of(Projector &projector,
   // OPTIMIZER
   const std::uint32_t optimal_jump_distance = static_cast<std::uint32_t>(
       std::sqrt(projector.materialized_strip_count) + 0.5);
+
+  // FIND AND UPDATE NEAREST LEFT JUMP
+  do {
+    if (left_cursor == projector.head_strip_index)
+      break;
+
+    left_cursor = projector.left_strip_index_of[left_cursor];
+    left_distance += projector.strip_length_of[left_cursor];
+  } while (projector.right_jump_strip_index_of[left_cursor] == u32_max);
+
+  if (projector.right_jump_strip_index_of[left_cursor] != u32_max) {
+    projector.right_jump_length_of[left_cursor] = static_cast<std::uint32_t>(
+        static_cast<std::int64_t>(projector.right_jump_length_of[left_cursor]) +
+        frame_count_diff);
+
+    projector.right_jump_strip_count_of[left_cursor] =
+        static_cast<std::uint32_t>(
+            static_cast<std::int64_t>(
+                projector.right_jump_strip_count_of[left_cursor]) +
+            strip_count_diff);
+  }
+
+  // FIND AND UPDATE NEAREST RIGHT JUMP
+  do {
+    if (right_cursor == projector.tail_strip_index)
+      break;
+
+    right_distance += projector.strip_length_of[right_cursor];
+    right_cursor = projector.right_strip_index_of[right_cursor];
+  } while (projector.left_jump_strip_index_of[right_cursor] == u32_max);
+
+  if (projector.left_jump_strip_index_of[right_cursor] != u32_max) {
+    projector.left_jump_length_of[right_cursor] = static_cast<std::uint32_t>(
+        static_cast<std::int64_t>(projector.left_jump_length_of[right_cursor]) +
+        frame_count_diff);
+
+    projector.left_jump_strip_count_of[right_cursor] =
+        static_cast<std::uint32_t>(
+            static_cast<std::int64_t>(
+                projector.left_jump_strip_count_of[right_cursor]) +
+            strip_count_diff);
+  }
+
+  if (strip_index == projector.gate_strip_index)
+    return projector.projection_frame_index;
 
   // RUN
   while (true) {

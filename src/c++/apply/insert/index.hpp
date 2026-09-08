@@ -17,9 +17,10 @@
  * @param offset Dependency Frame offset in the containing Strip.
  * @return Materialized Projection position.
  */
-void insert(Projector *projector, const std::uint32_t containing_strip_index,
-            const std::uint32_t incoming_strip_index,
-            const std::uint32_t offset) noexcept {
+void apply_insert(Projector *projector,
+                  const std::uint32_t containing_strip_index,
+                  const std::uint32_t incoming_strip_index,
+                  const std::uint32_t offset) noexcept {
   const std::uint32_t containing_strip_length =
       projector->strip_length_of[containing_strip_index];
 

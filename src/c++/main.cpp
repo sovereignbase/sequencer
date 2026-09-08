@@ -23,6 +23,8 @@
 #include "./.buffers/projection_buffer/index.hpp"
 #include "./.declarations/projector/index.hpp"
 #include "./.declarations/sentinels/index.hpp"
+#include "./apply/root/index.hpp"
+#include "./find/containing_strip_index/index.hpp"
 #include "./find/projection_frame_index/index.hpp"
 #include <algorithm>
 #include <cstdint>
@@ -162,184 +164,46 @@ snapshot_projection(const std::uint32_t sequence_id) noexcept {
 // READS
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Return the Frame count of one Replica's Projection.
- *
- * @param sequence_id Identifier of the active sequence.
- * @return Number of visible Frames in its current Projection.
- * @pre `sequence_id` identifies an active Projector.
- * @complexity O(1) time and O(1) space.
- */
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 get_projection_frame_count(const std::uint32_t sequence_id) noexcept {
   // Read the materialized Projection length directly.
   return projectors[sequence_id]->projection_frame_count;
 }
 
-/**
- * @brief Resolve a Projection frame index to its Footage frame index.
- *
- * The Gate is moved to the visible Strip containing the requested Frame. Its
- * offset within that Strip is then applied to the Strip's Footage start.
- *
- * @param sequence_id Identifier of the active sequence.
- * @param projection_frame_index Visible frame index to resolve.
- * @return Corresponding frame index in the Strip's Footage.
- * @pre `sequence_id` identifies an active Projector.
- * @pre `projection_frame_index < get_projection_frame_count(sequence_id)`.
- * @post The Projector Gate describes the containing Strip.
- */
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 get_footage_frame_index(const std::uint32_t sequence_id,
                         const std::uint32_t projection_frame_index) noexcept {
   // Position the Gate at the visible containing Strip.
-  Projector *projector = &*projectors[sequence_id];
-  run_projector_to_frame_index(projector, projection_frame_index);
-  const Strip &strip = projector->strips[projector->gate_strip_index];
+  Projector projector = &projectors[sequence_id];
+  find_strip_index_of(projector, projection_frame_index);
 
   // Translate the Projection offset through the Strip's Footage mapping.
-  return strip.footage_frame_index + projection_frame_index -
-         projector->gate_projection_frame_index;
-}
-
-/**
- * @brief Write every retained Footage span in structural Sequence order.
- *
- * Visible Strips and Masks contribute their stable Footage ranges equally.
- * Pending Strips are excluded because they have not joined the retained
- * structural chain.
- *
- * @param sequence_id Identifier of the active sequence to recover.
- * @return Number of Footage spans written to FootageSpanBuffer.
- * @pre `sequence_id` identifies an active Projector.
- * @post FootageSpanBuffer contains one range per materialized Strip in
- * structural Sequence order.
- */
-EMSCRIPTEN_KEEPALIVE std::uint32_t write_recovery_footage_spans_to_buffer(
-    const std::uint32_t sequence_id) noexcept {
-  Projector &projector = *projectors[sequence_id];
-  footage_span_buffer.clear();
-  if (projector.structural_root_strip_index == u32_max)
-    return 0;
-
-  const std::uint32_t first_position = projector.structural_root_strip_index;
-  std::uint32_t position = first_position;
-  do {
-    const Strip &strip = projector.strips[position];
-    footage_span_buffer.write_span(strip.footage_frame_index,
-                                   projector.length[position]);
-    position = projector.right[position];
-  } while (position != first_position);
-
-  return footage_span_buffer.get_span_count();
-}
-
-/**
- * @brief Write Footage spans for one half-open visible Projection range.
- *
- * Traversal starts at the Gate-selected containing Strip, clips the first and
- * last visible spans to `[start_index, end_index)`, and skips Masks without
- * advancing the visible Projection position.
- *
- * @param sequence_id Identifier of the active sequence.
- * @param start_index First visible Projection Frame to include.
- * @param end_index Boundary after the final visible Frame.
- * @return Number of ordered Footage spans written to FootageSpanBuffer.
- * @pre `0 <= start_index <= end_index <= projection_frame_count`.
- * @post Concatenating the reported Footage ranges yields exactly the requested
- * visible Projection range.
- * @complexity Linear in the structural Strips crossed by the selected range,
- * after bounded Gate positioning.
- */
-EMSCRIPTEN_KEEPALIVE std::uint32_t write_projection_footage_spans_to_buffer(
-    const std::uint32_t sequence_id, const std::uint32_t start_index,
-    const std::uint32_t end_index) noexcept {
-  Projector *projector = &*projectors[sequence_id];
-  footage_span_buffer.clear();
-  if (start_index == end_index)
-    return 0;
-
-  run_projector_to_frame_index(projector, start_index);
-  std::uint32_t position = projector->gate_strip_index;
-  std::uint32_t projection_frame_index = projector->gate_projection_frame_index;
-  while (projection_frame_index < end_index) {
-    const Strip &strip = projector->strips[position];
-    if (strip.is_masked == 0) {
-      const std::uint32_t span_start =
-          projection_frame_index < start_index
-              ? start_index - projection_frame_index
-              : 0;
-      const std::uint32_t span_end = std::min(
-          projector->length[position], end_index - projection_frame_index);
-      footage_span_buffer.write_span(strip.footage_frame_index + span_start,
-                                     span_end - span_start);
-      projection_frame_index += projector->length[position];
-    }
-    position = projector->right[position];
-  }
-  return footage_span_buffer.get_span_count();
+  return projecor.footage_frame_index_of[projector.gate_strip_index] +
+         projection_frame_index - projector.projection_frame_index;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // MERGING
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Stage the buffered Strip for Initial Projection Resolution.
- * @param sequence_id Identifier of the receiving sequence.
- * @return Appended Stable Position, or `u32_max` for a duplicate.
- */
-EMSCRIPTEN_KEEPALIVE std::uint32_t
-stage_strip(const std::uint32_t sequence_id) noexcept {
-  return strip_buffer.read_strip(&*projectors[sequence_id]);
-}
-
-/**
- * @brief Integrate the Strip currently encoded in StripBuffer into a Replica.
- *
- * A Delta crosses this interface one Strip at a time; locally issued Strips use
- * the same path. StripBuffer appends the Strip directly to Projector storage
- * and HashTable indexes visible Frame containment. Duplicate transfer metadata
- * is dropped before dense storage grows.
- *
- * Every new Strip initially receives self-links. If the Projector has no
- * initial Projection or the referenced containment is absent or still Pending,
- * the Strip remains staged and no Projection index is returned. Otherwise a
- * visible Strip is integrated through `insert_strip`; a Mask resolves its first
- * existing Frame and is integrated through `mask_strip`. Sibling order is
- * handled centrally by `insert_between` using `is_inverse`.
- *
- * @param sequence_id Identifier of the sequence receiving the buffered strip.
- * @param projection_frame_index Known local Projection position, or `u32_max`
- * when a remote merge must locate it.
- * @return Projection frame index at which the incoming Strip begins. For a
- * Mask, the index is measured before its Frame Span leaves the Projection.
- * `u32_max` means the Strip was a duplicate or remains
- * Pending/staged.
- * @pre `sequence_id` identifies an active Projector.
- * @pre StripBuffer contains one valid transferable Strip representation.
- * @post An immediately materializable Strip joins Structural Order; otherwise
- * a newly retained Strip remains self-linked.
- * @note A supplied Projection index selects the direct local fast path.
- */
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
   Projector &projector = projectors[sequence_id];
 
   const std::uint32_t incoming_strip_index = strip_buffer.read_strip(projector);
 
-  const std::uint32_t incoming_strip_type =
-      projector.strip_type_of[incoming_strip_index];
-
   // Return early in case of a duplicate
   if (incoming_strip_index == u32_max)
     return u32_max;
+
+  const std::uint32_t incoming_strip_type =
+      projector.strip_type_of[incoming_strip_index];
 
   // Handle root inserts trough a fast path
   if (incoming_strip_type == 0)
     return apply_root(projector, incoming_strip_index);
 
-  bool was_gate = true;
+  // Check if gate is at target
   std::uint32_t containing_strip_index = projector.gate_strip_index;
   std::uint32_t offset = strip_contains_previous_strip_end(
       projector.strip_start_of[containing_strip_index],
@@ -348,7 +212,6 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
 
   // If gate strip is not containing strip
   if (offset == u32_max) {
-    was_gate = false;
     // try resolving containing strip from containment index
     std::tie(containing_strip_index, offset) = projector.containment_index.get(
         projector.previous_strip_end_of[incoming_strip_index]);
@@ -358,14 +221,15 @@ merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
       return u32_max
   }
 
-  if (incoming_strip_type == 1) {
-
-  } else if (incoming_strip_type == 2) {
-  } else
+  if (incoming_strip_type == 1)
+    apply_insert(projector, containing_strip_index, incoming_strip_index,
+                 offset);
+  else if (incoming_strip_type == 2)
+    apply_mask(projector, containing_strip_index, incoming_strip_index, offset);
+  else
     return u32_max;
-  return was_gate
-             ? projector.projection_frame_index + 1
-             : find_projection_frame_index_of(projector, incoming_strip_index);
+
+  return find_projection_frame_index_of(projector, incoming_strip_index);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

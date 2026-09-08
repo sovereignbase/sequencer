@@ -18,8 +18,9 @@
  * @return Number of previously visible Frames that became masked.
  */
 [[nodiscard]] inline std::uint32_t
-mask(Projector *projector, std::uint32_t containing_strip_index,
-     const std::uint32_t incoming_strip_index, std::uint32_t offset) noexcept {
+apply_mask(Projector *projector, std::uint32_t containing_strip_index,
+           const std::uint32_t incoming_strip_index,
+           std::uint32_t offset) noexcept {
 
   std::uint32_t remaining_mask_length =
       projector->strip_length_of[incoming_strip_index];

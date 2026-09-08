@@ -27,7 +27,7 @@ const finalization_registry = new FinalizationRegistry<number>(clear_sequence)
  * Creation preserves coordinates and issues no Sequence Points.
  *
  * @typeParam T Consumer-owned value represented by one Frame.
- * @param data Optional candidate Delta used to initialize retained state.
+ * @param data Optional !!TRUSTED!! Delta used to initialize retained state.
  * @returns A new Replica owning its JavaScript Footage and native Projector.
  */
 export function create<T>(data?: unknown): Replica<T> {
@@ -46,7 +46,8 @@ export function create<T>(data?: unknown): Replica<T> {
       const visible = meta[0] === 0
       if (visible) void meta.push(state.footage.length)
       void write_strip_to_buffer(meta)
-      if (stage_strip(state.id) && visible) void state.footage.push(...chunk[1]!)
+      if (stage_strip(state.id) && visible)
+        void state.footage.push(...chunk[1]!)
     }
 
   if (state.footage.length !== 0) void resolve_initial_projection(state.id)

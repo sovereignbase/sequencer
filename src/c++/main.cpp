@@ -42,7 +42,7 @@
 static std::vector<std::optional<Projector>> projectors;
 
 /** @brief Cleared registry identifiers available for immediate reuse. */
-static std::vector<std::uint32_t> available_sequence_ids;
+static std::vector<std::uint32_t> available_projection_ids;
 
 /** @brief Shared result buffer for ordered or released Footage spans. */
 static FootageSpanBuffer footage_span_buffer;
@@ -63,35 +63,35 @@ static const std::uint32_t realm_unix_lower_bits = static_cast<std::uint32_t>(
 extern "C" {
 
 EMSCRIPTEN_KEEPALIVE std::uint32_t initialize_projection() noexcept {
-  std::uint32_t sequence_id;
-  if (available_sequence_ids.empty()) {
-    sequence_id = static_cast<std::uint32_t>(projectors.size());
+  std::uint32_t projection_id;
+  if (available_projection_ids.empty()) {
+    projection_id = static_cast<std::uint32_t>(projectors.size());
     projectors.emplace_back(std::in_place);
   } else {
-    sequence_id = available_sequence_ids.back();
-    available_sequence_ids.pop_back();
-    projectors[sequence_id].emplace();
+    projection_id = available_projection_ids.back();
+    available_projection_ids.pop_back();
+    projectors[projection_id].emplace();
   }
   const auto projection = projection_buffer.read_buffer();
   if (!projection.empty())
-    //  hydrate_projection(*projectors[sequence_id], projection);
-    return sequence_id;
+    //  hydrate_projection(*projectors[projection_id], projection);
+    return projection_id;
 }
 
 EMSCRIPTEN_KEEPALIVE void
-clear_projection(const std::uint32_t sequence_id) noexcept {
+clear_projection(const std::uint32_t projection_id) noexcept {
   // Ignore an already cleared registry slot.
-  if (!projectors[sequence_id])
+  if (!projectors[projection_id])
     return;
 
   // Destroy the Projector and publish its reusable identifier.
-  projectors[sequence_id].reset();
-  available_sequence_ids.push_back(sequence_id);
+  projectors[projection_id].reset();
+  available_projection_ids.push_back(projection_id);
 }
 
 EMSCRIPTEN_KEEPALIVE void
-snapshot_projection(const std::uint32_t sequence_id) noexcept {
-  const Projector &projector = *projectors[sequence_id];
+snapshot_projection(const std::uint32_t projection_id) noexcept {
+  const Projector &projector = *projectors[projection_id];
   // Prepare pojection buffer
   const auto count = projector.strip_start_of.size();
   projection_buffer.resize(count);
@@ -142,16 +142,16 @@ snapshot_projection(const std::uint32_t sequence_id) noexcept {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 EMSCRIPTEN_KEEPALIVE std::uint32_t
-get_projection_frame_count(const std::uint32_t sequence_id) noexcept {
+get_projection_frame_count(const std::uint32_t projection_id) noexcept {
   // Read the materialized Projection length directly.
-  return projectors[sequence_id]->projection_frame_count;
+  return projectors[projection_id]->projection_frame_count;
 }
 
 EMSCRIPTEN_KEEPALIVE std::uint32_t
-get_footage_frame_index(const std::uint32_t sequence_id,
+get_footage_frame_index(const std::uint32_t projection_id,
                         const std::uint32_t projection_frame_index) noexcept {
   // Position the Gate at the visible containing Strip.
-  Projector &projector = *projectors[sequence_id];
+  Projector &projector = *projectors[projection_id];
   find_strip_index_of(projector, projection_frame_index);
 
   // Translate the Projection offset through the Strip's Footage mapping.
@@ -160,13 +160,53 @@ get_footage_frame_index(const std::uint32_t sequence_id,
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// UPDATING
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+EMSCRIPTEN_KEEPALIVE std::uint32_t update_projection(
+    const std::uint32_t projection_id, const std::uint32_t operation_index,
+    const std::uint8_t operation_type, const std::uint32_t operation_length,
+    const std::uint32_t footage_frame_index = u32_max) noexcept {
+  Projector &projector = *projectors[projection_id];
+  find_strip_index_of(projector, operation_index);
+  const std::uint32_t containing_strip_index = projector.gate_strip_index;
+  const std::uint32_t offset =
+      operation_index - projector.projection_frame_index;
+
+  const std::uint32_t incoming_strip_index = projector.strip_type_of.size();
+  projector.strip_type_of.push_back(operation_type);
+  projector.strip_length_of.push_back(operation_length);
+  projector.strip_start_of.push_back({realm_crypto_random_bits,
+                                      realm_unix_lower_bits,
+                                      projector.operation_count});
+  SequencePoint previous_strip_end =
+      projector.strip_start_of[containing_strip_index];
+  previous_strip_end.counter_bits += offset;
+  projector.previous_strip_end_of.push_back(previous_strip_end);
+
+  projector.larger_competitor_strip_index_of.push_back(u32_max);
+  projector.larger_split_strip_index_of.push_back(u32_max);
+  projector.right_strip_index_of.push_back(incoming_strip_index);
+  projector.left_strip_index_of.push_back(incoming_strip_index);
+  projector.left_jump_strip_index_of.push_back(u32_max);
+  projector.left_jump_strip_count_of.push_back(0);
+  projector.left_jump_length_of.push_back(0);
+  projector.right_jump_strip_index_of.push_back(u32_max);
+  projector.right_jump_strip_count_of.push_back(0);
+  projector.right_jump_length_of.push_back(0);
+  projector.footage_frame_index_of.push_back(footage_frame_index);
+
+    projector.operation_count++;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // MERGING
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 EMSCRIPTEN_KEEPALIVE std::uint32_t
-merge_projection(const std::uint32_t sequence_id,
+merge_projection(const std::uint32_t projection_id,
                  const std::uint32_t footage_frame_index) noexcept {
-  Projector &projector = *projectors[sequence_id];
+  Projector &projector = *projectors[projection_id];
 
   const std::uint32_t incoming_strip_index = strip_buffer.read_strip(projector);
 
@@ -214,27 +254,11 @@ merge_projection(const std::uint32_t sequence_id,
 // ACKNOWLEDGING
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Materialize one Replica's Frontier in the shared buffer.
- *
- * Structural traversal writes the greatest materialized Strip start of every
- * represented Realm directly to FrontierBuffer. Visible Strips and Masks
- * contribute equally: acknowledgement concerns materialized Sequence state,
- * while Mask eligibility is decided during compaction. Entry order is
- * unspecified.
- *
- * @param sequence_id Identifier of the active sequence to acknowledge.
- * @return Number of Realm entries written to the Frontier buffer.
- * @pre `sequence_id` identifies an active Projector.
- * @post FrontierBuffer contains exactly one Sequence Point for every Realm
- * represented by a materialized Strip in this Replica.
- * @complexity O(sr) worst-case time and O(r) temporary/output space for s
- * structural Strips and r represented Realms.
- */
-EMSCRIPTEN_KEEPALIVE std::uint32_t write_acknowledgement_frontier_to_buffer(
-    const std::uint32_t sequence_id) noexcept {
-  const Projector &projector = *projectors[sequence_id];
-  frontier_buffer.clear();
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+acknowledge_projection(const std::uint32_t projection_id) noexcept {
+  const Projector &projector = *projectors[projection_id];
+
+  sequence_point_buffer.clear();
   if (projector.structural_root_strip_index == u32_max)
     return 0;
 
@@ -258,8 +282,8 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_acknowledgement_frontier_to_buffer(
   } while (position != first_position);
 
   for (const SequencePoint &frontier : frontiers)
-    frontier_buffer.write_frontier(frontier);
-  return frontier_buffer.get_frontier_count();
+    sequence_point_buffer.write_frontier(frontier);
+  return sequence_point_buffer.get_frontier_count();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -273,16 +297,16 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t write_acknowledgement_frontier_to_buffer(
  * report their consumer-owned Footage spans. Every Mask, coordinate, and
  * structural link remains materialized as permanent dependency data.
  *
- * @param sequence_id Identifier of the active sequence to collect.
+ * @param projection_id Identifier of the active sequence to collect.
  * @return Number of released Footage spans written to the result buffer.
- * @pre `sequence_id` identifies an active Projector.
+ * @pre `projection_id` identifies an active Projector.
  * @pre FrontierBuffer contains at most one selected point per represented
  * Realm, derived from the required Replica Frontiers.
  * @post Projector state and retained Strip metadata are unchanged.
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t
-compact_sequence(const std::uint32_t sequence_id) noexcept {
-  const Projector &projector = *projectors[sequence_id];
+compact_projection(const std::uint32_t projection_id) noexcept {
+  const Projector &projector = *projectors[projection_id];
   footage_span_buffer.clear();
   if (projector.structural_root_strip_index == u32_max)
     return 0;
@@ -294,10 +318,10 @@ compact_sequence(const std::uint32_t sequence_id) noexcept {
     if (strip.is_masked != 0) {
       const SequencePoint &point = strip.coordinate.this_strip_start;
       for (std::uint32_t frontier_index = 0;
-           frontier_index < frontier_buffer.get_frontier_count();
+           frontier_index < sequence_point_buffer.get_frontier_count();
            ++frontier_index) {
         const SequencePoint frontier =
-            frontier_buffer.read_frontier(frontier_index);
+            sequence_point_buffer.read_frontier(frontier_index);
         if (frontier.crypto_random_bits == point.crypto_random_bits &&
             frontier.unix_lower_bits == point.unix_lower_bits &&
             frontier.counter_bits >= point.counter_bits) {
@@ -329,9 +353,9 @@ compact_sequence(const std::uint32_t sequence_id) noexcept {
  * @see FrontierBuffer
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t *
-get_acknowledgement_frontier_buffer_pointer() noexcept {
+get_acknowledgement_sequence_point_buffer_pointer() noexcept {
   // Expose the current shared Frontier transfer storage.
-  return frontier_buffer.get_memory_pointer();
+  return sequence_point_buffer.get_memory_pointer();
 }
 
 /**
@@ -349,11 +373,11 @@ get_acknowledgement_frontier_buffer_pointer() noexcept {
  * entries.
  * @note Every prepared word must be initialized before collection begins.
  */
-EMSCRIPTEN_KEEPALIVE std::uint32_t *prepare_compaction_frontier_buffer(
+EMSCRIPTEN_KEEPALIVE std::uint32_t *prepare_compaction_sequence_point_buffer(
     const std::uint32_t frontier_count) noexcept {
   // Allocate the exact writable Frontier transfer span.
-  frontier_buffer.resize(frontier_count);
-  return frontier_buffer.get_memory_pointer();
+  sequence_point_buffer.resize(frontier_count);
+  return sequence_point_buffer.get_memory_pointer();
 }
 
 /**

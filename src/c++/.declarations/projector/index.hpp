@@ -70,6 +70,10 @@ struct Projector {
 
   /** @brief Strip Index of the materialized Strip holding the first projection
    * frame. */
+  std::uint32_t operation_count{0};
+
+  /** @brief Strip Index of the materialized Strip holding the first projection
+   * frame. */
   std::uint32_t head_strip_index{u32_max};
 
   /** @brief Strip Index of the materialized Strip cached by the Gate. */

@@ -24,8 +24,8 @@ find_projection_frame_index_of(
   const boost::endian::little_uint24_t optimal_jump_distance =
       static_cast<boost::endian::little_uint24_t>(
           std::sqrt(projection_frame_count) + 0.5);
-  boost::endian::little_uint24_t left_jumped_distance = 0;
-  boost::endian::little_uint24_t right_jumped_distance = 0;
+  boost::endian::little_uint24_t left_jump_interval_distance = 0;
+  boost::endian::little_uint24_t right_jump_interval_distance = 0;
   // RUN
   while (true) {
     // CHECK IF LEFT IS AT HEAD
@@ -44,23 +44,46 @@ find_projection_frame_index_of(
     const boost::endian::little_uint24_t left_jump_strip_index =
         projector.left_jump_strip_index_of[left_cursor];
     if (left_jump_strip_index != u24_max) {
+      left_cursor = left_jump_strip_index;
       const boost::endian::little_uint24_t left_jump_length =
           projector.left_jump_length_of[left_cursor];
       left_distance += left_jump_length;
-      left_jumped_distance += left_jump_length;
-      if (optimal_jump_distance > left_jumped_distance) {
+      left_jump_interval_distance += left_jump_interval_distance;
+      // REMOVE A JUMP INDEX FROM BETWEEN TO INCREASE DISTANCE TOWARDS OPTIMAL
+      if (optimal_jump_distance > left_jump_interval_distance) {
         projector.left_jump_strip_index_of[left_cursor] = u24_max;
-        projector.right_jump_strip_index_of[left_cursor] = left_jump_strip_index
+        projector.right_jump_strip_index_of[left_cursor] =
+            left_jump_strip_index;
+      } else {
+        // START NEW INTERVAL
+        left_jump_interval_distance =
+            left_jump_interval_distance - optimal_jump_distance;
       }
+    } else {
+      left_cursor = next_left_cursor;
     }
 
     // USE RIGHT JUMP IF AVAILABLE
     const boost::endian::little_uint24_t right_jump_strip_index =
         projector.right_jump_strip_index_of[right_cursor];
     if (right_jump_strip_index != u24_max) {
+      right_cursor = right_jump_strip_index;
       const boost::endian::little_uint24_t right_jump_length =
           projector.right_jump_length_of[right_cursor];
       right_distance += right_jump_length;
+      right_jump_interval_distance += right_jump_interval_distance;
+      // REMOVE A JUMP INDEX FROM BETWEEN TO INCREASE DISTANCE TOWARDS OPTIMAL
+      if (optimal_jump_distance > right_jump_interval_distance) {
+        projector.right_jump_strip_index_of[right_cursor] = u24_max;
+        projector.right_jump_strip_index_of[right_cursor] =
+            right_jump_strip_index;
+      } else {
+        // START NEW INTERVAL
+        right_jump_interval_distance =
+            right_jump_interval_distance - optimal_jump_distance;
+      }
+    } else {
+      right_cursor = next_right_cursor;
     }
   }
 }

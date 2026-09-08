@@ -25,8 +25,10 @@
 #include "./find/containing_strip_index/index.hpp"
 #include "./find/projection_frame_index/index.hpp"
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
 #include <optional>
+#include <random>
 #include <tuple>
 #include <vector>
 
@@ -51,9 +53,12 @@ static ProjectionBuffer projection_buffer;
 /** @brief Shared variable-width transfer buffer for one Frontier. */
 static SequencePointBuffer sequence_point_buffer;
 
-static const std::uint32_t realm_crypto_random_bits;
+static const std::uint32_t realm_crypto_random_bits = std::random_device{}();
 
-static const std::uint32_t realm_unix_lower_bits;
+static const std::uint32_t realm_unix_lower_bits = static_cast<std::uint32_t>(
+    std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch())
+        .count());
 
 extern "C" {
 

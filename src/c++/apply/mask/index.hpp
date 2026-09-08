@@ -4,10 +4,11 @@
  */
 #pragma once
 
-#include "../../auxiliary/split_strip/index.hpp"
-#include "../../declarations/projector/index.hpp"
+#include "../../.auxiliary/split_strip/index.hpp"
+#include "../../.declarations/projector/index.hpp"
 #include <algorithm>
 #include <cstdint>
+#include <utility>
 
 /**
  * @brief Convert the addressed retained Frame Span into materialized Masks.
@@ -56,5 +57,5 @@ apply_mask(Projector *projector, std::uint32_t containing_strip_index,
     }
   }
 
-  return materialized_mask_length;
+  return { materialized_mask_length }
 }

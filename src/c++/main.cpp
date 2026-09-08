@@ -196,7 +196,55 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t update_projection(
   projector.right_jump_length_of.push_back(0);
   projector.footage_frame_index_of.push_back(footage_frame_index);
 
-    projector.operation_count++;
+  projector.operation_count++;
+
+  if (operation_type == 0)
+    return apply_root(projector, incoming_strip_index);
+
+  std::int32_t frame_count_diff;
+  std::int32_t strip_count_diff;
+  if (operation_type == 1)
+    std::tie(frame_count_diff, strip_count_diff) = apply_insert(
+        projector, containing_strip_index, incoming_strip_index, offset);
+  else if (operation_type == 2)
+    std::tie(frame_count_diff, strip_count_diff) = apply_mask(
+        projector, containing_strip_index, incoming_strip_index, offset);
+  else
+    return u32_max;
+  // FIND NEAREST LEFT AND RIGHT JUMPS
+  std::uint32_t left_cursor = incoming_strip_index;
+  std::uint32_t right_cursor = incoming_strip_index;
+
+  bool left_jump_found = false;
+  bool right_jump_found = false;
+
+  while (!left_jump_found || !right_jump_found) {
+    if (!left_jump_found) {
+      left_cursor = projector.left_strip_index_of[left_cursor];
+      left_jump_found =
+          left_cursor == projector.head_strip_index ||
+          projector.right_jump_strip_index_of[left_cursor] != u32_max;
+    }
+
+    if (!right_jump_found) {
+      right_cursor = projector.right_strip_index_of[right_cursor];
+      right_jump_found =
+          right_cursor == projector.tail_strip_index ||
+          projector.left_jump_strip_index_of[right_cursor] != u32_max;
+    }
+  }
+
+  // UPDATE NEAREST LEFT JUMP
+  if (projector.right_jump_strip_index_of[left_cursor] != u32_max) {
+    projector.right_jump_length_of[left_cursor] += frame_count_diff;
+    projector.right_jump_strip_count_of[left_cursor] += strip_count_diff;
+  }
+
+  // UPDATE NEAREST RIGHT JUMP
+  if (projector.left_jump_strip_index_of[right_cursor] != u32_max) {
+    projector.left_jump_length_of[right_cursor] += frame_count_diff;
+    projector.left_jump_strip_count_of[right_cursor] += strip_count_diff;
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -239,15 +287,19 @@ merge_projection(const std::uint32_t projection_id,
       return u32_max
   }
 
-  if (incoming_strip_type == 1)
-    apply_insert(projector, containing_strip_index, incoming_strip_index,
-                 offset);
-  else if (incoming_strip_type == 2)
-    apply_mask(projector, containing_strip_index, incoming_strip_index, offset);
+  std::int32_t frame_count_diff;
+  std::int32_t strip_count_diff;
+  if (operation_type == 1)
+    std::tie(frame_count_diff, strip_count_diff) = apply_insert(
+        projector, containing_strip_index, incoming_strip_index, offset);
+  else if (operation_type == 2)
+    std::tie(frame_count_diff, strip_count_diff) = apply_mask(
+        projector, containing_strip_index, incoming_strip_index, offset);
   else
     return u32_max;
 
-  return find_projection_frame_index_of(projector, incoming_strip_index);
+  return find_projection_frame_index_of(projector, incoming_strip_index,
+                                        frame_count_diff, strip_count_diff)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

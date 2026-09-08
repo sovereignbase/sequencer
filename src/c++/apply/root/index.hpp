@@ -74,7 +74,8 @@ inline void prepend(Projector &projector, const std::uint32_t strip_index,
  * space.
  */
 [[nodiscard]] inline std::uint32_t
-apply_root(Projector &projector, std::uint32_t &incoming_strip_index) noexcept {
+apply_root(Projector &projector,
+           const std::uint32_t &incoming_strip_index) noexcept {
   const std::uint32_t &gate_strip_index = projector.gate_strip_index;
 
   // Resolve immediately when the incoming previous Strip end equals the Gate

@@ -51,6 +51,10 @@ static ProjectionBuffer projection_buffer;
 /** @brief Shared variable-width transfer buffer for one Frontier. */
 static SequencePointBuffer sequence_point_buffer;
 
+static const std::uint32_t realm_crypto_random_bits;
+
+static const std::uint32_t realm_unix_lower_bits;
+
 extern "C" {
 
 EMSCRIPTEN_KEEPALIVE std::uint32_t initialize_projection() noexcept {
@@ -142,7 +146,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t
 get_footage_frame_index(const std::uint32_t sequence_id,
                         const std::uint32_t projection_frame_index) noexcept {
   // Position the Gate at the visible containing Strip.
-  Projector &projector = projectors[sequence_id];
+  Projector &projector = *projectors[sequence_id];
   find_strip_index_of(projector, projection_frame_index);
 
   // Translate the Projection offset through the Strip's Footage mapping.
@@ -157,7 +161,7 @@ get_footage_frame_index(const std::uint32_t sequence_id,
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 merge_projection(const std::uint32_t sequence_id,
                  const std::uint32_t footage_frame_index) noexcept {
-  Projector &projector = projectors[sequence_id];
+  Projector &projector = *projectors[sequence_id];
 
   const std::uint32_t incoming_strip_index = strip_buffer.read_strip(projector);
 
@@ -177,7 +181,7 @@ merge_projection(const std::uint32_t sequence_id,
   std::uint32_t offset = strip_contains_previous_strip_end(
       projector.strip_start_of[containing_strip_index],
       projector.strip_length_of[containing_strip_index],
-      projecor.previous_strip_end_of[incoming_strip_index]);
+      projector.previous_strip_end_of[incoming_strip_index]);
 
   // If gate strip is not containing strip
   if (offset == u32_max) {

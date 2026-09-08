@@ -21,15 +21,31 @@ find_projection_frame_index_of(Projector &projector,
   const std::uint32_t optimal_jump_distance = static_cast<std::uint32_t>(
       std::sqrt(projector.materialized_strip_count) + 0.5);
 
-  // FIND AND UPDATE NEAREST LEFT JUMP
-  do {
-    if (left_cursor == projector.head_strip_index)
-      break;
+  // FIND NEAREST LEFT AND RIGHT JUMPS
+  bool left_jump_found = left_cursor == projector.head_strip_index;
+  bool right_jump_found = right_cursor == projector.tail_strip_index;
 
-    left_cursor = projector.left_strip_index_of[left_cursor];
-    left_distance += projector.strip_length_of[left_cursor];
-  } while (projector.right_jump_strip_index_of[left_cursor] == u32_max);
+  while (!left_jump_found || !right_jump_found) {
+    if (!left_jump_found) {
+      left_cursor = projector.left_strip_index_of[left_cursor];
+      left_distance += projector.strip_length_of[left_cursor];
 
+      left_jump_found =
+          left_cursor == projector.head_strip_index ||
+          projector.right_jump_strip_index_of[left_cursor] != u32_max;
+    }
+
+    if (!right_jump_found) {
+      right_distance += projector.strip_length_of[right_cursor];
+      right_cursor = projector.right_strip_index_of[right_cursor];
+
+      right_jump_found =
+          right_cursor == projector.tail_strip_index ||
+          projector.left_jump_strip_index_of[right_cursor] != u32_max;
+    }
+  }
+
+  // UPDATE NEAREST LEFT JUMP
   if (projector.right_jump_strip_index_of[left_cursor] != u32_max) {
     projector.right_jump_length_of[left_cursor] = static_cast<std::uint32_t>(
         static_cast<std::int64_t>(projector.right_jump_length_of[left_cursor]) +
@@ -42,15 +58,7 @@ find_projection_frame_index_of(Projector &projector,
             strip_count_diff);
   }
 
-  // FIND AND UPDATE NEAREST RIGHT JUMP
-  do {
-    if (right_cursor == projector.tail_strip_index)
-      break;
-
-    right_distance += projector.strip_length_of[right_cursor];
-    right_cursor = projector.right_strip_index_of[right_cursor];
-  } while (projector.left_jump_strip_index_of[right_cursor] == u32_max);
-
+  // UPDATE NEAREST RIGHT JUMP
   if (projector.left_jump_strip_index_of[right_cursor] != u32_max) {
     projector.left_jump_length_of[right_cursor] = static_cast<std::uint32_t>(
         static_cast<std::int64_t>(projector.left_jump_length_of[right_cursor]) +

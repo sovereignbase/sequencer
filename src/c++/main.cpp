@@ -206,8 +206,17 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t update_projection(
 
   projector.operation_count++;
 
-  if (operation_type == 0)
+  if (operation_type == 0) {
+    projection_buffer.resize(1);
+    projection_buffer.write_projection(
+        0, {projector.strip_type_of[incoming_strip_index],
+            projector.strip_length_of[incoming_strip_index],
+            strip_start.crypto_random_bits, strip_start.unix_lower_bits,
+            strip_start.counter_bits, previous_strip_end.crypto_random_bits,
+            previous_strip_end.unix_lower_bits, previous_strip_end.counter_bits,
+            0, 0});
     return apply_root(projector, incoming_strip_index);
+  }
 
   std::int32_t frame_count_diff;
   std::int32_t strip_count_diff;
@@ -253,6 +262,16 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t update_projection(
     projector.left_jump_length_of[right_cursor] += frame_count_diff;
     projector.left_jump_strip_count_of[right_cursor] += strip_count_diff;
   }
+
+  projection_buffer.resize(1);
+  projection_buffer.write_projection(
+      0, {projector.strip_type_of[incoming_strip_index],
+          projector.strip_length_of[incoming_strip_index],
+          strip_start.crypto_random_bits, strip_start.unix_lower_bits,
+          strip_start.counter_bits, previous_strip_end.crypto_random_bits,
+          previous_strip_end.unix_lower_bits, previous_strip_end.counter_bits,
+          0, 0});
+  return operation_index;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -262,9 +281,17 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t update_projection(
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 merge_projection(const std::uint32_t projection_id,
                  const std::uint32_t footage_frame_index) noexcept {
+
+  const auto projection = projection_buffer.read_buffer();
+  if (projection.empty())
+    return;
+
   Projector &projector = *projectors[projection_id];
 
-  const std::uint32_t incoming_strip_index = strip_buffer.read_strip(projector);
+  for ()
+
+    const std::uint32_t incoming_strip_index =
+        strip_buffer.read_strip(projector);
 
   // Return early in case of a duplicate
   if (incoming_strip_index == u32_max)

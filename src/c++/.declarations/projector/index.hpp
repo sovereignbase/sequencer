@@ -125,6 +125,14 @@ struct Projector {
    */
   ContainmentIndex containment_index;
 
+  /**
+   * @brief Sequence Point containment index returning Strip Indexs.
+   *
+   * ContainmentIndex owns compact Realm entries only; Strip objects remain
+   * owned by `strips`.
+   */
+  ContainmentIndex pending_containment_index;
+
   // Movable Projection traversal Gate.
 
   /**

@@ -38,7 +38,7 @@ private:
   // Variable-width owned ABI storage.
 
   /** @brief Number of unsigned 32-bit words in one Footage Span entry. */
-  static constexpr std::size_t words_per_span = 2;
+  static constexpr std::size_t words_per_span = 4;
 
   /** @brief Owned storage containing zero or more complete Footage Spans. */
   std::vector<std::uint32_t> words;
@@ -68,11 +68,15 @@ public:
    * @note Appending may invalidate every previously returned pointer.
    * @complexity Amortized O(1) time and O(1) auxiliary space.
    */
-  inline void write_span(const std::uint32_t footage_frame_index,
-                         const std::uint32_t frame_count) noexcept {
+  inline void write_span(const std::uint32_t projection_frame_index,
+                         const std::uint32_t footage_frame_index,
+                         const std::uint32_t frame_count,
+                         const std::uint32_t masked) noexcept {
     // Append one Footage range in stable ABI order.
+    words.push_back(projection_frame_index);
     words.push_back(footage_frame_index);
     words.push_back(frame_count);
+    words.push_back(masked);
   }
 
   /**

@@ -10,7 +10,6 @@
 
 #include "../../.containment_index/index.hpp"
 #include "../sentinels/index.hpp"
-#include <boost/endian/arithmetic.hpp>
 #include <cstdint>
 #include <vector>
 
@@ -45,15 +44,15 @@ struct Projector {
   /**
    * @brief Lengths indexed by Strip Index .
    */
-  std::vector<boost::endian::little_uint24_t> strip_length_of;
+  std::vector<std::uint32_t> strip_length_of;
 
   /** @brief Strip Index of a Strip with the same previous_strip_end competing
    * for recency by lexograpical larfeness.
    */
-  std::vector<boost::endian::little_uint24_t> larger_competitor_strip_index_of;
+  std::vector<std::uint32_t> larger_competitor_strip_index_of;
 
   /** @brief Next larger fragment of the same originally issued Strip. */
-  std::vector<boost::endian::little_uint24_t> larger_split_strip_index_of;
+  std::vector<std::uint32_t> larger_split_strip_index_of;
 
   /**
    * @brief Strip start Sequence Points indexed by Strip Index .
@@ -71,42 +70,48 @@ struct Projector {
 
   /** @brief Strip Index of the materialized Strip holding the first projection
    * frame. */
-  boost::endian::little_uint24_t head_strip_index{u24_max};
+  std::uint32_t head_strip_index{u32_max};
 
   /** @brief Strip Index of the materialized Strip cached by the Gate. */
-  boost::endian::little_uint24_t gate_strip_index{u24_max};
+  std::uint32_t gate_strip_index{u32_max};
 
   /** @brief Strip Index of the materialized Strip holding the last projection
    * frame. */
-  boost::endian::little_uint24_t tail_strip_index{u24_max};
+  std::uint32_t tail_strip_index{u32_max};
 
   /**
    * @brief Strip Index immediately to the right in Structural Order.
    *
    * A Pending Strip points to itself until materialized.
    */
-  std::vector<boost::endian::little_uint24_t> right_strip_index_of;
+  std::vector<std::uint32_t> right_strip_index_of;
 
   /**
    * @brief Strip Index immediately to the left in Structural Order.
    *
    * A Pending Strip points to itself until materialized.
    */
-  std::vector<boost::endian::little_uint24_t> left_strip_index_of;
-
-  std::vector<boost::endian::little_uint24_t> footage_frame_index_of;
+  std::vector<std::uint32_t> left_strip_index_of;
 
   /** @brief Visible Strip reached by the current left Projection jump. */
-  std::vector<boost::endian::little_uint24_t> left_jump_strip_index_of;
-
-  /** @brief Projection Frame distance to `left_jump_strip_index`. */
-  std::vector<boost::endian::little_uint24_t> left_jump_length_of;
+  std::vector<std::uint32_t> left_jump_strip_index_of;
 
   /** @brief Visible Strip reached by the current right Projection jump. */
-  std::vector<boost::endian::little_uint24_t> right_jump_strip_index_of;
+  std::vector<std::uint32_t> left_jump_strip_count_of;
+
+  /** @brief Projection Frame distance to `left_jump_strip_index`. */
+  std::vector<std::uint32_t> left_jump_length_of;
+
+  /** @brief Visible Strip reached by the current right Projection jump. */
+  std::vector<std::uint32_t> right_jump_strip_index_of;
+
+  /** @brief Visible Strip reached by the current right Projection jump. */
+  std::vector<std::uint32_t> right_jump_strip_count_of;
 
   /** @brief Projection Frame distance to `right_jump_strip_index`. */
-  std::vector<boost::endian::little_uint24_t> right_jump_length_of;
+  std::vector<std::uint32_t> right_jump_length_of;
+
+  std::uint32_t materialized_strip_count{0};
 
   /**
    * @brief Sequence Point containment index returning Strip Indexs.
@@ -124,8 +129,10 @@ struct Projector {
    * A Mask has zero projected length, so it may share this position with an
    * adjacent Strip.
    */
-  boost::endian::little_uint24_t projection_frame_index{0};
+  std::uint32_t projection_frame_index{0};
 
   /** @brief Total number of visible frames in the current Projection. */
-  boost::endian::little_uint24_t projection_frame_count{0};
+  std::uint32_t projection_frame_count{0};
+
+  std::vector<std::uint32_t> footage_frame_index_of;
 };

@@ -7,30 +7,9 @@ project(
   LANGUAGES CXX
 )
 
-include(FetchContent)
-
-# Boost.Endian 1.92.0 only depends on Boost.Config.
-FetchContent_Declare(
-  boost_config
-  URL https://github.com/boostorg/config/archive/refs/tags/boost-1.92.0.tar.gz
-  URL_HASH SHA256=b4171037f13373203ba79cbc141d612982052283e696a315185ab5bea46102a0
-  EXCLUDE_FROM_ALL
-)
-
-FetchContent_Declare(
-  boost_endian
-  URL https://github.com/boostorg/endian/archive/refs/tags/boost-1.92.0.tar.gz
-  URL_HASH SHA256=5acc3f986b997db9927039e5a034ede1e923dc3576037e2c24b7363961931c03
-  EXCLUDE_FROM_ALL
-)
-
-FetchContent_MakeAvailable(boost_config boost_endian)
-
 add_executable(sequencer_wasm src/c++/main.cpp)
 
 target_compile_features(sequencer_wasm PRIVATE cxx_std_23)
-
-target_link_libraries(sequencer_wasm PRIVATE Boost::endian)
 
 if(MSVC)
   target_compile_options(sequencer_wasm PRIVATE /W4 /permissive-)

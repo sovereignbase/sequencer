@@ -13,7 +13,6 @@
  */
 #pragma once
 
-#include <boost/endian/arithmetic.hpp>
 #include <compare>
 #include <cstdint>
 
@@ -51,7 +50,7 @@ struct SequencePoint {
    *
    * Adding a Frame offset within one Strip advances this component only.
    */
-  boost::endian::little_uint24_t counter_bits;
+  std::uint32_t counter_bits;
 
   /**
    * @brief Compare all components for exact Sequence Point identity.

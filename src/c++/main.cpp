@@ -25,7 +25,6 @@
 #include "./.declarations/sentinels/index.hpp"
 #include "./find/projection_frame_index/index.hpp"
 #include <algorithm>
-#include <boost/endian/arithmetic.hpp>
 #include <cstdint>
 #include <optional>
 #include <tuple>
@@ -41,7 +40,7 @@
 static std::vector<std::optional<Projector>> projectors;
 
 /** @brief Cleared registry identifiers available for immediate reuse. */
-static std::vector<boost::endian::little_uint24_t> available_sequence_ids;
+static std::vector<std::uint32_t> available_sequence_ids;
 
 /** @brief Shared fixed-width transfer buffer for one Strip. */
 static StripBuffer strip_buffer;
@@ -70,12 +69,10 @@ extern "C" {
  * @post ProjectionBuffer is empty and no longer owns the snapshot allocation.
  * @complexity Expected O(n) restoration plus per-Realm containment sorting.
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t
-initialize_sequence() noexcept {
-  boost::endian::little_uint24_t sequence_id;
+EMSCRIPTEN_KEEPALIVE std::uint32_t initialize_sequence() noexcept {
+  std::uint32_t sequence_id;
   if (available_sequence_ids.empty()) {
-    sequence_id =
-        static_cast<boost::endian::little_uint24_t>(projectors.size());
+    sequence_id = static_cast<std::uint32_t>(projectors.size());
     projectors.emplace_back(std::in_place);
   } else {
     sequence_id = available_sequence_ids.back();
@@ -100,7 +97,7 @@ initialize_sequence() noexcept {
  * @post The registry slot is inactive and available to `initialize_sequence`.
  */
 EMSCRIPTEN_KEEPALIVE void
-clear_sequence(const boost::endian::little_uint24_t sequence_id) noexcept {
+clear_sequence(const std::uint32_t sequence_id) noexcept {
   // Ignore an already cleared registry slot.
   if (!projectors[sequence_id])
     return;
@@ -115,25 +112,25 @@ clear_sequence(const boost::endian::little_uint24_t sequence_id) noexcept {
 
  * * @pre The active sequence's chain contains every stored Strip, starts at
  * head,
- * and ends at u24_max. The previous snapshot has been consumed.
+ * and ends at u32_max. The previous snapshot has been consumed.
  *
  * @complexity O(n) time and output space for n linked Strips, including Masks.
  */
 EMSCRIPTEN_KEEPALIVE void
-snapshot_projection(const boost::endian::little_uint24_t sequence_id) noexcept {
+snapshot_projection(const std::uint32_t sequence_id) noexcept {
   const Projector &projector = *projectors[sequence_id];
   const auto count = projector.strip_start_of.size();
   projection_buffer.resize(count);
-  std::vector<boost::endian::little_uint24_t> projection_indices(count);
-  boost::endian::little_uint24_t projection_strip_index = 0;
-  for (boost::endian::little_uint24_t strip_index = projector.head_strip_index;
-       strip_index != u24_max;
+  std::vector<std::uint32_t> projection_indices(count);
+  std::uint32_t projection_strip_index = 0;
+  for (std::uint32_t strip_index = projector.head_strip_index;
+       strip_index != u32_max;
        strip_index = projector.right_strip_index_of[strip_index])
     projection_indices[strip_index] = projection_strip_index++;
 
   projection_strip_index = 0;
-  for (boost::endian::little_uint24_t strip_index = projector.head_strip_index;
-       strip_index != u24_max;
+  for (std::uint32_t strip_index = projector.head_strip_index;
+       strip_index != u32_max;
        strip_index = projector.right_strip_index_of[strip_index]) {
     const auto &strip_start = projector.strip_start_of[strip_index];
     const auto &previous_strip_end =
@@ -141,10 +138,9 @@ snapshot_projection(const boost::endian::little_uint24_t sequence_id) noexcept {
     const auto split = projector.larger_split_strip_index_of[strip_index];
     const auto sibling =
         projector.larger_competitor_strip_index_of[strip_index];
-    const boost::endian::little_uint24_t type =
-        projector.is_masked_of[strip_index]    ? 2u
-        : projector.is_inverse_of[strip_index] ? 0u
-                                               : 1u;
+    const std::uint32_t type = projector.is_masked_of[strip_index]    ? 2u
+                               : projector.is_inverse_of[strip_index] ? 0u
+                                                                      : 1u;
     projection_buffer.write_projection(
         projection_strip_index++,
         {
@@ -156,8 +152,8 @@ snapshot_projection(const boost::endian::little_uint24_t sequence_id) noexcept {
             previous_strip_end.crypto_random_bits,
             previous_strip_end.unix_lower_bits,
             previous_strip_end.counter_bits,
-            split == u24_max ? u24_max : projection_indices[split],
-            sibling == u24_max ? u24_max : projection_indices[sibling],
+            split == u32_max ? u32_max : projection_indices[split],
+            sibling == u32_max ? u32_max : projection_indices[sibling],
         });
   }
 }
@@ -174,8 +170,8 @@ snapshot_projection(const boost::endian::little_uint24_t sequence_id) noexcept {
  * @pre `sequence_id` identifies an active Projector.
  * @complexity O(1) time and O(1) space.
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t get_projection_frame_count(
-    const boost::endian::little_uint24_t sequence_id) noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+get_projection_frame_count(const std::uint32_t sequence_id) noexcept {
   // Read the materialized Projection length directly.
   return projectors[sequence_id]->projection_frame_count;
 }
@@ -193,9 +189,9 @@ EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t get_projection_frame_count(
  * @pre `projection_frame_index < get_projection_frame_count(sequence_id)`.
  * @post The Projector Gate describes the containing Strip.
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t get_footage_frame_index(
-    const boost::endian::little_uint24_t sequence_id,
-    const boost::endian::little_uint24_t projection_frame_index) noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+get_footage_frame_index(const std::uint32_t sequence_id,
+                        const std::uint32_t projection_frame_index) noexcept {
   // Position the Gate at the visible containing Strip.
   Projector *projector = &*projectors[sequence_id];
   run_projector_to_frame_index(projector, projection_frame_index);
@@ -219,17 +215,15 @@ EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t get_footage_frame_index(
  * @post FootageSpanBuffer contains one range per materialized Strip in
  * structural Sequence order.
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t
-write_recovery_footage_spans_to_buffer(
-    const boost::endian::little_uint24_t sequence_id) noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t write_recovery_footage_spans_to_buffer(
+    const std::uint32_t sequence_id) noexcept {
   Projector &projector = *projectors[sequence_id];
   footage_span_buffer.clear();
-  if (projector.structural_root_strip_index == u24_max)
+  if (projector.structural_root_strip_index == u32_max)
     return 0;
 
-  const boost::endian::little_uint24_t first_position =
-      projector.structural_root_strip_index;
-  boost::endian::little_uint24_t position = first_position;
+  const std::uint32_t first_position = projector.structural_root_strip_index;
+  std::uint32_t position = first_position;
   do {
     const Strip &strip = projector.strips[position];
     footage_span_buffer.write_span(strip.footage_frame_index,
@@ -257,28 +251,25 @@ write_recovery_footage_spans_to_buffer(
  * @complexity Linear in the structural Strips crossed by the selected range,
  * after bounded Gate positioning.
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t
-write_projection_footage_spans_to_buffer(
-    const boost::endian::little_uint24_t sequence_id,
-    const boost::endian::little_uint24_t start_index,
-    const boost::endian::little_uint24_t end_index) noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t write_projection_footage_spans_to_buffer(
+    const std::uint32_t sequence_id, const std::uint32_t start_index,
+    const std::uint32_t end_index) noexcept {
   Projector *projector = &*projectors[sequence_id];
   footage_span_buffer.clear();
   if (start_index == end_index)
     return 0;
 
   run_projector_to_frame_index(projector, start_index);
-  boost::endian::little_uint24_t position = projector->gate_strip_index;
-  boost::endian::little_uint24_t projection_frame_index =
-      projector->gate_projection_frame_index;
+  std::uint32_t position = projector->gate_strip_index;
+  std::uint32_t projection_frame_index = projector->gate_projection_frame_index;
   while (projection_frame_index < end_index) {
     const Strip &strip = projector->strips[position];
     if (strip.is_masked == 0) {
-      const boost::endian::little_uint24_t span_start =
+      const std::uint32_t span_start =
           projection_frame_index < start_index
               ? start_index - projection_frame_index
               : 0;
-      const boost::endian::little_uint24_t span_end = std::min(
+      const std::uint32_t span_end = std::min(
           projector->length[position], end_index - projection_frame_index);
       footage_span_buffer.write_span(strip.footage_frame_index + span_start,
                                      span_end - span_start);
@@ -296,10 +287,10 @@ write_projection_footage_spans_to_buffer(
 /**
  * @brief Stage the buffered Strip for Initial Projection Resolution.
  * @param sequence_id Identifier of the receiving sequence.
- * @return Appended Stable Position, or `u24_max` for a duplicate.
+ * @return Appended Stable Position, or `u32_max` for a duplicate.
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t
-stage_strip(const boost::endian::little_uint24_t sequence_id) noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+stage_strip(const std::uint32_t sequence_id) noexcept {
   return strip_buffer.read_strip(&*projectors[sequence_id]);
 }
 
@@ -319,11 +310,11 @@ stage_strip(const boost::endian::little_uint24_t sequence_id) noexcept {
  * handled centrally by `insert_between` using `is_inverse`.
  *
  * @param sequence_id Identifier of the sequence receiving the buffered strip.
- * @param projection_frame_index Known local Projection position, or `u24_max`
+ * @param projection_frame_index Known local Projection position, or `u32_max`
  * when a remote merge must locate it.
  * @return Projection frame index at which the incoming Strip begins. For a
  * Mask, the index is measured before its Frame Span leaves the Projection.
- * `u24_max` means the Strip was a duplicate or remains
+ * `u32_max` means the Strip was a duplicate or remains
  * Pending/staged.
  * @pre `sequence_id` identifies an active Projector.
  * @pre StripBuffer contains one valid transferable Strip representation.
@@ -331,51 +322,49 @@ stage_strip(const boost::endian::little_uint24_t sequence_id) noexcept {
  * a newly retained Strip remains self-linked.
  * @note A supplied Projection index selects the direct local fast path.
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t merge_strip_into_sequence(
-    const boost::endian::little_uint24_t sequence_id) noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
   Projector &projector = projectors[sequence_id];
 
-  const boost::endian::little_uint24_t incoming_strip_index =
-      strip_buffer.read_strip(projector);
+  const std::uint32_t incoming_strip_index = strip_buffer.read_strip(projector);
 
-  const boost::endian::little_uint24_t incoming_strip_type =
+  const std::uint32_t incoming_strip_type =
       projector.strip_type_of[incoming_strip_index];
 
   // Return early in case of a duplicate
-  if (incoming_strip_index == u24_max)
-    return u24_max;
+  if (incoming_strip_index == u32_max)
+    return u32_max;
 
   // Handle root inserts trough a fast path
   if (incoming_strip_type == 0) {
-    return u24_max;
+    return u32_max;
     return root_insert_fast_path(projector, incoming_strip_index);
   }
 
   bool was_gate = true;
-  boost::endian::little_uint24_t containing_strip_index =
-      projector.gate_strip_index;
-  boost::endian::little_uint24_t offset = strip_contains_previous_strip_end(
+  std::uint32_t containing_strip_index = projector.gate_strip_index;
+  std::uint32_t offset = strip_contains_previous_strip_end(
       projector.strip_start_of[containing_strip_index],
       projector.strip_length_of[containing_strip_index],
       projecor.previous_strip_end_of[incoming_strip_index]);
 
   // If gate strip is not containing strip
-  if (offset == u24_max) {
+  if (offset == u32_max) {
     was_gate = false;
     // try resolving containing strip from containment index
     std::tie(containing_strip_index, offset) = projector.containment_index.get(
         projector.previous_strip_end_of[incoming_strip_index]);
 
-    // If resolving failed return u24_max sentinel
-    if (containing_strip_index == u24_max)
-      return u24_max
+    // If resolving failed return u32_max sentinel
+    if (containing_strip_index == u32_max)
+      return u32_max
   }
 
   if (incoming_strip_type == 1) {
 
   } else if (incoming_strip_type == 2) {
   } else
-    return u24_max;
+    return u32_max;
   if (was_gate)
     return projector.projection_frame_index + 1;
 }
@@ -396,7 +385,7 @@ EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t merge_strip_into_sequence(
  * rewrites FrontierBuffer.
  * @see FrontierBuffer
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t *
+EMSCRIPTEN_KEEPALIVE std::uint32_t *
 get_acknowledgement_frontier_buffer_pointer() noexcept {
   // Expose the current shared Frontier transfer storage.
   return frontier_buffer.get_memory_pointer();
@@ -419,18 +408,16 @@ get_acknowledgement_frontier_buffer_pointer() noexcept {
  * @complexity O(sr) worst-case time and O(r) temporary/output space for s
  * structural Strips and r represented Realms.
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t
-write_acknowledgement_frontier_to_buffer(
-    const boost::endian::little_uint24_t sequence_id) noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t write_acknowledgement_frontier_to_buffer(
+    const std::uint32_t sequence_id) noexcept {
   const Projector &projector = *projectors[sequence_id];
   frontier_buffer.clear();
-  if (projector.structural_root_strip_index == u24_max)
+  if (projector.structural_root_strip_index == u32_max)
     return 0;
 
   std::vector<SequencePoint> frontiers;
-  const boost::endian::little_uint24_t first_position =
-      projector.structural_root_strip_index;
-  boost::endian::little_uint24_t position = first_position;
+  const std::uint32_t first_position = projector.structural_root_strip_index;
+  std::uint32_t position = first_position;
   do {
     const SequencePoint &point =
         projector.strips[position].coordinate.this_strip_start;
@@ -471,9 +458,8 @@ write_acknowledgement_frontier_to_buffer(
  * entries.
  * @note Every prepared word must be initialized before collection begins.
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t *
-prepare_compaction_frontier_buffer(
-    const boost::endian::little_uint24_t frontier_count) noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t *prepare_compaction_frontier_buffer(
+    const std::uint32_t frontier_count) noexcept {
   // Allocate the exact writable Frontier transfer span.
   frontier_buffer.resize(frontier_count);
   return frontier_buffer.get_memory_pointer();
@@ -491,8 +477,7 @@ prepare_compaction_frontier_buffer(
  * it.
  * @see FootageSpanBuffer
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t *
-get_footage_span_buffer_pointer() noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t *get_footage_span_buffer_pointer() noexcept {
   // Expose Footage spans written by the most recent operation.
   return footage_span_buffer.get_memory_pointer();
 }
@@ -511,21 +496,20 @@ get_footage_span_buffer_pointer() noexcept {
  * Realm, derived from the required Replica Frontiers.
  * @post Projector state and retained Strip metadata are unchanged.
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t
-compact_sequence(const boost::endian::little_uint24_t sequence_id) noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+compact_sequence(const std::uint32_t sequence_id) noexcept {
   const Projector &projector = *projectors[sequence_id];
   footage_span_buffer.clear();
-  if (projector.structural_root_strip_index == u24_max)
+  if (projector.structural_root_strip_index == u32_max)
     return 0;
 
-  const boost::endian::little_uint24_t first_position =
-      projector.structural_root_strip_index;
-  boost::endian::little_uint24_t position = first_position;
+  const std::uint32_t first_position = projector.structural_root_strip_index;
+  std::uint32_t position = first_position;
   do {
     const Strip &strip = projector.strips[position];
     if (strip.is_masked != 0) {
       const SequencePoint &point = strip.coordinate.this_strip_start;
-      for (boost::endian::little_uint24_t frontier_index = 0;
+      for (std::uint32_t frontier_index = 0;
            frontier_index < frontier_buffer.get_frontier_count();
            ++frontier_index) {
         const SequencePoint frontier =
@@ -559,10 +543,10 @@ compact_sequence(const boost::endian::little_uint24_t sequence_id) noexcept {
  * @post StripBuffer contains the transferable fields of the containing Strip,
  * and the Projector Gate describes that Strip.
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t
+EMSCRIPTEN_KEEPALIVE std::uint32_t
 write_strip_at_projection_frame_index_to_buffer(
-    const boost::endian::little_uint24_t sequence_id,
-    const boost::endian::little_uint24_t projection_frame_index) noexcept {
+    const std::uint32_t sequence_id,
+    const std::uint32_t projection_frame_index) noexcept {
   // Position the Gate and encode its containing Strip.
   Projector *projector = &*projectors[sequence_id];
   run_projector_to_frame_index(projector, projection_frame_index);
@@ -586,12 +570,11 @@ write_strip_at_projection_frame_index_to_buffer(
  * @retval 0 The retained Sequence is empty.
  * @pre `sequence_id` identifies an active Projector.
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t
-write_first_structural_strip_to_buffer(
-    const boost::endian::little_uint24_t sequence_id) noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t write_first_structural_strip_to_buffer(
+    const std::uint32_t sequence_id) noexcept {
   // Reject an empty retained Sequence without changing shared state.
   Projector *projector = &*projectors[sequence_id];
-  if (projector->structural_root_strip_index == u24_max)
+  if (projector->structural_root_strip_index == u32_max)
     return 0;
 
   structural_start = projector->structural_root_strip_index;
@@ -616,9 +599,8 @@ write_first_structural_strip_to_buffer(
  * @pre `sequence_id` identifies an active Projector.
  * @pre A successful first retained Strip write positioned the Projector Gate.
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t
-write_next_structural_strip_to_buffer(
-    const boost::endian::little_uint24_t sequence_id) noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t write_next_structural_strip_to_buffer(
+    const std::uint32_t sequence_id) noexcept {
   Projector *projector = &*projectors[sequence_id];
   const Strip &current_strip = projector->strips[structural_cursor];
   if (current_strip.is_masked == 0)
@@ -643,11 +625,10 @@ write_next_structural_strip_to_buffer(
  * @pre `sequence_id` identifies an active Projector.
  * @post On success, `pending_cursor` identifies the written Stable Position.
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t
-write_first_pending_strip_to_buffer(
-    const boost::endian::little_uint24_t sequence_id) noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+write_first_pending_strip_to_buffer(const std::uint32_t sequence_id) noexcept {
   Projector &projector = *projectors[sequence_id];
-  const boost::endian::little_uint24_t materialized_single_position =
+  const std::uint32_t materialized_single_position =
       projector.structural_root_strip_index;
   for (pending_cursor = 0; pending_cursor < projector.strips.size();
        ++pending_cursor)
@@ -668,9 +649,8 @@ write_first_pending_strip_to_buffer(
  * @retval 0 Dense storage contains no later self-linked Strip.
  * @pre A successful first Pending write initialized `pending_cursor`.
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t
-write_next_pending_strip_to_buffer(
-    const boost::endian::little_uint24_t sequence_id) noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+write_next_pending_strip_to_buffer(const std::uint32_t sequence_id) noexcept {
   Projector &projector = *projectors[sequence_id];
   for (++pending_cursor; pending_cursor < projector.strips.size();
        ++pending_cursor)
@@ -686,13 +666,12 @@ write_next_pending_strip_to_buffer(
 /**
  * @brief Return the mutable address of the shared ten-word StripBuffer.
  *
- * @return Pointer to the first of ten `boost::endian::little_uint24_t` words.
+ * @return Pointer to the first of ten `std::uint32_t` words.
  * @note The address remains valid for the lifetime of the module, but every
  * StripBuffer read or write may replace its contents.
  * @see StripBuffer
  */
-EMSCRIPTEN_KEEPALIVE boost::endian::little_uint24_t *
-get_strip_buffer_pointer() noexcept {
+EMSCRIPTEN_KEEPALIVE std::uint32_t *get_strip_buffer_pointer() noexcept {
   // Expose the fixed shared Strip transfer storage.
   return strip_buffer.get_memory_pointer();
 }

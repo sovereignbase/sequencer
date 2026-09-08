@@ -15,7 +15,6 @@
  * Sequence Points; Masks transfer coordinates composed entirely of existing
  * points.
  */
-#include "./.auxiliary/hydrate_projection/index.hpp"
 #include "./.auxiliary/strip_contains_previous_strip_end/index.hpp"
 #include "./.buffer/strip_buffer/index.hpp"
 #include "./.buffers/footage_span_buffer/index.hpp"
@@ -121,10 +120,14 @@ clear_sequence(const std::uint32_t sequence_id) noexcept {
 EMSCRIPTEN_KEEPALIVE void
 snapshot_projection(const std::uint32_t sequence_id) noexcept {
   const Projector &projector = *projectors[sequence_id];
+  // Prepare pojection buffer
   const auto count = projector.strip_start_of.size();
   projection_buffer.resize(count);
+
   std::vector<std::uint32_t> projection_indices(count);
   std::uint32_t projection_strip_index = 0;
+
+  // Encode ordered strip indices
   for (std::uint32_t strip_index = projector.head_strip_index;
        strip_index != u32_max;
        strip_index = projector.right_strip_index_of[strip_index])
@@ -137,16 +140,14 @@ snapshot_projection(const std::uint32_t sequence_id) noexcept {
     const auto &strip_start = projector.strip_start_of[strip_index];
     const auto &previous_strip_end =
         projector.previous_strip_end_of[strip_index];
-    const auto split = projector.larger_split_strip_index_of[strip_index];
-    const auto sibling =
+    const auto larger_split_strip =
+        projector.larger_split_strip_index_of[strip_index];
+    const auto larger_competitor_strip =
         projector.larger_competitor_strip_index_of[strip_index];
-    const std::uint32_t type = projector.is_masked_of[strip_index]    ? 2u
-                               : projector.is_inverse_of[strip_index] ? 0u
-                                                                      : 1u;
     projection_buffer.write_projection(
         projection_strip_index++,
         {
-            type,
+            projector.strip_type_of[strip_index],
             projector.strip_length_of[strip_index],
             strip_start.crypto_random_bits,
             strip_start.unix_lower_bits,
@@ -154,8 +155,12 @@ snapshot_projection(const std::uint32_t sequence_id) noexcept {
             previous_strip_end.crypto_random_bits,
             previous_strip_end.unix_lower_bits,
             previous_strip_end.counter_bits,
-            split == u32_max ? u32_max : projection_indices[split],
-            sibling == u32_max ? u32_max : projection_indices[sibling],
+            larger_split_strip == u32_max
+                ? u32_max
+                : projection_indices[larger_split_strip],
+            larger_competitor_strip == u32_max
+                ? u32_max
+                : projection_indices[larger_competitor_strip],
         });
   }
 }
@@ -187,7 +192,8 @@ get_footage_frame_index(const std::uint32_t sequence_id,
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 EMSCRIPTEN_KEEPALIVE std::uint32_t
-merge_strip_into_sequence(const std::uint32_t sequence_id) noexcept {
+merge_strip_into_sequence(const std::uint32_t sequence_id,
+                          const std::uint32_t footage_frame_index) noexcept {
   Projector &projector = projectors[sequence_id];
 
   const std::uint32_t incoming_strip_index = strip_buffer.read_strip(projector);

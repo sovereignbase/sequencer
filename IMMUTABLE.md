@@ -84,3 +84,98 @@ larger strip_start  <-  smaller strip_start
 Semantically, this makes the larger SequencePoint behave as the later insertion after the same predecessor, without implying that it actually happened later in time.
 
 The ordering is purely deterministic and does not depend on arrival order.
+
+## Acknowledgement and Compaction
+
+Masks have their own Realm identifiers.
+
+For simplicity, we will represent Mask Realms the same way as insert Realms, using uppercase characters such as `M` or `N`.
+
+For example, a Mask Realm may contain:
+
+```text
+M0[0,1,2,3]   M4[0,1]   M6[0,1,2]
+```
+
+To produce an acknowledgement for Realm `M`, the Masks are inspected in `counter_bits` order.
+
+The first Mask must begin at `M0`.
+
+After that, every Mask must continue exactly where the previous one ended:
+
+```text
+M0 + length 4 = M4
+M4 + length 2 = M6
+```
+
+So this Realm verifies completely:
+
+```text
+M0[0,1,2,3]   M4[0,1]   M6[0,1,2]
+```
+
+and its final frontier can be acknowledged.
+
+If instead the Realm looked like:
+
+```text
+M0[0,1,2,3]   M5[0,1]   M7[0,1,2]
+```
+
+then `M4` is missing.
+
+The Realm does not verify completely, so no acknowledgement is produced for Realm `M`.
+
+An acknowledgement therefore means that the complete Mask Realm is known without gaps from `0` to its final frontier.
+
+### Compaction
+
+A Mask Realm can be compacted only when every Actor has acknowledged the same final frontier for that Realm.
+
+For example, suppose an insert structure contains:
+
+```text
+A4 ... A8 ... B3
+```
+
+and Mask Realm `M` contains Masks that remove the structure between the surviving SequencePoints.
+
+Before compaction, the surviving structure may still be causally anchored through those Masks:
+
+```text
+A4 -> M0 -> M4 -> B3
+```
+
+Once Realm `M` has been acknowledged with the same final frontier by every Actor, those Masks can be removed.
+
+The causality is then reattached through the removed Mask chain:
+
+```text
+before:
+
+A4 -> M0 -> M4 -> B3
+
+after:
+
+A4 -> B3
+```
+
+`B3` receives the causality that existed immediately before the removed Mask chain.
+
+The same applies when only one Mask exists:
+
+```text
+before:
+
+A7 -> M0 -> B2
+
+after:
+
+A7 -> B2
+```
+
+Because every Actor compacts the same fully acknowledged Mask Realm, they remove the same Masks and perform the same reattachment.
+
+Compaction is therefore deterministic and idempotent.
+
+The application is responsible for collecting acknowledgements from all Actors, distributing the collected acknowledgements to every Actor, and providing them as input to compaction.

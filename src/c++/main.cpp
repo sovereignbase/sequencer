@@ -55,12 +55,17 @@ static ProjectionBuffer projection_buffer;
 /** @brief Shared variable-width transfer buffer for one Frontier. */
 static SequencePointBuffer sequence_point_buffer;
 
-static const std::uint32_t realm_crypto_random_bits = std::random_device{}();
+static const std::uint32_t insert_realm_crypto_random_bits =
+    std::random_device{}();
 
-static const std::uint32_t realm_unix_lower_bits = static_cast<std::uint32_t>(
-    std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch())
-        .count());
+static const std::uint32_t mask_realm_crypto_random_bits =
+    std::random_device{}();
+
+static const std::uint32_t shared_realm_unix_lower_bits =
+    static_cast<std::uint32_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count());
 
 extern "C" {
 
@@ -141,8 +146,8 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t initialize_projection() noexcept {
       else if (strip[1] != 0)
         projector.containment_index.set(strip_start, strip[1], strip_index,
                                         true);
-      if (strip_start.crypto_random_bits == realm_crypto_random_bits &&
-          strip_start.unix_lower_bits == realm_unix_lower_bits)
+      if (strip_start.crypto_random_bits == insert_realm_crypto_random_bits &&
+          strip_start.unix_lower_bits == shared_realm_unix_lower_bits)
         projector.operation_count =
             std::max(projector.operation_count,
                      strip_start.counter_bits + std::max(strip[1], 1u));
@@ -277,8 +282,8 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t update_projection(
   const std::uint32_t incoming_strip_index = projector.strip_type_of.size();
   projector.strip_type_of.push_back(operation_type);
   projector.strip_length_of.push_back(operation_length);
-  const SequencePoint strip_start = {realm_crypto_random_bits,
-                                     realm_unix_lower_bits,
+  const SequencePoint strip_start = {insert_realm_crypto_random_bits,
+                                     shared_realm_unix_lower_bits,
                                      projector.operation_count};
   projector.strip_start_of.push_back(strip_start);
   SequencePoint previous_strip_end =

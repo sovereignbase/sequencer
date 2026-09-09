@@ -68,3 +68,19 @@ This allows the sequence to distinguish:
 even though both operations occur at the same apparent boundary.
 
 The same rule applies to internal Strip splits: the split moves forward by one Frame so that the reserved `0` position represents the required `before / after` relationship without ambiguity.
+
+### ### Tie-breaking
+
+Even with the reserved anchors, two Strips can still have the same `previous_strip_end`.
+
+In that case, they are ordered by `strip_start`: the larger SequencePoint is always placed farther to the left.
+
+```text
+same previous_strip_end:
+
+larger strip_start  <-  smaller strip_start
+```
+
+Semantically, this makes the larger SequencePoint behave as the later insertion after the same predecessor, without implying that it actually happened later in time.
+
+The ordering is purely deterministic and does not depend on arrival order.

@@ -37,3 +37,7 @@
 - **Minimize mandatory per-operation work.** Fast sequential editing depends on keeping the hot path proportional to the actual structural change rather than the total Projection size.
 - **Prefer stable structural metadata over globally shifting positional metadata.**
 - **Measure complete mutation cost, including index maintenance.** Read performance alone is not a valid justification for an auxiliary index whose maintenance dominates writes.
+
+## ?
+
+- When tiebreaking siblings, larger ones should always go left since larger means latter the larger sibling is added to later after the parent hence it should be closet to it.

@@ -14,9 +14,9 @@
  *
  * @typeParam T Consumer-owned value represented by one Frame.
  */
-export type Replica<T> = {
+export type Replica<T> = [
   /** Opaque local identifier of the native Projector owned by this Replica. */
-  id: number
+  id: number,
 
   /**
    * Consumer-owned Footage addressed by materialized Strips.
@@ -24,8 +24,8 @@ export type Replica<T> = {
    * Released entries remain `undefined` so existing Footage frame indexes stay
    * stable. Sequencer never compacts this array implicitly.
    */
-  footage: Array<T | undefined>
-}
+  footage: Array<T | undefined>,
+]
 
 /**
  * Minimal consumer-facing Projection patch keyed by zero-based Frame index.
@@ -60,15 +60,6 @@ export type Delta<T> = [projection: Array<number>, footage: Array<T>]
  * Entry order is insignificant. The caller must ensure that a Realm selected
  * for collection appears in every Replica Frontier required for safety.
  */
-export type Acknowledgement = Array<
-  [
-    /** Cryptographically random discriminator identifying the acknowledged Realm. */
-    frontier_crypto_random_bits: number,
 
-    /** Lower Unix-time bits shared by the acknowledged Realm. */
-    frontier_unix_lower_bits: number,
-
-    /** Counter of the acknowledged Frame within its Realm. */
-    frontier_counter_bits: number,
-  ]
->
+// Array of sequence points
+export type Acknowledgement = Array<number>

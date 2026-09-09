@@ -94,7 +94,7 @@ public:
    * @param strip_index Projector-owned Stable Position containing it.
    * @param skip_sort Append a unique start without maintaining counter order.
    * @pre `frame_count > 0` and the span stays within `point`'s Realm.
-   * @pre After skipped sorting, call sort_realms before get or normal set.
+   * @pre After skipped sorting, call sort_realms before get, erase or normal set.
    * @post After sorting, `get` resolves every Point inside the stored interval
    * to `strip_index` unless a later overlapping entry replaces containment.
    * @complexity Expected O(1 + log e), excluding vector insertion and resize,
@@ -199,6 +199,55 @@ public:
       realm_index = (realm_index + 1) & realm_index_mask;
     }
     return {u32_max, u32_max};
+  }
+
+  /**
+   * @brief Remove the Frame Span starting at the given Sequence Point.
+   * @param point Exact first Sequence Point of the entry to remove.
+   * @return `true` if removed, or `false` if no entry starts at the point.
+   * @pre Realm entries are sorted by counter_bits.
+   * @complexity O(e + c) for e entries in the Realm and c probed Realm slots.
+   */
+  inline bool erase(const SequencePoint &point) noexcept {
+    std::uint32_t realm_index = point.crypto_random_bits & realm_index_mask;
+
+    while (!realms[realm_index].entries.empty()) {
+      Realm &realm = realms[realm_index];
+      if (realm.crypto_random_bits == point.crypto_random_bits &&
+          realm.unix_lower_bits == point.unix_lower_bits) {
+        const auto entry = std::lower_bound(
+            realm.entries.begin(), realm.entries.end(), point.counter_bits,
+            [](const Entry &candidate,
+               const std::uint32_t counter_bits) noexcept {
+              return candidate.counter_bits < counter_bits;
+            });
+        if (entry == realm.entries.end() ||
+            entry->counter_bits != point.counter_bits)
+          return false;
+
+        realm.entries.erase(entry);
+        if (!realm.entries.empty())
+          return true;
+
+        --realm_count;
+        std::uint32_t empty_index = realm_index;
+        std::uint32_t next_index = (empty_index + 1) & realm_index_mask;
+        while (!realms[next_index].entries.empty()) {
+          const std::uint32_t home_index =
+              realms[next_index].crypto_random_bits & realm_index_mask;
+          if (((empty_index - home_index) & realm_index_mask) <
+              ((next_index - home_index) & realm_index_mask)) {
+            realms[empty_index] = std::move(realms[next_index]);
+            realms[next_index].entries.clear();
+            empty_index = next_index;
+          }
+          next_index = (next_index + 1) & realm_index_mask;
+        }
+        return true;
+      }
+      realm_index = (realm_index + 1) & realm_index_mask;
+    }
+    return false;
   }
 
   /**

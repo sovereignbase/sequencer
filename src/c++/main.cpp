@@ -74,12 +74,68 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t initialize_projection() noexcept {
     available_projection_ids.pop_back();
     projectors[projection_id].emplace();
   }
+  // CHECK IF A TRUSTED DELTA WAS PROVIDED
   const auto projection = projection_buffer.read_buffer();
-  if (!projection.empty())
-    //  hydrate_projection(*projectors[projection_id], projection);
-    // else append empty "first" to avoid adding extra code to update / merge
-    // paths
-    return projection_id;
+  if (!projection.empty()) {
+    Projector &projector = *projectors[projection_id];
+    // Prepare memory
+    const auto strip_count = static_cast<std::uint32_t>(projection.size());
+    projector.strip_type_of.reserve(strip_count);
+    projector.strip_length_of.reserve(strip_count);
+    projector.strip_start_of.reserve(strip_count);
+    projector.previous_strip_end_of.reserve(strip_count);
+    projector.larger_split_strip_index_of.reserve(strip_count);
+    projector.larger_competitor_strip_index_of.reserve(strip_count);
+    projector.left_strip_index_of.reserve(strip_count);
+    projector.right_strip_index_of.reserve(strip_count);
+    projector.footage_frame_index_of.reserve(strip_count);
+    projector.left_jump_strip_index_of.assign(strip_count, u32_max);
+    projector.right_jump_strip_index_of.assign(strip_count, u32_max);
+    projector.left_jump_strip_count_of.resize(strip_count);
+    projector.right_jump_strip_count_of.resize(strip_count);
+    projector.left_jump_length_of.resize(strip_count);
+    projector.right_jump_length_of.resize(strip_count);
+    projector.materialized_strip_count = strip_count;
+
+    // Calculate ideal jump distance.
+    const std::uint32_t optimal_jump_distance = static_cast<std::uint32_t>(
+        std::sqrt(projector.materialized_strip_count) + 0.5);
+
+    for (std::uint32_t strip_index = 0; strip_index < strip_count;
+         ++strip_index) {
+      const auto &strip = projection[strip_index];
+      const SequencePoint strip_start{strip[2], strip[3], strip[4]};
+      projector.strip_type_of.push_back(static_cast<std::uint8_t>(strip[0]));
+      projector.strip_length_of.push_back(strip[1]);
+      projector.strip_start_of.push_back(strip_start);
+      projector.previous_strip_end_of.push_back({strip[5], strip[6], strip[7]});
+      projector.larger_split_strip_index_of.push_back(strip[8]);
+      projector.larger_competitor_strip_index_of.push_back(strip[9]);
+      projector.left_strip_index_of.push_back(
+          strip_index == 0 ? u32_max : strip_index - 1);
+      projector.right_strip_index_of.push_back(
+          strip_index + 1 == strip_count ? u32_max : strip_index + 1);
+      projector.footage_frame_index_of.push_back(
+          strip[0] == 2 ? u32_max : projector.projection_frame_count);
+      if (strip[0] != 2)
+        projector.projection_frame_count += strip[1];
+      if (strip[1] != 0)
+        projector.containment_index.set(strip_start, strip[1], strip_index,
+                                        true);
+      if (strip_start.crypto_random_bits == realm_crypto_random_bits &&
+          strip_start.unix_lower_bits == realm_unix_lower_bits)
+        projector.operation_count =
+            std::max(projector.operation_count,
+                     strip_start.counter_bits + std::max(strip[1], 1u));
+    }
+
+    projector.containment_index.sort_realms();
+    projector.head_strip_index = 0;
+    projector.gate_strip_index = 0;
+    projector.tail_strip_index = strip_count - 1;
+    projector.materialized_strip_count = strip_count;
+  }
+  return projection_id;
 }
 
 EMSCRIPTEN_KEEPALIVE void

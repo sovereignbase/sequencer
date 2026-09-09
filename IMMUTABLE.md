@@ -179,3 +179,75 @@ Because every Actor compacts the same fully acknowledged Mask Realm, they remove
 Compaction is therefore deterministic and idempotent.
 
 The application is responsible for collecting acknowledgements from all Actors, distributing the collected acknowledgements to every Actor, and providing them as input to compaction.
+
+## Mask
+
+A Mask behaves structurally like an insert.
+
+It has its own Strip, its own SequencePoint, the same `previous_strip_end` semantics, the same reserved `0`, and the same `before` / `after` insertion semantics.
+
+The difference is what happens to the Projection.
+
+An insert adds Frames:
+
+```text
+prefix | INSERT(length = n) | suffix
+```
+
+A Mask occupies the same structural position, but instead of adding projected Frames, it consumes `n` existing Frames from the beginning of the suffix:
+
+```text
+prefix | MASK(length = n) | shortened suffix
+```
+
+For example, consider:
+
+```text
+A0[0,1,2,3,4,5,6,7]
+```
+
+A Mask inserted after `A2` with length `3` follows the same structural rules as an insert at that position.
+
+Before:
+
+```text
+A0[0,1,2,3,4,5,6,7]
+```
+
+After materialization:
+
+```text
+prefix:  A0[0,1,2]
+
+mask:    (A3) M0[0,1,2,3]
+
+suffix:  (M3) A6[6,7]
+```
+
+The Mask consumes the three Frames that would otherwise begin the suffix:
+
+```text
+A3 A4 A5
+```
+
+so the surviving suffix begins at `A6`.
+
+Structurally, the result still has the same fundamental form as an insert:
+
+```text
+prefix -> operation -> suffix
+```
+
+The difference is only in its Projection effect:
+
+```text
+insert:
+projection_length += insert.length
+
+mask:
+projection_length -= mask.length
+```
+
+The same rule applies at Strip boundaries and inside Strips. If necessary, the existing Strip is split so that the Mask occupies exactly the addressed Frame span and the suffix begins immediately after the consumed Frames.
+
+Because a Mask is structurally an insertion, it follows the same anchoring and tie-breaking rules as any other inserted Strip.

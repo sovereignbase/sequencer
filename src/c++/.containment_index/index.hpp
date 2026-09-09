@@ -94,7 +94,8 @@ public:
    * @param strip_index Projector-owned Stable Position containing it.
    * @param skip_sort Append a unique start without maintaining counter order.
    * @pre `frame_count > 0` and the span stays within `point`'s Realm.
-   * @pre After skipped sorting, call sort_realms before get, erase or normal set.
+   * @pre After skipped sorting, call sort_realms before get, erase or normal
+   * set.
    * @post After sorting, `get` resolves every Point inside the stored interval
    * to `strip_index` unless a later overlapping entry replaces containment.
    * @complexity Expected O(1 + log e), excluding vector insertion and resize,

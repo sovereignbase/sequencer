@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../../.containment_index/index.hpp"
+#include "../../.pending_index/index.hpp"
 #include "../sentinels/index.hpp"
 #include <cstdint>
 #include <vector>
@@ -126,12 +127,11 @@ struct Projector {
   ContainmentIndex containment_index;
 
   /**
-   * @brief Sequence Point containment index returning Strip Indexs.
+   * @brief Pending Strip indices grouped by their missing previous Strip end.
    *
-   * ContainmentIndex owns compact Realm entries only; Strip objects remain
-   * owned by `strips`.
+   * An arriving Strip releases all waiters whose dependency is in its span.
    */
-  ContainmentIndex pending_containment_index;
+  PendingIndex pending_index;
 
   // Movable Projection traversal Gate.
 

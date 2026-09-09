@@ -101,6 +101,18 @@ public:
     return true;
   }
 
+  /**
+   * @brief List every pending Strip without resolving any dependency.
+   * @note The result has no ordering guarantee and leaves the index unchanged.
+   * @complexity O(k) for k pending Strips.
+   */
+  [[nodiscard]] std::vector<std::uint32_t> get_all() const {
+    std::vector<std::uint32_t> result;
+    for (const auto &entry : pending_strips)
+      result.insert(result.end(), entry.second.begin(), entry.second.end());
+    return result;
+  }
+
   /** @brief Report whether no Strips are waiting for dependencies. */
   [[nodiscard]] bool is_empty() const noexcept {
     return pending_strips.empty();

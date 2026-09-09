@@ -80,6 +80,11 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t initialize_projection() noexcept {
     Projector &projector = *projectors[projection_id];
     // Prepare memory
     const auto strip_count = static_cast<std::uint32_t>(projection.size());
+    const auto first_pending_strip =
+        std::find_if(projection.begin(), projection.end(),
+                     [](const auto &strip) noexcept { return strip[0] >= 3; });
+    const auto materialized_strip_count =
+        static_cast<std::uint32_t>(first_pending_strip - projection.begin());
     projector.strip_type_of.reserve(strip_count);
     projector.strip_length_of.reserve(strip_count);
     projector.strip_start_of.reserve(strip_count);
@@ -95,31 +100,45 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t initialize_projection() noexcept {
     projector.right_jump_strip_count_of.resize(strip_count);
     projector.left_jump_length_of.resize(strip_count);
     projector.right_jump_length_of.resize(strip_count);
-    projector.materialized_strip_count = strip_count;
+    projector.materialized_strip_count = materialized_strip_count;
 
     // Calculate ideal jump distance.
     const std::uint32_t optimal_jump_distance = static_cast<std::uint32_t>(
         std::sqrt(projector.materialized_strip_count) + 0.5);
 
+    std::uint32_t footage_frame_index = 0;
     for (std::uint32_t strip_index = 0; strip_index < strip_count;
          ++strip_index) {
       const auto &strip = projection[strip_index];
+      const bool pending = strip_index >= materialized_strip_count;
+      const auto strip_type =
+          static_cast<std::uint8_t>(pending ? strip[0] - 3 : strip[0]);
       const SequencePoint strip_start{strip[2], strip[3], strip[4]};
-      projector.strip_type_of.push_back(static_cast<std::uint8_t>(strip[0]));
+      projector.strip_type_of.push_back(strip_type);
       projector.strip_length_of.push_back(strip[1]);
       projector.strip_start_of.push_back(strip_start);
       projector.previous_strip_end_of.push_back({strip[5], strip[6], strip[7]});
       projector.larger_split_strip_index_of.push_back(strip[8]);
       projector.larger_competitor_strip_index_of.push_back(strip[9]);
       projector.left_strip_index_of.push_back(
-          strip_index == 0 ? u32_max : strip_index - 1);
+          pending ? strip_index
+                  : (strip_index == 0 ? u32_max : strip_index - 1));
       projector.right_strip_index_of.push_back(
-          strip_index + 1 == strip_count ? u32_max : strip_index + 1);
+          pending ? strip_index
+                  : (strip_index + 1 == materialized_strip_count
+                         ? u32_max
+                         : strip_index + 1));
       projector.footage_frame_index_of.push_back(
-          strip[0] == 2 ? u32_max : projector.projection_frame_count);
-      if (strip[0] != 2)
-        projector.projection_frame_count += strip[1];
-      if (strip[1] != 0)
+          strip_type == 2 ? u32_max : footage_frame_index);
+      if (strip_type != 2) {
+        footage_frame_index += strip[1];
+        if (!pending)
+          projector.projection_frame_count += strip[1];
+      }
+      if (pending)
+        projector.pending_index.set(projector.previous_strip_end_of.back(),
+                                    strip_index);
+      else if (strip[1] != 0)
         projector.containment_index.set(strip_start, strip[1], strip_index,
                                         true);
       if (strip_start.crypto_random_bits == realm_crypto_random_bits &&
@@ -130,10 +149,10 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t initialize_projection() noexcept {
     }
 
     projector.containment_index.sort_realms();
-    projector.head_strip_index = 0;
-    projector.gate_strip_index = 0;
-    projector.tail_strip_index = strip_count - 1;
-    projector.materialized_strip_count = strip_count;
+    projector.head_strip_index = materialized_strip_count == 0 ? u32_max : 0;
+    projector.gate_strip_index = projector.head_strip_index;
+    projector.tail_strip_index =
+        materialized_strip_count == 0 ? u32_max : materialized_strip_count - 1;
   }
   return projection_id;
 }
@@ -154,7 +173,7 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
   const Projector &projector = *projectors[projection_id];
   // Prepare pojection buffer
   const auto count = projector.strip_start_of.size();
-  projection_buffer.resize(count);
+  const auto pending_strips = projector.pending_index.get_all();
 
   std::vector<std::uint32_t> projection_indices(count);
   std::uint32_t projection_strip_index = 0;
@@ -165,6 +184,7 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
        strip_index = projector.right_strip_index_of[strip_index])
     projection_indices[strip_index] = projection_strip_index++;
 
+  projection_buffer.resize(projection_strip_index + pending_strips.size());
   projection_strip_index = 0;
   for (std::uint32_t strip_index = projector.head_strip_index;
        strip_index != u32_max;
@@ -193,6 +213,27 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
             larger_competitor_strip == u32_max
                 ? u32_max
                 : projection_indices[larger_competitor_strip],
+        });
+  }
+
+  for (const auto strip_index : pending_strips) {
+    const auto &strip_start = projector.strip_start_of[strip_index];
+    const auto &previous_strip_end =
+        projector.previous_strip_end_of[strip_index];
+    projection_buffer.write_projection(
+        projection_strip_index++,
+        {
+            static_cast<std::uint32_t>(projector.strip_type_of[strip_index]) +
+                3,
+            projector.strip_length_of[strip_index],
+            strip_start.crypto_random_bits,
+            strip_start.unix_lower_bits,
+            strip_start.counter_bits,
+            previous_strip_end.crypto_random_bits,
+            previous_strip_end.unix_lower_bits,
+            previous_strip_end.counter_bits,
+            u32_max,
+            u32_max,
         });
   }
 }

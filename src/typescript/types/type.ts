@@ -28,68 +28,6 @@ export type Replica<T> = {
 }
 
 /**
- * Serializable representation of one contiguous Frame Span.
- *
- * A visible Strip contributes its Frames to the Projection and carries an
- * equally long Footage array. A Mask remains in retained Structural Order while
- * contributing no visible Frames and carries no Footage in transfer form.
- * Pending state is represented by native linkage, not by an extra serialized
- * Strip field.
- *
- * @typeParam T Consumer-owned value represented by one Frame.
- */
-export type Strip<T> = [
-  meta: [
-    /** Zero for a visible Strip; any nonzero value denotes a Mask. */
-    is_masked: number,
-
-    /** Zero inserts after the referenced Frame; nonzero inserts before it. */
-    is_inverse: number,
-
-    /** Positive number of consecutive Frames represented by this Strip. */
-    frame_count: number,
-
-    /** Cryptographically random discriminator separating otherwise equal Realms. */
-    this_crypto_random_bits: number,
-
-    /**
-     * Lower Unix-time bits shared by the issuing Realm.
-     *
-     * Combined with the Realm's random discriminator to distribute collision
-     * probability across time.
-     */
-    this_unix_lower_bits: number,
-
-    /** Counter of the first represented Frame within the issuing Realm. */
-    this_counter_bits: number,
-
-    /** Crypto-random Realm component of `previous_strip_end`. */
-    previous_crypto_random_bits: number,
-
-    /**
-     * Lower Unix-time bits shared by the referenced previous Realm.
-     *
-     * Combined with its random discriminator to distribute collision probability
-     * across time.
-     */
-    previous_unix_lower_bits: number,
-
-    /** Realm-local counter of `previous_strip_end`. */
-    previous_counter_bits: number,
-  ],
-
-  /** Required visible Footage; omitted from Mask commands. */
-  footage?: T[],
-]
-
-/**
- * Strip Buffer representation extended with the optional local Footage Index
- * of its first represented Frame. The tenth lane is never serialized in a
- * Delta.
- */
-export type VirtualStrip<T> = [...Strip<T>[0], footage_frame_index?: number]
-
-/**
  * Minimal consumer-facing Projection patch keyed by zero-based Frame index.
  *
  * `undefined` removes the value currently observed at an index. Any other entry
@@ -109,7 +47,8 @@ export type Change<T> = Record<number, T | undefined>
  *
  * @typeParam T Consumer-owned value represented by one Frame.
  */
-export type Delta<T> = Array<Strip<T>>
+
+export type Delta<T> = [projection: Array<number>, footage: Array<T>]
 
 /**
  * Realm-indexed acknowledgement boundaries reported by one Replica.

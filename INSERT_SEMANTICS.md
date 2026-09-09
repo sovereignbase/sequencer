@@ -1,4 +1,4 @@
-SequencePoint consists of a unique identifier per Realm (`crypto_random_bits` (`u32`) and `unix_lower_bits` (`u32`)). This means that, for one started Sequencer instance, all operations share these values. A third component, `counter_bits` (`u32`), tracks Frames produced per Projector, always incrementing by Strip length.
+SequencePoint consists of a unique identifier per realm (`crypto_random_bits` (`u32`) and `unix_lower_bits` (`u32`)). This means that, for one started Sequencer instance, all operations share these values. A third component (`counter_bits` (`u32`)) tracks frames produced per Projector, always incrementing by Strip length.
 
 For simplicity (and maybe laziness), here we will present the UIDs as uppercase characters such as `A` or `B`, and full SequencePoints as, for example, `A9` and `B10`.
 
@@ -56,9 +56,9 @@ This distinction is important because insertion semantics must remain unambiguou
 
 The reserved `0` Frame of each SequencePoint provides the structural anchor required for this.
 
-For example, if `A7` is followed by `A8`, an insertion after the visible Frame `A7` cannot always reuse `A7` as its previous Strip end, because `A8` already encodes `A7` as its predecessor.
+For example, if `A7` is followed by `A8`, an insertion after the visible Frame `A7` cannot reuse `A7` as its previous Strip end, because `A8` already encodes `A7` as its predecessor.
 
-Instead, `A8 + 0` can be used as the reserved structural anchor.
+Instead, it uses the reserved `A8 + 0`.
 
 This allows the sequence to distinguish:
 
@@ -67,4 +67,4 @@ This allows the sequence to distinguish:
 
 even though both operations occur at the same apparent boundary.
 
-The same rule applies to internal Strip splits: the split may need to move forward by one Frame so that the resulting reserved `0` position can represent the required `before / after` relationship without ambiguity.
+The same rule applies to internal Strip splits: the split moves forward by one Frame so that the reserved `0` position represents the required `before / after` relationship without ambiguity.

@@ -29,7 +29,7 @@
  * @invariant Entries are sorted by `counter_bits` outside a skip_sort batch.
  * @invariant An empty Entry vector denotes an unoccupied Realm slot.
  */
-class PendingIndex {
+class ContainmentTable {
   /** @brief Compact containment interval stored inside one Realm. */
   struct Entry {
     /** @brief Counter of the first represented Frame. */
@@ -37,6 +37,8 @@ class PendingIndex {
 
     /** @brief Projector-owned Stable Position for the interval. */
     std::uint32_t strip_index;
+
+    std::uint32_t frame_count;
   };
 
   /** @brief One occupied or empty open-addressing slot. */
@@ -74,7 +76,7 @@ public:
    * @pre `initial_realm_capacity` is a nonzero power of two.
    * @complexity O(initial_realm_capacity) value initialization.
    */
-  explicit PendingIndex(
+  explicit ContainmentTable(
       const std::uint32_t initial_realm_capacity = minimum_realm_capacity)
       : realm_capacity(initial_realm_capacity),
         realm_index_mask(initial_realm_capacity - 1),
@@ -100,7 +102,8 @@ public:
    * for e entries in the selected Realm; amortized expected O(1) with
    * skip_sort.
    */
-  inline void set(const SequencePoint &point, const std::uint32_t strip_index,
+  inline void set(const SequencePoint &point, const std::uint32_t frame_count,
+                  const std::uint32_t strip_index,
                   const bool skip_sort = false) noexcept {
     std::uint32_t realm_index = point.crypto_random_bits & realm_index_mask;
 
@@ -171,7 +174,7 @@ public:
    * @complexity Expected O(1 + log e) for e entries in the matching Realm.
    */
   [[nodiscard]] inline std::pair<std::uint32_t, std::uint32_t>
-  get(const SequencePoint &point, std::uint32_t frame_count;) const noexcept {
+  get(const SequencePoint &point) const noexcept {
     std::uint32_t realm_index = point.crypto_random_bits & realm_index_mask;
 
     while (!realms[realm_index].entries.empty()) {

@@ -77,9 +77,9 @@ split_strip(Projector &projector, const std::uint32_t strip_index,
 
   ++projector.materialized_strip_count;
 
-  projector.containment_index.set(projector.strip_start_of[strip_index],
+  projector.containment_table.set(projector.strip_start_of[strip_index],
                                   frame_offset, strip_index);
-  projector.containment_index.set(suffix_start, source_length - frame_offset,
+  projector.containment_table.set(suffix_start, source_length - frame_offset,
                                   suffix_strip_index);
 
   return suffix_strip_index;

@@ -141,10 +141,10 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t initialize_projection() noexcept {
           projector.projection_frame_count += strip[1];
       }
       if (pending)
-        projector.pending_index.set(projector.previous_strip_end_of.back(),
+        projector.pending_table.set(projector.previous_strip_end_of.back(),
                                     strip_index);
       else if (strip[1] != 0)
-        projector.containment_index.set(strip_start, strip[1], strip_index,
+        projector.containment_table.set(strip_start, strip[1], strip_index,
                                         true);
       if (strip_start.crypto_random_bits == insert_realm_crypto_random_bits &&
           strip_start.unix_lower_bits == shared_realm_unix_lower_bits)
@@ -153,7 +153,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t initialize_projection() noexcept {
                      strip_start.counter_bits + std::max(strip[1], 1u));
     }
 
-    projector.containment_index.sort_realms();
+    projector.containment_table.sort_realms();
     projector.head_strip_index = materialized_strip_count == 0 ? u32_max : 0;
     projector.gate_strip_index = projector.head_strip_index;
     projector.tail_strip_index =
@@ -178,7 +178,7 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
   const Projector &projector = *projectors[projection_id];
   // Prepare pojection buffer
   const auto count = projector.strip_start_of.size();
-  const auto pending_strips = projector.pending_index.get_all();
+  const auto pending_strips = projector.pending_table.values();
 
   std::vector<std::uint32_t> projection_indices(count);
   std::uint32_t projection_strip_index = 0;
@@ -303,7 +303,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t update_projection(
   projector.right_jump_length_of.push_back(0);
   projector.footage_frame_index_of.push_back(footage_frame_index);
 
-  projector.containment_index.set(strip_start, operation_length,
+  projector.containment_table.set(strip_start, operation_length,
                                   incoming_strip_index);
 
   projector.operation_count++;
@@ -416,7 +416,7 @@ merge_projection(const std::uint32_t projection_id,
   // If gate strip is not containing strip
   if (offset == u32_max) {
     // try resolving containing strip from containment index
-    std::tie(containing_strip_index, offset) = projector.containment_index.get(
+    std::tie(containing_strip_index, offset) = projector.containment_table.get(
         projector.previous_strip_end_of[incoming_strip_index]);
 
     // If resolving failed return u32_max sentinel

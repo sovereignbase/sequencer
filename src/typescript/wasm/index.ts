@@ -266,33 +266,21 @@ export function stage_strip(sequence_id: number): boolean {
  * Copies one Replica's acknowledgement Frontier from native memory.
  *
  * @param sequence_id Active local Projector identifier.
- * @returns One greatest materialized Strip start per represented Realm, or
- * `false` when no Strip is materialized.
+ * @returns Flat Realm triples with exclusive, gap-free Mask frontiers, or
+ * `false` when no Mask Realm verifies.
  */
 export function get_acknowledgement_frontier(
   sequence_id: number
 ): Acknowledgement | false {
-  // Materialize one greatest indexed Strip start per represented Realm.
   const frontier_count: number =
-    wasm._write_acknowledgement_frontier_to_buffer(sequence_id) >>> 0
+    wasm._acknowledge_projection(sequence_id) >>> 0
   if (frontier_count === 0) return false
 
-  // Resolve the current zero-copy FrontierBuffer view.
-  const buffer = wasm.HEAPU32
-  let buffer_index = wasm._get_acknowledgement_frontier_buffer_pointer() >>> 2
-  const frontier = new Array<Acknowledgement[number]>(frontier_count)
-
-  // Copy every native Realm entry into a TypeScript Sequence Point.
-  for (let realm_index = 0; realm_index < frontier_count; realm_index++) {
-    frontier[realm_index] = [
-      buffer[buffer_index],
-      buffer[buffer_index + 1],
-      buffer[buffer_index + 2],
-    ]
-    buffer_index += 3
-  }
-
-  return frontier
+  const buffer_index =
+    wasm._get_acknowledgement_sequence_point_buffer_pointer() >>> 2
+  return Array.from(
+    wasm.HEAPU32.subarray(buffer_index, buffer_index + frontier_count * 3)
+  )
 }
 
 /**

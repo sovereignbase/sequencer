@@ -12,13 +12,14 @@
 inline void
 find_strip_index_of(Projector &projector,
                     const std::uint32_t &projection_frame_index) noexcept {
-  if (projection_frame_index == projector.projection_frame_index)
+  if (projection_frame_index == projector.projection_frame_index &&
+      projector.get_projected_strip_length(projector.gate_strip_index) != 0)
     return;
 
   // Calculate distances to the requested index.
   const std::uint32_t tail_projection_frame_index =
       projector.projection_frame_count -
-      projector.strip_length_of[projector.tail_strip_index];
+      projector.get_projected_strip_length(projector.tail_strip_index);
   const std::uint32_t gate_distance = absolute_distance(
       projector.projection_frame_index, projection_frame_index);
   const std::uint32_t head_distance = projection_frame_index;
@@ -46,7 +47,7 @@ find_strip_index_of(Projector &projector,
   // UPDATE AS YOU WALK
   while (true) {
     const std::uint32_t strip_length =
-        projector.strip_length_of[cursor_strip_index];
+        projector.get_projected_strip_length(cursor_strip_index);
 
     if (cursor_projection_frame_index <= projection_frame_index &&
         projection_frame_index < cursor_projection_frame_index + strip_length)
@@ -55,7 +56,7 @@ find_strip_index_of(Projector &projector,
     const std::uint32_t current_distance = absolute_distance(
         cursor_projection_frame_index, projection_frame_index);
 
-    if (cursor_projection_frame_index < projection_frame_index) {
+    if (cursor_projection_frame_index <= projection_frame_index) {
       // WALK RIGHT
       const std::uint32_t walk_strip_index =
           projector.right_strip_index_of[cursor_strip_index];
@@ -130,7 +131,7 @@ find_strip_index_of(Projector &projector,
           projector.left_strip_index_of[cursor_strip_index];
       const std::uint32_t walk_projection_frame_index =
           cursor_projection_frame_index -
-          projector.strip_length_of[walk_strip_index];
+          projector.get_projected_strip_length(walk_strip_index);
       const std::uint32_t walk_distance = absolute_distance(
           walk_projection_frame_index, projection_frame_index);
 

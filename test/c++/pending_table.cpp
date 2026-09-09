@@ -29,15 +29,17 @@ int main() {
   assert(index.values().size() == 7);
 
   assert(!index.is_empty());
-  assert((index.get({1, 2, 10}, 5) == std::vector<std::uint32_t>{7, 8, 40}));
-  assert(index.get({1, 2, 10}, 0).empty());
-  assert(index.take({1, 2, 10}, 0).empty());
+  assert((index.get({1, 2, 10}, 4) == std::vector<std::uint32_t>{7, 8, 40}));
+  assert((index.get({1, 2, 10}, 5) == std::vector<std::uint32_t>{7, 8, 40, 50}));
+  assert((index.get({1, 2, 10}, 0) == std::vector<std::uint32_t>{7, 8}));
+  assert(index.take({1, 2, 11}, 0).empty());
   assert(!index.erase({1, 2, 10}, 99));
   assert(index.erase({1, 2, 10}, 7));
   assert(!index.erase({1, 2, 10}, 7));
   assert((index.get({1, 2, 10}, 1) == std::vector<std::uint32_t>{8}));
-  assert((index.take({1, 2, 10}, 5) == std::vector<std::uint32_t>{8, 40}));
-  assert(index.take({1, 2, 10}, 5).empty());
+  assert((index.take({1, 2, 10}, 0) == std::vector<std::uint32_t>{8}));
+  assert((index.take({1, 2, 10}, 4) == std::vector<std::uint32_t>{40}));
+  assert(index.take({1, 2, 10}, 4).empty());
   assert((index.get({1, 2, 0}, 20) == std::vector<std::uint32_t>{90, 50}));
   assert((index.take({1, 3, 10}, 1) == std::vector<std::uint32_t>{60}));
   assert((index.take({2, 2, 10}, 1) == std::vector<std::uint32_t>{70}));
@@ -49,12 +51,14 @@ int main() {
   index.set({1, 2, u32_max - 1}, 101);
   index.set({1, 2, 0}, 102);
   index.set({1, 3, 0}, 103);
-  assert((index.get({1, 2, u32_max - 1}, 1) ==
+  assert((index.get({1, 2, u32_max - 1}, 0) ==
           std::vector<std::uint32_t>{101}));
-  assert((index.take({1, 2, u32_max - 1}, 2) ==
+  assert((index.get({1, 2, u32_max - 1}, 1) ==
+          std::vector<std::uint32_t>{101, 100}));
+  assert((index.take({1, 2, u32_max - 1}, 1) ==
           std::vector<std::uint32_t>{101, 100}));
   index.set({1, 2, u32_max}, 100);
-  assert((index.take({1, 2, u32_max}, 10) ==
+  assert((index.take({1, 2, u32_max}, 0) ==
           std::vector<std::uint32_t>{100}));
   assert((index.take({1, 2, 0}, 1) == std::vector<std::uint32_t>{102}));
   assert((index.take({1, 3, 0}, 1) == std::vector<std::uint32_t>{103}));

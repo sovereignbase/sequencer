@@ -17,11 +17,13 @@
  *
  * @param projector Owning Projector.
  * @param strip_index Strip Index of the source Strip and resulting prefix.
- * @param frame_offset Positive suffix start offset within the source Strip.
+ * @param frame_offset Number of content Frames retained in the prefix.
  * @return Newly appended Strip Index of the suffix.
- * @pre `0 < frame_offset < strip_length_of[strip_index]`.
- * @post Prefix and suffix cover the exact original Frame and Footage spans with
- * no overlap or gap.
+ * @pre `frame_offset < strip_length_of[strip_index]` and the shifted suffix
+ * remains within the same Realm's counter range.
+ * @post Prefix and suffix cover the original Footage without copying it.
+ * The suffix start advances by `frame_offset + 1` for its logical anchor.
+ * A zero-length prefix retains its split link to the content continuation.
  * @complexity Amortized O(1), excluding vector reallocation.
  */
 [[nodiscard]] inline std::uint32_t
@@ -31,7 +33,7 @@ split_strip(Projector &projector, const std::uint32_t strip_index,
   const std::uint32_t source_length = projector.strip_length_of[strip_index];
 
   SequencePoint suffix_start = projector.strip_start_of[strip_index];
-  suffix_start.counter_bits += frame_offset;
+  suffix_start.counter_bits += frame_offset + 1;
 
   SequencePoint suffix_previous_end = suffix_start;
   --suffix_previous_end.counter_bits;
@@ -39,8 +41,7 @@ split_strip(Projector &projector, const std::uint32_t strip_index,
   projector.strip_type_of.push_back(projector.strip_type_of[strip_index]);
   projector.strip_length_of.push_back(source_length - frame_offset);
 
-  projector.larger_competitor_strip_index_of.push_back(
-      projector.larger_competitor_strip_index_of[strip_index]);
+  projector.smaller_competitor_strip_index_of.push_back(u32_max);
   projector.larger_split_strip_index_of.push_back(
       projector.larger_split_strip_index_of[strip_index]);
 
@@ -59,7 +60,9 @@ split_strip(Projector &projector, const std::uint32_t strip_index,
   projector.right_jump_length_of.push_back(0);
 
   projector.footage_frame_index_of.push_back(
-      projector.footage_frame_index_of[strip_index] + frame_offset);
+      projector.footage_frame_index_of[strip_index] == u32_max
+          ? u32_max
+          : projector.footage_frame_index_of[strip_index] + frame_offset);
 
   projector.strip_length_of[strip_index] = frame_offset;
   projector.larger_split_strip_index_of[strip_index] = suffix_strip_index;
@@ -70,7 +73,8 @@ split_strip(Projector &projector, const std::uint32_t strip_index,
   projector.right_strip_index_of[strip_index] = suffix_strip_index;
   projector.left_strip_index_of[suffix_strip_index] = strip_index;
   projector.right_strip_index_of[suffix_strip_index] = right_strip_index;
-  projector.left_strip_index_of[right_strip_index] = suffix_strip_index;
+  if (right_strip_index != u32_max)
+    projector.left_strip_index_of[right_strip_index] = suffix_strip_index;
 
   if (projector.tail_strip_index == strip_index)
     projector.tail_strip_index = suffix_strip_index;

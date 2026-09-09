@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <memory>
+#include <span>
 #include <utility>
 #include <vector>
 
@@ -21,7 +22,7 @@
  * @brief Open-addressed Realm table with binary-searched Frame Span entries.
  *
  * A Realm key is `(crypto_random_bits, unix_lower_bits)`. Each Entry describes
- * the half-open counter interval `[counter_bits, counter_bits + frame_count)`
+ * the inclusive counter interval `[counter_bits, counter_bits + frame_count]`
  * and the Stable Position of its containing Strip.
  *
  * @invariant `realm_capacity` is a power of two and
@@ -35,10 +36,10 @@ class ContainmentTable {
     /** @brief Counter of the first represented Frame. */
     std::uint32_t counter_bits;
 
+    std::uint32_t frame_count;
+
     /** @brief Projector-owned Stable Position for the interval. */
     std::uint32_t strip_index;
-
-    std::uint32_t frame_count;
   };
 
   /** @brief One occupied or empty open-addressing slot. */
@@ -90,10 +91,10 @@ public:
    * new Realm may trigger a capacity doubling at 50 percent occupancy.
    *
    * @param point First Sequence Point in the represented Frame Span.
-   * @param frame_count Number of consecutive counters in the span.
+   * @param frame_count Strip length, excluding its logical zero anchor.
    * @param strip_index Projector-owned Stable Position containing it.
    * @param skip_sort Append a unique start without maintaining counter order.
-   * @pre `frame_count > 0` and the span stays within `point`'s Realm.
+   * @pre The span stays within `point`'s Realm. Zero length indexes the anchor.
    * @pre After skipped sorting, call sort_realms before get, erase or normal
    * set.
    * @post After sorting, `get` resolves every Point inside the stored interval
@@ -166,7 +167,7 @@ public:
    *
    * Lookup performs bit-mask slot selection, Realm equality probing, then an
    * `upper_bound` search for the greatest span start not exceeding the target
-   * counter. A final subtraction verifies half-open interval containment.
+   * counter. A final subtraction verifies inclusive interval containment.
    *
    * @param point Sequence Point to resolve.
    * @return Containing Stable Position and zero-based Frame offset, or two
@@ -193,7 +194,7 @@ public:
 
         --entry;
         const std::uint32_t offset = point.counter_bits - entry->counter_bits;
-        return offset < entry->frame_count
+        return offset <= entry->frame_count
                    ? std::pair{entry->strip_index, offset}
                    : std::pair{u32_max, u32_max};
       }
@@ -258,6 +259,17 @@ public:
    */
   [[nodiscard]] inline bool is_empty() const noexcept {
     return realm_count == 0;
+  }
+
+  template <typename Visitor>
+  void for_each_realm(Visitor &&visitor) const {
+    for (std::uint32_t realm_index = 0; realm_index < realm_capacity;
+         ++realm_index) {
+      const auto &realm = realms[realm_index];
+      if (!realm.entries.empty())
+        visitor(SequencePoint{realm.crypto_random_bits, realm.unix_lower_bits, 0},
+                std::span<const Entry>{realm.entries});
+    }
   }
 
 private:

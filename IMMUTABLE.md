@@ -1,4 +1,6 @@
-SequencePoint consists of a unique identifier per realm (`crypto_random_bits` (`u32`) and `unix_lower_bits` (`u32`)). This means that, for one started Sequencer instance, all operations share these values. A third component (`counter_bits` (`u32`)) tracks frames produced per Projector, always incrementing by Strip length.
+SequencePoint consists of a unique identifier per realm (`crypto_random_bits` (`u32`) and `unix_lower_bits` (`u32`)). This means that, for one started Sequencer instance, all operations share these values. A third component (`counter_bits` (`u32`)) tracks frames produced per Projector, advancing by content length plus one for each newly issued Strip.
+
+The encoded Strip length is its content length `n`. The zero anchor is logical only: no extra content element or encoded word is allocated for it. The content points are `strip_start + 1` through `strip_start + n`, and containment includes both boundaries `[strip_start, strip_start + n]`. A zero-length Strip therefore still identifies its anchor. The next issued Strip starts at `strip_start + n + 1`.
 
 For simplicity (and maybe laziness), here we will present the UIDs as uppercase characters such as `A` or `B`, and full SequencePoints as, for example, `A9` and `B10`.
 
@@ -19,6 +21,8 @@ The reason for this becomes important with the next kind of operation: a `body i
 `A8` still has the previous Strip end encoded as `A7`. To distinguish causality, the insert between them cannot reuse `A7` as its previous Strip end anchor. Instead, it must use the reserved `A8 + 0`.
 
 This causes a split that leaves an empty `A8` in the list after `A7`. The new operation is then placed after `A8`, and the split suffix is placed after the new operation.
+
+The empty causal placeholder keeps its `larger_split` link to the content continuation. A Mask starting at the original Strip start resolves this placeholder first and follows that link without consuming any mask length. Mask traversal follows the original Strip's split chain, not unrelated inserts located between its fragments in Projection order.
 
 If the body insert does not happen at such a boundary, but instead, for example, at `A5`, it would initially look like a normal split:
 
@@ -104,8 +108,8 @@ The first Mask must begin at `M0`.
 After that, every Mask must continue exactly where the previous one ended:
 
 ```text
-M0 + length 4 = M4
-M4 + length 2 = M6
+M0 + content length 3 + 1 = M4
+M4 + content length 1 + 1 = M6
 ```
 
 So this Realm verifies completely:
@@ -511,7 +515,7 @@ In particular:
 
 ```text
 larger_split
-larger_competitor
+smaller_competitor
 ```
 
 are ignored.

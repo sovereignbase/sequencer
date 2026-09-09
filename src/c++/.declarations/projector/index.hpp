@@ -43,14 +43,12 @@ struct Projector {
   std::vector<uint8_t> strip_type_of;
 
   /**
-   * @brief Lengths indexed by Strip Index .
+   * @brief Content lengths, excluding each Strip's reserved zero anchor.
    */
   std::vector<std::uint32_t> strip_length_of;
 
-  /** @brief Strip Index of a Strip with the same previous_strip_end competing
-   * for recency by lexograpical larfeness.
-   */
-  std::vector<std::uint32_t> larger_competitor_strip_index_of;
+  /** @brief Next smaller sibling sharing the same previous Strip end. */
+  std::vector<std::uint32_t> smaller_competitor_strip_index_of;
 
   /** @brief Next larger fragment of the same originally issued Strip. */
   std::vector<std::uint32_t> larger_split_strip_index_of;
@@ -69,9 +67,11 @@ struct Projector {
   // RUNTIME //
   ////////////
 
-  /** @brief Strip Index of the materialized Strip holding the first projection
-   * frame. */
+  /** @brief Next local insert counter, advanced by content length plus one. */
   std::uint32_t operation_count{0};
+
+  /** @brief Next local Mask Realm counter, independent of insert issuance. */
+  std::uint32_t mask_operation_count{0};
 
   /** @brief Strip Index of the materialized Strip holding the first projection
    * frame. */
@@ -147,4 +147,10 @@ struct Projector {
   std::uint32_t projection_frame_count{0};
 
   std::vector<std::uint32_t> footage_frame_index_of;
+
+  /** @brief Visible length; Masks retain identity spans but project no Frames. */
+  [[nodiscard]] std::uint32_t
+  get_projected_strip_length(const std::uint32_t strip_index) const noexcept {
+    return strip_type_of[strip_index] == 2 ? 0 : strip_length_of[strip_index];
+  }
 };

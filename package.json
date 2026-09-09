@@ -59,7 +59,6 @@
     "prepublishOnly": "npm run test && npm run bench"
   },
   "devDependencies": {
-    "@automerge/automerge": "^3.4.1",
     "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^21.2.2",
     "@playwright/test": "^1.63.0",
@@ -69,14 +68,11 @@
     "@vitest/ui": "^5.0.0",
     "bun": "^1.4.2",
     "deno": "^2.9.6",
-    "diamond-types-node": "^1.0.2",
     "edge-runtime": "^4.0.1",
     "esbuild": "^0.28.2",
     "fast-check": "^4.9.0",
     "fast-glob": "^3.3.3",
     "husky": "^9.1.7",
-    "json-joy": "^18.28.0",
-    "loro-crdt": "^1.16.0",
     "playwright": "^1.63.0",
     "prettier": "^3.9.6",
     "terser": "^5.51.2",
@@ -86,8 +82,7 @@
     "typescript": "^5.9.3",
     "unrun": "^0.3.1",
     "vitest": "^5.0.0",
-    "wrangler": "^4.129.0",
-    "yjs": "^13.6.32"
+    "wrangler": "^4.129.0"
   },
   "repository": {
     "type": "git",

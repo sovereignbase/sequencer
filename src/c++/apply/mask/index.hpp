@@ -16,6 +16,8 @@
  * @param containing_strip_index Strip containing the first Frame.
  * @param incoming_strip_index Strip Index of the Mask command.
  * @param offset First masked Frame offset in the containing Strip.
+ * @pre The addressed content span is available through the larger-split chain.
+ * @note Zero-length placeholders are followed without masking their anchors.
  * @return Projection Frame count and materialized Strip count differences.
  */
 [[nodiscard]] inline std::pair<std::int32_t, std::int32_t>
@@ -33,6 +35,13 @@ apply_mask(Projector &projector, std::uint32_t containing_strip_index,
     const std::uint32_t containing_strip_length =
         projector.strip_length_of[containing_strip_index];
 
+    if (offset == containing_strip_length) {
+      containing_strip_index =
+          projector.larger_split_strip_index_of[containing_strip_index];
+      offset = 0;
+      continue;
+    }
+
     const std::uint32_t mask_length =
         std::min(remaining_mask_length, containing_strip_length - offset);
 
@@ -44,9 +53,10 @@ apply_mask(Projector &projector, std::uint32_t containing_strip_index,
       static_cast<void>(
           split_strip(projector, containing_strip_index, mask_length));
 
-    projector.strip_type_of[containing_strip_index] = 2;
-
-    materialized_mask_length += mask_length;
+    if (projector.strip_type_of[containing_strip_index] != 2) {
+      projector.strip_type_of[containing_strip_index] = 2;
+      materialized_mask_length += mask_length;
+    }
     remaining_mask_length -= mask_length;
 
     if (remaining_mask_length != 0) {

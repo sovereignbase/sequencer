@@ -28,7 +28,7 @@ find_projection_frame_index_of(Projector &projector,
   while (!left_jump_found || !right_jump_found) {
     if (!left_jump_found) {
       left_cursor = projector.left_strip_index_of[left_cursor];
-      left_distance += projector.strip_length_of[left_cursor];
+      left_distance += projector.get_projected_strip_length(left_cursor);
 
       left_jump_found =
           left_cursor == projector.head_strip_index ||
@@ -36,7 +36,7 @@ find_projection_frame_index_of(Projector &projector,
     }
 
     if (!right_jump_found) {
-      right_distance += projector.strip_length_of[right_cursor];
+      right_distance += projector.get_projected_strip_length(right_cursor);
       right_cursor = projector.right_strip_index_of[right_cursor];
 
       right_jump_found =
@@ -82,8 +82,8 @@ find_projection_frame_index_of(Projector &projector,
 
     // CHECK IF RIGHT IS AT TAIL
     if (right_cursor == projector.tail_strip_index)
-      return projection_frame_count - projector.strip_length_of[right_cursor] -
-             right_distance;
+      return projection_frame_count -
+             projector.get_projected_strip_length(right_cursor) - right_distance;
 
     // USE LEFT JUMP IF AVAILABLE
     const std::uint32_t left_jump_strip_index =
@@ -134,7 +134,7 @@ find_projection_frame_index_of(Projector &projector,
       left_distance += left_jump_length;
     } else {
       left_cursor = projector.left_strip_index_of[left_cursor];
-      left_distance += projector.strip_length_of[left_cursor];
+      left_distance += projector.get_projected_strip_length(left_cursor);
     }
 
     // USE RIGHT JUMP IF AVAILABLE
@@ -185,7 +185,7 @@ find_projection_frame_index_of(Projector &projector,
 
       right_distance += right_jump_length;
     } else {
-      right_distance += projector.strip_length_of[right_cursor];
+      right_distance += projector.get_projected_strip_length(right_cursor);
       right_cursor = projector.right_strip_index_of[right_cursor];
     }
   }

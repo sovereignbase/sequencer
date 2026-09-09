@@ -126,7 +126,7 @@ public:
 
   /**
    * @brief Return every Strip waiting on a point in the arriving Strip's span.
-   * @note The range is [strip_start, strip_start + frame_count) within the same
+   * @note The range is [strip_start, strip_start + frame_count] within the same
    * Realm, without counter wraparound. No matches returns an empty vector.
    * @complexity Expected O(1 + log e + k) for e dependency entries in the Realm
    * and k returned Strip indices.
@@ -135,9 +135,6 @@ public:
   get(const SequencePoint &strip_start,
       const std::uint32_t frame_count) const noexcept {
     std::vector<std::uint32_t> result;
-    if (frame_count == 0)
-      return result;
-
     const auto &entries = realms[find_realm(strip_start)].entries;
     auto entry = std::lower_bound(
         entries.begin(), entries.end(), strip_start.counter_bits,
@@ -145,21 +142,18 @@ public:
           return candidate.counter_bits < counter_bits;
         });
     for (; entry != entries.end() &&
-           entry->counter_bits - strip_start.counter_bits < frame_count;
+           entry->counter_bits - strip_start.counter_bits <= frame_count;
          ++entry)
       result.insert(result.end(), entry->strip_indices.begin(),
                     entry->strip_indices.end());
     return result;
   }
 
-  /** @brief Return and remove all waiters in the same half-open range as get. */
+  /** @brief Return and remove all waiters in the same inclusive range as get. */
   [[nodiscard]] std::vector<std::uint32_t>
   take(const SequencePoint &strip_start,
        const std::uint32_t frame_count) noexcept {
-    auto result = get(strip_start, frame_count);
-    if (result.empty())
-      return result;
-
+    std::vector<std::uint32_t> result;
     const std::uint32_t realm_index = find_realm(strip_start);
     auto &entries = realms[realm_index].entries;
     const auto first_entry = std::lower_bound(
@@ -169,10 +163,15 @@ public:
         });
     auto last_entry = first_entry;
     while (last_entry != entries.end() &&
-           last_entry->counter_bits - strip_start.counter_bits < frame_count)
+           last_entry->counter_bits - strip_start.counter_bits <= frame_count) {
+      result.insert(result.end(), last_entry->strip_indices.begin(),
+                    last_entry->strip_indices.end());
       ++last_entry;
-    entries.erase(first_entry, last_entry);
-    remove_empty_realm(realm_index);
+    }
+    if (first_entry != last_entry) {
+      entries.erase(first_entry, last_entry);
+      remove_empty_realm(realm_index);
+    }
     return result;
   }
 

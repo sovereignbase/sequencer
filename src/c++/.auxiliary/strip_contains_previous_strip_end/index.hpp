@@ -9,14 +9,15 @@
 #pragma once
 
 #include "../../.declarations/sequence_point/index.hpp"
+#include "../../.declarations/sentinels/index.hpp"
 #include <cstdint>
 
 /**
  * @brief Locate a previous Strip end within a Strip's Sequence span.
  *
  * The point is contained when its random components equal those of
- * `strip_start` and its counter falls within the half-open interval beginning
- * at `strip_start` and extending for `strip_length` Frames.
+ * `strip_start` and its counter falls within the inclusive interval
+ * `[strip_start.counter_bits, strip_start.counter_bits + strip_length]`.
  *
  * @param strip_start First Sequence Point represented by the Strip.
  * @param strip_length Number of Frames represented by the Strip.
@@ -40,6 +41,5 @@
   const std::uint32_t strip_frame_offset =
       previous_strip_end.counter_bits - strip_start.counter_bits;
 
-  // Accept only offsets inside the Strip's half-open Frame Span.
-  return strip_frame_offset < strip_length ? strip_frame_offset : u32_max;
+  return strip_frame_offset <= strip_length ? strip_frame_offset : u32_max;
 }

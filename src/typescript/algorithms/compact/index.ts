@@ -1,5 +1,5 @@
 /**
- * MAGS compaction selection and acknowledged Footage release.
+ * Soft and hard compaction of safely removable retained state.
  *
  * @module
  */
@@ -7,27 +7,36 @@ import type { Acknowledgement, Replica } from '../../../types/type.js'
 import { compact_sequence } from '../../../wasm/index.js'
 
 /**
- * Releases Footage covered by the supplied Replica Frontiers.
+ * Removes safely collectable structural garbage from one Replica.
  *
- * For every Realm in the first Acknowledgement, the smallest matching counter
- * supplied by later Frontiers becomes the compaction boundary. Native code
- * retains every Mask, coordinate, and structural link and returns only the
- * Footage Spans whose JavaScript references may be released.
+ * Soft compaction is the default. It removes only eligible structures that no
+ * longer retain consumer content, such as an empty prefix left by a body-before
+ * insertion or a Mask whose content was already released by hard deletion.
+ * Content retained by soft deletion remains available for recovery.
  *
- * The first supplied Acknowledgement is reused as the selected boundary and may
- * be overwritten. Other Frontiers are read without mutation. The caller must
- * ensure that every Realm selected for safe compaction has a matching entry in
- * every required Replica Acknowledgement; this reducer ignores a missing match.
+ * Hard compaction additionally removes eligible garbage that still retains
+ * consumer content and releases that content. It does not remove visible values
+ * or bypass acknowledgement and dependency requirements. Empty structures are
+ * not automatically garbage: an anchor still needed by retained dependencies
+ * must remain until its structural removal is safe.
+ *
+ * A Mask Realm can be collected only when all participating Actors acknowledge
+ * the same complete final frontier. Removing an eligible chain reconnects the
+ * surviving causal structure. The application supplies acknowledgements from
+ * every required Actor in either mode.
  *
  * @typeParam T Consumer-owned value represented by one Frame.
  * @param frontiers Acknowledgement Frontiers from participating Replicas.
- * @param state Replica whose acknowledged Mask Footage is released.
+ * @param state Replica whose eligible retained garbage is collected.
+ * @param hard Whether to also discard content-bearing garbage; defaults to
+ * soft compaction, which preserves recoverable content.
  * @returns Nothing. Released entries are replaced with `undefined` in-place and
  * the Footage array is never physically compacted.
  */
 export function compact<T>(
   frontiers: Array<Acknowledgement>,
-  state: Replica<T>
+  state: Replica<T>,
+  hard: boolean = false
 ): void {
   // Validate that at least one participating Acknowledgement was supplied.
   if (frontiers.length === 0) return

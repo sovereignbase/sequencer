@@ -103,8 +103,7 @@ public:
   /**
    * @brief Append one Realm boundary point in the stable three-word layout.
    *
-   * @param sequence_point Greatest locally observed materialized Strip start in
-   * one Realm.
+   * @param sequence_point Exclusive final counter of a complete Mask Realm.
    * @post The Realm entry count increases by one and prior entry order is
    * preserved.
    * @note The buffer does not enforce one entry per Realm; the producer defines

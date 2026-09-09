@@ -4,9 +4,9 @@
  */
 #pragma once
 
-#include "../../.auxiliary/insert_between/index.hpp"
-#include "../../.auxiliary/split_strip/index.hpp"
-#include "../../.declarations/projector/index.hpp"
+#include "../../../.auxiliary/insert_between/index.hpp"
+#include "../../../.auxiliary/split_strip/index.hpp"
+#include "../../../.declarations/projector/index.hpp"
 #include <cstdint>
 #include <utility>
 

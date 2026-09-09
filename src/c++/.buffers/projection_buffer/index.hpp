@@ -5,7 +5,7 @@
  * Each Strip occupies ten consecutive unsigned 32-bit words:
  * 0 type (0 inverse/root Insert, 1 Insert, 2 Mask), 1 frame_count,
  * 2..4 this_strip_start, 5..7 previous_strip_end,
- * 8 larger_split_strip_index, 9 larger_sibling_strip_index.
+ * 8 larger_split_strip_index, 9 smaller_competitor_strip_index.
  * Link targets are snapshot indices; u32_max means no target.
  * Each Sequence Point uses crypto_random_bits, unix_lower_bits, counter_bits.
  * Footage is supplied in snapshot order; its indices are reconstructed.

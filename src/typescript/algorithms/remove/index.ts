@@ -3,22 +3,20 @@
  *
  * @module
  */
-import { is_safe_index, issue_virtual_strip } from '../../../helpers/index.js'
-import type { Delta, Replica, Strip } from '../../../types/type.js'
+import { is_safe_index } from '../../helpers/is_safe_index/index.js'
+import type { Delta, Replica } from '../../types/type.js'
 import {
   get_projection_frame_count,
-  merge_strip_into_sequence,
-  read_strip_from_buffer,
-  write_strip_at_projection_frame_index_to_buffer,
-} from '../../../wasm/index.js'
+  no_projection_frame_index,
+  wasm,
+} from '../../wasm/index.js'
 
 /**
  * Deletes the half-open visible range `[start_index, end_index)` by masking it.
  *
- * One Mask is created for each containing Strip crossed by the range, ensuring
- * that every Mask remains contained within one materialized Strip. Its
- * previous point is the containing Strip start and its own start is the first
- * masked Frame's existing Sequence Point; masking issues no new points. A hard
+ * Native update issues one Mask for each containing Strip crossed by the range.
+ * Each update reports its actual bounded length and retained Footage span.
+ * The returned Delta contains flat Mask encodings and no new Footage. A hard
  * deletion also releases the corresponding JavaScript Footage immediately.
  * Released entries become `undefined`; the Footage array is not compacted, so
  * all retained indexes stay stable.
@@ -31,7 +29,8 @@ import {
  * @param hard Whether to release deleted values immediately instead of
  * retaining them for recovery until garbage collection.
  * @returns The transferable Delta, or `false` when the requested range is
- * invalid or empty.
+ * invalid or empty, or the first issuance is rejected. If a later issuance is
+ * rejected, returns the accepted prefix Delta.
  */
 export function remove<T>(
   state: Replica<T>,
@@ -39,8 +38,7 @@ export function remove<T>(
   end_index?: number,
   hard = false
 ): Delta<T> | false {
-  // Validate the requested half-open Projection range.
-  const projection_frame_count = get_projection_frame_count(state.id)
+  const projection_frame_count = get_projection_frame_count(state[0])
   const deletion_end_index = end_index ?? projection_frame_count
 
   if (
@@ -50,54 +48,39 @@ export function remove<T>(
   )
     return false
 
-  // Initialize the transferable Delta and unresolved deletion span.
-  const delta: Delta<T> = []
+  const projection: number[] = []
   let remaining_frame_count = deletion_end_index - start_index
 
-  // Resolve and mask one containing materialized Strip at a time.
   while (remaining_frame_count > 0) {
-    // Resolve the containing Strip and its Footage position.
-    const footage_frame_index = write_strip_at_projection_frame_index_to_buffer(
-      state.id,
-      start_index
-    )
-    const containing_strip = read_strip_from_buffer<T>()
+    const position =
+      wasm._update_projection(
+        state[0],
+        start_index,
+        2,
+        remaining_frame_count,
+        no_projection_frame_index
+      ) >>> 0
+    if (position === no_projection_frame_index) break
 
-    // Derive the bounded span and its first existing masked Frame point.
-    const strip_frame_offset = footage_frame_index - containing_strip[9]!
+    const buffer_start = wasm._get_projection_buffer_pointer() >>> 2
+    const buffer = wasm.HEAPU32
+    const mask_frame_count = buffer[buffer_start + 1]
+    for (let word = 0; word < 10; ++word)
+      projection.push(buffer[buffer_start + word])
+    wasm._clear_projection_buffer()
 
-    const mask_frame_count = Math.min(
-      remaining_frame_count,
-      containing_strip[2] - strip_frame_offset
-    )
-
-    // Transfer and merge the Mask.
-    const meta: Strip<T>[0] = issue_virtual_strip<T>(
-      1,
-      0,
-      mask_frame_count,
-      containing_strip[3],
-      containing_strip[4],
-      containing_strip[5] + strip_frame_offset
-    )
-    const projection_frame_index = merge_strip_into_sequence(
-      state.id,
-      start_index
-    )
-
-    // Release accepted hard-deletion Footage without compacting its array.
-    if (hard && projection_frame_index !== false) {
-      void state.footage.fill(
+    if (hard) {
+      const span_start = wasm._get_footage_span_buffer_pointer() >>> 2
+      const footage_frame_index = wasm.HEAPU32[span_start + 1]
+      state[1].fill(
         undefined,
         footage_frame_index,
         footage_frame_index + mask_frame_count
       )
     }
-
-    // Record the transferable Mask and advance the unresolved span.
-    void delta.push([meta])
+    wasm._clear_footage_span_buffer()
     remaining_frame_count -= mask_frame_count
   }
 
-  return delta
+  return projection.length === 0 ? false : [projection, []]
 }

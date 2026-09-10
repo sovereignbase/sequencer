@@ -77,6 +77,30 @@ struct Fixture {
 };
 
 int main() {
+  for (const auto count : {1u, 2u, 10u, 64u})
+    for (std::uint32_t target = 0; target < count * 3; ++target)
+      for (const auto requested : {1u, count * 3}) {
+        Fixture fixture(count);
+        auto expected = fixture.footage;
+        const auto length = std::min(requested, 3 - target % 3);
+        assert(sequencer::update_projection(fixture.id, target, 2, requested) == target);
+        const auto result = sequencer::projection_buffer.read_buffer();
+        assert(result.size() == 1);
+        assert(result[0][0] == 2 && result[0][1] == length);
+        assert(result[0][2] == sequencer::mask_realm_crypto_random_bits);
+        assert(result[0][3] == sequencer::shared_realm_unix_lower_bits);
+        assert(result[0][4] == 0);
+        assert(result[0][7] == target / 3 * 32 + target % 3);
+        assert(sequencer::footage_span_buffer.get_span_count() == 1);
+        const auto spans = sequencer::footage_span_buffer.get_memory_pointer();
+        assert(spans[0] == target && spans[1] == target);
+        assert(spans[2] == length && spans[3] == 1);
+        sequencer::footage_span_buffer.clear();
+        assert(sequencer::projectors[fixture.id]->mask_operation_count == length + 1);
+        expected.erase(target, length);
+        fixture.check(expected);
+      }
+
   for (const auto type : {0u, 1u}) {
     Fixture birth;
     const auto result = birth.insert(static_cast<std::uint8_t>(type), 0, "abc", 0);

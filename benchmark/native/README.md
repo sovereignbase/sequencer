@@ -163,6 +163,24 @@ unequal counters cannot authorize compaction, and caller arrays remain intact.
 The test uses a mocked native collector; it does not establish working soft/hard
 GC or causal reattachment in the unfinished compaction backend.
 
+`test/unit/replace_adapter.test.ts` checks lane-by-lane Delta composition,
+operation order, rejected operations, large transfers, and Footage aliasing
+during hard deletion. It mocks remove and insert; it does not establish native
+Mask materialization or end-to-end replacement behavior.
+
+The WASM bridge now also checks local public `remove` and `replace` content:
+all 45 nonempty ranges across three Strips in both soft and hard modes,
+stable Footage slots, snapshot views, and 100 mixed edits in each mode.
+`test/unit/remove_adapter.test.ts` covers bounded native results, rejection,
+heap replacement, and both output buffers' synchronous consumption. Native
+`update` tests check Mask clipping and jump distances, including edits at jump
+endpoints. The Find implementations remain unchanged.
+
+These local content checks do not establish the complete Mask model: the
+current primitive still marks source fragments instead of materializing the
+issued Mask's own Realm identity into structural order. Preserving that identity
+through snapshots and proving merge/ACK/GC behavior remain unfinished.
+
 ```powershell
 foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'after_insert', 'birth_insert', 'update', 'read', 'transfer_buffers')) {
   clang++ -std=c++23 -Wall -Wextra -Wpedantic -Werror "test/c++/$test.cpp" -o "temp/$test-test.exe"

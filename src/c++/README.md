@@ -167,6 +167,20 @@ The same rule applies at Strip boundaries and inside Strips. If necessary, the e
 
 Because a Mask is structurally an insertion, it follows the same anchoring and tie-breaking rules as any other inserted Strip.
 
+### Overlapping Masks
+
+If multiple Masks cover the same source Frame, the Mask with the greatest
+`strip_start` SequencePoint owns that Frame's retained content. Comparison uses
+the existing lexicographic SequencePoint order, independently of arrival order.
+
+For example, if `M` masks `bc` and `N` masks `cd`, and `N > M`, `M` retains `b`
+and `N` retains `cd`. Recovery must not return the shared `c` twice.
+
+Content ownership does not discard the losing Mask's identity or shorten its
+issued counter span. Both Masks remain known and must survive snapshots for
+the acknowledgement and garbage-collection safety rules. A Mask that loses all
+of its content ownership is not thereby eligible for immediate collection.
+
 ## Find
 
 Finding works in both directions between Projection positions and materialized Strips.

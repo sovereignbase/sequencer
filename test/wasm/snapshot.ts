@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { create } from '../../src/typescript/algorithms/create/index.js'
 import { insert } from '../../src/typescript/algorithms/insert/index.js'
+import { remove } from '../../src/typescript/algorithms/remove/index.js'
+import { replace } from '../../src/typescript/algorithms/replace/index.js'
 import { recover } from '../../src/typescript/algorithms/recover/index.js'
 import { acknowledge } from '../../src/typescript/algorithms/acknowledge/index.js'
 import { snapshot } from '../../src/typescript/algorithms/snapshot/index.js'
@@ -177,4 +179,79 @@ for (const state of [masked, pending, pending_mask]) {
 }
 console.log(
   'Public insert WASM/TypeScript path passed (birth, head, body, tail, hydration).'
+)
+
+for (const hard of [false, true]) {
+  for (let start = 0; start < 9; ++start) {
+    for (let end = start + 1; end <= 9; ++end) {
+      const words: number[] = []
+      for (let strip = 0; strip < 3; ++strip)
+        words.push(1, 3, 10, 20, strip * 32, 0, 0, 0, absent, absent)
+      const footage = Array.from('abcdefghi')
+      const state = create<string>([words, footage])
+      const delta = remove(state, start, end, hard)
+      assert.notEqual(delta, false)
+      if (!delta) throw new Error('remove rejected')
+      assert.deepEqual(delta[1], [])
+      let removed = 0
+      for (let strip = 0; strip < delta[0].length; strip += 10) {
+        assert.equal(delta[0][strip], 2)
+        assert.equal(delta[0][strip + 4], removed + strip / 10)
+        removed += delta[0][strip + 1]
+      }
+      assert.equal(removed, end - start)
+      const expected = footage.slice()
+      expected.splice(start, end - start)
+      assert.deepEqual(values(state), expected)
+      assert.deepEqual(recover(state), hard ? expected : footage)
+      assert.equal(state[1].length, footage.length)
+      assert.equal(native._get_projection_buffer_word_count(), 0)
+      assert.equal(native._get_footage_span_buffer_count(), 0)
+      const restored = create<string>(snapshot(state))
+      assert.deepEqual(values(restored), expected)
+      assert.deepEqual(recover(restored), hard ? expected : footage)
+    }
+  }
+
+  const state = create<string>()
+  insert(state, 0, Array.from('abcdef'))
+  assert.notEqual(replace(state, 2, ['X', 'Y'], hard), false)
+  assert.deepEqual(values(state), Array.from('abXYef'))
+  assert.equal(native._get_projection_buffer_word_count(), 0)
+  assert.equal(native._get_footage_span_buffer_count(), 0)
+  assert.deepEqual(
+    values(create<string>(snapshot(state))),
+    Array.from('abXYef')
+  )
+
+  const aliased = create<string>()
+  insert(aliased, 0, ['a', 'b', 'c'])
+  assert.notEqual(replace(aliased, 0, aliased[1] as string[], hard), false)
+  assert.deepEqual(values(aliased), ['a', 'b', 'c'])
+  assert.deepEqual(
+    aliased[1],
+    hard
+      ? [undefined, undefined, undefined, 'a', 'b', 'c']
+      : ['a', 'b', 'c', 'a', 'b', 'c']
+  )
+
+  const editing = create<string>()
+  const expected = Array.from('abcdefghijklmno')
+  insert(editing, 0, expected)
+  for (let edit = 0; edit < 100; ++edit) {
+    const start = (edit * 7) % expected.length
+    const count = Math.min((edit % 3) + 1, expected.length - start)
+    assert.notEqual(remove(editing, start, start + count, hard), false)
+    expected.splice(start, count)
+    assert.deepEqual(values(editing), expected)
+    const replacement = [String(edit), '!']
+    assert.notEqual(insert(editing, start, replacement), false)
+    expected.splice(start, 0, ...replacement)
+    assert.deepEqual(values(editing), expected)
+    if (edit % 20 === 0)
+      assert.deepEqual(values(create<string>(snapshot(editing))), expected)
+  }
+}
+console.log(
+  'Local remove/replace content passed (soft/hard, ranges, mixed edits).'
 )

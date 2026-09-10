@@ -88,12 +88,12 @@ Mask-Strip materialization in the public update/merge path. `issue` checks local
 insert/Mask counter separation, staging, and continued issuance after hydration.
 
 `before_insert` exercises head, body, and Strip-boundary insertion through
-`apply_left`. It checks that split continuations do not compete with real
+`insert_before`. It checks that split continuations do not compete with real
 concurrent inserts, that placeholders retain Mask traversal links, and that
 both directions of every maintained jump retain correct frame and Strip counts.
 Concurrent same-anchor inserts are checked in every delivery permutation.
 
-`after_insert` checks the resolved zero-anchor case of `apply_right`: the anchor
+`after_insert` checks the resolved zero-anchor case of `insert_after`: the anchor
 stays to the left, content retains a larger-split continuation, siblings descend
 by SequencePoint, and the smallest sibling follows the preceding sibling's
 descendants. Head, body, and empty-anchor cases retain reciprocal jumps and
@@ -105,6 +105,12 @@ multiple initial lengths are followed by 64 tail appends, snapshot/hydration,
 and another append. Content, containment boundaries, counters, and pending
 isolation are checked. This exercises native primitives, not the unfinished
 public update dispatch.
+
+`update` checks the native local-insert dispatcher through the actual update
+entry point: both birth directions, before/after at every Frame in 1-, 2-, 10-,
+and 64-Strip states, 100 successive edits, pending-only and masked-only states,
+result encoding, reciprocal jumps, and visible content. It does not establish
+merge convergence or complete own-Realm Mask materialization.
 
 `read` checks single-frame lookup and batched visible ranges, including clipped
 boundaries, noncontiguous Footage, Masks, placeholders, and detached pending
@@ -145,7 +151,7 @@ and host-output clearing for all three buffer types.
 compaction's transfer contract with a mocked native consumer, not GC semantics.
 
 ```powershell
-foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'after_insert', 'birth_insert', 'read', 'transfer_buffers')) {
+foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'after_insert', 'birth_insert', 'update', 'read', 'transfer_buffers')) {
   clang++ -std=c++23 -Wall -Wextra -Wpedantic -Werror "test/c++/$test.cpp" -o "temp/$test-test.exe"
   if ($LASTEXITCODE -ne 0) { throw "Compilation failed: $test" }
   & "./temp/$test-test.exe"

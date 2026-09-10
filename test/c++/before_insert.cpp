@@ -34,7 +34,7 @@ struct Fixture {
         projector, 0, static_cast<std::uint32_t>(text.size()), {realm, 8, 0},
         dependency, static_cast<std::uint32_t>(footage.size()));
     footage += text;
-    const auto [frames, strips] = apply_left(projector, target, incoming, offset);
+    const auto [frames, strips] = insert_before(projector, target, incoming, offset);
     const auto position = find_projection_frame_index_of(projector, incoming,
                                                           frames, strips);
     projector.gate_strip_index = incoming;

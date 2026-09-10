@@ -70,7 +70,7 @@ inline void initialize_projector(
                          ? u32_max
                          : strip_index + 1);
       projector.footage_frame_index_of[strip_index] =
-          strip_type == 2 ? u32_max : footage_frame_index;
+          pending && strip_type == 2 ? u32_max : footage_frame_index;
       if (!pending && strip_index != 0 &&
           (strip_index - previous_jump_strip_index >= optimal_jump_distance ||
            strip_index + 1 == materialized_strip_count)) {
@@ -92,11 +92,10 @@ inline void initialize_projector(
       if (!pending && strip_type != 2 && strip[1] != 0 &&
           projector.gate_strip_index == u32_max)
         projector.gate_strip_index = strip_index;
-      if (strip_type != 2) {
+      if (!pending || strip_type != 2)
         footage_frame_index += strip[1];
-        if (!pending)
-          projector.projection_frame_count += strip[1];
-      }
+      if (!pending && strip_type != 2)
+        projector.projection_frame_count += strip[1];
       if (pending)
         projector.pending_table.set(projector.previous_strip_end_of[strip_index],
                                     strip_index, true);

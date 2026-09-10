@@ -49,12 +49,15 @@ int main() {
                   point.counter_bits + length + 1}).first == u32_max);
 
       if (type == 2) {
-        assert(projector.footage_frame_index_of[strip_index] == u32_max);
         mask_counter = point.counter_bits + length + 1;
+      } else {
+        insert_counter = point.counter_bits + length + 1;
+      }
+      if (type == 2 && strip_index >= materialized_count) {
+        assert(projector.footage_frame_index_of[strip_index] == u32_max);
       } else {
         assert(projector.footage_frame_index_of[strip_index] == footage_length);
         footage_length += length;
-        insert_counter = point.counter_bits + length + 1;
       }
 
       if (strip_index >= materialized_count) {

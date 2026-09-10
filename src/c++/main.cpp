@@ -15,6 +15,18 @@
 
 extern "C" {
 
+EMSCRIPTEN_KEEPALIVE std::uint32_t *get_projection_buffer_pointer() noexcept {
+  return sequencer::get_projection_buffer_pointer();
+}
+
+EMSCRIPTEN_KEEPALIVE std::uint32_t get_projection_buffer_word_count() noexcept {
+  return sequencer::get_projection_buffer_word_count();
+}
+
+EMSCRIPTEN_KEEPALIVE std::uint32_t get_footage_span_buffer_count() noexcept {
+  return sequencer::get_footage_span_buffer_count();
+}
+
 EMSCRIPTEN_KEEPALIVE std::uint32_t initialize_projection() noexcept {
   return sequencer::initialize_projection();
 }

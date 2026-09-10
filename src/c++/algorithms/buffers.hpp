@@ -4,6 +4,18 @@
 
 namespace sequencer {
 
+inline std::uint32_t *get_projection_buffer_pointer() noexcept {
+  return projection_buffer.get_memory_pointer();
+}
+
+inline std::uint32_t get_projection_buffer_word_count() noexcept {
+  return static_cast<std::uint32_t>(projection_buffer.get_word_count());
+}
+
+inline std::uint32_t get_footage_span_buffer_count() noexcept {
+  return footage_span_buffer.get_span_count();
+}
+
 inline std::uint32_t *
 get_acknowledgement_sequence_point_buffer_pointer() noexcept {
   // Expose the current shared Frontier transfer storage.

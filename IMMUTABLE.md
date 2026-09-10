@@ -384,11 +384,23 @@ and writes every linked Strip in that exact order.
 
 References such as split and competitor links are translated from internal Strip indices into snapshot-local Projection indices.
 
+The same native traversal writes Footage spans alongside the Projection buffer.
+TypeScript copies both results before another operation can reuse the buffers
+and packs the referenced Footage into a new array in snapshot order. This
+includes materialized Masks' soft-deleted content, not just visible Frames.
+Hard-deleted values remain `undefined` without shifting retained Frame positions.
+
 After the complete materialized Projection has been written, pending Strips are appended:
 
 ```text
 [ ordered materialized Strips ][ pending Strips ]
 ```
+
+Pending insert Footage follows the materialized Footage in the same order as
+the appended pending Strips. Unresolved pending Mask commands do not yet own
+their target content and contribute no Footage. Initialization reconstructs
+Footage positions for every materialized Strip, including Masks, and then for
+pending inserts. Only unmasked materialized Strips contribute visible Frames.
 
 The resulting `TrustedSnapshot` must be stored reliably by the application. Its ordering and contents are trusted during initialization.
 

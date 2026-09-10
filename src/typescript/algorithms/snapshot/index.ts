@@ -1,91 +1,51 @@
 /**
- * Capture of complete retained Replica state without issuing new Sequence Points.
+ * Complete retained state transferred through the native snapshot buffers.
  *
  * @module
  */
-import type { Delta, Replica, Strip } from '../../../types/type.js'
-import {
-  read_strip_from_buffer,
-  write_first_structural_strip_to_buffer,
-  write_next_structural_strip_to_buffer,
-  write_first_pending_strip_to_buffer,
-  write_next_pending_strip_to_buffer,
-} from '../../../wasm/index.js'
+import type { Delta, Replica } from '../../types/type.js'
+import { wasm } from '../../wasm/index.js'
 
 /**
- * Captures the complete retained state of a Replica as a transferable Delta.
+ * Captures materialized Strips in Head-to-Tail order, then pending Strips.
  *
- * Every materialized visible Strip and Mask is serialized in Structural Order,
- * followed by unresolved Pending Strips. Stable Positions, dense links, sibling
- * distances, and Footage Indexes are omitted because they are local runtime
- * state.
+ * Copies the flat Projection and its ordered Footage spans into independent
+ * arrays. Materialized Masks retain their soft-deleted content; released values
+ * remain undefined. Pending inserts carry Footage, while unresolved Mask
+ * commands do not yet own the content they address.
  *
- * Visible Strips include independent copies of their referenced Footage. A
- * materialized Mask with retained Footage is encoded as a reconstructable
- * visible source fragment followed by its Footage-free Mask command. A source
- * whose Footage has been released is omitted. The original Pending Mask remains
- * transferable without a Footage mapping, allowing snapshots to compact the
- * released insertion metadata eventually.
- *
- * Snapshotting only reads already-issued Sequence material and never issues new
- * Sequence Points.
- *
- * @typeParam T Consumer-owned value represented by one Frame.
  * @param state Replica whose complete retained state is captured.
- * @returns Complete transferable retained state, including unresolved pending
- * Strips.
- * @remarks Snapshot order is deterministic output, but creation still derives
- * Projection order from coordinates rather than trusting array order.
+ * @returns A trusted snapshot with snapshot-local links and packed Footage.
+ * @remarks Issues no SequencePoints and does not change the source Footage.
+ * Array storage is copied; consumer-owned values are not deep-cloned.
  */
 export function snapshot<T>(state: Replica<T>): Delta<T> {
-  const { id, footage } = state
+  wasm._snapshot_projection(state[0])
+  const projection_start = wasm._get_projection_buffer_pointer() >>> 2
+  const projection_word_count = wasm._get_projection_buffer_word_count() >>> 0
+  const span_start = wasm._get_footage_span_buffer_pointer() >>> 2
+  const span_end =
+    span_start + (wasm._get_footage_span_buffer_count() >>> 0) * 4
+  const buffer = wasm.HEAPU32
+  const projection = Array.from(
+    buffer.subarray(projection_start, projection_start + projection_word_count)
+  )
 
-  // Initialize the transferable retained state.
-  const delta: Delta<T> = []
+  let footage_length = 0
+  for (let span_index = span_start; span_index < span_end; span_index += 4)
+    footage_length += buffer[span_index + 2]
 
-  // Append the Strip currently exposed through the shared native buffer.
-  const append_buffered_strip = (materialized: boolean): void => {
-    const meta = read_strip_from_buffer()
-    const footage_frame_index = meta[9]!
-    void meta.pop()
-
-    if (meta[0] === 0) {
-      if (footage[footage_frame_index] === undefined) return
-
-      const values = footage.slice(
-        footage_frame_index,
-        footage_frame_index + meta[2]
-      )
-      void delta.push([meta as Strip<T>[0], values as Array<T>])
-      return
-    }
-
-    if (!materialized) {
-      void delta.push([meta as Strip<T>[0]])
-      return
-    }
-
-    if (footage[footage_frame_index] === undefined) return
-
-    const source_meta = [...meta] as Strip<T>[0]
-    source_meta[0] = 0
-    const values = footage.slice(
-      footage_frame_index,
-      footage_frame_index + meta[2]
+  const footage = new Array<T>(footage_length)
+  let result_index = 0
+  for (let span_index = span_start; span_index < span_end; span_index += 4) {
+    const footage_start = buffer[span_index + 1]
+    const footage_end = footage_start + buffer[span_index + 2]
+    for (
+      let footage_index = footage_start;
+      footage_index < footage_end;
+      ++footage_index
     )
-    void delta.push([source_meta, values as Array<T>])
+      footage[result_index++] = state[1][footage_index] as T
   }
-
-  // Traverse every materialized visible Strip and Mask in Sequence order.
-  if (write_first_structural_strip_to_buffer(id))
-    do void append_buffered_strip(true)
-    while (write_next_structural_strip_to_buffer(id))
-
-  // Append unresolved pending Strips after materialized Sequence state.
-  if (write_first_pending_strip_to_buffer(id))
-    do void append_buffered_strip(false)
-    while (write_next_pending_strip_to_buffer(id))
-
-  // Return the complete retained Delta.
-  return delta
+  return [projection, footage]
 }

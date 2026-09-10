@@ -7,6 +7,7 @@ namespace sequencer {
 inline void
 snapshot_projection(const std::uint32_t projection_id) noexcept {
   const Projector &projector = *projectors[projection_id];
+  footage_span_buffer.clear();
   // Prepare pojection buffer
   const auto count = projector.strip_start_of.size();
   const auto pending_strips = projector.pending_table.values();
@@ -22,6 +23,7 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
 
   projection_buffer.resize(projection_strip_index + pending_strips.size());
   projection_strip_index = 0;
+  std::uint32_t projection_frame_index = 0;
   for (std::uint32_t strip_index = projector.head_strip_index;
        strip_index != u32_max;
        strip_index = projector.right_strip_index_of[strip_index]) {
@@ -50,6 +52,14 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
                 ? u32_max
                 : projection_indices[smaller_competitor_strip],
         });
+    const auto frame_count = projector.strip_length_of[strip_index];
+    const bool masked = projector.strip_type_of[strip_index] == 2;
+    if (frame_count != 0)
+      footage_span_buffer.write_span(
+          projection_frame_index, projector.footage_frame_index_of[strip_index],
+          frame_count, masked);
+    if (!masked)
+      projection_frame_index += frame_count;
   }
 
   for (const auto strip_index : pending_strips) {
@@ -71,6 +81,11 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
             u32_max,
             u32_max,
         });
+    if (projector.strip_type_of[strip_index] != 2 &&
+        projector.strip_length_of[strip_index] != 0)
+      footage_span_buffer.write_span(
+          u32_max, projector.footage_frame_index_of[strip_index],
+          projector.strip_length_of[strip_index], 0);
   }
 }
 

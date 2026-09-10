@@ -15,6 +15,10 @@
  * 2  frame_count
  * 3  masked
  * @endcode
+ *
+ * Snapshot spans include soft-masked content in structural order followed by
+ * pending insert content. Pending spans use UINT32_MAX as their Projection
+ * index. Empty Strips and pending Mask commands contribute no span.
  */
 #pragma once
 

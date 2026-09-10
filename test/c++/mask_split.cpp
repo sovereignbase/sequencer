@@ -115,6 +115,8 @@ int main() {
   const std::array<std::uint32_t, 10> masked_source{
       2, 3, 500, 600, 0, 100, 200, 0, u32_max, u32_max};
   initialize_projector(without_footage, {&masked_source, 1}, 1, 2, 3);
+  assert(without_footage.footage_frame_index_of[0] == 0);
+  without_footage.footage_frame_index_of[0] = u32_max;
   const auto masked_suffix = split_strip(without_footage, 0, 1);
   assert(without_footage.footage_frame_index_of[masked_suffix] == u32_max);
 }

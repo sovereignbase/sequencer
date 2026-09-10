@@ -99,6 +99,27 @@ state. `test/unit/read_adapter.test.ts` separately checks the TypeScript tuple
 contract and four-word transfer layout against a mocked native ABI, including
 replacement of the WASM heap after allocation.
 
+`snapshot` checks packed Footage order, retained soft-masked content, pending
+inserts, and equality of visible values after hydration. The initialization
+test requires materialized Masks to retain Footage positions; pending Mask
+commands have no target Footage yet. `test/unit/snapshot_adapter.test.ts` checks
+buffer copies, released slots, and heap replacement against a mocked ABI.
+
+The following isolated bridge compiles the current snapshot, initialization,
+read, and fragment-masking implementations into fresh WASM and runs the actual
+TypeScript `snapshot` and `values` functions against it:
+
+```powershell
+em++ test/c++/snapshot_bridge.cpp -std=c++23 -O2 -msimd128 --no-entry -sMODULARIZE=1 -sWASM_ASYNC_COMPILATION=0 -sENVIRONMENT=node -sSINGLE_FILE=1 -sALLOW_MEMORY_GROWTH=1 '-sEXPORTED_RUNTIME_METHODS=["HEAPU32"]' -o temp/snapshot-bridge.cjs
+node test/wasm/run-snapshot.mjs
+```
+
+This tests a soft-masked split, released Footage slots, masked-only and
+pending-only states, empty snapshots, and snapshot/hydration round trips.
+The runner applies the same synchronous Emscripten factory normalization as
+the production build. It does not replace the checked-in WASM artifact or
+claim that the unfinished public remove/merge/compaction paths work.
+
 ```powershell
 foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'read')) {
   clang++ -std=c++23 -Wall -Wextra -Wpedantic -Werror "test/c++/$test.cpp" -o "temp/$test-test.exe"

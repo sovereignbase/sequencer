@@ -8,7 +8,9 @@
  * 8 larger_split_strip_index, 9 smaller_competitor_strip_index.
  * Link targets are snapshot indices; u32_max means no target.
  * Each Sequence Point uses crypto_random_bits, unix_lower_bits, counter_bits.
- * Footage is supplied in snapshot order; its indices are reconstructed.
+ * Footage is supplied in snapshot order, including materialized Masks' retained
+ * content and pending inserts. Pending Mask commands carry no Footage.
+ * Indices are reconstructed during initialization.
  */
 #pragma once
 

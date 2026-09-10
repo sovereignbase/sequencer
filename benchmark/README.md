@@ -11,8 +11,6 @@ Replica A
 Replica B
 ```
 
-````
-
 Each benchmark run scales both replicas from `0` Strips to `256,000` Strips and then back down to `0`.
 
 ```text
@@ -1182,4 +1180,3 @@ The complete sample-weighted:
 ```
 
 average is the primary performance result.
-````

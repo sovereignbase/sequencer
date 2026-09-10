@@ -93,6 +93,12 @@ concurrent inserts, that placeholders retain Mask traversal links, and that
 both directions of every maintained jump retain correct frame and Strip counts.
 Concurrent same-anchor inserts are checked in every delivery permutation.
 
+`after_insert` checks the resolved zero-anchor case of `apply_right`: the anchor
+stays to the left, content retains a larger-split continuation, siblings descend
+by SequencePoint, and the smallest sibling follows the preceding sibling's
+descendants. Head, body, and empty-anchor cases retain reciprocal jumps and
+correct Find results. This is not a complete public after-insert or merge test.
+
 `read` checks single-frame lookup and batched visible ranges, including clipped
 boundaries, noncontiguous Footage, Masks, placeholders, and detached pending
 state. `test/unit/read_adapter.test.ts` separately checks the TypeScript tuple
@@ -132,7 +138,7 @@ and host-output clearing for all three buffer types.
 compaction's transfer contract with a mocked native consumer, not GC semantics.
 
 ```powershell
-foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'read', 'transfer_buffers')) {
+foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'after_insert', 'read', 'transfer_buffers')) {
   clang++ -std=c++23 -Wall -Wextra -Wpedantic -Werror "test/c++/$test.cpp" -o "temp/$test-test.exe"
   if ($LASTEXITCODE -ne 0) { throw "Compilation failed: $test" }
   & "./temp/$test-test.exe"

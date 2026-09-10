@@ -15,7 +15,10 @@
  * @param projector Owning Projector.
  * @param containing_strip_index Strip containing the dependency.
  * @param incoming_strip_index Strip Index of the staged Strip.
- * @param offset Dependency Frame offset in the containing Strip.
+ * @param offset Dependency point offset; zero is the anchor, positive values
+ * identify content Frames before which the incoming Strip is inserted.
+ * @pre `offset <= strip_length_of[containing_strip_index]`.
+ * @note Retain or create a contentless causal placeholder at the dependency.
  * @return Projection Frame count and materialized Strip count differences.
  */
 [[nodiscard]] inline std::pair<std::int32_t, std::int32_t>
@@ -32,14 +35,13 @@ apply_left(Projector &projector, const std::uint32_t containing_strip_index,
   std::uint32_t right_strip_index;
 
   if (offset == 0) {
-    left_strip_index = projector.left_strip_index_of[containing_strip_index];
-    right_strip_index = containing_strip_index;
-  } else if (offset == containing_strip_length) {
     left_strip_index = containing_strip_index;
-    right_strip_index = projector.right_strip_index_of[containing_strip_index];
+    right_strip_index = containing_strip_length == 0
+                            ? projector.right_strip_index_of[containing_strip_index]
+                            : split_strip(projector, containing_strip_index, 0);
   } else {
-    left_strip_index = containing_strip_index;
-    right_strip_index = split_strip(projector, containing_strip_index, offset);
+    left_strip_index = split_strip(projector, containing_strip_index, offset - 1);
+    right_strip_index = split_strip(projector, left_strip_index, 0);
   }
 
   insert_between(projector, left_strip_index, incoming_strip_index,

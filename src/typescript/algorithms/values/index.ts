@@ -3,12 +3,12 @@
  *
  * @module
  */
-import { is_safe_index } from '../../../helpers/index.js'
-import type { Replica } from '../../../types/type.js'
+import { is_safe_index } from '../../helpers/is_safe_index/index.js'
+import type { Replica } from '../../types/type.js'
 import {
   get_projection_footage_spans,
   get_projection_frame_count,
-} from '../../../wasm/index.js'
+} from '../../wasm/index.js'
 
 /**
  * Reads a half-open visible Projection range from ordered Footage spans.
@@ -26,29 +26,29 @@ export function values<T>(
   start_index = 0,
   end_index?: number
 ): Array<T | undefined> {
-  const projection_frame_count = get_projection_frame_count(state.id)
+  const projection_frame_count = get_projection_frame_count(state[0])
   const range_end = end_index ?? projection_frame_count
   if (
     !is_safe_index(start_index, projection_frame_count, true) ||
     !is_safe_index(range_end, projection_frame_count, true) ||
-    start_index > range_end
+    start_index >= range_end
   )
     return []
 
-  const spans = get_projection_footage_spans(state.id, start_index, range_end)
+  const spans = get_projection_footage_spans(state[0], start_index, range_end)
   if (!spans) return []
 
   const result = new Array<T | undefined>(range_end - start_index)
   let result_index = 0
-  for (let span_index = 0; span_index < spans.length; span_index += 2) {
-    const footage_start = spans[span_index]
-    const footage_end = footage_start + spans[span_index + 1]
+  for (let span_index = 0; span_index < spans.length; span_index += 4) {
+    const footage_start = spans[span_index + 1]
+    const footage_end = footage_start + spans[span_index + 2]
     for (
       let footage_index = footage_start;
       footage_index < footage_end;
       ++footage_index
     )
-      result[result_index++] = state.footage[footage_index]
+      result[result_index++] = state[1][footage_index]
   }
   return result
 }

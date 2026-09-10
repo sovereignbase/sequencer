@@ -14,6 +14,7 @@
  * or the first non-competing Strip after the insertion point.
  * @note A smaller sibling follows all descendants of the preceding sibling.
  * Realm changes alone do not delimit a causal subtree.
+ * A direct split continuation is not a competing insertion operation.
  * @complexity O(s + d) for s traversed siblings and d descendants visited
  * when inserting after the currently smallest sibling.
  */
@@ -21,6 +22,9 @@ inline void insert_between(Projector &projector, std::uint32_t left_strip_index,
                            const std::uint32_t middle_strip_index,
                            std::uint32_t right_strip_index) noexcept {
   if (right_strip_index != u32_max &&
+      (left_strip_index == u32_max ||
+       projector.larger_split_strip_index_of[left_strip_index] !=
+           right_strip_index) &&
       projector.previous_strip_end_of[right_strip_index] ==
           projector.previous_strip_end_of[middle_strip_index]) {
     std::uint32_t larger_sibling = u32_max;

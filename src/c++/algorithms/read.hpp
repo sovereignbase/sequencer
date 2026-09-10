@@ -2,6 +2,7 @@
 
 #include "./runtime.hpp"
 #include "../find/containing_strip_index/index.hpp"
+#include <algorithm>
 
 namespace sequencer {
 
@@ -21,6 +22,34 @@ get_footage_frame_index(const std::uint32_t projection_id,
   // Translate the Projection offset through the Strip's Footage mapping.
   return projector.footage_frame_index_of[projector.gate_strip_index] +
          projection_frame_index - projector.projection_frame_index;
+}
+
+inline std::uint32_t write_projection_footage_spans_to_buffer(
+    const std::uint32_t projection_id, const std::uint32_t start_index,
+    const std::uint32_t end_index) noexcept {
+  Projector &projector = *projectors[projection_id];
+  footage_span_buffer.clear();
+  if (start_index >= end_index || end_index > projector.projection_frame_count)
+    return 0;
+
+  find_strip_index_of(projector, start_index);
+  auto strip_index = projector.gate_strip_index;
+  auto offset = start_index - projector.projection_frame_index;
+  auto projection_index = start_index;
+  while (projection_index < end_index) {
+    const auto frame_count = std::min(
+        projector.get_projected_strip_length(strip_index) - offset,
+        end_index - projection_index);
+    if (frame_count != 0) {
+      footage_span_buffer.write_span(
+          projection_index, projector.footage_frame_index_of[strip_index] + offset,
+          frame_count, 0);
+      projection_index += frame_count;
+    }
+    strip_index = projector.right_strip_index_of[strip_index];
+    offset = 0;
+  }
+  return footage_span_buffer.get_span_count();
 }
 
 }

@@ -7,11 +7,13 @@
  * counts cross the WebAssembly boundary; payload values are never copied or
  * owned by C++. Capacity is retained between writes.
  *
- * Every released range uses two consecutive words:
+ * Every range uses four consecutive words:
  *
  * @code
- * 0  footage_frame_index
- * 1  frame_count
+ * 0  projection_frame_index
+ * 1  footage_frame_index
+ * 2  frame_count
+ * 3  masked
  * @endcode
  */
 #pragma once
@@ -62,8 +64,10 @@ public:
   /**
    * @brief Append one contiguous Footage range.
    *
+   * @param projection_frame_index First affected Projection index.
    * @param footage_frame_index First consumer-owned Footage index in the range.
    * @param frame_count Number of consecutive Footage entries in the range.
+   * @param masked Whether the record describes masked rather than visible content.
    * @post The range count increases by one and prior entry order is preserved.
    * @note Appending may invalidate every previously returned pointer.
    * @complexity Amortized O(1) time and O(1) auxiliary space.

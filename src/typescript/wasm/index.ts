@@ -151,8 +151,9 @@ export function get_recovery_footage_spans(
  * @param sequence_id Active local Projector identifier.
  * @param start_index First visible Projection Frame to include.
  * @param end_index Boundary after the final visible Frame.
- * @returns A zero-copy view of `(footage_frame_index, frame_count)` pairs, or
- * `false` for an empty range.
+ * @returns A zero-copy view of four-word records
+ * `(projection_frame_index, footage_frame_index, frame_count, masked)`, or
+ * `false` for an empty range. Visible range records always have `masked = 0`.
  * @pre The half-open range is valid for the current Projection.
  */
 export function get_projection_footage_spans(
@@ -169,7 +170,7 @@ export function get_projection_footage_spans(
   if (span_count === 0) return false
 
   const span_start = wasm._get_footage_span_buffer_pointer() >>> 2
-  return wasm.HEAPU32.subarray(span_start, span_start + span_count * 2)
+  return wasm.HEAPU32.subarray(span_start, span_start + span_count * 4)
 }
 
 /**

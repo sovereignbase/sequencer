@@ -40,6 +40,13 @@ get_footage_frame_index(const std::uint32_t projection_id,
   return sequencer::get_footage_frame_index(projection_id, projection_frame_index);
 }
 
+EMSCRIPTEN_KEEPALIVE std::uint32_t write_projection_footage_spans_to_buffer(
+    const std::uint32_t projection_id, const std::uint32_t start_index,
+    const std::uint32_t end_index) noexcept {
+  return sequencer::write_projection_footage_spans_to_buffer(
+      projection_id, start_index, end_index);
+}
+
 EMSCRIPTEN_KEEPALIVE std::uint32_t update_projection(
     const std::uint32_t projection_id, const std::uint32_t operation_index,
     const std::uint8_t operation_type, const std::uint32_t operation_length,

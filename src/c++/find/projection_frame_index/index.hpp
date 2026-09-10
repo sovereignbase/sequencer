@@ -32,7 +32,8 @@ find_projection_frame_index_of(Projector &projector,
 
       left_jump_found =
           left_cursor == projector.head_strip_index ||
-          projector.right_jump_strip_index_of[left_cursor] != u32_max;
+          projector.right_jump_strip_index_of[left_cursor] != u32_max ||
+          projector.left_jump_strip_index_of[left_cursor] != u32_max;
     }
 
     if (!right_jump_found) {
@@ -41,7 +42,8 @@ find_projection_frame_index_of(Projector &projector,
 
       right_jump_found =
           right_cursor == projector.tail_strip_index ||
-          projector.left_jump_strip_index_of[right_cursor] != u32_max;
+          projector.left_jump_strip_index_of[right_cursor] != u32_max ||
+          projector.right_jump_strip_index_of[right_cursor] != u32_max;
     }
   }
 

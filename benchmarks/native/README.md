@@ -15,6 +15,18 @@ em++ benchmarks/native/initialize.cpp -std=c++23 -O3 -msimd128 -sENVIRONMENT=nod
 node temp/initialize-benchmark.cjs
 ```
 
+Randomized Find lookup in both directions can be measured separately:
+
+```powershell
+em++ benchmarks/native/find.cpp -std=c++23 -O3 -msimd128 -sENVIRONMENT=node -sSINGLE_FILE=1 -sALLOW_MEMORY_GROWTH=1 -o temp/find-benchmark.cjs
+node temp/find-benchmark.cjs
+```
+
+The Find workload includes Masks and zero-length anchors in 1,000- and
+10,000-Strip projections. Initialization is excluded from timings. Each direction
+warms up with 10,000 queries and reports the median of seven 50,000-query samples.
+This measures lookup only, not insert/merge throughput or full CRDT behavior.
+
 The workload initializes and destroys fresh Projectors from 1,000- and
 10,000-Strip snapshots. Ten percent of each snapshot is pending. Both inserts
 and Masks are present, with two identity Realms and repeated pending dependency
@@ -75,8 +87,20 @@ It tests the existing fragment-masking primitive, not the unfinished standalone
 Mask-Strip materialization in the public update/merge path. `issue` checks local
 insert/Mask counter separation, staging, and continued issuance after hydration.
 
+`before_insert` exercises head, body, and Strip-boundary insertion through
+`apply_left`. It checks that split continuations do not compete with real
+concurrent inserts, that placeholders retain Mask traversal links, and that
+both directions of every maintained jump retain correct frame and Strip counts.
+Concurrent same-anchor inserts are checked in every delivery permutation.
+
+`read` checks single-frame lookup and batched visible ranges, including clipped
+boundaries, noncontiguous Footage, Masks, placeholders, and detached pending
+state. `test/unit/read_adapter.test.ts` separately checks the TypeScript tuple
+contract and four-word transfer layout against a mocked native ABI, including
+replacement of the WASM heap after allocation.
+
 ```powershell
-foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split')) {
+foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'read')) {
   clang++ -std=c++23 -Wall -Wextra -Wpedantic -Werror "test/c++/$test.cpp" -o "temp/$test-test.exe"
   if ($LASTEXITCODE -ne 0) { throw "Compilation failed: $test" }
   & "./temp/$test-test.exe"

@@ -1,8 +1,14 @@
+# Projector
+
+## SequencePoint and Strip model
+
 SequencePoint consists of a unique identifier per realm (`crypto_random_bits` (`u32`) and `unix_lower_bits` (`u32`)). This means that, for one started Sequencer instance, all operations share these values. A third component (`counter_bits` (`u32`)) tracks frames produced per Projector, advancing by content length plus one for each newly issued Strip.
 
 The encoded Strip length is its content length `n`. The zero anchor is logical only: no extra content element or encoded word is allocated for it. The content points are `strip_start + 1` through `strip_start + n`, and containment includes both boundaries `[strip_start, strip_start + n]`. A zero-length Strip therefore still identifies its anchor. The next issued Strip starts at `strip_start + n + 1`.
 
 For simplicity (and maybe laziness), here we will present the UIDs as uppercase characters such as `A` or `B`, and full SequencePoints as, for example, `A9` and `B10`.
+
+## Insertion
 
 ### Example sequence
 
@@ -73,7 +79,7 @@ even though both operations occur at the same apparent boundary.
 
 The same rule applies to internal Strip splits: the split moves forward by one Frame so that the reserved `0` position represents the required `before / after` relationship without ambiguity.
 
-### ### Tie-breaking
+### Tie-breaking
 
 Even with the reserved anchors, two Strips can still have the same `previous_strip_end`.
 
@@ -88,101 +94,6 @@ larger strip_start  <-  smaller strip_start
 Semantically, this makes the larger SequencePoint behave as the later insertion after the same predecessor, without implying that it actually happened later in time.
 
 The ordering is purely deterministic and does not depend on arrival order.
-
-## Acknowledgement and Compaction
-
-Masks have their own Realm identifiers.
-
-For simplicity, we will represent Mask Realms the same way as insert Realms, using uppercase characters such as `M` or `N`.
-
-For example, a Mask Realm may contain:
-
-```text
-M0[0,1,2,3]   M4[0,1]   M6[0,1,2]
-```
-
-To produce an acknowledgement for Realm `M`, the Masks are inspected in `counter_bits` order.
-
-The first Mask must begin at `M0`.
-
-After that, every Mask must continue exactly where the previous one ended:
-
-```text
-M0 + content length 3 + 1 = M4
-M4 + content length 1 + 1 = M6
-```
-
-So this Realm verifies completely:
-
-```text
-M0[0,1,2,3]   M4[0,1]   M6[0,1,2]
-```
-
-and its final frontier can be acknowledged.
-
-If instead the Realm looked like:
-
-```text
-M0[0,1,2,3]   M5[0,1]   M7[0,1,2]
-```
-
-then `M4` is missing.
-
-The Realm does not verify completely, so no acknowledgement is produced for Realm `M`.
-
-An acknowledgement therefore means that the complete Mask Realm is known without gaps from `0` to its final frontier.
-
-### Compaction
-
-A Mask Realm can be compacted only when every Actor has acknowledged the same final frontier for that Realm.
-
-For example, suppose an insert structure contains:
-
-```text
-A4 ... A8 ... B3
-```
-
-and Mask Realm `M` contains Masks that remove the structure between the surviving SequencePoints.
-
-Before compaction, the surviving structure may still be causally anchored through those Masks:
-
-```text
-A4 -> M0 -> M4 -> B3
-```
-
-Once Realm `M` has been acknowledged with the same final frontier by every Actor, those Masks can be removed.
-
-The causality is then reattached through the removed Mask chain:
-
-```text
-before:
-
-A4 -> M0 -> M4 -> B3
-
-after:
-
-A4 -> B3
-```
-
-`B3` receives the causality that existed immediately before the removed Mask chain.
-
-The same applies when only one Mask exists:
-
-```text
-before:
-
-A7 -> M0 -> B2
-
-after:
-
-A7 -> B2
-```
-
-Because every Actor compacts the same fully acknowledged Mask Realm, they remove the same Masks and perform the same reattachment.
-
-Compaction is therefore deterministic and idempotent.
-
-The application is responsible for collecting acknowledgements from all Actors, distributing the collected acknowledgements to every Actor, and providing them as input to compaction.
 
 ## Mask
 
@@ -273,10 +184,9 @@ The search starts from whichever known position is closest to the requested inde
 For example:
 
 ```text
-Head                           Gate                         Tail
- |                              |                            |
- v                              v                            v
-
+Head                           Gate                          Tail
+ |                              |                             |
+ v                              v                             v
 A0[...] -> B0[...] -> C0[...] -> D0[...] -> E0[...] -> F0[...]
 ```
 
@@ -364,7 +274,6 @@ The snapshot contains the materialized Projection first, already encoded in its 
 
 ```text
 materialized Projection                         pending
-
 A0[...] -> B0[...] -> C0[...] -> D0[...]      P0[...] P1[...]
 ```
 
@@ -385,9 +294,9 @@ and writes every linked Strip in that exact order.
 References such as split and competitor links are translated from internal Strip indices into snapshot-local Projection indices.
 
 The same native traversal writes Footage spans alongside the Projection buffer.
-TypeScript copies both results before another operation can reuse the buffers
-and packs the referenced Footage into a new array in snapshot order. This
-includes materialized Masks' soft-deleted content, not just visible Frames.
+
+TypeScript copies both results before another operation can reuse the buffers and packs the referenced Footage into a new array in snapshot order. This includes materialized Masks' soft-deleted content, not just visible Frames.
+
 Hard-deleted values remain `undefined` without shifting retained Frame positions.
 
 After the complete materialized Projection has been written, pending Strips are appended:
@@ -396,11 +305,7 @@ After the complete materialized Projection has been written, pending Strips are 
 [ ordered materialized Strips ][ pending Strips ]
 ```
 
-Pending insert Footage follows the materialized Footage in the same order as
-the appended pending Strips. Unresolved pending Mask commands do not yet own
-their target content and contribute no Footage. Initialization reconstructs
-Footage positions for every materialized Strip, including Masks, and then for
-pending inserts. Only unmasked materialized Strips contribute visible Frames.
+Pending insert Footage follows the materialized Footage in the same order as the appended pending Strips. Unresolved pending Mask commands do not yet own their target content and contribute no Footage. Initialization reconstructs Footage positions for every materialized Strip, including Masks, and then for pending inserts. Only unmasked materialized Strips contribute visible Frames.
 
 The resulting `TrustedSnapshot` must be stored reliably by the application. Its ordering and contents are trusted during initialization.
 
@@ -413,7 +318,7 @@ For example:
 ```text
 snapshot:
 
-A0[...]  B0[...]  C0[...]  D0[...]  P0[...]  P1[...]
+A0[...]  B0[...]  C0[...]  D0[...]  P0[...] P1[...]
 |-----------------------------|     |-------------|
         materialized                 pending
 ```
@@ -457,11 +362,9 @@ They are not linked into the Projection:
 
 ```text
 materialized:
-
 A0[...] -> B0[...] -> C0[...]
 
 pending:
-
 P0[...]
 P1[...]
 ```
@@ -545,3 +448,94 @@ SequencePoints + causality -> derive order
 ```
 
 The same incoming state can therefore be merged in any arrival order and still resolve to the same Projection.
+
+## Acknowledgement and Compaction
+
+Masks have their own Realm identifiers.
+
+For simplicity, we will represent Mask Realms the same way as insert Realms, using uppercase characters such as `M` or `N`.
+
+For example, a Mask Realm may contain:
+
+```text
+M0[0,1,2,3]   M4[0,1]   M6[0,1,2]
+```
+
+To produce an acknowledgement for Realm `M`, the Masks are inspected in `counter_bits` order.
+
+The first Mask must begin at `M0`.
+
+After that, every Mask must continue exactly where the previous one ended:
+
+```text
+M0 + content length 3 + 1 = M4
+M4 + content length 1 + 1 = M6
+```
+
+So this Realm verifies completely:
+
+```text
+M0[0,1,2,3]   M4[0,1]   M6[0,1,2]
+```
+
+and its final frontier can be acknowledged.
+
+If instead the Realm looked like:
+
+```text
+M0[0,1,2,3]   M5[0,1]   M7[0,1,2]
+```
+
+then `M4` is missing.
+
+The Realm does not verify completely, so no acknowledgement is produced for Realm `M`.
+
+An acknowledgement therefore means that the complete Mask Realm is known without gaps from `0` to its final frontier.
+
+### Compaction
+
+A Mask Realm can be compacted only when every Actor has acknowledged the same final frontier for that Realm.
+
+For example, suppose an insert structure contains:
+
+```text
+A4 ... A8 ... B3
+```
+
+and Mask Realm `M` contains Masks that remove the structure between the surviving SequencePoints.
+
+Before compaction, the surviving structure may still be causally anchored through those Masks:
+
+```text
+A4 -> M0 -> M4 -> B3
+```
+
+Once Realm `M` has been acknowledged with the same final frontier by every Actor, those Masks can be removed.
+
+The causality is then reattached through the removed Mask chain:
+
+```text
+before:
+A4 -> M0 -> M4 -> B3
+
+after:
+A4 -> B3
+```
+
+`B3` receives the causality that existed immediately before the removed Mask chain.
+
+The same applies when only one Mask exists:
+
+```text
+before:
+A7 -> M0 -> B2
+
+after:
+A7 -> B2
+```
+
+Because every Actor compacts the same fully acknowledged Mask Realm, they remove the same Masks and perform the same reattachment.
+
+Compaction is therefore deterministic and idempotent.
+
+The application is responsible for collecting acknowledgements from all Actors, distributing the collected acknowledgements to every Actor, and providing them as input to compaction.

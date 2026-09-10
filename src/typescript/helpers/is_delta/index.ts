@@ -3,7 +3,7 @@
  *
  * @module
  */
-import type { Strip } from '../../types/type.js'
+import type { Delta } from '../../types/type.js'
 import { is_uint32 } from '../is_uint32/index.js'
 
 /**
@@ -19,28 +19,15 @@ import { is_uint32 } from '../is_uint32/index.js'
  * @remarks This checks the transfer shape only. Native materialization resolves
  * coordinate containment and dependency availability.
  */
-export function is_strip<T>(data: unknown): data is Strip<T> {
+export function is_delta<T>(data: unknown): data is Delta<T> {
   if (!Array.isArray(data) || data.length < 1 || data.length > 2) return false
 
-  const meta = data[0]
+  const projection = data[0]
   const footage = data[1]
 
   return (
-    Array.isArray(meta) &&
-    meta.length === 9 &&
-    is_uint32(meta[0]) &&
-    is_uint32(meta[1]) &&
-    is_uint32(meta[2]) &&
-    is_uint32(meta[3]) &&
-    is_uint32(meta[4]) &&
-    is_uint32(meta[5]) &&
-    is_uint32(meta[6]) &&
-    is_uint32(meta[7]) &&
-    is_uint32(meta[8]) &&
-    ((meta[0] !== 0 && footage === undefined) ||
-      (meta[0] === 0 &&
-        Array.isArray(footage) &&
-        footage.length > 0 &&
-        footage.length === meta[2]))
+    Array.isArray(projection) &&
+    projection.every(is_uint32) &&
+    Array.isArray(footage)
   )
 }

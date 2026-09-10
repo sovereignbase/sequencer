@@ -3,11 +3,18 @@
 #include "../../src/c++/algorithms/read.hpp"
 #include "../../src/c++/algorithms/buffers.hpp"
 #include "../../src/c++/algorithms/acknowledge.hpp"
+#include "../../src/c++/algorithms/update.hpp"
 #include "../../src/c++/.auxiliary/stage_strip/index.hpp"
 #include "../../src/c++/apply/mask/index.hpp"
 #include <emscripten/emscripten.h>
 
 extern "C" {
+
+EMSCRIPTEN_KEEPALIVE std::uint32_t update_projection(
+    std::uint32_t projection_id, std::uint32_t index, std::uint8_t type,
+    std::uint32_t length, std::uint32_t footage_index) {
+  return sequencer::update_projection(projection_id, index, type, length, footage_index);
+}
 
 EMSCRIPTEN_KEEPALIVE void clear_projection_buffer() {
   return sequencer::clear_projection_buffer();

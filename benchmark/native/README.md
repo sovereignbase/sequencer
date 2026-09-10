@@ -150,6 +150,13 @@ and host-output clearing for all three buffer types.
 `test/unit/buffer_lifecycle.test.ts` covers the adapter-side lifetime, including
 compaction's transfer contract with a mocked native consumer, not GC semantics.
 
+The same bridge exercises the public TypeScript `insert` through native update:
+birth, head/body/tail insertion, 100 edits with periodic snapshot restoration,
+and insertion into masked-only or pending-only states. The separate
+`test/unit/insert_adapter.test.ts` checks rejection, buffer consumption, memory
+growth, array ownership, and large input batches. These are local-edit tests,
+not multi-replica convergence tests.
+
 ```powershell
 foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'after_insert', 'birth_insert', 'update', 'read', 'transfer_buffers')) {
   clang++ -std=c++23 -Wall -Wextra -Wpedantic -Werror "test/c++/$test.cpp" -o "temp/$test-test.exe"

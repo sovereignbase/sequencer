@@ -1,47 +1,36 @@
 /**
- * Point-issuing visible insertion operations.
+ * Point-issuing visible insertion through the native update path.
  *
  * @module
  */
-import { is_safe_index, issue_virtual_strip } from '../../../helpers/index.js'
-import type { Delta, Replica } from '../../../types/type.js'
+import { is_safe_index } from '../../helpers/is_safe_index/index.js'
+import type { Delta, Replica } from '../../types/type.js'
 import {
   get_projection_frame_count,
-  merge_strip_into_sequence,
-  read_strip_from_buffer,
-  write_strip_at_projection_frame_index_to_buffer,
-} from '../../../wasm/index.js'
+  no_projection_frame_index,
+  wasm,
+} from '../../wasm/index.js'
 
 /**
  * Inserts values at one visible Projection index.
  *
- * The inserted values begin at `index`. Any value previously visible at that
- * index, together with all following visible values, shifts right by
- * `values.length` Frames.
+ * Native update issues the Strip and handles birth, before, or tail placement.
+ * The returned Delta contains its flat ten-word encoding and an independent
+ * Footage array. Consumer values are not deep-cloned.
  *
- * Every successful call issues and returns one contiguous visible Strip.
- *
- * Insertion before an existing Frame uses inverse placement. Insertion at
- * Projection end references the final visible Frame and uses forward placement.
- * The first insertion stages its Strip and initializes the sentinel-free native
- * Projection through Initial Projection Resolution.
- *
- * @typeParam T Consumer-owned value represented by one Frame.
  * @param state Replica to modify.
- * @param index Zero-based visible index at which insertion begins. The
- * Projection end is also a valid insertion position.
- * @param values Non-empty contiguous values to insert.
- * @returns The transferable Delta, or `false` when `values` or `index` is
- * invalid.
+ * @param index Insertion position, including the current Projection end.
+ * @param values Nonempty contiguous values to insert.
+ * @returns The issued Delta, or false for invalid input or rejected issuance.
+ * @remarks Reads and releases the native result buffer synchronously. Rejected
+ * issuance leaves JavaScript Footage unchanged.
  */
 export function insert<T>(
   state: Replica<T>,
   index: number,
   values: Array<T>
 ): Delta<T> | false {
-  const projection_frame_count = get_projection_frame_count(state.id)
-
-  // Validate inserted values and the requested Projection position.
+  const projection_frame_count = get_projection_frame_count(state[0])
   if (
     !Array.isArray(values) ||
     values.length === 0 ||
@@ -49,47 +38,28 @@ export function insert<T>(
   )
     return false
 
-  // Cache Frame count.
+  const tail = projection_frame_count !== 0 && index === projection_frame_count
+  const footage_start = state[1].length
   const frame_count = values.length
-
-  // First insert fast path
-  if (projection_frame_count === 0) {
-    const meta = issue_virtual_strip<T>(
-      0,
-      1,
+  const position =
+    wasm._update_projection(
+      state[0],
+      tail ? index - 1 : index,
+      tail ? 1 : 0,
       frame_count,
-      0,
-      0,
-      0,
-      state.footage.length
-    )
-    void state.footage.push(...values)
-    void merge_strip_into_sequence(state.id, 0)
-    return [[meta, values]]
-  }
+      footage_start
+    ) >>> 0
+  if (position === no_projection_frame_index) return false
 
-  const is_inverse = index === 0 ? 1 : 0
-  const containing_frame_index = index - Number(is_inverse === 0)
-  const footage_frame_index = write_strip_at_projection_frame_index_to_buffer(
-    state.id,
-    containing_frame_index
+  const buffer_start = wasm._get_projection_buffer_pointer() >>> 2
+  const projection = Array.from(
+    wasm.HEAPU32.subarray(buffer_start, buffer_start + 10)
   )
-  const containing_strip = read_strip_from_buffer<T>()
+  wasm._clear_projection_buffer()
 
-  // Derive the inserted point from the containing Strip.
-  const strip_frame_offset = footage_frame_index - containing_strip[9]!
-
-  const meta = issue_virtual_strip<T>(
-    0,
-    is_inverse,
-    frame_count,
-    containing_strip[3],
-    containing_strip[4],
-    containing_strip[5] + strip_frame_offset,
-    state.footage.length
-  )
-
-  void state.footage.push(...values)
-  void merge_strip_into_sequence(state.id, containing_frame_index)
-  return [[meta, values]]
+  const footage = values.slice()
+  state[1].length = footage_start + frame_count
+  for (let frame = 0; frame < frame_count; ++frame)
+    state[1][footage_start + frame] = footage[frame]
+  return [projection, footage]
 }

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { create } from '../../src/typescript/algorithms/create/index.js'
+import { insert } from '../../src/typescript/algorithms/insert/index.js'
 import { recover } from '../../src/typescript/algorithms/recover/index.js'
 import { acknowledge } from '../../src/typescript/algorithms/acknowledge/index.js'
 import { snapshot } from '../../src/typescript/algorithms/snapshot/index.js'
@@ -139,4 +140,41 @@ assert.deepEqual(values(masked), [])
 assert.deepEqual(snapshot(masked)[1], ['x', 'y', 'z'])
 console.log(
   'Snapshot WASM/TypeScript round trip passed (soft/hard, pending, empty).'
+)
+
+let editing = create<string>()
+const first_delta = insert(editing, 0, ['a', 'b', 'c'])
+assert.notEqual(first_delta, false)
+if (!first_delta) throw new Error('birth insert rejected')
+assert.equal(first_delta[0].length, 10)
+assert.equal(first_delta[0][0], 0)
+assert.equal(first_delta[0][1], 3)
+assert.deepEqual(values(create<string>(first_delta)), ['a', 'b', 'c'])
+let expected = ['a', 'b', 'c']
+for (let edit = 0; edit < 100; ++edit) {
+  const position =
+    edit % 3 === 0 ? expected.length : (edit * 7) % (expected.length + 1)
+  const text = [String(edit), '!']
+  const delta = insert(editing, position, text)
+  assert.notEqual(delta, false)
+  if (!delta) throw new Error('insert rejected')
+  assert.equal(delta[0][0], position === expected.length ? 1 : 0)
+  assert.equal(delta[0][1], text.length)
+  assert.deepEqual(delta[1], text)
+  assert.equal(native._get_projection_buffer_word_count(), 0)
+  expected.splice(position, 0, ...text)
+  assert.deepEqual(values(editing), expected)
+  if (edit % 20 === 0) {
+    editing = create<string>(snapshot(editing))
+    assert.deepEqual(values(editing), expected)
+  }
+}
+for (const state of [masked, pending, pending_mask]) {
+  assert.notEqual(insert(state, 0, ['X']), false)
+  assert.deepEqual(values(state), ['X'])
+  const restored = create<string>(snapshot(state))
+  assert.deepEqual(values(restored), ['X'])
+}
+console.log(
+  'Public insert WASM/TypeScript path passed (birth, head, body, tail, hydration).'
 )

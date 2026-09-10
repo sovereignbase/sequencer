@@ -8,7 +8,6 @@ inline std::uint32_t
 acknowledge_projection(const std::uint32_t projection_id) noexcept {
   const Projector &projector = *projectors[projection_id];
 
-  sequence_point_buffer.clear();
   projector.containment_table.for_each_realm(
       [&](SequencePoint frontier, const auto entries) noexcept {
         for (const auto &entry : entries) {

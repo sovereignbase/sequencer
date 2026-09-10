@@ -17,7 +17,8 @@ import { wasm } from '../../wasm/index.js'
  * @param state Replica whose complete retained state is captured.
  * @returns A trusted snapshot with snapshot-local links and packed Footage.
  * @remarks Issues no SequencePoints and does not change the source Footage.
- * Array storage is copied; consumer-owned values are not deep-cloned.
+ * Array storage is copied; consumer-owned values are not deep-cloned. Both
+ * transfer buffers are cleared after their contents have been consumed.
  */
 export function snapshot<T>(state: Replica<T>): Delta<T> {
   wasm._snapshot_projection(state[0])
@@ -47,5 +48,7 @@ export function snapshot<T>(state: Replica<T>): Delta<T> {
     )
       footage[result_index++] = state[1][footage_index] as T
   }
+  wasm._clear_projection_buffer()
+  wasm._clear_footage_span_buffer()
   return [projection, footage]
 }

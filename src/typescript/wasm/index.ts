@@ -9,7 +9,7 @@ import type { Acknowledgement, VirtualStrip } from '../types/type.js'
 /** Synchronously initialized native Sequencer module shared by this adapter. */
 export const wasm = create_module()
 
-/** Stable unsigned-word index of the shared ten-word StripBuffer. */
+/** Legacy initial buffer offset; transfers reacquire their current pointers. */
 export const strip_buffer_start_index = wasm._get_strip_buffer_pointer() >>> 2
 
 /** Native sentinel indicating that a merged Strip has no Projection position. */
@@ -19,15 +19,15 @@ export const no_projection_frame_index = 0xffff_ffff
  * Copies the flattened Virtual Strip from the shared WebAssembly transfer
  * buffer into a new tuple.
  *
- * Later writes to the transfer buffer cannot mutate the returned tuple.
+ * The reader releases the buffer after copying the tuple.
  *
  * @returns The copied Virtual Strip.
  */
 export function read_strip_from_buffer<T>(): VirtualStrip<T> {
+  const start = wasm._get_strip_buffer_pointer() >>> 2
   const buffer = wasm.HEAPU32
-  const start = strip_buffer_start_index
 
-  return [
+  const strip: VirtualStrip<T> = [
     buffer[start],
     buffer[start + 1],
     buffer[start + 2],
@@ -39,6 +39,8 @@ export function read_strip_from_buffer<T>(): VirtualStrip<T> {
     buffer[start + 8],
     buffer[start + 9],
   ]
+  wasm._clear_projection_buffer()
+  return strip
 }
 
 /**
@@ -49,8 +51,8 @@ export function read_strip_from_buffer<T>(): VirtualStrip<T> {
  * @param strip Virtual Strip to transfer.
  */
 export function write_strip_to_buffer<T>(strip: VirtualStrip<T>): void {
+  const start = wasm._prepare_projection_buffer(1) >>> 2
   const buffer = wasm.HEAPU32
-  const start = strip_buffer_start_index
 
   buffer[start] = strip[0]
   buffer[start + 1] = strip[1]
@@ -69,14 +71,16 @@ export function write_strip_to_buffer<T>(strip: VirtualStrip<T>): void {
 }
 
 /**
- * Initializes an empty native Projector.
+ * Consumes the prepared Projection buffer into a fresh native Projector.
+ *
+ * Without an input write, the already-consumed buffer is empty.
  *
  * @returns Its local identifier, stable until `clear_sequence` releases the
  * Projector. A later initialization may reuse a released identifier.
  */
 export function initialize_sequence(): number {
   // Allocate or reuse one native Projector registry slot.
-  return wasm._initialize_sequence() >>> 0
+  return wasm._initialize_projection() >>> 0
 }
 
 /**
@@ -88,7 +92,7 @@ export function initialize_sequence(): number {
  */
 export function clear_sequence(sequence_id: number): void {
   // Release the selected native Projector registry slot.
-  void wasm._clear_sequence(sequence_id)
+  void wasm._clear_projection(sequence_id)
 }
 
 /**
@@ -122,9 +126,8 @@ export function get_footage_frame_index(
 /**
  * Writes every materialized Strip's Footage span in structural Sequence order.
  *
- * The returned view contains `(footage_frame_index, frame_count)` pairs and is
- * valid only until another WebAssembly call rewrites or moves the shared
- * Footage-span buffer.
+ * The returned view contains four-word Footage Span records. The synchronous
+ * caller clears the Footage Span buffer immediately after consuming the view.
  *
  * @param sequence_id Active local Projector identifier.
  * @returns A zero-copy view of ordered Footage spans, or `false` when the
@@ -135,18 +138,21 @@ export function get_recovery_footage_spans(
 ): Uint32Array | false {
   const span_count =
     wasm._write_recovery_footage_spans_to_buffer(sequence_id) >>> 0
-  if (span_count === 0) return false
+  if (span_count === 0) {
+    wasm._clear_footage_span_buffer()
+    return false
+  }
 
   const span_start = wasm._get_footage_span_buffer_pointer() >>> 2
-  return wasm.HEAPU32.subarray(span_start, span_start + span_count * 2)
+  return wasm.HEAPU32.subarray(span_start, span_start + span_count * 4)
 }
 
 /**
  * Returns ordered Footage Spans for one visible Projection range.
  *
  * Native traversal clips boundary Strips and omits Masks. The returned view is
- * valid only until another Wasm operation rewrites or grows the shared Footage
- * Span Buffer.
+ * consumed synchronously; the caller then clears the shared Footage Span
+ * buffer before invoking another operation.
  *
  * @param sequence_id Active local Projector identifier.
  * @param start_index First visible Projection Frame to include.
@@ -167,7 +173,10 @@ export function get_projection_footage_spans(
       start_index,
       end_index
     ) >>> 0
-  if (span_count === 0) return false
+  if (span_count === 0) {
+    wasm._clear_footage_span_buffer()
+    return false
+  }
 
   const span_start = wasm._get_footage_span_buffer_pointer() >>> 2
   return wasm.HEAPU32.subarray(span_start, span_start + span_count * 4)
@@ -260,7 +269,7 @@ export function resolve_initial_projection(sequence_id: number): void {
 
 /** Stages the buffered Strip for Initial Projection Resolution. */
 export function stage_strip(sequence_id: number): boolean {
-  return (wasm._stage_strip(sequence_id) >>> 0) !== no_projection_frame_index
+  return wasm._stage_strip(sequence_id) >>> 0 !== no_projection_frame_index
 }
 
 /**
@@ -268,28 +277,32 @@ export function stage_strip(sequence_id: number): boolean {
  *
  * @param sequence_id Active local Projector identifier.
  * @returns Flat Realm triples with exclusive, gap-free Mask frontiers, or
- * `false` when no Mask Realm verifies.
+ * `false` when no Mask Realm verifies. The reader clears the native buffer
+ * before returning.
  */
 export function get_acknowledgement_frontier(
   sequence_id: number
 ): Acknowledgement | false {
-  const frontier_count: number =
-    wasm._acknowledge_projection(sequence_id) >>> 0
-  if (frontier_count === 0) return false
+  const frontier_count: number = wasm._acknowledge_projection(sequence_id) >>> 0
+  if (frontier_count === 0) {
+    wasm._clear_sequence_point_buffer()
+    return false
+  }
 
   const buffer_index =
     wasm._get_acknowledgement_sequence_point_buffer_pointer() >>> 2
-  return Array.from(
+  const frontier = Array.from(
     wasm.HEAPU32.subarray(buffer_index, buffer_index + frontier_count * 3)
   )
+  wasm._clear_sequence_point_buffer()
+  return frontier
 }
 
 /**
  * Resolves Footage covered by a selected realm-indexed Frontier.
  *
- * The returned view contains `(footage_frame_index, frame_count)` pairs and is
- * valid only until another WebAssembly call rewrites or moves the shared
- * Footage-span buffer.
+ * The returned view contains four-word Footage Span records. The synchronous
+ * caller clears the Footage Span buffer immediately after consuming the view.
  *
  * @param sequence_id Active local Projector identifier.
  * @param frontier Selected compaction boundary for each included Realm.
@@ -304,25 +317,23 @@ export function compact_sequence(
   if (frontier.length === 0) return false
 
   // Prepare zero-copy input memory for the selected Frontier.
-  let buffer_index =
-    wasm._prepare_compaction_frontier_buffer(frontier.length) >>> 2
+  const buffer_index =
+    wasm._prepare_compaction_sequence_point_buffer(frontier.length / 3) >>> 2
   const buffer = wasm.HEAPU32
 
   // Encode every selected Realm boundary in native lane order.
-  for (const [crypto_random_bits, unix_lower_bits, counter_bits] of frontier) {
-    buffer[buffer_index] = crypto_random_bits
-    buffer[buffer_index + 1] = unix_lower_bits
-    buffer[buffer_index + 2] = counter_bits
-    buffer_index += 3
-  }
+  buffer.set(frontier, buffer_index)
 
   // Resolve covered native Mask Footage and the released-span count.
-  const span_count = wasm._compact_sequence(sequence_id) >>> 0
-  if (span_count === 0) return false
+  const span_count = wasm._compact_projection(sequence_id) >>> 0
+  if (span_count === 0) {
+    wasm._clear_footage_span_buffer()
+    return false
+  }
 
   // Return a zero-copy view over the latest Footage-span result.
   const span_start = wasm._get_footage_span_buffer_pointer() >>> 2
-  return wasm.HEAPU32.subarray(span_start, span_start + span_count * 2)
+  return wasm.HEAPU32.subarray(span_start, span_start + span_count * 4)
 }
 
 /**

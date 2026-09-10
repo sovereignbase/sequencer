@@ -15,6 +15,28 @@
 
 extern "C" {
 
+EMSCRIPTEN_KEEPALIVE void clear_projection_buffer() noexcept {
+  return sequencer::clear_projection_buffer();
+}
+
+EMSCRIPTEN_KEEPALIVE void clear_footage_span_buffer() noexcept {
+  return sequencer::clear_footage_span_buffer();
+}
+
+EMSCRIPTEN_KEEPALIVE void clear_sequence_point_buffer() noexcept {
+  return sequencer::clear_sequence_point_buffer();
+}
+
+EMSCRIPTEN_KEEPALIVE std::uint32_t write_recovery_footage_spans_to_buffer(
+    const std::uint32_t projection_id) noexcept {
+  return sequencer::write_recovery_footage_spans_to_buffer(projection_id);
+}
+
+EMSCRIPTEN_KEEPALIVE std::uint32_t *prepare_projection_buffer(
+    const std::uint32_t strip_count) noexcept {
+  return sequencer::prepare_projection_buffer(strip_count);
+}
+
 EMSCRIPTEN_KEEPALIVE std::uint32_t *get_projection_buffer_pointer() noexcept {
   return sequencer::get_projection_buffer_pointer();
 }

@@ -268,6 +268,14 @@ This keeps Projection lookup independent from the total accumulated history and 
 
 ## Initialization and Snapshotting
 
+All transfer buffers follow the same synchronous lifecycle: write, consume,
+then clear or release. The reader finishes consuming each buffer before the
+next operation starts. Native input readers can take ownership of the storage;
+TypeScript output readers clear it after copying values or processing borrowed
+spans. A borrowed pointer alone is not a completed read. The next writer does
+not clean up the previous result. This applies to Projection, FootageSpan, and
+SequencePoint buffers alike.
+
 A `TrustedSnapshot` stores the complete state required to reconstruct a Projection without replaying its history.
 
 The snapshot contains the materialized Projection first, already encoded in its final structural order, followed by any pending Strips:

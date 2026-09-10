@@ -6,6 +6,24 @@
 
 namespace sequencer {
 
+inline std::uint32_t write_recovery_footage_spans_to_buffer(
+    const std::uint32_t projection_id) noexcept {
+  const Projector &projector = *projectors[projection_id];
+  std::uint32_t projection_index = 0;
+  for (auto strip_index = projector.head_strip_index; strip_index != u32_max;
+       strip_index = projector.right_strip_index_of[strip_index]) {
+    const auto frame_count = projector.strip_length_of[strip_index];
+    const bool masked = projector.strip_type_of[strip_index] == 2;
+    if (frame_count != 0)
+      footage_span_buffer.write_span(
+          projection_index, projector.footage_frame_index_of[strip_index],
+          frame_count, masked);
+    if (!masked)
+      projection_index += frame_count;
+  }
+  return footage_span_buffer.get_span_count();
+}
+
 inline std::uint32_t
 get_projection_frame_count(const std::uint32_t projection_id) noexcept {
   // Read the materialized Projection length directly.
@@ -28,7 +46,6 @@ inline std::uint32_t write_projection_footage_spans_to_buffer(
     const std::uint32_t projection_id, const std::uint32_t start_index,
     const std::uint32_t end_index) noexcept {
   Projector &projector = *projectors[projection_id];
-  footage_span_buffer.clear();
   if (start_index >= end_index || end_index > projector.projection_frame_count)
     return 0;
 

@@ -6,6 +6,7 @@ const native = vi.hoisted(() => ({
   _get_strip_buffer_pointer: () => 0,
   _acknowledge_projection: vi.fn(),
   _get_acknowledgement_sequence_point_buffer_pointer: vi.fn(),
+  _clear_sequence_point_buffer: vi.fn(),
 }))
 
 vi.mock('../../src/typescript/wasm/raw/sequencer_wasm.mjs', () => ({
@@ -19,11 +20,16 @@ describe('acknowledgement transfer', () => {
     native.HEAPU32 = new Uint32Array(32)
     native._acknowledge_projection.mockReset()
     native._get_acknowledgement_sequence_point_buffer_pointer.mockReset()
+    native._clear_sequence_point_buffer.mockReset()
+    native._clear_sequence_point_buffer.mockImplementation(() => {
+      native.HEAPU32.fill(0)
+    })
   })
 
   it('returns false when no Mask Realm verifies', () => {
     native._acknowledge_projection.mockReturnValue(0)
     expect(acknowledge([7, []])).toBe(false)
+    expect(native._clear_sequence_point_buffer).toHaveBeenCalledTimes(1)
     expect(native._acknowledge_projection).toHaveBeenCalledWith(7)
     expect(
       native._get_acknowledgement_sequence_point_buffer_pointer
@@ -34,8 +40,11 @@ describe('acknowledgement transfer', () => {
     const state: Replica<string> = [12, ['retained', undefined]]
     native.HEAPU32.set([0xffff_ffff, 22, 9, 33, 44, 10], 4)
     native._acknowledge_projection.mockReturnValue(2)
-    native._get_acknowledgement_sequence_point_buffer_pointer.mockReturnValue(16)
+    native._get_acknowledgement_sequence_point_buffer_pointer.mockReturnValue(
+      16
+    )
     const frontier = acknowledge(state)
+    expect(native._clear_sequence_point_buffer).toHaveBeenCalledTimes(1)
     expect(frontier).toEqual([0xffff_ffff, 22, 9, 33, 44, 10])
     expect(native._acknowledge_projection).toHaveBeenCalledWith(12)
     native.HEAPU32.fill(0)
@@ -49,7 +58,9 @@ describe('acknowledgement transfer', () => {
       native.HEAPU32.set([91, 92, 93], 64)
       return 1
     })
-    native._get_acknowledgement_sequence_point_buffer_pointer.mockReturnValue(256)
+    native._get_acknowledgement_sequence_point_buffer_pointer.mockReturnValue(
+      256
+    )
     expect(acknowledge([3, []])).toEqual([91, 92, 93])
   })
 })

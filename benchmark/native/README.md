@@ -107,7 +107,7 @@ buffer copies, released slots, and heap replacement against a mocked ABI.
 
 The following isolated bridge compiles the current snapshot, initialization,
 read, and fragment-masking implementations into fresh WASM and runs the actual
-TypeScript `snapshot` and `values` functions against it:
+TypeScript `create`, `snapshot`, and `values` functions against it:
 
 ```powershell
 em++ test/c++/snapshot_bridge.cpp -std=c++23 -O2 -msimd128 --no-entry -sMODULARIZE=1 -sWASM_ASYNC_COMPILATION=0 -sENVIRONMENT=node -sSINGLE_FILE=1 -sALLOW_MEMORY_GROWTH=1 '-sEXPORTED_RUNTIME_METHODS=["HEAPU32"]' -o temp/snapshot-bridge.cjs
@@ -116,12 +116,23 @@ node test/wasm/run-snapshot.mjs
 
 This tests a soft-masked split, released Footage slots, masked-only and
 pending-only states, empty snapshots, and snapshot/hydration round trips.
+Creation uses the production buffer-preparation and initialization exports,
+including creating an empty Replica immediately after another Replica's
+snapshot. `test/unit/create_adapter.test.ts` separately checks trusted buffer
+transfer, heap replacement, Footage ownership, and the native release adapter.
 The runner applies the same synchronous Emscripten factory normalization as
 the production build. It does not replace the checked-in WASM artifact or
 claim that the unfinished public remove/merge/compaction paths work.
 
+The bridge also verifies that `snapshot`, `values`, `recover`, and
+`acknowledge` leave their transfer buffers empty immediately on return,
+including empty results. `transfer_buffers` covers native input consumption
+and host-output clearing for all three buffer types.
+`test/unit/buffer_lifecycle.test.ts` covers the adapter-side lifetime, including
+compaction's transfer contract with a mocked native consumer, not GC semantics.
+
 ```powershell
-foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'read')) {
+foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'read', 'transfer_buffers')) {
   clang++ -std=c++23 -Wall -Wextra -Wpedantic -Werror "test/c++/$test.cpp" -o "temp/$test-test.exe"
   if ($LASTEXITCODE -ne 0) { throw "Compilation failed: $test" }
   & "./temp/$test-test.exe"

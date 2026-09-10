@@ -21,6 +21,7 @@ std::vector<SequencePoint> acknowledge(const std::uint32_t projection_id) {
   std::vector<SequencePoint> result;
   for (std::uint32_t index = 0; index < count; ++index)
     result.push_back(sequencer::sequence_point_buffer.read_sequence_point(index));
+  sequencer::sequence_point_buffer.clear();
   std::sort(result.begin(), result.end());
   return result;
 }
@@ -36,6 +37,7 @@ void check(const std::vector<EncodedStrip> &strips,
   assert(acknowledge(projection_id) == expected);
   sequencer::snapshot_projection(projection_id);
   const auto restored_id = sequencer::initialize_projection();
+  sequencer::footage_span_buffer.clear();
   assert(acknowledge(restored_id) == expected);
   sequencer::clear_projection(restored_id);
   sequencer::clear_projection(projection_id);

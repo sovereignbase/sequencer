@@ -6,8 +6,8 @@ namespace sequencer {
 
 inline std::uint32_t
 compact_projection(const std::uint32_t projection_id) noexcept {
+  const auto frontiers = sequence_point_buffer.read_buffer();
   const Projector &projector = *projectors[projection_id];
-  footage_span_buffer.clear();
   if (projector.structural_root_strip_index == u32_max)
     return 0;
 
@@ -18,10 +18,11 @@ compact_projection(const std::uint32_t projection_id) noexcept {
     if (strip.is_masked != 0) {
       const SequencePoint &point = strip.coordinate.this_strip_start;
       for (std::uint32_t frontier_index = 0;
-           frontier_index < sequence_point_buffer.get_frontier_count();
+           frontier_index < frontiers.size() / 3;
            ++frontier_index) {
-        const SequencePoint frontier =
-            sequence_point_buffer.read_frontier(frontier_index);
+        const SequencePoint frontier{frontiers[frontier_index * 3],
+                                     frontiers[frontier_index * 3 + 1],
+                                     frontiers[frontier_index * 3 + 2]};
         if (frontier.crypto_random_bits == point.crypto_random_bits &&
             frontier.unix_lower_bits == point.unix_lower_bits &&
             frontier.counter_bits >= point.counter_bits) {

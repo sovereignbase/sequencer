@@ -8,6 +8,7 @@ const native = vi.hoisted(() => ({
   _get_footage_frame_index: vi.fn(),
   _write_projection_footage_spans_to_buffer: vi.fn(),
   _get_footage_span_buffer_pointer: vi.fn(),
+  _clear_footage_span_buffer: vi.fn(),
 }))
 
 vi.mock('../../src/typescript/wasm/raw/sequencer_wasm.mjs', () => ({
@@ -40,6 +41,9 @@ describe('Projection read adapters', () => {
       ],
     ]
     native.HEAPU32 = new Uint32Array(64)
+    native._clear_footage_span_buffer.mockImplementation(() => {
+      native.HEAPU32.fill(0)
+    })
     native._get_projection_frame_count.mockReturnValue(6)
     native._get_footage_span_buffer_pointer.mockReturnValue(16)
   })
@@ -70,6 +74,7 @@ describe('Projection read adapters', () => {
     native._write_projection_footage_spans_to_buffer.mockReturnValue(3)
     const before = state[1].slice()
     const result = values(state)
+    expect(native._clear_footage_span_buffer).toHaveBeenCalledTimes(1)
     expect(result).toEqual(['a', 'b', undefined, 'c', 'd', 'e'])
     expect(
       native._write_projection_footage_spans_to_buffer

@@ -2,19 +2,47 @@
 #include "../../src/c++/algorithms/snapshot.hpp"
 #include "../../src/c++/algorithms/read.hpp"
 #include "../../src/c++/algorithms/buffers.hpp"
+#include "../../src/c++/algorithms/acknowledge.hpp"
 #include "../../src/c++/.auxiliary/stage_strip/index.hpp"
 #include "../../src/c++/apply/mask/index.hpp"
 #include <emscripten/emscripten.h>
 
 extern "C" {
 
-EMSCRIPTEN_KEEPALIVE std::uint32_t *prepare_test_projection(std::uint32_t count) {
-  sequencer::projection_buffer.resize(count);
-  return sequencer::get_projection_buffer_pointer();
+EMSCRIPTEN_KEEPALIVE void clear_projection_buffer() {
+  return sequencer::clear_projection_buffer();
 }
 
-EMSCRIPTEN_KEEPALIVE std::uint32_t initialize_test_projection() {
+EMSCRIPTEN_KEEPALIVE void clear_footage_span_buffer() {
+  return sequencer::clear_footage_span_buffer();
+}
+
+EMSCRIPTEN_KEEPALIVE void clear_sequence_point_buffer() {
+  return sequencer::clear_sequence_point_buffer();
+}
+
+EMSCRIPTEN_KEEPALIVE std::uint32_t acknowledge_projection(std::uint32_t projection_id) {
+  return sequencer::acknowledge_projection(projection_id);
+}
+
+EMSCRIPTEN_KEEPALIVE std::uint32_t *get_acknowledgement_sequence_point_buffer_pointer() {
+  return sequencer::get_acknowledgement_sequence_point_buffer_pointer();
+}
+
+EMSCRIPTEN_KEEPALIVE std::uint32_t write_recovery_footage_spans_to_buffer(std::uint32_t projection_id) {
+  return sequencer::write_recovery_footage_spans_to_buffer(projection_id);
+}
+
+EMSCRIPTEN_KEEPALIVE std::uint32_t *prepare_projection_buffer(std::uint32_t count) {
+  return sequencer::prepare_projection_buffer(count);
+}
+
+EMSCRIPTEN_KEEPALIVE std::uint32_t initialize_projection() {
   return sequencer::initialize_projection();
+}
+
+EMSCRIPTEN_KEEPALIVE void clear_projection(std::uint32_t projection_id) {
+  return sequencer::clear_projection(projection_id);
 }
 
 EMSCRIPTEN_KEEPALIVE void mask_test_projection(std::uint32_t projection_id) {

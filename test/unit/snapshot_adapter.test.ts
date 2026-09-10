@@ -5,6 +5,8 @@ const native = vi.hoisted(() => ({
   HEAPU32: new Uint32Array(256),
   _get_strip_buffer_pointer: () => 0,
   _snapshot_projection: vi.fn(),
+  _clear_projection_buffer: vi.fn(),
+  _clear_footage_span_buffer: vi.fn(),
   _get_projection_buffer_pointer: vi.fn(),
   _get_projection_buffer_word_count: vi.fn(),
   _get_footage_span_buffer_pointer: vi.fn(),
@@ -133,6 +135,9 @@ describe('Snapshot buffer transfer', () => {
     vi.resetAllMocks()
     state = [42, ['X', 'Y', 'p', 'q', 'a', 'b', 'c', 'r', 'H', 'I', '?', 'd']]
     native.HEAPU32 = new Uint32Array(256)
+    native._clear_projection_buffer.mockImplementation(() => {
+      native.HEAPU32.fill(0)
+    })
     native._get_projection_buffer_pointer.mockReturnValue(16)
     native._get_projection_buffer_word_count.mockReturnValue(projection.length)
     native._get_footage_span_buffer_pointer.mockReturnValue(512)
@@ -151,6 +156,8 @@ describe('Snapshot buffer transfer', () => {
       ['H', 'I', 'a', 'b', 'c', 'X', 'Y', 'd', 'r', 'p', 'q'],
     ])
     expect(native._snapshot_projection).toHaveBeenCalledExactlyOnceWith(42)
+    expect(native._clear_projection_buffer).toHaveBeenCalledTimes(1)
+    expect(native._clear_footage_span_buffer).toHaveBeenCalledTimes(1)
     expect(state[1]).toEqual(before)
     native.HEAPU32.fill(0)
     state[1].fill('changed')
@@ -203,5 +210,7 @@ describe('Snapshot buffer transfer', () => {
     const result = snapshot([7, []])
     expect(result).toEqual([[], []])
     expect(result[0]).not.toBe(result[1])
+    expect(native._clear_projection_buffer).toHaveBeenCalledTimes(2)
+    expect(native._clear_footage_span_buffer).toHaveBeenCalledTimes(2)
   })
 })

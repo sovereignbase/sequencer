@@ -47,10 +47,12 @@ int main() {
           }
         }
         assert(position == end);
+        sequencer::footage_span_buffer.clear();
       }
   for (std::uint32_t frame = 0; frame < expected.size(); ++frame)
     assert(sequencer::get_footage_frame_index(projection_id, frame) == expected[frame]);
   assert(sequencer::write_projection_footage_spans_to_buffer(projection_id, 0, 6) == 3);
+  sequencer::footage_span_buffer.clear();
   assert(sequencer::write_projection_footage_spans_to_buffer(projection_id, 2, 1) == 0);
   assert(sequencer::footage_span_buffer.get_memory_pointer() == nullptr);
   assert(sequencer::write_projection_footage_spans_to_buffer(projection_id, 0, 7) == 0);

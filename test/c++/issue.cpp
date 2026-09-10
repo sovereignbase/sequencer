@@ -56,6 +56,7 @@ int main() {
   for (std::uint32_t strip_index = 0; strip_index < 4; ++strip_index)
     projector.pending_table.set(dependency, strip_index);
   sequencer::snapshot_projection(projection_id);
+  sequencer::footage_span_buffer.clear();
   const auto restored_id = sequencer::initialize_projection();
   auto &restored = *sequencer::projectors[restored_id];
   assert(restored.operation_count == 6);

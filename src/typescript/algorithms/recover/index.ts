@@ -3,8 +3,8 @@
  *
  * @module
  */
-import type { Replica } from '../../../types/type.js'
-import { get_recovery_footage_spans } from '../../../wasm/index.js'
+import type { Replica } from '../../types/type.js'
+import { get_recovery_footage_spans, wasm } from '../../wasm/index.js'
 
 /**
  * Recovers every retained Footage value in structural Sequence order.
@@ -20,22 +20,23 @@ import { get_recovery_footage_spans } from '../../../wasm/index.js'
  * remain JavaScript-owned and never cross the Wasm boundary.
  */
 export function recover<T>(state: Replica<T>): Array<T> {
-  const footage_spans = get_recovery_footage_spans(state.id)
+  const footage_spans = get_recovery_footage_spans(state[0])
   if (!footage_spans) return []
 
-  const values = new Array<T>(state.footage.length)
+  const values = new Array<T>(state[1].length)
   let value_count = 0
 
-  for (let span_index = 0; span_index < footage_spans.length; span_index += 2) {
-    const footage_frame_index = footage_spans[span_index]
+  for (let span_index = 0; span_index < footage_spans.length; span_index += 4) {
+    const footage_frame_index = footage_spans[span_index + 1]
     const footage_end_index =
-      footage_frame_index + footage_spans[span_index + 1]
+      footage_frame_index + footage_spans[span_index + 2]
     for (let index = footage_frame_index; index < footage_end_index; index++) {
-      const value = state.footage[index]
+      const value = state[1][index]
       if (value !== undefined) values[value_count++] = value
     }
   }
 
   values.length = value_count
+  wasm._clear_footage_span_buffer()
   return values
 }

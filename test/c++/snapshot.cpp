@@ -7,13 +7,16 @@
 
 int main() {
   auto &buffer = sequencer::projection_buffer;
-  buffer.resize(5);
+  const auto input = sequencer::prepare_projection_buffer(5);
+  assert(input == sequencer::get_projection_buffer_pointer());
+  assert(sequencer::get_projection_buffer_word_count() == 50);
   buffer.write_projection(0, {0, 5, 10, 20, 0, 0, 0, 0, 2, 1});
   buffer.write_projection(1, {1, 4, 10, 20, 10, 10, 20, 4, u32_max, u32_max});
   buffer.write_projection(2, {1, 3, 10, 20, 20, 10, 20, 10, u32_max, u32_max});
   buffer.write_projection(3, {3, 2, 30, 40, 0, 90, 80, 0, u32_max, u32_max});
   buffer.write_projection(4, {5, 2, 50, 60, 0, 90, 80, 1, u32_max, u32_max});
   const auto projection_id = sequencer::initialize_projection();
+  assert(sequencer::get_projection_buffer_word_count() == 0);
   auto &projector = *sequencer::projectors[projection_id];
   projector.head_strip_index = 2;
   projector.tail_strip_index = 1;
@@ -25,6 +28,7 @@ int main() {
   projector.right_strip_index_of[1] = u32_max;
   sequencer::snapshot_projection(projection_id);
   const auto snapshot = buffer.read_buffer();
+  sequencer::footage_span_buffer.clear();
   assert(snapshot.size() == 5);
   assert(snapshot[0][4] == 20);
   assert(snapshot[1][4] == 0);
@@ -61,6 +65,7 @@ int main() {
   assert(suffix == 1);
   sequencer::snapshot_projection(split_id);
   const auto split_snapshot = buffer.read_buffer();
+  sequencer::footage_span_buffer.clear();
   assert(split_snapshot.size() == 2);
   assert(split_snapshot[0][1] == 0);
   assert(split_snapshot[0][4] == 0);
@@ -116,6 +121,7 @@ int main() {
       packed.push_back(source[spans[span * 4 + 1] + offset]);
   }
   assert(packed.size() == 11);
+  sequencer::clear_footage_span_buffer();
   const auto retained_restored_id = sequencer::initialize_projection();
   const auto &original_retained = *sequencer::projectors[retained_id];
   const auto &retained_restored = *sequencer::projectors[retained_restored_id];

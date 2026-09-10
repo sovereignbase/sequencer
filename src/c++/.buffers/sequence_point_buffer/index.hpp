@@ -5,7 +5,8 @@
  * A sequence_point is a Replica's Realm-indexed acknowledgement boundary. Each
  * Realm represented in that sequence_point contributes one Sequence Point, and
  * SequencePointBuffer stores those entries in one owned contiguous vector.
- * Capacity is retained across acknowledgement and compaction cycles.
+ * Clearing retains capacity. A native consuming read transfers storage to the
+ * reader and leaves the buffer empty; that reader then owns its lifetime.
  *
  * Every Realm entry uses three consecutive words:
  *
@@ -47,6 +48,13 @@ private:
   std::vector<std::uint32_t> words;
 
 public:
+  /** @brief Consume the words, leaving this transfer buffer empty. */
+  [[nodiscard]] std::vector<std::uint32_t> read_buffer() noexcept {
+    std::vector<std::uint32_t> result;
+    result.swap(words);
+    return result;
+  }
+
   // Buffer lifecycle and capacity preparation.
 
   /**

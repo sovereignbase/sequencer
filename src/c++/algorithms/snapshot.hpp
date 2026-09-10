@@ -7,7 +7,6 @@ namespace sequencer {
 inline void
 snapshot_projection(const std::uint32_t projection_id) noexcept {
   const Projector &projector = *projectors[projection_id];
-  footage_span_buffer.clear();
   // Prepare pojection buffer
   const auto count = projector.strip_start_of.size();
   const auto pending_strips = projector.pending_table.values();

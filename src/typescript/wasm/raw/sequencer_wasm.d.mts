@@ -16,6 +16,16 @@ declare namespace RuntimeExports {
     let HEAPU32: Uint32Array;
 }
 interface WasmModule {
+  _acknowledge_projection(_0: number): number;
+  _get_acknowledgement_sequence_point_buffer_pointer(): number;
+  _prepare_compaction_sequence_point_buffer(_0: number): number;
+  _compact_projection(_0: number): number;
+  _clear_projection_buffer(): void;
+  _clear_footage_span_buffer(): void;
+  _clear_sequence_point_buffer(): void;
+  _prepare_projection_buffer(_0: number): number;
+  _initialize_projection(): number;
+  _clear_projection(_0: number): void;
   _snapshot_projection(_0: number): void;
   _get_projection_buffer_pointer(): number;
   _get_projection_buffer_word_count(): number;

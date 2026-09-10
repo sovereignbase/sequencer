@@ -1,24 +1,18 @@
 import assert from 'node:assert/strict'
+import { create } from '../../src/typescript/algorithms/create/index.js'
+import { recover } from '../../src/typescript/algorithms/recover/index.js'
+import { acknowledge } from '../../src/typescript/algorithms/acknowledge/index.js'
 import { snapshot } from '../../src/typescript/algorithms/snapshot/index.js'
 import { values } from '../../src/typescript/algorithms/values/index.js'
-import type { Delta, Replica } from '../../src/typescript/types/type.js'
 import { wasm } from '../../src/typescript/wasm/index.js'
 
 const native = wasm as typeof wasm & {
-  _prepare_test_projection(count: number): number
-  _initialize_test_projection(): number
   _mask_test_projection(projection_id: number): void
 }
 const absent = 0xffff_ffff
 
-function restore<T>(delta: Delta<T>): Replica<T> {
-  const pointer = native._prepare_test_projection(delta[0].length / 10) >>> 2
-  native.HEAPU32.set(delta[0], pointer)
-  return [native._initialize_test_projection(), delta[1].slice()]
-}
-
 for (const hard of [false, true]) {
-  const original = restore<string>([
+  const original = create<string>([
     [
       1,
       4,
@@ -67,8 +61,16 @@ for (const hard of [false, true]) {
   if (hard) original[1].fill(undefined, 1, 3)
   const before = original[1].slice()
   const visible = values(original)
+  assert.equal(native._get_footage_span_buffer_count(), 0)
+  assert.equal(native._get_footage_span_buffer_pointer(), 0)
+  assert.deepEqual(recover(original), hard ? ['a', 'd'] : ['a', 'b', 'c', 'd'])
+  assert.equal(native._get_footage_span_buffer_count(), 0)
   assert.deepEqual(visible, ['a', 'd'])
   const delta = snapshot(original)
+  assert.equal(native._get_projection_buffer_word_count(), 0)
+  assert.equal(native._get_projection_buffer_pointer(), 0)
+  assert.equal(native._get_footage_span_buffer_count(), 0)
+  assert.equal(native._get_footage_span_buffer_pointer(), 0)
   assert.deepEqual(original[1], before)
   assert.deepEqual(
     delta[1].slice(0, 4),
@@ -92,16 +94,13 @@ for (const hard of [false, true]) {
   }
   assert.equal(footage_index, delta[1].length)
 
-  const restored = restore(delta)
+  const restored = create<string>(delta)
   assert.deepEqual(values(restored), visible)
   const again = snapshot(restored)
   assert.deepEqual(again, delta)
   restored[1][1] = 'changed'
-  native.HEAPU32.fill(
-    0,
-    native._get_projection_buffer_pointer() >>> 2,
-    (native._get_projection_buffer_pointer() >>> 2) + delta[0].length
-  )
+  assert.equal(native._get_projection_buffer_word_count(), 0)
+  assert.equal(native._get_footage_span_buffer_count(), 0)
   assert.deepEqual(
     delta[1].slice(0, 4),
     hard ? ['a', undefined, undefined, 'd'] : ['a', 'b', 'c', 'd']
@@ -109,19 +108,35 @@ for (const hard of [false, true]) {
   assert.equal(delta[0][10], 2)
 }
 
-const masked = restore([
+const masked = create<string>([
   [2, 3, 70, 80, 0, 0, 0, 0, absent, absent],
   ['x', 'y', 'z'],
 ])
 assert.deepEqual(values(masked), [])
 assert.deepEqual(snapshot(masked)[1], ['x', 'y', 'z'])
-const pending = restore([
+assert.deepEqual(recover(masked), ['x', 'y', 'z'])
+assert.equal(native._get_footage_span_buffer_count(), 0)
+assert.deepEqual(acknowledge(masked), [70, 80, 4])
+assert.equal(native._get_acknowledgement_sequence_point_buffer_pointer(), 0)
+const pending = create<string>([
   [3, 2, 90, 91, 0, 99, 98, 0, absent, absent],
   ['p', 'q'],
 ])
 assert.deepEqual(values(pending), [])
 assert.deepEqual(snapshot(pending)[1], ['p', 'q'])
-assert.deepEqual(snapshot(restore([[], []])), [[], []])
+assert.deepEqual(recover(pending), [])
+assert.equal(native._get_footage_span_buffer_count(), 0)
+assert.equal(acknowledge(pending), false)
+assert.equal(native._get_acknowledgement_sequence_point_buffer_pointer(), 0)
+const pending_mask_words = [5, 3, 70, 80, 0, 99, 98, 0, absent, absent]
+const pending_mask = create([pending_mask_words, []])
+assert.deepEqual(values(pending_mask), [])
+assert.deepEqual(snapshot(pending_mask), [pending_mask_words, []])
+assert.deepEqual(snapshot(create([[], []])), [[], []])
+snapshot(masked)
+assert.deepEqual(snapshot(create()), [[], []])
+assert.deepEqual(values(masked), [])
+assert.deepEqual(snapshot(masked)[1], ['x', 'y', 'z'])
 console.log(
   'Snapshot WASM/TypeScript round trip passed (soft/hard, pending, empty).'
 )

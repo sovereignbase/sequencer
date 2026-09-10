@@ -33,3 +33,5 @@ temp/
 .doxygen/
 .sphinx/
 
+
+NEXT.txt

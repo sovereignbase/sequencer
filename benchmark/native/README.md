@@ -99,6 +99,13 @@ by SequencePoint, and the smallest sibling follows the preceding sibling's
 descendants. Head, body, and empty-anchor cases retain reciprocal jumps and
 correct Find results. This is not a complete public after-insert or merge test.
 
+`birth_insert` checks the first materialized Strip without Find, including a
+Projector that already contains detached pending state. Both insert types and
+multiple initial lengths are followed by 64 tail appends, snapshot/hydration,
+and another append. Content, containment boundaries, counters, and pending
+isolation are checked. This exercises native primitives, not the unfinished
+public update dispatch.
+
 `read` checks single-frame lookup and batched visible ranges, including clipped
 boundaries, noncontiguous Footage, Masks, placeholders, and detached pending
 state. `test/unit/read_adapter.test.ts` separately checks the TypeScript tuple
@@ -138,7 +145,7 @@ and host-output clearing for all three buffer types.
 compaction's transfer contract with a mocked native consumer, not GC semantics.
 
 ```powershell
-foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'after_insert', 'read', 'transfer_buffers')) {
+foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'after_insert', 'birth_insert', 'read', 'transfer_buffers')) {
   clang++ -std=c++23 -Wall -Wextra -Wpedantic -Werror "test/c++/$test.cpp" -o "temp/$test-test.exe"
   if ($LASTEXITCODE -ne 0) { throw "Compilation failed: $test" }
   & "./temp/$test-test.exe"

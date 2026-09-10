@@ -22,9 +22,9 @@
  * @return Projection Frame count and materialized Strip count differences.
  */
 [[nodiscard]] inline std::pair<std::int32_t, std::int32_t>
-apply_left(Projector &projector, const std::uint32_t containing_strip_index,
-           const std::uint32_t incoming_strip_index,
-           const std::uint32_t offset) noexcept {
+insert_before(Projector &projector, const std::uint32_t containing_strip_index,
+              const std::uint32_t incoming_strip_index,
+              const std::uint32_t offset) noexcept {
   const std::uint32_t containing_strip_length =
       projector.strip_length_of[containing_strip_index];
 
@@ -36,11 +36,13 @@ apply_left(Projector &projector, const std::uint32_t containing_strip_index,
 
   if (offset == 0) {
     left_strip_index = containing_strip_index;
-    right_strip_index = containing_strip_length == 0
-                            ? projector.right_strip_index_of[containing_strip_index]
-                            : split_strip(projector, containing_strip_index, 0);
+    right_strip_index =
+        containing_strip_length == 0
+            ? projector.right_strip_index_of[containing_strip_index]
+            : split_strip(projector, containing_strip_index, 0);
   } else {
-    left_strip_index = split_strip(projector, containing_strip_index, offset - 1);
+    left_strip_index =
+        split_strip(projector, containing_strip_index, offset - 1);
     right_strip_index = split_strip(projector, left_strip_index, 0);
   }
 

@@ -157,6 +157,12 @@ and insertion into masked-only or pending-only states. The separate
 growth, array ownership, and large input batches. These are local-edit tests,
 not multi-replica convergence tests.
 
+`test/unit/compaction_frontier.test.ts` checks exact intersection of flat
+acknowledgement triples from every supplied participant. Missing Realms and
+unequal counters cannot authorize compaction, and caller arrays remain intact.
+The test uses a mocked native collector; it does not establish working soft/hard
+GC or causal reattachment in the unfinished compaction backend.
+
 ```powershell
 foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'after_insert', 'birth_insert', 'update', 'read', 'transfer_buffers')) {
   clang++ -std=c++23 -Wall -Wextra -Wpedantic -Werror "test/c++/$test.cpp" -o "temp/$test-test.exe"

@@ -32,6 +32,8 @@ import { compact_sequence, wasm } from '../../wasm/index.js'
  * soft compaction, which preserves recoverable content.
  * @returns Nothing. Released entries are replaced with `undefined` in-place and
  * the Footage array is never physically compacted.
+ * @remarks Frontier selection uses exact Realm and counter agreement, not a
+ * minimum counter. Input acknowledgement arrays are never modified.
  */
 export function compact<T>(
   frontiers: Array<Acknowledgement>,
@@ -41,24 +43,40 @@ export function compact<T>(
   // Validate that at least one participating Acknowledgement was supplied.
   if (frontiers.length === 0) return
 
-  // Reuse the first Acknowledgement as the mutable Realm-wise boundary.
-  const frontier = frontiers[0]
-
-  // Reduce every represented Realm to the least participating counter.
-  for (let replica_index = 1; replica_index < frontiers.length; replica_index++)
-    for (let realm_index = 0; realm_index < frontier.length; realm_index++) {
-      const [crypto_random_bits, unix_lower_bits, counter_bits] =
-        frontier[realm_index]
-      const replica_point = frontiers[replica_index].find(
-        ([realm_crypto_random, realm_unix_lower_bits]) =>
-          realm_crypto_random === crypto_random_bits &&
-          realm_unix_lower_bits === unix_lower_bits
-      )
-
-      // Lower the selected boundary when this Replica is further behind.
-      if (replica_point && replica_point[2] < counter_bits)
-        frontier[realm_index] = replica_point
+  const frontier = frontiers[0].slice()
+  for (
+    let replica_index = 1;
+    replica_index < frontiers.length && frontier.length !== 0;
+    ++replica_index
+  ) {
+    const acknowledged = new Map<number, Map<number, number>>()
+    const replica_frontier = frontiers[replica_index]
+    for (let point = 0; point < replica_frontier.length; point += 3) {
+      const crypto_random_bits = replica_frontier[point]
+      let realms = acknowledged.get(crypto_random_bits)
+      if (realms === undefined) {
+        realms = new Map<number, number>()
+        acknowledged.set(crypto_random_bits, realms)
+      }
+      realms.set(replica_frontier[point + 1], replica_frontier[point + 2])
     }
+
+    let retained = 0
+    for (let point = 0; point < frontier.length; point += 3) {
+      const crypto_random_bits = frontier[point]
+      const unix_lower_bits = frontier[point + 1]
+      const counter_bits = frontier[point + 2]
+      if (
+        acknowledged.get(crypto_random_bits)?.get(unix_lower_bits) !==
+        counter_bits
+      )
+        continue
+      frontier[retained++] = crypto_random_bits
+      frontier[retained++] = unix_lower_bits
+      frontier[retained++] = counter_bits
+    }
+    frontier.length = retained
+  }
 
   // Transfer selected boundaries and resolve matching Mask Footage.
   const footage_spans = compact_sequence(state[0], frontier)

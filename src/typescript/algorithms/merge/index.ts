@@ -23,23 +23,27 @@ import { values } from '../values/index.js'
 export function merge<T>(state: Replica<T>, data: unknown): Change<T> | false {
   if (!is_delta<T>(data)) return false
 
-  const previous_length = get_projection_frame_count(state[0])
-  const footage_start = state[1].length
-  const incoming = data[1] === state[1] ? data[1].slice() : data[1]
-  const buffer_start =
-    wasm._prepare_projection_buffer(data[0].length / 10) >>> 2
-  wasm.HEAPU32.set(data[0], buffer_start)
-  const position = wasm._merge_projection(state[0], footage_start) >>> 0
-  state[1].length = footage_start + required
-  for (let frame = 0; frame < required; ++frame)
-    state[1][footage_start + frame] = incoming[frame]
-  if (position === no_projection_frame_index) return false
+  const [projection, footage] = data
 
-  const current = values(state, position)
+  const previous_length: number = get_projection_frame_count(state[0])
+  const footage_start: number = state[1].length
+  const buffer_start =
+    wasm._prepare_projection_buffer(projection.length / 10) >>> 2
+  wasm.HEAPU32.set(projection, buffer_start)
+  const projection_frame_index =
+    wasm._merge_projection(state[0], footage_start) >>> 0
+  if (projection_frame_index === no_projection_frame_index) return false
+  void state[1].push(...footage)
+
+  const current = values(state, projection_frame_index)
   const change: Change<T> = {}
   for (let frame = 0; frame < current.length; ++frame)
-    change[position + frame] = current[frame]
-  for (let frame = position + current.length; frame < previous_length; ++frame)
+    change[projection_frame_index + frame] = current[frame]
+  for (
+    let frame = projection_frame_index + current.length;
+    frame < previous_length;
+    ++frame
+  )
     change[frame] = undefined
   return change
 }

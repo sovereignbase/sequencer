@@ -40,6 +40,8 @@ export function compact<T>(
   state: Replica<T>,
   hard: boolean = false
 ): void {
+  //TODO: Let wasm do the work instead of wasting time here give frontiers to wasm and take out instructions on what to undefine in state footage.
+
   // Validate that at least one participating Acknowledgement was supplied.
   if (frontiers.length === 0) return
 
@@ -80,11 +82,16 @@ export function compact<T>(
 
   // Transfer selected boundaries and resolve matching Mask Footage.
   if (frontier.length === 0) return
-  const buffer_start = wasm._prepare_compaction_sequence_point_buffer(frontier.length / 3) >>> 2
+  const buffer_start =
+    wasm._prepare_compaction_sequence_point_buffer(frontier.length / 3) >>> 2
   wasm.HEAPU32.set(frontier, buffer_start)
   const span_count = wasm._compact_projection(state[0], hard ? 1 : 0) >>> 0
-  const span_start = span_count === 0 ? 0 : wasm._get_footage_span_buffer_pointer() >>> 2
-  const footage_spans = wasm.HEAPU32.subarray(span_start, span_start + span_count * 4)
+  const span_start =
+    span_count === 0 ? 0 : wasm._get_footage_span_buffer_pointer() >>> 2
+  const footage_spans = wasm.HEAPU32.subarray(
+    span_start,
+    span_start + span_count * 4
+  )
 
   // Release returned Footage spans without compacting stable indexes.
   for (let span_index = 0; span_index < footage_spans.length; span_index += 4) {

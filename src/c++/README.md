@@ -6,7 +6,7 @@ SequencePoint consists of a unique identifier per realm (`crypto_random_bits` (`
 
 The issued Strip length `initial_length_of` is its immutable content span `n`. The zero anchor is logical only: no extra content element is allocated for it. Content points are `strip_start + 1` through `strip_start + n`, and containment includes `[strip_start, strip_start + n]`. The next issued Strip starts at `strip_start + n + 1`. Splitting changes only `fragment_length_of`; it never allocates or shifts real SequencePoints.
 
-Each transfer record contains twelve `u32` words: type, initial length, three Strip-start lanes, three dependency lanes, larger-split index, smaller-competitor index, fragment length, and dependency prefix. Public TypeScript signatures remain unchanged. The previous ten-word encoding is not compatible with this layout.
+Each transfer record contains twelve `u32` words: type, initial length, three Strip-start lanes, three dependency lanes, larger-split index, smaller-competitor index, fragment length, and dependency prefix.
 
 Only originally issued Strips enter containment. Split fragments use `{UINT32_MAX, UINT32_MAX, UINT32_MAX}` as a structural sentinel, initial length zero, and an explicit source offset. Their dependency is the original source start plus that offset; their dependency-prefix field stores the offset. Initialization trusts local snapshot links, while merge rebuilds fragment chains from source coordinates in snapshot order and ignores incoming split and competitor indices.
 

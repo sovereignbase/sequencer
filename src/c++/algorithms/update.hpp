@@ -62,8 +62,9 @@ inline std::uint32_t update_projection(
 
   const auto [frame_count_diff, strip_count_diff] = apply_insert(
       projector, containing_strip_index, incoming_strip_index, offset);
-  const auto position = find_projection_frame_index_of(
-      projector, incoming_strip_index, frame_count_diff, strip_count_diff);
+  const auto position = operation_type == 2 ? projector.projection_frame_index
+      : find_projection_frame_index_of(
+          projector, incoming_strip_index, frame_count_diff, strip_count_diff);
   projector.gate_strip_index = incoming_strip_index;
   projector.projection_frame_index = position;
 

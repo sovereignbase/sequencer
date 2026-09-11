@@ -62,8 +62,8 @@ merge_projection(const std::uint32_t projection_id,
         projector.pending_table.set(dependency, candidate);
         continue;
       }
-      const auto position = find_projection_frame_index_of(
-          projector, candidate, frame_diff, strip_diff);
+      const auto position = type == 2 ? projector.projection_frame_index
+          : find_projection_frame_index_of(projector, candidate, frame_diff, strip_diff);
       projector.gate_strip_index = candidate;
       projector.projection_frame_index = position;
       if (frame_diff != 0)

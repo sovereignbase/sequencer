@@ -15,9 +15,9 @@ inline std::uint32_t write_recovery_footage_spans_to_buffer(
     const auto frame_count = projector.strip_length_of[strip_index];
     const bool masked = projector.strip_type_of[strip_index] == 2;
     if (frame_count != 0)
-      footage_span_buffer.write_span(
-          projection_index, projector.footage_frame_index_of[strip_index],
-          frame_count, masked);
+      projector.for_each_footage_span(strip_index, [&](const auto footage, const auto length) {
+        footage_span_buffer.write_span(projection_index, footage, length, masked);
+      });
     if (!masked)
       projection_index += frame_count;
   }

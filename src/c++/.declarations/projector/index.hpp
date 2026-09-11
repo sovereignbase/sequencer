@@ -12,6 +12,8 @@
 #include "../../.pending_table/index.hpp"
 #include "../sentinels/index.hpp"
 #include <cstdint>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 /**
@@ -147,6 +149,30 @@ struct Projector {
   std::uint32_t projection_frame_count{0};
 
   std::vector<std::uint32_t> footage_frame_index_of;
+
+  /** @brief Non-contiguous retained Footage spans of unsplit Masks only. */
+  std::unordered_map<std::uint32_t,
+                     std::vector<std::pair<std::uint32_t, std::uint32_t>>>
+      mask_footage_spans;
+
+  /**
+   * @brief Visit retained Footage without copying it or splitting a Mask.
+   * @param strip_index Materialized Strip whose content is read.
+   * @param visit Receives each Footage start and content length in order.
+   */
+  template <typename Visitor>
+  void for_each_footage_span(const std::uint32_t strip_index,
+                            Visitor &&visit) const noexcept {
+    if (strip_type_of[strip_index] == 2 && !mask_footage_spans.empty()) {
+      const auto found = mask_footage_spans.find(strip_index);
+      if (found != mask_footage_spans.end()) {
+        for (const auto &[footage, length] : found->second)
+          visit(footage, length);
+        return;
+      }
+    }
+    visit(footage_frame_index_of[strip_index], strip_length_of[strip_index]);
+  }
 
   /** @brief Visible length; Masks retain identity spans but project no Frames. */
   [[nodiscard]] std::uint32_t

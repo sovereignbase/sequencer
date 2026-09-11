@@ -21,8 +21,9 @@ compact_projection(const std::uint32_t projection_id) noexcept {
             frontiers[frontier + 1] == point.unix_lower_bits &&
             static_cast<std::uint64_t>(point.counter_bits) + length <
                 frontiers[frontier + 2]) {
-          footage_span_buffer.write_span(
-              projection_index, projector.footage_frame_index_of[strip], length, 1);
+          projector.for_each_footage_span(strip, [&](const auto footage, const auto count) {
+            footage_span_buffer.write_span(projection_index, footage, count, 1);
+          });
           break;
         }
       }

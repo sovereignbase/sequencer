@@ -54,9 +54,9 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
     const auto frame_count = projector.strip_length_of[strip_index];
     const bool masked = projector.strip_type_of[strip_index] == 2;
     if (frame_count != 0)
-      footage_span_buffer.write_span(
-          projection_frame_index, projector.footage_frame_index_of[strip_index],
-          frame_count, masked);
+      projector.for_each_footage_span(strip_index, [&](const auto footage, const auto length) {
+        footage_span_buffer.write_span(projection_frame_index, footage, length, masked);
+      });
     if (!masked)
       projection_frame_index += frame_count;
   }

@@ -167,6 +167,17 @@ The same rule applies at Strip boundaries and inside Strips. If necessary, the e
 
 Because a Mask is structurally an insertion, it follows the same anchoring and tie-breaking rules as any other inserted Strip.
 
+A Mask is never split. Its identity and issued length remain unchanged when its
+target has already been split. Application follows the target's `larger_split`
+chain, skips empty anchors, and consumes only the addressed source content, not
+intervening inserts. Incomplete or already masked target spans remain pending.
+
+When retained Footage is non-contiguous, the one Mask keeps runtime Footage-span
+references in source-chain order. Recovery and snapshotting read those spans;
+the snapshot packs them into the Mask's single contiguous Footage block. This
+does not add Mask identities, counter reservations, or snapshot words. Hard
+collection releases every retained span belonging to the Mask.
+
 ### Overlapping Masks
 
 If multiple Masks cover the same source Frame, the Mask with the greatest

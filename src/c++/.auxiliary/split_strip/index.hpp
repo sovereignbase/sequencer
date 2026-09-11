@@ -19,7 +19,7 @@
  * @param strip_index Strip Index of the source Strip and resulting prefix.
  * @param frame_offset Number of content Frames retained in the prefix.
  * @return Newly appended Strip Index of the suffix.
- * @pre `frame_offset < strip_length_of[strip_index]` and the shifted suffix
+ * @pre The source is not a Mask, `frame_offset < strip_length_of[strip_index]`, and the shifted suffix
  * remains within the same Realm's counter range.
  * @post Prefix and suffix cover the original Footage without copying it.
  * The suffix start advances by `frame_offset + 1` for its logical anchor.

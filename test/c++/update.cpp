@@ -153,8 +153,11 @@ int main() {
     assert(projector.pending_table.values().size() == pending_count);
     if (type == 2) {
       assert(projector.head_strip_index == original_head);
-      assert(projector.strip_length_of[original_head] == 0);
-      assert(projector.larger_split_strip_index_of[original_head] != u32_max);
+      assert(projector.strip_type_of[original_head] == 2);
+      assert(projector.strip_length_of[original_head] == 3);
+      assert(projector.larger_split_strip_index_of[original_head] == u32_max);
+      assert(projector.footage_frame_index_of[original_head] == 0);
+      assert(projector.materialized_strip_count == 2);
     } else {
       assert(projector.materialized_strip_count == 1);
       assert(projector.left_strip_index_of[0] == 0);

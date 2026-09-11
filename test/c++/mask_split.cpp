@@ -90,6 +90,31 @@ int main() {
   assert(apply_insert(fragmented.projector, 0, partial, 0).first == -3);
   assert(fragmented.projector.strip_type_of[0] == 1);
   assert(fragmented.read() == "XYd");
+  assert(fragmented.projector.strip_length_of[partial] == 3);
+  assert((fragmented.projector.strip_start_of[partial] == SequencePoint{500, 600, 0}));
+  assert(fragmented.projector.larger_split_strip_index_of[partial] == u32_max);
+  assert(std::count(fragmented.projector.strip_type_of.begin(),
+                    fragmented.projector.strip_type_of.end(), 2) == 1);
+  assert(apply_insert(fragmented.projector, 0, partial, 0).first == 0);
+  assert(fragmented.read() == "XYd");
+
+  Fixture incomplete;
+  const auto oversized = incomplete.mask(5);
+  const auto original_count = incomplete.projector.strip_type_of.size();
+  assert(apply_insert(incomplete.projector, 0, oversized, 0).first == 0);
+  assert(incomplete.read() == "abcd");
+  assert(incomplete.projector.strip_type_of.size() == original_count);
+  assert(incomplete.projector.left_strip_index_of[oversized] == oversized);
+  assert(incomplete.projector.mask_footage_spans.empty());
+
+  Fixture offset_mask;
+  const auto offset_suffix = split_strip(offset_mask.projector, 0, 2);
+  offset_mask.insert(0, offset_suffix, 2, 4, {100, 200, 2});
+  const auto offset_command = offset_mask.mask(2);
+  offset_mask.projector.previous_strip_end_of[offset_command] = {100, 200, 1};
+  assert(apply_insert(offset_mask.projector, 0, offset_command, 1).first == -2);
+  assert(offset_mask.read() == "aXYd");
+  assert(offset_mask.projector.strip_length_of[offset_command] == 2);
 
   Fixture placeholders;
   const auto middle = split_strip(placeholders.projector, 0, 0);
@@ -117,6 +142,12 @@ int main() {
   initialize_projector(without_footage, {&masked_source, 1}, 1, 2, 3);
   assert(without_footage.footage_frame_index_of[0] == 0);
   without_footage.footage_frame_index_of[0] = u32_max;
-  const auto masked_suffix = split_strip(without_footage, 0, 1);
-  assert(without_footage.footage_frame_index_of[masked_suffix] == u32_max);
+  for (const auto type : {0u, 1u}) {
+    const auto inserted_strip = stage_strip(without_footage, type, 1,
+                                            {700, 800, type * 2}, {500, 600, 1}, type);
+    assert(apply_insert(without_footage, 0, inserted_strip, 1).first == 1);
+    assert(without_footage.strip_length_of[0] == 3);
+    assert(without_footage.larger_split_strip_index_of[0] == u32_max);
+    assert(without_footage.footage_frame_index_of[0] == u32_max);
+  }
 }

@@ -34,7 +34,10 @@ insert_before(Projector &projector, const std::uint32_t containing_strip_index,
   std::uint32_t left_strip_index;
   std::uint32_t right_strip_index;
 
-  if (offset == 0) {
+  if (projector.strip_type_of[containing_strip_index] == 2) {
+    left_strip_index = containing_strip_index;
+    right_strip_index = projector.right_strip_index_of[containing_strip_index];
+  } else if (offset == 0) {
     left_strip_index = containing_strip_index;
     right_strip_index =
         containing_strip_length == 0

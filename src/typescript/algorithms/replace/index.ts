@@ -37,12 +37,11 @@ export function replace<T>(
 ): Delta<T> | false {
   if (!Array.isArray(values) || values.length === 0) return false
 
-  const replacement = values === state[1] ? values.slice() : values
   const delta = remove(state, index, index + values.length, hard)
 
   if (!delta) return false
 
-  const additional_delta = insert(state, index, replacement)
+  const additional_delta = insert(state, index, values)
   if (!additional_delta) return delta
 
   return [delta[0].concat(additional_delta[0]), additional_delta[1]]

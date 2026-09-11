@@ -48,5 +48,5 @@ export function compact<T>(
       spans[span + 1],
       spans[span + 1] + spans[span + 2]
     )
-  clear_footage_spans()
+  void clear_footage_spans()
 }

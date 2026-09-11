@@ -53,10 +53,9 @@ export function insert<T>(
   if (position === no_projection_frame_index) return false
 
   const projection = read_projection_from_buffer(12)
-  const footage = values.slice()
 
   state[1].length = footage_start + frame_count
   for (let frame = 0; frame < frame_count; ++frame)
-    state[1][footage_start + frame] = footage[frame]
-  return [projection, footage]
+    state[1][footage_start + frame] = values[frame]
+  return [projection, values]
 }

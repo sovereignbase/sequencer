@@ -1,6 +1,7 @@
 #pragma once
 
 #include "./runtime.hpp"
+#include "./read.hpp"
 #include "../.auxiliary/stage_strip/index.hpp"
 #include "../apply/insert/index.hpp"
 #include "../find/projection_frame_index/index.hpp"
@@ -11,9 +12,25 @@ namespace sequencer {
 /** @brief Consume remote Strips and return the earliest changed visible index. */
 inline std::uint32_t
 merge_projection(const std::uint32_t projection_id,
-                 std::uint32_t footage_frame_index) noexcept {
+                 std::uint32_t footage_frame_index,
+                 const std::uint32_t footage_length = u32_max) noexcept {
   const auto projection = projection_buffer.read_buffer();
   Projector &projector = *projectors[projection_id];
+  const auto previous_length = projector.projection_frame_count;
+  std::uint32_t remaining_footage = std::min(footage_length, u32_max - footage_frame_index);
+  for (const auto &strip : projection) {
+    if (strip[0] >= 3 && strip[0] <= 5)
+      break;
+    if (strip[0] == 8 || strip[0] == 9)
+      continue;
+    if (strip[1] >= u32_max - strip[4])
+      return u32_max;
+    if (strip[0] != 2 && (strip[0] & 16) == 0) {
+      if (strip[1] > remaining_footage)
+        return u32_max;
+      remaining_footage -= strip[1];
+    }
+  }
   std::uint32_t first_change = u32_max;
   std::vector<std::uint32_t> ready;
 
@@ -109,6 +126,13 @@ merge_projection(const std::uint32_t projection_id,
         ready.insert(ready.end(), previous_waiters.begin(), previous_waiters.end());
       }
     }
+  }
+  if (first_change != u32_max) {
+    write_projection_footage_spans_to_buffer(
+        projection_id, first_change, projector.projection_frame_count);
+    if (projector.projection_frame_count < previous_length)
+      footage_span_buffer.write_span(projector.projection_frame_count, u32_max,
+          previous_length - projector.projection_frame_count, 1);
   }
   return first_change;
 }

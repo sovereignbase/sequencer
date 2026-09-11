@@ -4,7 +4,10 @@
  * @module
  */
 import type { Replica } from '../../types/type.js'
-import { get_recovery_footage_spans, wasm } from '../../wasm/index.js'
+import {
+  get_recovery_footage_spans,
+  clear_footage_spans,
+} from '../../wasm/index.js'
 
 /**
  * Recovers every retained Footage value in structural Sequence order.
@@ -37,6 +40,6 @@ export function recover<T>(state: Replica<T>): Array<T> {
   }
 
   values.length = value_count
-  void wasm._clear_footage_span_buffer()
+  void clear_footage_spans()
   return values
 }

@@ -3,8 +3,59 @@
 #include "./runtime.hpp"
 #include <algorithm>
 #include <cmath>
+#include <span>
+#include <unordered_map>
 
 namespace sequencer {
+
+/** @brief Match all actor frontiers in expected O(total input words) time.
+ * Each actor is encoded as a three-word header (point count, 0, 0), then triples.
+ * actor_count zero accepts the already-selected flat native frontier format.
+ */
+inline std::unordered_map<std::uint64_t, std::uint32_t> select_compaction_frontiers(
+    const std::span<const std::uint32_t> words, const std::uint32_t actor_count) noexcept {
+  struct Agreement {
+    std::uint32_t counter;
+    std::uint32_t actors;
+  };
+  std::unordered_map<std::uint64_t, Agreement> candidates;
+  std::size_t offset = 0;
+  const auto participants = std::max(actor_count, 1u);
+  for (std::uint32_t actor = 0; actor < participants; ++actor) {
+    std::size_t count = words.size() / 3;
+    if (actor_count != 0) {
+      if (offset + 3 > words.size())
+        return {};
+      count = words[offset];
+      offset += 3;
+      if (count > (words.size() - offset) / 3)
+        return {};
+    }
+    for (std::size_t point = 0; point < count; ++point, offset += 3) {
+      const auto realm = (std::uint64_t{words[offset]} << 32) | words[offset + 1];
+      const auto counter = words[offset + 2];
+      if (actor == 0) {
+        const auto [found, inserted] = candidates.try_emplace(realm, Agreement{counter, 1});
+        if (!inserted && found->second.counter != counter)
+          found->second.actors = 0;
+      } else {
+        const auto found = candidates.find(realm);
+        if (found != candidates.end()) {
+          auto &agreement = found->second;
+          if (agreement.counter != counter)
+            agreement.actors = 0;
+          else if (agreement.actors == actor)
+            ++agreement.actors;
+        }
+      }
+    }
+  }
+  std::unordered_map<std::uint64_t, std::uint32_t> selected;
+  for (const auto &[realm, agreement] : candidates)
+    if (agreement.actors == participants)
+      selected.emplace(realm, agreement.counter);
+  return selected;
+}
 
 /** @brief Mark locally released applied content without changing its identities. */
 inline void release_mask_footage(const std::uint32_t id, const std::uint32_t crypto,
@@ -21,11 +72,18 @@ inline void release_mask_footage(const std::uint32_t id, const std::uint32_t cry
 
 /** @brief Collect acknowledged instructions and their eligible applied fragments. */
 inline std::uint32_t compact_projection(const std::uint32_t projection_id,
-                                        const std::uint32_t hard = 0) noexcept {
-  const auto frontiers = sequence_point_buffer.read_buffer();
+                                        const std::uint32_t hard = 0,
+                                        const std::uint32_t actor_count = 0) noexcept {
+  const auto words = sequence_point_buffer.read_buffer();
+  const auto frontiers = select_compaction_frontiers(words, actor_count);
+  if (frontiers.empty())
+    return 0;
   auto &projector = *projectors[projection_id];
   const auto count = projector.strip_type_of.size();
-  std::vector<SequencePoint> agreed;
+  const auto realm_of = [](const SequencePoint point) {
+    return (std::uint64_t{point.crypto_random_bits} << 32) | point.unix_lower_bits;
+  };
+  std::unordered_map<std::uint64_t, std::uint32_t> agreed;
   projector.containment_table.for_each_realm([&](SequencePoint end, const auto entries) {
     end.counter_bits = projector.collected_counter(end);
     for (const auto &entry : entries) {
@@ -43,22 +101,18 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
         return;
       end.counter_bits += entry.frame_count + 1;
     }
-    for (std::size_t index = 0; index + 2 < frontiers.size(); index += 3)
-      if (end == SequencePoint{frontiers[index], frontiers[index + 1], frontiers[index + 2]}) {
-        agreed.push_back(end);
-        return;
-      }
+    const auto selected = frontiers.find(realm_of(end));
+    if (selected != frontiers.end() && selected->second == end.counter_bits)
+      agreed.emplace(selected->first, selected->second);
   });
   std::vector<bool> remove(count), covered(count), blocked(count);
+  bool incomplete = false;
   for (auto mask = projector.head_strip_index; mask != u32_max;
        mask = projector.right_strip_index_of[mask]) {
     if (projector.strip_type_of[mask] != 2)
       continue;
     const auto point = projector.strip_start_of[mask];
-    bool eligible = std::any_of(agreed.begin(), agreed.end(), [&](const auto frontier) {
-      return point.crypto_random_bits == frontier.crypto_random_bits &&
-             point.unix_lower_bits == frontier.unix_lower_bits;
-    });
+    bool eligible = agreed.contains(realm_of(point));
     std::vector<std::uint32_t> targets;
     const bool complete = projector.for_each_mask_target(mask,
         [&](const auto source, const auto, const auto) {
@@ -72,9 +126,10 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
       covered[source] = covered[source] || eligible;
       blocked[source] = blocked[source] || !eligible;
     }
-    if (!complete)
-      std::fill(blocked.begin(), blocked.end(), true);
+    incomplete = incomplete || !complete;
   }
+  if (incomplete)
+    std::fill(blocked.begin(), blocked.end(), true);
   for (std::uint32_t strip = 0; strip < count; ++strip)
     if (projector.strip_type_of[strip] >= 6 && projector.left_strip_index_of[strip] != strip)
       remove[strip] = covered[strip] && !blocked[strip];
@@ -108,23 +163,19 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
     while (competitor != u32_max && remove[competitor])
       competitor = projector.smaller_competitor_strip_index_of[competitor];
   }
-  for (const auto frontier : agreed) {
-    bool retained = false;
-    for (std::uint32_t strip = 0; strip < count; ++strip)
-      if (!remove[strip] && projector.strip_type_of[strip] == 2 &&
-          projector.strip_start_of[strip].crypto_random_bits == frontier.crypto_random_bits &&
-          projector.strip_start_of[strip].unix_lower_bits == frontier.unix_lower_bits)
-        retained = true;
-    if (!retained) {
-      auto found = std::find_if(projector.collected_frontiers.begin(), projector.collected_frontiers.end(),
-          [&](const auto point) { return point.crypto_random_bits == frontier.crypto_random_bits &&
-                                       point.unix_lower_bits == frontier.unix_lower_bits; });
-      if (found == projector.collected_frontiers.end())
-        projector.collected_frontiers.push_back(frontier);
-      else
-        *found = frontier;
+  for (std::uint32_t strip = 0; strip < count; ++strip)
+    if (!remove[strip] && projector.strip_type_of[strip] == 2)
+      agreed.erase(realm_of(projector.strip_start_of[strip]));
+  for (auto &frontier : projector.collected_frontiers) {
+    const auto found = agreed.find(realm_of(frontier));
+    if (found != agreed.end()) {
+      frontier.counter_bits = found->second;
+      agreed.erase(found);
     }
   }
+  for (const auto [realm, counter] : agreed)
+    projector.collected_frontiers.push_back(
+        {static_cast<std::uint32_t>(realm >> 32), static_cast<std::uint32_t>(realm), counter});
   std::uint32_t projection_index = 0;
   for (auto strip = projector.head_strip_index; strip != u32_max;) {
     const auto next = projector.right_strip_index_of[strip];

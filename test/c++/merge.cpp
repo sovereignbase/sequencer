@@ -15,6 +15,7 @@ std::uint32_t merge(const std::uint32_t id, const Words &words,
   sequencer::projection_buffer.write_projection(0, words);
   const auto position = sequencer::merge_projection(id, footage);
   assert(sequencer::projection_buffer.get_word_count() == 0);
+  sequencer::footage_span_buffer.clear();
   return position;
 }
 

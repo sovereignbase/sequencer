@@ -7,15 +7,14 @@ import type { Delta } from '../../types/type.js'
 import { is_uint32 } from '../is_uint32/index.js'
 
 /**
- * Checks whether an unknown value has the transferable `Strip<T>` tuple shape.
+ * Checks the transferable Delta tuple and unsigned metadata word shape.
  *
- * A valid Strip contains nine unsigned 32-bit metadata words and a positive
- * Frame count. Visible Strips carry equally long, non-empty Footage; Masks omit
- * Footage because they address existing Frames.
+ * Projection contains complete ten-word records. Footage is optional; native
+ * merge checks whether the supplied content covers the encoded records.
  *
  * @typeParam T Value represented by a single Frame.
  * @param data Value to validate.
- * @returns Whether `data` is structurally valid as a `Strip<T>`.
+ * @returns Whether `data` has the transferable Delta shape.
  * @remarks This checks the transfer shape only. Native materialization resolves
  * coordinate containment and dependency availability.
  */
@@ -26,9 +25,8 @@ export function is_delta<T>(data: unknown): data is Delta<T> {
 
   return (
     Array.isArray(projection) &&
-    projection.length !== 0 &&
-    data.length % 10 === 0 &&
+    projection.length % 10 === 0 &&
     projection.every(is_uint32) &&
-    Array.isArray(footage)
+    (footage === undefined || Array.isArray(footage))
   )
 }

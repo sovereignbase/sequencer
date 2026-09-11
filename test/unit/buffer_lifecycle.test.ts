@@ -83,15 +83,20 @@ describe('Synchronous transfer buffer consumption', () => {
     const footage = ['keep', 'release', 'release', 'keep']
     native._prepare_compaction_sequence_point_buffer.mockReturnValue(16)
     native._compact_projection.mockImplementation(() => {
-      expect(Array.from(native.HEAPU32.subarray(4, 10))).toEqual(frontier)
-      native.HEAPU32.fill(0, 4, 10)
+      expect(Array.from(native.HEAPU32.subarray(4, 13))).toEqual([
+        2,
+        0,
+        0,
+        ...frontier,
+      ])
+      native.HEAPU32.fill(0, 4, 13)
       native.HEAPU32.set([0, 1, 2, 1], 32)
       return 1
     })
     compact([frontier], [42, footage], true)
     expect(
       native._prepare_compaction_sequence_point_buffer
-    ).toHaveBeenCalledExactlyOnceWith(2)
+    ).toHaveBeenCalledExactlyOnceWith(3)
     expect(footage).toEqual(['keep', undefined, undefined, 'keep'])
     expect(native._clear_footage_span_buffer).toHaveBeenCalledTimes(1)
   })

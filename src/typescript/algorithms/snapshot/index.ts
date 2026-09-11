@@ -4,7 +4,12 @@
  * @module
  */
 import type { Delta, Replica } from '../../types/type.js'
-import { wasm } from '../../wasm/index.js'
+import {
+  snapshot_sequence,
+  read_projection_from_buffer,
+  read_footage_spans,
+  clear_footage_spans,
+} from '../../wasm/index.js'
 
 /**
  * Captures materialized Strips in Head-to-Tail order, then pending Strips.
@@ -21,16 +26,11 @@ import { wasm } from '../../wasm/index.js'
  * transfer buffers are cleared after their contents have been consumed.
  */
 export function snapshot<T>(state: Replica<T>): Delta<T> {
-  void wasm._snapshot_projection(state[0])
-  const projection_start = wasm._get_projection_buffer_pointer() >>> 2
-  const projection_word_count = wasm._get_projection_buffer_word_count() >>> 0
-  const span_start = wasm._get_footage_span_buffer_pointer() >>> 2
-  const span_end =
-    span_start + (wasm._get_footage_span_buffer_count() >>> 0) * 4
-  const buffer = wasm.HEAPU32
-  const projection = Array.from(
-    buffer.subarray(projection_start, projection_start + projection_word_count)
-  )
+  snapshot_sequence(state[0])
+  const projection = read_projection_from_buffer()
+  const buffer = read_footage_spans()
+  const span_start = 0
+  const span_end = buffer.length
 
   let footage_length = 0
   for (let span_index = span_start; span_index < span_end; span_index += 4)
@@ -48,7 +48,6 @@ export function snapshot<T>(state: Replica<T>): Delta<T> {
     )
       footage[result_index++] = state[1][footage_index] as T
   }
-  void wasm._clear_projection_buffer()
-  void wasm._clear_footage_span_buffer()
+  void clear_footage_spans()
   return [projection, footage]
 }

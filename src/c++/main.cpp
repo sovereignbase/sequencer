@@ -92,8 +92,9 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t update_projection(
 
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 merge_projection(const std::uint32_t projection_id,
-                 const std::uint32_t footage_frame_index) noexcept {
-  return sequencer::merge_projection(projection_id, footage_frame_index);
+                 const std::uint32_t footage_frame_index,
+                 const std::uint32_t footage_length) noexcept {
+  return sequencer::merge_projection(projection_id, footage_frame_index, footage_length);
 }
 
 EMSCRIPTEN_KEEPALIVE std::uint32_t
@@ -102,8 +103,9 @@ acknowledge_projection(const std::uint32_t projection_id) noexcept {
 }
 
 EMSCRIPTEN_KEEPALIVE std::uint32_t
-compact_projection(const std::uint32_t projection_id, const std::uint32_t hard = 0) noexcept {
-  return sequencer::compact_projection(projection_id, hard);
+compact_projection(const std::uint32_t projection_id, const std::uint32_t hard,
+                   const std::uint32_t actor_count) noexcept {
+  return sequencer::compact_projection(projection_id, hard, actor_count);
 }
 
 EMSCRIPTEN_KEEPALIVE void release_mask_footage(const std::uint32_t id,

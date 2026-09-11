@@ -53,7 +53,7 @@ describe('Local removal transfer', () => {
 
   it('masks each bounded Strip at the same visible start and packs flat words', () => {
     const result = remove(state, 1, 4)
-    expect(result).toEqual([[...first, ...second], []])
+    expect(result).toEqual([[...first, ...second]])
     expect(native._update_projection.mock.calls).toEqual([
       [42, 1, 2, 3, absent],
       [42, 1, 2, 1, absent],
@@ -66,7 +66,7 @@ describe('Local removal transfer', () => {
   })
 
   it('hard deletion releases only accepted spans at stable Footage indexes', () => {
-    expect(remove(state, 1, 4, true)).toEqual([[...first, ...second], []])
+    expect(remove(state, 1, 4, true)).toEqual([[...first, ...second]])
     expect(state[1]).toEqual([
       'a',
       undefined,
@@ -142,7 +142,7 @@ describe('Local removal transfer', () => {
         return 1
       })
       .mockReturnValue(absent)
-    expect(remove(state, 1, 4, true)).toEqual([first, []])
+    expect(remove(state, 1, 4, true)).toEqual([first])
     expect(state[1]).toEqual(['a', undefined, undefined, 'retained', 'd', 'e'])
     expect(native._clear_projection_buffer).toHaveBeenCalledTimes(1)
     expect(native._clear_footage_span_buffer).toHaveBeenCalledTimes(1)
@@ -156,7 +156,7 @@ describe('Local removal transfer', () => {
       native.HEAPU32.set([1, initial ? 1 : 4, initial ? 2 : 1, 1], 20)
       return 1
     })
-    expect(remove(state, 1, 4, true)).toEqual([[...first, ...second], []])
+    expect(remove(state, 1, 4, true)).toEqual([[...first, ...second]])
     expect(state[1]).toEqual([
       'a',
       undefined,

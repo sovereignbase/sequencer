@@ -8,7 +8,7 @@ import type { Replica } from '../../types/type.js'
 import {
   get_projection_footage_spans,
   get_projection_frame_count,
-  wasm,
+  clear_footage_spans,
 } from '../../wasm/index.js'
 
 /**
@@ -51,6 +51,6 @@ export function values<T>(
     )
       result[result_index++] = state[1][footage_index]
   }
-  void wasm._clear_footage_span_buffer()
+  void clear_footage_spans()
   return result
 }

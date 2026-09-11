@@ -8,7 +8,7 @@ describe('TypeScript boundaries', () => {
 
     expect(is_delta(null)).toBe(false)
     expect(is_delta([[meta, ['a']]])).toBe(false)
-    expect(is_delta([meta])).toBe(false)
+    expect(is_delta([meta])).toBe(true)
     expect(is_delta([[-1], []])).toBe(false)
     expect(is_delta([[0x1_0000_0000], []])).toBe(false)
     expect(is_delta([meta, ['a']])).toBe(true)

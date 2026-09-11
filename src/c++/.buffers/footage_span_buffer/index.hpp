@@ -19,6 +19,9 @@
  * Snapshot spans include soft-masked content in structural order followed by
  * pending insert content. Pending spans use UINT32_MAX as their Projection
  * index. Empty Strips and pending Mask commands contribute no span.
+ *
+ * Merge emits visible changed-suffix spans followed, when needed, by a tail
+ * removal span with footage_frame_index UINT32_MAX and masked = 1.
  */
 #pragma once
 

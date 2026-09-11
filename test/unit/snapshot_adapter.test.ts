@@ -136,7 +136,12 @@ describe('Snapshot buffer transfer', () => {
     state = [42, ['X', 'Y', 'p', 'q', 'a', 'b', 'c', 'r', 'H', 'I', '?', 'd']]
     native.HEAPU32 = new Uint32Array(256)
     native._clear_projection_buffer.mockImplementation(() => {
-      native.HEAPU32.fill(0)
+      const start = native._get_projection_buffer_pointer() >>> 2
+      native.HEAPU32.fill(
+        0,
+        start,
+        start + native._get_projection_buffer_word_count()
+      )
     })
     native._get_projection_buffer_pointer.mockReturnValue(16)
     native._get_projection_buffer_word_count.mockReturnValue(projection.length)

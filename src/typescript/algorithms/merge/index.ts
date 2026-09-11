@@ -5,12 +5,7 @@
  */
 import { is_delta } from '../../helpers/is_delta/index.js'
 import type { Change, Replica } from '../../types/type.js'
-import {
-  get_projection_frame_count,
-  no_projection_frame_index,
-  wasm,
-} from '../../wasm/index.js'
-import { values } from '../values/index.js'
+import { clear_footage_spans, merge_sequence } from '../../wasm/index.js'
 
 /**
  * Integrates encoded Strips and returns the changed suffix of the visible view.
@@ -25,27 +20,29 @@ export function merge<T>(state: Replica<T>, data: unknown): Change<T> | false {
 
   const [projection, footage] = data
 
-  const previous_length: number = get_projection_frame_count(state[0])
-  const footage_start: number = state[1].length
-  const buffer_start =
-    wasm._prepare_projection_buffer(projection.length / 10) >>> 2
-  wasm.HEAPU32.set(projection, buffer_start)
-  const projection_frame_index =
-    wasm._merge_projection(state[0], footage_start) >>> 0
-  if (projection_frame_index === no_projection_frame_index) return false
-
-  void state[1].push(...footage!)
-
-  // TODO: Make native merge write to footage span buffer instead of having extra calls and meaningless ts validation
-  const current = values(state, projection_frame_index)
-  const change: Change<T> = {}
-  for (let frame = 0; frame < current.length; ++frame)
-    change[projection_frame_index + frame] = current[frame]
-  for (
-    let frame = projection_frame_index + current.length;
-    frame < previous_length;
-    ++frame
+  const frame_count = footage?.length ?? 0
+  const spans = merge_sequence(
+    state[0],
+    projection,
+    state[1].length,
+    frame_count
   )
-    change[frame] = undefined
+  if (footage !== undefined) {
+    const start = state[1].length
+    state[1].length = start + frame_count
+    for (let frame = 0; frame < frame_count; ++frame)
+      state[1][start + frame] = footage[frame]
+  }
+  if (!spans) return false
+
+  const change: Change<T> = {}
+  for (let span = 0; span < spans.length; span += 4) {
+    const projection_index = spans[span]
+    const footage_index = spans[span + 1]
+    for (let frame = 0; frame < spans[span + 2]; ++frame)
+      change[projection_index + frame] =
+        spans[span + 3] === 0 ? state[1][footage_index + frame] : undefined
+  }
+  clear_footage_spans()
   return change
 }

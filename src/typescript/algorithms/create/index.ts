@@ -3,7 +3,11 @@
  *
  * @module
  */
-import { clear_sequence, initialize_sequence, wasm } from '../../wasm/index.js'
+import {
+  clear_sequence,
+  initialize_sequence,
+  write_projection_to_buffer,
+} from '../../wasm/index.js'
 import type { Delta, Replica } from '../../types/type.js'
 
 /** Releases the native Projector after its JavaScript Replica is collected. */
@@ -24,15 +28,11 @@ const finalization_registry = new FinalizationRegistry<number>(clear_sequence)
  * values are not deep-cloned. No SequencePoints are issued.
  */
 export function create<T>(data?: unknown): Replica<T> {
-  const [projection, footage] = data as Delta<T>
+  const [projection, footage] = (data ?? []) as Delta<T>
 
-  if (projection !== undefined) {
-    const pointer =
-      wasm._prepare_projection_buffer(projection.length / 10) >>> 2
-    wasm.HEAPU32.set(projection, pointer)
-  }
+  if (projection !== undefined) write_projection_to_buffer(projection)
 
-  const state: Replica<T> = [initialize_sequence(), footage ?? []]
+  const state: Replica<T> = [initialize_sequence(), footage?.slice() ?? []]
   void finalization_registry.register(state, state[0])
   return state
 }

@@ -8,7 +8,11 @@ import type { Delta, Replica } from '../../types/type.js'
 import {
   get_projection_frame_count,
   no_projection_frame_index,
-  wasm,
+  update_sequence,
+  read_projection_from_buffer,
+  read_footage_spans,
+  release_mask_footage,
+  clear_footage_spans,
 } from '../../wasm/index.js'
 
 /**
@@ -53,7 +57,7 @@ export function remove<T>(
 
   while (remaining_frame_count > 0) {
     const position =
-      wasm._update_projection(
+      update_sequence(
         state[0],
         start_index,
         2,
@@ -62,29 +66,25 @@ export function remove<T>(
       ) >>> 0
     if (position === no_projection_frame_index) break
 
-    const buffer_start = wasm._get_projection_buffer_pointer() >>> 2
-    const buffer = wasm.HEAPU32
-    const mask_frame_count = buffer[buffer_start + 1]
-    for (let word = 0; word < 10; ++word)
-      void projection.push(buffer[buffer_start + word])
-    void wasm._clear_projection_buffer()
+    const mask = read_projection_from_buffer(10)
+    const mask_frame_count = mask[1]
+    for (const word of mask) void projection.push(word)
 
     if (hard) {
-      const span_start = wasm._get_footage_span_buffer_pointer() >>> 2
-      const footage_frame_index = wasm.HEAPU32[span_start + 1]
+      const footage_frame_index = read_footage_spans(1)[1]
       void state[1].fill(
         undefined,
         footage_frame_index,
         footage_frame_index + mask_frame_count
       )
-      void wasm._release_mask_footage(
+      void release_mask_footage(
         state[0],
         projection[projection.length - 8],
         projection[projection.length - 7],
         projection[projection.length - 6]
       )
     }
-    void wasm._clear_footage_span_buffer()
+    void clear_footage_spans()
     remaining_frame_count -= mask_frame_count
   }
 

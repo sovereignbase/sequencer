@@ -8,7 +8,8 @@ import type { Delta, Replica } from '../../types/type.js'
 import {
   get_projection_frame_count,
   no_projection_frame_index,
-  wasm,
+  update_sequence,
+  read_projection_from_buffer,
 } from '../../wasm/index.js'
 
 /**
@@ -42,7 +43,7 @@ export function insert<T>(
   const footage_start = state[1].length
   const frame_count = values.length
   const position =
-    wasm._update_projection(
+    update_sequence(
       state[0],
       tail ? index - 1 : index,
       tail ? 1 : 0,
@@ -51,12 +52,11 @@ export function insert<T>(
     ) >>> 0
   if (position === no_projection_frame_index) return false
 
-  const buffer_start = wasm._get_projection_buffer_pointer() >>> 2
-  const projection = Array.from(
-    wasm.HEAPU32.subarray(buffer_start, buffer_start + 10)
-  )
-  void wasm._clear_projection_buffer()
+  const projection = read_projection_from_buffer(10)
+  const footage = values.slice()
 
-  void state[1].push(...values)
-  return [projection, values]
+  state[1].length = footage_start + frame_count
+  for (let frame = 0; frame < frame_count; ++frame)
+    state[1][footage_start + frame] = footage[frame]
+  return [projection, footage]
 }

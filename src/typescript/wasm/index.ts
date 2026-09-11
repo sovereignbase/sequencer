@@ -1,17 +1,15 @@
-/// TODO: UPDATE FULLY ALL CALLS USED IN ALGORITHMS MUST go trough a properly typed api to keep the algorithms code readable.
-
 /**
  * Typed adapter over the native Projector ABI and its shared transfer buffers.
  *
  * @module
  */
-import create_module from './raw/sequencer_wasm.mjs'
+import create_module, { type MainModule } from './raw/sequencer_wasm.mjs'
 import type { Acknowledgement, Delta } from '../types/type.js'
 
 type VirtualStrip<T> = Delta<T>[0]
 
 /** Synchronously initialized native Sequencer module shared by this adapter. */
-export const wasm = create_module()
+export const wasm: MainModule = create_module()
 
 /** Legacy initial buffer offset; transfers reacquire their current pointers. */
 export const strip_buffer_start_index = wasm._get_strip_buffer_pointer() >>> 2
@@ -212,40 +210,115 @@ export function get_acknowledgement_frontier(
   return frontier
 }
 
-/**
- * Resolves Footage covered by a selected realm-indexed Frontier.
- *
- * The returned view contains four-word Footage Span records. The synchronous
- * caller clears the Footage Span buffer immediately after consuming the view.
- *
- * @param sequence_id Active local Projector identifier.
- * @param frontier Selected compaction boundary for each included Realm.
- * @returns A zero-copy view of released Footage spans, or `false` when the
- * Frontier is empty or no Mask Footage is releasable.
- */
+/** Transfers one selected frontier to native compaction. */
 export function compact_sequence(
   sequence_id: number,
   frontier: Acknowledgement
 ): Uint32Array | false {
-  // Validate that at least one selected Realm boundary exists.
-  if (frontier.length === 0) return false
+  return compact_frontiers(sequence_id, [frontier])
+}
 
-  // Prepare zero-copy input memory for the selected Frontier.
-  const buffer_index =
-    wasm._prepare_compaction_sequence_point_buffer(frontier.length / 3) >>> 2
+/** Transfers all actor frontiers; native code selects their exact agreement. */
+export function compact_frontiers(
+  sequence_id: number,
+  frontiers: Array<Acknowledgement>,
+  hard = false
+): Uint32Array | false {
+  if (frontiers.length === 0) return false
+  let point_count = frontiers.length
+  for (const frontier of frontiers) point_count += frontier.length / 3
+  let start = wasm._prepare_compaction_sequence_point_buffer(point_count) >>> 2
   const buffer = wasm.HEAPU32
-
-  // Encode every selected Realm boundary in native lane order.
-  buffer.set(frontier, buffer_index)
-
-  // Resolve covered native Mask Footage and the released-span count.
-  const span_count = wasm._compact_projection(sequence_id, 0) >>> 0
-  if (span_count === 0) {
-    wasm._clear_footage_span_buffer()
+  for (const frontier of frontiers) {
+    buffer[start] = frontier.length / 3
+    buffer[start + 1] = 0
+    buffer[start + 2] = 0
+    start += 3
+    buffer.set(frontier, start)
+    start += frontier.length
+  }
+  const count =
+    wasm._compact_projection(sequence_id, hard ? 1 : 0, frontiers.length) >>> 0
+  if (count === 0) {
+    clear_footage_spans()
     return false
   }
+  return read_footage_spans(count)
+}
 
-  // Return a zero-copy view over the latest Footage-span result.
-  const span_start = wasm._get_footage_span_buffer_pointer() >>> 2
-  return wasm.HEAPU32.subarray(span_start, span_start + span_count * 4)
+/** Copies packed Strip words into the native input buffer. */
+export function write_projection_to_buffer(projection: Array<number>): void {
+  const start = wasm._prepare_projection_buffer(projection.length / 10) >>> 2
+  wasm.HEAPU32.set(projection, start)
+}
+
+/** Copies native Strip words and releases their transfer buffer. */
+export function read_projection_from_buffer(
+  word_count: number = wasm._get_projection_buffer_word_count() >>> 0
+): Array<number> {
+  const start = wasm._get_projection_buffer_pointer() >>> 2
+  const projection = Array.from(
+    wasm.HEAPU32.subarray(start, start + word_count)
+  )
+  wasm._clear_projection_buffer()
+  return projection
+}
+
+/** Borrows spans until the synchronous reader calls clear_footage_spans. */
+export function read_footage_spans(
+  count: number = wasm._get_footage_span_buffer_count() >>> 0
+): Uint32Array {
+  const start = count === 0 ? 0 : wasm._get_footage_span_buffer_pointer() >>> 2
+  return wasm.HEAPU32.subarray(start, start + count * 4)
+}
+
+/** Releases spans after their synchronous consumption. */
+export function clear_footage_spans(): void {
+  wasm._clear_footage_span_buffer()
+}
+
+/** Issues one operation and leaves its Strip and optional spans for the reader. */
+export function update_sequence(
+  sequence_id: number,
+  index: number,
+  type: 0 | 1 | 2,
+  length: number,
+  footage_index: number
+): number {
+  return (
+    wasm._update_projection(sequence_id, index, type, length, footage_index) >>>
+    0
+  )
+}
+
+/** Merges input and borrows visible suffix spans, including removed tail slots. */
+export function merge_sequence(
+  sequence_id: number,
+  projection: Array<number>,
+  footage_index: number,
+  footage_length: number
+): Uint32Array | false {
+  write_projection_to_buffer(projection)
+  const position =
+    wasm._merge_projection(sequence_id, footage_index, footage_length) >>> 0
+  if (position === no_projection_frame_index) {
+    clear_footage_spans()
+    return false
+  }
+  return read_footage_spans()
+}
+
+/** Writes both snapshot buffers; the synchronous caller consumes them. */
+export function snapshot_sequence(sequence_id: number): void {
+  wasm._snapshot_projection(sequence_id)
+}
+
+/** Marks the accepted instruction's source content as released. */
+export function release_mask_footage(
+  sequence_id: number,
+  crypto: number,
+  unix: number,
+  counter: number
+): void {
+  wasm._release_mask_footage(sequence_id, crypto, unix, counter)
 }

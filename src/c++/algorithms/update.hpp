@@ -3,8 +3,6 @@
 #include "./runtime.hpp"
 #include "./issue.hpp"
 #include "../apply/insert/index.hpp"
-#include "../apply/mask/index.hpp"
-#include "../.auxiliary/update_following_jump/index.hpp"
 #include "../find/containing_strip_index/index.hpp"
 #include "../find/projection_frame_index/index.hpp"
 #include <algorithm>
@@ -62,20 +60,12 @@ inline std::uint32_t update_projection(
   if (incoming_strip_index == u32_max)
     return u32_max;
 
-  const auto [frame_count_diff, strip_count_diff] =
-      operation_type == 2
-          ? apply_mask(projector, containing_strip_index, incoming_strip_index, offset)
-          : apply_insert(projector, containing_strip_index, incoming_strip_index, offset);
-  auto position = operation_index;
-  if (operation_type == 2) {
-    update_following_jump(projector, containing_strip_index,
-                          frame_count_diff, strip_count_diff);
-  } else {
-    position = find_projection_frame_index_of(
-        projector, incoming_strip_index, frame_count_diff, strip_count_diff);
-    projector.gate_strip_index = incoming_strip_index;
-    projector.projection_frame_index = position;
-  }
+  const auto [frame_count_diff, strip_count_diff] = apply_insert(
+      projector, containing_strip_index, incoming_strip_index, offset);
+  const auto position = find_projection_frame_index_of(
+      projector, incoming_strip_index, frame_count_diff, strip_count_diff);
+  projector.gate_strip_index = incoming_strip_index;
+  projector.projection_frame_index = position;
 
   const auto strip_start = projector.strip_start_of[incoming_strip_index];
   projection_buffer.resize(1);

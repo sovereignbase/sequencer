@@ -1,17 +1,14 @@
 /** Shared current-API fixtures for deterministic Replica tests. */
-import { assert, expect } from 'vitest'
+import { assert, expect, vi } from 'vitest'
 import {
   create,
   insert,
   length,
+  merge,
   snapshot,
   values,
 } from '../../src/typescript/index.js'
-import type {
-  Delta,
-  Replica,
-  Strip,
-} from '../../src/typescript/index.js'
+import type { Delta, Replica } from '../../src/typescript/index.js'
 
 /** Three unsigned lanes forming one Sequence Point. */
 export type SequencePoint = [
@@ -35,17 +32,21 @@ export function projection_values<T>(state: Replica<T>): Array<T | undefined> {
   return values(state)
 }
 
+export async function create_actor() {
+  vi.resetModules()
+  return import('../../src/typescript/index.js')
+}
+
 /** Extracts the visible Strip issued by one accepted local operation. */
-export function visible_strip<T>(result: Delta<T> | false): Strip<T> {
+export function visible_strip<T>(result: Delta<T> | false): Delta<T> {
   assert(result !== false)
-  const strip = result.find(([meta]) => meta[0] === 0)
-  assert(strip !== undefined)
-  return strip
+  assert(result[0].length === 10 && result[0][0] < 2)
+  return result
 }
 
 /** Reads one Strip's `this_strip_start` from its transferable metadata. */
-export function strip_start<T>(strip: Strip<T>): SequencePoint {
-  return [strip[0][3], strip[0][4], strip[0][5]]
+export function strip_start<T>(strip: Delta<T>): SequencePoint {
+  return [strip[0][2], strip[0][3], strip[0][4]]
 }
 
 /** Compares Sequence Points in the same lane order as the native comparator. */
@@ -58,9 +59,9 @@ export function compare_points(
 
 /** Produces a deterministic hostile staging order for one supplied seed. */
 export function shuffle_strips<T>(
-  strips: Array<Strip<T>>,
+  strips: Array<Delta<T>>,
   seed: number
-): Array<Strip<T>> {
+): Array<Delta<T>> {
   const shuffled = [...strips]
   let state = seed >>> 0
 
@@ -76,16 +77,18 @@ export function shuffle_strips<T>(
   return shuffled
 }
 
-/** Stages Strips through create and optionally snapshot-restarts mid-batch. */
+/** Merges operations and optionally snapshot-restarts mid-batch. */
 export function deliver<T>(
   base: Delta<T>,
-  strips: Array<Strip<T>>,
+  strips: Array<Delta<T>>,
   restart_index?: number
 ): Replica<T> {
-  if (restart_index === undefined) return create<T>([...base, ...strips])
-
-  const first = create<T>([...base, ...strips.slice(0, restart_index)])
-  return create<T>([...snapshot(first), ...strips.slice(restart_index)])
+  let state = create<T>(base)
+  for (let index = 0; index < strips.length; ++index) {
+    if (index === restart_index) state = create<T>(snapshot(state))
+    merge(state, strips[index])
+  }
+  return state
 }
 
 /** Requires equal visible Projection length and values. */

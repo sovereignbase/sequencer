@@ -13,7 +13,7 @@ import {
 
 describe('runtime CRUD', () => {
   it('creates an empty Projection and validates read ranges', () => {
-    const state = create<string>('invalid')
+    const state = create<string>()
 
     expect(length(state)).toBe(0)
     expect(values(state)).toEqual([])
@@ -88,7 +88,7 @@ describe('runtime CRUD', () => {
     expect(remove(state, 1, 3, true)).not.toBe(false)
     expect(values(state)).toEqual(['a', 'd'])
     expect(recover(state)).toEqual(['a', 'd'])
-    expect(state.footage).toEqual(['a', undefined, undefined, 'd'])
+    expect(state[1]).toEqual(['a', undefined, undefined, 'd'])
   })
 
   it('replaces a visible range through one combined Delta', () => {

@@ -10,16 +10,22 @@ import {
   snapshot,
   values,
 } from '../../src/typescript/index.js'
-import type { Acknowledgement } from '../../src/typescript/index.js'
+import type { Delta } from '../../src/typescript/index.js'
 
 describe('runtime merge and retained state', () => {
-  it('ignores malformed and duplicate creation data', () => {
+  it('rejects malformed merge data and ignores duplicate operations', () => {
     const source = create<string>()
     assert(insert(source, 0, ['a', 'b']))
     const delta = snapshot(source)
 
-    expect(values(create([null, [[0]], ...delta]))).toEqual(['a', 'b'])
-    expect(values(create([...delta, ...delta]))).toEqual(['a', 'b'])
+    const target = create<string>()
+    expect(merge(target, null)).toBe(false)
+    expect(merge(target, [[[0]], ['a']])).toBe(false)
+    expect(merge(target, [[0], ['a']])).toBe(false)
+    expect(values(target)).toEqual([])
+    expect(merge(target, delta)).not.toBe(false)
+    expect(merge(target, delta)).toBe(false)
+    expect(values(target)).toEqual(['a', 'b'])
   })
 
   it('merges an issued Strip into a Replica with the same base', () => {
@@ -44,19 +50,26 @@ describe('runtime merge and retained state', () => {
     const result = remove(source, 1, 2)
     assert(result)
 
-    expect(merge(target, result)).toEqual({ 1: undefined })
+    expect(merge(target, result)).toEqual({ 1: 'c', 2: undefined })
     expect(values(target)).toEqual(['a', 'c'])
   })
 
   it('retains a valid unresolved Strip in the Snapshot', () => {
     const state = create<string>()
     assert(insert(state, 0, ['root']))
-    const orphan = [[0, 0, 1, 11, 22, 0, 33, 44, 0], ['pending']]
+    const orphan: Delta<string> = [
+      [1, 1, 11, 22, 0, 33, 44, 0, 0xffff_ffff, 0xffff_ffff],
+      ['pending'],
+    ]
 
-    expect(merge(state, [orphan])).toBe(false)
+    expect(merge(state, orphan)).toBe(false)
     const retained = snapshot(state)
-    expect(retained).toHaveLength(2)
-    expect(retained[1]).toEqual(orphan)
+    expect(retained[0]).toHaveLength(20)
+    expect(retained[0].slice(10)).toEqual([4, ...orphan[0].slice(1)])
+    expect(retained[1]).toEqual(['root', 'pending'])
+    const restored = create<string>(retained)
+    expect(values(restored)).toEqual(['root'])
+    expect(snapshot(restored)).toEqual(retained)
   })
 
   it('acknowledges materialized Realms and collects Mask Footage', () => {
@@ -66,30 +79,36 @@ describe('runtime merge and retained state', () => {
 
     const frontier = acknowledge(state)
     assert(frontier)
-    expect(frontier).toHaveLength(1)
+    expect(frontier).toHaveLength(3)
+    expect(frontier[2]).toBe(2)
 
     compact([frontier], state)
+    expect(recover(state)).toEqual(['a', 'b', 'c'])
+    compact([frontier], state, true)
 
     expect(values(state)).toEqual(['a', 'c'])
     expect(recover(state)).toEqual(['a', 'c'])
-    expect(state.footage[1]).toBeUndefined()
+    expect(state[1][1]).toBeUndefined()
   })
 
-  it('reduces acknowledgement boundaries by matching Realm', () => {
+  it('requires exact Realm frontiers without mutating acknowledgements', () => {
     const state = create<string>()
-    const first: Acknowledgement = [
-      [10, 20, 8],
-      [11, 21, 7],
-    ]
-    const selected: Acknowledgement = first.map((point) => [...point])
-    const second: Acknowledgement = [
-      [10, 20, 3],
-      [11, 21, 5],
-    ]
-    const third: Acknowledgement = [[10, 20, 6]]
-
-    compact([selected, second, third], state)
-
-    expect(selected).toEqual(second)
+    assert(insert(state, 0, ['a', 'b', 'c']))
+    assert(remove(state, 1, 2))
+    const frontier = acknowledge(state)
+    assert(frontier)
+    const differing = [...frontier.slice(0, 2), frontier[2] + 1]
+    const missing = [frontier[0], (frontier[1] + 1) >>> 0, frontier[2]]
+    for (const peer of [differing, missing]) {
+      const inputs = [frontier.slice(), peer.slice()]
+      const original = inputs.map((input) => input.slice())
+      compact(inputs, state, true)
+      expect(inputs).toEqual(original)
+      expect(recover(state)).toEqual(['a', 'b', 'c'])
+    }
+    const inputs = [frontier.slice(), frontier.slice()]
+    compact(inputs, state, true)
+    expect(inputs).toEqual([frontier, frontier])
+    expect(recover(state)).toEqual(['a', 'c'])
   })
 })

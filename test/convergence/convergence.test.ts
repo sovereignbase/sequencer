@@ -11,12 +11,12 @@ import {
   length,
   merge,
   remove,
-  replace,
   snapshot,
 } from '../../src/typescript/index.js'
-import type { Acknowledgement, Delta } from '../../src/typescript/index.js'
+import type { Delta } from '../../src/typescript/index.js'
 import {
   compare_points,
+  create_actor,
   create_seed,
   deliver,
   expect_converged,
@@ -27,33 +27,43 @@ import {
 } from '../.helpers/replica.js'
 
 describe('concurrent Strip ordering', () => {
-  it('orders initial inverse siblings by descending point', () => {
-    const root_strips = ['first', 'second', 'third', 'fourth'].map((value) =>
-      visible_strip(insert(create<string>(), 0, [value]))
-    )
+  it('orders root siblings by descending point', async () => {
+    const root_strips: Array<Delta<string>> = []
+    for (const value of ['first', 'second', 'third', 'fourth']) {
+      const actor = await create_actor()
+      root_strips.push(
+        visible_strip(actor.insert(actor.create<string>(), 0, [value]))
+      )
+    }
+    expect(
+      new Set(root_strips.map((strip) => strip_start(strip).join(':'))).size
+    ).toBe(4)
     const expected = [...root_strips]
       .sort((left, right) =>
         compare_points(strip_start(right), strip_start(left))
       )
       .flatMap((strip) => strip[1] ?? [])
 
-    const forward = deliver([], root_strips)
-    const reverse = deliver([], [...root_strips].reverse())
+    const forward = deliver([[], []], root_strips)
+    const reverse = deliver([[], []], [...root_strips].reverse())
 
     expect(projection_values(forward)).toEqual(expected)
     expect_converged(forward, reverse)
   })
 
-  it('orders forward siblings by ascending point', () => {
+  it('orders forward siblings by descending point', async () => {
     const base = create_seed(['base'])
     const base_delta = snapshot(base)
-    const left = create<string>(base_delta)
-    const right = create<string>(base_delta)
-    const left_strip = visible_strip(insert(left, 1, ['left']))
-    const right_strip = visible_strip(insert(right, 1, ['right']))
+    const left_actor = await create_actor()
+    const right_actor = await create_actor()
+    const left = left_actor.create<string>(base_delta)
+    const right = right_actor.create<string>(base_delta)
+    const left_strip = visible_strip(left_actor.insert(left, 1, ['left']))
+    const right_strip = visible_strip(right_actor.insert(right, 1, ['right']))
+    expect(strip_start(left_strip)).not.toEqual(strip_start(right_strip))
     const expected = [left_strip, right_strip]
       .sort((left, right) =>
-        compare_points(strip_start(left), strip_start(right))
+        compare_points(strip_start(right), strip_start(left))
       )
       .flatMap((strip) => strip[1] ?? [])
 
@@ -66,47 +76,46 @@ describe('concurrent Strip ordering', () => {
 })
 
 describe('hostile Delta staging', () => {
-  it('materializes a child staged before its predecessor during create', () => {
+  it('materializes a child merged before its predecessor', () => {
     const source = create<string>()
     const parent_result = insert(source, 0, ['parent'])
     assert(parent_result !== false)
     const child_result = insert(source, 1, ['child'])
     assert(child_result !== false)
 
-    const target = create<string>([
-      ...child_result,
-      ...parent_result,
-    ])
+    const target = deliver<string>([[], []], [child_result, parent_result])
 
     expect(projection_values(target)).toEqual(['parent', 'child'])
     expect_converged(source, target)
   })
 
-  it('converges after reverse, shuffled, duplicate, and restart staging', () => {
+  it('converges after reverse, shuffled, duplicate, and restart staging', async () => {
     const base = create_seed(['base-0', 'base-1', 'base-2'])
     const base_delta = snapshot(base)
-    const left = create<string>(base_delta)
-    const right = create<string>(base_delta)
+    const left_actor = await create_actor()
+    const right_actor = await create_actor()
+    const left = left_actor.create<string>(base_delta)
+    const right = right_actor.create<string>(base_delta)
     const deltas: Array<Delta<string>> = []
 
-    const left_parent = insert(left, 1, ['left-0', 'left-1'])
+    const left_parent = left_actor.insert(left, 1, ['left-0', 'left-1'])
     assert(left_parent !== false)
     deltas.push(left_parent)
-    const left_child = insert(left, 2, ['left-child'])
+    const left_child = left_actor.insert(left, 2, ['left-child'])
     assert(left_child !== false)
     deltas.push(left_child)
-    const left_mask = remove(left, 2, 4)
+    const left_mask = left_actor.remove(left, 2, 4)
     assert(left_mask !== false)
     deltas.push(left_mask)
 
-    const right_replacement = replace(right, 1, ['right'])
+    const right_replacement = right_actor.replace(right, 1, ['right'])
     assert(right_replacement !== false)
     deltas.push(right_replacement)
-    const right_initial = insert(right, 0, ['right-initial'])
+    const right_initial = right_actor.insert(right, 0, ['right-initial'])
     assert(right_initial !== false)
     deltas.push(right_initial)
 
-    const strips = deltas.flat()
+    const strips = deltas
     const ordered = deliver(base_delta, strips)
     const reversed = deliver(base_delta, [...strips].reverse())
     const shuffled = deliver(base_delta, shuffle_strips(strips, 0xc0ffee))
@@ -127,26 +136,23 @@ describe('hostile Delta staging', () => {
       expect_converged(ordered, target)
   })
 
-  it('converges for a concurrent Mask and sibling insertion', () => {
+  it('converges for a concurrent Mask and sibling insertion', async () => {
     const base = create_seed(['a', 'b', 'c'])
     const base_delta = snapshot(base)
-    const deleting = create<string>(base_delta)
-    const inserting = create<string>(base_delta)
-    const deletion = remove(deleting, 1, 2)
-    const insertion = insert(inserting, 2, ['beside'])
+    const deleting_actor = await create_actor()
+    const inserting_actor = await create_actor()
+    const deleting = deleting_actor.create<string>(base_delta)
+    const inserting = inserting_actor.create<string>(base_delta)
+    const deletion = deleting_actor.remove(deleting, 1, 2)
+    const insertion = inserting_actor.insert(inserting, 2, ['beside'])
     assert(deletion !== false)
     assert(insertion !== false)
 
-    const mask_first = deliver(base_delta, [
-      ...deletion,
-      ...insertion,
-    ])
-    const insert_first = deliver(base_delta, [
-      ...insertion,
-      ...deletion,
-    ])
+    const mask_first = deliver(base_delta, [deletion, insertion])
+    const insert_first = deliver(base_delta, [insertion, deletion])
 
     expect_converged(mask_first, insert_first)
+    expect(projection_values(mask_first)).toEqual(['a', 'beside', 'c'])
   })
 })
 
@@ -183,16 +189,8 @@ describe('restart and collection continuity', () => {
     assert(source_frontier !== false)
     assert(peer_frontier !== false)
 
-    const clone_frontier = (frontier: Acknowledgement): Acknowledgement =>
-      frontier.map((point) => [point[0], point[1], point[2]])
-    compact(
-      [clone_frontier(source_frontier), clone_frontier(peer_frontier)],
-      source
-    )
-    compact(
-      [clone_frontier(source_frontier), clone_frontier(peer_frontier)],
-      peer
-    )
+    compact([source_frontier.slice(), peer_frontier.slice()], source)
+    compact([source_frontier.slice(), peer_frontier.slice()], peer)
 
     const later = insert(source, length(source), ['later'])
     assert(later !== false)

@@ -1,7 +1,7 @@
 {
   "config": {
     "argv": [
-      "C:\\Users\\jorts\\AppData\\Local\\fnm_multishells\\11312_1789105631282\\node.exe",
+      "C:\\Users\\jorts\\AppData\\Local\\fnm_multishells\\16192_1789108289256\\node.exe",
       "C:\\Users\\jorts\\sequencer\\node_modules\\@playwright\\test\\cli.js",
       "test"
     ],
@@ -138,7 +138,7 @@
     "version": "1.63.0",
     "workers": 1,
     "webServer": {
-      "command": "\"C:\\Users\\jorts\\AppData\\Local\\fnm_multishells\\11312_1789105631282\\node.exe\" node_modules/vite/bin/vite.js --host 127.0.0.1 --port 4173 --strictPort",
+      "command": "\"C:\\Users\\jorts\\AppData\\Local\\fnm_multishells\\16192_1789108289256\\node.exe\" node_modules/vite/bin/vite.js --host 127.0.0.1 --port 4173 --strictPort",
       "url": "http://127.0.0.1:4173/test/browser/index.html",
       "reuseExistingServer": false,
       "timeout": 30000
@@ -167,12 +167,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2249,
+                  "duration": 870,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-11T05:49:39.720Z",
+                  "startTime": "2026-09-11T06:32:01.795Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -201,7 +201,7 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "failed",
-                  "duration": 8,
+                  "duration": 4,
                   "error": {
                     "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\jorts\\AppData\\Local\\ms-playwright\\firefox-1543\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
                     "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\jorts\\AppData\\Local\\ms-playwright\\firefox-1543\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
@@ -214,7 +214,7 @@
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-11T05:49:47.191Z",
+                  "startTime": "2026-09-11T06:32:04.873Z",
                   "annotations": [],
                   "attachments": [
                     {
@@ -254,12 +254,12 @@
                   "workerIndex": 4,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3485,
+                  "duration": 1498,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-11T05:49:52.406Z",
+                  "startTime": "2026-09-11T06:32:07.256Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -288,12 +288,12 @@
                   "workerIndex": 5,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1330,
+                  "duration": 583,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-11T05:50:03.559Z",
+                  "startTime": "2026-09-11T06:32:11.468Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -322,12 +322,12 @@
                   "workerIndex": 6,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1492,
+                  "duration": 716,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-11T05:50:08.757Z",
+                  "startTime": "2026-09-11T06:32:13.905Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -364,12 +364,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1125,
+                  "duration": 402,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-11T05:49:43.498Z",
+                  "startTime": "2026-09-11T06:32:03.237Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -398,7 +398,7 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "failed",
-                  "duration": 7,
+                  "duration": 3,
                   "error": {
                     "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\jorts\\AppData\\Local\\ms-playwright\\firefox-1543\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
                     "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\jorts\\AppData\\Local\\ms-playwright\\firefox-1543\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
@@ -411,7 +411,7 @@
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-11T05:49:48.856Z",
+                  "startTime": "2026-09-11T06:32:05.686Z",
                   "annotations": [],
                   "attachments": [
                     {
@@ -451,12 +451,12 @@
                   "workerIndex": 4,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1686,
+                  "duration": 822,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-11T05:49:58.454Z",
+                  "startTime": "2026-09-11T06:32:09.110Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -485,12 +485,12 @@
                   "workerIndex": 5,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 761,
+                  "duration": 364,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-11T05:50:05.428Z",
+                  "startTime": "2026-09-11T06:32:12.261Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -519,12 +519,12 @@
                   "workerIndex": 6,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1517,
+                  "duration": 632,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-11T05:50:10.627Z",
+                  "startTime": "2026-09-11T06:32:14.790Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -561,12 +561,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 640,
+                  "duration": 405,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-11T05:49:44.681Z",
+                  "startTime": "2026-09-11T06:32:03.663Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -576,7 +576,7 @@
           ],
           "id": "76f2a37656fbae8a9a0c-01507261c1b636f9fe50",
           "file": "convergence/browser.spec.ts",
-          "line": 14,
+          "line": 13,
           "column": 1
         },
         {
@@ -595,7 +595,7 @@
                   "workerIndex": 3,
                   "parallelIndex": 0,
                   "status": "failed",
-                  "duration": 6,
+                  "duration": 3,
                   "error": {
                     "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\jorts\\AppData\\Local\\ms-playwright\\firefox-1543\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
                     "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\jorts\\AppData\\Local\\ms-playwright\\firefox-1543\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
@@ -608,7 +608,7 @@
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-11T05:49:50.590Z",
+                  "startTime": "2026-09-11T06:32:06.477Z",
                   "annotations": [],
                   "attachments": [
                     {
@@ -629,7 +629,7 @@
           ],
           "id": "76f2a37656fbae8a9a0c-1c9a4fbc3f0c9b6b760f",
           "file": "convergence/browser.spec.ts",
-          "line": 14,
+          "line": 13,
           "column": 1
         },
         {
@@ -648,12 +648,12 @@
                   "workerIndex": 4,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1604,
+                  "duration": 766,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-11T05:50:00.208Z",
+                  "startTime": "2026-09-11T06:32:09.982Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -663,7 +663,7 @@
           ],
           "id": "76f2a37656fbae8a9a0c-cb389fb27f12c9721d19",
           "file": "convergence/browser.spec.ts",
-          "line": 14,
+          "line": 13,
           "column": 1
         },
         {
@@ -682,12 +682,12 @@
                   "workerIndex": 5,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 646,
+                  "duration": 417,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-11T05:50:06.248Z",
+                  "startTime": "2026-09-11T06:32:12.661Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -697,7 +697,7 @@
           ],
           "id": "76f2a37656fbae8a9a0c-e83fda44e5ec61f14b7e",
           "file": "convergence/browser.spec.ts",
-          "line": 14,
+          "line": 13,
           "column": 1
         },
         {
@@ -716,12 +716,12 @@
                   "workerIndex": 6,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1258,
+                  "duration": 739,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-11T05:50:12.222Z",
+                  "startTime": "2026-09-11T06:32:15.474Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -731,7 +731,7 @@
           ],
           "id": "76f2a37656fbae8a9a0c-8cb9ef2cbd2400cfc91c",
           "file": "convergence/browser.spec.ts",
-          "line": 14,
+          "line": 13,
           "column": 1
         }
       ]
@@ -739,8 +739,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-09-11T05:49:08.432Z",
-    "duration": 65861.486,
+    "startTime": "2026-09-11T06:31:59.623Z",
+    "duration": 16926.213,
     "expected": 12,
     "skipped": 0,
     "unexpected": 3,

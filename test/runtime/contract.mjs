@@ -32,12 +32,13 @@ export function run_runtime_contract(api) {
     'base update was rejected'
   )
   const snapshot = api.snapshot(base)
-  const left = api.create(snapshot)
-  const right = api.create(snapshot)
-  const left_result = api.insert(left, 1, ['left'])
-  const right_result = api.insert(right, 1, ['right'])
-  require_condition(left_result !== false, 'left update was rejected')
-  require_condition(right_result !== false, 'right update was rejected')
+  const parent_end = [snapshot[0][2], snapshot[0][3], snapshot[0][4] + 1]
+  const remote_insert = (realm, value) => [
+    [1, 1, realm, 0, 0, ...parent_end, 0xffff_ffff, 0xffff_ffff],
+    [value],
+  ]
+  const left_result = remote_insert((parent_end[0] ^ 1) >>> 0, 'left')
+  const right_result = remote_insert((parent_end[0] ^ 2) >>> 0, 'right')
 
   const forward = api.create(snapshot)
   const reverse = api.create(snapshot)
@@ -47,6 +48,16 @@ export function run_runtime_contract(api) {
   api.merge(reverse, left_result)
   const forward_projection = read_projection(forward)
   const reverse_projection = read_projection(reverse)
+  const expected = [
+    'base',
+    ...(left_result[0][2] > right_result[0][2]
+      ? ['left', 'right']
+      : ['right', 'left']),
+  ]
+  require_condition(
+    JSON.stringify(forward_projection) === JSON.stringify(expected),
+    'remote siblings were lost or ordered incorrectly'
+  )
   require_condition(
     JSON.stringify(forward_projection) === JSON.stringify(reverse_projection),
     'opposite delivery orders did not converge'

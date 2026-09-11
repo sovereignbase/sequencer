@@ -2,59 +2,55 @@
 
 ## Build
 
-- `npm run build:wasm`: passed, using the actual `src/c++/main.cpp` entry point.
-- `npm run build`: passed, including ESM, CommonJS, declarations, and docs.
-- `tsc --noEmit`: passed against regenerated WASM declarations.
-- All 19 standalone C++ test sources compile with Emscripten after replacing
-  the three obsolete Mask includes/calls with the shared insert path.
-- Public TypeScript algorithm signatures and `types/type.ts` are unchanged.
+- `npm test`: both WASM and TypeScript build stages passed.
+- Public TypeScript signatures and `src/typescript/types/type.ts` are unchanged.
+- This fixture migration does not change runtime implementation.
 
-The build uses the current merge and compact code, not replacement no-op stubs.
-Merge now consumes flat records, stages missing dependencies, resolves basic
-pending chains, and uses the shared apply path. Compact collects eligible
-retained Footage spans; it does not yet perform structural GC or reattachment.
-Soft compaction does not release retained JavaScript content.
+## Fixture migration
 
-## Executed tests
+- Operations remain flat `[projection, footage]` Deltas, including batches.
+- `create` receives trusted snapshots; unordered operations go through `merge`.
+- Snapshot checks retain structural order and soft-masked Footage across restarts.
+- Replicas use tuple access; ACKs use flat triples, exact frontier agreement,
+  and immutable inputs. Releasing retained content explicitly requests hard GC.
+- Convergence/browser/stress writers use separate WASM instances. Runtime smoke
+  tests use encoded remote siblings with distinct Realms and check all content.
+- Both root and forward siblings are expected in descending SequencePoint order.
+- Merge patches describe the changed visible suffix, including removed tail slots.
+- Previously vacuous browser/stress checks now merge actual operations rather
+  than passing malformed nested tuples to snapshot initialization.
 
-- `npm test`: failed overall; both build stages passed.
-- Vitest: 121 passed, 14 failed, 135 total.
-- Browser matrix: 12 passed, 3 failed because the Firefox executable is absent.
-- Runtime matrix: Node, Deno, Bun, and Edge fail the opposite-delivery-order
-  contract; Cloudflare Workers fails during module initialization.
-- Separate current-adapter run: all 107 tests passed.
-- Production WASM tests: all 3 passed (pending merge/deduplication, Mask identity
-  and ACK snapshot round trip, soft versus hard Footage release).
-- Standalone WASM `merge`, `update`, and `before_insert`: passed.
-- Standalone WASM `after_insert`: fails `visible == "YX"` after masking a source
-  behind a zero anchor and its causal inserts.
-- Standalone WASM `mask_split`: fails preservation of the source split link.
+## Latest complete run
 
-Machine-readable suite reports are alongside this file. Additional native
-diagnostics are in `temp/native-test-compilation.json` and
-`temp/native-mask-test-audit.json`; the latter supersedes the former's three
-obsolete-include compilation failures.
+- Vitest: **135 passed, 3 failed, 138 total**. All 130 unit tests passed.
+- Failing regressions: mixed shuffled/reverse/restarted merge convergence;
+  continued editing after acknowledged Mask collection; generative convergence.
+- Stress failed on its first generated scenario: seed `98626254`, path `0`.
+  Full diagnostics are in `temp/fixture-project-tests.log`.
+- Node.js, Deno, Bun, and Edge Runtime contracts passed.
+- Browser matrix: **12 passed**; 3 Firefox tests could not start because the
+  Playwright Firefox executable is absent. Chromium/WebKit desktop/mobile pass.
+- Cloudflare Workers still rejects random generation during global initialization.
+- Fixture formatting checks passed. No failing runtime assertions were skipped
+  or weakened to make the suite pass.
+
+Machine-readable suite reports are alongside this file. Native tests were not
+changed in this migration. The preceding native audit compiled all 19 sources;
+`merge`, `update`, and `before_insert` passed, while `after_insert` failed its
+`visible == "YX"` assertion and `mask_split` failed source split-link preservation.
+Those diagnostics remain in `temp/native-mask-test-audit.json`.
 
 ## Work remaining
 
-1. Resolve Mask source fragments/zero anchors correctly. Overlapping Masks still
-   need deterministic greatest-identity content ownership while retaining both
-   issued identities. Currently unsupported remote Mask spans remain pending.
-2. Finish structural soft/hard GC and causal reattachment. Footage collection
-   alone is not that implementation.
-3. Finish merge handling of retained snapshots containing Mask Footage, and
-   dependencies targeting source points consumed by Masks.
-4. Migrate old fixtures: nested Strip arrays, `state.footage`, nested ACK triples,
-   minimum-frontier selection, and unordered replay through trusted `create`
-   contradict the current contracts. Change-patch expectations also need review.
-5. Fix actor isolation in runtime/convergence fixtures without changing the
-   specified Realm/counter model. Two Projectors restored from the same snapshot
-   in one WASM instance issue identical next SequencePoints; this was reproduced
-   directly with different `left`/`right` payloads. They are not independent
-   actor Realms.
-6. Cloudflare initialization currently requests random values in global scope;
-   its runtime rejects that startup operation. Firefox must also be installed
-   before its browser tests can run.
+1. Mask splits and overlaps: traverse source fragments/zero anchors correctly,
+   choose the greatest Mask identity for shared content, and retain both issued
+   identities and counter spans for ACK/GC.
+2. Structural soft/hard GC and causal reattachment. Collecting Footage spans
+   alone does not implement removal of the acknowledged Mask chain.
+3. Mask split-chain handling and merge dependencies into consumed source points;
+   retained snapshots containing Mask Footage also need correct merge handling.
+4. Workers-compatible initialization and installation of the missing Firefox
+   test browser remain separate environment/runtime work.
 
-Passing the build or the bounded production tests does not establish complete
-CRDT convergence or safe structural GC.
+Passing builds and bounded smoke tests does not establish complete CRDT
+convergence or safe structural GC. The remaining failing regressions stay active.

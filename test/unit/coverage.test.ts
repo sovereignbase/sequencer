@@ -1,16 +1,19 @@
 import { describe, expect, it, vi } from 'vitest'
 
 describe('TypeScript boundaries', () => {
-  it('validates transferable Strip shapes', async () => {
-    const { is_safe_index, is_strip } =
+  it('validates flat Delta tuple shapes', async () => {
+    const { is_safe_index, is_delta } =
       await import('../../src/typescript/helpers/index.js')
-    const meta = [0, 0, 1, 1, 2, 3, 0, 0, 0]
+    const meta = [1, 1, 1, 2, 0, 0, 0, 0, 0xffff_ffff, 0xffff_ffff]
 
-    expect(is_strip(null)).toBe(false)
-    expect(is_strip([[0], ['a']])).toBe(false)
-    expect(is_strip([meta, []])).toBe(false)
-    expect(is_strip([meta, ['a']])).toBe(true)
-    expect(is_strip([[1, ...meta.slice(1)]])).toBe(true)
+    expect(is_delta(null)).toBe(false)
+    expect(is_delta([[meta, ['a']]])).toBe(false)
+    expect(is_delta([meta])).toBe(false)
+    expect(is_delta([[-1], []])).toBe(false)
+    expect(is_delta([[0x1_0000_0000], []])).toBe(false)
+    expect(is_delta([meta, ['a']])).toBe(true)
+    expect(is_delta([[2, ...meta.slice(1)], []])).toBe(true)
+    expect(is_delta([[], []])).toBe(true)
     expect(is_safe_index(0.5, 1)).toBe(false)
     expect(is_safe_index(1, 1, true)).toBe(true)
   })
@@ -34,7 +37,7 @@ describe('TypeScript boundaries', () => {
     const state = create()
 
     expect(cleanup).toBeTypeOf('function')
-    cleanup?.(state.id)
+    cleanup?.(state[0])
     vi.unstubAllGlobals()
   })
 })

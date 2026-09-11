@@ -22,11 +22,12 @@ import { is_uint32 } from '../is_uint32/index.js'
 export function is_delta<T>(data: unknown): data is Delta<T> {
   if (!Array.isArray(data) || data.length < 1 || data.length > 2) return false
 
-  const projection = data[0]
-  const footage = data[1]
+  const [projection, footage] = data as Delta<T>
 
   return (
     Array.isArray(projection) &&
+    projection.length !== 0 &&
+    data.length % 10 === 0 &&
     projection.every(is_uint32) &&
     Array.isArray(footage)
   )

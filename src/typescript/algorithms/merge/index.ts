@@ -21,18 +21,7 @@ import { values } from '../values/index.js'
  * @returns A visible index patch, or false when no visible change occurs.
  */
 export function merge<T>(state: Replica<T>, data: unknown): Change<T> | false {
-  if (!is_delta<T>(data) || data[0].length === 0 || data[0].length % 10 !== 0)
-    return false
-  let required = 0
-  for (let strip = 0; strip < data[0].length; strip += 10) {
-    const type = data[0][strip]
-    if (type >= 3 && type <= 5) break
-    if (type === 8 || type === 9) continue
-    const length = data[0][strip + 1]
-    if (length >= no_projection_frame_index - data[0][strip + 4]) return false
-    if (type !== 2 && (type & 16) === 0) required += length
-  }
-  if (required > data[1].length) return false
+  if (!is_delta<T>(data)) return false
 
   const previous_length = get_projection_frame_count(state[0])
   const footage_start = state[1].length

@@ -2,7 +2,7 @@
 
 Do as little work in TypeScript as possible.
 
-TypeScript should only perform the minimum validation needed to ensure that the values passed into WASM are valid `Uint32` values. Everything else should be handled inside the WASM runtime.
+TypeScript should only perform the minimum validation needed (only at untrusted paths) to ensure that the values passed into WASM are valid `Uint32` values. Everything else should be handled inside the WASM runtime.
 
 The goal is to keep validation and runtime logic out of the TypeScript layer whenever WASM can safely handle it.
 

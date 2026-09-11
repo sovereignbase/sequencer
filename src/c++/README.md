@@ -1,367 +1,522 @@
-# Projector
+Projector
 
-## SequencePoint and Strip model
+SequencePoint and Strip model
 
-SequencePoint consists of a unique identifier per realm (`crypto_random_bits` (`u32`) and `unix_lower_bits` (`u32`)). This means that, for one started Sequencer instance, all operations share these values. A third component (`counter_bits` (`u32`)) tracks frames produced per Projector, advancing by content length plus one for each newly issued Strip.
+Every Strip belongs to a Realm. A Realm is identified by two u32 values:
 
-The issued Strip length `initial_length_of` is its immutable content span `n`. The zero anchor is logical only: no extra content element is allocated for it. Content points are `strip_start + 1` through `strip_start + n`, and containment includes `[strip_start, strip_start + n]`. The next issued Strip starts at `strip_start + n + 1`. Splitting changes only `fragment_length_of`, it never allocates or shifts real SequencePoints.
+crypto_random_bits
+unix_lower_bits
 
-Each transfer record contains twelve `u32` words: type, initial length, three Strip-start lanes, three dependency lanes, larger-split index, smaller-competitor index, fragment length, and dependency prefix.
+Within one started Sequencer instance, these values stay the same. The third part of a SequencePoint, counter_bits, advances as that Realm creates new Strips.
 
-Only originally issued Strips enter containment. Split fragments use `{UINT32_MAX, UINT32_MAX, UINT32_MAX}` as a structural sentinel, initial length zero, and an explicit source offset. Their dependency is the original source start plus that offset, their dependency-prefix field stores the offset. Initialization trusts local snapshot links, while merge rebuilds fragment chains from source coordinates in snapshot order and ignores incoming split and competitor indices.
+For readability, this document uses single letters such as A and B for Realm identifiers. A full SequencePoint can therefore be written simply as:
 
-For simplicity (and maybe laziness), here we will present the UIDs as uppercase characters such as `A` or `B`, and full SequencePoints as, for example, `A9` and `B10`.
+A9
+B10
 
-## Insertion
+A Strip starts from one SequencePoint and owns a continuous range after it.
 
-### Example sequence
+For example, a Strip with length 7 starting at A0 is written as:
 
-```text
-length 7                 length 1       length 3
-
-A0[0,1,2,3,4,5,6,7]   (A7) A8[0,1]   A(9) B0[0,1,2,3]
-```
-
-Here, the first operation was a `birth insert` at `A1`, making `A1` the Head, followed by a `tail insert`.
-
-Notice how the `0` of a SequencePoint is always reserved.
-
-The reason for this becomes important with the next kind of operation: a `body insert`. It must properly distinguish an insert after a visible index. For example, inserting after `7`, which is at the `A7 / A8` boundary, moves `A8`—the current visible index `7`—to the right, “from underneath” the insertion.
-
-`A8` still has the previous Strip end encoded as `A7`. To distinguish causality, the insert between them cannot reuse `A7` as its previous Strip end anchor. Instead, it must use the reserved `A8 + 0`.
-
-This causes a split that leaves an empty `A8` in the list after `A7`. The new operation is then placed after `A8`, and the split suffix is placed after the new operation.
-
-The empty causal placeholder keeps its `larger_split` link to the content continuation. A Mask starting at the original Strip start resolves this placeholder first and follows that link without consuming any mask length. Mask traversal follows the original Strip's split chain, not unrelated inserts located between its fragments in Projection order.
-
-An insertion after `A5` splits physical content without changing the issued `A0` span:
-
-```text
-prefix:  A0, fragment_length = 5, content A1..A5
-
-new op:  dependency A5, dependency_prefix = 5, B3[0,1,2]
-
-suffix:  sentinel, source offset = 5, content A6..A7
-```
-
-The suffix is structural only. Its content remains `A6` and `A7`; containment still resolves the original issued `A0` Strip.
-
-A fourth insert kind is `head`. Inserting before `A1` gets the previous Strip end `A0`.
-
-So, fundamentally, there is a `birth` operation and then two directional kinds of insertion: `before` and `after`.
-
-Fundamentally, there are only three semantic insertion cases:
-
-- `birth` — insert into an empty sequence.
-- `before` — insert before an existing Frame.
-- `after` — insert after an existing Frame.
-
-`head`, `body`, and `tail` are therefore locations, not separate insertion semantics.
-
-They reduce to:
-
-- `head insert` = `before(first)`
-- `tail insert` = `after(last)`
-- `body insert` = `before(x)` or `after(x)` at an internal position
-
-This distinction is important because insertion semantics must remain unambiguous even at Strip boundaries.
-
-The reserved `0` Frame of each SequencePoint provides the structural anchor required for this.
-
-For example, if `A7` is followed by `A8`, an insertion after the visible Frame `A7` cannot reuse `A7` as its previous Strip end, because `A8` already encodes `A7` as its predecessor.
-
-Instead, it uses the reserved `A8 + 0`.
-
-This allows the sequence to distinguish:
-
-- insertion after `A7`
-- insertion before the visible contents of `A8`
-
-even though both operations occur at the same apparent boundary.
-
-Internal splits retain logical boundary anchors but never shift content points. Dependency prefixes preserve the operation's creation-time source coordinates independently of the current physical fragments.
-
-### Tie-breaking
-
-Even with the reserved anchors, two Strips can still have the same `previous_strip_end`.
-
-In that case, they are ordered by `strip_start`: the larger SequencePoint is always placed farther to the left.
-
-```text
-same previous_strip_end:
-
-larger strip_start  <-  smaller strip_start
-```
-
-Semantically, this makes the larger SequencePoint behave as the later insertion after the same predecessor, without implying that it actually happened later in time.
-
-The ordering is purely deterministic and does not depend on arrival order.
-
-## Mask
-
-A Mask behaves structurally like an insert.
-
-It has its own Strip, its own SequencePoint, the same `previous_strip_end` semantics, the same reserved `0`, and the same `before` / `after` insertion semantics.
-
-The difference is what happens to the Projection.
-
-An insert adds Frames:
-
-```text
-prefix | INSERT(length = n) | suffix
-```
-
-A Mask occupies the same structural position, but instead of adding projected Frames, it consumes `n` existing Frames from the beginning of the suffix:
-
-```text
-prefix | MASK(length = n) | shortened suffix
-```
-
-For example, consider:
-
-```text
 A0[0,1,2,3,4,5,6,7]
-```
 
-A Mask inserted after `A2` with length `3` follows the same structural rules as an insert at that position.
+The 0 point is reserved as a structural anchor. The actual content is:
 
-Before:
+A1 A2 A3 A4 A5 A6 A7
 
-```text
-A0[0,1,2,3,4,5,6,7]
-```
+So a Strip with content length n owns:
 
-After materialization:
+strip_start + 1
+...
+strip_start + n
 
-```text
-prefix:  A0[0,1,2]
+while containment also includes the reserved start point itself:
 
-mask:    dependency A2, dependency_prefix = 2, M0[0,1,2,3]
+[strip_start, strip_start + n]
 
-applied: sentinel, source offset = 2, hidden content A3..A5
+The next Strip from the same Realm begins after the entire range:
 
-suffix:  sentinel, source offset = 5, visible content A6..A7
-```
-
-The Mask consumes the three Frames that would otherwise begin the suffix:
-
-```text
-A3 A4 A5
-```
-
-so the surviving suffix begins at `A6`.
-
-Structurally, the result still has the same fundamental form as an insert:
-
-```text
-prefix -> instruction -> applied source -> suffix
-```
-
-The difference is only in its Projection effect:
-
-```text
-insert:
-projection_length += insert.length
-
-mask:
-projection_length -= mask.length
-```
-
-The same rule applies at Strip boundaries and inside Strips. If necessary, the existing Strip is split so that the Mask occupies exactly the addressed Frame span and the suffix begins immediately after the consumed Frames.
-
-Because a Mask is structurally an insertion, it follows the same anchoring and tie-breaking rules as any other inserted Strip.
-
-A Mask is never split. Its identity and issued length remain unchanged when its
-target has already been split. Application follows the target's `larger_split`
-chain, skips empty anchors, and consumes only the addressed source content, not
-intervening inserts. Missing dependencies remain pending in merge. Local apply
-never resolves pending operations. Overlapping instructions retain both identities.
-
-Retained Footage belongs to the applied source fragments, not to the instruction.
-Recovery and snapshotting read these spans in structural order. An instruction
-has fragment length zero and contributes no Footage of its own.
-
-### Overlapping Masks
-
-If multiple Masks cover the same source Frame, the Mask with the greatest
-`strip_start` SequencePoint owns that Frame's retained content. Comparison uses
-the existing lexicographic SequencePoint order, independently of arrival order.
-
-For example, if `M` masks `bc` and `N` masks `cd`, and `N > M`, `M` retains `b`
-and `N` retains `cd`. Recovery must not return the shared `c` twice.
-
-Content ownership does not discard the losing Mask's identity or shorten its
-issued counter span. Both Masks remain known and must survive snapshots for
-the acknowledgement and garbage-collection safety rules. A Mask that loses all
-of its content ownership is not thereby eligible for immediate collection.
-
-## Find
-
-Finding works in both directions between Projection positions and materialized Strips.
-
-### Projection Frame index to Strip
-
-Given a Projection Frame index, the goal is to position the Gate on the Strip containing that Frame.
-
-The search starts from whichever known position is closest to the requested index:
-
-- Head
-- Tail
-- current Gate
+next_start = strip_start + n + 1
 
 For example:
 
-```text
+A0[0,1,2,3,4,5,6,7]
+A8[0,1]
+A10[0,1,2,3]
+
+A Strip’s issued content length never changes. Splitting a Strip only divides its physical representation inside the Projection. It does not create new SequencePoints or move existing ones.
+
+The original issued Strip remains responsible for containment. Split fragments are structural pieces pointing back into that original range.
+
+A split fragment therefore does not receive another real strip_start. Instead, it uses:
+
+{UINT32_MAX, UINT32_MAX, UINT32_MAX}
+
+as its structural sentinel and stores the offset where that fragment begins inside the original Strip.
+
+For example, splitting:
+
+A0[0,1,2,3,4,5,6,7]
+
+after A5 produces two physical pieces:
+
+A0       -> content A1..A5
+sentinel -> content A6..A7
+
+but the underlying SequencePoints are still exactly:
+
+A1..A7
+
+and containment still resolves through the original A0 Strip.
+
+A transferred Strip is encoded using twelve u32 words containing its type, issued length, Strip start, dependency, structural links, current fragment length, and dependency prefix.
+
+These fields describe both the Strip’s immutable identity and the physical structure currently used to materialize it.
+
+Insertion
+
+There are fundamentally only three insertion operations:
+
+* birth — insert into an empty Projection
+* before — insert before an existing Frame
+* after — insert after an existing Frame
+
+Terms such as head, body, and tail describe where the insertion happens, not a different semantic operation.
+
+They reduce naturally to:
+
+head insert = before(first)
+tail insert = after(last)
+body insert = before(x) or after(x)
+
+Building a simple sequence
+
+Consider:
+
+length 7                 length 1       length 3
+A0[0,1,2,3,4,5,6,7]   (A7) A8[0,1]   A(9) B0[0,1,2,3]
+
+The first operation is a birth insert. It creates the first visible Frames:
+
+A1..A7
+
+A later tail insert creates:
+
+A8[0,1]
+
+whose visible content is A9.
+
+The important detail is that every Strip reserves its 0 point.
+
+That reserved point gives the structure an unambiguous place to attach operations at boundaries.
+
+Suppose we have:
+
+A0[0,1,2,3,4,5,6,7]
+A8[0,1]
+
+The visible boundary is:
+
+A7 | A9
+
+but structurally A8 already says that it follows A7.
+
+Now imagine inserting something specifically after A7.
+
+Using A7 again as the dependency would make that new insertion indistinguishable from another Strip competing at the same predecessor.
+
+Instead, the insertion uses the reserved A8 + 0 anchor.
+
+The existing A8 Strip is split so that its anchor remains before the insertion while its visible content moves after it:
+
+A7
+ |
+A8[0]
+ |
+new insertion
+ |
+continuation containing A9
+
+The empty A8 fragment is meaningful even though it contains no visible Frames. It preserves the causal boundary at which the insertion happened.
+
+This is why the reserved zero point exists.
+
+It lets the Projection distinguish operations such as:
+
+insert after A7
+
+from:
+
+insert before the visible content that originally followed A7
+
+even when both appear at the same visible boundary.
+
+Splitting inside a Strip
+
+The same idea applies inside a Strip.
+
+Suppose:
+
+A0[0,1,2,3,4,5,6,7]
+
+and a new Strip is inserted after A5.
+
+The original Strip is physically split:
+
+prefix:
+A0
+content A1..A5
+new operation:
+dependency A5
+dependency_prefix = 5
+B3[0,1,2]
+suffix:
+sentinel
+source offset = 5
+content A6..A7
+
+The Projection now has three structural pieces:
+
+A1..A5
+new content
+A6..A7
+
+but the original A SequencePoints have not changed.
+
+The suffix still represents A6..A7, and containment still belongs to the original issued A0 Strip.
+
+The dependency_prefix records where the insertion was created inside that source range. This lets the operation keep referring to the same source position even if the source is split again later.
+
+Split chains
+
+A source Strip may gradually become several physical fragments.
+
+Those fragments are connected through larger_split.
+
+For example:
+
+original source
+   |
+   v
+fragment -> fragment -> fragment
+
+An empty boundary anchor can therefore lead directly to the continuation of its original content.
+
+This matters especially for Masks.
+
+When a Mask targets an original Strip, it follows that Strip’s split chain. It does not simply walk through whatever happens to be next in Projection order.
+
+That distinction prevents unrelated insertions between source fragments from becoming part of the Mask’s target.
+
+Tie-breaking
+
+Two operations may legitimately have the same predecessor.
+
+When that happens, their order is determined by strip_start.
+
+The larger SequencePoint is placed farther left:
+
+same dependency:
+larger strip_start <- smaller strip_start
+
+For example:
+
+dependency = A5
+C0 <- B0
+
+if:
+
+C0 > B0
+
+This ordering does not claim that C0 happened later in real time.
+
+It is simply the deterministic ordering rule used when causality alone does not distinguish the operations.
+
+Arrival order therefore has no effect on the final Projection.
+
+Mask
+
+A Mask uses the same structural insertion model as normal content.
+
+It has:
+
+its own Strip
+its own SequencePoint
+a dependency
+a dependency prefix
+the same boundary anchors
+the same tie-breaking rules
+
+The difference is what it does once placed.
+
+An insert adds content to the Projection:
+
+prefix | INSERT | suffix
+
+A Mask instead removes visible content beginning at its target:
+
+prefix | MASK | shortened suffix
+
+Suppose the Projection contains:
+
+A0[0,1,2,3,4,5,6,7]
+
+and a Mask of length 3 is inserted after A2.
+
+Its target is:
+
+A3 A4 A5
+
+After materialization, the structure can be represented as:
+
+prefix:
+A0[0,1,2]
+mask:
+dependency A2
+dependency_prefix = 2
+M0[0,1,2,3]
+applied source:
+sentinel
+source offset = 2
+hidden content A3..A5
+suffix:
+sentinel
+source offset = 5
+visible content A6..A7
+
+The visible result is therefore:
+
+A1 A2 A6 A7
+
+The Mask itself does not contain replacement Frames. It is an instruction attached at a structural position.
+
+Its Projection effect is:
+
+insert:
+projection_length += length
+mask:
+projection_length -= consumed_length
+
+If the target crosses Strip boundaries or already passes through split fragments, the Mask continues through the original source structure until it has consumed the requested number of source Frames.
+
+It does not consume unrelated insertions encountered between those fragments.
+
+A Mask itself is never split.
+
+Its SequencePoint identity and issued length remain intact regardless of how fragmented its target becomes.
+
+Empty source anchors are skipped without consuming Mask length.
+
+If the Mask’s dependency is not yet available during merge, the Mask stays pending.
+
+Footage
+
+The content removed by a Mask is retained as Footage.
+
+That Footage belongs to the source fragments being masked, not to the Mask instruction itself.
+
+The Mask therefore contributes no Footage span of its own.
+
+Conceptually:
+
+Mask instruction
+      |
+      v
+applied source fragments
+      |
+      v
+retained Footage
+
+Recovery and snapshotting read that retained content through the applied source fragments.
+
+Overlapping Masks
+
+Two Masks can cover the same source Frame.
+
+When this happens, retained-content ownership is resolved using the Masks’ SequencePoints.
+
+The Mask with the greater strip_start owns the overlapping Frame.
+
+For example:
+
+source: a b c d
+M masks: b c
+N masks:   c d
+N > M
+
+Ownership becomes:
+
+M -> b
+N -> c d
+
+The shared c belongs only to N.
+
+Recovery must therefore return:
+
+b c d
+
+without returning c twice.
+
+This ownership rule affects retained content only.
+
+Both Mask identities remain part of the structural history.
+
+Even a Mask that ends up owning no Footage still exists for acknowledgement and compaction purposes.
+
+Find
+
+Find connects two views of the Projection:
+
+Projection Frame index <-> materialized Strip
+
+The Projector keeps a movable Gate containing both a Strip and the Projection index of that Strip’s first visible Frame.
+
+Projection Frame index to Strip
+
+Given a Projection index, the Projector chooses the closest known starting point among:
+
+Head
+Tail
+Gate
+
+For example:
+
 Head                           Gate                          Tail
  |                              |                             |
  v                              v                             v
 A0[...] -> B0[...] -> C0[...] -> D0[...] -> E0[...] -> F0[...]
-```
 
-If the requested Projection index is closest to the current Gate, the walk starts there. Otherwise it starts from Head or Tail.
+If the requested index is near the Gate, traversal begins there.
 
-The walk then proceeds left or right through the materialized Strip structure until the requested Projection Frame falls inside the current Strip:
+If it is closer to the beginning or end, traversal begins from Head or Tail instead.
 
-```text
-strip_start <= requested_index < strip_start + strip_length
-```
+The walk continues until the requested Projection Frame lies inside the current Strip.
 
-Once found, the Gate stores both:
+Once found, the Gate becomes that Strip and stores:
 
-```text
 gate_strip_index
 projection_frame_index
-```
 
-where `projection_frame_index` is the Projection index of the first Frame of the Gate Strip.
+where projection_frame_index is the Projection index of the Strip’s first visible Frame.
 
-### Strip to Projection Frame index
+Strip to Projection Frame index
 
-The inverse operation starts from a known Strip and resolves the Projection index of its first Frame.
+The inverse lookup starts from a known Strip and resolves where that Strip begins in Projection coordinates.
 
-The search walks simultaneously toward both Head and Tail:
+The search walks in both directions:
 
-```text
 Head <- ... <- target -> ... -> Tail
-```
 
-The first side to reach a known absolute boundary determines the result.
+Whichever side reaches a known absolute boundary first gives the answer.
 
-If the left walk reaches Head:
+If the left side reaches Head:
 
-```text
 projection_frame_index = distance_from_head
-```
 
-If the right walk reaches Tail:
+If the right side reaches Tail:
 
-```text
 projection_frame_index =
     projection_frame_count
     - tail_strip_length
     - distance_to_tail
-```
 
-If the requested Strip is already the Gate, its cached Projection Frame index is returned directly.
+If the target is already the Gate, the cached value can be returned immediately.
 
-### Projection jumps
+Projection jumps
 
-Both directions use Strip-local jumps to avoid walking every materialized Strip.
+Walking every Strip would become increasingly expensive as the Projection grows.
 
-Jump distance is kept approximately proportional to:
+The structure therefore keeps local jumps whose spacing targets approximately:
 
-```text
 sqrt(materialized_strip_count)
-```
 
-Each jump stores both:
+Each jump stores two distances:
 
-```text
 jump_length
 jump_strip_count
-```
 
-where `jump_length` is the Projection Frame distance covered by the jump and `jump_strip_count` is the number of materialized Strips it spans.
+jump_length is the number of Projection Frames crossed by the jump.
 
-The jump structure is maintained opportunistically while traversing it. Short neighboring jumps can be merged so that jump spacing moves toward the current optimal distance.
+jump_strip_count is the number of materialized Strips crossed.
 
-Changes caused by insert, mask, split, or compaction are propagated to the nearest surrounding jumps through:
+These jumps are maintained while normal traversal already touches the surrounding structure.
 
-```text
+Short neighboring jumps can be combined, and structural edits propagate their changes through:
+
 frame_count_diff
 strip_count_diff
-```
 
-This keeps Projection lookup independent from the total accumulated history and tied primarily to the current materialized Strip structure.
+As a result, Find scales with the current materialized Projection instead of the total amount of history that has ever existed.
 
-## Initialization and Snapshotting
+Initialization and Snapshotting
 
-All transfer buffers follow the same synchronous lifecycle: write, consume,
-then clear or release. The reader finishes consuming each buffer before the
-next operation starts. Native input readers can take ownership of the storage;
-TypeScript output readers clear it after copying values or processing borrowed
-spans. A borrowed pointer alone is not a completed read. The next writer does
-not clean up the previous result. This applies to Projection, FootageSpan, and
-SequencePoint buffers alike.
+A TrustedSnapshot contains everything needed to reconstruct a Projector without replaying its operation history.
 
-A `TrustedSnapshot` stores the complete state required to reconstruct a Projection without replaying its history.
+Its layout is straightforward:
 
-The snapshot contains the materialized Projection first, already encoded in its final structural order, followed by any pending Strips:
+[ materialized Projection ][ pending Strips ]
 
-```text
-materialized Projection                         pending
-A0[...] -> B0[...] -> C0[...] -> D0[...]      P0[...] P1[...]
-```
+The materialized part is stored in actual Projection order:
 
-The materialized part is stored in Projection order, not in the internal memory order of the Projector.
+A0[...] -> B0[...] -> C0[...] -> D0[...]
 
-Pending Strips are placed at the end of the snapshot and marked separately so that the boundary between materialized and pending state can be recognized during initialization.
+Pending Strips follow it:
 
-### Snapshot
+P0[...] P1[...]
 
-Snapshotting first walks the Projection from Head to Tail:
+The snapshot marks where the materialized region ends and the pending region begins.
 
-```text
+Snapshot
+
+Snapshotting walks from Head to Tail:
+
 Head -> ... -> Gate -> ... -> Tail
-```
 
-and writes every linked Strip in that exact order.
+Every linked Strip is written in that exact order.
 
-References such as split and competitor links are translated from internal Strip indices into snapshot-local Projection indices.
+Internal references such as split and competitor links are translated from runtime Strip indices into indices local to the snapshot.
 
-The same native traversal writes Footage spans alongside the Projection buffer.
+The same traversal also writes the Footage spans associated with the materialized structure.
 
-TypeScript copies both results before another operation can reuse the buffers and packs the referenced Footage into a new array in snapshot order. This includes materialized Masks' soft-deleted content, not just visible Frames.
+This includes retained content belonging to Masks, not just currently visible Frames.
 
-Hard-deleted values remain `undefined` without shifting retained Frame positions.
+Hard-deleted values remain undefined in their existing Footage positions rather than shifting later values.
 
-After the complete materialized Projection has been written, pending Strips are appended:
+After the complete materialized Projection has been written, pending Strips are appended.
 
-```text
 [ ordered materialized Strips ][ pending Strips ]
-```
 
-Pending insert Footage follows the materialized Footage in the same order as the appended pending Strips. Unresolved pending Mask commands do not yet own their target content and contribute no Footage. Initialization reconstructs Footage positions for every materialized Strip, including Masks, and then for pending inserts. Only unmasked materialized Strips contribute visible Frames.
+Pending inserts carry their Footage after the materialized Footage.
 
-The resulting `TrustedSnapshot` must be stored reliably by the application. Its ordering and contents are trusted during initialization.
+A pending Mask has not yet resolved its source, so it does not yet own Footage.
 
-### Initialization
+The resulting snapshot is trusted state. Its materialized ordering is therefore authoritative during initialization.
 
-Initialization reads the ordered materialized part of the `TrustedSnapshot` directly from left to right.
+Transfer buffers
 
-For example:
+Projection, FootageSpan, and SequencePoint transfers use reusable synchronous buffers.
 
-```text
+A buffer follows one lifecycle:
+
+write -> consume -> clear or release
+
+A reader must finish using the result before the next operation reuses that buffer.
+
+For borrowed spans, obtaining the pointer is not enough; the data must actually be consumed before reuse.
+
+Initialization
+
+Initialization does not replay the historical operations that produced the Projection.
+
+It reads the already ordered materialized region directly from left to right:
+
 snapshot:
-
 A0[...]  B0[...]  C0[...]  D0[...]  P0[...] P1[...]
 |-----------------------------|     |-------------|
         materialized                 pending
-```
 
-The materialized Strips are linked back into the Projection in that same order:
+and links the materialized Strips back into that same order:
 
-```text
 Head
  |
  v
@@ -369,228 +524,224 @@ A0[...] -> B0[...] -> C0[...] -> D0[...]
                                   ^
                                   |
                                  Tail
-```
 
-While rebuilding the Projection, initialization also reconstructs the derived state used by normal operation:
+While doing this, initialization rebuilds the derived runtime state needed by normal operation:
 
-- Projection Frame count
-- containment information
-- footage positions
-- Head, Tail, and Gate
-- split and competitor references
-- Realm ordering
-- operation counters
-- Projection jump state
+Projection Frame count
+containment
+Footage positions
+Head
+Tail
+Gate
+split links
+competitor links
+Realm ordering
+operation counters
+Projection jumps
 
-The jump structure is rebuilt using the same optimization rules used by normal Find traversal, targeting approximately:
+The jump structure is rebuilt around the same target spacing used by normal Find traversal:
 
-```text
 sqrt(materialized_strip_count)
-```
 
-Strips are processed this way until the snapshot reaches the marker identifying the beginning of the pending region.
+Pending Strips
 
-### Pending Strips
+After the materialized region has been restored, the remaining snapshot entries are registered as pending Strips.
 
-The remaining Strips are initialized like normal Strips and registered in the structures required to resolve them, including the pending and containment tables.
+They are known to the Projector but are not part of the linked Projection.
 
-They are not linked into the Projection:
-
-```text
 materialized:
 A0[...] -> B0[...] -> C0[...]
-
 pending:
 P0[...]
 P1[...]
-```
 
-Conceptually:
+A pending Strip therefore has enough state to participate in containment and future dependency resolution, but it has no Projection position yet.
 
-```text
-known Strip state      yes
-containment            yes
-pending resolution     yes
-Projection linkage     no
-```
+When its dependency becomes available, it can be materialized normally.
 
-A pending Strip therefore already exists as known structural state, but remains outside the materialized Projection until its dependency can be resolved.
+Merging
 
-This makes initialization a reconstruction of an already ordered Projection rather than a replay: the trusted materialized state is restored directly, the same derived lookup and traversal structures are rebuilt, and only the unresolved pending Strips remain detached.
+Initialization can trust snapshot order.
 
-## Merging
+Merge cannot.
 
-Merging uses the same Strip representation as initialization, but the incoming order is not trusted.
+Incoming Strips may arrive in any order:
 
-Each incoming Strip is interpreted from its own SequencePoints and causality:
+C0[...] A0[...] B0[...]
 
-```text
-strip_start
-previous_strip_end
-```
+even when their actual structural order is:
 
-rather than from its position in the incoming buffer.
-
-For example, an incoming merge may contain:
-
-```text
-C0[...]  A0[...]  B0[...]
-```
-
-while their actual structural order is:
-
-```text
 A0[...] -> B0[...] -> C0[...]
-```
 
-The order is resolved from the SequencePoint relationships, not from the order in which the Strips were received.
+Merge therefore derives order from the operations themselves.
 
-Each Strip is first deduplicated. If its SequencePoint range is already known, the duplicate is ignored.
+The important values are:
 
-For a new Strip, `previous_strip_end` is resolved against the current Projection.
+strip_start
+dependency
 
-If the dependency is available, the Strip is applied using the normal insertion or mask semantics:
+Each incoming Strip is first checked against containment.
 
-```text
-insert -> apply as Insert
-mask   -> apply as Mask
-```
+If its issued SequencePoint range is already known, it is a duplicate and can be ignored.
 
-and its Projection position is resolved normally.
+Otherwise, the dependency is resolved against locally known state.
 
-If the dependency is not yet available, the Strip remains pending until the required SequencePoint becomes known.
+If the dependency exists, the operation can be applied immediately using its normal semantics:
 
-Snapshot-local structural hints are not authoritative during merge.
+Insert -> insert semantics
+Mask   -> mask semantics
 
-In particular:
+If the dependency does not yet exist, the Strip becomes pending.
 
-```text
+Structural links carried by another Projector are not trusted during merge.
+
+Fields such as:
+
 larger_split
 smaller_competitor
-```
 
-are ignored.
+describe that Projector’s local materialization and are reconstructed locally instead.
 
-Those relationships are derived from the local structural resolution of the incoming operations and must not be imported from another Projection.
+Split fragments are likewise rebuilt from their source coordinates.
 
-Merging therefore differs from initialization in one fundamental way:
+The important distinction is therefore:
 
-```text
 initialization:
-trusted order -> reconstruct Projection
-
+trusted structural order -> rebuild runtime state
 merge:
-SequencePoints + causality -> derive order
-```
+SequencePoints + dependencies -> derive structural order
 
-The same incoming state can therefore be merged in any arrival order and still resolve to the same Projection.
+Because ordering comes from causality and deterministic tie-breaking rather than arrival position, the same set of operations converges to the same Projection regardless of receive order.
 
-## Acknowledgement and Compaction
+Acknowledgement and Compaction
 
-### Creation-time dependency prefix
+Masks retain structural history so that deleted content can remain causally meaningful until every Actor has safely observed the corresponding Mask Realm.
 
-Inserts and instruction Masks store their creation-time dependency offset in
-encoded word 11, `dependency_prefix_of`. It is a `u32` Frame offset, not a Strip
-Index. Word 8 always contains an actual larger-split link or `UINT32_MAX`;
-instruction Masks never have split links.
+Compaction removes that history only after the Realm can be proven complete and globally acknowledged.
 
-For a Mask with `dependency = A1` and `dependency_prefix = 1`, the source
-origin is `A0`. The target begins after one source Frame, regardless of any
-empty anchors inserted into that source's split chain later. Traversal counts
-source content, including already masked content, but not intervening inserts.
-The dependency and prefix remain unchanged after application and across
-materialized and pending snapshots. If the creation-time origin has not yet
-materialized, the instruction remains pending.
+Creation-time source position
 
-Compaction preserves the issued containment anchor while any source fragments
-remain. Surviving fragments retain their original offsets even when intervening
-applied fragments are collected. There is no unspecified-prefix encoding.
+An insertion or Mask stores the source position at which it was created.
 
-Masks have their own Realm identifiers.
+This is represented by:
 
-For simplicity, we will represent Mask Realms the same way as insert Realms, using uppercase characters such as `M` or `N`.
+dependency
+dependency_prefix
 
-For example, a Mask Realm may contain:
+Consider:
 
-```text
-M0[0,1,2,3]   M4[0,1]   M6[0,1,2]
-```
+dependency = A1
+dependency_prefix = 1
 
-To produce an acknowledgement for Realm `M`, the Masks are inspected in `counter_bits` order.
+The source origin is:
 
-The first Mask must begin at `M0`.
+A1 - 1 = A0
 
-After that, every Mask must continue exactly where the previous one ended:
+and the operation begins after one source Frame.
 
-```text
-M0 + content length 3 + 1 = M4
-M4 + content length 1 + 1 = M6
-```
+So the target position remains tied to the original A0 source range even if that range is later divided into several fragments.
 
-So this Realm verifies completely:
+Traversal through that source counts source content, including content already hidden by other Masks.
 
-```text
-M0[0,1,2,3]   M4[0,1]   M6[0,1,2]
-```
+It does not count unrelated inserted content between source fragments.
+
+For example:
+
+original source:
+A1 A2 A3 A4
+later structure:
+A1 A2 | B1 B2 | A3 A4
+
+an operation targeting the original A3 position still reaches A3.
+
+The inserted B content does not shift the source coordinate.
+
+The dependency and prefix stay attached to the operation through snapshots and later structural changes.
+
+If the required source has not materialized yet, the operation remains pending.
+
+Mask Realms
+
+Masks have ordinary Realm identifiers just like inserts.
+
+For readability, examples use letters such as:
+
+M
+N
+
+A Mask Realm might contain:
+
+M0[0,1,2,3]
+M4[0,1]
+M6[0,1,2]
+
+To acknowledge Realm M, its issued Strips are examined in counter_bits order.
+
+The Realm must begin at:
+
+M0
+
+and every following Strip must start exactly after the previous Strip’s complete issued range.
+
+For the example above:
+
+M0 + 3 content Frames + reserved 0 = M4
+M4 + 1 content Frame  + reserved 0 = M6
+
+so the Realm is continuous:
+
+M0 ... M3
+M4 ... M5
+M6 ... M8
 
 and its final frontier can be acknowledged.
 
-If instead the Realm looked like:
+Now consider:
 
-```text
-M0[0,1,2,3]   M5[0,1]   M7[0,1,2]
-```
+M0[0,1,2,3]
+M5[0,1]
+M7[0,1,2]
 
-then `M4` is missing.
+M4 is missing.
 
-The Realm does not verify completely, so no acknowledgement is produced for Realm `M`.
+The Realm contains a gap and therefore cannot be acknowledged.
 
-An acknowledgement therefore means that the complete Mask Realm is known without gaps from `0` to its final frontier.
+An acknowledgement means:
 
-### Compaction
+all issued Mask SequencePoints from M0 through this frontier are known
 
-A Mask Realm can be compacted only when every Actor has acknowledged the same final frontier for that Realm.
+with no missing range in between.
 
-For example, suppose an insert structure contains:
+Compaction
 
-```text
-A4 ... A8 ... B3
-```
+A Mask Realm becomes compactable once every Actor has acknowledged the same final frontier for that Realm.
 
-and Mask Realm `M` contains Masks that remove the structure between the surviving SequencePoints.
+Until then, Mask structures may still carry causality needed by another Actor.
 
-Before compaction, the surviving structure may still be causally anchored through those Masks:
+Suppose the Projection contains a causal path:
 
-```text
 A4 -> M0 -> M4 -> B3
-```
 
-Once Realm `M` has been acknowledged with the same final frontier by every Actor, those Masks can be removed.
+After every Actor has acknowledged the complete Mask Realm containing M0 and M4, those Mask nodes can be removed.
 
-The causality is then reattached through the removed Mask chain:
+Their surrounding causality is reattached:
 
-```text
 before:
 A4 -> M0 -> M4 -> B3
-
 after:
 A4 -> B3
-```
 
-`B3` receives the causality that existed immediately before the removed Mask chain.
+The same rule applies to a single Mask:
 
-The same applies when only one Mask exists:
-
-```text
 before:
 A7 -> M0 -> B2
-
 after:
 A7 -> B2
-```
 
-Because every Actor compacts the same fully acknowledged Mask Realm, they remove the same Masks and perform the same reattachment.
+Compaction therefore removes acknowledged Mask structure without breaking the causal relationship that passed through it.
 
-Compaction is therefore deterministic and idempotent.
+Because every Actor receives the same acknowledgement frontier and applies the same structural rule, compaction is deterministic.
 
-The application is responsible for collecting acknowledgements from all Actors, distributing the collected acknowledgements to every Actor, and providing them as input to compaction.
+Running it again does not change the already compacted result.
+
+The application is responsible for collecting acknowledgements from all participating Actors and distributing the agreed acknowledgement state back to them before compaction.

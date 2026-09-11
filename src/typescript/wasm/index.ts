@@ -1,3 +1,5 @@
+/// TODO: UPDATE FULLY ALL CALLS USED IN ALGORITHMS MUST go trough a properly typed api to keep the algorithms code readable.
+
 /**
  * Typed adapter over the native Projector ABI and its shared transfer buffers.
  *

@@ -51,7 +51,7 @@ void check(const std::uint8_t type, const std::uint32_t length, const bool pendi
   for (std::uint32_t edit = 0; edit < 64; ++edit) {
     const auto previous = projector.tail_strip_index;
     auto dependency = projector.strip_start_of[previous];
-    const auto offset = projector.strip_length_of[previous];
+    const auto offset = projector.fragment_length_of[previous];
     dependency.counter_bits += offset;
     const auto append_length = edit % 5 + 1;
     const auto append = sequencer::issue_strip(
@@ -73,7 +73,7 @@ void check(const std::uint8_t type, const std::uint32_t length, const bool pendi
   for (auto strip = projector.head_strip_index; strip != u32_max;
        strip = projector.right_strip_index_of[strip]) {
     const auto point = projector.strip_start_of[strip];
-    const auto count = projector.strip_length_of[strip];
+    const auto count = projector.fragment_length_of[strip];
     assert((projector.containment_table.get(point) == std::pair{strip, 0u}));
     assert((projector.containment_table.get({point.crypto_random_bits, point.unix_lower_bits,
                                            point.counter_bits + count}) == std::pair{strip, count}));
@@ -95,7 +95,7 @@ void check(const std::uint8_t type, const std::uint32_t length, const bool pendi
   for (std::uint32_t frame = 0; frame < expected.size(); ++frame)
     assert(packed[sequencer::get_footage_frame_index(restored_id, frame)] == expected[frame]);
   const auto tail = restored.tail_strip_index;
-  const auto tail_length = restored.strip_length_of[tail];
+  const auto tail_length = restored.fragment_length_of[tail];
   auto dependency = restored.strip_start_of[tail];
   dependency.counter_bits += tail_length;
   const auto continued = sequencer::issue_strip(

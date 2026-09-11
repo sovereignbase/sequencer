@@ -67,6 +67,7 @@ describe('Compiled production runtime', () => {
         }
       }
       const state = create<string>([words, footage])
+      const retained_values = [...visible, 'a', 'b', 'c', 'd', 'e', 'f'].sort()
       const deletion: Delta<string> = [
         [2, 5, 70, 80, 0, 10, 20, 0, absent, absent, 0, 0],
         [],
@@ -80,7 +81,7 @@ describe('Compiled production runtime', () => {
         observed.slice(visible.length + 1).every((value) => value === undefined)
       ).toBe(true)
       expect(values(state)).toEqual([...visible, 'f'])
-      expect(recover(state).slice().sort()).toEqual(footage.slice().sort())
+      expect(recover(state).sort()).toEqual(retained_values)
       expect(acknowledge(state)).toEqual([70, 80, 6])
       expect(merge(state, deletion)).toBe(false)
       const saved = snapshot(state)
@@ -95,7 +96,7 @@ describe('Compiled production runtime', () => {
       expect(acknowledge(restored)).toEqual([70, 80, 6])
       for (const target of [state, restored]) {
         compact([[70, 80, 6]], target)
-        expect(recover(target).slice().sort()).toEqual(footage.slice().sort())
+        expect(recover(target).sort()).toEqual(retained_values)
         compact([[70, 80, 6]], target, true)
         expect(recover(target)).toEqual([...visible, 'f'])
         expect(values(target)).toEqual([...visible, 'f'])

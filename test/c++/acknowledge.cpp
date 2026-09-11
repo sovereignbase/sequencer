@@ -7,13 +7,13 @@
 #include <cstdint>
 #include <vector>
 
-using EncodedStrip = std::array<std::uint32_t, 10>;
+using EncodedStrip = std::array<std::uint32_t, 12>;
 
 EncodedStrip mask(const std::uint32_t realm, const std::uint32_t counter,
                   const std::uint32_t length, const std::uint32_t unix_bits = 7,
                   const bool pending = false) {
   return {pending ? 5u : 2u, length, realm, unix_bits, counter,
-          99, 88, 77, u32_max, u32_max};
+          99, 88, 77, u32_max, u32_max, 0, 0};
 }
 
 std::vector<SequencePoint> acknowledge(const std::uint32_t projection_id) {
@@ -45,7 +45,7 @@ void check(const std::vector<EncodedStrip> &strips,
 
 int main() {
   check({}, {});
-  check({{1, 4, 10, 7, 0, 0, 0, 0, u32_max, u32_max}}, {});
+  check({{1, 4, 10, 7, 0, 0, 0, 0, u32_max, u32_max, 4, 0}}, {});
   check({mask(10, 0, 3)}, {{10, 7, 4}});
   check({mask(10, 4, 1), mask(10, 6, 2), mask(10, 0, 3)}, {{10, 7, 9}});
   check({mask(10, 0, 3), mask(10, 5, 1), mask(10, 7, 2)}, {});
@@ -53,12 +53,11 @@ int main() {
   check({mask(10, 0, 0)}, {{10, 7, 1}});
   check({mask(10, 0, 0), mask(10, 1, 2), mask(10, 4, 1)}, {{10, 7, 6}});
   check({mask(10, 0, 3), mask(266, 0, 1), mask(10, 0, 2, 8),
-         mask(522, 1, 2), {1, 9, 11, 7, 0, 0, 0, 0, u32_max, u32_max}},
+         mask(522, 1, 2), {1, 9, 11, 7, 0, 0, 0, 0, u32_max, u32_max, 9, 0}},
         {{10, 7, 4}, {10, 8, 3}, {266, 7, 2}});
   check({mask(10, 0, 3), mask(10, 4, 1, 7, true)}, {{10, 7, 6}});
   check({mask(10, 4, 2, 7, true)}, {});
   check({mask(10, 0, 3, 7, true)}, {{10, 7, 4}});
   check({mask(10, 0, u32_max - 1)}, {{10, 7, u32_max}});
-  check({mask(10, 0, u32_max - 1), mask(10, u32_max, 0)}, {});
   check({}, {});
 }

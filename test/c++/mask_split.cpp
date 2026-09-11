@@ -13,8 +13,8 @@ struct Fixture {
   std::string footage{"abcdXY!"};
 
   Fixture() {
-    const std::array<std::uint32_t, 10> source{
-        1, 4, 100, 200, 0, 0, 0, 0, u32_max, u32_max};
+    const std::array<std::uint32_t, 12> source{
+        1, 4, 100, 200, 0, 0, 0, 0, u32_max, u32_max, 4, 0};
     initialize_projector(projector, {&source, 1}, 1, 2, 3);
   }
 
@@ -39,7 +39,7 @@ struct Fixture {
       assert(projector.left_strip_index_of[strip] == previous);
       if (projector.get_projected_strip_length(strip) != 0)
         result += footage.substr(projector.footage_frame_index_of[strip],
-                                 projector.strip_length_of[strip]);
+                                 projector.fragment_length_of[strip]);
       previous = strip;
     }
     assert(count == projector.materialized_strip_count);
@@ -56,14 +56,15 @@ struct Fixture {
 int main() {
   Fixture complete;
   const auto suffix = split_strip(complete.projector, 0, 0);
-  assert(complete.projector.strip_length_of[0] == 0);
+  assert(complete.projector.fragment_length_of[0] == 0);
   assert(complete.projector.strip_type_of[0] == 1);
   assert(complete.projector.larger_split_strip_index_of[0] == suffix);
-  assert((complete.projector.strip_start_of[suffix] == SequencePoint{100, 200, 1}));
+  assert(complete.projector.is_fragment(suffix));
+  assert(complete.projector.initial_length_of[0] == 4);
   assert((complete.projector.containment_table.get({100, 200, 0}) ==
           std::pair{0u, 0u}));
   assert((complete.projector.containment_table.get({100, 200, 1}) ==
-          std::pair{suffix, 0u}));
+          std::pair{0u, 1u}));
   assert(complete.projector.footage_frame_index_of[suffix] == 0);
   assert(complete.read() == "abcd");
   find_strip_index_of(complete.projector, 0);
@@ -90,7 +91,8 @@ int main() {
   assert(apply_insert(fragmented.projector, 0, partial, 0).first == -3);
   assert(fragmented.projector.strip_type_of[0] == 1);
   assert(fragmented.read() == "XYd");
-  assert(fragmented.projector.strip_length_of[partial] == 3);
+  assert(fragmented.projector.initial_length_of[partial] == 3);
+  assert(fragmented.projector.fragment_length_of[partial] == 0);
   assert((fragmented.projector.strip_start_of[partial] == SequencePoint{500, 600, 0}));
   assert(fragmented.projector.larger_split_strip_index_of[partial] == u32_max);
   assert(std::count(fragmented.projector.strip_type_of.begin(),
@@ -105,16 +107,18 @@ int main() {
   assert(incomplete.read() == "abcd");
   assert(incomplete.projector.strip_type_of.size() == original_count);
   assert(incomplete.projector.left_strip_index_of[oversized] == oversized);
-  assert(incomplete.projector.mask_footage_spans.empty());
+  assert(incomplete.projector.mask_owner_of.empty());
 
   Fixture offset_mask;
   const auto offset_suffix = split_strip(offset_mask.projector, 0, 2);
   offset_mask.insert(0, offset_suffix, 2, 4, {100, 200, 2});
   const auto offset_command = offset_mask.mask(2);
   offset_mask.projector.previous_strip_end_of[offset_command] = {100, 200, 1};
+  offset_mask.projector.dependency_prefix_of[offset_command] = 1;
   assert(apply_insert(offset_mask.projector, 0, offset_command, 1).first == -2);
   assert(offset_mask.read() == "aXYd");
-  assert(offset_mask.projector.strip_length_of[offset_command] == 2);
+  assert(offset_mask.projector.initial_length_of[offset_command] == 2);
+  assert(offset_mask.projector.fragment_length_of[offset_command] == 0);
 
   Fixture placeholders;
   const auto middle = split_strip(placeholders.projector, 0, 0);
@@ -132,21 +136,23 @@ int main() {
   const auto boundary_content = split_strip(boundary.projector, anchor, 0);
   boundary.insert(anchor, boundary_content, 2, 4, {100, 200, 3});
   const auto boundary_mask = boundary.mask(1);
+  boundary.projector.previous_strip_end_of[boundary_mask] = {100, 200, 2};
+  boundary.projector.dependency_prefix_of[boundary_mask] = 2;
   assert(apply_insert(boundary.projector, 0, boundary_mask, 2).first == -1);
   assert(boundary.projector.strip_type_of[anchor] == 1);
   assert(boundary.read() == "abXYd");
 
   Projector without_footage;
-  const std::array<std::uint32_t, 10> masked_source{
-      2, 3, 500, 600, 0, 100, 200, 0, u32_max, u32_max};
+  const std::array<std::uint32_t, 12> masked_source{
+      2, 3, 500, 600, 0, 100, 200, 0, u32_max, u32_max, 0, 0};
   initialize_projector(without_footage, {&masked_source, 1}, 1, 2, 3);
-  assert(without_footage.footage_frame_index_of[0] == 0);
-  without_footage.footage_frame_index_of[0] = u32_max;
+  assert(without_footage.footage_frame_index_of[0] == u32_max);
   for (const auto type : {0u, 1u}) {
     const auto inserted_strip = stage_strip(without_footage, type, 1,
                                             {700, 800, type * 2}, {500, 600, 1}, type);
     assert(apply_insert(without_footage, 0, inserted_strip, 1).first == 1);
-    assert(without_footage.strip_length_of[0] == 3);
+    assert(without_footage.initial_length_of[0] == 3);
+    assert(without_footage.fragment_length_of[0] == 0);
     assert(without_footage.larger_split_strip_index_of[0] == u32_max);
     assert(without_footage.footage_frame_index_of[0] == u32_max);
   }

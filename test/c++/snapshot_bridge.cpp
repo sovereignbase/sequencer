@@ -53,7 +53,7 @@ EMSCRIPTEN_KEEPALIVE void clear_projection(std::uint32_t projection_id) {
 
 EMSCRIPTEN_KEEPALIVE void mask_test_projection(std::uint32_t projection_id) {
   auto &projector = *sequencer::projectors[projection_id];
-  const auto command = stage_strip(projector, 2, 2, {70, 80, 0}, {10, 20, 0});
+  const auto command = stage_strip(projector, 2, 2, {70, 80, 0}, {10, 20, 1}, u32_max, 1);
   static_cast<void>(apply_insert(projector, 0, command, 1));
 }
 

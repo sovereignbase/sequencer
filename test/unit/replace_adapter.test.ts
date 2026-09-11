@@ -101,7 +101,7 @@ describe('Replacement Delta composition', () => {
     expect(state).toEqual([42, ['a', 'b', 'c']])
   })
 
-  it('captures aliased Footage before hard deletion releases its slots', () => {
+  it('passes aliased Footage directly without preserving released slots', () => {
     const values = state[1] as string[]
     operations.remove.mockImplementation(() => {
       state[1].fill(undefined)
@@ -109,8 +109,7 @@ describe('Replacement Delta composition', () => {
     })
     replace(state, 0, values, true)
     const replacement = operations.insert.mock.calls[0][2]
-    expect(replacement).toEqual(['a', 'b', 'c'])
-    expect(replacement).not.toBe(values)
+    expect(replacement).toBe(values)
     expect(values).toEqual([undefined, undefined, undefined])
   })
 

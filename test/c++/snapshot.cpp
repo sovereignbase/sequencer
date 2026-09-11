@@ -9,12 +9,12 @@ int main() {
   auto &buffer = sequencer::projection_buffer;
   const auto input = sequencer::prepare_projection_buffer(5);
   assert(input == sequencer::get_projection_buffer_pointer());
-  assert(sequencer::get_projection_buffer_word_count() == 50);
-  buffer.write_projection(0, {0, 5, 10, 20, 0, 0, 0, 0, 2, 1});
-  buffer.write_projection(1, {1, 4, 10, 20, 10, 10, 20, 4, u32_max, u32_max});
-  buffer.write_projection(2, {1, 3, 10, 20, 20, 10, 20, 10, u32_max, u32_max});
-  buffer.write_projection(3, {3, 2, 30, 40, 0, 90, 80, 0, u32_max, u32_max});
-  buffer.write_projection(4, {5, 2, 50, 60, 0, 90, 80, 1, u32_max, u32_max});
+  assert(sequencer::get_projection_buffer_word_count() == 60);
+  buffer.write_projection(0, {0, 5, 10, 20, 0, 0, 0, 0, 2, 1, 5, 0});
+  buffer.write_projection(1, {1, 4, 10, 20, 10, 10, 20, 4, u32_max, u32_max, 4, 0});
+  buffer.write_projection(2, {1, 3, 10, 20, 20, 10, 20, 10, u32_max, u32_max, 3, 0});
+  buffer.write_projection(3, {3, 2, 30, 40, 0, 90, 80, 0, u32_max, u32_max, 2, 0});
+  buffer.write_projection(4, {5, 2, 50, 60, 0, 90, 80, 1, u32_max, u32_max, 0, 0});
   const auto projection_id = sequencer::initialize_projection();
   assert(sequencer::get_projection_buffer_word_count() == 0);
   auto &projector = *sequencer::projectors[projection_id];
@@ -59,7 +59,7 @@ int main() {
   sequencer::clear_projection(empty_id);
 
   buffer.resize(1);
-  buffer.write_projection(0, {1, 3, 10, 20, 0, 0, 0, 0, u32_max, u32_max});
+  buffer.write_projection(0, {1, 3, 10, 20, 0, 0, 0, 0, u32_max, u32_max, 3, 0});
   const auto split_id = sequencer::initialize_projection();
   const auto suffix = split_strip(*sequencer::projectors[split_id], 0, 0);
   assert(suffix == 1);
@@ -67,11 +67,13 @@ int main() {
   const auto split_snapshot = buffer.read_buffer();
   sequencer::footage_span_buffer.clear();
   assert(split_snapshot.size() == 2);
-  assert(split_snapshot[0][1] == 0);
+  assert(split_snapshot[0][1] == 3);
+  assert(split_snapshot[0][10] == 0);
   assert(split_snapshot[0][4] == 0);
   assert(split_snapshot[0][8] == 1);
-  assert(split_snapshot[1][1] == 3);
-  assert(split_snapshot[1][4] == 1);
+  assert(split_snapshot[1][1] == 0);
+  assert(split_snapshot[1][10] == 3);
+  assert(split_snapshot[1][4] == u32_max);
   assert(split_snapshot[1][8] == u32_max);
   buffer.resize(2);
   buffer.write_projection(0, split_snapshot[0]);
@@ -88,14 +90,14 @@ int main() {
   sequencer::clear_projection(split_restored_id);
 
   buffer.resize(8);
-  buffer.write_projection(0, {2, 2, 70, 80, 0, 0, 0, 0, u32_max, u32_max});
-  buffer.write_projection(1, {1, 0, 10, 20, 0, 0, 0, 0, 2, u32_max});
-  buffer.write_projection(2, {1, 3, 10, 20, 1, 0, 0, 0, u32_max, u32_max});
-  buffer.write_projection(3, {2, 2, 70, 80, 3, 0, 0, 0, u32_max, u32_max});
-  buffer.write_projection(4, {0, 1, 30, 40, 0, 0, 0, 0, u32_max, u32_max});
-  buffer.write_projection(5, {3, 2, 90, 91, 0, 99, 98, 0, u32_max, u32_max});
-  buffer.write_projection(6, {4, 1, 90, 91, 3, 99, 98, 0, u32_max, u32_max});
-  buffer.write_projection(7, {5, 2, 70, 80, 6, 99, 98, 0, u32_max, u32_max});
+  buffer.write_projection(0, {7, 2, 70, 80, 0, 0, 0, 0, u32_max, u32_max, 2, 0});
+  buffer.write_projection(1, {1, 3, 10, 20, 0, 0, 0, 0, 2, u32_max, 0, 0});
+  buffer.write_projection(2, {1, 0, u32_max, u32_max, u32_max, 10, 20, 0, u32_max, u32_max, 3, 0});
+  buffer.write_projection(3, {7, 2, 70, 80, 3, 0, 0, 0, u32_max, u32_max, 2, 0});
+  buffer.write_projection(4, {0, 1, 30, 40, 0, 0, 0, 0, u32_max, u32_max, 1, 0});
+  buffer.write_projection(5, {3, 2, 90, 91, 0, 99, 98, 0, u32_max, u32_max, 2, 0});
+  buffer.write_projection(6, {4, 1, 90, 91, 3, 99, 98, 0, u32_max, u32_max, 1, 0});
+  buffer.write_projection(7, {5, 2, 70, 80, 6, 99, 98, 0, u32_max, u32_max, 0, 0});
   const auto retained_id = sequencer::initialize_projection();
   auto &retained = *sequencer::projectors[retained_id];
   retained.footage_frame_index_of = {8, 4, 4, 0, 11, 2, 7, u32_max};
@@ -106,7 +108,7 @@ int main() {
     original_view.push_back(source[sequencer::get_footage_frame_index(retained_id, frame)]);
   assert((original_view == std::vector<char>{'a', 'b', 'c', 'd'}));
   sequencer::snapshot_projection(retained_id);
-  assert(sequencer::get_projection_buffer_word_count() == 80);
+  assert(sequencer::get_projection_buffer_word_count() == 96);
   assert(sequencer::get_footage_span_buffer_count() == 6);
   const auto spans = sequencer::get_footage_span_buffer_pointer();
   assert(spans[0] == 0 && spans[1] == 8 && spans[2] == 2 && spans[3] == 1);
@@ -131,13 +133,14 @@ int main() {
            original_view[frame]);
   for (std::uint32_t strip = 0; strip < 8; ++strip) {
     const auto point = retained_restored.strip_start_of[strip];
-    const auto original_strip = original_retained.containment_table.get(point).first;
+    const auto original_strip = retained_restored.is_fragment(strip) ? 2u
+        : original_retained.containment_table.get(point).first;
     assert(original_strip != u32_max);
     if (strip >= 5 && retained_restored.strip_type_of[strip] == 2) {
       assert(retained_restored.footage_frame_index_of[strip] == u32_max);
       continue;
     }
-    for (std::uint32_t offset = 0; offset < retained_restored.strip_length_of[strip]; ++offset)
+    for (std::uint32_t offset = 0; offset < retained_restored.fragment_length_of[strip]; ++offset)
       assert(packed[retained_restored.footage_frame_index_of[strip] + offset] ==
              source[original_retained.footage_frame_index_of[original_strip] + offset]);
   }

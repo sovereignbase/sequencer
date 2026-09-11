@@ -17,10 +17,10 @@ struct Fixture {
 
   explicit Fixture(const std::uint32_t source_count = 1,
                    const std::uint32_t source_realm = 1000) {
-    std::vector<std::array<std::uint32_t, 10>> snapshot;
+    std::vector<std::array<std::uint32_t, 12>> snapshot;
     for (std::uint32_t index = 0; index < source_count; ++index) {
       snapshot.push_back({1, 3, source_realm + index, 9, 0,
-                          0, 0, 0, u32_max, u32_max});
+                          0, 0, 0, u32_max, u32_max, 3, 0});
       footage += "abc";
     }
     initialize_projector(projector, snapshot, 1, 2, 3);
@@ -28,11 +28,12 @@ struct Fixture {
 
   std::uint32_t before(const std::uint32_t target, const std::uint32_t realm,
                        const std::string &text, const std::uint32_t offset = 0) {
-    auto dependency = projector.strip_start_of[target];
+    auto dependency = projector.fragment_start(target);
     dependency.counter_bits += offset;
     const auto incoming = stage_strip(
         projector, 0, static_cast<std::uint32_t>(text.size()), {realm, 8, 0},
-        dependency, static_cast<std::uint32_t>(footage.size()));
+        dependency, static_cast<std::uint32_t>(footage.size()),
+        projector.fragment_offset(target) + offset);
     footage += text;
     const auto [frames, strips] = insert_before(projector, target, incoming, offset);
     const auto position = find_projection_frame_index_of(projector, incoming,
@@ -98,10 +99,11 @@ int main() {
     Fixture first(1, source_realm);
     const auto inserted = first.before(0, 100, "X");
     assert(first.projector.head_strip_index == 0);
-    assert(first.projector.strip_length_of[0] == 0);
+    assert(first.projector.fragment_length_of[0] == 0);
     const auto suffix = first.projector.larger_split_strip_index_of[0];
     assert(suffix != u32_max);
-    assert(first.projector.strip_start_of[suffix].counter_bits == 1);
+    assert(first.projector.is_fragment(suffix));
+    assert(first.projector.initial_length_of[0] == 3);
     assert(first.projector.smaller_competitor_strip_index_of[inserted] == u32_max);
     assert(first.projector.right_strip_index_of[0] == inserted);
     assert(first.read() == "Xabc");
@@ -135,20 +137,27 @@ int main() {
     Fixture body;
     const auto inserted = body.before(0, 100, "X", offset);
     const auto placeholder = body.projector.larger_split_strip_index_of[0];
-    assert(body.projector.strip_length_of[0] == offset - 1);
-    assert(body.projector.strip_length_of[placeholder] == 0);
-    assert(body.projector.strip_start_of[placeholder].counter_bits == offset);
+    assert(body.projector.fragment_length_of[0] == offset);
+    assert(body.projector.initial_length_of[0] == 3);
+    if (offset != 3) {
+      assert(body.projector.fragment_length_of[placeholder] == 3 - offset);
+      assert(body.projector.is_fragment(placeholder));
+      assert(body.projector.fragment_offset(placeholder) == offset);
+    } else {
+      assert(placeholder == u32_max);
+    }
     assert((body.projector.containment_table.get({1000, 9, offset}) ==
-            std::pair{placeholder, 0u}));
+            std::pair{0u, offset}));
     auto expected = std::string("abc");
-    expected.insert(offset - 1, "X");
+    expected.insert(offset, "X");
     assert(body.read() == expected);
     body.check_positions(expected);
     const auto mask = stage_strip(body.projector, 2, 3, {2000, 8, 0},
                                    body.projector.strip_start_of[0]);
     assert(apply_insert(body.projector, 0, mask, 0).first == -3);
     assert(body.projector.strip_type_of[inserted] == 0);
-    assert(body.projector.strip_type_of[placeholder] == 1);
+    if (placeholder != u32_max)
+      assert(body.projector.get_projected_strip_length(placeholder) == 0);
     assert(body.projector.projection_frame_count == 1);
   }
 
@@ -159,8 +168,8 @@ int main() {
       body.before(target, 100 + actor,
                   std::string(1, static_cast<char>('A' + actor)), offset);
     }
-    assert(body.read() == "aCBAbc");
-    body.check_positions("aCBAbc");
+    assert(body.read() == "abCBAc");
+    body.check_positions("abCBAc");
   } while (std::next_permutation(order.begin(), order.end()));
 
   for (const auto source_count : {2u, 10u, 64u})
@@ -168,7 +177,7 @@ int main() {
       for (const auto offset : {0u, 2u, 3u}) {
         Fixture boundary(source_count);
         std::string expected = boundary.footage;
-        expected.insert(target * 3 + (offset == 0 ? 0 : offset - 1), "X");
+        expected.insert(target * 3 + offset, "X");
         boundary.before(target, 100, "X", offset);
         assert(boundary.read() == expected);
         boundary.check_positions(expected);

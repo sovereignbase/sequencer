@@ -34,7 +34,7 @@ export function run_runtime_contract(api) {
   const snapshot = api.snapshot(base)
   const parent_end = [snapshot[0][2], snapshot[0][3], snapshot[0][4] + 1]
   const remote_insert = (realm, value) => [
-    [1, 1, realm, 0, 0, ...parent_end, 0xffff_ffff, 0xffff_ffff],
+    [1, 1, realm, 0, 0, ...parent_end, 0xffff_ffff, 0xffff_ffff, 1, 1],
     [value],
   ]
   const left_result = remote_insert((parent_end[0] ^ 1) >>> 0, 'left')

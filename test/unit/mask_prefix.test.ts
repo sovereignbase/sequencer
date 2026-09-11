@@ -106,7 +106,7 @@ describe('Mask creation-time dependency prefix', () => {
       create<number>(insertion),
       create<number>(),
     ]) {
-      merge(state, saved)
+      merge(state, snapshot(source))
       expect(values(state)).toEqual(values(source))
       expect(instructions(snapshot(state))[0][11]).toBe(32)
       const frontier = acknowledge(state)

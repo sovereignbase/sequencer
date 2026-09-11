@@ -15,10 +15,10 @@ struct Fixture {
   std::string footage;
 
   explicit Fixture(const std::uint32_t count = 1, const bool empty = false) {
-    std::vector<std::array<std::uint32_t, 10>> strips;
+    std::vector<std::array<std::uint32_t, 12>> strips;
     for (std::uint32_t index = 0; index < count; ++index) {
       strips.push_back({1, empty ? 0u : 3u, 1000 + index, 9, 0,
-                        0, 0, 0, u32_max, u32_max});
+                        0, 0, 0, u32_max, u32_max, empty ? 0u : 3u, 0});
       if (!empty)
         footage += "abc";
     }
@@ -97,9 +97,10 @@ int main() {
       const auto inserted = boundary.after_anchor(target, 100, "X");
       const auto suffix = boundary.projector.larger_split_strip_index_of[target];
       assert(suffix != u32_max);
-      assert(boundary.projector.strip_length_of[target] == 0);
-      assert(boundary.projector.strip_start_of[suffix].counter_bits == 1);
-      assert(boundary.projector.strip_length_of[suffix] == 3);
+      assert(boundary.projector.fragment_length_of[target] == 0);
+      assert(boundary.projector.is_fragment(suffix));
+      assert(boundary.projector.initial_length_of[target] == 3);
+      assert(boundary.projector.fragment_length_of[suffix] == 3);
       assert(boundary.projector.footage_frame_index_of[suffix] == target * 3);
       assert(boundary.projector.right_strip_index_of[target] == inserted);
       assert(boundary.projector.smaller_competitor_strip_index_of[inserted] == u32_max);
@@ -137,8 +138,8 @@ int main() {
   std::string visible;
   for (auto strip = causal.projector.head_strip_index; strip != u32_max;
        strip = causal.projector.right_strip_index_of[strip])
-    if (causal.projector.strip_type_of[strip] != 2)
+    if (causal.projector.get_projected_strip_length(strip) != 0)
       visible += causal.footage.substr(causal.projector.footage_frame_index_of[strip],
-                                       causal.projector.strip_length_of[strip]);
+                                       causal.projector.fragment_length_of[strip]);
   assert(visible == "YX");
 }

@@ -5,7 +5,7 @@
 int main() {
   for (const auto count : {0u, 1u, 32u}) {
     auto *projection = sequencer::prepare_projection_buffer(count);
-    for (std::uint32_t word = 0; word < count * 10; ++word)
+    for (std::uint32_t word = 0; word < count * 12; ++word)
       projection[word] = word;
     const auto input = sequencer::projection_buffer.read_buffer();
     assert(input.size() == count);
@@ -13,8 +13,8 @@ int main() {
     assert(sequencer::get_projection_buffer_pointer() == nullptr);
     assert(sequencer::projection_buffer.read_buffer().empty());
     for (std::uint32_t strip = 0; strip < count; ++strip)
-      for (std::uint32_t word = 0; word < 10; ++word)
-        assert(input[strip][word] == strip * 10 + word);
+      for (std::uint32_t word = 0; word < 12; ++word)
+        assert(input[strip][word] == strip * 12 + word);
 
     static_cast<void>(sequencer::prepare_projection_buffer(count));
     sequencer::clear_projection_buffer();

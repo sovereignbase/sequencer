@@ -14,7 +14,7 @@ int main() {
           strip_index,
           {type + (strip_index >= materialized_count ? 3u : 0u),
            strip_index + 1, type == 2 ? 7u : 5u, 6, strip_index * 16,
-           90, 91, 92, u32_max, u32_max});
+           90, 91, 92, u32_max, u32_max, (type == 2 || type == 5) ? 0u : strip_index + 1, 0});
     }
     const auto projection = buffer.read_buffer();
     Projector projector;
@@ -53,7 +53,7 @@ int main() {
       } else {
         insert_counter = point.counter_bits + length + 1;
       }
-      if (type == 2 && strip_index >= materialized_count) {
+      if (type == 2) {
         assert(projector.footage_frame_index_of[strip_index] == u32_max);
       } else {
         assert(projector.footage_frame_index_of[strip_index] == footage_length);
@@ -86,7 +86,7 @@ int main() {
       std::uint32_t distance = 0;
       for (auto cursor = strip_index; cursor < target; ++cursor)
         if (projector.strip_type_of[cursor] != 2)
-          distance += projector.strip_length_of[cursor];
+          distance += projector.fragment_length_of[cursor];
       assert(projector.right_jump_length_of[strip_index] == distance);
       assert(projector.left_jump_length_of[target] == distance);
     }
@@ -101,8 +101,8 @@ int main() {
   assert(empty.pending_table.is_empty());
 
   ProjectionBuffer masked(2);
-  masked.write_projection(0, {2, 3, 7, 6, 0, 8, 9, 10, u32_max, u32_max});
-  masked.write_projection(1, {1, 4, 5, 6, 10, 7, 6, 2, u32_max, u32_max});
+  masked.write_projection(0, {2, 3, 7, 6, 0, 8, 9, 10, u32_max, u32_max, 0, 0});
+  masked.write_projection(1, {1, 4, 5, 6, 10, 7, 6, 2, u32_max, u32_max, 4, 0});
   Projector leading_mask;
   initialize_projector(leading_mask, masked.read_buffer(), 5, 7, 6);
   assert(leading_mask.head_strip_index == 0);
@@ -112,10 +112,10 @@ int main() {
   assert(leading_mask.mask_operation_count == 4);
 
   ProjectionBuffer anchored(4);
-  anchored.write_projection(0, {1, 3, 5, 6, 0, 0, 0, 0, u32_max, u32_max});
-  anchored.write_projection(1, {1, 0, 5, 6, 4, 5, 6, 3, u32_max, u32_max});
-  anchored.write_projection(2, {3, 2, 5, 6, 5, 90, 91, 0, u32_max, u32_max});
-  anchored.write_projection(3, {5, 3, 7, 6, 0, 90, 91, 1, u32_max, u32_max});
+  anchored.write_projection(0, {1, 3, 5, 6, 0, 0, 0, 0, u32_max, u32_max, 3, 0});
+  anchored.write_projection(1, {1, 0, 5, 6, 4, 5, 6, 3, u32_max, u32_max, 0, 0});
+  anchored.write_projection(2, {3, 2, 5, 6, 5, 90, 91, 0, u32_max, u32_max, 2, 0});
+  anchored.write_projection(3, {5, 3, 7, 6, 0, 90, 91, 1, u32_max, u32_max, 0, 0});
   Projector reserved;
   initialize_projector(reserved, anchored.read_buffer(), 5, 7, 6);
   assert(reserved.projection_frame_count == 3);

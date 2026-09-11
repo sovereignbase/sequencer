@@ -7,7 +7,7 @@
 #include <cassert>
 #include <string>
 
-using Words = std::array<std::uint32_t, 10>;
+using Words = std::array<std::uint32_t, 12>;
 
 std::uint32_t merge(const std::uint32_t id, const Words &words,
                     const std::uint32_t footage) {
@@ -28,9 +28,9 @@ std::string read(const std::uint32_t id, const std::string &footage) {
 }
 
 int main() {
-  const Words parent{1, 3, 10, 20, 0, 0, 0, 0, 123, 456};
-  const Words child{1, 2, 30, 40, 0, 10, 20, 3, 987, 654};
-  const Words grandchild{1, 1, 50, 60, 0, 30, 40, 2, 333, 444};
+  const Words parent{1, 3, 10, 20, 0, 0, 0, 0, 123, 456, 3, 0};
+  const Words child{1, 2, 30, 40, 0, 10, 20, 3, 987, 654, 2, 3};
+  const Words grandchild{1, 1, 50, 60, 0, 30, 40, 2, 333, 444, 1, 2};
   const std::array operations{parent, child, grandchild};
   constexpr std::array footage_starts{0u, 3u, 5u};
   std::array order{0u, 1u, 2u};
@@ -50,8 +50,8 @@ int main() {
 
   for (const bool reverse : {false, true}) {
     const auto id = sequencer::initialize_projection();
-    const Words smaller{0, 1, 10, 20, 0, 0, 0, 0, u32_max, u32_max};
-    const Words larger{0, 1, 20, 20, 0, 0, 0, 0, u32_max, u32_max};
+    const Words smaller{0, 1, 10, 20, 0, 0, 0, 0, u32_max, u32_max, 1, 0};
+    const Words larger{0, 1, 20, 20, 0, 0, 0, 0, u32_max, u32_max, 1, 0};
     static_cast<void>(merge(id, reverse ? larger : smaller, reverse ? 1 : 0));
     static_cast<void>(merge(id, reverse ? smaller : larger, reverse ? 0 : 1));
     assert(read(id, "ab") == "ba");
@@ -60,11 +60,11 @@ int main() {
 
   const auto id = sequencer::initialize_projection();
   assert(merge(id, parent, 0) == 0);
-  const Words mask{2, 1, 70, 80, 0, 10, 20, 1, u32_max, u32_max};
+  const Words mask{2, 1, 70, 80, 0, 10, 20, 1, u32_max, u32_max, 0, 1};
   assert(merge(id, mask, 0) == 1);
   assert(read(id, "abc") == "ac");
   assert(merge(id, mask, 0) == u32_max);
-  const Words pending{3, 1, 90, 91, 0, 99, 98, 0, u32_max, u32_max};
+  const Words pending{3, 1, 90, 91, 0, 99, 98, 0, u32_max, u32_max, 1, 0};
   const auto known = sequencer::projectors[id]->strip_type_of.size();
   assert(merge(id, pending, 0) == u32_max);
   assert(sequencer::projectors[id]->strip_type_of.size() == known);
@@ -72,8 +72,8 @@ int main() {
 
   for (const bool mask_pending : {false, true}) {
     const auto anchored_id = sequencer::initialize_projection();
-    const Words inserted{0, 1, 30, 40, 0, 10, 20, 0, u32_max, u32_max};
-    const Words anchored_mask{2, 3, 70, 80, 0, 10, 20, 0, u32_max, u32_max};
+    const Words inserted{0, 1, 30, 40, 0, 10, 20, 0, u32_max, u32_max, 1, 0};
+    const Words anchored_mask{2, 3, 70, 80, 0, 10, 20, 0, u32_max, u32_max, 0, 0};
     assert(merge(anchored_id, inserted, 3) == u32_max);
     if (mask_pending)
       assert(merge(anchored_id, anchored_mask, 0) == u32_max);

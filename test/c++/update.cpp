@@ -15,7 +15,7 @@ struct Fixture {
       sequencer::projection_buffer.write_projection(
           strip, {type, 3, sequencer::insert_realm_crypto_random_bits ^ 1u,
                   sequencer::shared_realm_unix_lower_bits, strip * 32,
-                  0, 0, 0, u32_max, u32_max});
+                  0, 0, 0, u32_max, u32_max, (type == 2 || type == 5) ? 0u : 3, 0});
       if (type != 5)
         footage += "abc";
     }
@@ -24,7 +24,7 @@ struct Fixture {
 
   ~Fixture() { sequencer::clear_projection(id); }
 
-  std::array<std::uint32_t, 10> insert(const std::uint8_t type,
+  std::array<std::uint32_t, 12> insert(const std::uint8_t type,
                                        const std::uint32_t target,
                                        const std::string &text,
                                        const std::uint32_t expected_position) {
@@ -122,7 +122,7 @@ int main() {
         const auto source = target / 3;
         const auto offset = target % 3;
         const auto dependency = type == 0
-                                    ? source * 32 + (offset == 0 ? 0 : offset + 1)
+                                    ? source * 32 + offset
                                     : (offset == 2 && source + 1 < count
                                            ? (source + 1) * 32
                                            : source * 32 + offset + 1);
@@ -154,9 +154,10 @@ int main() {
     if (type == 2) {
       assert(projector.head_strip_index == original_head);
       assert(projector.strip_type_of[original_head] == 2);
-      assert(projector.strip_length_of[original_head] == 3);
+      assert(projector.initial_length_of[original_head] == 3);
+      assert(projector.fragment_length_of[original_head] == 0);
       assert(projector.larger_split_strip_index_of[original_head] == u32_max);
-      assert(projector.footage_frame_index_of[original_head] == 0);
+      assert(projector.footage_frame_index_of[original_head] == u32_max);
       assert(projector.materialized_strip_count == 2);
     } else {
       assert(projector.materialized_strip_count == 1);

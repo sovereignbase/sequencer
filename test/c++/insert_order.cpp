@@ -1,5 +1,6 @@
 #include "../../src/c++/.auxiliary/insert_between/index.hpp"
 #include "../../src/c++/.auxiliary/split_strip/index.hpp"
+#include "../../src/c++/.auxiliary/stage_strip/index.hpp"
 #include <array>
 #include <cassert>
 #include <cstdint>
@@ -12,27 +13,11 @@ struct TextFixture {
 
   std::uint32_t stage(const SequencePoint start, const SequencePoint previous,
                       const std::string &text) {
-    const auto strip_index =
-        static_cast<std::uint32_t>(projector.strip_type_of.size());
-    projector.strip_type_of.push_back(1);
-    projector.strip_length_of.push_back(static_cast<std::uint32_t>(text.size()));
-    projector.strip_start_of.push_back(start);
-    projector.previous_strip_end_of.push_back(previous);
-    projector.smaller_competitor_strip_index_of.push_back(u32_max);
-    projector.larger_split_strip_index_of.push_back(u32_max);
-    projector.left_strip_index_of.push_back(strip_index);
-    projector.right_strip_index_of.push_back(strip_index);
-    projector.left_jump_strip_index_of.push_back(u32_max);
-    projector.right_jump_strip_index_of.push_back(u32_max);
-    projector.left_jump_length_of.push_back(0);
-    projector.right_jump_length_of.push_back(0);
-    projector.left_jump_strip_count_of.push_back(0);
-    projector.right_jump_strip_count_of.push_back(0);
-    projector.footage_frame_index_of.push_back(
-        static_cast<std::uint32_t>(footage.size()));
+    const auto strip_index = stage_strip(
+        projector, 1, static_cast<std::uint32_t>(text.size()), start, previous,
+        static_cast<std::uint32_t>(footage.size()),
+        projector.containment_table.get(previous).second);
     footage += text;
-    projector.containment_table.set(start, static_cast<std::uint32_t>(text.size()),
-                                    strip_index);
     return strip_index;
   }
 
@@ -60,7 +45,7 @@ struct TextFixture {
       assert(++count <= projector.materialized_strip_count);
       assert(projector.left_strip_index_of[strip] == previous);
       result += footage.substr(projector.footage_frame_index_of[strip],
-                               projector.strip_length_of[strip]);
+                               projector.fragment_length_of[strip]);
       previous = strip;
     }
     assert(count == projector.materialized_strip_count);

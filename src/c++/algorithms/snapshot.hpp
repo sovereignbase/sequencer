@@ -45,7 +45,9 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
             previous_strip_end.crypto_random_bits,
             previous_strip_end.unix_lower_bits,
             previous_strip_end.counter_bits,
-            larger_split_strip == u32_max
+            projector.strip_type_of[strip_index] == 2
+                ? larger_split_strip
+                : larger_split_strip == u32_max
                 ? u32_max
                 : projection_indices[larger_split_strip],
             smaller_competitor_strip == u32_max
@@ -88,7 +90,8 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
             previous_strip_end.crypto_random_bits,
             previous_strip_end.unix_lower_bits,
             previous_strip_end.counter_bits,
-            u32_max,
+            projector.strip_type_of[strip_index] == 2
+                ? projector.larger_split_strip_index_of[strip_index] : u32_max,
             u32_max,
         });
     if (projector.strip_type_of[strip_index] != 2 &&

@@ -117,9 +117,7 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
     const bool complete = projector.for_each_mask_target(mask,
         [&](const auto source, const auto, const auto) {
           targets.push_back(source);
-          if (!hard && projector.footage_frame_index_of[source] != u32_max)
-            eligible = false;
-        });
+        }, true);
     eligible = eligible && complete;
     remove[mask] = eligible;
     for (const auto source : targets) {
@@ -157,7 +155,7 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
     if (!remove[strip])
       projector.previous_strip_end_of[strip] = reattach(projector.previous_strip_end_of[strip]);
     auto &split = projector.larger_split_strip_index_of[strip];
-    while (split != u32_max && remove[split])
+    while (projector.strip_type_of[strip] != 2 && split != u32_max && remove[split])
       split = projector.larger_split_strip_index_of[split];
     auto &competitor = projector.smaller_competitor_strip_index_of[strip];
     while (competitor != u32_max && remove[competitor])
@@ -197,6 +195,7 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
       projector.right_strip_index_of[strip] = strip;
       projector.footage_frame_index_of[strip] = u32_max;
       projector.strip_type_of[strip] = 255;
+      projector.larger_split_strip_index_of[strip] = u32_max;
       projector.mask_owner_of.erase(strip);
       --projector.materialized_strip_count;
     } else {

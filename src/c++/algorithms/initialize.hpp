@@ -112,7 +112,8 @@ inline void initialize_projector(
       if (!pending && strip_type < 2)
         projector.projection_frame_count += strip[1];
       if (pending)
-        projector.pending_table.set(projector.previous_strip_end_of[strip_index],
+        projector.pending_table.set(strip_type == 2 ? projector.mask_origin(strip_index)
+                                                     : projector.previous_strip_end_of[strip_index],
                                     strip_index, true);
       projector.containment_table.set(strip_start, strip[1], strip_index,
                                       true);

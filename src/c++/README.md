@@ -485,6 +485,27 @@ The same incoming state can therefore be merged in any arrival order and still r
 
 ## Acknowledgement and Compaction
 
+### Mask dependency prefix
+
+An instruction Mask stores its creation-time dependency offset in encoded word
+8, the otherwise unused `larger_split_strip_index_of` slot. It is a `u32`
+Frame offset, not a Strip Index, and is never remapped by snapshot or compaction.
+Applied source fragments still use that slot for their actual split links.
+
+For a Mask with `dependency = A1` and `dependency_prefix = 1`, the source
+origin is `A0`. The target begins after one source Frame, regardless of any
+empty anchors inserted into that source's split chain later. Traversal counts
+source content, including already masked content, but not intervening inserts.
+The dependency and prefix remain unchanged after application and across
+materialized and pending snapshots. If the creation-time origin has not yet
+materialized, the instruction remains pending.
+
+Compaction retains source prefix fragments while an uncollected instruction
+still needs them to interpret its creation-time offset.
+
+The previous `UINT32_MAX` sentinel denotes an unspecified prefix and retains
+the legacy direct-dependency interpretation.
+
 Masks have their own Realm identifiers.
 
 For simplicity, we will represent Mask Realms the same way as insert Realms, using uppercase characters such as `M` or `N`.

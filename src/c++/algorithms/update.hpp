@@ -59,6 +59,8 @@ inline std::uint32_t update_projection(
                   previous_strip_end, footage_frame_index);
   if (incoming_strip_index == u32_max)
     return u32_max;
+  if (operation_type == 2)
+    projector.larger_split_strip_index_of[incoming_strip_index] = offset;
 
   const auto [frame_count_diff, strip_count_diff] = apply_insert(
       projector, containing_strip_index, incoming_strip_index, offset);
@@ -76,7 +78,7 @@ inline std::uint32_t update_projection(
           strip_start.crypto_random_bits, strip_start.unix_lower_bits,
           strip_start.counter_bits, previous_strip_end.crypto_random_bits,
           previous_strip_end.unix_lower_bits, previous_strip_end.counter_bits,
-          u32_max, u32_max});
+          operation_type == 2 ? offset : u32_max, u32_max});
   if (operation_type == 2)
     footage_span_buffer.write_span(operation_index, masked_footage_index,
                                   issued_length, true);

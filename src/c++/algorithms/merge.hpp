@@ -25,6 +25,8 @@ merge_projection(const std::uint32_t projection_id,
       continue;
     if (strip[1] >= u32_max - strip[4])
       return u32_max;
+    if (strip[0] == 2 && strip[8] != u32_max && strip[8] > strip[7])
+      return u32_max;
     if (strip[0] != 2 && (strip[0] & 16) == 0) {
       if (strip[1] > remaining_footage)
         return u32_max;
@@ -54,6 +56,8 @@ merge_projection(const std::uint32_t projection_id,
 
     const auto incoming = stage_strip(projector, static_cast<std::uint8_t>(strip[0]),
                                       strip[1], start, previous, footage);
+    if (strip[0] == 2)
+      projector.larger_split_strip_index_of[incoming] = strip[8];
     if (start.unix_lower_bits == shared_realm_unix_lower_bits) {
       if (start.crypto_random_bits == insert_realm_crypto_random_bits)
         projector.operation_count = std::max(projector.operation_count,
@@ -66,9 +70,11 @@ merge_projection(const std::uint32_t projection_id,
     while (!ready.empty()) {
       const auto candidate = ready.back();
       ready.pop_back();
-      const auto dependency = projector.resolve_collected_dependency(projector.previous_strip_end_of[candidate]);
-      projector.previous_strip_end_of[candidate] = dependency;
       const auto type = projector.strip_type_of[candidate];
+      const auto dependency = type == 2 ? projector.mask_origin(candidate)
+          : projector.resolve_collected_dependency(projector.previous_strip_end_of[candidate]);
+      if (type != 2)
+        projector.previous_strip_end_of[candidate] = dependency;
       const auto length = projector.strip_length_of[candidate];
       const bool birth = type != 2 && dependency == SequencePoint{0, 0, 0};
       auto [containing, offset] = projector.containment_table.get(dependency);
@@ -95,6 +101,8 @@ merge_projection(const std::uint32_t projection_id,
         continue;
       }
 
+      const auto source_start = containing == u32_max ? dependency : projector.strip_start_of[containing];
+      const auto source_length = containing == u32_max ? 0 : projector.strip_length_of[containing];
       const auto [frame_diff, strip_diff] =
           apply_insert(projector, containing, candidate, offset);
       if (projector.left_strip_index_of[candidate] == candidate) {
@@ -121,6 +129,13 @@ merge_projection(const std::uint32_t projection_id,
       auto waiters = projector.pending_table.take(
           projector.strip_start_of[candidate], length);
       ready.insert(ready.end(), waiters.begin(), waiters.end());
+      if (type != 2 && containing != u32_max && !projector.pending_table.is_empty()) {
+        const auto changed_length = static_cast<std::uint32_t>(std::min<std::uint64_t>(
+            std::uint64_t{source_length} + static_cast<std::uint32_t>(std::max(0, strip_diff - 1)),
+            u32_max - source_start.counter_bits));
+        auto source_waiters = projector.pending_table.take(source_start, changed_length);
+        ready.insert(ready.end(), source_waiters.begin(), source_waiters.end());
+      }
       if (predecessor != u32_max) {
         auto previous_waiters = projector.pending_table.take(dependency, 0);
         ready.insert(ready.end(), previous_waiters.begin(), previous_waiters.end());

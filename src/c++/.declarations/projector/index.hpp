@@ -52,7 +52,7 @@ struct Projector {
   /** @brief Next smaller sibling sharing the same previous Strip end. */
   std::vector<std::uint32_t> smaller_competitor_strip_index_of;
 
-  /** @brief Next larger fragment of the same originally issued Strip. */
+  /** @brief Next source fragment, or creation-time dependency prefix for an instruction Mask. */
   std::vector<std::uint32_t> larger_split_strip_index_of;
 
   /**
@@ -214,16 +214,43 @@ struct Projector {
     return 0;
   }
 
-  /** @brief Visit source fragments addressed by one instruction, without mutation. */
+  /** @brief Recover the creation-time source anchor without rewriting the instruction. */
+  SequencePoint mask_origin(const std::uint32_t mask) const noexcept {
+    auto origin = previous_strip_end_of[mask];
+    const auto prefix = larger_split_strip_index_of[mask];
+    if (prefix != u32_max)
+      origin.counter_bits -= prefix;
+    return origin;
+  }
+
+  /** @brief Resolve a Mask in its creation-time source coordinate system. */
   template <typename Visitor>
-  bool for_each_mask_target(const std::uint32_t mask, Visitor &&visit) const noexcept {
-    auto [source, offset] = containment_table.get(previous_strip_end_of[mask]);
-    auto remaining = strip_length_of[mask];
+  bool for_each_mask_target(const std::uint32_t mask, Visitor &&visit,
+                            const bool include_prefix = false) const noexcept {
+    const auto origin = mask_origin(mask);
+    auto [source, offset] = containment_table.get(origin);
+    const auto prefix = larger_split_strip_index_of[mask];
+    if (prefix != u32_max) {
+      if (source == u32_max || strip_start_of[source] != origin)
+        return false;
+      offset = prefix;
+    }
+    std::uint64_t remaining = strip_length_of[mask];
+    if (include_prefix && prefix != u32_max) {
+      remaining += offset;
+      offset = 0;
+    }
     while (remaining != 0) {
       if (source == u32_max || left_strip_index_of[source] == source ||
-          strip_type_of[source] == 2 || offset > strip_length_of[source])
+          strip_type_of[source] == 2)
         return false;
-      const auto length = std::min(remaining, strip_length_of[source] - offset);
+      if (offset >= strip_length_of[source]) {
+        offset -= strip_length_of[source];
+        source = larger_split_strip_index_of[source];
+        continue;
+      }
+      const auto length = static_cast<std::uint32_t>(
+          std::min<std::uint64_t>(remaining, strip_length_of[source] - offset));
       if (length != 0) {
         visit(source, offset, length);
         remaining -= length;

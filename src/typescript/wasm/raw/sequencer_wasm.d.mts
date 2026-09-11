@@ -33,7 +33,8 @@ interface WasmModule {
   _update_projection(_0: number, _1: number, _2: number, _3: number, _4: number): number;
   _merge_projection(_0: number, _1: number): number;
   _acknowledge_projection(_0: number): number;
-  _compact_projection(_0: number): number;
+  _compact_projection(_0: number, _1: number): number;
+  _release_mask_footage(_0: number, _1: number, _2: number, _3: number): void;
   _get_acknowledgement_sequence_point_buffer_pointer(): number;
   _prepare_compaction_sequence_point_buffer(_0: number): number;
   _get_footage_span_buffer_pointer(): number;

@@ -150,10 +150,42 @@ struct Projector {
 
   std::vector<std::uint32_t> footage_frame_index_of;
 
-  /** @brief Non-contiguous retained Footage spans of unsplit Masks only. */
-  std::unordered_map<std::uint32_t,
-                     std::vector<std::pair<std::uint32_t, std::uint32_t>>>
-      mask_footage_spans;
+  /** @brief Greatest instruction Mask owning each applied source fragment. */
+  std::unordered_map<std::uint32_t, std::uint32_t> mask_owner_of;
+
+  /** @brief Collected Mask Realm frontiers retained across snapshots. */
+  std::vector<SequencePoint> collected_frontiers;
+
+  /** @brief Compact causal forwarding record for a collected source interval. */
+  struct CollectedSource {
+    SequencePoint start;
+    std::uint32_t length;
+    SequencePoint previous;
+  };
+  std::vector<CollectedSource> collected_sources;
+  std::unique_ptr<ContainmentTable> collected_table;
+
+  /** @brief Retain deduplication and causal forwarding after structural removal. */
+  void remember_collected_source(const CollectedSource source) {
+    if (!collected_table)
+      collected_table = std::make_unique<ContainmentTable>();
+    collected_table->set(source.start, source.length, collected_sources.size());
+    collected_sources.push_back(source);
+  }
+
+  /** @brief Resolve dependencies through previously collected source intervals. */
+  SequencePoint resolve_collected_dependency(SequencePoint point) const noexcept {
+    if (collected_table)
+      for (std::size_t count = 0; count < collected_sources.size(); ++count) {
+        if (containment_table.get(point).first != u32_max)
+          break;
+        const auto source = collected_table->get(point).first;
+        if (source == u32_max)
+          break;
+        point = collected_sources[source].previous;
+      }
+    return point;
+  }
 
   /**
    * @brief Visit retained Footage without copying it or splitting a Mask.
@@ -163,20 +195,42 @@ struct Projector {
   template <typename Visitor>
   void for_each_footage_span(const std::uint32_t strip_index,
                             Visitor &&visit) const noexcept {
-    if (strip_type_of[strip_index] == 2 && !mask_footage_spans.empty()) {
-      const auto found = mask_footage_spans.find(strip_index);
-      if (found != mask_footage_spans.end()) {
-        for (const auto &[footage, length] : found->second)
-          visit(footage, length);
-        return;
-      }
-    }
-    visit(footage_frame_index_of[strip_index], strip_length_of[strip_index]);
+    if (strip_type_of[strip_index] != 2 && footage_frame_index_of[strip_index] != u32_max)
+      visit(footage_frame_index_of[strip_index], strip_length_of[strip_index]);
   }
 
   /** @brief Visible length; Masks retain identity spans but project no Frames. */
   [[nodiscard]] std::uint32_t
   get_projected_strip_length(const std::uint32_t strip_index) const noexcept {
-    return strip_type_of[strip_index] == 2 ? 0 : strip_length_of[strip_index];
+    return strip_type_of[strip_index] < 2 ? strip_length_of[strip_index] : 0;
+  }
+
+  /** @brief Read the already collected prefix of a Mask Realm. */
+  std::uint32_t collected_counter(const SequencePoint point) const noexcept {
+    for (const auto frontier : collected_frontiers)
+      if (frontier.crypto_random_bits == point.crypto_random_bits &&
+          frontier.unix_lower_bits == point.unix_lower_bits)
+        return frontier.counter_bits;
+    return 0;
+  }
+
+  /** @brief Visit source fragments addressed by one instruction, without mutation. */
+  template <typename Visitor>
+  bool for_each_mask_target(const std::uint32_t mask, Visitor &&visit) const noexcept {
+    auto [source, offset] = containment_table.get(previous_strip_end_of[mask]);
+    auto remaining = strip_length_of[mask];
+    while (remaining != 0) {
+      if (source == u32_max || left_strip_index_of[source] == source ||
+          strip_type_of[source] == 2 || offset > strip_length_of[source])
+        return false;
+      const auto length = std::min(remaining, strip_length_of[source] - offset);
+      if (length != 0) {
+        visit(source, offset, length);
+        remaining -= length;
+      }
+      source = larger_split_strip_index_of[source];
+      offset = 0;
+    }
+    return true;
   }
 };

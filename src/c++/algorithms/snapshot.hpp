@@ -20,7 +20,8 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
        strip_index = projector.right_strip_index_of[strip_index])
     projection_indices[strip_index] = projection_strip_index++;
 
-  projection_buffer.resize(projection_strip_index + pending_strips.size());
+  projection_buffer.resize(projection_strip_index + pending_strips.size() +
+                            projector.collected_frontiers.size() + projector.collected_sources.size());
   projection_strip_index = 0;
   std::uint32_t projection_frame_index = 0;
   for (std::uint32_t strip_index = projector.head_strip_index;
@@ -52,7 +53,7 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
                 : projection_indices[smaller_competitor_strip],
         });
     const auto frame_count = projector.strip_length_of[strip_index];
-    const bool masked = projector.strip_type_of[strip_index] == 2;
+    const bool masked = projector.strip_type_of[strip_index] >= 2;
     if (frame_count != 0)
       projector.for_each_footage_span(strip_index, [&](const auto footage, const auto length) {
         footage_span_buffer.write_span(projection_frame_index, footage, length, masked);
@@ -60,6 +61,16 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
     if (!masked)
       projection_frame_index += frame_count;
   }
+
+  for (const auto frontier : projector.collected_frontiers)
+    projection_buffer.write_projection(projection_strip_index++,
+        {8, 0, frontier.crypto_random_bits, frontier.unix_lower_bits,
+         frontier.counter_bits, 0, 0, 0, u32_max, u32_max});
+  for (const auto &source : projector.collected_sources)
+    projection_buffer.write_projection(projection_strip_index++,
+        {9, source.length, source.start.crypto_random_bits, source.start.unix_lower_bits,
+         source.start.counter_bits, source.previous.crypto_random_bits,
+         source.previous.unix_lower_bits, source.previous.counter_bits, u32_max, u32_max});
 
   for (const auto strip_index : pending_strips) {
     const auto &strip_start = projector.strip_start_of[strip_index];

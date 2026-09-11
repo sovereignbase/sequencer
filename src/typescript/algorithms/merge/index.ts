@@ -25,10 +25,12 @@ export function merge<T>(state: Replica<T>, data: unknown): Change<T> | false {
     return false
   let required = 0
   for (let strip = 0; strip < data[0].length; strip += 10) {
-    if (data[0][strip] >= 3) break
+    const type = data[0][strip]
+    if (type >= 3 && type <= 5) break
+    if (type === 8 || type === 9) continue
     const length = data[0][strip + 1]
     if (length >= no_projection_frame_index - data[0][strip + 4]) return false
-    if (data[0][strip] !== 2) required += length
+    if (type !== 2 && (type & 16) === 0) required += length
   }
   if (required > data[1].length) return false
 

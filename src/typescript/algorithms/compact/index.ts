@@ -4,7 +4,7 @@
  * @module
  */
 import type { Acknowledgement, Replica } from '../../types/type.js'
-import { compact_sequence, wasm } from '../../wasm/index.js'
+import { wasm } from '../../wasm/index.js'
 
 /**
  * Removes safely collectable structural garbage from one Replica.
@@ -79,8 +79,12 @@ export function compact<T>(
   }
 
   // Transfer selected boundaries and resolve matching Mask Footage.
-  const footage_spans = compact_sequence(state[0], frontier)
-  if (!footage_spans) return
+  if (frontier.length === 0) return
+  const buffer_start = wasm._prepare_compaction_sequence_point_buffer(frontier.length / 3) >>> 2
+  wasm.HEAPU32.set(frontier, buffer_start)
+  const span_count = wasm._compact_projection(state[0], hard ? 1 : 0) >>> 0
+  const span_start = span_count === 0 ? 0 : wasm._get_footage_span_buffer_pointer() >>> 2
+  const footage_spans = wasm.HEAPU32.subarray(span_start, span_start + span_count * 4)
 
   // Release returned Footage spans without compacting stable indexes.
   for (let span_index = 0; span_index < footage_spans.length; span_index += 4) {

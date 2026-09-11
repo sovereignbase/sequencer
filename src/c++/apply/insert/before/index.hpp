@@ -53,10 +53,10 @@ insert_before(Projector &projector, const std::uint32_t containing_strip_index,
                  right_strip_index);
 
   const std::int32_t frame_count_diff = static_cast<std::int32_t>(
-      projector.strip_length_of[incoming_strip_index]);
+      projector.get_projected_strip_length(incoming_strip_index));
 
   projector.projection_frame_count +=
-      projector.strip_length_of[incoming_strip_index];
+      projector.get_projected_strip_length(incoming_strip_index);
 
   const std::int32_t strip_count_diff = static_cast<std::int32_t>(
       projector.materialized_strip_count - previous_materialized_strip_count);

@@ -14,7 +14,7 @@
 insert_birth(Projector &projector, const std::uint32_t incoming_strip_index) noexcept {
   const bool empty = projector.materialized_strip_count == 0;
   insert_between(projector, u32_max, incoming_strip_index, projector.head_strip_index);
-  const auto frame_count = projector.strip_length_of[incoming_strip_index];
+  const auto frame_count = projector.get_projected_strip_length(incoming_strip_index);
   projector.projection_frame_count += frame_count;
   if (empty) {
     projector.gate_strip_index = incoming_strip_index;

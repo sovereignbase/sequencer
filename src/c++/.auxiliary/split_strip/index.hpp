@@ -18,6 +18,8 @@
  * @param projector Owning Projector.
  * @param strip_index Strip Index of the source Strip and resulting prefix.
  * @param frame_offset Number of content Frames retained in the prefix.
+ * @param reserve_anchor Whether an insertion introduces a new causal anchor.
+ * Mask boundaries preserve existing content points instead.
  * @return Newly appended Strip Index of the suffix.
  * @pre The source is not a Mask, `frame_offset < strip_length_of[strip_index]`, and the shifted suffix
  * remains within the same Realm's counter range.
@@ -28,17 +30,22 @@
  */
 [[nodiscard]] inline std::uint32_t
 split_strip(Projector &projector, const std::uint32_t strip_index,
-            const std::uint32_t frame_offset) noexcept {
+            const std::uint32_t frame_offset,
+            const bool reserve_anchor = true) noexcept {
   const std::uint32_t suffix_strip_index = projector.strip_type_of.size();
   const std::uint32_t source_length = projector.strip_length_of[strip_index];
 
   SequencePoint suffix_start = projector.strip_start_of[strip_index];
-  suffix_start.counter_bits += frame_offset + 1;
+  suffix_start.counter_bits += frame_offset + (reserve_anchor ? 1 : 0);
 
   SequencePoint suffix_previous_end = suffix_start;
-  --suffix_previous_end.counter_bits;
+  if (reserve_anchor)
+    --suffix_previous_end.counter_bits;
 
   projector.strip_type_of.push_back(projector.strip_type_of[strip_index]);
+  if (const auto owner = projector.mask_owner_of.find(strip_index);
+      owner != projector.mask_owner_of.end())
+    projector.mask_owner_of.emplace(suffix_strip_index, owner->second);
   projector.strip_length_of.push_back(source_length - frame_offset);
 
   projector.smaller_competitor_strip_index_of.push_back(u32_max);

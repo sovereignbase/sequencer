@@ -19,10 +19,13 @@ inline void initialize_projector(
     const std::uint32_t mask_realm_crypto_random_bits,
     const std::uint32_t shared_realm_unix_lower_bits) noexcept {
   if (!projection.empty()) {
-    const auto strip_count = static_cast<std::uint32_t>(projection.size());
+    const auto strip_count = static_cast<std::uint32_t>(std::count_if(
+        projection.begin(), projection.end(), [](const auto &strip) { return strip[0] != 8 && strip[0] != 9; }));
     const auto first_pending_strip =
         std::find_if(projection.begin(), projection.end(),
-                     [](const auto &strip) noexcept { return strip[0] >= 3; });
+                     [](const auto &strip) noexcept {
+                       return (strip[0] >= 3 && strip[0] <= 5) || strip[0] == 8 || strip[0] == 9;
+                     });
     const auto materialized_strip_count =
         static_cast<std::uint32_t>(first_pending_strip - projection.begin());
     projector.strip_type_of.resize(strip_count);
@@ -48,9 +51,21 @@ inline void initialize_projector(
     std::uint32_t footage_frame_index = 0;
     std::uint32_t previous_jump_strip_index = 0;
     std::uint32_t previous_jump_projection_index = 0;
-    for (std::uint32_t strip_index = 0; strip_index < strip_count;
-         ++strip_index) {
-      const auto &strip = projection[strip_index];
+    std::uint32_t strip_index = 0;
+    for (const auto &strip : projection) {
+      if (strip[0] == 9) {
+        projector.remember_collected_source({{strip[2], strip[3], strip[4]}, strip[1],
+                                             {strip[5], strip[6], strip[7]}});
+        if (strip[2] == insert_realm_crypto_random_bits && strip[3] == shared_realm_unix_lower_bits)
+          projector.operation_count = std::max(projector.operation_count, strip[4] + strip[1] + 1);
+        continue;
+      }
+      if (strip[0] == 8) {
+        projector.collected_frontiers.push_back({strip[2], strip[3], strip[4]});
+        if (strip[2] == mask_realm_crypto_random_bits && strip[3] == shared_realm_unix_lower_bits)
+          projector.mask_operation_count = std::max(projector.mask_operation_count, strip[4]);
+        continue;
+      }
       const bool pending = strip_index >= materialized_strip_count;
       const auto strip_type =
           static_cast<std::uint8_t>(pending ? strip[0] - 3 : strip[0]);
@@ -70,7 +85,7 @@ inline void initialize_projector(
                          ? u32_max
                          : strip_index + 1);
       projector.footage_frame_index_of[strip_index] =
-          pending && strip_type == 2 ? u32_max : footage_frame_index;
+          strip_type == 2 || (strip_type & 16) != 0 ? u32_max : footage_frame_index;
       if (!pending && strip_index != 0 &&
           (strip_index - previous_jump_strip_index >= optimal_jump_distance ||
            strip_index + 1 == materialized_strip_count)) {
@@ -89,12 +104,12 @@ inline void initialize_projector(
         previous_jump_strip_index = strip_index;
         previous_jump_projection_index = projector.projection_frame_count;
       }
-      if (!pending && strip_type != 2 && strip[1] != 0 &&
+      if (!pending && strip_type < 2 && strip[1] != 0 &&
           projector.gate_strip_index == u32_max)
         projector.gate_strip_index = strip_index;
-      if (!pending || strip_type != 2)
+      if (strip_type != 2 && (strip_type & 16) == 0)
         footage_frame_index += strip[1];
-      if (!pending && strip_type != 2)
+      if (!pending && strip_type < 2)
         projector.projection_frame_count += strip[1];
       if (pending)
         projector.pending_table.set(projector.previous_strip_end_of[strip_index],
@@ -111,6 +126,7 @@ inline void initialize_projector(
         projector.mask_operation_count =
             std::max(projector.mask_operation_count,
                      strip_start.counter_bits + strip[1] + 1);
+      ++strip_index;
     }
 
     projector.containment_table.sort_realms();
@@ -118,5 +134,13 @@ inline void initialize_projector(
     projector.head_strip_index = materialized_strip_count == 0 ? u32_max : 0;
     projector.tail_strip_index =
         materialized_strip_count == 0 ? u32_max : materialized_strip_count - 1;
+    for (std::uint32_t mask = 0; mask < materialized_strip_count; ++mask)
+      if (projector.strip_type_of[mask] == 2)
+        projector.for_each_mask_target(mask, [&](const auto source, const auto, const auto) {
+          const auto owner = projector.mask_owner_of.find(source);
+          if (owner == projector.mask_owner_of.end() ||
+              projector.strip_start_of[owner->second] < projector.strip_start_of[mask])
+            projector.mask_owner_of[source] = mask;
+        });
   }
 }

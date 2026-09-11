@@ -1,39 +1,39 @@
 {
-  "generated_at": "2026-09-11T06:31:58.126Z",
+  "generated_at": "2026-09-11T07:29:39.966Z",
   "results": [
     {
       "name": "Node.js",
       "status": "passed",
-      "duration_ms": 255,
+      "duration_ms": 356,
       "version": "24.16.0",
       "assertions": 8
     },
     {
       "name": "Deno",
       "status": "passed",
-      "duration_ms": 292,
+      "duration_ms": 1164,
       "version": "2.9.6",
       "assertions": 8
     },
     {
       "name": "Bun",
       "status": "passed",
-      "duration_ms": 204,
+      "duration_ms": 722,
       "version": "1.4.2",
       "assertions": 8
     },
     {
       "name": "Edge Runtime",
       "status": "passed",
-      "duration_ms": 433,
+      "duration_ms": 949,
       "version": "edge-runtime",
       "assertions": 8
     },
     {
       "name": "Cloudflare Workers",
       "status": "failed",
-      "duration_ms": 2328,
-      "error": "node:internal/modules/run_main:107\r\n    triggerUncaughtException(\r\n    ^\r\n\r\nMiniflareCoreError [ERR_RUNTIME_FAILURE]: The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.\r\nRuntime stderr:\r\n{\"timestamp\":\"1789108318048\",\"level\":\"error\",\"source\":\"src/workerd/server/json-logger.c++:127\",\"message\":\"service core:user:sequencer-runtime-test: Uncaught Error: Disallowed operation called within global scope. Asynchronous I/O (ex: fetch() or connect()), setting a timeout, and generating random values are not allowed within global scope. To fix this error, perform this operation within a handler. https://developers.cloudflare.com/workers/runtime-apis/handlers/\\n  at cloudflare_worker.js:250:71\\n  at cloudflare_worker.js:251:84 in randomFill\\n  at cloudflare_worker.js:252:62 in _random_get\\n  at wasm://wasm/00030dca:1:8264 in $func23\\n  at wasm://wasm/00030dca:1:48938 in $g\\n  at cloudflare_worker.js:76:21 in initRuntime\\n  at cloudflare_worker.js:442:7 in doRun\\n  at cloudflare_worker.js:454:12 in run\\n  at cloudflare_worker.js:458:3 in Module\\n  at cloudflare_worker.js:467:12\",\"context_depth\":0}\r\n    at StartupLogBuffer.handleStartupFailure (C:\\Users\\jorts\\sequencer\\node_modules\\miniflare\\dist\\src\\index.js:65103:13)\r\n    at Runtime.updateConfig (C:\\Users\\jorts\\sequencer\\node_modules\\miniflare\\dist\\src\\index.js:65183:24)\r\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\r\n    at async #assembleAndUpdateConfig (C:\\Users\\jorts\\sequencer\\node_modules\\miniflare\\dist\\src\\index.js:82976:30)\r\n    at async C:\\Users\\jorts\\sequencer\\node_modules\\miniflare\\dist\\src\\index.js:81771:7\r\n    at async Mutex.runWith (C:\\Users\\jorts\\sequencer\\node_modules\\miniflare\\dist\\src\\index.js:54768:16)\r\n    at async #waitForReady (C:\\Users\\jorts\\sequencer\\node_modules\\miniflare\\dist\\src\\index.js:83101:5)\r\n    at async #onBundleComplete (C:\\Users\\jorts\\sequencer\\node_modules\\wrangler\\wrangler-dist\\cli.js:355748:33)\r\n    at async Mutex.runWith (C:\\Users\\jorts\\sequencer\\node_modules\\miniflare\\dist\\src\\index.js:54768:16) {\r\n  code: 'ERR_RUNTIME_FAILURE',\r\n  cause: undefined\r\n}\r\n\r\nNode.js v24.16.0"
+      "duration_ms": 4438,
+      "error": "node:internal/modules/run_main:107\r\n    triggerUncaughtException(\r\n    ^\r\n\r\nMiniflareCoreError [ERR_RUNTIME_FAILURE]: The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.\r\nRuntime stderr:\r\n{\"timestamp\":\"1789111779862\",\"level\":\"error\",\"source\":\"src/workerd/server/json-logger.c++:127\",\"message\":\"service core:user:sequencer-runtime-test: Uncaught Error: Disallowed operation called within global scope. Asynchronous I/O (ex: fetch() or connect()), setting a timeout, and generating random values are not allowed within global scope. To fix this error, perform this operation within a handler. https://developers.cloudflare.com/workers/runtime-apis/handlers/\\n  at cloudflare_worker.js:250:71\\n  at cloudflare_worker.js:251:84 in randomFill\\n  at cloudflare_worker.js:252:62 in _random_get\\n  at wasm://wasm/000451ea:1:16613 in $func27\\n  at wasm://wasm/000451ea:1:69295 in $g\\n  at cloudflare_worker.js:76:21 in initRuntime\\n  at cloudflare_worker.js:443:7 in doRun\\n  at cloudflare_worker.js:455:12 in run\\n  at cloudflare_worker.js:459:3 in Module\\n  at cloudflare_worker.js:468:12\",\"context_depth\":0}\r\n    at StartupLogBuffer.handleStartupFailure (C:\\Users\\jorts\\sequencer\\node_modules\\miniflare\\dist\\src\\index.js:65116:13)\r\n    at Runtime.updateConfig (C:\\Users\\jorts\\sequencer\\node_modules\\miniflare\\dist\\src\\index.js:65196:24)\r\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\r\n    at async #assembleAndUpdateConfig (C:\\Users\\jorts\\sequencer\\node_modules\\miniflare\\dist\\src\\index.js:83016:30)\r\n    at async C:\\Users\\jorts\\sequencer\\node_modules\\miniflare\\dist\\src\\index.js:81791:7\r\n    at async Mutex.runWith (C:\\Users\\jorts\\sequencer\\node_modules\\miniflare\\dist\\src\\index.js:54781:16)\r\n    at async #waitForReady (C:\\Users\\jorts\\sequencer\\node_modules\\miniflare\\dist\\src\\index.js:83141:5)\r\n    at async #onBundleComplete (C:\\Users\\jorts\\sequencer\\node_modules\\wrangler\\wrangler-dist\\cli.js:356601:33)\r\n    at async Mutex.runWith (C:\\Users\\jorts\\sequencer\\node_modules\\miniflare\\dist\\src\\index.js:54781:16) {\r\n  code: 'ERR_RUNTIME_FAILURE',\r\n  cause: undefined\r\n}\r\n\r\nNode.js v24.16.0"
     }
   ]
 }

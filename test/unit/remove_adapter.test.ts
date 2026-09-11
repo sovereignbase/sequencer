@@ -6,6 +6,7 @@ const native = vi.hoisted(() => ({
   _get_strip_buffer_pointer: () => 0,
   _get_projection_frame_count: vi.fn(),
   _update_projection: vi.fn(),
+  _release_mask_footage: vi.fn(),
   _get_projection_buffer_pointer: vi.fn(),
   _get_footage_span_buffer_pointer: vi.fn(),
   _clear_projection_buffer: vi.fn(),

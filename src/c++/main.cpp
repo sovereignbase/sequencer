@@ -102,8 +102,13 @@ acknowledge_projection(const std::uint32_t projection_id) noexcept {
 }
 
 EMSCRIPTEN_KEEPALIVE std::uint32_t
-compact_projection(const std::uint32_t projection_id) noexcept {
-  return sequencer::compact_projection(projection_id);
+compact_projection(const std::uint32_t projection_id, const std::uint32_t hard = 0) noexcept {
+  return sequencer::compact_projection(projection_id, hard);
+}
+
+EMSCRIPTEN_KEEPALIVE void release_mask_footage(const std::uint32_t id,
+    const std::uint32_t crypto, const std::uint32_t unix_bits, const std::uint32_t counter) noexcept {
+  return sequencer::release_mask_footage(id, crypto, unix_bits, counter);
 }
 
 EMSCRIPTEN_KEEPALIVE std::uint32_t *

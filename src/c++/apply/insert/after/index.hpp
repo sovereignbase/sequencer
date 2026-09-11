@@ -16,8 +16,6 @@
  * @param containing_strip_index Strip containing the dependency.
  * @param incoming_strip_index Strip Index of the staged Strip.
  * @param offset Dependency point offset; zero identifies the logical anchor.
- * @param mask_length Content consumed from this source fragment, or the full
- * Mask length when omitted. The Mask's issued length is not changed.
  * @note An anchor remains to the left of the incoming Strip. If it still owns
  * content, split out that content and retain the larger-split continuation.
  * For a Mask, offset is the boundary after its addressed content span.
@@ -26,8 +24,7 @@
 [[nodiscard]] inline std::pair<std::int32_t, std::int32_t>
 insert_after(Projector &projector, const std::uint32_t containing_strip_index,
              const std::uint32_t incoming_strip_index,
-             const std::uint32_t offset,
-             const std::uint32_t mask_length = u32_max) noexcept {
+             const std::uint32_t offset) noexcept {
   const std::uint32_t containing_strip_length =
       projector.strip_length_of[containing_strip_index];
 
@@ -55,21 +52,7 @@ insert_after(Projector &projector, const std::uint32_t containing_strip_index,
   }
 
   std::int32_t frame_count_diff = static_cast<std::int32_t>(
-      projector.strip_length_of[incoming_strip_index]);
-
-  if (projector.strip_type_of[incoming_strip_index] == 2) {
-    const auto consumed = mask_length == u32_max
-        ? projector.strip_length_of[incoming_strip_index] : mask_length;
-    projector.strip_length_of[left_strip_index] -=
-        consumed;
-    projector.footage_frame_index_of[incoming_strip_index] =
-        projector.footage_frame_index_of[left_strip_index] +
-        projector.strip_length_of[left_strip_index];
-    projector.containment_table.set(projector.strip_start_of[left_strip_index],
-                                    projector.strip_length_of[left_strip_index],
-                                    left_strip_index);
-    frame_count_diff = -static_cast<std::int32_t>(consumed);
-  }
+      projector.get_projected_strip_length(incoming_strip_index));
 
   insert_between(projector, left_strip_index, incoming_strip_index,
                  right_strip_index);

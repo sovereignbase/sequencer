@@ -77,6 +77,8 @@ export function remove<T>(
         footage_frame_index,
         footage_frame_index + mask_frame_count
       )
+      wasm._release_mask_footage(state[0], projection[projection.length - 8],
+        projection[projection.length - 7], projection[projection.length - 6])
     }
     wasm._clear_footage_span_buffer()
     remaining_frame_count -= mask_frame_count

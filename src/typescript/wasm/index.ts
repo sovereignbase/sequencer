@@ -237,7 +237,7 @@ export function compact_sequence(
   buffer.set(frontier, buffer_index)
 
   // Resolve covered native Mask Footage and the released-span count.
-  const span_count = wasm._compact_projection(sequence_id) >>> 0
+  const span_count = wasm._compact_projection(sequence_id, 0) >>> 0
   if (span_count === 0) {
     wasm._clear_footage_span_buffer()
     return false

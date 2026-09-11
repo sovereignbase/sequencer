@@ -43,7 +43,7 @@ describe('Compaction frontier agreement', () => {
       [42, []]
     )
     expect(selected).toEqual([10, 20, 8, 30, 40, 12])
-    expect(native._compact_projection).toHaveBeenCalledExactlyOnceWith(42)
+    expect(native._compact_projection).toHaveBeenCalledExactlyOnceWith(42, 0)
   })
 
   it.each([7, 9])(

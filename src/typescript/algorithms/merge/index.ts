@@ -36,6 +36,7 @@ export function merge<T>(state: Replica<T>, data: unknown): Change<T> | false {
 
   void state[1].push(...footage!)
 
+  // TODO: Make native merge write to footage span buffer instead of having extra calls and meaningless ts validation
   const current = values(state, projection_frame_index)
   const change: Change<T> = {}
   for (let frame = 0; frame < current.length; ++frame)

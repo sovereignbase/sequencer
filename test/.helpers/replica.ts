@@ -40,7 +40,7 @@ export async function create_actor() {
 /** Extracts the visible Strip issued by one accepted local operation. */
 export function visible_strip<T>(result: Delta<T> | false): Delta<T> {
   assert(result !== false)
-  assert(result[0].length === 10 && result[0][0] < 2)
+  assert(result[0].length === 12 && result[0][0] < 2)
   return result
 }
 

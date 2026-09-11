@@ -146,7 +146,7 @@ const targets = [
 const batched = create(base_delta)
 merge(batched, [
   strips.flatMap((strip) => strip[0]),
-  strips.flatMap((strip) => strip[1]),
+  strips.flatMap((strip) => strip[1] ?? []),
 ])
 targets.push(['batch', batched])
 

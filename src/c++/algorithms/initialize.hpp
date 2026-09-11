@@ -14,7 +14,7 @@
  */
 inline void initialize_projector(
     Projector &projector,
-    const std::span<const std::array<std::uint32_t, 10>> projection,
+    const std::span<const std::array<std::uint32_t, 12>> projection,
     const std::uint32_t insert_realm_crypto_random_bits,
     const std::uint32_t mask_realm_crypto_random_bits,
     const std::uint32_t shared_realm_unix_lower_bits) noexcept {
@@ -29,7 +29,9 @@ inline void initialize_projector(
     const auto materialized_strip_count =
         static_cast<std::uint32_t>(first_pending_strip - projection.begin());
     projector.strip_type_of.resize(strip_count);
-    projector.strip_length_of.resize(strip_count);
+    projector.initial_length_of.resize(strip_count);
+    projector.fragment_length_of.resize(strip_count);
+    projector.dependency_prefix_of.resize(strip_count);
     projector.strip_start_of.resize(strip_count);
     projector.previous_strip_end_of.resize(strip_count);
     projector.larger_split_strip_index_of.resize(strip_count);
@@ -71,7 +73,9 @@ inline void initialize_projector(
           static_cast<std::uint8_t>(pending ? strip[0] - 3 : strip[0]);
       const SequencePoint strip_start{strip[2], strip[3], strip[4]};
       projector.strip_type_of[strip_index] = strip_type;
-      projector.strip_length_of[strip_index] = strip[1];
+      projector.initial_length_of[strip_index] = strip[1];
+      projector.fragment_length_of[strip_index] = strip[10];
+      projector.dependency_prefix_of[strip_index] = strip[11];
       projector.strip_start_of[strip_index] = strip_start;
       projector.previous_strip_end_of[strip_index] = {strip[5], strip[6], strip[7]};
       projector.larger_split_strip_index_of[strip_index] = strip[8];
@@ -104,19 +108,18 @@ inline void initialize_projector(
         previous_jump_strip_index = strip_index;
         previous_jump_projection_index = projector.projection_frame_count;
       }
-      if (!pending && strip_type < 2 && strip[1] != 0 &&
+      if (!pending && strip_type < 2 && strip[10] != 0 &&
           projector.gate_strip_index == u32_max)
         projector.gate_strip_index = strip_index;
       if (strip_type != 2 && (strip_type & 16) == 0)
-        footage_frame_index += strip[1];
+        footage_frame_index += strip[10];
       if (!pending && strip_type < 2)
-        projector.projection_frame_count += strip[1];
+        projector.projection_frame_count += strip[10];
       if (pending)
-        projector.pending_table.set(strip_type == 2 ? projector.mask_origin(strip_index)
-                                                     : projector.previous_strip_end_of[strip_index],
+        projector.pending_table.set(projector.dependency_origin(strip_index),
                                     strip_index, true);
-      projector.containment_table.set(strip_start, strip[1], strip_index,
-                                      true);
+      if (!projector.is_fragment(strip_index))
+        projector.containment_table.set(strip_start, strip[1], strip_index, true);
       if (strip_start.crypto_random_bits == insert_realm_crypto_random_bits &&
           strip_start.unix_lower_bits == shared_realm_unix_lower_bits)
         projector.operation_count =

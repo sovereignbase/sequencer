@@ -26,7 +26,7 @@ insert_after(Projector &projector, const std::uint32_t containing_strip_index,
              const std::uint32_t incoming_strip_index,
              const std::uint32_t offset) noexcept {
   const std::uint32_t containing_strip_length =
-      projector.strip_length_of[containing_strip_index];
+      projector.fragment_length_of[containing_strip_index];
 
   const std::uint32_t previous_materialized_strip_count =
       projector.materialized_strip_count;

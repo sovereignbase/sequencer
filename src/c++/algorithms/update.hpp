@@ -26,16 +26,17 @@ inline std::uint32_t update_projection(
 
   std::uint32_t containing_strip_index = u32_max;
   std::uint32_t offset = 0;
+  std::uint32_t dependency_prefix = 0;
   SequencePoint previous_strip_end{0, 0, 0};
   if (projector.materialized_strip_count != 0) {
     if (projector.projection_frame_count != 0) {
       find_strip_index_of(projector, operation_index);
       containing_strip_index = projector.gate_strip_index;
       offset = operation_index - projector.projection_frame_index;
-      if (operation_type == 1 || (operation_type == 0 && offset != 0))
+      if (operation_type == 1)
         ++offset;
       if (operation_type == 1 &&
-          offset == projector.strip_length_of[containing_strip_index] &&
+          offset == projector.fragment_length_of[containing_strip_index] &&
           projector.right_strip_index_of[containing_strip_index] != u32_max) {
         containing_strip_index = projector.right_strip_index_of[containing_strip_index];
         offset = 0;
@@ -43,13 +44,14 @@ inline std::uint32_t update_projection(
     } else {
       containing_strip_index = projector.head_strip_index;
     }
-    previous_strip_end = projector.strip_start_of[containing_strip_index];
+    previous_strip_end = projector.fragment_start(containing_strip_index);
     previous_strip_end.counter_bits += offset;
+    dependency_prefix = projector.fragment_offset(containing_strip_index) + offset;
   }
 
   const auto issued_length = operation_type == 2
       ? std::min(operation_length,
-                 projector.strip_length_of[containing_strip_index] - offset)
+                 projector.fragment_length_of[containing_strip_index] - offset)
       : operation_length;
   const auto masked_footage_index = operation_type == 2
       ? projector.footage_frame_index_of[containing_strip_index] + offset
@@ -59,8 +61,7 @@ inline std::uint32_t update_projection(
                   previous_strip_end, footage_frame_index);
   if (incoming_strip_index == u32_max)
     return u32_max;
-  if (operation_type == 2)
-    projector.larger_split_strip_index_of[incoming_strip_index] = offset;
+  projector.dependency_prefix_of[incoming_strip_index] = dependency_prefix;
 
   const auto [frame_count_diff, strip_count_diff] = apply_insert(
       projector, containing_strip_index, incoming_strip_index, offset);
@@ -74,11 +75,12 @@ inline std::uint32_t update_projection(
   projection_buffer.resize(1);
   projection_buffer.write_projection(
       0, {projector.strip_type_of[incoming_strip_index],
-          projector.strip_length_of[incoming_strip_index],
+          projector.initial_length_of[incoming_strip_index],
           strip_start.crypto_random_bits, strip_start.unix_lower_bits,
           strip_start.counter_bits, previous_strip_end.crypto_random_bits,
           previous_strip_end.unix_lower_bits, previous_strip_end.counter_bits,
-          operation_type == 2 ? offset : u32_max, u32_max});
+          u32_max, u32_max,
+          projector.fragment_length_of[incoming_strip_index], dependency_prefix});
   if (operation_type == 2)
     footage_span_buffer.write_span(operation_index, masked_footage_index,
                                   issued_length, true);

@@ -12,11 +12,11 @@ import type { Delta } from '../../src/typescript/types/type.js'
 
 const absent = 0xffff_ffff
 const parent: Delta<string> = [
-  [1, 3, 10, 20, 0, 0, 0, 0, absent, absent],
+  [1, 3, 10, 20, 0, 0, 0, 0, absent, absent, 3, 0],
   ['a', 'b', 'c'],
 ]
 const child: Delta<string> = [
-  [1, 1, 30, 40, 0, 10, 20, 3, absent, absent],
+  [1, 1, 30, 40, 0, 10, 20, 3, absent, absent, 1, 3],
   ['X'],
 ]
 
@@ -53,7 +53,7 @@ describe('Native merge change spans', () => {
   it('accepts a Mask without Footage and emits undefined for the removed tail', () => {
     const state = create(parent)
     expect(
-      merge(state, [[2, 2, 70, 80, 0, 10, 20, 1, absent, absent]])
+      merge(state, [[2, 2, 70, 80, 0, 10, 20, 1, absent, absent, 0, 1]])
     ).toEqual({
       1: undefined,
       2: undefined,
@@ -66,7 +66,7 @@ describe('Native merge change spans', () => {
   it('returns retained values and tail removals in the same change', () => {
     const state = create(parent)
     expect(
-      merge(state, [[2, 1, 70, 80, 0, 10, 20, 0, absent, absent]])
+      merge(state, [[2, 1, 70, 80, 0, 10, 20, 0, absent, absent, 0, 0]])
     ).toEqual({
       0: 'b',
       1: 'c',
@@ -79,7 +79,7 @@ describe('Native merge change spans', () => {
     const footage = Array.from({ length: 200000 }, (_, index) => index)
     const state = create<number>()
     const change = merge(state, [
-      [1, footage.length, 10, 20, 0, 0, 0, 0, absent, absent],
+      [1, footage.length, 10, 20, 0, 0, 0, 0, absent, absent, footage.length, 0],
       footage,
     ])
     expect(change).not.toBe(false)
@@ -94,7 +94,7 @@ describe('Native merge change spans', () => {
   it('rejects non-uint32 metadata before transfer and missing content natively', () => {
     const state = create<string>()
     expect(
-      merge(state, [[1, 1, -1, 0, 0, 0, 0, 0, absent, absent], ['bad']])
+      merge(state, [[1, 1, -1, 0, 0, 0, 0, 0, absent, absent, 1, 0], ['bad']])
     ).toBe(false)
     expect(merge(state, [parent[0]])).toBe(false)
     expect(values(state)).toEqual([])
@@ -104,7 +104,7 @@ describe('Native merge change spans', () => {
 
   it('bounds the copy when incoming Footage aliases the local array', () => {
     const state = create(parent)
-    const words = [1, 3, 30, 40, 0, 10, 20, 3, absent, absent]
+    const words = [1, 3, 30, 40, 0, 10, 20, 3, absent, absent, 3, 3]
     expect(merge(state, [words, state[1]])).toEqual({ 3: 'a', 4: 'b', 5: 'c' })
     expect(state[1]).toEqual(['a', 'b', 'c', 'a', 'b', 'c'])
   })
@@ -115,7 +115,7 @@ describe('Native multi-actor compaction agreement', () => {
     'rejects a differing frontier %i instead of selecting a minimum',
     (counter) => {
       const state = create(parent)
-      merge(state, [[2, 1, 70, 80, 0, 10, 20, 1, absent, absent]])
+      merge(state, [[2, 1, 70, 80, 0, 10, 20, 1, absent, absent, 0, 1]])
       compact(
         [
           [70, 80, 2],
@@ -130,7 +130,7 @@ describe('Native multi-actor compaction agreement', () => {
 
   it('requires every actor and accepts reordered exact common Realms', () => {
     const state = create(parent)
-    merge(state, [[2, 1, 70, 80, 0, 10, 20, 1, absent, absent]])
+    merge(state, [[2, 1, 70, 80, 0, 10, 20, 1, absent, absent, 0, 1]])
     compact([[70, 80, 2], []], state, true)
     expect(recover(state)).toEqual(['a', 'b', 'c'])
     compact(

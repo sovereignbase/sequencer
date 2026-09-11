@@ -66,7 +66,7 @@ export function remove<T>(
       ) >>> 0
     if (position === no_projection_frame_index) break
 
-    const mask = read_projection_from_buffer(10)
+    const mask = read_projection_from_buffer(12)
     const mask_frame_count = mask[1]
     for (const word of mask) void projection.push(word)
 
@@ -79,9 +79,9 @@ export function remove<T>(
       )
       void release_mask_footage(
         state[0],
-        projection[projection.length - 8],
-        projection[projection.length - 7],
-        projection[projection.length - 6]
+        mask[2],
+        mask[3],
+        mask[4]
       )
     }
     void clear_footage_spans()

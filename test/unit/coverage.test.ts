@@ -4,7 +4,7 @@ describe('TypeScript boundaries', () => {
   it('validates flat Delta tuple shapes', async () => {
     const { is_safe_index, is_delta } =
       await import('../../src/typescript/helpers/index.js')
-    const meta = [1, 1, 1, 2, 0, 0, 0, 0, 0xffff_ffff, 0xffff_ffff]
+    const meta = [1, 1, 1, 2, 0, 0, 0, 0, 0xffff_ffff, 0xffff_ffff, 1, 0]
 
     expect(is_delta(null)).toBe(false)
     expect(is_delta([[meta, ['a']]])).toBe(false)

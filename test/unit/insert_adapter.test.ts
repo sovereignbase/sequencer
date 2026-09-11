@@ -17,7 +17,7 @@ vi.mock('../../src/typescript/wasm/raw/sequencer_wasm.mjs', () => ({
 import { insert } from '../../src/typescript/algorithms/insert/index.js'
 
 describe('Local insert transfer', () => {
-  const words = [0, 2, 10, 20, 0, 30, 40, 0, 0xffff_ffff, 0xffff_ffff]
+  const words = [0, 2, 10, 20, 0, 30, 40, 0, 0xffff_ffff, 0xffff_ffff, 2, 0]
   let state: Replica<string>
 
   beforeEach(() => {

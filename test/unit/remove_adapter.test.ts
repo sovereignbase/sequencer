@@ -21,8 +21,8 @@ import { remove } from '../../src/typescript/algorithms/remove/index.js'
 
 describe('Local removal transfer', () => {
   const absent = 0xffff_ffff
-  const first = [2, 2, 70, 80, 0, 10, 20, 1, absent, absent]
-  const second = [2, 1, 70, 80, 3, 30, 40, 0, absent, absent]
+  const first = [2, 2, 70, 80, 0, 10, 20, 1, absent, absent, 0, 1]
+  const second = [2, 1, 70, 80, 3, 30, 40, 0, absent, absent, 0, 0]
   let state: Replica<string>
   let consumed: boolean
 

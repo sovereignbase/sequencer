@@ -29,9 +29,9 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
       auto source = target[0];
       const auto previous_count = projector.materialized_strip_count;
       if (target[1] != 0)
-        source = split_strip(projector, source, target[1], false);
-      if (target[2] < projector.strip_length_of[source])
-        static_cast<void>(split_strip(projector, source, target[2], false));
+        source = split_strip(projector, source, target[1]);
+      if (target[2] < projector.fragment_length_of[source])
+        static_cast<void>(split_strip(projector, source, target[2]));
       const auto visible = projector.get_projected_strip_length(source);
       projector.strip_type_of[source] = static_cast<std::uint8_t>(
           6 + (projector.strip_type_of[source] & 1) +
@@ -66,13 +66,11 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
     auto source = containing_strip_index;
     const auto previous_count = projector.materialized_strip_count;
     auto boundary = offset;
-    if (projector.strip_type_of[incoming_strip_index] == 0 && boundary != 0)
-      --boundary;
-    if (boundary != 0 && boundary < projector.strip_length_of[source]) {
-      source = split_strip(projector, source, boundary, false);
+    if (boundary != 0 && boundary < projector.fragment_length_of[source]) {
+      source = split_strip(projector, source, boundary);
       boundary = 0;
     }
-    const auto left = boundary == projector.strip_length_of[source]
+    const auto left = boundary == projector.fragment_length_of[source]
         ? source : projector.left_strip_index_of[source];
     const auto right = left == source ? projector.right_strip_index_of[source] : source;
     insert_between(projector, left, incoming_strip_index, right);

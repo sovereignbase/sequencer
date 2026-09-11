@@ -38,7 +38,7 @@ describe('Synchronous transfer buffer consumption', () => {
   })
 
   it('copies a Strip before releasing its current allocation', () => {
-    const words = [1, 3, 10, 20, 0, 0, 0, 0, 0xffff_ffff, 0xffff_ffff]
+    const words = [1, 3, 10, 20, 0, 0, 0, 0, 0xffff_ffff, 0xffff_ffff, 3, 0]
     native._get_strip_buffer_pointer.mockReturnValueOnce(256)
     native.HEAPU32.set(words, 64)
     expect(read_strip_from_buffer()).toEqual(words)
@@ -51,10 +51,10 @@ describe('Synchronous transfer buffer consumption', () => {
       native.HEAPU32 = new Uint32Array(256)
       return 512
     })
-    const words = [1, 3, 10, 20, 0, 0, 0, 0, 0xffff_ffff, 0xffff_ffff]
+    const words = [1, 3, 10, 20, 0, 0, 0, 0, 0xffff_ffff, 0xffff_ffff, 3, 0]
     write_strip_to_buffer(words)
     expect(native._prepare_projection_buffer).toHaveBeenCalledExactlyOnceWith(1)
-    expect(Array.from(native.HEAPU32.subarray(128, 138))).toEqual(words)
+    expect(Array.from(native.HEAPU32.subarray(128, 128 + words.length))).toEqual(words)
     expect(native._clear_projection_buffer).not.toHaveBeenCalled()
   })
 

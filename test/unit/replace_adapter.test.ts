@@ -20,9 +20,9 @@ describe('Replacement Delta composition', () => {
   beforeEach(() => {
     vi.resetAllMocks()
     state = [42, ['a', 'b', 'c']]
-    deletion = [[2, 2, 10, 20, 0, 30, 40, 0, 0xffff_ffff, 0xffff_ffff]]
+    deletion = [[2, 2, 10, 20, 0, 30, 40, 0, 0xffff_ffff, 0xffff_ffff, 0, 0]]
     insertion = [
-      [0, 2, 30, 40, 4, 10, 20, 0, 0xffff_ffff, 0xffff_ffff],
+      [0, 2, 30, 40, 4, 10, 20, 0, 0xffff_ffff, 0xffff_ffff, 2, 0],
       ['X', 'Y'],
     ]
     operations.remove.mockReturnValue(deletion)

@@ -52,7 +52,7 @@ export function insert<T>(
     ) >>> 0
   if (position === no_projection_frame_index) return false
 
-  const projection = read_projection_from_buffer(10)
+  const projection = read_projection_from_buffer(12)
   const footage = values.slice()
 
   state[1].length = footage_start + frame_count

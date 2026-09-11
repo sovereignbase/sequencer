@@ -40,6 +40,8 @@ export function read_strip_from_buffer<T>(): VirtualStrip<T> {
     buffer[start + 7],
     buffer[start + 8],
     buffer[start + 9],
+    buffer[start + 10],
+    buffer[start + 11],
   ]
   wasm._clear_projection_buffer()
   return strip
@@ -66,10 +68,9 @@ export function write_strip_to_buffer<T>(strip: VirtualStrip<T>): void {
   buffer[start + 7] = strip[7]
   buffer[start + 8] = strip[8]
 
-  const footage_frame_index = strip[9]
-  if (footage_frame_index !== undefined) {
-    buffer[start + 9] = footage_frame_index
-  }
+  buffer[start + 9] = strip[9]
+  buffer[start + 10] = strip[10]
+  buffer[start + 11] = strip[11]
 }
 
 /**
@@ -248,7 +249,7 @@ export function compact_frontiers(
 
 /** Copies packed Strip words into the native input buffer. */
 export function write_projection_to_buffer(projection: Array<number>): void {
-  const start = wasm._prepare_projection_buffer(projection.length / 10) >>> 2
+  const start = wasm._prepare_projection_buffer(projection.length / 12) >>> 2
   wasm.HEAPU32.set(projection, start)
 }
 

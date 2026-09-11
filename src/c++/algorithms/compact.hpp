@@ -142,7 +142,7 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
     replacements[strip] = previous;
     if (!remove[strip]) {
       previous = projector.strip_start_of[strip];
-      previous.counter_bits += projector.strip_length_of[strip];
+      previous.counter_bits += projector.fragment_length_of[strip];
     }
   }
   const auto reattach = [&](const SequencePoint dependency) {
@@ -184,7 +184,7 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
         });
       }
       projector.remember_collected_source({projector.strip_start_of[strip],
-          projector.strip_length_of[strip], replacements[strip]});
+          projector.fragment_length_of[strip], replacements[strip]});
       projector.containment_table.erase(projector.strip_start_of[strip]);
       const auto left = projector.left_strip_index_of[strip];
       if (left == u32_max) projector.head_strip_index = next;

@@ -19,9 +19,9 @@ import { clear_sequence } from '../../src/typescript/wasm/index.js'
 describe('Trusted snapshot initialization', () => {
   const absent = 0xffff_ffff
   const projection = [
-    ...[1, 1, 50, 60, 0, 99, 98, 0, absent, absent],
-    ...[2, 2, 70, 80, 0, 0, 0, 0, absent, absent],
-    ...[3, 1, 90, 91, 0, 99, 98, 0, absent, absent],
+    ...[1, 1, 50, 60, 0, 99, 98, 0, absent, absent, 1, 0],
+    ...[2, 2, 70, 80, 0, 0, 0, 0, absent, absent, 0, 0],
+    ...[3, 1, 90, 91, 0, 99, 98, 0, absent, absent, 1, 0],
   ]
 
   beforeEach(() => {
@@ -37,7 +37,7 @@ describe('Trusted snapshot initialization', () => {
       ['a', 'hidden', 'content', 'p'],
     ]
     native._initialize_projection.mockImplementation(() => {
-      expect(Array.from(native.HEAPU32.subarray(4, 34))).toEqual(projection)
+      expect(Array.from(native.HEAPU32.subarray(4, 4 + projection.length))).toEqual(projection)
       return 42
     })
     const state = create<string>(data)
@@ -57,7 +57,7 @@ describe('Trusted snapshot initialization', () => {
       return 1024
     })
     create([projection, ['a', 'hidden', 'content', 'p']])
-    expect(Array.from(native.HEAPU32.subarray(256, 286))).toEqual(projection)
+    expect(Array.from(native.HEAPU32.subarray(256, 256 + projection.length))).toEqual(projection)
     expect(old_heap.every((word) => word === 0)).toBe(true)
   })
 
@@ -69,8 +69,8 @@ describe('Trusted snapshot initialization', () => {
 
   it('initializes structural and pending state even with no Footage', () => {
     const words = [
-      ...[1, 0, 10, 20, 0, 0, 0, 0, absent, absent],
-      ...[5, 3, 70, 80, 0, 99, 98, 0, absent, absent],
+      ...[1, 0, 10, 20, 0, 0, 0, 0, absent, absent, 0, 0],
+      ...[5, 3, 70, 80, 0, 99, 98, 0, absent, absent, 0, 0],
     ]
     expect(create([words, []])).toEqual([42, []])
     expect(native._prepare_projection_buffer).toHaveBeenCalledExactlyOnceWith(2)

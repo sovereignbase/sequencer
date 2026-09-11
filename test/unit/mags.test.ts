@@ -58,14 +58,14 @@ describe('runtime merge and retained state', () => {
     const state = create<string>()
     assert(insert(state, 0, ['root']))
     const orphan: Delta<string> = [
-      [1, 1, 11, 22, 0, 33, 44, 0, 0xffff_ffff, 0xffff_ffff],
+      [1, 1, 11, 22, 0, 33, 44, 0, 0xffff_ffff, 0xffff_ffff, 1, 0],
       ['pending'],
     ]
 
     expect(merge(state, orphan)).toBe(false)
     const retained = snapshot(state)
-    expect(retained[0]).toHaveLength(20)
-    expect(retained[0].slice(10)).toEqual([4, ...orphan[0].slice(1)])
+    expect(retained[0]).toHaveLength(24)
+    expect(retained[0].slice(12)).toEqual([4, ...orphan[0].slice(1)])
     expect(retained[1]).toEqual(['root', 'pending'])
     const restored = create<string>(retained)
     expect(values(restored)).toEqual(['root'])

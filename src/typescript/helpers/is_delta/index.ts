@@ -9,7 +9,7 @@ import { is_uint32 } from '../is_uint32/index.js'
 /**
  * Checks the transferable Delta tuple and unsigned metadata word shape.
  *
- * Projection contains complete ten-word records. Footage is optional; native
+ * Projection contains complete twelve-word records. Footage is optional; native
  * merge checks whether the supplied content covers the encoded records.
  *
  * @typeParam T Value represented by a single Frame.
@@ -25,7 +25,7 @@ export function is_delta<T>(data: unknown): data is Delta<T> {
 
   return (
     Array.isArray(projection) &&
-    projection.length % 10 === 0 &&
+    projection.length % 12 === 0 &&
     projection.every(is_uint32) &&
     (footage === undefined || Array.isArray(footage))
   )

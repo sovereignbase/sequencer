@@ -38,23 +38,23 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
         projection_strip_index++,
         {
             projector.strip_type_of[strip_index],
-            projector.strip_length_of[strip_index],
+            projector.initial_length_of[strip_index],
             strip_start.crypto_random_bits,
             strip_start.unix_lower_bits,
             strip_start.counter_bits,
             previous_strip_end.crypto_random_bits,
             previous_strip_end.unix_lower_bits,
             previous_strip_end.counter_bits,
-            projector.strip_type_of[strip_index] == 2
-                ? larger_split_strip
-                : larger_split_strip == u32_max
+            larger_split_strip == u32_max
                 ? u32_max
                 : projection_indices[larger_split_strip],
             smaller_competitor_strip == u32_max
                 ? u32_max
                 : projection_indices[smaller_competitor_strip],
+            projector.fragment_length_of[strip_index],
+            projector.dependency_prefix_of[strip_index],
         });
-    const auto frame_count = projector.strip_length_of[strip_index];
+    const auto frame_count = projector.fragment_length_of[strip_index];
     const bool masked = projector.strip_type_of[strip_index] >= 2;
     if (frame_count != 0)
       projector.for_each_footage_span(strip_index, [&](const auto footage, const auto length) {
@@ -83,22 +83,23 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
         {
             static_cast<std::uint32_t>(projector.strip_type_of[strip_index]) +
                 3,
-            projector.strip_length_of[strip_index],
+            projector.initial_length_of[strip_index],
             strip_start.crypto_random_bits,
             strip_start.unix_lower_bits,
             strip_start.counter_bits,
             previous_strip_end.crypto_random_bits,
             previous_strip_end.unix_lower_bits,
             previous_strip_end.counter_bits,
-            projector.strip_type_of[strip_index] == 2
-                ? projector.larger_split_strip_index_of[strip_index] : u32_max,
             u32_max,
+            u32_max,
+            projector.fragment_length_of[strip_index],
+            projector.dependency_prefix_of[strip_index],
         });
     if (projector.strip_type_of[strip_index] != 2 &&
-        projector.strip_length_of[strip_index] != 0)
+        projector.fragment_length_of[strip_index] != 0)
       footage_span_buffer.write_span(
           u32_max, projector.footage_frame_index_of[strip_index],
-          projector.strip_length_of[strip_index], 0);
+          projector.fragment_length_of[strip_index], 0);
   }
 }
 

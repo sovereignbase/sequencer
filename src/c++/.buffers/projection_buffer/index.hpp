@@ -29,7 +29,7 @@
  */
 class ProjectionBuffer {
 private:
-  static constexpr std::size_t words_per_strip = 10;
+  static constexpr std::size_t words_per_strip = 12;
   static_assert(sizeof(std::array<std::uint32_t, words_per_strip>) ==
                 words_per_strip * sizeof(std::uint32_t));
 

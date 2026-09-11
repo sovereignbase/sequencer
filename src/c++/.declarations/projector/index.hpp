@@ -45,14 +45,20 @@ struct Projector {
   std::vector<uint8_t> strip_type_of;
 
   /**
-   * @brief Content lengths, excluding each Strip's reserved zero anchor.
+   * @brief Immutable issued SequencePoint span lengths, excluding the zero anchor.
    */
-  std::vector<std::uint32_t> strip_length_of;
+  std::vector<std::uint32_t> initial_length_of;
+
+  /** @brief Current physical source fragment lengths. */
+  std::vector<std::uint32_t> fragment_length_of;
+
+  /** @brief Creation-time dependency offset; structural fragments store their source offset. */
+  std::vector<std::uint32_t> dependency_prefix_of;
 
   /** @brief Next smaller sibling sharing the same previous Strip end. */
   std::vector<std::uint32_t> smaller_competitor_strip_index_of;
 
-  /** @brief Next source fragment, or creation-time dependency prefix for an instruction Mask. */
+  /** @brief Next physical source fragment; instructions never have a split link. */
   std::vector<std::uint32_t> larger_split_strip_index_of;
 
   /**
@@ -196,13 +202,13 @@ struct Projector {
   void for_each_footage_span(const std::uint32_t strip_index,
                             Visitor &&visit) const noexcept {
     if (strip_type_of[strip_index] != 2 && footage_frame_index_of[strip_index] != u32_max)
-      visit(footage_frame_index_of[strip_index], strip_length_of[strip_index]);
+      visit(footage_frame_index_of[strip_index], fragment_length_of[strip_index]);
   }
 
   /** @brief Visible length; Masks retain identity spans but project no Frames. */
   [[nodiscard]] std::uint32_t
   get_projected_strip_length(const std::uint32_t strip_index) const noexcept {
-    return strip_type_of[strip_index] < 2 ? strip_length_of[strip_index] : 0;
+    return strip_type_of[strip_index] < 2 ? fragment_length_of[strip_index] : 0;
   }
 
   /** @brief Read the already collected prefix of a Mask Realm. */
@@ -215,28 +221,49 @@ struct Projector {
   }
 
   /** @brief Recover the creation-time source anchor without rewriting the instruction. */
-  SequencePoint mask_origin(const std::uint32_t mask) const noexcept {
-    auto origin = previous_strip_end_of[mask];
-    const auto prefix = larger_split_strip_index_of[mask];
-    if (prefix != u32_max)
-      origin.counter_bits -= prefix;
+  SequencePoint dependency_origin(const std::uint32_t strip) const noexcept {
+    auto origin = previous_strip_end_of[strip];
+    origin.counter_bits -= dependency_prefix_of[strip];
     return origin;
+  }
+
+  bool is_fragment(const std::uint32_t strip) const noexcept {
+    return strip_start_of[strip].counter_bits == u32_max;
+  }
+
+  SequencePoint fragment_start(const std::uint32_t strip) const noexcept {
+    return is_fragment(strip) ? previous_strip_end_of[strip] : strip_start_of[strip];
+  }
+
+  std::uint32_t fragment_offset(const std::uint32_t strip) const noexcept {
+    return is_fragment(strip) ? dependency_prefix_of[strip] : 0;
+  }
+
+  std::pair<std::uint32_t, std::uint32_t> resolve_dependency(
+      const std::uint32_t strip) const noexcept {
+    const auto origin = dependency_origin(strip);
+    auto source = containment_table.get(origin).first;
+    auto offset = dependency_prefix_of[strip];
+    if (source == u32_max || strip_start_of[source] != origin)
+      return {u32_max, 0};
+    while (source != u32_max && offset > fragment_length_of[source]) {
+      offset -= fragment_length_of[source];
+      source = larger_split_strip_index_of[source];
+    }
+    return {source, offset};
   }
 
   /** @brief Resolve a Mask in its creation-time source coordinate system. */
   template <typename Visitor>
   bool for_each_mask_target(const std::uint32_t mask, Visitor &&visit,
                             const bool include_prefix = false) const noexcept {
-    const auto origin = mask_origin(mask);
+    const auto origin = dependency_origin(mask);
     auto [source, offset] = containment_table.get(origin);
-    const auto prefix = larger_split_strip_index_of[mask];
-    if (prefix != u32_max) {
-      if (source == u32_max || strip_start_of[source] != origin)
-        return false;
-      offset = prefix;
-    }
-    std::uint64_t remaining = strip_length_of[mask];
-    if (include_prefix && prefix != u32_max) {
+    if (source == u32_max || strip_start_of[source] != origin)
+      return false;
+    offset = dependency_prefix_of[mask];
+    std::uint64_t remaining = initial_length_of[mask];
+    if (include_prefix) {
       remaining += offset;
       offset = 0;
     }
@@ -244,13 +271,13 @@ struct Projector {
       if (source == u32_max || left_strip_index_of[source] == source ||
           strip_type_of[source] == 2)
         return false;
-      if (offset >= strip_length_of[source]) {
-        offset -= strip_length_of[source];
+      if (offset >= fragment_length_of[source]) {
+        offset -= fragment_length_of[source];
         source = larger_split_strip_index_of[source];
         continue;
       }
       const auto length = static_cast<std::uint32_t>(
-          std::min<std::uint64_t>(remaining, strip_length_of[source] - offset));
+          std::min<std::uint64_t>(remaining, fragment_length_of[source] - offset));
       if (length != 0) {
         visit(source, offset, length);
         remaining -= length;

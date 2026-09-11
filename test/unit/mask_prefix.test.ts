@@ -14,20 +14,20 @@ import type { Delta } from '../../src/typescript/types/type.js'
 
 const absent = 0xffff_ffff
 const parent: Delta<string> = [
-  [1, 3, 10, 20, 0, 0, 0, 0, absent, absent],
+  [1, 3, 10, 20, 0, 0, 0, 0, absent, absent, 3, 0],
   ['a', 'b', 'c'],
 ]
-const mask: Delta<string> = [[2, 1, 70, 80, 0, 10, 20, 1, 1, absent]]
+const mask: Delta<string> = [[2, 1, 70, 80, 0, 10, 20, 1, absent, absent, 0, 1]]
 const head: Delta<string> = [
-  [0, 1, 30, 40, 0, 10, 20, 0, absent, absent],
+  [0, 1, 30, 40, 0, 10, 20, 0, absent, absent, 1, 0],
   ['X'],
 ]
 
 function instructions(delta: Delta<unknown>) {
   const result: number[][] = []
-  for (let offset = 0; offset < delta[0].length; offset += 10)
+  for (let offset = 0; offset < delta[0].length; offset += 12)
     if (delta[0][offset] === 2 || delta[0][offset] === 5)
-      result.push(delta[0].slice(offset, offset + 10))
+      result.push(delta[0].slice(offset, offset + 12))
   return result
 }
 
@@ -42,7 +42,8 @@ describe('Mask creation-time dependency prefix', () => {
       merge(state, operations[1])
       expect(values(state)).toEqual(['X', 'a', 'c'])
       const saved = snapshot(state)
-      expect(instructions(saved)[0].slice(5, 9)).toEqual([10, 20, 1, 1])
+      expect(instructions(saved)[0].slice(5, 8)).toEqual([10, 20, 1])
+      expect(instructions(saved)[0][11]).toBe(1)
       const restarted = create<string>(saved)
       expect(values(restarted)).toEqual(['X', 'a', 'c'])
       expect(recover(restarted)).toEqual(['X', 'a', 'b', 'c'])
@@ -59,7 +60,7 @@ describe('Mask creation-time dependency prefix', () => {
     expect(merge(pending, mask)).toBe(false)
     const saved = snapshot(pending)
     expect(instructions(saved)[0][0]).toBe(5)
-    expect(instructions(saved)[0][8]).toBe(1)
+    expect(instructions(saved)[0][11]).toBe(1)
     const state = create<string>(saved)
     merge(state, parent)
     merge(state, head)
@@ -67,7 +68,7 @@ describe('Mask creation-time dependency prefix', () => {
   })
 
   it.each([0, 1])(
-    'waits for the creation-time source anchor from insertion at %i',
+    'resolves the unchanged source before insertion at %i arrives',
     (index) => {
       const author = create<string>(parent)
       const insertion = insert(author, index, ['X'])
@@ -75,7 +76,8 @@ describe('Mask creation-time dependency prefix', () => {
       const deletion = remove(author, 2, 3)
       assert(deletion !== false)
       const peer = create<string>(parent)
-      expect(merge(peer, deletion)).toBe(false)
+      expect(merge(peer, deletion)).not.toBe(false)
+      expect(values(peer)).toEqual(['a', 'c'])
       const restarted = create<string>(snapshot(peer))
       merge(restarted, insertion)
       expect(values(restarted)).toEqual(values(author))
@@ -96,9 +98,9 @@ describe('Mask creation-time dependency prefix', () => {
     assert(insertion !== false)
     const deletion = remove(source, 32, 33)
     assert(deletion !== false)
-    expect(deletion[0][8]).toBe(32)
+    expect(deletion[0][11]).toBe(32)
     const saved = snapshot(source)
-    expect(instructions(saved)[0][8]).toBe(32)
+    expect(instructions(saved)[0][11]).toBe(32)
     for (const state of [
       create<number>(saved),
       create<number>(insertion),
@@ -106,7 +108,7 @@ describe('Mask creation-time dependency prefix', () => {
     ]) {
       merge(state, saved)
       expect(values(state)).toEqual(values(source))
-      expect(instructions(snapshot(state))[0][8]).toBe(32)
+      expect(instructions(snapshot(state))[0][11]).toBe(32)
       const frontier = acknowledge(state)
       assert(frontier !== false)
       compact([frontier], state, true)
@@ -122,11 +124,11 @@ describe('Mask creation-time dependency prefix', () => {
 
   it('keeps source prefix fragments until dependent instructions can be collected', () => {
     const state = create<string>([
-      [1, 4, 10, 20, 0, 0, 0, 0, absent, absent],
+      [1, 4, 10, 20, 0, 0, 0, 0, absent, absent, 4, 0],
       ['a', 'b', 'c', 'd'],
     ])
-    merge(state, [[2, 2, 70, 80, 0, 10, 20, 1, 1, absent]])
-    merge(state, [[2, 2, 90, 100, 0, 10, 20, 2, 2, absent]])
+    merge(state, [[2, 2, 70, 80, 0, 10, 20, 1, absent, absent, 0, 1]])
+    merge(state, [[2, 2, 90, 100, 0, 10, 20, 2, absent, absent, 0, 2]])
     compact([[70, 80, 3]], state, true)
     const saved = snapshot(state)
     expect(instructions(saved).map((row) => row[2])).toEqual([90])

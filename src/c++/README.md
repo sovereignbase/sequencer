@@ -170,7 +170,8 @@ Because a Mask is structurally an insertion, it follows the same anchoring and t
 A Mask is never split. Its identity and issued length remain unchanged when its
 target has already been split. Application follows the target's `larger_split`
 chain, skips empty anchors, and consumes only the addressed source content, not
-intervening inserts. Incomplete or already masked target spans remain pending.
+intervening inserts. Missing fragments or continuations resolving directly to a
+Mask remain pending; general overlap resolution is still unfinished.
 
 When retained Footage is non-contiguous, the one Mask keeps runtime Footage-span
 references in source-chain order. Recovery and snapshotting read those spans;

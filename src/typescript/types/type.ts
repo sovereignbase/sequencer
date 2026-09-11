@@ -66,7 +66,7 @@ export type Change<T> = Record<number, T | undefined>
  * @typeParam T Consumer-owned value represented by one Frame.
  */
 
-export type Delta<T> = [projection: Array<number>, footage: Array<T>]
+export type Delta<T> = [projection: Array<number>, footage?: Array<T>]
 
 /**
  * Flat SequencePoint triples acknowledging complete Mask Realm frontiers.

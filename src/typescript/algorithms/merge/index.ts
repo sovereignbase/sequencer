@@ -33,7 +33,8 @@ export function merge<T>(state: Replica<T>, data: unknown): Change<T> | false {
   const projection_frame_index =
     wasm._merge_projection(state[0], footage_start) >>> 0
   if (projection_frame_index === no_projection_frame_index) return false
-  void state[1].push(...footage)
+
+  void state[1].push(...footage!)
 
   const current = values(state, projection_frame_index)
   const change: Change<T> = {}

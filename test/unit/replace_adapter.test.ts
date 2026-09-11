@@ -20,7 +20,7 @@ describe('Replacement Delta composition', () => {
   beforeEach(() => {
     vi.resetAllMocks()
     state = [42, ['a', 'b', 'c']]
-    deletion = [[2, 2, 10, 20, 0, 30, 40, 0, 0xffff_ffff, 0xffff_ffff], []]
+    deletion = [[2, 2, 10, 20, 0, 30, 40, 0, 0xffff_ffff, 0xffff_ffff]]
     insertion = [
       [0, 2, 30, 40, 4, 10, 20, 0, 0xffff_ffff, 0xffff_ffff],
       ['X', 'Y'],
@@ -60,19 +60,18 @@ describe('Replacement Delta composition', () => {
     ])
   })
 
-  it('preserves both operations and orders any transferred Footage', () => {
-    deletion[1].push('retained')
+  it('preserves both operations and transfers only insertion Footage', () => {
     const before = structuredClone([deletion, insertion])
     for (const delta of [deletion, insertion]) {
       Object.freeze(delta[0])
-      Object.freeze(delta[1])
+      if (delta[1] !== undefined) Object.freeze(delta[1])
       Object.freeze(delta)
     }
     const result = replace(state, 1, ['X', 'Y']) as Delta<string>
-    expect(result[1]).toEqual(['retained', 'X', 'Y'])
+    expect(result[0]).toEqual([...deletion[0], ...insertion[0]])
+    expect(result[1]).toEqual(['X', 'Y'])
     expect([deletion, insertion]).toEqual(before)
     result[0][0] = 99
-    result[1][0] = 'changed'
     expect([deletion, insertion]).toEqual(before)
   })
 

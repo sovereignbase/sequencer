@@ -18,7 +18,9 @@
 
 <h2 id="benchmarks" class="tsd-anchor-link">Benchmarks<a href="#benchmarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <h3 id="exceptional-performance" class="tsd-anchor-link">Exceptional performance<a href="#exceptional-performance" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<p>JavaScript/WASM performance measured using Node.js <code>24.16.0</code> on Intel Core i5-10210U at 1.60 GHz. Diamond Types 1.0.2 is included under its upstream description, “The world's fastest CRDT. WIP.” Results use equivalent public operations where available; <code>—</code> means Diamond Types has no public equivalent. <a href="media/index.html">See the full benchmark report</a> for methodology, API differences, and variability.</p>
+<p>/// Summary and link to in detail benchmark readme</p>
+<p>/// Auto inserted benchmark result and environment details.
+JavaScript/WASM performance measured using Node.js <code>24.16.0</code> on Intel Core i5-10210U at 1.60 GHz. Diamond Types 1.0.2 is included under its upstream description, “The world's fastest CRDT. WIP.” Results use equivalent public operations where available; <code>—</code> means Diamond Types has no public equivalent. <a href="media/index.html">See the full benchmark report</a> for methodology, API differences, and variability.</p>
 <table>
 <thead>
 <tr>
@@ -646,6 +648,7 @@
 <p>Another solution is to timestamp every operation.</p>
 <p>However, wall clocks across different machines are never guaranteed to be perfectly synchronized. Clock skew can cause an operation created later to appear earlier, or an earlier operation to appear later.</p>
 <h3 id="sequencers-approach" class="tsd-anchor-link">Sequencer's Approach<a href="#sequencers-approach" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>/// short summary sequencer keeps footage in ts and communicates with native projector... + link to the in detail explanation of projector readme at src/c++/README.md</p>
 <p>Sequencer gives a stable unique identifier to every frame in a sequence.</p>
 <p>Instead of describing a change as:</p>
 <pre><code class="text">Insert &quot;!&quot; at position 11
@@ -684,6 +687,7 @@ written to the <a href="https://sovereignbase.dev/sequencer/tests/">automated te
 <li>Chromium, Firefox, and WebKit</li>
 <li>Mobile Chrome and Mobile Safari device profiles</li>
 </ul>
+<h3 id="tested-realtime-and-offline-text-editing-behaviour-examples" class="tsd-anchor-link">Tested realtime and offline text editing behaviour examples<a href="#tested-realtime-and-offline-text-editing-behaviour-examples" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <h2 id="license" class="tsd-anchor-link">License<a href="#license" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>Apache-2.0</p>
 </div></div>
@@ -727,7 +731,8 @@ written to the <a href="https://sovereignbase.dev/sequencer/tests/">automated te
 <li>
 <ul>
 <li><a href="#behaviour-guaranteed-by-excessive-tests"><span>Behaviour guaranteed by excessive tests</span></a></li>
-<li><a href="#works-everywhere-where-esm-modules-and-wasm-works"><span>Works everywhere where <wbr/>ESM modules and <wbr/>Wasm works</span></a></li></ul></li>
+<li><a href="#works-everywhere-where-esm-modules-and-wasm-works"><span>Works everywhere where <wbr/>ESM modules and <wbr/>Wasm works</span></a></li>
+<li><a href="#tested-realtime-and-offline-text-editing-behaviour-examples"><span>Tested realtime and offline text editing behaviour examples</span></a></li></ul></li>
 <li><a href="#license"><span>License</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="modules.html">@sovereignbase/sequencer</a>

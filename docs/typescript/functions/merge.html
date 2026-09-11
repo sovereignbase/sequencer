@@ -15,36 +15,26 @@
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="merge"><span class="tsd-kind-call-signature">merge</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#merget">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">state</span><span class="tsd-signature-symbol">:</span> <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#merget">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">data</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">false</span> <span class="tsd-signature-symbol">|</span> <a href="../types/Change.html" class="tsd-signature-type tsd-kind-type-alias">Change</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#merget">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#merge" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Integrates remotely supplied Strips into a Replica.</p>
-<p>Delta entries are validated and integrated independently. Invalid entries are
-ignored. A valid Strip whose Sequence dependency has not yet materialized
-remains pending in the native Projector and produces no immediate Change.</p>
-<p>Visible Strip Footage is appended to the Replica before integration and its
-resulting Projection span is written to the returned Change. Masks contribute
-no Footage and clear their resulting Projection span instead.</p>
-<p>Merge only integrates already-issued Sequence Points and never issues new
-ones.</p>
+<div class="tsd-comment tsd-typography"><p>Integrates encoded Strips and returns the changed suffix of the visible view.
+Missing dependencies remain pending. Merge issues no new SequencePoints.</p>
 </div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="merget"><span class="tsd-kind-type-parameter">T</span></span>
-<div class="tsd-comment tsd-typography"><p>Consumer-owned value represented by one Frame.</p>
-</div></li></ul></section>
+<li><span id="merget"><span class="tsd-kind-type-parameter">T</span></span></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">state</span>: <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#merget">T</a><span class="tsd-signature-symbol">&gt;</span></span>
-<div class="tsd-comment tsd-typography"><p>Replica receiving the remote Strip material.</p>
+<div class="tsd-comment tsd-typography"><p>Replica receiving remote material.</p>
 </div></li>
 <li><span><span class="tsd-kind-parameter">data</span>: <span class="tsd-signature-type">unknown</span></span>
-<div class="tsd-comment tsd-typography"><p>Unknown value expected to contain transferable Strips.</p>
+<div class="tsd-comment tsd-typography"><p>Transferable <code>[projection, footage]</code> tuple.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">false</span> <span class="tsd-signature-symbol">|</span> <a href="../types/Change.html" class="tsd-signature-type tsd-kind-type-alias">Change</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#merget">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The immediately materialized visible Change, or <code>false</code> when no
-immediate Projection change is produced.</p>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">false</span> <span class="tsd-signature-symbol">|</span> <a href="../types/Change.html" class="tsd-signature-type tsd-kind-type-alias">Change</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#merget">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A visible index patch, or false when no visible change occurs.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/81b580a84f3be3611933b51f14fa93edcc235710/src/typescript/algorithms/update/merge/index.ts#L33">algorithms/update/merge/index.ts:33</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/70f5dfe233e2c376bb6d052bdb733f9b8367a377/src/typescript/algorithms/merge/index.ts#L19">algorithms/merge/index.ts:19</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

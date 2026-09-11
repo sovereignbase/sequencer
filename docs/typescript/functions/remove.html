@@ -16,10 +16,9 @@
 <div class="tsd-signature tsd-anchor-link" id="remove"><span class="tsd-kind-call-signature">remove</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#removet">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">state</span><span class="tsd-signature-symbol">:</span> <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#removet">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">start_index</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">end_index</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">hard</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">false</span> <span class="tsd-signature-symbol">|</span> <a href="../types/Delta.html" class="tsd-signature-type tsd-kind-type-alias">Delta</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#removet">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#remove" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Deletes the half-open visible range <code>[start_index, end_index)</code> by masking it.</p>
-<p>One Mask is created for each containing Strip crossed by the range, ensuring
-that every Mask remains contained within one materialized Strip. Its
-previous point is the containing Strip start and its own start is the first
-masked Frame's existing Sequence Point; masking issues no new points. A hard
+<p>Native update issues one Mask for each containing Strip crossed by the range.
+Each update reports its actual bounded length and retained Footage span.
+The returned Delta contains flat Mask encodings and no new Footage. A hard
 deletion also releases the corresponding JavaScript Footage immediately.
 Released entries become <code>undefined</code>; the Footage array is not compacted, so
 all retained indexes stay stable.</p>
@@ -48,10 +47,11 @@ defaults to the current length.</p>
 retaining them for recovery until garbage collection.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">false</span> <span class="tsd-signature-symbol">|</span> <a href="../types/Delta.html" class="tsd-signature-type tsd-kind-type-alias">Delta</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#removet">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The transferable Delta, or <code>false</code> when the requested range is
-invalid or empty.</p>
+invalid or empty, or the first issuance is rejected. If a later issuance is
+rejected, returns the accepted prefix Delta.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/81b580a84f3be3611933b51f14fa93edcc235710/src/typescript/algorithms/delete/remove/index.ts#L36">algorithms/delete/remove/index.ts:36</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/70f5dfe233e2c376bb6d052bdb733f9b8367a377/src/typescript/algorithms/remove/index.ts#L35">algorithms/remove/index.ts:35</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

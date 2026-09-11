@@ -10,16 +10,21 @@
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
 <li><a href="" aria-current="page">Acknowledgement</a></li></ul>
 <h1>Type Alias Acknowledgement</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Acknowledgement</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">[</span><br/>    frontier_crypto_random_bits<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>    frontier_unix_lower_bits<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>    frontier_counter_bits<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">[]</span></div>
-<div class="tsd-comment tsd-typography"><p>Realm-indexed acknowledgement boundaries reported by one Replica.</p>
-<p>Each entry identifies the greatest materialized Strip start observed for one
-Realm. Garbage collection reduces supplied matching entries to the least
-counter.</p>
-<p>Entry order is insignificant. The caller must ensure that a Realm selected
-for collection appears in every Replica Frontier required for safety.</p>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Acknowledgement</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span></div>
+<div class="tsd-comment tsd-typography"><p>Flat SequencePoint triples acknowledging complete Mask Realm frontiers.</p>
+<p>Each triple is <code>[crypto_random_bits, unix_lower_bits, counter_bits]</code>: the
+first two words identify a Realm and the last identifies its final frontier.
+Triple order is insignificant.</p>
+<p>A Mask Realm is acknowledged only when its complete counter sequence is
+known without gaps, beginning at zero and continuing by each Strip's length.
+A Realm with a missing interval produces no acknowledgement.</p>
+<p>Compaction requires every Actor to acknowledge the same final frontier for
+the selected Realm. The application collects those acknowledgements,
+distributes them to every Actor, and supplies them to compaction. Removing
+the agreed Mask chains then reconnects the surviving causal structure.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/81b580a84f3be3611933b51f14fa93edcc235710/src/typescript/types/type.ts#L124">types/type.ts:124</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/70f5dfe233e2c376bb6d052bdb733f9b8367a377/src/typescript/types/type.ts#L88">types/type.ts:88</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

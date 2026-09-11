@@ -15,13 +15,10 @@
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="create"><span class="tsd-kind-call-signature">create</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createt">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">data</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createt">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#create" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Creates an independently maintained sequence state.</p>
-<p>Every supplied Strip is validated and staged. One subsequent
-<code>resolve_initial_projection</code> call selects Initial Root Candidates and
-materializes every reachable dependency independently of input order.
-Unresolved valid Strips remain Pending and are retained by Snapshot. Invalid
-input and invalid entries are ignored; an empty Replica is still returned.
-Creation preserves coordinates and issues no Sequence Points.</p>
+<div class="tsd-comment tsd-typography"><p>Reconstructs an independently maintained Replica without replaying history.</p>
+<p>Transfers the ordered materialized prefix and detached pending suffix in one
+buffer copy. Native initialization restores structural links, lookup tables,
+counters, and Footage positions, including retained soft-masked content.</p>
 </div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -33,12 +30,18 @@ Creation preserves coordinates and issues no Sequence Points.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">data</span>: <span class="tsd-signature-type">unknown</span></span>
-<div class="tsd-comment tsd-typography"><p>Optional candidate Delta used to initialize retained state.</p>
+<div class="tsd-comment tsd-typography"><p>Optional trusted Delta; omitted data creates an empty Replica.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createt">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A new Replica owning its JavaScript Footage and native Projector.</p>
-<aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createt">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A new Replica owning its Footage array and native Projector.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Input must be a valid trusted snapshot. Strip contents and ordering
+are not validated or resolved again. Array storage is copied, but consumer
+values are not deep-cloned. No SequencePoints are issued.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/81b580a84f3be3611933b51f14fa93edcc235710/src/typescript/algorithms/create/index.ts#L33">algorithms/create/index.ts:33</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/70f5dfe233e2c376bb6d052bdb733f9b8367a377/src/typescript/algorithms/create/index.ts#L26">algorithms/create/index.ts:26</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

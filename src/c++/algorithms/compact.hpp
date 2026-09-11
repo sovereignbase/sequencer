@@ -4,36 +4,31 @@
 
 namespace sequencer {
 
+/** @brief Collect retained Mask Footage covered by supplied Realm frontiers. */
 inline std::uint32_t
 compact_projection(const std::uint32_t projection_id) noexcept {
   const auto frontiers = sequence_point_buffer.read_buffer();
   const Projector &projector = *projectors[projection_id];
-  if (projector.structural_root_strip_index == u32_max)
-    return 0;
-
-  const std::uint32_t first_position = projector.structural_root_strip_index;
-  std::uint32_t position = first_position;
-  do {
-    const Strip &strip = projector.strips[position];
-    if (strip.is_masked != 0) {
-      const SequencePoint &point = strip.coordinate.this_strip_start;
-      for (std::uint32_t frontier_index = 0;
-           frontier_index < frontiers.size() / 3;
-           ++frontier_index) {
-        const SequencePoint frontier{frontiers[frontier_index * 3],
-                                     frontiers[frontier_index * 3 + 1],
-                                     frontiers[frontier_index * 3 + 2]};
-        if (frontier.crypto_random_bits == point.crypto_random_bits &&
-            frontier.unix_lower_bits == point.unix_lower_bits &&
-            frontier.counter_bits >= point.counter_bits) {
-          footage_span_buffer.write_span(strip.footage_frame_index,
-                                         projector.length[position]);
+  std::uint32_t projection_index = 0;
+  for (auto strip = projector.head_strip_index; strip != u32_max;
+       strip = projector.right_strip_index_of[strip]) {
+    const auto length = projector.strip_length_of[strip];
+    if (projector.strip_type_of[strip] == 2 && length != 0 &&
+        projector.footage_frame_index_of[strip] != u32_max) {
+      const auto point = projector.strip_start_of[strip];
+      for (std::size_t frontier = 0; frontier + 2 < frontiers.size(); frontier += 3) {
+        if (frontiers[frontier] == point.crypto_random_bits &&
+            frontiers[frontier + 1] == point.unix_lower_bits &&
+            static_cast<std::uint64_t>(point.counter_bits) + length <
+                frontiers[frontier + 2]) {
+          footage_span_buffer.write_span(
+              projection_index, projector.footage_frame_index_of[strip], length, 1);
           break;
         }
       }
     }
-    position = projector.right[position];
-  } while (position != first_position);
+    projection_index += projector.get_projected_strip_length(strip);
+  }
   return footage_span_buffer.get_span_count();
 }
 

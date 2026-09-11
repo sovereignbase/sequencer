@@ -4,7 +4,9 @@
  * @module
  */
 import create_module from './raw/sequencer_wasm.mjs'
-import type { Acknowledgement, VirtualStrip } from '../types/type.js'
+import type { Acknowledgement, Delta } from '../types/type.js'
+
+type VirtualStrip<T> = Delta<T>[0]
 
 /** Synchronously initialized native Sequencer module shared by this adapter. */
 export const wasm = create_module()
@@ -183,96 +185,6 @@ export function get_projection_footage_spans(
 }
 
 /**
- * Writes the Strip containing one Projection frame index to the shared buffer.
- *
- * The call also positions the Projector Gate at that Strip.
- *
- * @param sequence_id Active local Projector identifier.
- * @param projection_frame_index Valid zero-based Frame index in the Projection.
- *
- * @returns The exact footage_frame_index of the requested projection_frame_index
- */
-export function write_strip_at_projection_frame_index_to_buffer(
-  sequence_id: number,
-  projection_frame_index: number
-): number {
-  // Position the native Gate, transfer its Strip, and return its Footage index.
-  return (
-    wasm._write_strip_at_projection_frame_index_to_buffer(
-      sequence_id,
-      projection_frame_index
-    ) >>> 0
-  )
-}
-
-/**
- * Writes the first self-linked Pending Strip to the shared buffer.
- *
- * @param sequence_id Active local Projector identifier.
- * @returns Whether a Pending Strip exists and was written.
- */
-export function write_first_pending_strip_to_buffer(
-  sequence_id: number
-): boolean {
-  return wasm._write_first_pending_strip_to_buffer(sequence_id) !== 0
-}
-
-/**
- * Advances the self-linked Pending Snapshot stream.
- *
- * @param sequence_id Active local Projector identifier.
- * @returns Whether another Snapshot Strip was written.
- */
-export function write_next_pending_strip_to_buffer(
-  sequence_id: number
-): boolean {
-  return wasm._write_next_pending_strip_to_buffer(sequence_id) !== 0
-}
-
-/**
- * Writes the first materialized Structural Order Strip to the shared buffer.
- *
- * @param sequence_id Active local Projector identifier.
- * @returns Whether Structural Order is non-empty and a Strip was written.
- */
-export function write_first_structural_strip_to_buffer(
-  sequence_id: number
-): boolean {
-  return wasm._write_first_structural_strip_to_buffer(sequence_id) !== 0
-}
-
-/**
- * Advances the circular materialized Structural Order Snapshot stream.
- *
- * @param sequence_id Active local Projector identifier.
- * @returns Whether another Snapshot Strip was written.
- */
-export function write_next_structural_strip_to_buffer(
-  sequence_id: number
-): boolean {
-  return wasm._write_next_structural_strip_to_buffer(sequence_id) !== 0
-}
-
-/**
- * Builds the initial Projection after all creation-time Strips are staged.
- *
- * Reachable dependencies join sentinel-free Structural Order; unresolved
- * Strips stay Pending. The call also initializes Projection traversal.
- *
- * @param sequence_id Active local Projector identifier.
- * @param projection_frame_index Known local Projection position. Omit it for a
- * remote merge that must locate the position from Structural Order.
- */
-export function resolve_initial_projection(sequence_id: number): void {
-  void wasm._resolve_initial_projection(sequence_id)
-}
-
-/** Stages the buffered Strip for Initial Projection Resolution. */
-export function stage_strip(sequence_id: number): boolean {
-  return wasm._stage_strip(sequence_id) >>> 0 !== no_projection_frame_index
-}
-
-/**
  * Copies one Replica's acknowledgement Frontier from native memory.
  *
  * @param sequence_id Active local Projector identifier.
@@ -336,29 +248,3 @@ export function compact_sequence(
   return wasm.HEAPU32.subarray(span_start, span_start + span_count * 4)
 }
 
-/**
- * Merges the buffered Strip into one materialized Sequence.
- *
- * A visible Strip is reported at its resulting Projection start. A Mask is
- * reported at the position its first Frame occupied before masking. A duplicate
- * produces no position. A new Strip whose dependency is absent, still Pending,
- * or waiting for Initial Projection Resolution remains self-linked and likewise
- * produces no position.
- *
- * @param sequence_id Active local Projector identifier.
- * @returns The relevant Projection frame index, or `false` when the Strip stays
- * pending or is discarded.
- * @remarks `write_strip_to_buffer` must have supplied the incoming Strip.
- */
-export function merge_strip_into_sequence(
-  sequence_id: number,
-  projection_frame_index = no_projection_frame_index
-): number | false {
-  // Invoke native staging, Mask, or deterministic insertion.
-  const merged_projection_frame_index =
-    wasm._merge_strip_into_sequence(sequence_id, projection_frame_index) >>> 0
-  // Translate the native no-position sentinel into the TypeScript contract.
-  return merged_projection_frame_index === no_projection_frame_index
-    ? false
-    : merged_projection_frame_index
-}

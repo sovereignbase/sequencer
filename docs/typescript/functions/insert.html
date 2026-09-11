@@ -16,21 +16,14 @@
 <div class="tsd-signature tsd-anchor-link" id="insert"><span class="tsd-kind-call-signature">insert</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">state</span><span class="tsd-signature-symbol">:</span> <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">index</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">values</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">false</span> <span class="tsd-signature-symbol">|</span> <a href="../types/Delta.html" class="tsd-signature-type tsd-kind-type-alias">Delta</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#insert" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Inserts values at one visible Projection index.</p>
-<p>The inserted values begin at <code>index</code>. Any value previously visible at that
-index, together with all following visible values, shifts right by
-<code>values.length</code> Frames.</p>
-<p>Every successful call issues and returns one contiguous visible Strip.</p>
-<p>Insertion before an existing Frame uses inverse placement. Insertion at
-Projection end references the final visible Frame and uses forward placement.
-The first insertion stages its Strip and initializes the sentinel-free native
-Projection through Initial Projection Resolution.</p>
+<p>Native update issues the Strip and handles birth, before, or tail placement.
+The returned Delta contains its flat ten-word encoding and an independent
+Footage array. Consumer values are not deep-cloned.</p>
 </div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
-<li><span id="insertt"><span class="tsd-kind-type-parameter">T</span></span>
-<div class="tsd-comment tsd-typography"><p>Consumer-owned value represented by one Frame.</p>
-</div></li></ul></section>
+<li><span id="insertt"><span class="tsd-kind-type-parameter">T</span></span></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -38,17 +31,20 @@ Projection through Initial Projection Resolution.</p>
 <div class="tsd-comment tsd-typography"><p>Replica to modify.</p>
 </div></li>
 <li><span><span class="tsd-kind-parameter">index</span>: <span class="tsd-signature-type">number</span></span>
-<div class="tsd-comment tsd-typography"><p>Zero-based visible index at which insertion begins. The
-Projection end is also a valid insertion position.</p>
+<div class="tsd-comment tsd-typography"><p>Insertion position, including the current Projection end.</p>
 </div></li>
 <li><span><span class="tsd-kind-parameter">values</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">[]</span></span>
-<div class="tsd-comment tsd-typography"><p>Non-empty contiguous values to insert.</p>
+<div class="tsd-comment tsd-typography"><p>Nonempty contiguous values to insert.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">false</span> <span class="tsd-signature-symbol">|</span> <a href="../types/Delta.html" class="tsd-signature-type tsd-kind-type-alias">Delta</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The transferable Delta, or <code>false</code> when <code>values</code> or <code>index</code> is
-invalid.</p>
-<aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">false</span> <span class="tsd-signature-symbol">|</span> <a href="../types/Delta.html" class="tsd-signature-type tsd-kind-type-alias">Delta</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#insertt">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The issued Delta, or false for invalid input or rejected issuance.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Reads and releases the native result buffer synchronously. Rejected
+issuance leaves JavaScript Footage unchanged.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/81b580a84f3be3611933b51f14fa93edcc235710/src/typescript/algorithms/update/insert/index.ts#L37">algorithms/update/insert/index.ts:37</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/70f5dfe233e2c376bb6d052bdb733f9b8367a377/src/typescript/algorithms/insert/index.ts#L28">algorithms/insert/index.ts:28</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

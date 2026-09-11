@@ -18,7 +18,7 @@
 <div class="tsd-comment tsd-typography"><p>Replaces visible Frames starting at one Projection index.</p>
 <p>Removes the visible span covered by <code>values.length</code> and inserts <code>values</code> at
 the original index. The transferable Deltas from both operations are
-combined.</p>
+combined lane by lane into one <code>[projection, footage]</code> tuple.</p>
 <p><code>hard</code> controls whether the replaced Footage is released while deleting the
 existing Frames.</p>
 </div>
@@ -43,8 +43,9 @@ existing Frames.</p>
 <li><span><span class="tsd-kind-parameter">hard</span>: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></span>
 <div class="tsd-comment tsd-typography"><p>Whether replaced Footage should be released.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">false</span> <span class="tsd-signature-symbol">|</span> <a href="../types/Delta.html" class="tsd-signature-type tsd-kind-type-alias">Delta</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#replacet">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The combined transferable Delta, or <code>false</code> when the deletion
-cannot be performed.</p>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">false</span> <span class="tsd-signature-symbol">|</span> <a href="../types/Delta.html" class="tsd-signature-type tsd-kind-type-alias">Delta</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#replacet">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The combined transferable Delta, or <code>false</code> for empty or invalid
+values or when the deletion cannot be performed. If insertion is rejected
+after deletion, returns the deletion Delta.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
@@ -52,7 +53,7 @@ cannot be performed.</p>
 insertion paths; it introduces no separate native operation.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/81b580a84f3be3611933b51f14fa93edcc235710/src/typescript/algorithms/update/replace/index.ts#L31">algorithms/update/replace/index.ts:31</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/70f5dfe233e2c376bb6d052bdb733f9b8367a377/src/typescript/algorithms/replace/index.ts#L32">algorithms/replace/index.ts:32</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

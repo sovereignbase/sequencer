@@ -15,7 +15,7 @@
 apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
              const std::uint32_t incoming_strip_index,
              const std::uint32_t offset) noexcept {
-  if (projector.materialized_strip_count == 0)
+  if (containing_strip_index == u32_max)
     return insert_birth(projector, incoming_strip_index);
   if (projector.strip_type_of[incoming_strip_index] == 0)
     return insert_before(projector, containing_strip_index, incoming_strip_index, offset);

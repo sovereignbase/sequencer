@@ -3,68 +3,47 @@
  *
  * @module
  */
-import { is_strip } from '../../../helpers/index.js'
-import type { Change, Replica, VirtualStrip } from '../../../types/type.js'
-import {
-  merge_strip_into_sequence,
-  write_strip_to_buffer,
-} from '../../../wasm/index.js'
+import { is_delta } from '../../helpers/is_delta/index.js'
+import type { Change, Replica } from '../../types/type.js'
+import { get_projection_frame_count, no_projection_frame_index, wasm } from '../../wasm/index.js'
+import { values } from '../values/index.js'
 
 /**
- * Integrates remotely supplied Strips into a Replica.
+ * Integrates encoded Strips and returns the changed suffix of the visible view.
+ * Missing dependencies remain pending. Merge issues no new SequencePoints.
  *
- * Delta entries are validated and integrated independently. Invalid entries are
- * ignored. A valid Strip whose Sequence dependency has not yet materialized
- * remains pending in the native Projector and produces no immediate Change.
- *
- * Visible Strip Footage is appended to the Replica before integration and its
- * resulting Projection span is written to the returned Change. Masks contribute
- * no Footage and clear their resulting Projection span instead.
- *
- * Merge only integrates already-issued Sequence Points and never issues new
- * ones.
- *
- * @typeParam T Consumer-owned value represented by one Frame.
- * @param state Replica receiving the remote Strip material.
- * @param data Unknown value expected to contain transferable Strips.
- * @returns The immediately materialized visible Change, or `false` when no
- * immediate Projection change is produced.
+ * @param state Replica receiving remote material.
+ * @param data Transferable `[projection, footage]` tuple.
+ * @returns A visible index patch, or false when no visible change occurs.
  */
 export function merge<T>(state: Replica<T>, data: unknown): Change<T> | false {
-  if (!Array.isArray(data) || data.length < 1) return false
-
-  const { id, footage } = state
-  let change: Change<T>
-
-  for (const chunk of data) {
-    if (!is_strip<T>(chunk)) continue
-
-    const meta: VirtualStrip<T> = [...chunk[0]]
-    const visible: boolean = meta[0] === 0
-    if (visible) {
-      void meta.push(footage.length)
-      void footage.push(...chunk[1]!)
-    }
-
-    void write_strip_to_buffer<T>(meta)
-
-    const projection_frame_index = merge_strip_into_sequence(id)
-    if (projection_frame_index === false) continue
-    change ??= {}
-
-    const projection_end = projection_frame_index + meta[2]
-
-    let footage_frame_index = meta[9]!
-    for (
-      let frame_index = projection_frame_index;
-      frame_index < projection_end;
-      frame_index++
-    ) {
-      change[frame_index] = visible ? footage[footage_frame_index] : undefined
-      if (visible) footage_frame_index++
-    }
-
+  if (!is_delta<T>(data) || data[0].length === 0 || data[0].length % 10 !== 0)
+    return false
+  let required = 0
+  for (let strip = 0; strip < data[0].length; strip += 10) {
+    if (data[0][strip] >= 3) break
+    const length = data[0][strip + 1]
+    if (length >= no_projection_frame_index - data[0][strip + 4]) return false
+    if (data[0][strip] !== 2) required += length
   }
+  if (required > data[1].length) return false
 
-  return change! ?? false
+  const previous_length = get_projection_frame_count(state[0])
+  const footage_start = state[1].length
+  const incoming = data[1] === state[1] ? data[1].slice() : data[1]
+  const buffer_start = wasm._prepare_projection_buffer(data[0].length / 10) >>> 2
+  wasm.HEAPU32.set(data[0], buffer_start)
+  const position = wasm._merge_projection(state[0], footage_start) >>> 0
+  state[1].length = footage_start + required
+  for (let frame = 0; frame < required; ++frame)
+    state[1][footage_start + frame] = incoming[frame]
+  if (position === no_projection_frame_index) return false
+
+  const current = values(state, position)
+  const change: Change<T> = {}
+  for (let frame = 0; frame < current.length; ++frame)
+    change[position + frame] = current[frame]
+  for (let frame = position + current.length; frame < previous_length; ++frame)
+    change[frame] = undefined
+  return change
 }

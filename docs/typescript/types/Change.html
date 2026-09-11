@@ -11,9 +11,11 @@
 <li><a href="" aria-current="page">Change</a></li></ul>
 <h1>Type Alias Change&lt;T&gt;</h1></div>
 <div class="tsd-signature"><span class="tsd-kind-type-alias">Change</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">&gt;</span></div>
-<div class="tsd-comment tsd-typography"><p>Minimal consumer-facing Projection patch keyed by zero-based Frame index.</p>
+<div class="tsd-comment tsd-typography"><p>Consumer-facing Projection patch keyed by zero-based visible Frame index.</p>
 <p><code>undefined</code> removes the value currently observed at an index. Any other entry
 inserts or replaces the value at that index.</p>
+<p>A Change describes visible effects, not Strip identities, structural links,
+or pending state. It is not a replacement for a Delta used to merge state.</p>
 </div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -22,7 +24,7 @@ inserts or replaces the value at that index.</p>
 <div class="tsd-comment tsd-typography"><p>Consumer-owned sequence value.</p>
 </div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/81b580a84f3be3611933b51f14fa93edcc235710/src/typescript/types/type.ts#L100">types/type.ts:100</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/70f5dfe233e2c376bb6d052bdb733f9b8367a377/src/typescript/types/type.ts#L45">types/type.ts:45</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

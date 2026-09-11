@@ -13,17 +13,22 @@
 <section class="tsd-panel">
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="compact"><span class="tsd-kind-call-signature">compact</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#compactt">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">frontiers</span><span class="tsd-signature-symbol">:</span> <a href="../types/Acknowledgement.html" class="tsd-signature-type tsd-kind-type-alias">Acknowledgement</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">state</span><span class="tsd-signature-symbol">:</span> <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#compactt">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#compact" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="compact"><span class="tsd-kind-call-signature">compact</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#compactt">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">frontiers</span><span class="tsd-signature-symbol">:</span> <a href="../types/Acknowledgement.html" class="tsd-signature-type tsd-kind-type-alias">Acknowledgement</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">state</span><span class="tsd-signature-symbol">:</span> <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#compactt">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">hard</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#compact" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Releases Footage covered by the supplied Replica Frontiers.</p>
-<p>For every Realm in the first Acknowledgement, the smallest matching counter
-supplied by later Frontiers becomes the compaction boundary. Native code
-retains every Mask, coordinate, and structural link and returns only the
-Footage Spans whose JavaScript references may be released.</p>
-<p>The first supplied Acknowledgement is reused as the selected boundary and may
-be overwritten. Other Frontiers are read without mutation. The caller must
-ensure that every Realm selected for safe compaction has a matching entry in
-every required Replica Acknowledgement; this reducer ignores a missing match.</p>
+<div class="tsd-comment tsd-typography"><p>Removes safely collectable structural garbage from one Replica.</p>
+<p>Soft compaction is the default. It removes only eligible structures that no
+longer retain consumer content, such as an empty prefix left by a body-before
+insertion or a Mask whose content was already released by hard deletion.
+Content retained by soft deletion remains available for recovery.</p>
+<p>Hard compaction additionally removes eligible garbage that still retains
+consumer content and releases that content. It does not remove visible values
+or bypass acknowledgement and dependency requirements. Empty structures are
+not automatically garbage: an anchor still needed by retained dependencies
+must remain until its structural removal is safe.</p>
+<p>A Mask Realm can be collected only when all participating Actors acknowledge
+the same complete final frontier. Removing an eligible chain reconnects the
+surviving causal structure. The application supplies acknowledgements from
+every required Actor in either mode.</p>
 </div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -38,13 +43,22 @@ every required Replica Acknowledgement; this reducer ignores a missing match.</p
 <div class="tsd-comment tsd-typography"><p>Acknowledgement Frontiers from participating Replicas.</p>
 </div></li>
 <li><span><span class="tsd-kind-parameter">state</span>: <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#compactt">T</a><span class="tsd-signature-symbol">&gt;</span></span>
-<div class="tsd-comment tsd-typography"><p>Replica whose acknowledged Mask Footage is released.</p>
+<div class="tsd-comment tsd-typography"><p>Replica whose eligible retained garbage is collected.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">hard</span>: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></span>
+<div class="tsd-comment tsd-typography"><p>Whether to also discard content-bearing garbage; defaults to
+soft compaction, which preserves recoverable content.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><p>Nothing. Released entries are replaced with <code>undefined</code> in-place and
 the Footage array is never physically compacted.</p>
-<aside class="tsd-sources">
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Frontier selection uses exact Realm and counter agreement, not a
+minimum counter. Input acknowledgement arrays are never modified.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/81b580a84f3be3611933b51f14fa93edcc235710/src/typescript/algorithms/delete/compact/index.ts#L28">algorithms/delete/compact/index.ts:28</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/70f5dfe233e2c376bb6d052bdb733f9b8367a377/src/typescript/algorithms/compact/index.ts#L38">algorithms/compact/index.ts:38</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

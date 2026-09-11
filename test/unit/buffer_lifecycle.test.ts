@@ -88,7 +88,7 @@ describe('Synchronous transfer buffer consumption', () => {
       native.HEAPU32.set([0, 1, 2, 1], 32)
       return 1
     })
-    compact([frontier], [42, footage])
+    compact([frontier], [42, footage], true)
     expect(
       native._prepare_compaction_sequence_point_buffer
     ).toHaveBeenCalledExactlyOnceWith(2)

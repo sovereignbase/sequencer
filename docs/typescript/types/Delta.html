@@ -10,12 +10,21 @@
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
 <li><a href="" aria-current="page">Delta</a></li></ul>
 <h1>Type Alias Delta&lt;T&gt;</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Delta</span><span class="tsd-signature-symbol">:</span> <a href="Strip.html" class="tsd-signature-type tsd-kind-type-alias">Strip</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></div>
-<div class="tsd-comment tsd-typography"><p>Serializable collection of Strips used to store or exchange Sequence
-material.</p>
-<p>A Delta may contain only material produced by one local change or every
-retained Strip. Completeness is determined by the operation producing the
-Delta rather than by its representation.</p>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Delta</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">[</span>projection<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span> footage<span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">]</span></div>
+<div class="tsd-comment tsd-typography"><p>Transferable Sequence material stored as <code>[projection, footage]</code>.</p>
+<p><code>projection</code> is a flat numeric encoding of Strips, not an array of visible
+consumer values. <code>footage</code> contains the values referenced by encoded insert
+Strips. A Delta may describe one local change or a complete retained state;
+the tuple type alone does not establish completeness or trusted ordering.</p>
+<p>A trusted snapshot uses this representation to store materialized Strips in
+Head-to-Tail order, followed by separately marked pending Strips. Structural
+references use snapshot-local indices. Initialization restores the trusted
+order and derived runtime state directly, without replaying operations.
+Pending Strips enter both containment and pending tables but remain outside
+the linked Projection until their dependencies can be resolved.</p>
+<p>Merge does not trust incoming order or snapshot-local split and competitor
+links. It deduplicates known SequencePoint ranges and derives structural
+order from each Strip's own identity and previous Strip end.</p>
 </div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -24,7 +33,7 @@ Delta rather than by its representation.</p>
 <div class="tsd-comment tsd-typography"><p>Consumer-owned value represented by one Frame.</p>
 </div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/81b580a84f3be3611933b51f14fa93edcc235710/src/typescript/types/type.ts#L112">types/type.ts:112</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/70f5dfe233e2c376bb6d052bdb733f9b8367a377/src/typescript/types/type.ts#L69">types/type.ts:69</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

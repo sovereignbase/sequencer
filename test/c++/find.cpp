@@ -7,7 +7,7 @@
 
 int main() {
   for (const bool with_masks : {false, true}) {
-    std::vector<std::array<std::uint32_t, 10>> snapshot;
+    std::vector<std::array<std::uint32_t, 12>> snapshot;
     std::vector<std::uint32_t> starts;
     std::vector<std::uint32_t> containing;
     std::uint32_t length = 0;
@@ -15,7 +15,8 @@ int main() {
       const bool masked = with_masks && strip_index % 7 == 0;
       const auto strip_length = strip_index % 5 + 1;
       snapshot.push_back({masked ? 2u : 1u, strip_length, 10, 20,
-                          strip_index * 8, 90, 80, 0, u32_max, u32_max});
+                          strip_index * 8, 90, 80, 0, u32_max, u32_max,
+                          masked ? 0u : strip_length, 0});
       starts.push_back(length);
       if (!masked) {
         length += strip_length;

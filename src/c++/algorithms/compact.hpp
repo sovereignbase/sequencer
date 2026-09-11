@@ -117,7 +117,7 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
     const bool complete = projector.for_each_mask_target(mask,
         [&](const auto source, const auto, const auto) {
           targets.push_back(source);
-        }, true);
+        });
     eligible = eligible && complete;
     remove[mask] = eligible;
     for (const auto source : targets) {
@@ -132,6 +132,20 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
     if (projector.strip_type_of[strip] >= 6 && projector.left_strip_index_of[strip] != strip)
       remove[strip] = covered[strip] && !blocked[strip];
 
+  std::vector<bool> retain_anchor(count);
+  for (std::uint32_t source = 0; source < count; ++source) {
+    if (projector.is_fragment(source) || projector.strip_type_of[source] == 2 || !remove[source])
+      continue;
+    for (auto fragment = projector.larger_split_strip_index_of[source];
+         fragment != u32_max;
+         fragment = projector.larger_split_strip_index_of[fragment])
+      if (!remove[fragment]) {
+        retain_anchor[source] = true;
+        remove[source] = false;
+        break;
+      }
+  }
+
   if (std::none_of(remove.begin(), remove.end(), [](const bool value) { return value; }))
     return 0;
 
@@ -141,7 +155,7 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
        strip = projector.right_strip_index_of[strip]) {
     replacements[strip] = previous;
     if (!remove[strip]) {
-      previous = projector.strip_start_of[strip];
+      previous = projector.fragment_start(strip);
       previous.counter_bits += projector.fragment_length_of[strip];
     }
   }
@@ -152,8 +166,13 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
   for (auto &source : projector.collected_sources)
     source.previous = reattach(source.previous);
   for (std::uint32_t strip = 0; strip < count; ++strip) {
-    if (!remove[strip])
-      projector.previous_strip_end_of[strip] = reattach(projector.previous_strip_end_of[strip]);
+    if (!remove[strip] && !projector.is_fragment(strip)) {
+      const auto dependency = reattach(projector.previous_strip_end_of[strip]);
+      if (dependency != projector.previous_strip_end_of[strip]) {
+        projector.previous_strip_end_of[strip] = dependency;
+        projector.dependency_prefix_of[strip] = projector.containment_table.get(dependency).second;
+      }
+    }
     auto &split = projector.larger_split_strip_index_of[strip];
     while (projector.strip_type_of[strip] != 2 && split != u32_max && remove[split])
       split = projector.larger_split_strip_index_of[split];
@@ -177,15 +196,25 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
   std::uint32_t projection_index = 0;
   for (auto strip = projector.head_strip_index; strip != u32_max;) {
     const auto next = projector.right_strip_index_of[strip];
+    if (retain_anchor[strip]) {
+      projector.for_each_footage_span(strip, [&](const auto footage, const auto length) {
+        footage_span_buffer.write_span(projection_index, footage, length, 1);
+      });
+      projector.fragment_length_of[strip] = 0;
+      projector.footage_frame_index_of[strip] = u32_max;
+      projector.strip_type_of[strip] &= 1;
+    }
     if (remove[strip]) {
       if (projector.strip_type_of[strip] != 2) {
         projector.for_each_footage_span(strip, [&](const auto footage, const auto length) {
           footage_span_buffer.write_span(projection_index, footage, length, 1);
         });
       }
-      projector.remember_collected_source({projector.strip_start_of[strip],
-          projector.fragment_length_of[strip], replacements[strip]});
-      projector.containment_table.erase(projector.strip_start_of[strip]);
+      if (!projector.is_fragment(strip)) {
+        projector.remember_collected_source({projector.strip_start_of[strip],
+            projector.initial_length_of[strip], replacements[strip]});
+        projector.containment_table.erase(projector.strip_start_of[strip]);
+      }
       const auto left = projector.left_strip_index_of[strip];
       if (left == u32_max) projector.head_strip_index = next;
       else projector.right_strip_index_of[left] = next;

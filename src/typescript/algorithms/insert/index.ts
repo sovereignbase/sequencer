@@ -16,7 +16,7 @@ import {
  * Inserts values at one visible Projection index.
  *
  * Native update issues the Strip and handles birth, before, or tail placement.
- * The returned Delta contains its flat ten-word encoding and an independent
+ * The returned Delta contains its flat twelve-word encoding and an independent
  * Footage array. Consumer values are not deep-cloned.
  *
  * @param state Replica to modify.

@@ -21,11 +21,6 @@
 inline void insert_between(Projector &projector, std::uint32_t left_strip_index,
                            const std::uint32_t middle_strip_index,
                            std::uint32_t right_strip_index) noexcept {
-  while (right_strip_index != u32_max &&
-         projector.strip_type_of[right_strip_index] == 2) {
-    left_strip_index = right_strip_index;
-    right_strip_index = projector.right_strip_index_of[right_strip_index];
-  }
   if (right_strip_index != u32_max &&
       (left_strip_index == u32_max ||
        projector.strip_type_of[left_strip_index] == 2 ||

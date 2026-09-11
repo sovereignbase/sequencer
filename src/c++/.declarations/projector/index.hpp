@@ -246,11 +246,13 @@ struct Projector {
     auto offset = dependency_prefix_of[strip];
     if (source == u32_max || strip_start_of[source] != origin)
       return {u32_max, 0};
-    while (source != u32_max && offset > fragment_length_of[source]) {
-      offset -= fragment_length_of[source];
+    while (source != u32_max &&
+           offset > fragment_offset(source) + fragment_length_of[source]) {
       source = larger_split_strip_index_of[source];
     }
-    return {source, offset};
+    if (source == u32_max || offset < fragment_offset(source))
+      return {u32_max, 0};
+    return {source, offset - fragment_offset(source)};
   }
 
   /** @brief Resolve a Mask in its creation-time source coordinate system. */
@@ -271,19 +273,21 @@ struct Projector {
       if (source == u32_max || left_strip_index_of[source] == source ||
           strip_type_of[source] == 2)
         return false;
-      if (offset >= fragment_length_of[source]) {
-        offset -= fragment_length_of[source];
+      const auto start = fragment_offset(source);
+      if (offset < start)
+        return false;
+      if (offset >= start + fragment_length_of[source]) {
         source = larger_split_strip_index_of[source];
         continue;
       }
       const auto length = static_cast<std::uint32_t>(
-          std::min<std::uint64_t>(remaining, fragment_length_of[source] - offset));
+          std::min<std::uint64_t>(remaining, start + fragment_length_of[source] - offset));
       if (length != 0) {
-        visit(source, offset, length);
+        visit(source, offset - start, length);
         remaining -= length;
+        offset += length;
       }
       source = larger_split_strip_index_of[source];
-      offset = 0;
     }
     return true;
   }

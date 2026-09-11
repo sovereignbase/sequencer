@@ -4,7 +4,11 @@
 
 SequencePoint consists of a unique identifier per realm (`crypto_random_bits` (`u32`) and `unix_lower_bits` (`u32`)). This means that, for one started Sequencer instance, all operations share these values. A third component (`counter_bits` (`u32`)) tracks frames produced per Projector, advancing by content length plus one for each newly issued Strip.
 
-The encoded Strip length is its content length `n`. The zero anchor is logical only: no extra content element or encoded word is allocated for it. The content points are `strip_start + 1` through `strip_start + n`, and containment includes both boundaries `[strip_start, strip_start + n]`. A zero-length Strip therefore still identifies its anchor. The next issued Strip starts at `strip_start + n + 1`.
+The issued Strip length `initial_length_of` is its immutable content span `n`. The zero anchor is logical only: no extra content element is allocated for it. Content points are `strip_start + 1` through `strip_start + n`, and containment includes `[strip_start, strip_start + n]`. The next issued Strip starts at `strip_start + n + 1`. Splitting changes only `fragment_length_of`; it never allocates or shifts real SequencePoints.
+
+Each transfer record contains twelve `u32` words: type, initial length, three Strip-start lanes, three dependency lanes, larger-split index, smaller-competitor index, fragment length, and dependency prefix. Public TypeScript signatures remain unchanged. The previous ten-word encoding is not compatible with this layout.
+
+Only originally issued Strips enter containment. Split fragments use `{UINT32_MAX, UINT32_MAX, UINT32_MAX}` as a structural sentinel, initial length zero, and an explicit source offset. Their dependency is the original source start plus that offset; their dependency-prefix field stores the offset. Initialization trusts local snapshot links, while merge rebuilds fragment chains from source coordinates in snapshot order and ignores incoming split and competitor indices.
 
 For simplicity (and maybe laziness), here we will present the UIDs as uppercase characters such as `A` or `B`, and full SequencePoints as, for example, `A9` and `B10`.
 
@@ -30,19 +34,17 @@ This causes a split that leaves an empty `A8` in the list after `A7`. The new op
 
 The empty causal placeholder keeps its `larger_split` link to the content continuation. A Mask starting at the original Strip start resolves this placeholder first and follows that link without consuming any mask length. Mask traversal follows the original Strip's split chain, not unrelated inserts located between its fragments in Projection order.
 
-If the body insert does not happen at such a boundary, but instead, for example, at `A5`, it would initially look like a normal split:
+An insertion after `A5` splits physical content without changing the issued `A0` span:
 
 ```text
-prefix:  A0[0,1,2,3,4,5]
+prefix:  A0, fragment_length = 5, content A1..A5
 
-new op:  (A6) B3[0,1,2]
+new op:  dependency A5, dependency_prefix = 5, B3[0,1,2]
 
-suffix:  (B6) A7[0,6,7]
+suffix:  sentinel, source offset = 5, content A6..A7
 ```
 
-However, to later insert at the `A6` node containing `7`—that is, after the node containing `6`—the operation needs a previous Strip end of `A7`.
-
-Therefore, the split moves forward by one Frame to create the reservation for the `0` index.
+The suffix is structural only. Its content remains `A6` and `A7`; containment still resolves the original issued `A0` Strip.
 
 A fourth insert kind is `head`. Inserting before `A1` gets the previous Strip end `A0`.
 
@@ -77,7 +79,7 @@ This allows the sequence to distinguish:
 
 even though both operations occur at the same apparent boundary.
 
-The same rule applies to internal Strip splits: the split moves forward by one Frame so that the reserved `0` position represents the required `before / after` relationship without ambiguity.
+Internal splits retain logical boundary anchors but never shift content points. Dependency prefixes preserve the operation's creation-time source coordinates independently of the current physical fragments.
 
 ### Tie-breaking
 
@@ -134,9 +136,11 @@ After materialization:
 ```text
 prefix:  A0[0,1,2]
 
-mask:    (A3) M0[0,1,2,3]
+mask:    dependency A2, dependency_prefix = 2, M0[0,1,2,3]
 
-suffix:  (M3) A6[6,7]
+applied: sentinel, source offset = 2, hidden content A3..A5
+
+suffix:  sentinel, source offset = 5, visible content A6..A7
 ```
 
 The Mask consumes the three Frames that would otherwise begin the suffix:
@@ -150,7 +154,7 @@ so the surviving suffix begins at `A6`.
 Structurally, the result still has the same fundamental form as an insert:
 
 ```text
-prefix -> operation -> suffix
+prefix -> instruction -> applied source -> suffix
 ```
 
 The difference is only in its Projection effect:
@@ -170,14 +174,12 @@ Because a Mask is structurally an insertion, it follows the same anchoring and t
 A Mask is never split. Its identity and issued length remain unchanged when its
 target has already been split. Application follows the target's `larger_split`
 chain, skips empty anchors, and consumes only the addressed source content, not
-intervening inserts. Missing fragments or continuations resolving directly to a
-Mask remain pending; general overlap resolution is still unfinished.
+intervening inserts. Missing dependencies remain pending in merge. Local apply
+never resolves pending operations. Overlapping instructions retain both identities.
 
-When retained Footage is non-contiguous, the one Mask keeps runtime Footage-span
-references in source-chain order. Recovery and snapshotting read those spans;
-the snapshot packs them into the Mask's single contiguous Footage block. This
-does not add Mask identities, counter reservations, or snapshot words. Hard
-collection releases every retained span belonging to the Mask.
+Retained Footage belongs to the applied source fragments, not to the instruction.
+Recovery and snapshotting read these spans in structural order. An instruction
+has fragment length zero and contributes no Footage of its own.
 
 ### Overlapping Masks
 
@@ -485,12 +487,12 @@ The same incoming state can therefore be merged in any arrival order and still r
 
 ## Acknowledgement and Compaction
 
-### Mask dependency prefix
+### Creation-time dependency prefix
 
-An instruction Mask stores its creation-time dependency offset in encoded word
-8, the otherwise unused `larger_split_strip_index_of` slot. It is a `u32`
-Frame offset, not a Strip Index, and is never remapped by snapshot or compaction.
-Applied source fragments still use that slot for their actual split links.
+Inserts and instruction Masks store their creation-time dependency offset in
+encoded word 11, `dependency_prefix_of`. It is a `u32` Frame offset, not a Strip
+Index. Word 8 always contains an actual larger-split link or `UINT32_MAX`;
+instruction Masks never have split links.
 
 For a Mask with `dependency = A1` and `dependency_prefix = 1`, the source
 origin is `A0`. The target begins after one source Frame, regardless of any
@@ -500,11 +502,9 @@ The dependency and prefix remain unchanged after application and across
 materialized and pending snapshots. If the creation-time origin has not yet
 materialized, the instruction remains pending.
 
-Compaction retains source prefix fragments while an uncollected instruction
-still needs them to interpret its creation-time offset.
-
-The previous `UINT32_MAX` sentinel denotes an unspecified prefix and retains
-the legacy direct-dependency interpretation.
+Compaction preserves the issued containment anchor while any source fragments
+remain. Surviving fragments retain their original offsets even when intervening
+applied fragments are collected. There is no unspecified-prefix encoding.
 
 Masks have their own Realm identifiers.
 

@@ -28,7 +28,7 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
     for (const auto &target : targets) {
       auto source = target[0];
       const auto previous_count = projector.materialized_strip_count;
-      if (target[1] != 0)
+      if (target[1] != 0 || !projector.is_fragment(source))
         source = split_strip(projector, source, target[1]);
       if (target[2] < projector.fragment_length_of[source])
         static_cast<void>(split_strip(projector, source, target[2]));
@@ -41,8 +41,9 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
           projector.strip_start_of[owner->second] < projector.strip_start_of[incoming_strip_index])
         projector.mask_owner_of[source] = incoming_strip_index;
       if (first) {
-        insert_between(projector, projector.left_strip_index_of[source],
-                       incoming_strip_index, source);
+        const auto anchor = projector.resolve_dependency(incoming_strip_index).first;
+        insert_between(projector, anchor, incoming_strip_index,
+                       projector.right_strip_index_of[anchor]);
         first = false;
       }
       projector.projection_frame_count -= visible;
@@ -62,23 +63,7 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
   }
   if (containing_strip_index == u32_max)
     return insert_birth(projector, incoming_strip_index);
-  if (projector.strip_type_of[containing_strip_index] >= 6) {
-    auto source = containing_strip_index;
-    const auto previous_count = projector.materialized_strip_count;
-    auto boundary = offset;
-    if (boundary != 0 && boundary < projector.fragment_length_of[source]) {
-      source = split_strip(projector, source, boundary);
-      boundary = 0;
-    }
-    const auto left = boundary == projector.fragment_length_of[source]
-        ? source : projector.left_strip_index_of[source];
-    const auto right = left == source ? projector.right_strip_index_of[source] : source;
-    insert_between(projector, left, incoming_strip_index, right);
-    projector.projection_frame_count += projector.get_projected_strip_length(incoming_strip_index);
-    return {static_cast<std::int32_t>(projector.get_projected_strip_length(incoming_strip_index)),
-            static_cast<std::int32_t>(projector.materialized_strip_count - previous_count)};
-  }
-  if (projector.strip_type_of[incoming_strip_index] == 0)
+  if ((projector.strip_type_of[incoming_strip_index] & 1) == 0)
     return insert_before(projector, containing_strip_index, incoming_strip_index, offset);
   return insert_after(projector, containing_strip_index, incoming_strip_index, offset);
 }

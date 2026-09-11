@@ -37,6 +37,16 @@ The checksum prevents unused initialization results from being discarded.
 
 ## Initial comparison
 
+### Stable-identity layout (2026-09-11)
+
+The twelve-word layout measured 57.66 ns/Strip at 1,000 Strips and 51.99
+ns/Strip at 10,000 Strips in the initialization workload. Find medians were
+138.58 / 242.11 ns/query at 1,000 Strips and 348.40 / 575.57 ns/query at
+10,000 Strips (Frame-to-Strip / Strip-to-Frame). These are local Node/WASM
+measurements, not an end-to-end CRDT comparison. `-O3 -msimd128` assembly still
+contains four-lane vectorized loops and `v128` instructions; no Find algorithm
+changes or explicit SIMD intrinsics were needed.
+
 On 2026-09-09, two implementations with the same correctness fixes were compiled
 into one `-O3 -msimd128` WASM module and run alternately in Node. The baseline used
 `reserve` plus per-Strip `push_back`; the candidate sizes dense columns once and

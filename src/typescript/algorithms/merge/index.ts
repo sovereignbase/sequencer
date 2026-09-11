@@ -43,6 +43,6 @@ export function merge<T>(state: Replica<T>, data: unknown): Change<T> | false {
       change[projection_index + frame] =
         spans[span + 3] === 0 ? state[1][footage_index + frame] : undefined
   }
-  clear_footage_spans()
+  void clear_footage_spans()
   return change
 }

@@ -12,13 +12,14 @@ int main() {
   std::uint64_t checksum = 0;
   constexpr std::uint32_t query_count = 50000;
   for (const auto strip_count : {1000u, 10000u}) {
-    std::vector<std::array<std::uint32_t, 10>> snapshot;
+    std::vector<std::array<std::uint32_t, 12>> snapshot;
     snapshot.reserve(strip_count);
     for (std::uint32_t strip = 0; strip < strip_count; ++strip)
       snapshot.push_back({strip % 7 == 0 ? 2u : 1u,
                           strip % 13 == 0 ? 0u : strip % 5 + 1,
                           strip % 7 == 0 ? 7u : 5u, 6, strip * 8,
-                          90, 80, 0, u32_max, u32_max});
+                          90, 80, 0, u32_max, u32_max,
+                          strip % 7 == 0 || strip % 13 == 0 ? 0u : strip % 5 + 1, 0});
     for (const bool inverse : {false, true}) {
       Projector projector;
       initialize_projector(projector, snapshot, 1, 2, 3);

@@ -17,7 +17,8 @@ int main() {
           strip_index,
           {type + (strip_index >= strip_count * 9 / 10 ? 3u : 0u),
            strip_index % 7 + 1, type == 2 ? 7u : 5u, 6,
-           strip_index * 16, 90, 91, strip_index % 97, u32_max, u32_max});
+           strip_index * 16, 90, 91, strip_index % 97, u32_max, u32_max,
+           type == 2 ? 0u : strip_index % 7 + 1, 0});
     }
     const auto snapshot = buffer.read_buffer();
     const auto repetitions = 500000 / strip_count;

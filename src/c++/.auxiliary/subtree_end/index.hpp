@@ -19,10 +19,6 @@ subtree_end(const Projector &projector,
   std::uint32_t last_strip_index = root_strip_index;
   auto next_strip_index = projector.right_strip_index_of[last_strip_index];
   while (next_strip_index != u32_max) {
-    if (projector.strip_type_of[next_strip_index] == 2) {
-      next_strip_index = projector.right_strip_index_of[next_strip_index];
-      continue;
-    }
     auto ancestor_strip_index = last_strip_index;
     const auto &dependency = projector.previous_strip_end_of[next_strip_index];
     while ((projector.strip_type_of[ancestor_strip_index] == 2 ||

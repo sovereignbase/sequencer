@@ -33,6 +33,12 @@ inline std::uint32_t update_projection(
       find_strip_index_of(projector, operation_index);
       containing_strip_index = projector.gate_strip_index;
       offset = operation_index - projector.projection_frame_index;
+      if (operation_type == 0 && offset == 0 && operation_index != 0 &&
+          projector.is_fragment(containing_strip_index)) {
+        find_strip_index_of(projector, operation_index - 1);
+        containing_strip_index = projector.gate_strip_index;
+        offset = operation_index - projector.projection_frame_index;
+      }
       if (operation_type == 1)
         ++offset;
       if (operation_type == 1 &&

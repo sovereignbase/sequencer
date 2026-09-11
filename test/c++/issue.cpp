@@ -15,7 +15,8 @@ void check_staged(const Projector &projector, const std::uint32_t strip_index,
   assert(start.unix_lower_bits == sequencer::shared_realm_unix_lower_bits);
   assert(start.counter_bits == counter);
   assert(projector.strip_type_of[strip_index] == type);
-  assert(projector.strip_length_of[strip_index] == length);
+  assert(projector.initial_length_of[strip_index] == length);
+  assert(projector.fragment_length_of[strip_index] == (type == 2 ? 0 : length));
   assert(projector.previous_strip_end_of[strip_index] == previous);
   assert(projector.footage_frame_index_of[strip_index] == footage);
   assert(projector.left_strip_index_of[strip_index] == strip_index);

@@ -41,7 +41,6 @@ merge_projection(const std::uint32_t projection_id,
   std::uint32_t first_change = u32_max;
   std::vector<std::uint32_t> incoming_roots;
   std::unordered_map<std::uint32_t, std::uint32_t> new_sources;
-  std::unordered_map<std::uint64_t, std::uint32_t> fragments;
 
   for (std::size_t row = 0; row < footage_indices.size(); ++row) {
     const auto &strip = projection[row];
@@ -80,19 +79,9 @@ merge_projection(const std::uint32_t projection_id,
         projector, static_cast<std::uint8_t>(strip[0]), 0,
         {u32_max, u32_max, u32_max}, {strip[5], strip[6], strip[7]},
         footage_indices[row], strip[11], strip[10]);
-    fragments.emplace((std::uint64_t{source} << 32) | strip[11], fragment);
-  }
-  for (const auto &[source, unused] : new_sources) {
-    auto fragment = source;
-    auto offset = projector.fragment_length_of[source];
-    while (offset < projector.initial_length_of[source]) {
-      const auto next = fragments.find((std::uint64_t{source} << 32) | offset);
-      if (next == fragments.end())
-        break;
-      projector.larger_split_strip_index_of[fragment] = next->second;
-      fragment = next->second;
-      offset += projector.fragment_length_of[fragment];
-    }
+    auto &tail = new_sources[source];
+    projector.larger_split_strip_index_of[tail] = fragment;
+    tail = fragment;
   }
 
   std::vector<std::uint32_t> ready(incoming_roots.rbegin(), incoming_roots.rend());
@@ -114,6 +103,13 @@ merge_projection(const std::uint32_t projection_id,
       continue;
     }
 
+    std::uint32_t mask_change = u32_max;
+    if (type == 2)
+      projector.for_each_mask_target(candidate, [&](const auto source, const auto start, const auto) {
+        if (mask_change == u32_max && projector.get_projected_strip_length(source) != 0)
+          mask_change = std::min(mask_change,
+              find_projection_frame_index_of(projector, source, 0, 0) + start);
+      });
     const auto [frame_diff, strip_diff] =
         apply_insert(projector, containing, candidate, offset);
     if (projector.left_strip_index_of[candidate] == candidate) {
@@ -141,7 +137,7 @@ merge_projection(const std::uint32_t projection_id,
     projector.gate_strip_index = candidate;
     projector.projection_frame_index = position;
     if (total_frames != 0)
-      first_change = std::min(first_change, position);
+      first_change = std::min(first_change, type == 2 ? mask_change : position);
 
     auto waiters = projector.pending_table.take(
         projector.strip_start_of[candidate], projector.initial_length_of[candidate]);

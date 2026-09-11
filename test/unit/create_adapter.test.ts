@@ -37,7 +37,9 @@ describe('Trusted snapshot initialization', () => {
       ['a', 'hidden', 'content', 'p'],
     ]
     native._initialize_projection.mockImplementation(() => {
-      expect(Array.from(native.HEAPU32.subarray(4, 4 + projection.length))).toEqual(projection)
+      expect(
+        Array.from(native.HEAPU32.subarray(4, 4 + projection.length))
+      ).toEqual(projection)
       return 42
     })
     const state = create<string>(data)
@@ -57,7 +59,9 @@ describe('Trusted snapshot initialization', () => {
       return 1024
     })
     create([projection, ['a', 'hidden', 'content', 'p']])
-    expect(Array.from(native.HEAPU32.subarray(256, 256 + projection.length))).toEqual(projection)
+    expect(
+      Array.from(native.HEAPU32.subarray(256, 256 + projection.length))
+    ).toEqual(projection)
     expect(old_heap.every((word) => word === 0)).toBe(true)
   })
 
@@ -74,7 +78,9 @@ describe('Trusted snapshot initialization', () => {
     ]
     expect(create([words, []])).toEqual([42, []])
     expect(native._prepare_projection_buffer).toHaveBeenCalledExactlyOnceWith(2)
-    expect(Array.from(native.HEAPU32.subarray(4, 24))).toEqual(words)
+    expect(Array.from(native.HEAPU32.subarray(4, 4 + words.length))).toEqual(
+      words
+    )
     expect(native._initialize_projection).toHaveBeenCalledTimes(1)
   })
 

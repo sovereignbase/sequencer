@@ -1,11 +1,12 @@
 /**
  * @file
- * @brief Owns dense ten-word Strips in caller-supplied projection order.
+ * @brief Owns dense twelve-word Strips in caller-supplied projection order.
  *
- * Each Strip occupies ten consecutive unsigned 32-bit words:
- * 0 type (0 inverse/root Insert, 1 Insert, 2 Mask), 1 frame_count,
+ * Each Strip occupies twelve consecutive unsigned 32-bit words:
+ * 0 type (0 inverse/root Insert, 1 Insert, 2 Mask), 1 initial_length,
  * 2..4 this_strip_start, 5..7 previous_strip_end,
- * 8 larger_split_strip_index, 9 smaller_competitor_strip_index.
+ * 8 larger_split_strip_index, 9 smaller_competitor_strip_index,
+ * 10 fragment_length, 11 dependency_prefix.
  * Link targets are snapshot indices; u32_max means no target.
  * Each Sequence Point uses crypto_random_bits, unix_lower_bits, counter_bits.
  * Footage is supplied in snapshot order, including materialized Masks' retained
@@ -47,7 +48,7 @@ public:
   void resize(const std::size_t strip_count) { strips.resize(strip_count); }
 
   /**
-   * @brief Write a ten-word Strip at its prepared projection position.
+   * @brief Write a twelve-word Strip at its prepared projection position.
    * @pre projection_strip_index is within the previously resized storage.
    */
   void write_projection(

@@ -176,13 +176,17 @@ heap replacement, and both output buffers' synchronous consumption. Native
 `update` tests check Mask clipping and jump distances, including edits at jump
 endpoints. The Find implementations remain unchanged.
 
-These local content checks do not establish the complete Mask model: the
-current primitive still marks source fragments instead of materializing the
-issued Mask's own Realm identity into structural order. Preserving that identity
-through snapshots and proving merge/ACK/GC behavior remain unfinished.
+Masks now use the shared insert path and retain their own identities. The
+compiled production runtime test verifies a bounded Mask, its retained Footage,
+and its ACK across snapshot restoration. This does not establish split-chain or
+overlapping Mask behavior, nor structural garbage collection.
+
+`merge` tests basic out-of-order dependencies, root sibling order, duplicate
+identities, bounded Masks, and ignored pending snapshot records. The current
+build/test audit, including failures, is in `docs/tests/runtime-audit.md`.
 
 ```powershell
-foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'after_insert', 'birth_insert', 'update', 'read', 'transfer_buffers')) {
+foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'after_insert', 'birth_insert', 'update', 'merge', 'read', 'transfer_buffers')) {
   clang++ -std=c++23 -Wall -Wextra -Wpedantic -Werror "test/c++/$test.cpp" -o "temp/$test-test.exe"
   if ($LASTEXITCODE -ne 0) { throw "Compilation failed: $test" }
   & "./temp/$test-test.exe"

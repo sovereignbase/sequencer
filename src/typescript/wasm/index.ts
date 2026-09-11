@@ -247,4 +247,3 @@ export function compact_sequence(
   const span_start = wasm._get_footage_span_buffer_pointer() >>> 2
   return wasm.HEAPU32.subarray(span_start, span_start + span_count * 4)
 }
-

@@ -1,7 +1,7 @@
 #include "../../src/c++/.auxiliary/insert_between/index.hpp"
 #include "../../src/c++/.auxiliary/stage_strip/index.hpp"
 #include "../../src/c++/algorithms/initialize.hpp"
-#include "../../src/c++/apply/mask/index.hpp"
+#include "../../src/c++/apply/insert/index.hpp"
 #include "../../src/c++/find/containing_strip_index/index.hpp"
 #include <array>
 #include <cassert>
@@ -72,13 +72,13 @@ int main() {
   complete.insert(suffix, u32_max, 1, 6, {90, 80, 70});
   assert(complete.read() == "XYabcd!");
   const auto command = complete.mask(4);
-  const auto counts = apply_mask(complete.projector, 0, command, 0);
+  const auto counts = apply_insert(complete.projector, 0, command, 0);
   assert(counts.first == -4);
   assert(complete.projector.strip_type_of[0] == 1);
   assert(complete.projector.larger_split_strip_index_of[0] == suffix);
   assert(complete.projector.strip_type_of[inserted] == 1);
   assert(complete.read() == "XY!");
-  assert(apply_mask(complete.projector, 0, command, 0).first == 0);
+  assert(apply_insert(complete.projector, 0, command, 0).first == 0);
   assert(complete.read() == "XY!");
 
   Fixture fragmented;
@@ -87,7 +87,7 @@ int main() {
   fragmented.insert(first, second, 2, 4, {100, 200, 3});
   assert(fragmented.read() == "abXYcd");
   const auto partial = fragmented.mask(3);
-  assert(apply_mask(fragmented.projector, 0, partial, 0).first == -3);
+  assert(apply_insert(fragmented.projector, 0, partial, 0).first == -3);
   assert(fragmented.projector.strip_type_of[0] == 1);
   assert(fragmented.read() == "XYd");
 
@@ -97,7 +97,7 @@ int main() {
   assert(placeholders.projector.larger_split_strip_index_of[0] == middle);
   assert(placeholders.projector.larger_split_strip_index_of[middle] == content);
   const auto head_mask = placeholders.mask(1);
-  assert(apply_mask(placeholders.projector, 0, head_mask, 0).first == -1);
+  assert(apply_insert(placeholders.projector, 0, head_mask, 0).first == -1);
   assert(placeholders.projector.strip_type_of[0] == 1);
   assert(placeholders.projector.strip_type_of[middle] == 1);
   assert(placeholders.read() == "bcd");
@@ -107,7 +107,7 @@ int main() {
   const auto boundary_content = split_strip(boundary.projector, anchor, 0);
   boundary.insert(anchor, boundary_content, 2, 4, {100, 200, 3});
   const auto boundary_mask = boundary.mask(1);
-  assert(apply_mask(boundary.projector, 0, boundary_mask, 2).first == -1);
+  assert(apply_insert(boundary.projector, 0, boundary_mask, 2).first == -1);
   assert(boundary.projector.strip_type_of[anchor] == 1);
   assert(boundary.read() == "abXYd");
 

@@ -5,7 +5,11 @@
  */
 import { is_delta } from '../../helpers/is_delta/index.js'
 import type { Change, Replica } from '../../types/type.js'
-import { get_projection_frame_count, no_projection_frame_index, wasm } from '../../wasm/index.js'
+import {
+  get_projection_frame_count,
+  no_projection_frame_index,
+  wasm,
+} from '../../wasm/index.js'
 import { values } from '../values/index.js'
 
 /**
@@ -31,7 +35,8 @@ export function merge<T>(state: Replica<T>, data: unknown): Change<T> | false {
   const previous_length = get_projection_frame_count(state[0])
   const footage_start = state[1].length
   const incoming = data[1] === state[1] ? data[1].slice() : data[1]
-  const buffer_start = wasm._prepare_projection_buffer(data[0].length / 10) >>> 2
+  const buffer_start =
+    wasm._prepare_projection_buffer(data[0].length / 10) >>> 2
   wasm.HEAPU32.set(data[0], buffer_start)
   const position = wasm._merge_projection(state[0], footage_start) >>> 0
   state[1].length = footage_start + required

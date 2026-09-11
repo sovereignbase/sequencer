@@ -1,7 +1,7 @@
 #include "../../src/c++/.auxiliary/stage_strip/index.hpp"
 #include "../../src/c++/algorithms/initialize.hpp"
 #include "../../src/c++/apply/insert/before/index.hpp"
-#include "../../src/c++/apply/mask/index.hpp"
+#include "../../src/c++/apply/insert/index.hpp"
 #include "../../src/c++/find/containing_strip_index/index.hpp"
 #include "../../src/c++/find/projection_frame_index/index.hpp"
 #include <algorithm>
@@ -125,7 +125,7 @@ int main() {
            u32_max);
     const auto mask = stage_strip(concurrent.projector, 2, 3, {2000, 8, 0},
                                    concurrent.projector.strip_start_of[0]);
-    assert(apply_mask(concurrent.projector, 0, mask, 0).first == -3);
+    assert(apply_insert(concurrent.projector, 0, mask, 0).first == -3);
     assert(concurrent.projector.strip_type_of[siblings[0]] == 0);
     assert(concurrent.projector.strip_type_of[siblings[1]] == 0);
     assert(concurrent.projector.strip_type_of[siblings[2]] == 0);
@@ -146,7 +146,7 @@ int main() {
     body.check_positions(expected);
     const auto mask = stage_strip(body.projector, 2, 3, {2000, 8, 0},
                                    body.projector.strip_start_of[0]);
-    assert(apply_mask(body.projector, 0, mask, 0).first == -3);
+    assert(apply_insert(body.projector, 0, mask, 0).first == -3);
     assert(body.projector.strip_type_of[inserted] == 0);
     assert(body.projector.strip_type_of[placeholder] == 1);
     assert(body.projector.projection_frame_count == 1);

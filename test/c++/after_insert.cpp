@@ -1,7 +1,7 @@
 #include "../../src/c++/.auxiliary/stage_strip/index.hpp"
 #include "../../src/c++/algorithms/initialize.hpp"
 #include "../../src/c++/apply/insert/after/index.hpp"
-#include "../../src/c++/apply/mask/index.hpp"
+#include "../../src/c++/apply/insert/index.hpp"
 #include "../../src/c++/find/containing_strip_index/index.hpp"
 #include "../../src/c++/find/projection_frame_index/index.hpp"
 #include <algorithm>
@@ -132,7 +132,7 @@ int main() {
   causal.check("YXabc");
   const auto command = stage_strip(causal.projector, 2, 3, {2000, 8, 0},
                                    causal.projector.strip_start_of[0]);
-  assert(apply_mask(causal.projector, 0, command, 0).first == -3);
+  assert(apply_insert(causal.projector, 0, command, 0).first == -3);
   assert(causal.projector.projection_frame_count == 2);
   std::string visible;
   for (auto strip = causal.projector.head_strip_index; strip != u32_max;

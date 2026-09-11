@@ -55,11 +55,8 @@ export function insert<T>(
   const projection = Array.from(
     wasm.HEAPU32.subarray(buffer_start, buffer_start + 10)
   )
-  wasm._clear_projection_buffer()
+  void wasm._clear_projection_buffer()
 
-  const footage = values.slice()
-  state[1].length = footage_start + frame_count
-  for (let frame = 0; frame < frame_count; ++frame)
-    state[1][footage_start + frame] = footage[frame]
-  return [projection, footage]
+  void state[1].push(...values)
+  return [projection, values]
 }

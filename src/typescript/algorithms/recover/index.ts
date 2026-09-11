@@ -37,6 +37,6 @@ export function recover<T>(state: Replica<T>): Array<T> {
   }
 
   values.length = value_count
-  wasm._clear_footage_span_buffer()
+  void wasm._clear_footage_span_buffer()
   return values
 }

@@ -21,7 +21,7 @@ import { wasm } from '../../wasm/index.js'
  * transfer buffers are cleared after their contents have been consumed.
  */
 export function snapshot<T>(state: Replica<T>): Delta<T> {
-  wasm._snapshot_projection(state[0])
+  void wasm._snapshot_projection(state[0])
   const projection_start = wasm._get_projection_buffer_pointer() >>> 2
   const projection_word_count = wasm._get_projection_buffer_word_count() >>> 0
   const span_start = wasm._get_footage_span_buffer_pointer() >>> 2
@@ -48,7 +48,7 @@ export function snapshot<T>(state: Replica<T>): Delta<T> {
     )
       footage[result_index++] = state[1][footage_index] as T
   }
-  wasm._clear_projection_buffer()
-  wasm._clear_footage_span_buffer()
+  void wasm._clear_projection_buffer()
+  void wasm._clear_footage_span_buffer()
   return [projection, footage]
 }

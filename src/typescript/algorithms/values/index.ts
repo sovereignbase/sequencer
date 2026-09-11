@@ -51,6 +51,6 @@ export function values<T>(
     )
       result[result_index++] = state[1][footage_index]
   }
-  wasm._clear_footage_span_buffer()
+  void wasm._clear_footage_span_buffer()
   return result
 }

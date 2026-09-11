@@ -43,11 +43,7 @@ export function replace<T>(
   if (!delta) return false
 
   const additional_delta = insert(state, index, replacement)
+  if (!additional_delta) return false
 
-  if (!additional_delta) return delta
-
-  return [
-    delta[0].concat(additional_delta[0]),
-    delta[1].concat(additional_delta[1]),
-  ]
+  return [delta[0].concat(additional_delta[0]), additional_delta[1]]
 }

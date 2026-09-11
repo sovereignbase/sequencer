@@ -51,16 +51,17 @@ merge_projection(const std::uint32_t projection_id,
         containing = u32_max;
         offset = 0;
       } else if (containing == u32_max ||
-                 projector.left_strip_index_of[containing] == containing ||
-                 (type == 2 &&
-                  (projector.strip_type_of[containing] == 2 ||
-                   length > projector.strip_length_of[containing] - offset))) {
+                 projector.left_strip_index_of[containing] == containing) {
         projector.pending_table.set(dependency, candidate);
         continue;
       }
 
       const auto [frame_diff, strip_diff] =
           apply_insert(projector, containing, candidate, offset);
+      if (projector.left_strip_index_of[candidate] == candidate) {
+        projector.pending_table.set(dependency, candidate);
+        continue;
+      }
       const auto position = find_projection_frame_index_of(
           projector, candidate, frame_diff, strip_diff);
       projector.gate_strip_index = candidate;

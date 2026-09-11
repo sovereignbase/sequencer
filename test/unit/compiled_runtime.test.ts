@@ -22,6 +22,31 @@ const child: Delta<string> = [
 const mask: Delta<string> = [[2, 1, 70, 80, 0, 10, 20, 1, absent, absent], []]
 
 describe('Compiled production runtime', () => {
+  it.each([1, 3, 16])('follows %i empty source anchors without masking intervening inserts', (anchor_count) => {
+    const words: Array<number> = []
+    const inserted = Array.from({ length: anchor_count }, (_, index) => `X${index}`)
+    for (let index = 0; index < anchor_count; ++index) {
+      words.push(1, 0, 10, 20, index,
+        ...(index === 0 ? [0, 0, 0] : [10, 20, index - 1]),
+        (index + 1) * 2, absent)
+      words.push(1, 1, 30, 40, index * 2, 10, 20, index, absent, absent)
+    }
+    words.push(1, 3, 10, 20, anchor_count, 10, 20, anchor_count - 1, absent, absent)
+    const state = create<string>([words, [...inserted, 'a', 'b', 'c']])
+    const deletion: Delta<string> = [[2, 2, 70, 80, 0, 10, 20, 0, absent, absent], []]
+    expect(merge(state, deletion)).toEqual({ [anchor_count]: 'c', [anchor_count + 1]: undefined, [anchor_count + 2]: undefined })
+    expect(values(state)).toEqual([...inserted, 'c'])
+    expect(recover(state)).toEqual([...inserted, 'a', 'b', 'c'])
+    expect(acknowledge(state)).toEqual([70, 80, 3])
+    expect(merge(state, deletion)).toBe(false)
+    const saved = snapshot(state)
+    const restored = create<string>(saved)
+    expect(values(restored)).toEqual([...inserted, 'c'])
+    expect(recover(restored)).toEqual([...inserted, 'a', 'b', 'c'])
+    expect(acknowledge(restored)).toEqual([70, 80, 3])
+    expect(snapshot(restored)).toEqual(saved)
+  })
+
   it('resolves a pending child and ignores repeated identities', () => {
     const state = create<string>()
     expect(merge(state, child)).toBe(false)

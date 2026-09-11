@@ -68,4 +68,20 @@ int main() {
   assert(merge(id, pending, 0) == u32_max);
   assert(sequencer::projectors[id]->strip_type_of.size() == known);
   sequencer::clear_projection(id);
+
+  for (const bool mask_pending : {false, true}) {
+    const auto anchored_id = sequencer::initialize_projection();
+    const Words inserted{0, 1, 30, 40, 0, 10, 20, 0, u32_max, u32_max};
+    const Words anchored_mask{2, 3, 70, 80, 0, 10, 20, 0, u32_max, u32_max};
+    assert(merge(anchored_id, inserted, 3) == u32_max);
+    if (mask_pending)
+      assert(merge(anchored_id, anchored_mask, 0) == u32_max);
+    assert(merge(anchored_id, parent, 0) == 0);
+    if (!mask_pending)
+      assert(merge(anchored_id, anchored_mask, 0) == 1);
+    assert(read(anchored_id, "abcX") == "X");
+    assert(sequencer::projectors[anchored_id]->pending_table.is_empty());
+    assert(merge(anchored_id, anchored_mask, 0) == u32_max);
+    sequencer::clear_projection(anchored_id);
+  }
 }

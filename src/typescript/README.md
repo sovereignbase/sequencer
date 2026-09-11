@@ -1,9 +1,15 @@
-Rule #1 do as little work in typescript as possible.
+### Rule 1: Keep TypeScript minimal
 
-- Validate only bare minimium. Wasm can do the rest as long as what it really gets are Uint32s it wont break.
+Do as little work in TypeScript as possible.
 
-Rule # 2 Do not change "user-space" typescript signature must not change.
+TypeScript should only perform the minimum validation needed to ensure that the values passed into WASM are valid `Uint32` values. Everything else should be handled inside the WASM runtime.
 
-- new methods can be added
+The goal is to keep validation and runtime logic out of the TypeScript layer whenever WASM can safely handle it.
 
-- underlying runtime can be made more performant
+### Rule 2: Preserve the user-facing TypeScript API
+
+Existing user-space TypeScript signatures must not change.
+
+New methods may be added, but existing public signatures must remain compatible.
+
+The underlying runtime, memory layout, validation strategy, and WASM implementation may change freely when this improves performance, as long as the user-facing API remains unchanged.

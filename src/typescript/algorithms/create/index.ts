@@ -24,16 +24,15 @@ const finalization_registry = new FinalizationRegistry<number>(clear_sequence)
  * values are not deep-cloned. No SequencePoints are issued.
  */
 export function create<T>(data?: unknown): Replica<T> {
-  const delta = data as Delta<T> | undefined
-  const projection = delta?.[0]
-  const footage = delta === undefined ? [] : delta[1].slice()
+  const [projection, footage] = data as Delta<T>
+
   if (projection !== undefined) {
     const pointer =
       wasm._prepare_projection_buffer(projection.length / 10) >>> 2
     wasm.HEAPU32.set(projection, pointer)
   }
 
-  const state: Replica<T> = [initialize_sequence(), footage]
-  finalization_registry.register(state, state[0])
+  const state: Replica<T> = [initialize_sequence(), footage ?? []]
+  void finalization_registry.register(state, state[0])
   return state
 }

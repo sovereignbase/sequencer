@@ -22,10 +22,10 @@ const finalization_registry = new FinalizationRegistry<number>(clear_sequence)
  *
  * @typeParam T Consumer-owned value represented by one Frame.
  * @param data Optional trusted Delta; omitted data creates an empty Replica.
- * @returns A new Replica owning its Footage array and native Projector.
+ * @returns A new Replica using the supplied Footage array and a native Projector.
  * @remarks Input must be a valid trusted snapshot. Strip contents and ordering
- * are not validated or resolved again. Array storage is copied, but consumer
- * values are not deep-cloned. No SequencePoints are issued.
+ * are not validated or resolved again. Footage is used directly without a copy.
+ * No SequencePoints are issued.
  */
 export function create<T>(data?: unknown): Replica<T> {
   const [projection, footage] = (data ?? []) as Delta<T>

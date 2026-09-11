@@ -31,7 +31,7 @@ describe('Trusted snapshot initialization', () => {
     native._initialize_projection.mockReturnValue(42)
   })
 
-  it('transfers the trusted words once and copies the full Footage array', () => {
+  it('transfers the trusted words once and uses the supplied Footage array', () => {
     const data: Delta<string> = [
       projection.slice(),
       ['a', 'hidden', 'content', 'p'],
@@ -46,10 +46,10 @@ describe('Trusted snapshot initialization', () => {
     expect(state).toEqual([42, ['a', 'hidden', 'content', 'p']])
     expect(native._prepare_projection_buffer).toHaveBeenCalledExactlyOnceWith(3)
     expect(native._initialize_projection).toHaveBeenCalledTimes(1)
-    expect(state[1]).not.toBe(data[1])
+    expect(state[1]).toBe(data[1])
     data[0].fill(0)
     data[1].fill('changed')
-    expect(state[1]).toEqual(['a', 'hidden', 'content', 'p'])
+    expect(state[1]).toEqual(['changed', 'changed', 'changed', 'changed'])
   })
 
   it('reacquires the heap after preparing a growing buffer', () => {
@@ -84,14 +84,15 @@ describe('Trusted snapshot initialization', () => {
     expect(native._initialize_projection).toHaveBeenCalledTimes(1)
   })
 
-  it('preserves released slots and consumer object identity without aliasing arrays', () => {
+  it('preserves released slots and shares the consumer array', () => {
     const value = { text: 'retained' }
     const data = [projection, [value, undefined, value, value]]
     const state = create<typeof value>(data)
     expect(state[1]).toEqual([value, undefined, value, value])
     expect(state[1][0]).toBe(value)
     state[1][0] = undefined
-    expect(data[1][0]).toBe(value)
+    expect(state[1]).toBe(data[1])
+    expect(data[1][0]).toBeUndefined()
   })
 
   it('releases the native Projector through the current ABI', () => {

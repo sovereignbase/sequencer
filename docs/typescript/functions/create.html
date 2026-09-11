@@ -32,16 +32,16 @@ counters, and Footage positions, including retained soft-masked content.</p>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">data</span>: <span class="tsd-signature-type">unknown</span></span>
 <div class="tsd-comment tsd-typography"><p>Optional trusted Delta; omitted data creates an empty Replica.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createt">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A new Replica owning its Footage array and native Projector.</p>
+<h4 class="tsd-returns-title">Returns <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#createt">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A new Replica using the supplied Footage array and a native Projector.</p>
 
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
 <h4 class="tsd-anchor-link" id="remarks">Remarks<a href="#remarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Input must be a valid trusted snapshot. Strip contents and ordering
-are not validated or resolved again. Array storage is copied, but consumer
-values are not deep-cloned. No SequencePoints are issued.</p>
+are not validated or resolved again. Footage is used directly without a copy.
+No SequencePoints are issued.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/22e776831782182ea2b66654b0f864c2c750abd2/src/typescript/algorithms/create/index.ts#L30">algorithms/create/index.ts:30</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/e1332cae0f20d76a9d25a66485cedfd60ea59323/src/typescript/algorithms/create/index.ts#L30">algorithms/create/index.ts:30</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

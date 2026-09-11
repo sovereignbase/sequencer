@@ -13,7 +13,8 @@
 [[nodiscard]] inline std::pair<std::int32_t, std::int32_t>
 apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
              const std::uint32_t incoming_strip_index,
-             const std::uint32_t offset) noexcept {
+             const std::uint32_t offset,
+             std::uint32_t *const first_change = nullptr) noexcept {
   if (projector.left_strip_index_of[incoming_strip_index] != incoming_strip_index)
     return {0, 0};
   if (projector.strip_type_of[incoming_strip_index] == 2) {
@@ -51,6 +52,8 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
       const auto strip_diff = static_cast<std::int32_t>(
           projector.materialized_strip_count - previous_count);
       const auto position = find_projection_frame_index_of(projector, source, frame_diff, strip_diff);
+      if (first_change != nullptr && visible != 0)
+        *first_change = std::min(*first_change, position);
       projector.gate_strip_index = source;
       projector.projection_frame_index = position;
       counts.first += frame_diff;

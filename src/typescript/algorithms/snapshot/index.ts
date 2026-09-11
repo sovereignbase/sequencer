@@ -29,16 +29,9 @@ export function snapshot<T>(state: Replica<T>): Delta<T> {
   snapshot_sequence(state[0])
   const projection = read_projection_from_buffer()
   const buffer = read_footage_spans()
-  const span_start = 0
-  const span_end = buffer.length
-
-  let footage_length = 0
-  for (let span_index = span_start; span_index < span_end; span_index += 4)
-    footage_length += buffer[span_index + 2]
-
-  const footage = new Array<T>(footage_length)
+  const footage: Array<T> = []
   let result_index = 0
-  for (let span_index = span_start; span_index < span_end; span_index += 4) {
+  for (let span_index = 0; span_index < buffer.length; span_index += 4) {
     const footage_start = buffer[span_index + 1]
     const footage_end = footage_start + buffer[span_index + 2]
     for (

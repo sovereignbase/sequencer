@@ -94,7 +94,7 @@ describe('Local insert transfer', () => {
     expect(native._clear_projection_buffer).not.toHaveBeenCalled()
   })
 
-  it('reads the replacement heap and keeps all three arrays independent', () => {
+  it('reads the replacement heap and returns the supplied values array', () => {
     native._update_projection.mockImplementation(() => {
       native.HEAPU32 = new Uint32Array(256)
       native.HEAPU32.set(words, 128)
@@ -106,18 +106,20 @@ describe('Local insert transfer', () => {
     expect(result).toEqual([words, input])
     expect(result).not.toBe(false)
     if (!result) throw new Error('insert rejected')
+    expect(result[1]).toBe(input)
     input[0] = 'changed'
     result[1][1] = 'changed'
     expect(state[1]).toEqual(['a', 'b', 'c', undefined, 'X', 'Y'])
     expect(result[0]).toEqual(words)
-    expect(result[1][0]).toBe('X')
+    expect(result[1][0]).toBe('changed')
   })
 
   it('accepts aliased input without copying newly appended entries recursively', () => {
     const input = ['a', 'b']
     const replica: Replica<string> = [42, input]
     native._get_projection_frame_count.mockReturnValue(2)
-    expect(insert(replica, 2, input)).toEqual([words, ['a', 'b']])
+    const result = insert(replica, 2, input)
+    expect(result && result[1]).toBe(input)
     expect(replica[1]).toEqual(['a', 'b', 'a', 'b'])
   })
 

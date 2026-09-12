@@ -1,0 +1,2 @@
+Realm id and unix must be per projector so instances can be destroyed, and initialized within one session safely
+this also enables a more frequent compaction for replicas only one actor owns.

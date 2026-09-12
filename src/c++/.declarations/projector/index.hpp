@@ -162,10 +162,11 @@ struct Projector {
   const std::uint32_t mask_session_crypto_random_bits = std::random_device{}();
   const std::uint32_t insert_session_crypto_random_bits =
       std::random_device{}();
-  const std::uint32_t shared_realm_unix_lower_bits = static_cast<std::uint32_t>(
-      std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::system_clock::now().time_since_epoch())
-          .count());
+  const std::uint32_t shared_session_unix_lower_bits =
+      static_cast<std::uint32_t>(
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+              std::chrono::system_clock::now().time_since_epoch())
+              .count());
 
   // TODO: EVERYTHING BELOW MUST BE REMOVED ALL OF THEM ARE USELESS PERFORMENCE
   // DEGRADING BLOAT!!! COLLECTED FRONTIERS YUK!!! Unordered map YUK!!! FUCKING

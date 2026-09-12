@@ -26,17 +26,4 @@ inline ProjectionBuffer projection_buffer;
 
 /** @brief Shared variable-width transfer buffer for one Frontier. */
 inline SequencePointBuffer sequence_point_buffer;
-
-inline const std::uint32_t insert_realm_crypto_random_bits =
-    std::random_device{}();
-
-inline const std::uint32_t mask_realm_crypto_random_bits =
-    std::random_device{}();
-
-inline const std::uint32_t shared_realm_unix_lower_bits =
-    static_cast<std::uint32_t>(
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch())
-            .count());
-
-}
+} // namespace sequencer

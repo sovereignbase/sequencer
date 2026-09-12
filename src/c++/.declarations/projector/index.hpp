@@ -45,20 +45,23 @@ struct Projector {
   std::vector<uint8_t> strip_type_of;
 
   /**
-   * @brief Immutable issued SequencePoint span lengths, excluding the zero anchor.
+   * @brief Immutable issued SequencePoint span lengths, excluding the zero
+   * anchor.
    */
   std::vector<std::uint32_t> initial_length_of;
 
   /** @brief Current physical source fragment lengths. */
   std::vector<std::uint32_t> fragment_length_of;
 
-  /** @brief Creation-time dependency offset; structural fragments store their source offset. */
+  /** @brief Creation-time dependency offset; structural fragments store their
+   * source offset. */
   std::vector<std::uint32_t> dependency_prefix_of;
 
   /** @brief Next smaller sibling sharing the same previous Strip end. */
   std::vector<std::uint32_t> smaller_competitor_strip_index_of;
 
-  /** @brief Next physical source fragment; instructions never have a split link. */
+  /** @brief Next physical source fragment; instructions never have a split
+   * link. */
   std::vector<std::uint32_t> larger_split_strip_index_of;
 
   /**
@@ -156,13 +159,31 @@ struct Projector {
 
   std::vector<std::uint32_t> footage_frame_index_of;
 
+  const std::uint32_t mask_session_crypto_random_bits = std::random_device{}();
+  const std::uint32_t insert_session_crypto_random_bits =
+      std::random_device{}();
+  const std::uint32_t shared_realm_unix_lower_bits = static_cast<std::uint32_t>(
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::system_clock::now().time_since_epoch())
+          .count());
+
+  // TODO: EVERYTHING BELOW MUST BE REMOVED ALL OF THEM ARE USELESS PERFORMENCE
+  // DEGRADING BLOAT!!! COLLECTED FRONTIERS YUK!!! Unordered map YUK!!! FUCKING
+  // DISGUSTING USELESS PIECES OF SHIT AND THE PERFORMANCE FUCKING SHOWS IT
+  // THE FUCKING MASKS ARE IN THE FUCKING CONTAINMENT TABLE YOU GET
+  // ACKNOWLEDMENT FRONTIERS FROM TYPESCRIPT AND YOU FUCKING LOOK UP THAT
+  // FRONTIER AKA MASK REALM AND COLLECT IT AND THATS FUCKING IT NO INFO
+  // RETAINED FOR FUCKS SAKE IF THE hard boolean 1/0 is true you do hard
+  // compaction, if it is false you do soft compaction
+
   /** @brief Greatest instruction Mask owning each applied source fragment. */
   std::unordered_map<std::uint32_t, std::uint32_t> mask_owner_of;
 
   /** @brief Collected Mask Realm frontiers retained across snapshots. */
   std::vector<SequencePoint> collected_frontiers;
 
-  /** @brief Compact causal forwarding record for a collected source interval. */
+  /** @brief Compact causal forwarding record for a collected source interval.
+   */
   struct CollectedSource {
     SequencePoint start;
     std::uint32_t length;
@@ -171,7 +192,8 @@ struct Projector {
   std::vector<CollectedSource> collected_sources;
   std::unique_ptr<ContainmentTable> collected_table;
 
-  /** @brief Retain deduplication and causal forwarding after structural removal. */
+  /** @brief Retain deduplication and causal forwarding after structural
+   * removal. */
   void remember_collected_source(const CollectedSource source) {
     if (!collected_table)
       collected_table = std::make_unique<ContainmentTable>();
@@ -179,8 +201,10 @@ struct Projector {
     collected_sources.push_back(source);
   }
 
-  /** @brief Resolve dependencies through previously collected source intervals. */
-  SequencePoint resolve_collected_dependency(SequencePoint point) const noexcept {
+  /** @brief Resolve dependencies through previously collected source intervals.
+   */
+  SequencePoint
+  resolve_collected_dependency(SequencePoint point) const noexcept {
     if (collected_table)
       for (std::size_t count = 0; count < collected_sources.size(); ++count) {
         if (containment_table.get(point).first != u32_max)
@@ -200,12 +224,15 @@ struct Projector {
    */
   template <typename Visitor>
   void for_each_footage_span(const std::uint32_t strip_index,
-                            Visitor &&visit) const noexcept {
-    if (strip_type_of[strip_index] != 2 && footage_frame_index_of[strip_index] != u32_max)
-      visit(footage_frame_index_of[strip_index], fragment_length_of[strip_index]);
+                             Visitor &&visit) const noexcept {
+    if (strip_type_of[strip_index] != 2 &&
+        footage_frame_index_of[strip_index] != u32_max)
+      visit(footage_frame_index_of[strip_index],
+            fragment_length_of[strip_index]);
   }
 
-  /** @brief Visible length; Masks retain identity spans but project no Frames. */
+  /** @brief Visible length; Masks retain identity spans but project no Frames.
+   */
   [[nodiscard]] std::uint32_t
   get_projected_strip_length(const std::uint32_t strip_index) const noexcept {
     return strip_type_of[strip_index] < 2 ? fragment_length_of[strip_index] : 0;
@@ -220,7 +247,8 @@ struct Projector {
     return 0;
   }
 
-  /** @brief Recover the creation-time source anchor without rewriting the instruction. */
+  /** @brief Recover the creation-time source anchor without rewriting the
+   * instruction. */
   SequencePoint dependency_origin(const std::uint32_t strip) const noexcept {
     auto origin = previous_strip_end_of[strip];
     origin.counter_bits -= dependency_prefix_of[strip];
@@ -232,15 +260,16 @@ struct Projector {
   }
 
   SequencePoint fragment_start(const std::uint32_t strip) const noexcept {
-    return is_fragment(strip) ? previous_strip_end_of[strip] : strip_start_of[strip];
+    return is_fragment(strip) ? previous_strip_end_of[strip]
+                              : strip_start_of[strip];
   }
 
   std::uint32_t fragment_offset(const std::uint32_t strip) const noexcept {
     return is_fragment(strip) ? dependency_prefix_of[strip] : 0;
   }
 
-  std::pair<std::uint32_t, std::uint32_t> resolve_dependency(
-      const std::uint32_t strip) const noexcept {
+  std::pair<std::uint32_t, std::uint32_t>
+  resolve_dependency(const std::uint32_t strip) const noexcept {
     const auto origin = dependency_origin(strip);
     auto source = containment_table.get(origin).first;
     auto offset = dependency_prefix_of[strip];
@@ -280,8 +309,8 @@ struct Projector {
         source = larger_split_strip_index_of[source];
         continue;
       }
-      const auto length = static_cast<std::uint32_t>(
-          std::min<std::uint64_t>(remaining, start + fragment_length_of[source] - offset));
+      const auto length = static_cast<std::uint32_t>(std::min<std::uint64_t>(
+          remaining, start + fragment_length_of[source] - offset));
       if (length != 0) {
         visit(source, offset - start, length);
         remaining -= length;

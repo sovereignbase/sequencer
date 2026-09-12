@@ -9,12 +9,8 @@ import {
   type ReplicaName,
 } from '../types.ts'
 
-const replicas: Array<ReplicaName> = ['A', 'B', 'C']
-const scopes: Array<MetricScope> = [
-  'scaleUp',
-  'scaleDown',
-  'fullLifecycle',
-]
+const replicas: Array<ReplicaName> = ['A']
+const scopes: Array<MetricScope> = ['scaleUp', 'scaleDown', 'fullLifecycle']
 
 const microseconds = (nanoseconds: number | null): string =>
   nanoseconds === null ? '—' : (nanoseconds / 1_000).toFixed(3)
@@ -223,15 +219,11 @@ const makeMarkdown = (report: BenchmarkReport): string => {
             decimal(
               space.storageBytesPerStripBeforeCompact.averageBytesPerUnit
             ),
-            decimal(
-              space.storageBytesPerStripAfterCompact.averageBytesPerUnit
-            ),
+            decimal(space.storageBytesPerStripAfterCompact.averageBytesPerUnit),
             decimal(
               space.storageBytesPerFrameBeforeCompact.averageBytesPerUnit
             ),
-            decimal(
-              space.storageBytesPerFrameAfterCompact.averageBytesPerUnit
-            ),
+            decimal(space.storageBytesPerFrameAfterCompact.averageBytesPerUnit),
           ])
         )
       }
@@ -266,9 +258,7 @@ export function printSummary(report: BenchmarkReport): void {
               : Math.round(
                   metric.sampleWeightedOperationsPerSecond
                 ).toLocaleString('en-US'),
-          'weighted avg': microseconds(
-            metric.sampleWeightedAverageNanoseconds
-          ),
+          'weighted avg': microseconds(metric.sampleWeightedAverageNanoseconds),
           'mean run': microseconds(metric.meanRunAverageNanoseconds),
           'min run': metric.minimumRun?.run ?? '—',
           'max run': metric.maximumRun?.run ?? '—',

@@ -2,23 +2,19 @@
 
 ## Purpose
 
-Benchmark three independent Sequencer policy workloads through a full dynamic
-lifecycle. Each workload contains two replicas editing the same document: one
-measured replica and one peer, for six live replicas in total.
+Benchmark one Sequencer policy workload through a full dynamic lifecycle. The
+workload contains two replicas editing the same document: one measured replica
+and one peer.
 
 Run the complete benchmark **3 times**.
 
 Replicas:
 
-| Replica | Remove | Compact |
-| ------- | ------ | ------- |
-| A       | soft   | soft    |
-| B       | soft   | hard    |
-| C       | hard   | hard    |
+| Replica pair | Remove | Compact |
+| ------------ | ------ | ------- |
+| A            | soft   | hard    |
 
-The two replicas inside a workload use the same remove and compaction policy.
-The A, B, and C workloads are independent and never exchange Deltas with each
-other.
+Both replicas use soft deletion and hard compaction.
 
 ## Scale
 
@@ -180,8 +176,8 @@ snapshotted, destroyed, and reinitialized outside the measured regions.
 
 ## State lifecycle
 
-Every run starts with six completely fresh replicas: three measured replicas
-and their three peers.
+Every run starts with two completely fresh replicas: the measured replica and
+its peer.
 
 `destroy` must release the native Projector and invalidate the Replica.
 
@@ -242,8 +238,8 @@ Run 2
 Each run:
 
 - uses its own deterministic seed
-- starts from six completely fresh replicas
-- runs an independent policy workload
+- starts from two completely fresh replicas
+- runs the soft-remove, hard-compact workload
 - receives one fresh merge sample per workload step from its paired replica
 - shares no state with another run
 
@@ -262,17 +258,10 @@ maximum
 Each run measures:
 
 ```text
-3 policy workloads × 2 replicas
+1 policy workload × 2 replicas
 ×
 0 → 100,000 → 0 visible Strips
 ```
 
-with:
-
-```text
-A: soft remove + soft compact
-B: soft remove + hard compact
-C: hard remove + hard compact
-```
-
-and fresh within-pair merge samples throughout the lifecycle.
+using soft removal, hard compaction, and fresh within-pair merge samples
+throughout the lifecycle.

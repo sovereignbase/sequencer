@@ -21,7 +21,7 @@ export const management_names = [
 ] as const
 
 export type Direction = 'up' | 'down'
-export type ReplicaName = 'A' | 'B' | 'C'
+export type ReplicaName = 'A'
 export type RemovalPolicy = 'soft' | 'hard'
 export type CompactionPolicy = 'soft' | 'hard'
 export type ReplicaPolicy = {

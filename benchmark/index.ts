@@ -6,7 +6,7 @@ import { printSummary, writeReports } from './report/index.ts'
 import type { BenchmarkConfig, BenchmarkReport } from './types.ts'
 
 // POWERS OF 10 (^0 ^1 ^2 ^3 ^4 ^5)
-const defaultCheckpoints = [1, 10, 100, 1_000, 10_000, 100_000]
+const defaultCheckpoints = [1, 10, 100, 1_000, 10_000]
 
 const usage = [
   'Sequencer TypeScript API lifecycle benchmark',
@@ -16,7 +16,7 @@ const usage = [
   '',
   'Options:',
   '  --runs <n>            Complete runs (default: 3)',
-  '  --max-strips <n>      Maximum visible Strip count (default: 100_000)',
+  '  --max-strips <n>      Maximum visible Strip count (default: 10_000)',
   '  --seed <text>          Reproducible base seed (default: sequencer-lifecycle-v1)',
   '  --warmup-cycles <n>    Unreported up/down workload cycles (default: 64)',
   '  --strip-length <n>     Use one fixed Strip length instead of 1...100',
@@ -37,7 +37,7 @@ const readInteger = (name: string, value: string | undefined): number => {
 
 export function parseConfig(arguments_: Array<string>): BenchmarkConfig {
   let runs = 3
-  let maximumStripCount = 100_000
+  let maximumStripCount = 10_000
   let warmupCycles = 64
   let minimumStripFrameLength = 1
   let maximumStripFrameLength = 100
@@ -106,9 +106,7 @@ export function parseConfig(arguments_: Array<string>): BenchmarkConfig {
     maximumStripFrameLength,
     warmupCycles,
     replicaPolicies: {
-      A: { remove: 'soft', compact: 'soft' },
-      B: { remove: 'soft', compact: 'hard' },
-      C: { remove: 'hard', compact: 'hard' },
+      A: { remove: 'soft', compact: 'hard' },
     },
     baseSeed,
     outputPath,

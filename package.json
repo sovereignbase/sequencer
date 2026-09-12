@@ -54,6 +54,7 @@
     "test:browser": "node scripts/run-browser-tests.mjs",
     "test:compare": "",
     "bench": "npm run build:wasm && npm run build && node --expose-gc --experimental-strip-types benchmark/index.ts",
+    "bench:yarray": "node --expose-gc --experimental-strip-types benchmark/yarray/index.ts",
     "prepare": "husky",
     "prepublishOnly": "npm run test && npm run bench"
   },
@@ -81,7 +82,8 @@
     "typescript": "^5.9.3",
     "unrun": "^0.3.1",
     "vitest": "^5.0.0",
-    "wrangler": "^4.131.0"
+    "wrangler": "^4.131.0",
+    "yjs": "^13.6.32"
   },
   "repository": {
     "type": "git",

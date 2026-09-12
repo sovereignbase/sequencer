@@ -217,40 +217,28 @@ const runRandomWorkload = (
   )
 }
 
-const runScaleUpStep = (
-  runtimes: Record<ReplicaName, Runtime>,
-  config: BenchmarkConfig
-): void => {
-  for (const runtime of [runtimes.A, runtimes.B, runtimes.C]) {
-    const tail = runtime.strips.count % 2 === 0
-    insertAt(
-      runtime,
-      config,
-      'up',
-      tail ? 'tailInsert' : 'headInsert',
-      tail ? runtime.strips.count : 0
-    )
-  }
-  for (const runtime of [runtimes.A, runtimes.B, runtimes.C])
-    runRandomWorkload(runtime, config, 'up')
+const runScaleUpStep = (runtime: Runtime, config: BenchmarkConfig): void => {
+  const tail = runtime.strips.count % 2 === 0
+  insertAt(
+    runtime,
+    config,
+    'up',
+    tail ? 'tailInsert' : 'headInsert',
+    tail ? runtime.strips.count : 0
+  )
+  runRandomWorkload(runtime, config, 'up')
 }
 
-const runScaleDownStep = (
-  runtimes: Record<ReplicaName, Runtime>,
-  config: BenchmarkConfig
-): void => {
-  for (const runtime of [runtimes.A, runtimes.B, runtimes.C])
-    runRandomWorkload(runtime, config, 'down')
-  for (const runtime of [runtimes.A, runtimes.B, runtimes.C]) {
-    const head = runtime.strips.count % 2 === 0
-    removeAt(
-      runtime,
-      config,
-      'down',
-      head ? 'headRemove' : 'tailRemove',
-      head ? 0 : runtime.strips.count - 1
-    )
-  }
+const runScaleDownStep = (runtime: Runtime, config: BenchmarkConfig): void => {
+  runRandomWorkload(runtime, config, 'down')
+  const head = runtime.strips.count % 2 === 0
+  removeAt(
+    runtime,
+    config,
+    'down',
+    head ? 'headRemove' : 'tailRemove',
+    head ? 0 : runtime.strips.count - 1
+  )
 }
 
 const snapshotMetric = <T>(operation: () => T): [MetricResult, T] => {
@@ -373,13 +361,11 @@ const collectGarbage = async (): Promise<void> => {
 const takeCheckpoint = async (
   run: number,
   direction: Direction,
-  runtimes: Record<ReplicaName, Runtime>
+  runtime: Runtime
 ): Promise<CheckpointResult> => {
   await collectGarbage()
   const replicas = {
-    A: observeReplica(runtimes.A, direction),
-    B: observeReplica(runtimes.B, direction),
-    C: observeReplica(runtimes.C, direction),
+    A: observeReplica(runtime, direction),
   }
   await collectGarbage()
   const processMemory = process.memoryUsage()
@@ -405,7 +391,7 @@ const checkpointMicroseconds = (nanoseconds: number | null): string =>
   nanoseconds === null ? '—' : (nanoseconds / 1_000).toFixed(3)
 
 const printCheckpoint = (checkpoint: CheckpointResult): void => {
-  const replicaNames: Array<ReplicaName> = ['A', 'B', 'C']
+  const replicaNames: Array<ReplicaName> = ['A']
   console.log(
     `\nRun ${checkpoint.run + 1} | ${checkpoint.direction} | ${checkpoint.stripCount.toLocaleString('en-US')} Strips | ${checkpoint.frameCount.toLocaleString('en-US')} Frames`
   )
@@ -510,53 +496,44 @@ async function runOneLifecycle(
   reportProgress: boolean
 ): Promise<RunResult> {
   const [initializationA, stateA] = snapshotMetric(() => api.create<number>())
-  const [initializationB, stateB] = snapshotMetric(() => api.create<number>())
-  const [initializationC, stateC] = snapshotMetric(() => api.create<number>())
   const workloadSeed = deriveSeed(runSeed, 'shared-replica-workload')
-  const runtimes = {
-    A: makeRuntime('A', stateA, workloadSeed, config.replicaPolicies.A),
-    B: makeRuntime('B', stateB, workloadSeed, config.replicaPolicies.B),
-    C: makeRuntime('C', stateC, workloadSeed, config.replicaPolicies.C),
-  }
+  const runtime = makeRuntime(
+    'A',
+    stateA,
+    workloadSeed,
+    config.replicaPolicies.A
+  )
   const checkpoints: Array<CheckpointResult> = []
   const checkpointSet = new Set(config.checkpoints)
 
   const record = async (direction: Direction): Promise<void> => {
-    const checkpoint = await takeCheckpoint(run, direction, runtimes)
+    const checkpoint = await takeCheckpoint(run, direction, runtime)
     checkpoints.push(checkpoint)
     if (reportProgress) printCheckpoint(checkpoint)
   }
 
-  while (runtimes.A.strips.count < config.maximumStripCount) {
-    runScaleUpStep(runtimes, config)
-    if (checkpointSet.has(runtimes.A.strips.count)) await record('up')
+  while (runtime.strips.count < config.maximumStripCount) {
+    runScaleUpStep(runtime, config)
+    if (checkpointSet.has(runtime.strips.count)) await record('up')
   }
 
-  while (runtimes.A.strips.count > 0) {
-    runScaleDownStep(runtimes, config)
-    if (checkpointSet.has(runtimes.A.strips.count)) await record('down')
+  while (runtime.strips.count > 0) {
+    runScaleDownStep(runtime, config)
+    if (checkpointSet.has(runtime.strips.count)) await record('down')
   }
 
-  void api.destroy(runtimes.A.state)
-  void api.destroy(runtimes.B.state)
-  void api.destroy(runtimes.C.state)
-  void api.destroy(runtimes.A.peer)
-  void api.destroy(runtimes.B.peer)
-  void api.destroy(runtimes.C.peer)
+  void api.destroy(runtime.state)
+  void api.destroy(runtime.peer)
   resultSink = undefined
   return {
     run,
     seed: formatSeed(runSeed),
     initialization: {
       A: initializationA,
-      B: initializationB,
-      C: initializationC,
     },
     checkpoints,
     replicas: {
-      A: finishRuntime(runtimes.A),
-      B: finishRuntime(runtimes.B),
-      C: finishRuntime(runtimes.C),
+      A: finishRuntime(runtime),
     },
   }
 }
@@ -581,7 +558,7 @@ export async function warmUp(config: BenchmarkConfig): Promise<void> {
   await collectGarbage()
 }
 
-/** Runs three continuously evolving TypeScript API Replicas. */
+/** Runs one measured Replica and its continuously synchronized peer. */
 export async function runLifecycles(
   config: BenchmarkConfig
 ): Promise<Array<RunResult>> {
@@ -602,7 +579,7 @@ export async function runLifecycles(
 export function aggregateRuns(
   runs: Array<RunResult>
 ): BenchmarkReport['aggregates'] {
-  const replicaNames: Array<ReplicaName> = ['A', 'B', 'C']
+  const replicaNames: Array<ReplicaName> = ['A']
   const scopes: Array<MetricScope> = ['scaleUp', 'scaleDown', 'fullLifecycle']
   return Object.fromEntries(
     replicaNames.map((replicaName) => [

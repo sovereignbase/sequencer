@@ -122,7 +122,7 @@ Mutta yhden Stripin / Gate-hit findissä nykyinen C++ ei sisällä mitään, mik
 
 ### Järjestys jossa korjaisin
 
-**#1 ehdottomasti:** älä vapauta `projection_buffer` capacitya jokaisen updaten jälkeen.
+**#1 ehdottomasti:** älä vapauta `projection_buffer` eikä minkään muunkaan capacitya ollenkaan pidä varaukset.
 
 **#2:** yhden Stripin fixed native result buffer + manual 12-word JS read, pois `Array.from(subarray())`.
 

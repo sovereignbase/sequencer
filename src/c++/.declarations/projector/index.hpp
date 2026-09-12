@@ -11,14 +11,16 @@
 #include "../../.containment_table/index.hpp"
 #include "../../.pending_table/index.hpp"
 #include "../sentinels/index.hpp"
+#include <algorithm>
 #include <chrono>
+#include <cstddef>
 #include <cstring>
 #include <memory>
+#include <limits>
 #include <span>
 #include <cstdint>
 #include <random>
 #include <utility>
-#include <vector>
 
 /**
  * @brief Owned runtime state that materializes one Sequence and its Projection.
@@ -52,10 +54,10 @@ struct Projector {
     const auto capacity = std::max(required, std::max(64u, strip_capacity * 2));
     constexpr auto bytes_per_strip = sizeof(std::uint8_t) +
         14 * sizeof(std::uint32_t) + 2 * sizeof(SequencePoint);
-    constexpr std::size_t lane_padding = 64;
+    if (capacity > std::numeric_limits<std::size_t>::max() / bytes_per_strip)
+      throw std::bad_array_new_length{};
     auto storage = std::unique_ptr<std::byte[]>{
-        new std::byte[static_cast<std::size_t>(capacity) * bytes_per_strip +
-                      17 * lane_padding]};
+        new std::byte[static_cast<std::size_t>(capacity) * bytes_per_strip]};
     auto *cursor = storage.get();
     const auto relocate = [&]<typename Value>(std::span<Value> &lane) {
       auto *target = reinterpret_cast<Value *>(cursor);
@@ -63,7 +65,7 @@ struct Projector {
       if (strip_count != 0)
         std::memcpy(target, lane.data(), sizeof(Value) * strip_count);
       lane = {target, capacity};
-      cursor += sizeof(Value) * capacity + lane_padding;
+      cursor += sizeof(Value) * capacity;
     };
     relocate(initial_length_of);
     relocate(fragment_length_of);

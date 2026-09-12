@@ -65,8 +65,7 @@ public:
    *
    * @post `get_sequence_point_count()` returns zero.
    * @note Previously returned pointers must no longer be dereferenced.
-   * @complexity Linear in the current word count as specified for
-   * `std::vector::clear`.
+   * @complexity O(1); only the logical word count changes.
    */
   inline void clear() noexcept {
     // Discard entries while retaining their allocation for reuse.
@@ -140,7 +139,7 @@ public:
   /**
    * @brief Return the number of complete Realm entries in the sequence_point.
    *
-   * @return `words.size() / words_per_sequence_point_entry`.
+   * @return `word_count / words_per_sequence_point_entry`.
    * @complexity O(1) time and O(1) space.
    */
   [[nodiscard]] inline std::uint32_t get_sequence_point_count() const noexcept {

@@ -23,7 +23,7 @@
  * @post Prefix and suffix cover the original Footage without copying it.
  * Original SequencePoints and the issued containment span remain unchanged.
  * A zero-length prefix retains its split link to the content continuation.
- * @complexity Amortized O(1), excluding vector reallocation.
+ * @complexity Amortized O(1), excluding shared SoA growth.
  */
 [[nodiscard]] inline std::uint32_t
 split_strip(Projector &projector, const std::uint32_t strip_index,

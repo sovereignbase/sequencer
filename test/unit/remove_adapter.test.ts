@@ -101,19 +101,9 @@ describe('Local removal transfer', () => {
   })
 
   it.each([
-    [-1, 3],
-    [0.5, 3],
-    [NaN, 3],
-    [Infinity, 3],
-    [0, -1],
-    [0, 2.5],
-    [0, NaN],
-    [0, Infinity],
-    [0, 6],
-    [3, 2],
     [3, 3],
     [5, 5],
-  ])('rejects range [%s, %s) before issuance', (start, end) => {
+  ])('does not issue an empty range [%s, %s)', (start, end) => {
     expect(remove(state, start, end)).toBe(false)
     expect(native._update_projection).not.toHaveBeenCalled()
     expect(native._clear_projection_buffer).not.toHaveBeenCalled()

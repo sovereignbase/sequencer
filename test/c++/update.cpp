@@ -132,7 +132,7 @@ int main() {
 
   Fixture editing;
   std::string expected;
-  for (std::uint32_t edit = 0; edit < 100; ++edit) {
+  for (std::uint32_t edit = 0; edit < 1024; ++edit) {
     const auto position = expected.empty() ? 0u : edit * 7u % (expected.size() + 1);
     const auto type = position == expected.size() && !expected.empty() ? 1u : 0u;
     const auto target = type == 1 ? position - 1 : position;
@@ -142,6 +142,10 @@ int main() {
     expected.insert(position, text);
     editing.check(expected);
   }
+
+  const auto &jumps = sequencer::projectors[editing.id]->right_jump_strip_index_of;
+  assert(std::any_of(jumps.begin(), jumps.end(),
+                     [](const auto target) { return target != u32_max; }));
 
   for (const auto type : {2u, 3u, 5u}) {
     Fixture retained(1, type);

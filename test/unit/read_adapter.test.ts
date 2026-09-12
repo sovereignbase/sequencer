@@ -59,15 +59,8 @@ describe('Projection read adapters', () => {
     expect(native._get_footage_frame_index).toHaveBeenCalledWith(42, 0)
     native._get_footage_frame_index.mockReturnValue(10)
     expect(find(state, 2)).toBeUndefined()
+    expect(native._get_projection_frame_count).not.toHaveBeenCalled()
   })
-
-  it.each([-1, 6, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER])(
-    'rejects invalid Find index %s before native traversal',
-    (index) => {
-      expect(find(state, index)).toBeUndefined()
-      expect(native._get_footage_frame_index).not.toHaveBeenCalled()
-    }
-  )
 
   it('decodes four-word spans in Projection rather than Footage order', () => {
     native.HEAPU32.set([0, 8, 3, 0, 3, 2, 2, 0, 5, 5, 1, 0], 4)
@@ -94,21 +87,15 @@ describe('Projection read adapters', () => {
   })
 
   it.each([
-    [-1, 2],
-    [1, 7],
-    [4, 2],
-    [NaN, 2],
-    [0.5, 2],
-    [1, Infinity],
     [1, 1],
     [6, 6],
   ])(
-    'rejects empty or invalid range [%s, %s) before native traversal',
+    'delegates empty range [%s, %s) to native read',
     (start, end) => {
       expect(values(state, start, end)).toEqual([])
       expect(
         native._write_projection_footage_spans_to_buffer
-      ).not.toHaveBeenCalled()
+      ).toHaveBeenCalledWith(42, start, end)
     }
   )
 
@@ -122,13 +109,11 @@ describe('Projection read adapters', () => {
     expect(values(state, 0, 3)).toEqual(['a', 'b', undefined])
   })
 
-  it('does not traverse an empty Projection', () => {
+  it('reads an empty Projection range', () => {
     native._get_projection_frame_count.mockReturnValue(0)
     expect(values(state)).toEqual([])
-    expect(find(state, 0)).toBeUndefined()
     expect(
       native._write_projection_footage_spans_to_buffer
-    ).not.toHaveBeenCalled()
-    expect(native._get_footage_frame_index).not.toHaveBeenCalled()
+    ).toHaveBeenCalledWith(42, 0, 0)
   })
 })

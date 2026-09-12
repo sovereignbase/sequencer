@@ -29,6 +29,7 @@ Thumbs.db
 .claude/
 
 temp/
+benchmark/results/
 
 .doxygen/
 .sphinx/

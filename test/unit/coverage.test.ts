@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 describe('TypeScript boundaries', () => {
   it('validates flat Delta tuple shapes', async () => {
-    const { is_safe_index, is_delta } =
+    const { is_delta } =
       await import('../../src/typescript/helpers/index.js')
     const meta = [1, 1, 1, 2, 0, 0, 0, 0, 0xffff_ffff, 0xffff_ffff, 1, 0]
 
@@ -14,8 +14,6 @@ describe('TypeScript boundaries', () => {
     expect(is_delta([meta, ['a']])).toBe(true)
     expect(is_delta([[2, ...meta.slice(1)], []])).toBe(true)
     expect(is_delta([[], []])).toBe(true)
-    expect(is_safe_index(0.5, 1)).toBe(false)
-    expect(is_safe_index(1, 1, true)).toBe(true)
   })
 
   it('releases the native sequence through its finalizer', async () => {

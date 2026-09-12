@@ -3,7 +3,6 @@
  *
  * @module
  */
-import { is_safe_index } from '../../helpers/is_safe_index/index.js'
 import type { Replica } from '../../types/type.js'
 import {
   get_projection_footage_spans,
@@ -17,8 +16,8 @@ import {
  * @param state Replica whose Projection is read.
  * @param start_index First visible frame to include.
  * @param end_index Boundary after the final frame; defaults to Projection end.
- * @returns The selected visible values, or an empty array for an invalid or
- * empty range.
+ * @returns The selected visible values, or an empty array for an empty range.
+ * @remarks The caller supplies valid range boundaries.
  * @remarks Masks are skipped natively. The resulting spans are consumed before
  * another Wasm call can reuse the shared Footage Span Buffer.
  */
@@ -27,14 +26,7 @@ export function values<T>(
   start_index = 0,
   end_index?: number
 ): Array<T | undefined> {
-  const projection_frame_count = get_projection_frame_count(state[0])
-  const range_end = end_index ?? projection_frame_count
-  if (
-    !is_safe_index(start_index, projection_frame_count, true) ||
-    !is_safe_index(range_end, projection_frame_count, true) ||
-    start_index >= range_end
-  )
-    return []
+  const range_end = end_index ?? get_projection_frame_count(state[0])
 
   const spans = get_projection_footage_spans(state[0], start_index, range_end)
   if (!spans) return []
@@ -52,5 +44,5 @@ export function values<T>(
       result[result_index++] = state[1][footage_index]
   }
   void clear_footage_spans()
-  return result
+  return result ?? []
 }

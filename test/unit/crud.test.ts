@@ -12,14 +12,11 @@ import {
 } from '../../src/typescript/index.js'
 
 describe('runtime CRUD', () => {
-  it('creates an empty Projection and validates read ranges', () => {
+  it('creates an empty Projection', () => {
     const state = create<string>()
 
     expect(length(state)).toBe(0)
     expect(values(state)).toEqual([])
-    expect(values(state, -1)).toEqual([])
-    expect(values(state, 0.5)).toEqual([])
-    expect(find(state, 0)).toBeUndefined()
     expect(recover(state)).toEqual([])
   })
 
@@ -112,18 +109,12 @@ describe('runtime CRUD', () => {
     expect(values(state)).toEqual(['a'])
   })
 
-  it('rejects invalid writes without changing the Projection', () => {
+  it('does not issue empty writes', () => {
     const state = create<string>()
     assert(insert(state, 0, ['a']))
 
-    expect(insert(state, -1, ['x'])).toBe(false)
-    expect(insert(state, 0.5, ['x'])).toBe(false)
-    expect(insert(state, 2, ['x'])).toBe(false)
     expect(insert(state, 0, [])).toBe(false)
     expect(remove(state, 0, 0)).toBe(false)
-    expect(remove(state, 2, 3)).toBe(false)
-    expect(values(state, 1, 0)).toEqual([])
-    expect(values(state, 0, 2)).toEqual([])
     expect(values(state)).toEqual(['a'])
   })
 })

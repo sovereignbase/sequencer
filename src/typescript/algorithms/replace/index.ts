@@ -23,7 +23,7 @@ import type { Delta, Replica } from '../../types/type.js'
  * @param index Zero-based visible index at which replacement begins.
  * @param values Contiguous values replacing the existing visible Frames.
  * @param hard Whether replaced Footage should be released.
- * @returns The combined transferable Delta, or `false` for empty or invalid
+ * @returns The combined transferable Delta, or `false` for empty
  * values or when the deletion cannot be performed. If insertion is rejected
  * after deletion, returns the deletion Delta.
  * @remarks Replacement is intentionally a composition of the public Mask and
@@ -35,8 +35,6 @@ export function replace<T>(
   values: Array<T>,
   hard = false
 ): Delta<T> | false {
-  if (!Array.isArray(values) || values.length === 0) return false
-
   const delta = remove(state, index, index + values.length, hard)
 
   if (!delta) return false

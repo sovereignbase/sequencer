@@ -115,7 +115,8 @@ find_strip_index_of(Projector &projector,
         const std::uint32_t jump_distance = absolute_distance(
             jump_projection_frame_index, projection_frame_index);
 
-        if (jump_distance < current_distance && jump_distance < walk_distance) {
+        if ((jump_distance < current_distance && jump_distance < walk_distance) ||
+            (jump_distance == 0 && right_jump_length == 0)) {
           cursor_strip_index = right_jump_strip_index;
           cursor_projection_frame_index = jump_projection_frame_index;
           continue;

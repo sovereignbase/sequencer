@@ -3,7 +3,6 @@
  *
  * @module
  */
-import { is_safe_index } from '../../helpers/is_safe_index/index.js'
 import type { Delta, Replica } from '../../types/type.js'
 import {
   get_projection_frame_count,
@@ -22,7 +21,8 @@ import {
  * @param state Replica to modify.
  * @param index Insertion position, including the current Projection end.
  * @param values Nonempty contiguous values to insert.
- * @returns The issued Delta, or false for invalid input or rejected issuance.
+ * @returns The issued Delta, or false for rejected issuance.
+ * @remarks The caller supplies a valid index and values array.
  * @remarks Reads and releases the native result buffer synchronously. Rejected
  * issuance leaves JavaScript Footage unchanged.
  */
@@ -32,12 +32,6 @@ export function insert<T>(
   values: Array<T>
 ): Delta<T> | false {
   const projection_frame_count = get_projection_frame_count(state[0])
-  if (
-    !Array.isArray(values) ||
-    values.length === 0 ||
-    !is_safe_index(index, projection_frame_count, true)
-  )
-    return false
 
   const tail = projection_frame_count !== 0 && index === projection_frame_count
   const footage_start = state[1].length

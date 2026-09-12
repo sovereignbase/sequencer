@@ -16,6 +16,8 @@ find_projection_frame_index_of(Projector &projector,
   std::uint32_t right_cursor = strip_index;
   std::uint32_t left_distance = 0;
   std::uint32_t right_distance = 0;
+  std::uint32_t left_strip_distance = 0;
+  std::uint32_t right_strip_distance = 0;
 
   // OPTIMIZER
   const std::uint32_t optimal_jump_distance = static_cast<std::uint32_t>(
@@ -29,6 +31,7 @@ find_projection_frame_index_of(Projector &projector,
     if (!left_jump_found) {
       left_cursor = projector.left_strip_index_of[left_cursor];
       left_distance += projector.get_projected_strip_length(left_cursor);
+      ++left_strip_distance;
 
       left_jump_found =
           left_cursor == projector.head_strip_index ||
@@ -39,6 +42,7 @@ find_projection_frame_index_of(Projector &projector,
     if (!right_jump_found) {
       right_distance += projector.get_projected_strip_length(right_cursor);
       right_cursor = projector.right_strip_index_of[right_cursor];
+      ++right_strip_distance;
 
       right_jump_found =
           right_cursor == projector.tail_strip_index ||
@@ -71,6 +75,28 @@ find_projection_frame_index_of(Projector &projector,
             static_cast<std::int64_t>(
                 projector.left_jump_strip_count_of[right_cursor]) +
             strip_count_diff);
+  }
+
+  if (projector.left_jump_strip_index_of[strip_index] == u32_max &&
+      projector.right_jump_strip_index_of[strip_index] == u32_max &&
+      (left_strip_distance >= optimal_jump_distance ||
+       right_strip_distance >= optimal_jump_distance)) {
+    if (left_cursor != strip_index) {
+      projector.right_jump_strip_index_of[left_cursor] = strip_index;
+      projector.right_jump_length_of[left_cursor] = left_distance;
+      projector.right_jump_strip_count_of[left_cursor] = left_strip_distance;
+      projector.left_jump_strip_index_of[strip_index] = left_cursor;
+      projector.left_jump_length_of[strip_index] = left_distance;
+      projector.left_jump_strip_count_of[strip_index] = left_strip_distance;
+    }
+    if (right_cursor != strip_index) {
+      projector.left_jump_strip_index_of[right_cursor] = strip_index;
+      projector.left_jump_length_of[right_cursor] = right_distance;
+      projector.left_jump_strip_count_of[right_cursor] = right_strip_distance;
+      projector.right_jump_strip_index_of[strip_index] = right_cursor;
+      projector.right_jump_length_of[strip_index] = right_distance;
+      projector.right_jump_strip_count_of[strip_index] = right_strip_distance;
+    }
   }
 
   if (strip_index == projector.gate_strip_index)

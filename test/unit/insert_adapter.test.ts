@@ -72,18 +72,10 @@ describe('Local insert transfer', () => {
     )
   })
 
-  it.each([-1, 4, 0.5, NaN, Infinity])(
-    'rejects invalid index %s without native issuance',
-    (index) => {
-      expect(insert(state, index, ['X'])).toBe(false)
-      expect(native._update_projection).not.toHaveBeenCalled()
-      expect(state[1]).toEqual(['a', 'b', 'c', undefined])
-    }
-  )
-
-  it('rejects empty values without native issuance', () => {
+  it('delegates empty issuance to native update', () => {
+    native._update_projection.mockReturnValue(-1)
     expect(insert(state, 0, [])).toBe(false)
-    expect(native._update_projection).not.toHaveBeenCalled()
+    expect(native._update_projection).toHaveBeenCalledWith(42, 0, 0, 0, 4)
   })
 
   it('does not append Footage or read a result after rejected issuance', () => {

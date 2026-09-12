@@ -87,20 +87,6 @@ describe('Replacement Delta composition', () => {
     expect(replace(state, 1, ['X', 'Y'])).toBe(deletion)
   })
 
-  it.each([
-    { values: [] },
-    { values: null },
-    { values: undefined },
-    { values: 'XY' },
-    { values: { length: 2 } },
-    { values: new Uint32Array([1, 2]) },
-  ])('rejects invalid values before deleting: $values', ({ values }) => {
-    expect(replace(state, 0, values as string[])).toBe(false)
-    expect(operations.remove).not.toHaveBeenCalled()
-    expect(operations.insert).not.toHaveBeenCalled()
-    expect(state).toEqual([42, ['a', 'b', 'c']])
-  })
-
   it('passes aliased Footage directly without preserving released slots', () => {
     const values = state[1] as string[]
     operations.remove.mockImplementation(() => {

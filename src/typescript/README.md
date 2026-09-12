@@ -6,6 +6,8 @@ TypeScript should only perform the minimum validation needed (only at untrusted 
 
 The goal is to keep validation and runtime logic out of the TypeScript layer whenever WASM can safely handle it.
 
+Local operations trust their caller: indexes, ranges, and arrays must already be valid. Invalid local input is a programming error and may throw; no validation pass or fallback result is promised. Network input is validated by `merge`.
+
 ### Rule 2: Preserve the user-facing TypeScript API
 
 Existing user-space TypeScript signatures must not change.

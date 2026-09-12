@@ -21,6 +21,12 @@ export default define_config({
     },
     coverage: {
       enabled: true,
+      thresholds: {
+        statements: 100,
+        branches: 100,
+        functions: 100,
+        lines: 100,
+      },
       provider: 'v8',
       include: ['src/typescript/**/*.ts'],
       exclude: [

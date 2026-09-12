@@ -17,8 +17,10 @@ import {
  * @param start_index First visible frame to include.
  * @param end_index Boundary after the final frame; defaults to Projection end.
  * @returns The selected visible values, or an empty array for an empty range.
+ *
  * @remarks The caller supplies valid range boundaries.
- * @remarks Masks are skipped natively. The resulting spans are consumed before
+ *
+ * Masks are skipped natively. The resulting spans are consumed before
  * another Wasm call can reuse the shared Footage Span Buffer.
  */
 export function values<T>(
@@ -44,5 +46,5 @@ export function values<T>(
       result[result_index++] = state[1][footage_index]
   }
   void clear_footage_spans()
-  return result ?? []
+  return result
 }

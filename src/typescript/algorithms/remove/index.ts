@@ -75,5 +75,5 @@ export function remove<T>(
     remaining_frame_count -= mask_frame_count
   }
 
-  return projection.length === 0 ? false : [projection ?? []]
+  return projection.length === 0 ? false : [projection]
 }

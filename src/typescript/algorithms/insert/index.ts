@@ -21,8 +21,10 @@ import {
  * @param index Insertion position, including the current Projection end.
  * @param values Nonempty contiguous values to insert.
  * @returns The issued Delta, or false for rejected issuance.
+ *
  * @remarks The caller supplies a valid index and values array.
- * @remarks Reads and releases the native result buffer synchronously. Rejected
+ *
+ * Reads and releases the native result buffer synchronously. Rejected
  * issuance leaves JavaScript Footage unchanged.
  */
 export function insert<T>(

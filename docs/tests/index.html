@@ -47,17 +47,17 @@
         <h1>Behaviour guaranteed by excessive tests</h1>
         <div class="summary">
           <span class="status failed">Checks failed</span>
-          <span>Generated 2026-09-12T15:16:12.135Z</span>
-          <span>Total duration 14728 ms</span>
+          <span>Generated 2026-09-12T16:41:25.655Z</span>
+          <span>Total duration 116028 ms</span>
         </div>
       </header>
 
       <section>
         <h2>Verification summary</h2>
         <div class="stage-grid">
-          <article class="stage"><div><strong>C++ and Wasm build</strong><p class="note">7455 ms</p></div><span class="status passed">Passed</span></article><article class="stage"><div><strong>TypeScript build</strong><p class="note">7250 ms</p></div><span class="status failed">Failed</span></article><article class="stage"><div><strong>Unit, convergence, and stress</strong><p class="note">0 ms</p></div><span class="status skipped">Skipped</span></article><article class="stage"><div><strong>Runtime matrix</strong><p class="note">0 ms</p></div><span class="status skipped">Skipped</span></article><article class="stage"><div><strong>Browser matrix</strong><p class="note">0 ms</p></div><span class="status skipped">Skipped</span></article>
+          <article class="stage"><div><strong>C++ and Wasm build</strong><p class="note">19063 ms</p></div><span class="status passed">Passed</span></article><article class="stage"><div><strong>TypeScript build</strong><p class="note">13892 ms</p></div><span class="status passed">Passed</span></article><article class="stage"><div><strong>Unit, convergence, and stress</strong><p class="note">36427 ms</p></div><span class="status passed">Passed</span></article><article class="stage"><div><strong>Runtime matrix</strong><p class="note">7027 ms</p></div><span class="status passed">Passed</span></article><article class="stage"><div><strong>Browser matrix</strong><p class="note">39424 ms</p></div><span class="status failed">Failed</span></article>
         </div>
-        <p class="note">Vitest: —/— tests passed. Playwright: — expected, — unexpected, — skipped.</p>
+        <p class="note">Vitest: 132/132 tests passed. Playwright: 12 expected, 3 unexpected, 0 skipped.</p>
       </section>
 
       <section>
@@ -65,7 +65,42 @@
         <div class="table-shell">
           <table>
             <thead><tr><th>Runtime</th><th>Version</th><th>Assertions</th><th>Duration</th><th>Result</th></tr></thead>
-            <tbody><tr><th scope="row">Runtime matrix</th><td>Not produced</td><td>—</td><td>—</td><td><span class="status failed">Failed</span></td></tr></tbody>
+            <tbody>
+        <tr>
+          <th scope="row">Node.js</th>
+          <td>24.16.0</td>
+          <td>8</td>
+          <td>486 ms</td>
+          <td><span class="status passed">Passed</span></td>
+        </tr>
+        <tr>
+          <th scope="row">Deno</th>
+          <td>2.9.6</td>
+          <td>8</td>
+          <td>682 ms</td>
+          <td><span class="status passed">Passed</span></td>
+        </tr>
+        <tr>
+          <th scope="row">Bun</th>
+          <td>1.4.2</td>
+          <td>8</td>
+          <td>552 ms</td>
+          <td><span class="status passed">Passed</span></td>
+        </tr>
+        <tr>
+          <th scope="row">Edge Runtime</th>
+          <td>edge-runtime</td>
+          <td>8</td>
+          <td>1167 ms</td>
+          <td><span class="status passed">Passed</span></td>
+        </tr>
+        <tr>
+          <th scope="row">Cloudflare Workers</th>
+          <td>workerd via Wrangler 4.131.0</td>
+          <td>8</td>
+          <td>5631 ms</td>
+          <td><span class="status passed">Passed</span></td>
+        </tr></tbody>
           </table>
         </div>
         <div class="table-shell" style="margin-top: .75rem">
@@ -75,32 +110,32 @@
         <tr>
           <th scope="row">Chromium</th>
           <td>Desktop browser engine</td>
-          <td><span class="status skipped">Skipped</span></td>
+          <td><span class="status failed">Failed</span></td>
         </tr>
         <tr>
           <th scope="row">Firefox</th>
           <td>Desktop browser engine</td>
-          <td><span class="status skipped">Skipped</span></td>
+          <td><span class="status failed">Failed</span></td>
         </tr>
         <tr>
           <th scope="row">WebKit</th>
           <td>Desktop browser engine</td>
-          <td><span class="status skipped">Skipped</span></td>
+          <td><span class="status failed">Failed</span></td>
         </tr>
         <tr>
           <th scope="row">Mobile Chrome</th>
           <td>Pixel 7 emulation</td>
-          <td><span class="status skipped">Skipped</span></td>
+          <td><span class="status failed">Failed</span></td>
         </tr>
         <tr>
           <th scope="row">Mobile Safari</th>
           <td>iPhone 15 emulation</td>
-          <td><span class="status skipped">Skipped</span></td>
+          <td><span class="status failed">Failed</span></td>
         </tr>
         <tr>
           <th scope="row">Web Worker</th>
           <td>Module worker in every browser project</td>
-          <td><span class="status skipped">Skipped</span></td>
+          <td><span class="status failed">Failed</span></td>
         </tr></tbody>
           </table>
         </div>
@@ -112,19 +147,19 @@
         <div class="metric-grid">
         <article class="metric">
           <span>lines</span>
-          <strong>—%</strong>
+          <strong>100%</strong>
         </article>
         <article class="metric">
           <span>statements</span>
-          <strong>—%</strong>
+          <strong>100%</strong>
         </article>
         <article class="metric">
           <span>functions</span>
-          <strong>—%</strong>
+          <strong>100%</strong>
         </article>
         <article class="metric">
           <span>branches</span>
-          <strong>—%</strong>
+          <strong>100%</strong>
         </article></div>
       </section>
 

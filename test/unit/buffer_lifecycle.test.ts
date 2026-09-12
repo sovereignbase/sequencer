@@ -20,12 +20,28 @@ vi.mock('../../src/typescript/wasm/raw/sequencer_wasm.mjs', () => ({
 import { recover } from '../../src/typescript/algorithms/recover/index.js'
 import { compact } from '../../src/typescript/algorithms/compact/index.js'
 import {
+  compact_sequence,
   get_projection_footage_spans,
   read_strip_from_buffer,
   write_strip_to_buffer,
 } from '../../src/typescript/wasm/index.js'
 
 describe('Synchronous transfer buffer consumption', () => {
+  it('transfers a single acknowledgement through the compaction adapter', () => {
+    native._prepare_compaction_sequence_point_buffer.mockReturnValue(16)
+    native._compact_projection.mockImplementation(() => {
+      expect(Array.from(native.HEAPU32.subarray(4, 10))).toEqual([
+        1, 0, 0, 10, 20, 30,
+      ])
+      return 0
+    })
+    expect(compact_sequence(42, [10, 20, 30])).toBe(false)
+    expect(
+      native._prepare_compaction_sequence_point_buffer
+    ).toHaveBeenCalledWith(2)
+    expect(native._compact_projection).toHaveBeenCalledWith(42, 0, 1)
+  })
+
   beforeEach(() => {
     vi.clearAllMocks()
     native.HEAPU32 = new Uint32Array(128)
@@ -54,7 +70,9 @@ describe('Synchronous transfer buffer consumption', () => {
     const words = [1, 3, 10, 20, 0, 0, 0, 0, 0xffff_ffff, 0xffff_ffff, 3, 0]
     write_strip_to_buffer(words)
     expect(native._prepare_projection_buffer).toHaveBeenCalledExactlyOnceWith(1)
-    expect(Array.from(native.HEAPU32.subarray(128, 128 + words.length))).toEqual(words)
+    expect(
+      Array.from(native.HEAPU32.subarray(128, 128 + words.length))
+    ).toEqual(words)
     expect(native._clear_projection_buffer).not.toHaveBeenCalled()
   })
 

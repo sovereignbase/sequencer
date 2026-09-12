@@ -133,3 +133,7 @@ Mutta yhden Stripin / Gate-hit findissä nykyinen C++ ei sisällä mitään, mik
 **#5:** benchmarkkaa erikseen `stage_strip`, `split_strip`, `apply_insert`, `find_projection_frame_index_of` samalla nykyisellä Projectorilla. Veikkaan että tämän jälkeen nähdään aika suoraan mihin loput 2–5 µs update-hinnasta katoavat.
 
 Nykyisestä koodista **projection bufferin allocate/free joka ikisellä updatella on selvin konkreettinen regression-tason suorituskykyvika**. Se kannattaa korjata ennen mitään algoritmin säätämistä.
+
+
+C:\Users\jorts\sequencer\archives\SOA_GROWTH_OPTIMIZATION.md
+C:\Users\jorts\sequencer\src\c++\.auxiliary\stage_strip\index.hpp

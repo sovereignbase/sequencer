@@ -36,9 +36,6 @@ split_strip(Projector &projector, const std::uint32_t strip_index,
   suffix_previous_end.counter_bits += frame_offset;
 
   projector.strip_type_of.push_back(projector.strip_type_of[strip_index]);
-  if (const auto owner = projector.mask_owner_of.find(strip_index);
-      owner != projector.mask_owner_of.end())
-    projector.mask_owner_of.emplace(suffix_strip_index, owner->second);
   projector.fragment_length_of.push_back(source_length - frame_offset);
   projector.initial_length_of.push_back(0);
   projector.dependency_prefix_of.push_back(

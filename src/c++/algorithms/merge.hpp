@@ -64,9 +64,7 @@ merge_projection(const std::uint32_t projection_id,
     }
     const SequencePoint start{strip[2], strip[3], strip[4]};
     const auto [known, known_offset] = projector.containment_table.get(start);
-    if ((known != u32_max && known_offset <= projector.initial_length_of[known]) ||
-        (strip[0] == 2 && start.counter_bits < projector.collected_counter(start)) ||
-        (projector.collected_table && projector.collected_table->get(start).first != u32_max))
+    if (known != u32_max && known_offset <= projector.initial_length_of[known])
       continue;
     const auto incoming = stage_strip(
         projector, static_cast<std::uint8_t>(strip[0]), strip[1], start,

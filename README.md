@@ -229,6 +229,16 @@ Runtimes with tested support:
 
 ### Tested realtime and offline text editing behaviour examples
 
+## Credits
+
+None of this could have been done without years of work from many great engineers of many great projects, to mention a few:
+
+- YJS
+
+- AUTOMERGE
+
+- DIAMOND TYPES
+
 ## License
 
 Apache-2.0

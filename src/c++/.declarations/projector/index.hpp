@@ -14,7 +14,6 @@
 #include <chrono>
 #include <cstdint>
 #include <random>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -170,56 +169,6 @@ struct Projector {
               std::chrono::system_clock::now().time_since_epoch())
               .count());
 
-  // TODO: EVERYTHING BELOW MUST BE REMOVED ALL OF THEM ARE USELESS PERFORMENCE
-  // DEGRADING BLOAT!!! COLLECTED FRONTIERS YUK!!! Unordered map YUK!!! FUCKING
-  // DISGUSTING USELESS PIECES OF SHIT AND THE PERFORMANCE FUCKING SHOWS IT
-  // THE FUCKING MASKS ARE IN THE FUCKING CONTAINMENT TABLE YOU GET
-  // ACKNOWLEDMENT FRONTIERS FROM TYPESCRIPT AND YOU FUCKING LOOK UP THAT
-  // FRONTIER AKA MASK REALM AND COLLECT IT AND THATS FUCKING IT NO INFO
-  // RETAINED FOR FUCKS SAKE IF THE hard boolean 1/0 is true you do hard
-  // compaction, if it is false you do soft compaction
-
-  /** @brief Greatest instruction Mask owning each applied source fragment. */
-  std::unordered_map<std::uint32_t, std::uint32_t> mask_owner_of;
-
-  /** @brief Collected Mask Realm frontiers retained across snapshots. */
-  std::vector<SequencePoint> collected_frontiers;
-
-  /** @brief Compact causal forwarding record for a collected source interval.
-   */
-  struct CollectedSource {
-    SequencePoint start;
-    std::uint32_t length;
-    SequencePoint previous;
-  };
-  std::vector<CollectedSource> collected_sources;
-  std::unique_ptr<ContainmentTable> collected_table;
-
-  /** @brief Retain deduplication and causal forwarding after structural
-   * removal. */
-  void remember_collected_source(const CollectedSource source) {
-    if (!collected_table)
-      collected_table = std::make_unique<ContainmentTable>();
-    collected_table->set(source.start, source.length, collected_sources.size());
-    collected_sources.push_back(source);
-  }
-
-  /** @brief Resolve dependencies through previously collected source intervals.
-   */
-  SequencePoint
-  resolve_collected_dependency(SequencePoint point) const noexcept {
-    if (collected_table)
-      for (std::size_t count = 0; count < collected_sources.size(); ++count) {
-        if (containment_table.get(point).first != u32_max)
-          break;
-        const auto source = collected_table->get(point).first;
-        if (source == u32_max)
-          break;
-        point = collected_sources[source].previous;
-      }
-    return point;
-  }
-
   /**
    * @brief Visit retained Footage without copying it or splitting a Mask.
    * @param strip_index Materialized Strip whose content is read.
@@ -239,15 +188,6 @@ struct Projector {
   [[nodiscard]] std::uint32_t
   get_projected_strip_length(const std::uint32_t strip_index) const noexcept {
     return strip_type_of[strip_index] < 2 ? fragment_length_of[strip_index] : 0;
-  }
-
-  /** @brief Read the already collected prefix of a Mask Realm. */
-  std::uint32_t collected_counter(const SequencePoint point) const noexcept {
-    for (const auto frontier : collected_frontiers)
-      if (frontier.crypto_random_bits == point.crypto_random_bits &&
-          frontier.unix_lower_bits == point.unix_lower_bits)
-        return frontier.counter_bits;
-    return 0;
   }
 
   /** @brief Recover the creation-time source anchor without rewriting the

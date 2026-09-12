@@ -85,7 +85,6 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
   };
   std::unordered_map<std::uint64_t, std::uint32_t> agreed;
   projector.containment_table.for_each_realm([&](SequencePoint end, const auto entries) {
-    end.counter_bits = projector.collected_counter(end);
     for (const auto &entry : entries) {
       if (projector.strip_type_of[entry.strip_index] != 2 ||
           projector.left_strip_index_of[entry.strip_index] == entry.strip_index ||
@@ -163,8 +162,6 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
     const auto source = projector.containment_table.get(dependency).first;
     return source != u32_max && remove[source] ? replacements[source] : dependency;
   };
-  for (auto &source : projector.collected_sources)
-    source.previous = reattach(source.previous);
   for (std::uint32_t strip = 0; strip < count; ++strip) {
     if (!remove[strip] && !projector.is_fragment(strip)) {
       const auto dependency = reattach(projector.previous_strip_end_of[strip]);
@@ -180,19 +177,6 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
     while (competitor != u32_max && remove[competitor])
       competitor = projector.smaller_competitor_strip_index_of[competitor];
   }
-  for (std::uint32_t strip = 0; strip < count; ++strip)
-    if (!remove[strip] && projector.strip_type_of[strip] == 2)
-      agreed.erase(realm_of(projector.strip_start_of[strip]));
-  for (auto &frontier : projector.collected_frontiers) {
-    const auto found = agreed.find(realm_of(frontier));
-    if (found != agreed.end()) {
-      frontier.counter_bits = found->second;
-      agreed.erase(found);
-    }
-  }
-  for (const auto [realm, counter] : agreed)
-    projector.collected_frontiers.push_back(
-        {static_cast<std::uint32_t>(realm >> 32), static_cast<std::uint32_t>(realm), counter});
   std::uint32_t projection_index = 0;
   for (auto strip = projector.head_strip_index; strip != u32_max;) {
     const auto next = projector.right_strip_index_of[strip];
@@ -211,8 +195,6 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
         });
       }
       if (!projector.is_fragment(strip)) {
-        projector.remember_collected_source({projector.strip_start_of[strip],
-            projector.initial_length_of[strip], replacements[strip]});
         projector.containment_table.erase(projector.strip_start_of[strip]);
       }
       const auto left = projector.left_strip_index_of[strip];
@@ -225,24 +207,12 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
       projector.footage_frame_index_of[strip] = u32_max;
       projector.strip_type_of[strip] = 255;
       projector.larger_split_strip_index_of[strip] = u32_max;
-      projector.mask_owner_of.erase(strip);
       --projector.materialized_strip_count;
     } else {
       projection_index += projector.get_projected_strip_length(strip);
     }
     strip = next;
   }
-  projector.mask_owner_of.clear();
-  for (auto mask = projector.head_strip_index; mask != u32_max;
-       mask = projector.right_strip_index_of[mask])
-    if (projector.strip_type_of[mask] == 2)
-      projector.for_each_mask_target(mask, [&](const auto source, const auto, const auto) {
-        const auto owner = projector.mask_owner_of.find(source);
-        if (owner == projector.mask_owner_of.end() ||
-            projector.strip_start_of[owner->second] < projector.strip_start_of[mask])
-          projector.mask_owner_of[source] = mask;
-      });
-
   std::fill(projector.left_jump_strip_index_of.begin(), projector.left_jump_strip_index_of.end(), u32_max);
   std::fill(projector.right_jump_strip_index_of.begin(), projector.right_jump_strip_index_of.end(), u32_max);
   const auto distance = static_cast<std::uint32_t>(std::sqrt(projector.materialized_strip_count) + 0.5);

@@ -55,19 +55,8 @@ inline void initialize_projector(
     std::uint32_t previous_jump_projection_index = 0;
     std::uint32_t strip_index = 0;
     for (const auto &strip : projection) {
-      if (strip[0] == 9) {
-        projector.remember_collected_source({{strip[2], strip[3], strip[4]}, strip[1],
-                                             {strip[5], strip[6], strip[7]}});
-        if (strip[2] == insert_realm_crypto_random_bits && strip[3] == shared_realm_unix_lower_bits)
-          projector.operation_count = std::max(projector.operation_count, strip[4] + strip[1] + 1);
+      if (strip[0] == 8 || strip[0] == 9)
         continue;
-      }
-      if (strip[0] == 8) {
-        projector.collected_frontiers.push_back({strip[2], strip[3], strip[4]});
-        if (strip[2] == mask_realm_crypto_random_bits && strip[3] == shared_realm_unix_lower_bits)
-          projector.mask_operation_count = std::max(projector.mask_operation_count, strip[4]);
-        continue;
-      }
       const bool pending = strip_index >= materialized_strip_count;
       const auto strip_type =
           static_cast<std::uint8_t>(pending ? strip[0] - 3 : strip[0]);
@@ -138,13 +127,5 @@ inline void initialize_projector(
     projector.head_strip_index = materialized_strip_count == 0 ? u32_max : 0;
     projector.tail_strip_index =
         materialized_strip_count == 0 ? u32_max : materialized_strip_count - 1;
-    for (std::uint32_t mask = 0; mask < materialized_strip_count; ++mask)
-      if (projector.strip_type_of[mask] == 2)
-        projector.for_each_mask_target(mask, [&](const auto source, const auto, const auto) {
-          const auto owner = projector.mask_owner_of.find(source);
-          if (owner == projector.mask_owner_of.end() ||
-              projector.strip_start_of[owner->second] < projector.strip_start_of[mask])
-            projector.mask_owner_of[source] = mask;
-        });
   }
 }

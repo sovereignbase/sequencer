@@ -25,7 +25,6 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
           }) || targets.empty())
       return {0, 0};
     std::pair<std::int32_t, std::int32_t> counts{0, 0};
-    bool first = true;
     for (const auto &target : targets) {
       auto source = target[0];
       const auto previous_count = projector.materialized_strip_count;
@@ -41,12 +40,6 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
       if (owner == projector.mask_owner_of.end() ||
           projector.strip_start_of[owner->second] < projector.strip_start_of[incoming_strip_index])
         projector.mask_owner_of[source] = incoming_strip_index;
-      if (first) {
-        const auto anchor = projector.resolve_dependency(incoming_strip_index).first;
-        insert_between(projector, anchor, incoming_strip_index,
-                       projector.right_strip_index_of[anchor]);
-        first = false;
-      }
       projector.projection_frame_count -= visible;
       const auto frame_diff = -static_cast<std::int32_t>(visible);
       const auto strip_diff = static_cast<std::int32_t>(
@@ -59,7 +52,11 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
       counts.first += frame_diff;
       counts.second += strip_diff;
     }
-    const auto position = find_projection_frame_index_of(projector, incoming_strip_index, 0, 0);
+    const auto anchor = projector.resolve_dependency(incoming_strip_index).first;
+    insert_between(projector, anchor, incoming_strip_index,
+                   projector.right_strip_index_of[anchor]);
+    ++counts.second;
+    const auto position = find_projection_frame_index_of(projector, incoming_strip_index, 0, 1);
     projector.gate_strip_index = incoming_strip_index;
     projector.projection_frame_index = position;
     return counts;

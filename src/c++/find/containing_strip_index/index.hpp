@@ -12,8 +12,8 @@
 inline void
 find_strip_index_of(Projector &projector,
                     const std::uint32_t &projection_frame_index) noexcept {
-  if (projection_frame_index == projector.projection_frame_index &&
-      projector.get_projected_strip_length(projector.gate_strip_index) != 0)
+  if (projection_frame_index - projector.projection_frame_index <
+      projector.get_projected_strip_length(projector.gate_strip_index))
     return;
 
   // Calculate distances to the requested index.
@@ -81,7 +81,9 @@ find_strip_index_of(Projector &projector,
           const std::uint32_t next_right_jump_strip_index =
               projector.right_jump_strip_index_of[right_jump_strip_index];
 
-          if (next_right_jump_strip_index != u32_max) {
+          if (next_right_jump_strip_index != u32_max &&
+              projector.right_jump_strip_count_of[right_jump_strip_index] <=
+                  optimal_jump_distance - right_jump_strip_count) {
             right_jump_length +=
                 projector.right_jump_length_of[right_jump_strip_index];
             right_jump_strip_count +=
@@ -152,7 +154,9 @@ find_strip_index_of(Projector &projector,
           const std::uint32_t next_left_jump_strip_index =
               projector.left_jump_strip_index_of[left_jump_strip_index];
 
-          if (next_left_jump_strip_index != u32_max) {
+          if (next_left_jump_strip_index != u32_max &&
+              projector.left_jump_strip_count_of[left_jump_strip_index] <=
+                  optimal_jump_distance - left_jump_strip_count) {
             left_jump_length +=
                 projector.left_jump_length_of[left_jump_strip_index];
             left_jump_strip_count +=

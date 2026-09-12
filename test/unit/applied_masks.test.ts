@@ -68,8 +68,8 @@ describe('Instruction and applied Masks', () => {
       expect(recover(target)).toEqual(['a'])
       expect(rows(snapshot(target)).filter((row) => row[0] === 2 || row[0] === 6 || row[0] === 7)).toEqual([])
       expect(merge(target, parent)).toBe(false)
-      expect(merge(target, left)).toBe(false)
-      expect(merge(target, right)).toBe(false)
+      expect(acknowledge(target)).toBe(false)
+      expect(rows(snapshot(target)).some((row) => row[0] === 8 || row[0] === 9)).toBe(false)
       expect(values(target)).toEqual(['a'])
       expect(insert(target, 1, ['Z'])).not.toBe(false)
       expect(values(target)).toEqual(['a', 'Z'])
@@ -77,7 +77,7 @@ describe('Instruction and applied Masks', () => {
     }
   })
 
-  it('soft GC removes hard-released source fragments and preserves future Mask counters', () => {
+  it('soft GC removes hard-released fragments without retaining old session metadata', () => {
     const state = create<string>()
     merge(state, parent)
     expect(remove(state, 1, 3, true)).not.toBe(false)
@@ -92,11 +92,16 @@ describe('Instruction and applied Masks', () => {
       expect(values(target)).toEqual(['a', 'd'])
       expect(recover(target)).toEqual(['a', 'd'])
       expect(rows(snapshot(target)).filter((row) => row[0] === 2 || row[0] === 22 || row[0] === 23)).toEqual([])
-      const next = remove(target, 1, 2)
+      expect(acknowledge(target)).toBe(false)
+      const compacted = snapshot(target)
+      expect(rows(compacted).some((row) => row[0] === 8 || row[0] === 9)).toBe(false)
+      const restarted = create<string>(compacted)
+      const next = remove(restarted, 1, 2)
       expect(next).not.toBe(false)
-      if (next !== false) expect(next[0][4]).toBe(frontier[2])
-      const next_frontier = acknowledge(target)
-      expect(next_frontier).toEqual([frontier[0], frontier[1], frontier[2] + 2])
+      if (next !== false) {
+        expect(next[0][4]).toBe(0)
+        expect(acknowledge(restarted)).toEqual([next[0][2], next[0][3], 2])
+      }
     }
   })
 })

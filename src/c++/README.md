@@ -917,4 +917,6 @@ Because every Actor receives the same acknowledgement frontier and applies the s
 
 Running it again does not change the already compacted result.
 
+Collected Strips leave no forwarding table, retained acknowledgement frontier, or snapshot metadata. Acknowledgement describes only the retained Mask Strips; a fully collected Realm is no longer reported. New dependencies on collected points are outside the model. Applied source fragments retain their own type and length; no separate Mask-owner table is maintained.
+
 The application is responsible for collecting acknowledgements from all participating Actors and distributing the agreed acknowledgement state back to them before compaction.

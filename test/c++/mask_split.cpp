@@ -107,7 +107,7 @@ int main() {
   assert(incomplete.read() == "abcd");
   assert(incomplete.projector.strip_type_of.size() == original_count);
   assert(incomplete.projector.left_strip_index_of[oversized] == oversized);
-  assert(incomplete.projector.mask_owner_of.empty());
+  assert(incomplete.projector.fragment_length_of[0] == 4);
 
   Fixture offset_mask;
   const auto offset_suffix = split_strip(offset_mask.projector, 0, 2);

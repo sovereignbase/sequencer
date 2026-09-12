@@ -19,12 +19,11 @@ inline void initialize_projector(
     const std::uint32_t mask_realm_crypto_random_bits,
     const std::uint32_t shared_realm_unix_lower_bits) noexcept {
   if (!projection.empty()) {
-    const auto strip_count = static_cast<std::uint32_t>(std::count_if(
-        projection.begin(), projection.end(), [](const auto &strip) { return strip[0] != 8 && strip[0] != 9; }));
+    const auto strip_count = static_cast<std::uint32_t>(projection.size());
     const auto first_pending_strip =
         std::find_if(projection.begin(), projection.end(),
                      [](const auto &strip) noexcept {
-                       return (strip[0] >= 3 && strip[0] <= 5) || strip[0] == 8 || strip[0] == 9;
+                       return strip[0] >= 3 && strip[0] <= 5;
                      });
     const auto materialized_strip_count =
         static_cast<std::uint32_t>(first_pending_strip - projection.begin());
@@ -55,8 +54,6 @@ inline void initialize_projector(
     std::uint32_t previous_jump_projection_index = 0;
     std::uint32_t strip_index = 0;
     for (const auto &strip : projection) {
-      if (strip[0] == 8 || strip[0] == 9)
-        continue;
       const bool pending = strip_index >= materialized_strip_count;
       const auto strip_type =
           static_cast<std::uint8_t>(pending ? strip[0] - 3 : strip[0]);

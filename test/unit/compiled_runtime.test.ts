@@ -100,12 +100,13 @@ describe('Compiled production runtime', () => {
         compact([[70, 80, 6]], target, true)
         expect(recover(target)).toEqual([...visible, 'f'])
         expect(values(target)).toEqual([...visible, 'f'])
+        expect(acknowledge(target)).toBe(false)
         const next: Delta<string> = [
           [2, 1, 70, 80, 6, 10, 20, 5, absent, absent, 0, 5],
           [],
         ]
         expect(merge(target, next)).not.toBe(false)
-        expect(acknowledge(target)).toEqual([70, 80, 8])
+        expect(acknowledge(target)).toBe(false)
         expect(values(target)).toEqual(visible)
       }
     }

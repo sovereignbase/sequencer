@@ -96,16 +96,16 @@ int main() {
   assert((fragmented.projector.strip_start_of[partial] == SequencePoint{500, 600, 0}));
   assert(fragmented.projector.larger_split_strip_index_of[partial] == u32_max);
   assert(std::count(fragmented.projector.strip_type_of.begin(),
-                    fragmented.projector.strip_type_of.end(), 2) == 1);
+                    fragmented.projector.strip_type_of.begin() + fragmented.projector.strip_count, 2) == 1);
   assert(apply_insert(fragmented.projector, 0, partial, 0).first == 0);
   assert(fragmented.read() == "XYd");
 
   Fixture incomplete;
   const auto oversized = incomplete.mask(5);
-  const auto original_count = incomplete.projector.strip_type_of.size();
+  const auto original_count = incomplete.projector.strip_count;
   assert(apply_insert(incomplete.projector, 0, oversized, 0).first == 0);
   assert(incomplete.read() == "abcd");
-  assert(incomplete.projector.strip_type_of.size() == original_count);
+  assert(incomplete.projector.strip_count == original_count);
   assert(incomplete.projector.left_strip_index_of[oversized] == oversized);
   assert(incomplete.projector.fragment_length_of[0] == 4);
 

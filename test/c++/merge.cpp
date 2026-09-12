@@ -40,10 +40,10 @@ int main() {
       static_cast<void>(merge(id, operations[operation], footage_starts[operation]));
     assert(read(id, "abcXY!") == "abcXY!");
     assert(sequencer::projectors[id]->pending_table.is_empty());
-    const auto known = sequencer::projectors[id]->strip_type_of.size();
+    const auto known = sequencer::projectors[id]->strip_count;
     for (const auto operation : order)
       assert(merge(id, operations[operation], footage_starts[operation]) == u32_max);
-    assert(sequencer::projectors[id]->strip_type_of.size() == known);
+    assert(sequencer::projectors[id]->strip_count == known);
     assert(read(id, "abcXY!") == "abcXY!");
     sequencer::clear_projection(id);
   } while (std::next_permutation(order.begin(), order.end()));
@@ -65,9 +65,9 @@ int main() {
   assert(read(id, "abc") == "ac");
   assert(merge(id, mask, 0) == u32_max);
   const Words pending{3, 1, 90, 91, 0, 99, 98, 0, u32_max, u32_max, 1, 0};
-  const auto known = sequencer::projectors[id]->strip_type_of.size();
+  const auto known = sequencer::projectors[id]->strip_count;
   assert(merge(id, pending, 0) == u32_max);
-  assert(sequencer::projectors[id]->strip_type_of.size() == known);
+  assert(sequencer::projectors[id]->strip_count == known);
   sequencer::clear_projection(id);
 
   for (const bool mask_pending : {false, true}) {

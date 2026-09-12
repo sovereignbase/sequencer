@@ -39,7 +39,6 @@ export type BenchmarkConfig = {
   minimumStripFrameLength: number
   maximumStripFrameLength: number
   warmupCycles: number
-  mergePoolSize: number
   replicaPolicies: Record<ReplicaName, ReplicaPolicy>
   baseSeed: string
   outputPath: string | null

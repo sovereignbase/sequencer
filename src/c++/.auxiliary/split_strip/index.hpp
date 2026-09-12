@@ -28,41 +28,41 @@
 [[nodiscard]] inline std::uint32_t
 split_strip(Projector &projector, const std::uint32_t strip_index,
             const std::uint32_t frame_offset) noexcept {
-  const std::uint32_t suffix_strip_index = projector.strip_type_of.size();
+  const std::uint32_t suffix_strip_index = projector.append_strip();
   const std::uint32_t source_length = projector.fragment_length_of[strip_index];
 
   const SequencePoint suffix_start{u32_max, u32_max, u32_max};
   SequencePoint suffix_previous_end = projector.fragment_start(strip_index);
   suffix_previous_end.counter_bits += frame_offset;
 
-  projector.strip_type_of.push_back(projector.strip_type_of[strip_index]);
-  projector.fragment_length_of.push_back(source_length - frame_offset);
-  projector.initial_length_of.push_back(0);
-  projector.dependency_prefix_of.push_back(
-      projector.fragment_offset(strip_index) + frame_offset);
+  projector.strip_type_of[suffix_strip_index] = projector.strip_type_of[strip_index];
+  projector.fragment_length_of[suffix_strip_index] = source_length - frame_offset;
+  projector.initial_length_of[suffix_strip_index] = 0;
+  projector.dependency_prefix_of[suffix_strip_index] =
+      projector.fragment_offset(strip_index) + frame_offset;
 
-  projector.smaller_competitor_strip_index_of.push_back(u32_max);
-  projector.larger_split_strip_index_of.push_back(
-      projector.larger_split_strip_index_of[strip_index]);
+  projector.smaller_competitor_strip_index_of[suffix_strip_index] = u32_max;
+  projector.larger_split_strip_index_of[suffix_strip_index] =
+      projector.larger_split_strip_index_of[strip_index];
 
-  projector.strip_start_of.push_back(suffix_start);
-  projector.previous_strip_end_of.push_back(suffix_previous_end);
+  projector.strip_start_of[suffix_strip_index] = suffix_start;
+  projector.previous_strip_end_of[suffix_strip_index] = suffix_previous_end;
 
-  projector.right_strip_index_of.push_back(suffix_strip_index);
-  projector.left_strip_index_of.push_back(suffix_strip_index);
+  projector.right_strip_index_of[suffix_strip_index] = suffix_strip_index;
+  projector.left_strip_index_of[suffix_strip_index] = suffix_strip_index;
 
-  projector.left_jump_strip_index_of.push_back(u32_max);
-  projector.left_jump_strip_count_of.push_back(0);
-  projector.left_jump_length_of.push_back(0);
+  projector.left_jump_strip_index_of[suffix_strip_index] = u32_max;
+  projector.left_jump_strip_count_of[suffix_strip_index] = 0;
+  projector.left_jump_length_of[suffix_strip_index] = 0;
 
-  projector.right_jump_strip_index_of.push_back(u32_max);
-  projector.right_jump_strip_count_of.push_back(0);
-  projector.right_jump_length_of.push_back(0);
+  projector.right_jump_strip_index_of[suffix_strip_index] = u32_max;
+  projector.right_jump_strip_count_of[suffix_strip_index] = 0;
+  projector.right_jump_length_of[suffix_strip_index] = 0;
 
-  projector.footage_frame_index_of.push_back(
+  projector.footage_frame_index_of[suffix_strip_index] =
       projector.footage_frame_index_of[strip_index] == u32_max
           ? u32_max
-          : projector.footage_frame_index_of[strip_index] + frame_offset);
+          : projector.footage_frame_index_of[strip_index] + frame_offset;
 
   projector.fragment_length_of[strip_index] = frame_offset;
   projector.larger_split_strip_index_of[strip_index] = suffix_strip_index;

@@ -10,9 +10,9 @@ void check_staged(const Projector &projector, const std::uint32_t strip_index,
                   const std::uint32_t footage) {
   const auto start = projector.strip_start_of[strip_index];
   assert(start.crypto_random_bits == (type == 2
-      ? sequencer::mask_realm_crypto_random_bits
-      : sequencer::insert_realm_crypto_random_bits));
-  assert(start.unix_lower_bits == sequencer::shared_realm_unix_lower_bits);
+      ? projector.mask_session_crypto_random_bits
+      : projector.insert_session_crypto_random_bits));
+  assert(start.unix_lower_bits == projector.shared_session_unix_lower_bits);
   assert(start.counter_bits == counter);
   assert(projector.strip_type_of[strip_index] == type);
   assert(projector.initial_length_of[strip_index] == length);
@@ -60,13 +60,13 @@ int main() {
   sequencer::footage_span_buffer.clear();
   const auto restored_id = sequencer::initialize_projection();
   auto &restored = *sequencer::projectors[restored_id];
-  assert(restored.operation_count == 6);
-  assert(restored.mask_operation_count == 5);
+  assert(restored.operation_count == 0);
+  assert(restored.mask_operation_count == 0);
   assert(restored.pending_table.values().size() == 4);
   assert(sequencer::issue_strip(restored, 1, 2, dependency, 4) == 4);
   assert(sequencer::issue_strip(restored, 2, 2, dependency) == 5);
-  check_staged(restored, 4, 1, 2, 6, dependency, 4);
-  check_staged(restored, 5, 2, 2, 5, dependency, u32_max);
+  check_staged(restored, 4, 1, 2, 0, dependency, 4);
+  check_staged(restored, 5, 2, 2, 0, dependency, u32_max);
   sequencer::clear_projection(restored_id);
   sequencer::clear_projection(projection_id);
 
@@ -74,7 +74,7 @@ int main() {
   assert(sequencer::issue_strip(invalid, 3, 1, dependency) == u32_max);
   assert(sequencer::issue_strip(invalid, 0, 0, dependency) == u32_max);
   assert(sequencer::issue_strip(invalid, 1, u32_max, dependency) == u32_max);
-  assert(invalid.strip_type_of.empty());
+  assert((invalid.strip_count == 0));
   assert(invalid.containment_table.is_empty());
   assert(invalid.operation_count == 0);
   assert(invalid.mask_operation_count == 0);
@@ -83,7 +83,7 @@ int main() {
   assert(sequencer::issue_strip(invalid, 1, 1, dependency, 0) == 0);
   assert(invalid.operation_count == u32_max);
   assert(sequencer::issue_strip(invalid, 1, 1, dependency, 1) == u32_max);
-  assert(invalid.strip_type_of.size() == 1);
+  assert(invalid.strip_count == 1);
   assert(sequencer::issue_strip(invalid, 2, 1, dependency) == 1);
   assert(invalid.mask_operation_count == 2);
 }

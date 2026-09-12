@@ -27,7 +27,8 @@ int main() {
   projector.left_strip_index_of[1] = 0;
   projector.right_strip_index_of[1] = u32_max;
   sequencer::snapshot_projection(projection_id);
-  const auto snapshot = buffer.read_buffer();
+  const auto snapshot_view = buffer.read_buffer();
+  const std::vector snapshot(snapshot_view.begin(), snapshot_view.end());
   sequencer::footage_span_buffer.clear();
   assert(snapshot.size() == 5);
   assert(snapshot[0][4] == 20);
@@ -64,7 +65,8 @@ int main() {
   const auto suffix = split_strip(*sequencer::projectors[split_id], 0, 0);
   assert(suffix == 1);
   sequencer::snapshot_projection(split_id);
-  const auto split_snapshot = buffer.read_buffer();
+  const auto split_snapshot_view = buffer.read_buffer();
+  const std::vector split_snapshot(split_snapshot_view.begin(), split_snapshot_view.end());
   sequencer::footage_span_buffer.clear();
   assert(split_snapshot.size() == 2);
   assert(split_snapshot[0][1] == 3);
@@ -100,7 +102,8 @@ int main() {
   buffer.write_projection(7, {5, 2, 70, 80, 6, 99, 98, 0, u32_max, u32_max, 0, 0});
   const auto retained_id = sequencer::initialize_projection();
   auto &retained = *sequencer::projectors[retained_id];
-  retained.footage_frame_index_of = {8, 4, 4, 0, 11, 2, 7, u32_max};
+  const std::array<std::uint32_t, 8> footage_starts{8, 4, 4, 0, 11, 2, 7, u32_max};
+  std::copy(footage_starts.begin(), footage_starts.end(), retained.footage_frame_index_of.begin());
   const std::vector<char> source{'X', 'Y', 'p', 'q', 'a', 'b', 'c', 'r',
                                  'H', 'I', '?', 'd'};
   std::vector<char> original_view;

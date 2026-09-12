@@ -5,10 +5,9 @@
  */
 import type { Delta, Replica } from '../../types/type.js'
 import {
-  get_projection_frame_count,
   no_projection_frame_index,
   update_sequence,
-  read_projection_from_buffer,
+  read_strip_from_buffer,
 } from '../../wasm/index.js'
 
 /**
@@ -31,22 +30,13 @@ export function insert<T>(
   index: number,
   values: Array<T>
 ): Delta<T> | false {
-  const projection_frame_count = get_projection_frame_count(state[0])
-
-  const tail = projection_frame_count !== 0 && index === projection_frame_count
   const footage_start = state[1].length
   const frame_count = values.length
   const position =
-    update_sequence(
-      state[0],
-      tail ? index - 1 : index,
-      tail ? 1 : 0,
-      frame_count,
-      footage_start
-    ) >>> 0
+    update_sequence(state[0], index, 0, frame_count, footage_start) >>> 0
   if (position === no_projection_frame_index) return false
 
-  const projection = read_projection_from_buffer(12)
+  const projection = read_strip_from_buffer<T>()
 
   state[1].length = footage_start + frame_count
   for (let frame = 0; frame < frame_count; ++frame)

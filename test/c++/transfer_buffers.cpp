@@ -16,7 +16,7 @@ int main() {
       for (std::uint32_t word = 0; word < 12; ++word)
         assert(input[strip][word] == strip * 12 + word);
 
-    static_cast<void>(sequencer::prepare_projection_buffer(count));
+    assert(sequencer::prepare_projection_buffer(count) == projection);
     sequencer::clear_projection_buffer();
     assert(sequencer::get_projection_buffer_word_count() == 0);
     assert(sequencer::get_projection_buffer_pointer() == nullptr);
@@ -44,7 +44,7 @@ int main() {
     assert(sequencer::sequence_point_buffer.read_buffer().empty());
     for (std::uint32_t word = 0; word < count * 3; ++word)
       assert(frontiers[word] == word);
-    static_cast<void>(sequencer::prepare_compaction_sequence_point_buffer(count));
+    assert(sequencer::prepare_compaction_sequence_point_buffer(count) == frontier);
     sequencer::clear_sequence_point_buffer();
     assert(sequencer::sequence_point_buffer.get_sequence_point_count() == 0);
     assert(sequencer::get_acknowledgement_sequence_point_buffer_pointer() == nullptr);

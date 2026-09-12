@@ -15,8 +15,8 @@ void check(const std::uint8_t type, const std::uint32_t length, const bool pendi
   std::string footage;
   if (pending) {
     const SequencePoint dependency{99, 98, 97};
-    const SequencePoint start{sequencer::insert_realm_crypto_random_bits ^ 1u,
-                              sequencer::shared_realm_unix_lower_bits, 0};
+    const SequencePoint start{projector.insert_session_crypto_random_bits ^ 1u,
+                              projector.shared_session_unix_lower_bits, 0};
     const auto waiting = stage_strip(projector, 1, 2, start, dependency, 0);
     projector.pending_table.set(dependency, waiting);
     footage = "pq";
@@ -79,7 +79,6 @@ void check(const std::uint8_t type, const std::uint32_t length, const bool pendi
                                            point.counter_bits + count}) == std::pair{strip, count}));
   }
 
-  const auto counter = projector.operation_count;
   sequencer::snapshot_projection(projection_id);
   const auto span_count = sequencer::footage_span_buffer.get_span_count();
   const auto spans = sequencer::footage_span_buffer.get_memory_pointer();
@@ -89,7 +88,7 @@ void check(const std::uint8_t type, const std::uint32_t length, const bool pendi
   sequencer::footage_span_buffer.clear();
   const auto restored_id = sequencer::initialize_projection();
   auto &restored = *sequencer::projectors[restored_id];
-  assert(restored.operation_count == counter);
+  assert(restored.operation_count == 0);
   assert(restored.projection_frame_count == expected.size());
   assert(restored.pending_table.values().size() == (pending ? 1u : 0u));
   for (std::uint32_t frame = 0; frame < expected.size(); ++frame)
@@ -100,7 +99,7 @@ void check(const std::uint8_t type, const std::uint32_t length, const bool pendi
   dependency.counter_bits += tail_length;
   const auto continued = sequencer::issue_strip(
       restored, 1, 1, dependency, static_cast<std::uint32_t>(packed.size()));
-  assert(restored.strip_start_of[continued].counter_bits == counter);
+  assert(restored.strip_start_of[continued].counter_bits == 0);
   const auto [frame_diff, strip_diff] = insert_after(restored, tail, continued, tail_length);
   const auto position = find_projection_frame_index_of(restored, continued, frame_diff, strip_diff);
   assert(position == expected.size());

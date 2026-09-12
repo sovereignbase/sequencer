@@ -19,13 +19,25 @@ int main() {
   assert(received.front().data() == pointer);
   assert(buffer.get_memory_pointer() == nullptr);
   assert(buffer.read_buffer().empty());
-  buffer.resize(5);
   for (std::uint32_t strip_index = 0; strip_index < 3; ++strip_index)
     for (std::uint32_t word_index = 0; word_index < 12; ++word_index)
       assert(received[strip_index][word_index] ==
              0x80000000u + strip_index * 12 + word_index);
+  buffer.resize(3);
+  assert(buffer.get_memory_pointer() == pointer);
+  for (const auto word : std::span(buffer.get_memory_pointer(), 36))
+    assert(word == 0);
+  buffer.resize(5);
   assert(buffer.get_word_count() == 60);
   buffer.clear();
   assert(buffer.get_strip_count() == 0);
   assert(buffer.get_memory_pointer() == nullptr);
+  buffer.write_strip({1, 2, 3});
+  const auto local_pointer = buffer.get_memory_pointer();
+  assert(buffer.get_word_count() == 12);
+  assert(buffer.read_buffer()[0][2] == 3);
+  assert(buffer.get_strip_count() == 0);
+  buffer.write_strip({4, 5, 6});
+  assert(buffer.get_memory_pointer() == local_pointer);
+  assert(buffer.read_buffer()[0][2] == 6);
 }

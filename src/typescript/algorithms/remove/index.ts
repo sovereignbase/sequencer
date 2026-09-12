@@ -8,7 +8,7 @@ import {
   get_projection_frame_count,
   no_projection_frame_index,
   update_sequence,
-  read_projection_from_buffer,
+  read_strip_from_buffer,
   read_footage_spans,
   release_mask_footage,
   clear_footage_spans,
@@ -58,7 +58,7 @@ export function remove<T>(
       ) >>> 0
     if (position === no_projection_frame_index) break
 
-    const mask = read_projection_from_buffer(12)
+    const mask = read_strip_from_buffer<T>()
     const mask_frame_count = mask[1]
     void projection.push(...mask)
 

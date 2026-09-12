@@ -3,7 +3,7 @@ import type { Replica } from '../../src/typescript/types/type.js'
 
 const native = vi.hoisted(() => ({
   HEAPU32: new Uint32Array(64),
-  _get_strip_buffer_pointer: () => 0,
+  _get_strip_buffer_pointer: vi.fn(),
   _get_projection_frame_count: vi.fn(),
   _update_projection: vi.fn(),
   _get_projection_buffer_pointer: vi.fn(),
@@ -26,6 +26,7 @@ describe('Local insert transfer', () => {
     native.HEAPU32 = new Uint32Array(64)
     native._get_projection_frame_count.mockReturnValue(3)
     native._get_projection_buffer_pointer.mockReturnValue(16)
+    native._get_strip_buffer_pointer.mockReturnValue(16)
     native._update_projection.mockImplementation(() => {
       native.HEAPU32.set(words, 4)
       return 0
@@ -49,15 +50,16 @@ describe('Local insert transfer', () => {
     expect(native._clear_projection_buffer).toHaveBeenCalledTimes(1)
   })
 
-  it('uses after placement at the final visible Frame for a tail insert', () => {
+  it('delegates tail boundary detection without a length roundtrip', () => {
     insert(state, 3, ['X', 'Y'])
     expect(native._update_projection).toHaveBeenCalledExactlyOnceWith(
       42,
-      2,
-      1,
+      3,
+      0,
       2,
       4
     )
+    expect(native._get_projection_frame_count).not.toHaveBeenCalled()
   })
 
   it('leaves birth and masked-only placement to native update', () => {
@@ -91,6 +93,7 @@ describe('Local insert transfer', () => {
       native.HEAPU32 = new Uint32Array(256)
       native.HEAPU32.set(words, 128)
       native._get_projection_buffer_pointer.mockReturnValue(512)
+      native._get_strip_buffer_pointer.mockReturnValue(512)
       return 0
     })
     const input = ['X', 'Y']

@@ -16,8 +16,10 @@
 #pragma once
 
 #include <array>
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <span>
 #include <vector>
 
 /**
@@ -35,17 +37,37 @@ private:
                 words_per_strip * sizeof(std::uint32_t));
 
   std::vector<std::array<std::uint32_t, words_per_strip>> strips;
+  std::array<std::uint32_t, words_per_strip> local_strip;
+  std::size_t count = 0;
+  bool local = false;
 
 public:
   /** @brief Create writable storage for the given number of zeroed Strips. */
   explicit ProjectionBuffer(const std::size_t strip_count = 0)
-      : strips(strip_count) {}
+      : strips(strip_count), count(strip_count) {}
 
   /**
    * @brief Set the Strip count, preserving the prefix and zeroing new Strips.
    * @note Growing storage may allocate and invalidate memory pointers.
    */
-  void resize(const std::size_t strip_count) { strips.resize(strip_count); }
+  void resize(const std::size_t strip_count) {
+    const auto previous_count = local ? 0 : count;
+    const auto reused_count = std::min(strip_count, strips.size());
+    if (strip_count > strips.size())
+      strips.resize(strip_count);
+    if (reused_count > previous_count)
+      std::fill(strips.begin() + previous_count, strips.begin() + reused_count,
+                std::array<std::uint32_t, words_per_strip>{});
+    count = strip_count;
+    local = false;
+  }
+
+  void write_strip(
+      const std::array<std::uint32_t, words_per_strip> &strip_words) noexcept {
+    local_strip = strip_words;
+    count = 1;
+    local = true;
+  }
 
   /**
    * @brief Write a twelve-word Strip at its prepared projection position.
@@ -58,34 +80,32 @@ public:
   }
 
   /**
-   * @brief Consume the projection, leaving this buffer empty with no
-   * allocation.
-   * @return Owned Strips in projection order; the result releases their memory
-   * when destroyed. A subsequent read returns an empty vector.
-   * @note Previously returned pointers belong to the result after this call
-   * and must not be used after the result is destroyed.
+   * @brief Consume the projection logically while retaining its allocation.
+   * @return Borrowed Strips, valid until the next write or resize.
+   * A subsequent read returns an empty span.
    */
-  [[nodiscard]] std::vector<std::array<std::uint32_t, words_per_strip>>
+  [[nodiscard]] std::span<const std::array<std::uint32_t, words_per_strip>>
   read_buffer() noexcept {
-    std::vector<std::array<std::uint32_t, words_per_strip>> result;
-    result.swap(strips);
+    const std::span<const std::array<std::uint32_t, words_per_strip>> result{
+        local ? &local_strip : strips.data(), count};
+    count = 0;
     return result;
   }
 
-  /** @brief Discard all Strips and release storage, invalidating all pointers.
+  /** @brief Discard all Strips while retaining storage for the next producer.
    */
   void clear() noexcept {
-    std::vector<std::array<std::uint32_t, words_per_strip>>{}.swap(strips);
+    count = 0;
   }
 
   /** @brief Return the number of complete Strips in the buffer. */
   [[nodiscard]] std::size_t get_strip_count() const noexcept {
-    return strips.size();
+    return count;
   }
 
   /** @brief Return the total number of words available for host transfer. */
   [[nodiscard]] std::size_t get_word_count() const noexcept {
-    return strips.size() * words_per_strip;
+    return count * words_per_strip;
   }
 
   /**
@@ -93,11 +113,11 @@ public:
    * @note The host transfer spans get_word_count() words from this address.
    */
   [[nodiscard]] std::uint32_t *get_memory_pointer() noexcept {
-    return strips.empty() ? nullptr : strips.front().data();
+    return count == 0 ? nullptr : (local ? local_strip.data() : strips.front().data());
   }
 
   /** @brief Expose dense storage for host reads, or nullptr when empty. */
   [[nodiscard]] const std::uint32_t *get_memory_pointer() const noexcept {
-    return strips.empty() ? nullptr : strips.front().data();
+    return count == 0 ? nullptr : (local ? local_strip.data() : strips.front().data());
   }
 };

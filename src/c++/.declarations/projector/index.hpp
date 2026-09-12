@@ -12,6 +12,9 @@
 #include "../../.pending_table/index.hpp"
 #include "../sentinels/index.hpp"
 #include <chrono>
+#include <cstring>
+#include <memory>
+#include <span>
 #include <cstdint>
 #include <random>
 #include <utility>
@@ -29,7 +32,7 @@
  * The Gate caches one materialized Strip Index and its visible Projection
  * start. It accelerates navigation but never determines Sequence order.
  *
- * @invariant `strips.size() == left.size() == right.size()`.
+ * @invariant All SoA lanes share one allocation and capacity; strip_count is\n * the live append-only index limit.
  * @invariant The materialized circular chain contains each materialized Strip,
  * including Masks, exactly once.
  * @invariant Adjacent structural Strips have mutually consistent forward and
@@ -39,41 +42,91 @@
  * @invariant A non-empty Projection has visible Head, Tail, and Gate Strips.
  */
 struct Projector {
+  std::uint32_t strip_count = 0;
+  std::uint32_t strip_capacity = 0;
+  std::unique_ptr<std::byte[]> strip_storage;
+
+  void reserve_strips(const std::uint32_t required) {
+    if (required <= strip_capacity)
+      return;
+    const auto capacity = std::max(required, std::max(64u, strip_capacity * 2));
+    constexpr auto bytes_per_strip = sizeof(std::uint8_t) +
+        14 * sizeof(std::uint32_t) + 2 * sizeof(SequencePoint);
+    constexpr std::size_t lane_padding = 64;
+    auto storage = std::unique_ptr<std::byte[]>{
+        new std::byte[static_cast<std::size_t>(capacity) * bytes_per_strip +
+                      17 * lane_padding]};
+    auto *cursor = storage.get();
+    const auto relocate = [&]<typename Value>(std::span<Value> &lane) {
+      auto *target = reinterpret_cast<Value *>(cursor);
+      std::uninitialized_default_construct_n(target, capacity);
+      if (strip_count != 0)
+        std::memcpy(target, lane.data(), sizeof(Value) * strip_count);
+      lane = {target, capacity};
+      cursor += sizeof(Value) * capacity + lane_padding;
+    };
+    relocate(initial_length_of);
+    relocate(fragment_length_of);
+    relocate(dependency_prefix_of);
+    relocate(smaller_competitor_strip_index_of);
+    relocate(larger_split_strip_index_of);
+    relocate(strip_start_of);
+    relocate(previous_strip_end_of);
+    relocate(right_strip_index_of);
+    relocate(left_strip_index_of);
+    relocate(left_jump_strip_index_of);
+    relocate(left_jump_strip_count_of);
+    relocate(left_jump_length_of);
+    relocate(right_jump_strip_index_of);
+    relocate(right_jump_strip_count_of);
+    relocate(right_jump_length_of);
+    relocate(footage_frame_index_of);
+    relocate(strip_type_of);
+    strip_storage = std::move(storage);
+    strip_capacity = capacity;
+  }
+
+  std::uint32_t append_strip() {
+    if (strip_count == strip_capacity)
+      reserve_strips(strip_count + 1);
+    return strip_count++;
+  }
+
   // Authoritative materialized Sequence and Projection state.
   ///////////////
   // ENCODING //
   /////////////
-  std::vector<uint8_t> strip_type_of;
+  std::span<uint8_t> strip_type_of;
 
   /**
    * @brief Immutable issued SequencePoint span lengths, excluding the zero
    * anchor.
    */
-  std::vector<std::uint32_t> initial_length_of;
+  std::span<std::uint32_t> initial_length_of;
 
   /** @brief Current physical source fragment lengths. */
-  std::vector<std::uint32_t> fragment_length_of;
+  std::span<std::uint32_t> fragment_length_of;
 
   /** @brief Creation-time dependency offset; structural fragments store their
    * source offset. */
-  std::vector<std::uint32_t> dependency_prefix_of;
+  std::span<std::uint32_t> dependency_prefix_of;
 
   /** @brief Next smaller sibling sharing the same previous Strip end. */
-  std::vector<std::uint32_t> smaller_competitor_strip_index_of;
+  std::span<std::uint32_t> smaller_competitor_strip_index_of;
 
   /** @brief Next physical source fragment; instructions never have a split
    * link. */
-  std::vector<std::uint32_t> larger_split_strip_index_of;
+  std::span<std::uint32_t> larger_split_strip_index_of;
 
   /**
    * @brief Strip start Sequence Points indexed by Strip Index .
    */
-  std::vector<SequencePoint> strip_start_of;
+  std::span<SequencePoint> strip_start_of;
 
   /**
    * @brief Previous Strip End Sequence Points indexed by Strip Index .
    */
-  std::vector<SequencePoint> previous_strip_end_of;
+  std::span<SequencePoint> previous_strip_end_of;
 
   //////////////
   // RUNTIME //
@@ -101,32 +154,32 @@ struct Projector {
    *
    * A Pending Strip points to itself until materialized.
    */
-  std::vector<std::uint32_t> right_strip_index_of;
+  std::span<std::uint32_t> right_strip_index_of;
 
   /**
    * @brief Strip Index immediately to the left in Structural Order.
    *
    * A Pending Strip points to itself until materialized.
    */
-  std::vector<std::uint32_t> left_strip_index_of;
+  std::span<std::uint32_t> left_strip_index_of;
 
   /** @brief Visible Strip reached by the current left Projection jump. */
-  std::vector<std::uint32_t> left_jump_strip_index_of;
+  std::span<std::uint32_t> left_jump_strip_index_of;
 
   /** @brief Visible Strip reached by the current right Projection jump. */
-  std::vector<std::uint32_t> left_jump_strip_count_of;
+  std::span<std::uint32_t> left_jump_strip_count_of;
 
   /** @brief Projection Frame distance to `left_jump_strip_index`. */
-  std::vector<std::uint32_t> left_jump_length_of;
+  std::span<std::uint32_t> left_jump_length_of;
 
   /** @brief Visible Strip reached by the current right Projection jump. */
-  std::vector<std::uint32_t> right_jump_strip_index_of;
+  std::span<std::uint32_t> right_jump_strip_index_of;
 
   /** @brief Visible Strip reached by the current right Projection jump. */
-  std::vector<std::uint32_t> right_jump_strip_count_of;
+  std::span<std::uint32_t> right_jump_strip_count_of;
 
   /** @brief Projection Frame distance to `right_jump_strip_index`. */
-  std::vector<std::uint32_t> right_jump_length_of;
+  std::span<std::uint32_t> right_jump_length_of;
 
   std::uint32_t materialized_strip_count{0};
 
@@ -158,7 +211,7 @@ struct Projector {
   /** @brief Total number of visible frames in the current Projection. */
   std::uint32_t projection_frame_count{0};
 
-  std::vector<std::uint32_t> footage_frame_index_of;
+  std::span<std::uint32_t> footage_frame_index_of;
 
   const std::uint32_t mask_session_crypto_random_bits = std::random_device{}();
   const std::uint32_t insert_session_crypto_random_bits =

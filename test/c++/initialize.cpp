@@ -20,7 +20,7 @@ int main() {
     Projector projector;
     initialize_projector(projector, projection, 5, 7, 6);
     assert(projector.materialized_strip_count == materialized_count);
-    assert(projector.strip_type_of.size() == projection.size());
+    assert(projector.strip_count == projection.size());
     assert(projector.pending_table.values().size() == 3);
     assert(projector.head_strip_index ==
            (materialized_count == 0 ? u32_max : 0));

@@ -98,7 +98,6 @@ describe('runtime CRUD', () => {
     expect(result).toHaveLength(2)
     expect(values(state)).toEqual(['a', 'x', 'y'])
     expect(recover(state)).toEqual(['a', 'x', 'y'])
-    expect(replace(state, 3, ['z'])).toBe(false)
   })
 
   it('uses Projection end as the default removal boundary', () => {

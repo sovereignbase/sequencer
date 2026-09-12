@@ -55,7 +55,7 @@ struct Fixture {
   }
 
   void check_positions(const std::string &expected) {
-    std::vector<std::uint32_t> starts(projector.strip_type_of.size());
+    std::vector<std::uint32_t> starts(projector.strip_count);
     std::vector<std::uint32_t> structural_positions(starts.size());
     std::uint32_t position = 0;
     std::uint32_t structural_position = 0;

@@ -31,14 +31,13 @@ import {
 type Runtime = {
   name: ReplicaName
   state: Replica<number>
+  peer: Replica<number>
   policy: ReplicaPolicy
   strips: StripIndex
   random: Random
   nextStripId: number
   metrics: OperationAccumulator
   space: Record<MetricScope, SpaceAccumulator>
-  mergePool: Array<Delta<number>>
-  mergePoolCursor: number
 }
 
 let resultSink: unknown
@@ -87,26 +86,15 @@ const createReplacementStrip = (
   return { id, length, values: new Array<number>(length).fill(id) }
 }
 
-const rememberMergeCandidate = (
+const mergeIntoPeer = (
   runtime: Runtime,
   delta: Delta<number>,
-  maximumPoolSize: number
+  operation: string
 ): void => {
-  const maskWords: Array<number> = []
-  for (let start = 0; start < delta[0].length; start += 12)
-    if (delta[0][start] === 2)
-      for (let word = start; word < start + 12; word++)
-        maskWords.push(delta[0][word])
-
-  if (maskWords.length === 0) return
-  const candidate: Delta<number> = [maskWords]
-  if (runtime.mergePool.length < maximumPoolSize)
-    runtime.mergePool.push(candidate)
-  else {
-    runtime.mergePool[runtime.mergePoolCursor] = candidate
-    runtime.mergePoolCursor =
-      (runtime.mergePoolCursor + 1) % maximumPoolSize
-  }
+  if (api.merge(runtime.peer, delta) === false)
+    throw new TypeError(
+      `Replica ${runtime.name} peer rejected new ${operation} Delta.`
+    )
 }
 
 const insertAt = (
@@ -121,7 +109,8 @@ const insertAt = (
   const delta = timeOperation(runtime, direction, operationName, () =>
     api.insert(runtime.state, frameIndex, strip.values)
   )
-  requireDelta(delta, operationName)
+  const accepted = requireDelta(delta, operationName)
+  mergeIntoPeer(runtime, accepted, operationName)
   runtime.strips.insert(stripIndex, strip)
 }
 
@@ -143,7 +132,7 @@ const removeAt = (
     )
   )
   const accepted = requireDelta(delta, operationName)
-  rememberMergeCandidate(runtime, accepted, config.mergePoolSize)
+  mergeIntoPeer(runtime, accepted, operationName)
   runtime.strips.remove(stripIndex)
 }
 
@@ -176,18 +165,32 @@ const randomReplace = (
     )
   )
   const accepted = requireDelta(delta, 'randomReplace')
-  rememberMergeCandidate(runtime, accepted, config.mergePoolSize)
+  mergeIntoPeer(runtime, accepted, 'randomReplace')
   runtime.strips.replace(stripIndex, strip)
 }
 
 const randomMerge = (runtime: Runtime, direction: Direction): void => {
-  if (runtime.mergePool.length === 0)
-    throw new TypeError('Random merge has no prepared Mask Delta.')
-  const delta =
-    runtime.mergePool[runtime.random.integer(runtime.mergePool.length)]
-  resultSink = timeOperation(runtime, direction, 'randomMerge', () =>
+  const stripIndex = runtime.random.integer(runtime.strips.count)
+  const frameIndex = runtime.strips.frameOffsetAt(stripIndex)
+  const replaced = runtime.strips.at(stripIndex)
+  const strip = createReplacementStrip(runtime, replaced.length)
+  const delta = requireDelta(
+    api.replace(
+      runtime.peer,
+      frameIndex,
+      strip.values,
+      runtime.policy.remove === 'hard'
+    ),
+    'randomMerge peer replacement'
+  )
+  if ((delta[1]?.length ?? 0) === 0)
+    throw new TypeError('Random merge received a Footage-free Delta.')
+  const change = timeOperation(runtime, direction, 'randomMerge', () =>
     api.merge(runtime.state, delta)
   )
+  if (change === false)
+    throw new TypeError('Random merge did not integrate a new peer Delta.')
+  runtime.strips.replace(stripIndex, strip)
 }
 
 const runRandomWorkload = (
@@ -215,33 +218,39 @@ const runRandomWorkload = (
 }
 
 const runScaleUpStep = (
-  runtime: Runtime,
+  runtimes: Record<ReplicaName, Runtime>,
   config: BenchmarkConfig
 ): void => {
-  const tail = runtime.strips.count % 2 === 0
-  insertAt(
-    runtime,
-    config,
-    'up',
-    tail ? 'tailInsert' : 'headInsert',
-    tail ? runtime.strips.count : 0
-  )
-  runRandomWorkload(runtime, config, 'up')
+  for (const runtime of [runtimes.A, runtimes.B, runtimes.C]) {
+    const tail = runtime.strips.count % 2 === 0
+    insertAt(
+      runtime,
+      config,
+      'up',
+      tail ? 'tailInsert' : 'headInsert',
+      tail ? runtime.strips.count : 0
+    )
+  }
+  for (const runtime of [runtimes.A, runtimes.B, runtimes.C])
+    runRandomWorkload(runtime, config, 'up')
 }
 
 const runScaleDownStep = (
-  runtime: Runtime,
+  runtimes: Record<ReplicaName, Runtime>,
   config: BenchmarkConfig
 ): void => {
-  runRandomWorkload(runtime, config, 'down')
-  const head = runtime.strips.count % 2 === 0
-  removeAt(
-    runtime,
-    config,
-    'down',
-    head ? 'headRemove' : 'tailRemove',
-    head ? 0 : runtime.strips.count - 1
-  )
+  for (const runtime of [runtimes.A, runtimes.B, runtimes.C])
+    runRandomWorkload(runtime, config, 'down')
+  for (const runtime of [runtimes.A, runtimes.B, runtimes.C]) {
+    const head = runtime.strips.count % 2 === 0
+    removeAt(
+      runtime,
+      config,
+      'down',
+      head ? 'headRemove' : 'tailRemove',
+      head ? 0 : runtime.strips.count - 1
+    )
+  }
 }
 
 const snapshotMetric = <T>(operation: () => T): [MetricResult, T] => {
@@ -269,24 +278,28 @@ const observeReplica = (
   const [acknowledgeMetric, frontier] = snapshotMetric(() =>
     api.acknowledge(runtime.state)
   )
-  const [compactMetric] = snapshotMetric(() =>
-    api.compact(
-      frontier === false ? [] : [frontier],
-      runtime.state,
-      runtime.policy.compact === 'hard'
-    )
+  const peerFrontier = api.acknowledge(runtime.peer)
+  const frontiers = [frontier, peerFrontier].filter(
+    (candidate): candidate is Array<number> => candidate !== false
   )
+  const [compactMetric] = snapshotMetric(() =>
+    api.compact(frontiers, runtime.state, runtime.policy.compact === 'hard')
+  )
+  api.compact(frontiers, runtime.peer, runtime.policy.compact === 'hard')
   const [snapshotResult, afterCompact] = snapshotMetric(() =>
     api.snapshot(runtime.state)
   )
+  const peerAfterCompact = api.snapshot(runtime.peer)
   const afterCompactBytes = serialize(afterCompact).byteLength
 
   const oldState = runtime.state
   const [destroyMetric] = snapshotMetric(() => api.destroy(oldState))
+  void api.destroy(runtime.peer)
   const [initializeMetric, initializedState] = snapshotMetric(() =>
     api.create<number>(afterCompact)
   )
   runtime.state = initializedState
+  runtime.peer = api.create<number>(peerAfterCompact)
 
   const stripCount = runtime.strips.count
   const frameCount = runtime.strips.frameCount
@@ -370,13 +383,6 @@ const takeCheckpoint = async (
   }
   await collectGarbage()
   const processMemory = process.memoryUsage()
-
-  for (const replica of [replicas.B, replicas.C])
-    if (
-      replica.strips.stripCount !== replicas.A.strips.stripCount ||
-      replica.strips.frameCount !== replicas.A.strips.frameCount
-    )
-      throw new TypeError('Deterministic Replica workloads diverged.')
 
   return {
     run,
@@ -471,6 +477,7 @@ const makeRuntime = (
 ): Runtime => ({
   name,
   state,
+  peer: api.create<number>(api.snapshot(state)),
   policy,
   strips: new StripIndex(),
   random: new Random(workloadSeed),
@@ -481,8 +488,6 @@ const makeRuntime = (
     scaleDown: new SpaceAccumulator(),
     fullLifecycle: new SpaceAccumulator(),
   },
-  mergePool: [],
-  mergePoolCursor: 0,
 })
 
 const finishRuntime = (runtime: Runtime): ReplicaRunResult => ({
@@ -509,24 +514,9 @@ async function runOneLifecycle(
   const [initializationC, stateC] = snapshotMetric(() => api.create<number>())
   const workloadSeed = deriveSeed(runSeed, 'shared-replica-workload')
   const runtimes = {
-    A: makeRuntime(
-      'A',
-      stateA,
-      workloadSeed,
-      config.replicaPolicies.A
-    ),
-    B: makeRuntime(
-      'B',
-      stateB,
-      workloadSeed,
-      config.replicaPolicies.B
-    ),
-    C: makeRuntime(
-      'C',
-      stateC,
-      workloadSeed,
-      config.replicaPolicies.C
-    ),
+    A: makeRuntime('A', stateA, workloadSeed, config.replicaPolicies.A),
+    B: makeRuntime('B', stateB, workloadSeed, config.replicaPolicies.B),
+    C: makeRuntime('C', stateC, workloadSeed, config.replicaPolicies.C),
   }
   const checkpoints: Array<CheckpointResult> = []
   const checkpointSet = new Set(config.checkpoints)
@@ -538,22 +528,21 @@ async function runOneLifecycle(
   }
 
   while (runtimes.A.strips.count < config.maximumStripCount) {
-    runScaleUpStep(runtimes.A, config)
-    runScaleUpStep(runtimes.B, config)
-    runScaleUpStep(runtimes.C, config)
+    runScaleUpStep(runtimes, config)
     if (checkpointSet.has(runtimes.A.strips.count)) await record('up')
   }
 
   while (runtimes.A.strips.count > 0) {
-    runScaleDownStep(runtimes.A, config)
-    runScaleDownStep(runtimes.B, config)
-    runScaleDownStep(runtimes.C, config)
+    runScaleDownStep(runtimes, config)
     if (checkpointSet.has(runtimes.A.strips.count)) await record('down')
   }
 
   void api.destroy(runtimes.A.state)
   void api.destroy(runtimes.B.state)
   void api.destroy(runtimes.C.state)
+  void api.destroy(runtimes.A.peer)
+  void api.destroy(runtimes.B.peer)
+  void api.destroy(runtimes.C.peer)
   resultSink = undefined
   return {
     run,
@@ -614,11 +603,7 @@ export function aggregateRuns(
   runs: Array<RunResult>
 ): BenchmarkReport['aggregates'] {
   const replicaNames: Array<ReplicaName> = ['A', 'B', 'C']
-  const scopes: Array<MetricScope> = [
-    'scaleUp',
-    'scaleDown',
-    'fullLifecycle',
-  ]
+  const scopes: Array<MetricScope> = ['scaleUp', 'scaleDown', 'fullLifecycle']
   return Object.fromEntries(
     replicaNames.map((replicaName) => [
       replicaName,
@@ -633,9 +618,7 @@ export function aggregateRuns(
                   metric:
                     run.replicas[replicaName].operations[scope][operationName],
                 }))
-                .filter(
-                  (sample) => sample.metric.averageNanoseconds !== null
-                )
+                .filter((sample) => sample.metric.averageNanoseconds !== null)
               const ordered = samples
                 .map((sample) => ({
                   run: sample.run,
@@ -682,8 +665,7 @@ export function aggregateRuns(
                   sampleWeightedOperationsPerSecond:
                     totalNanoseconds === 0
                       ? null
-                      : (1_000_000_000 * totalSampleCount) /
-                        totalNanoseconds,
+                      : (1_000_000_000 * totalSampleCount) / totalNanoseconds,
                   meanRunAverageNanoseconds: mean,
                   medianRunAverageNanoseconds: median,
                   standardDeviationNanoseconds:
@@ -692,8 +674,7 @@ export function aggregateRuns(
                       : Math.sqrt(
                           ordered.reduce(
                             (sum, sample) =>
-                              sum +
-                              (sample.averageNanoseconds - mean) ** 2,
+                              sum + (sample.averageNanoseconds - mean) ** 2,
                             0
                           ) / count
                         ),

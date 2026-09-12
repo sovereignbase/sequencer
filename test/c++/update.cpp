@@ -13,8 +13,8 @@ struct Fixture {
     sequencer::projection_buffer.resize(count);
     for (std::uint32_t strip = 0; strip < count; ++strip) {
       sequencer::projection_buffer.write_projection(
-          strip, {type, 3, sequencer::insert_realm_crypto_random_bits ^ 1u,
-                  sequencer::shared_realm_unix_lower_bits, strip * 32,
+          strip, {type, 3, 10,
+                  20, strip * 32,
                   0, 0, 0, u32_max, u32_max, (type == 2 || type == 5) ? 0u : 3, 0});
       if (type != 5)
         footage += "abc";
@@ -45,7 +45,7 @@ struct Fixture {
   void check(const std::string &expected) {
     auto &projector = *sequencer::projectors[id];
     assert(projector.projection_frame_count == expected.size());
-    std::vector<std::uint32_t> starts(projector.strip_type_of.size());
+    std::vector<std::uint32_t> starts(projector.strip_count);
     std::vector<std::uint32_t> positions(starts.size());
     std::uint32_t position = 0;
     std::uint32_t frame = 0;
@@ -87,8 +87,8 @@ int main() {
         const auto result = sequencer::projection_buffer.read_buffer();
         assert(result.size() == 1);
         assert(result[0][0] == 2 && result[0][1] == length);
-        assert(result[0][2] == sequencer::mask_realm_crypto_random_bits);
-        assert(result[0][3] == sequencer::shared_realm_unix_lower_bits);
+        assert(result[0][2] == sequencer::projectors[fixture.id]->mask_session_crypto_random_bits);
+        assert(result[0][3] == sequencer::projectors[fixture.id]->shared_session_unix_lower_bits);
         assert(result[0][4] == 0);
         assert(result[0][7] == target / 3 * 32 + target % 3);
         assert(sequencer::footage_span_buffer.get_span_count() == 1);
@@ -174,6 +174,6 @@ int main() {
   assert(sequencer::update_projection(empty.id, 0, 0, 0, 0) == u32_max);
   assert(sequencer::update_projection(empty.id, 0, 2, 1) == u32_max);
   assert(sequencer::update_projection(empty.id, 0, 3, 1) == u32_max);
-  assert(sequencer::projectors[empty.id]->strip_type_of.empty());
+  assert(sequencer::projectors[empty.id]->strip_count == 0);
   assert(sequencer::projection_buffer.get_word_count() == 0);
 }

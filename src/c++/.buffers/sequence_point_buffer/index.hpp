@@ -5,8 +5,8 @@
  * A sequence_point is a Replica's Realm-indexed acknowledgement boundary. Each
  * Realm represented in that sequence_point contributes one Sequence Point, and
  * SequencePointBuffer stores those entries in one owned contiguous vector.
- * Clearing retains capacity. A native consuming read transfers storage to the
- * reader and leaves the buffer empty; that reader then owns its lifetime.
+ * Clearing and consuming reads retain capacity. A consuming read returns a
+ * borrowed view valid until the next write or resize, leaving the buffer empty.
  *
  * Every Realm entry uses three consecutive words:
  *
@@ -20,7 +20,9 @@
 
 #include "../../.declarations/sequence_point/index.hpp"
 #include <cstddef>
+#include <algorithm>
 #include <cstdint>
+#include <span>
 #include <vector>
 
 /**
@@ -46,12 +48,13 @@ private:
 
   /** @brief Owned storage containing zero or more complete Realm entries. */
   std::vector<std::uint32_t> words;
+  std::size_t word_count = 0;
 
 public:
   /** @brief Consume the words, leaving this transfer buffer empty. */
-  [[nodiscard]] std::vector<std::uint32_t> read_buffer() noexcept {
-    std::vector<std::uint32_t> result;
-    result.swap(words);
+  [[nodiscard]] std::span<const std::uint32_t> read_buffer() noexcept {
+    const std::span<const std::uint32_t> result{words.data(), word_count};
+    word_count = 0;
     return result;
   }
 
@@ -67,7 +70,7 @@ public:
    */
   inline void clear() noexcept {
     // Discard entries while retaining their allocation for reuse.
-    words.clear();
+    word_count = 0;
   }
 
   /**
@@ -85,8 +88,14 @@ public:
    */
   inline void resize(const std::uint32_t sequence_point_count) noexcept {
     // Materialize the exact writable word range requested by the host.
-    words.resize(static_cast<std::size_t>(sequence_point_count) *
-                 words_per_sequence_point_entry);
+    const auto count = static_cast<std::size_t>(sequence_point_count) *
+                       words_per_sequence_point_entry;
+    const auto reused_count = std::min(count, words.size());
+    if (count > words.size())
+      words.resize(count);
+    if (reused_count > word_count)
+      std::fill(words.begin() + word_count, words.begin() + reused_count, 0);
+    word_count = count;
   }
 
   /**
@@ -121,9 +130,11 @@ public:
   inline void
   write_sequence_point(const SequencePoint &sequence_point) noexcept {
     // Append one Realm boundary in stable ABI lane order.
-    words.push_back(sequence_point.crypto_random_bits);
-    words.push_back(sequence_point.unix_lower_bits);
-    words.push_back(sequence_point.counter_bits);
+    if (word_count + words_per_sequence_point_entry > words.size())
+      words.resize(word_count + words_per_sequence_point_entry);
+    words[word_count++] = sequence_point.crypto_random_bits;
+    words[word_count++] = sequence_point.unix_lower_bits;
+    words[word_count++] = sequence_point.counter_bits;
   }
 
   /**
@@ -134,7 +145,7 @@ public:
    */
   [[nodiscard]] inline std::uint32_t get_sequence_point_count() const noexcept {
     // Convert the complete word count to a Realm entry count.
-    return static_cast<std::uint32_t>(words.size() /
+    return static_cast<std::uint32_t>(word_count /
                                       words_per_sequence_point_entry);
   }
 
@@ -173,6 +184,6 @@ public:
    */
   [[nodiscard]] inline std::uint32_t *get_memory_pointer() noexcept {
     // Expose only a live, non-empty contiguous word range.
-    return words.empty() ? nullptr : words.data();
+    return word_count == 0 ? nullptr : words.data();
   }
 };

@@ -8,7 +8,7 @@ inline void
 snapshot_projection(const std::uint32_t projection_id) noexcept {
   const Projector &projector = *projectors[projection_id];
   // Prepare pojection buffer
-  const auto count = projector.strip_start_of.size();
+  const auto count = projector.strip_count;
   const auto pending_strips = projector.pending_table.values();
 
   std::vector<std::uint32_t> projection_indices(count);

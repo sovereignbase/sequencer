@@ -3,7 +3,7 @@ import type { Replica } from '../../src/typescript/types/type.js'
 
 const native = vi.hoisted(() => ({
   HEAPU32: new Uint32Array(64),
-  _get_strip_buffer_pointer: () => 0,
+  _get_strip_buffer_pointer: () => 16,
   _get_projection_frame_count: vi.fn(),
   _update_projection: vi.fn(),
   _release_mask_footage: vi.fn(),

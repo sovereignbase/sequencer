@@ -26,7 +26,7 @@ int main() {
     expected.erase(expected.begin() + position);
   };
   const auto check = [&]() {
-    std::vector<std::uint32_t> starts(projector.strip_type_of.size());
+    std::vector<std::uint32_t> starts(projector.strip_count);
     std::vector<std::uint32_t> ranks(starts.size());
     std::uint32_t frames = 0;
     std::uint32_t rank = 0;

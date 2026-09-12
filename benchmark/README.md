@@ -2,7 +2,9 @@
 
 ## Purpose
 
-Benchmark three Sequencer replicas operating on the **same logical document** through a full dynamic lifecycle.
+Benchmark three independent Sequencer policy workloads through a full dynamic
+lifecycle. Each workload contains two replicas editing the same document: one
+measured replica and one peer, for six live replicas in total.
 
 Run the complete benchmark **3 times**.
 
@@ -14,7 +16,9 @@ Replicas:
 | B       | soft   | hard    |
 | C       | hard   | hard    |
 
-All replicas receive equivalent local workload and continuously merge operations produced by the other replicas.
+The two replicas inside a workload use the same remove and compaction policy.
+The A, B, and C workloads are independent and never exchange Deltas with each
+other.
 
 ## Scale
 
@@ -46,23 +50,19 @@ Strip length:
 
 All random workload is deterministic from the run seed.
 
-## Shared document
+## Merge samples
 
-A, B and C are replicas of the **same document**.
+`randomMerge` measures the throughput of the measured replica integrating a
+newly issued Strip from its peer. It is not a convergence test.
 
-Operations issued by one replica are available for merging by the other two.
+The measured replica's local insert, remove, and replace Deltas are merged into
+its peer outside timed regions, keeping both on the same document history. For
+`randomMerge`, the peer issues an equal-length replacement Delta containing a
+Mask, a new Strip, and its Footage. Only the measured replica's integration of
+that fresh Delta is timed.
 
-`randomMerge` must always use a Delta originating from another replica:
-
-```text
-A ← B or C
-B ← A or C
-C ← A or B
-```
-
-A replica must never merge its own Delta as `randomMerge`.
-
-Merge source and Delta selection happen outside the timed region.
+Peer issuance, target selection, and synchronization remain outside the timed
+region. No cross-workload convergence comparison is performed.
 
 ## Continuous operations
 
@@ -175,10 +175,13 @@ The old Replica must not be reused.
 The pre-compaction snapshot used for size measurement is created outside timed regions.
 
 The timed post-compaction `snapshot` is passed to the timed `initialize`.
+The peer acknowledges and compacts with the same policy and is independently
+snapshotted, destroyed, and reinitialized outside the measured regions.
 
 ## State lifecycle
 
-Every run starts with three completely fresh replicas.
+Every run starts with six completely fresh replicas: three measured replicas
+and their three peers.
 
 `destroy` must release the native Projector and invalidate the Replica.
 
@@ -239,9 +242,9 @@ Run 2
 Each run:
 
 - uses its own deterministic seed
-- starts from completely fresh replicas
-- operates on one shared logical document
-- exchanges operations between replicas
+- starts from six completely fresh replicas
+- runs an independent policy workload
+- receives one fresh merge sample per workload step from its paired replica
 - shares no state with another run
 
 Store every run and replica independently.
@@ -259,9 +262,7 @@ maximum
 Each run measures:
 
 ```text
-3 replicas
-×
-one shared document
+3 policy workloads × 2 replicas
 ×
 0 → 100,000 → 0 visible Strips
 ```
@@ -274,4 +275,4 @@ B: soft remove + hard compact
 C: hard remove + hard compact
 ```
 
-and real cross-replica merge traffic throughout the lifecycle.
+and fresh within-pair merge samples throughout the lifecycle.

@@ -105,7 +105,6 @@ export function parseConfig(arguments_: Array<string>): BenchmarkConfig {
     minimumStripFrameLength,
     maximumStripFrameLength,
     warmupCycles,
-    mergePoolSize: 1_024,
     replicaPolicies: {
       A: { remove: 'soft', compact: 'soft' },
       B: { remove: 'soft', compact: 'hard' },
@@ -144,7 +143,7 @@ export async function runBenchmark(
       stripCount:
         'Scale is the number of visible logical Strips maintained by the benchmark model. Every mutation targets a complete Strip boundary; retained Mask structures are reported separately.',
       merge:
-        'randomMerge deterministically selects a previously applied, footage-free Mask Delta. This measures the public merge deduplication path without changing scale or duplicating Footage.',
+        'Each policy workload has two Replicas editing the same document. Local Deltas are synchronized to the peer outside timed regions; randomMerge times the measured Replica integrating a newly issued, equal-length replacement Delta from its peer, including both its Mask and new Footage.',
       average:
         'Operation averages are calculated directly from count and total measured nanoseconds; checkpoint averages are never averaged together.',
       memory:

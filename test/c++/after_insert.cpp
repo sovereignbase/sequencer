@@ -41,7 +41,7 @@ struct Fixture {
   }
 
   void check(const std::string &expected) {
-    std::vector<std::uint32_t> starts(projector.strip_type_of.size());
+    std::vector<std::uint32_t> starts(projector.strip_count);
     std::vector<std::uint32_t> positions(starts.size());
     std::uint32_t previous = u32_max;
     std::uint32_t frame = 0;

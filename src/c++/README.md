@@ -623,6 +623,17 @@ A reader must finish using the result before the next operation reuses that buff
 
 For borrowed spans, obtaining the pointer is not enough; the data must actually be consumed before reuse.
 
+Consuming or clearing a buffer resets its logical count but retains its capacity.
+Native Projection and SequencePoint reads borrow that storage until the next
+producer writes or resizes it. Local updates use a fixed twelve-word result;
+TypeScript reads those words directly before clearing the logical count.
+
+Projector Strip storage remains SoA. All lanes share one allocation, one
+`strip_count`, and one geometrically grown `strip_capacity`. Staging and splitting
+check capacity once and write the lanes directly. Growth copies the live lanes
+in O(n); appending within capacity remains O(1). Capacity is released with its
+owning Projector, not between operations.
+
 ### Initialization
 
 Initialization does not replay the historical operations that produced the Projection.

@@ -27,23 +27,8 @@ inline void initialize_projector(
                      });
     const auto materialized_strip_count =
         static_cast<std::uint32_t>(first_pending_strip - projection.begin());
-    projector.strip_type_of.resize(strip_count);
-    projector.initial_length_of.resize(strip_count);
-    projector.fragment_length_of.resize(strip_count);
-    projector.dependency_prefix_of.resize(strip_count);
-    projector.strip_start_of.resize(strip_count);
-    projector.previous_strip_end_of.resize(strip_count);
-    projector.larger_split_strip_index_of.resize(strip_count);
-    projector.smaller_competitor_strip_index_of.resize(strip_count);
-    projector.left_strip_index_of.resize(strip_count);
-    projector.right_strip_index_of.resize(strip_count);
-    projector.footage_frame_index_of.resize(strip_count);
-    projector.left_jump_strip_index_of.assign(strip_count, u32_max);
-    projector.right_jump_strip_index_of.assign(strip_count, u32_max);
-    projector.left_jump_strip_count_of.resize(strip_count);
-    projector.right_jump_strip_count_of.resize(strip_count);
-    projector.left_jump_length_of.resize(strip_count);
-    projector.right_jump_length_of.resize(strip_count);
+    projector.reserve_strips(strip_count);
+    projector.strip_count = strip_count;
     projector.materialized_strip_count = materialized_strip_count;
 
     const std::uint32_t optimal_jump_distance = static_cast<std::uint32_t>(
@@ -54,6 +39,12 @@ inline void initialize_projector(
     std::uint32_t previous_jump_projection_index = 0;
     std::uint32_t strip_index = 0;
     for (const auto &strip : projection) {
+      projector.left_jump_strip_index_of[strip_index] = u32_max;
+      projector.right_jump_strip_index_of[strip_index] = u32_max;
+      projector.left_jump_strip_count_of[strip_index] = 0;
+      projector.right_jump_strip_count_of[strip_index] = 0;
+      projector.left_jump_length_of[strip_index] = 0;
+      projector.right_jump_length_of[strip_index] = 0;
       const bool pending = strip_index >= materialized_strip_count;
       const auto strip_type =
           static_cast<std::uint8_t>(pending ? strip[0] - 3 : strip[0]);

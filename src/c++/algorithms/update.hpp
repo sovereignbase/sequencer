@@ -16,10 +16,15 @@ namespace sequencer {
  * of its containing Strip and returns its retained Footage span.
  */
 inline std::uint32_t update_projection(
-    const std::uint32_t projection_id, const std::uint32_t operation_index,
-    const std::uint8_t operation_type, const std::uint32_t operation_length,
+    const std::uint32_t projection_id, std::uint32_t operation_index,
+    std::uint8_t operation_type, const std::uint32_t operation_length,
     const std::uint32_t footage_frame_index = u32_max) noexcept {
   Projector &projector = *projectors[projection_id];
+  if (operation_type == 0 && operation_index != 0 &&
+      operation_index == projector.projection_frame_count) {
+    --operation_index;
+    operation_type = 1;
+  }
   if (operation_type > 2 || operation_length == 0 ||
       (operation_type == 2 && projector.projection_frame_count == 0))
     return u32_max;
@@ -71,16 +76,19 @@ inline std::uint32_t update_projection(
 
   const auto [frame_count_diff, strip_count_diff] = apply_insert(
       projector, containing_strip_index, incoming_strip_index, offset);
+  const auto local_position = containing_strip_index == u32_max ? 0
+      : projector.left_strip_index_of[incoming_strip_index] == containing_strip_index
+          ? operation_index + (operation_type == 1 ? 1 : 0) : u32_max;
   const auto position = operation_type == 2 ? projector.projection_frame_index
       : find_projection_frame_index_of(
-          projector, incoming_strip_index, frame_count_diff, strip_count_diff);
+          projector, incoming_strip_index, frame_count_diff, strip_count_diff,
+          local_position);
   projector.gate_strip_index = incoming_strip_index;
   projector.projection_frame_index = position;
 
   const auto strip_start = projector.strip_start_of[incoming_strip_index];
-  projection_buffer.resize(1);
-  projection_buffer.write_projection(
-      0, {projector.strip_type_of[incoming_strip_index],
+  projection_buffer.write_strip(
+      {projector.strip_type_of[incoming_strip_index],
           projector.initial_length_of[incoming_strip_index],
           strip_start.crypto_random_bits, strip_start.unix_lower_bits,
           strip_start.counter_bits, previous_strip_end.crypto_random_bits,

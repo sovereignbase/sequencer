@@ -7,7 +7,8 @@
 find_projection_frame_index_of(Projector &projector,
                                const std::uint32_t &strip_index,
                                const std::int32_t frame_count_diff,
-                               const std::int32_t strip_count_diff) noexcept {
+                               const std::int32_t strip_count_diff,
+                               const std::uint32_t local_position = u32_max) noexcept {
   // CACHE
   const std::uint32_t projection_frame_count = projector.projection_frame_count;
 
@@ -138,6 +139,8 @@ find_projection_frame_index_of(Projector &projector,
     }
   }
 
+  if (local_position != u32_max)
+    return local_position;
   if (known_position != u32_max)
     return known_position;
 

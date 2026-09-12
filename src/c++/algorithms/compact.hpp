@@ -79,7 +79,7 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
   if (frontiers.empty())
     return 0;
   auto &projector = *projectors[projection_id];
-  const auto count = projector.strip_type_of.size();
+  const auto count = projector.strip_count;
   const auto realm_of = [](const SequencePoint point) {
     return (std::uint64_t{point.crypto_random_bits} << 32) | point.unix_lower_bits;
   };
@@ -213,8 +213,8 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
     }
     strip = next;
   }
-  std::fill(projector.left_jump_strip_index_of.begin(), projector.left_jump_strip_index_of.end(), u32_max);
-  std::fill(projector.right_jump_strip_index_of.begin(), projector.right_jump_strip_index_of.end(), u32_max);
+  std::fill_n(projector.left_jump_strip_index_of.begin(), count, u32_max);
+  std::fill_n(projector.right_jump_strip_index_of.begin(), count, u32_max);
   const auto distance = static_cast<std::uint32_t>(std::sqrt(projector.materialized_strip_count) + 0.5);
   std::uint32_t previous_jump = projector.head_strip_index, previous_index = 0, steps = 0;
   projection_index = 0;

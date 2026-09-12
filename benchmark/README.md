@@ -2,27 +2,23 @@
 
 ## Purpose
 
-Measure Sequencer through a realistic changing lifecycle instead of isolated fixed-size states.
+Benchmark three Sequencer replicas operating on the **same logical document** through a full dynamic lifecycle.
 
-Each benchmark performs **3 independent runs**.
+Run the complete benchmark **3 times**.
 
-Each run contains **3 replicas** receiving the same deterministic workload:
+Replicas:
 
-```text
-Replica A
-    remove: soft
-    compact: soft
+| Replica | Remove | Compact |
+| ------- | ------ | ------- |
+| A       | soft   | soft    |
+| B       | soft   | hard    |
+| C       | hard   | hard    |
 
-Replica B
-    remove: soft
-    compact: hard
+All replicas receive equivalent local workload and continuously merge operations produced by the other replicas.
 
-Replica C
-    remove: hard
-    compact: hard
-```
+## Scale
 
-Each replica scales through powers of ten:
+Each run:
 
 ```text
 0
@@ -40,66 +36,37 @@ Each replica scales through powers of ten:
 → 0
 ```
 
-Scale is measured in **Strip count**.
+Scale is visible Strip count.
 
-Strip lengths are deterministic pseudo-random values in:
+Strip length:
 
 ```text
 1 ... 100 frames
 ```
 
-The run seed controls the random workload so every replica within the run receives the same workload and every run is reproducible.
+All random workload is deterministic from the run seed.
 
----
+## Shared document
 
-## Replicas
+A, B and C are replicas of the **same document**.
 
-The three replicas differ only in remove and compact behavior:
+Operations issued by one replica are available for merging by the other two.
 
-| Replica | Remove | Compact |
-| ------- | ------ | ------- |
-| A       | soft   | soft    |
-| B       | soft   | hard    |
-| C       | hard   | hard    |
-
-All other benchmark behavior must remain identical between replicas.
-
-Measurements are stored independently for each replica.
-
----
-
-## State lifecycle
-
-Every run begins with three completely fresh initialized replicas.
-
-At every checkpoint, independently for each replica:
+`randomMerge` must always use a Delta originating from another replica:
 
 ```text
-reach checkpoint
-
-measure
-acknowledge
-compact using replica policy
-snapshot
-destroy old state
-discard old JS state
-initialize completely new state from snapshot
-
-continue
+A ← B or C
+B ← A or C
+C ← A or B
 ```
 
-The old state must not be reused after the checkpoint.
+A replica must never merge its own Delta as `randomMerge`.
 
-`destroy` is the public synchronous TypeScript API operation. It releases the
-Replica's native Projector immediately, unregisters automatic finalization,
-and invalidates the Replica in-place. Calling `destroy` again for the same
-Replica is a no-op. No Sequencer method may use the invalidated Replica.
-
----
+Merge source and Delta selection happen outside the timed region.
 
 ## Continuous operations
 
-During scale-up measure:
+Scale-up:
 
 ```text
 tailInsert
@@ -111,7 +78,7 @@ randomMerge
 randomInsert
 ```
 
-During scale-down measure:
+Scale-down:
 
 ```text
 headRemove
@@ -123,20 +90,16 @@ randomMerge
 randomInsert
 ```
 
-Remove operations use the replica's configured **soft/hard remove policy**.
+One scale-up step grows visible Strip count by exactly one.
 
-Every invocation is timed independently.
+One scale-down step shrinks visible Strip count by exactly one.
 
-One scale-up step adds one Strip at the head or tail (alternating by step), then
-runs each random operation once. `randomRemove` and `randomInsert` balance one
-another, so the step grows the visible Projection by exactly one Strip. One
-scale-down step runs the same random workload and then removes one alternating
-head/tail Strip, shrinking the Projection by exactly one Strip.
+Remove operations use each replica's configured soft/hard policy.
 
-For every operation retain:
+For every operation record:
 
 ```text
-count
+calls
 total duration
 average
 minimum
@@ -144,25 +107,17 @@ maximum
 operations per second
 ```
 
-The authoritative average is:
+Authoritative average:
 
 ```text
-sum of measured durations / number of calls
+sum(duration) / calls
 ```
 
-Throughput is derived from that same sample-weighted average:
-
-```text
-operations per second = 1,000,000,000 / average nanoseconds
-```
-
-Checkpoint logging does not reset the accumulators.
-
----
+Checkpoint logging does not reset operation metrics.
 
 ## Checkpoints
 
-Checkpoints are powers of ten:
+Checkpoints:
 
 ```text
 1
@@ -175,7 +130,7 @@ Checkpoints are powers of ten:
 
 and the same values in reverse during scale-down.
 
-At every checkpoint record for every replica:
+At every checkpoint, for each replica, measure:
 
 ```text
 Strip count
@@ -201,75 +156,45 @@ snapshot bytes / Strip
 snapshot bytes / frame
 ```
 
-`values` and `recover` are separate checkpoint measurements.
-
-The checkpoint lifecycle is:
+Checkpoint lifecycle:
 
 ```text
-measure values
-measure recover
+values
+recover
 → acknowledge
 → compact
 → snapshot
 → destroy
-→ discard state
-→ initialize new state from snapshot
+→ discard old state
+→ initialize fresh Replica from snapshot
 → continue
 ```
 
-The pre-compaction snapshot used only for byte-size observation is prepared
-outside every timed region. The timed `snapshot` is the post-compaction state
-that is passed directly to the timed `initialize`. Each checkpoint therefore
-continues from a genuinely new Replica rather than the old live object.
+The old Replica must not be reused.
 
-Per-replica memory is reported as an explicit estimate consisting of four bytes
-per retained native snapshot word plus eight bytes per JavaScript Footage slot.
-Process RSS is a shared process-level observation and is not attributed to an
-individual replica. WASM linear-memory size is reported as unavailable because
-the public TypeScript API does not expose its shared `WebAssembly.Memory`.
+The pre-compaction snapshot used for size measurement is created outside timed regions.
 
----
+The timed post-compaction `snapshot` is passed to the timed `initialize`.
 
-## Runs
+## State lifecycle
 
-Run the complete three-replica lifecycle **3 times**:
+Every run starts with three completely fresh replicas.
 
-```text
-Run 0
-Run 1
-Run 2
-```
+`destroy` must release the native Projector and invalidate the Replica.
 
-Each run:
+After every checkpoint the benchmark continues using a newly initialized Replica restored from the checkpoint snapshot.
 
-- has its own deterministic seed
-- begins with three completely fresh replicas
-- applies the same generated workload to all three replicas
-- shares no Sequencer state with another run
+## Timing
 
-Store every run and replica independently.
+Only the actual API operation belongs inside its timed region.
 
-After all three runs report:
-
-```text
-mean
-minimum
-maximum
-```
-
-for each replica separately.
-
----
-
-## Timing rules
-
-Only the actual operation belongs inside its timed region.
-
-Do not include:
+Exclude:
 
 ```text
 random generation
 target selection
+merge source selection
+Delta selection
 checkpoint detection
 metric calculation
 logging
@@ -277,7 +202,7 @@ serialization
 benchmark bookkeeping
 ```
 
-The following checkpoint operations are timed separately:
+Checkpoint methods are timed independently:
 
 ```text
 values
@@ -289,21 +214,59 @@ destroy
 initialize
 ```
 
----
+## Memory
+
+Per-replica memory estimate:
+
+```text
+4 bytes × retained native snapshot words
++
+8 bytes × JavaScript Footage slots
+```
+
+Process RSS is reported separately as process-level memory.
+
+## Runs
+
+Execute:
+
+```text
+Run 0
+Run 1
+Run 2
+```
+
+Each run:
+
+- uses its own deterministic seed
+- starts from completely fresh replicas
+- operates on one shared logical document
+- exchanges operations between replicas
+- shares no state with another run
+
+Store every run and replica independently.
+
+Report at least:
+
+```text
+mean
+minimum
+maximum
+```
 
 ## Primary benchmark
 
-Each run consists of three equivalent logical lifecycles:
+Each run measures:
 
 ```text
-fresh state
-→ grow
-→ 100,000 Strips
-→ shrink
-→ 0
+3 replicas
+×
+one shared document
+×
+0 → 100,000 → 0 visible Strips
 ```
 
-with different structural policies:
+with:
 
 ```text
 A: soft remove + soft compact
@@ -311,14 +274,4 @@ B: soft remove + hard compact
 C: hard remove + hard compact
 ```
 
-At every power-of-ten checkpoint each replica is persisted and replaced through:
-
-```text
-acknowledge
-→ compact
-→ snapshot
-→ destroy
-→ initialize fresh state from snapshot
-```
-
-The benchmark consists of **3 complete runs × 3 replicas**, allowing the cost and scaling behavior of the three remove/compact policies to be compared directly.
+and real cross-replica merge traffic throughout the lifecycle.

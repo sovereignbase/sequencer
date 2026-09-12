@@ -74,11 +74,11 @@ merge_projection(const std::uint32_t projection_id,
     ready.push_back(incoming);
     if (strip[0] != 2)
       new_sources.emplace(incoming, incoming);
-    if (start.unix_lower_bits == shared_realm_unix_lower_bits) {
-      if (start.crypto_random_bits == insert_realm_crypto_random_bits)
+    if (start.unix_lower_bits == projector.shared_session_unix_lower_bits) {
+      if (start.crypto_random_bits == projector.insert_session_crypto_random_bits)
         projector.operation_count = std::max(projector.operation_count,
                                               start.counter_bits + strip[1] + 1);
-      if (start.crypto_random_bits == mask_realm_crypto_random_bits)
+      if (start.crypto_random_bits == projector.mask_session_crypto_random_bits)
         projector.mask_operation_count = std::max(projector.mask_operation_count,
                                                    start.counter_bits + strip[1] + 1);
     }

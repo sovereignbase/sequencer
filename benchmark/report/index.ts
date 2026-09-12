@@ -9,7 +9,7 @@ import {
   type ReplicaName,
 } from '../types.ts'
 
-const replicas: Array<ReplicaName> = ['A']
+const replicas: Array<ReplicaName> = ['A', 'B', 'C']
 const scopes: Array<MetricScope> = [
   'scaleUp',
   'scaleDown',
@@ -23,10 +23,10 @@ const decimal = (value: number | null): string =>
   value === null ? '—' : value.toFixed(3)
 
 const metricAverage = (metric: ManagementResult): string =>
-  'available' in metric ? '—' : microseconds(metric.averageNanoseconds)
+  microseconds(metric.averageNanoseconds)
 
 const metricCount = (metric: ManagementResult): string =>
-  'available' in metric ? '—' : metric.count.toLocaleString('en-US')
+  metric.count.toLocaleString('en-US')
 
 const row = (cells: Array<string | number>): string =>
   '| ' + cells.join(' | ') + ' |'
@@ -155,7 +155,7 @@ const makeMarkdown = (report: BenchmarkReport): string => {
               replica,
               operation,
               metricCount(metric),
-              'available' in metric || metric.operationsPerSecond === null
+              metric.operationsPerSecond === null
                 ? '—'
                 : Math.round(metric.operationsPerSecond).toLocaleString(
                     'en-US'
@@ -169,8 +169,8 @@ const makeMarkdown = (report: BenchmarkReport): string => {
     '',
     '## Memory and storage efficiency',
     '',
-    '| Run | direction | Replica | visible Strips | retained structural Strips | Frames | estimated memory bytes | memory B/Strip | memory B/Frame | snapshot before | snapshot after | before B/Strip | after B/Strip | before B/Frame | after B/Frame | process RSS |',
-    '| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |'
+    '| Run | direction | Replica | remove | compact | visible Strips | retained structural Strips | Frames | estimated memory bytes | memory B/Strip | memory B/Frame | snapshot before | snapshot after | before B/Strip | after B/Strip | before B/Frame | after B/Frame | process RSS |',
+    '| ---: | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |'
   )
   for (const run of report.runs)
     for (const checkpoint of run.checkpoints)
@@ -181,6 +181,8 @@ const makeMarkdown = (report: BenchmarkReport): string => {
             run.run,
             checkpoint.direction,
             replica,
+            observed.policy.remove,
+            observed.policy.compact,
             observed.strips.stripCount.toLocaleString('en-US'),
             observed.strips.retainedStructuralStripCount.toLocaleString(
               'en-US'
@@ -242,7 +244,7 @@ const makeMarkdown = (report: BenchmarkReport): string => {
     '- ' + report.methodology.merge,
     '- ' + report.methodology.memory,
     '- ' + report.methodology.storage,
-    '- destroy is unavailable because the public API exposes only garbage-collector-driven finalization.',
+    '- Every checkpoint explicitly destroys the old Replica and initializes a fresh Replica from the post-compaction snapshot.',
     ''
   )
   return lines.join('\n')

@@ -15,13 +15,13 @@ const usage = [
   '  npm run bench -- [options]',
   '',
   'Options:',
-  '  --runs <n>            Complete runs (default: 1)',
+  '  --runs <n>            Complete runs (default: 3)',
   '  --max-strips <n>      Maximum visible Strip count (default: 100_000)',
   '  --seed <text>          Reproducible base seed (default: sequencer-lifecycle-v1)',
   '  --warmup-cycles <n>    Unreported up/down workload cycles (default: 64)',
-  '  --strip-length <n>     Use one fixed Strip length instead of 1...5',
+  '  --strip-length <n>     Use one fixed Strip length instead of 1...100',
   '  --min-strip-length <n> Minimum generated Strip length (default: 1)',
-  '  --max-strip-length <n> Maximum generated Strip length (default: 5)',
+  '  --max-strip-length <n> Maximum generated Strip length (default: 100)',
   '  --output <path>        JSON output path; Markdown uses the same basename',
   '  --no-output            Run without writing report files',
   '  --help                 Show this help',
@@ -106,6 +106,11 @@ export function parseConfig(arguments_: Array<string>): BenchmarkConfig {
     maximumStripFrameLength,
     warmupCycles,
     mergePoolSize: 1_024,
+    replicaPolicies: {
+      A: { remove: 'soft', compact: 'soft' },
+      B: { remove: 'soft', compact: 'hard' },
+      C: { remove: 'hard', compact: 'hard' },
+    },
     baseSeed,
     outputPath,
   }
@@ -143,7 +148,7 @@ export async function runBenchmark(
       average:
         'Operation averages are calculated directly from count and total measured nanoseconds; checkpoint averages are never averaged together.',
       memory:
-        'Replica bytes are an explicit estimate: four bytes per retained native snapshot word plus eight bytes per JavaScript Footage array slot. Process RSS is reported at checkpoint scope; WebAssembly linear memory is unavailable through the public API.',
+        'Per-Replica bytes after policy compaction and restart are an explicit estimate: four bytes per retained native snapshot word plus eight bytes per JavaScript Footage array slot. Process RSS is shared and reported at checkpoint scope; WebAssembly linear memory is unavailable through the public API.',
       storage:
         'Persistent representation size is the byte length of node:v8.serialize over the public snapshot before and after isolated hard compaction.',
     },

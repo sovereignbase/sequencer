@@ -16,9 +16,9 @@ issue_strip(Projector &projector, const std::uint8_t strip_type,
   auto &counter = mask ? projector.mask_operation_count : projector.operation_count;
   if (strip_length >= u32_max - counter)
     return u32_max;
-  const SequencePoint start{mask ? mask_realm_crypto_random_bits
-                                 : insert_realm_crypto_random_bits,
-                            shared_realm_unix_lower_bits, counter};
+  const SequencePoint start{mask ? projector.mask_session_crypto_random_bits
+                                 : projector.insert_session_crypto_random_bits,
+                            projector.shared_session_unix_lower_bits, counter};
   const auto strip_index = stage_strip(projector, strip_type, strip_length,
                                        start, previous_strip_end,
                                        footage_frame_index);

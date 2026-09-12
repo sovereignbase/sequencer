@@ -17,10 +17,11 @@ inline std::uint32_t initialize_projection() noexcept {
   }
   // CHECK IF A TRUSTED DELTA WAS PROVIDED
   const auto projection = projection_buffer.read_buffer();
-  initialize_projector(*projectors[projection_id], projection,
-                       insert_realm_crypto_random_bits,
-                       mask_realm_crypto_random_bits,
-                       shared_realm_unix_lower_bits);
+  auto &projector = *projectors[projection_id];
+  initialize_projector(projector, projection,
+                       projector.insert_session_crypto_random_bits,
+                       projector.mask_session_crypto_random_bits,
+                       projector.shared_session_unix_lower_bits);
   return projection_id;
 }
 

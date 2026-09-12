@@ -18,12 +18,12 @@ import {
   type BenchmarkReport,
   type CheckpointResult,
   type Direction,
-  type ManagementResult,
   type MetricResult,
   type MetricScope,
   type OperationName,
   type ReplicaCheckpoint,
   type ReplicaName,
+  type ReplicaPolicy,
   type ReplicaRunResult,
   type RunResult,
 } from '../types.ts'
@@ -31,6 +31,7 @@ import {
 type Runtime = {
   name: ReplicaName
   state: Replica<number>
+  policy: ReplicaPolicy
   strips: StripIndex
   random: Random
   nextStripId: number
@@ -41,12 +42,6 @@ type Runtime = {
 }
 
 let resultSink: unknown
-
-const unavailableDestroy: ManagementResult = {
-  available: false,
-  reason:
-    'The public TypeScript API releases Replicas through FinalizationRegistry and exposes no synchronous destroy operation.',
-}
 
 const ratio = (bytes: number, units: number): number | null =>
   units === 0 ? null : bytes / units
@@ -140,7 +135,12 @@ const removeAt = (
   const frameIndex = runtime.strips.frameOffsetAt(stripIndex)
   const strip = runtime.strips.at(stripIndex)
   const delta = timeOperation(runtime, direction, operationName, () =>
-    api.remove(runtime.state, frameIndex, frameIndex + strip.length, true)
+    api.remove(
+      runtime.state,
+      frameIndex,
+      frameIndex + strip.length,
+      runtime.policy.remove === 'hard'
+    )
   )
   const accepted = requireDelta(delta, operationName)
   rememberMergeCandidate(runtime, accepted, config.mergePoolSize)
@@ -168,7 +168,12 @@ const randomReplace = (
   // the selected Strip's length preserves Strip boundaries and scale.
   const strip = createReplacementStrip(runtime, replaced.length)
   const delta = timeOperation(runtime, direction, 'randomReplace', () =>
-    api.replace(runtime.state, frameIndex, strip.values, true)
+    api.replace(
+      runtime.state,
+      frameIndex,
+      strip.values,
+      runtime.policy.remove === 'hard'
+    )
   )
   const accepted = requireDelta(delta, 'randomReplace')
   rememberMergeCandidate(runtime, accepted, config.mergePoolSize)
@@ -247,11 +252,6 @@ const snapshotMetric = <T>(operation: () => T): [MetricResult, T] => {
   return [accumulator.snapshot(), timed.result]
 }
 
-const cloneDelta = <T>(delta: Delta<T>): Delta<T> => [
-  delta[0].slice(),
-  delta[1]?.slice(),
-]
-
 const observeReplica = (
   runtime: Runtime,
   direction: Direction
@@ -263,44 +263,49 @@ const observeReplica = (
     )
 
   const [valuesMetric] = snapshotMetric(() => api.values(runtime.state))
-  const [acknowledgeMetric] = snapshotMetric(() =>
+  const [recoverMetric] = snapshotMetric(() => api.recover(runtime.state))
+  const beforeCompact = api.snapshot(runtime.state)
+  const beforeCompactBytes = serialize(beforeCompact).byteLength
+  const [acknowledgeMetric, frontier] = snapshotMetric(() =>
     api.acknowledge(runtime.state)
   )
-  const [snapshotResult, beforeCompact] = snapshotMetric(() =>
+  const [compactMetric] = snapshotMetric(() =>
+    api.compact(
+      frontier === false ? [] : [frontier],
+      runtime.state,
+      runtime.policy.compact === 'hard'
+    )
+  )
+  const [snapshotResult, afterCompact] = snapshotMetric(() =>
     api.snapshot(runtime.state)
   )
-  const beforeCompactBytes = serialize(beforeCompact).byteLength
-
-  const initializeInput = cloneDelta(beforeCompact)
-  const [initializeMetric, initializedState] = snapshotMetric(() =>
-    api.create<number>(initializeInput)
-  )
-  resultSink = initializedState
-
-  const compactState = api.create<number>(cloneDelta(beforeCompact))
-  const frontier = api.acknowledge(compactState)
-  const [compactMetric] = snapshotMetric(() =>
-    api.compact(frontier === false ? [] : [frontier], compactState, true)
-  )
-  const afterCompact = api.snapshot(compactState)
-
   const afterCompactBytes = serialize(afterCompact).byteLength
+
+  const oldState = runtime.state
+  const [destroyMetric] = snapshotMetric(() => api.destroy(oldState))
+  const [initializeMetric, initializedState] = snapshotMetric(() =>
+    api.create<number>(afterCompact)
+  )
+  runtime.state = initializedState
+
   const stripCount = runtime.strips.count
   const frameCount = runtime.strips.frameCount
-  const nativeProjectionWordBytes = beforeCompact[0].length * 4
-  const javascriptFootageSlotBytes = runtime.state[1].length * 8
+  const nativeProjectionWordBytes = afterCompact[0].length * 4
+  const javascriptFootageSlotBytes = (afterCompact[1]?.length ?? 0) * 8
   const estimatedMemoryBytes =
     nativeProjectionWordBytes + javascriptFootageSlotBytes
 
   const checkpoint: ReplicaCheckpoint = {
+    policy: runtime.policy,
     operations: runtime.metrics.snapshot(),
     management: {
       values: valuesMetric,
+      recover: recoverMetric,
       acknowledge: acknowledgeMetric,
-      snapshot: snapshotResult,
-      destroy: unavailableDestroy,
-      initialize: initializeMetric,
       compact: compactMetric,
+      snapshot: snapshotResult,
+      destroy: destroyMetric,
+      initialize: initializeMetric,
     },
     memory: {
       bytes: estimatedMemoryBytes,
@@ -328,7 +333,7 @@ const observeReplica = (
       averageStripLength: ratio(frameCount, stripCount),
       minimumStripLength: runtime.strips.minimumLength,
       maximumStripLength: runtime.strips.maximumLength,
-      retainedStructuralStripCount: beforeCompact[0].length / 12,
+      retainedStructuralStripCount: afterCompact[0].length / 12,
     },
   }
 
@@ -358,10 +363,20 @@ const takeCheckpoint = async (
   runtimes: Record<ReplicaName, Runtime>
 ): Promise<CheckpointResult> => {
   await collectGarbage()
-  const processMemory = process.memoryUsage()
   const replicas = {
     A: observeReplica(runtimes.A, direction),
+    B: observeReplica(runtimes.B, direction),
+    C: observeReplica(runtimes.C, direction),
   }
+  await collectGarbage()
+  const processMemory = process.memoryUsage()
+
+  for (const replica of [replicas.B, replicas.C])
+    if (
+      replica.strips.stripCount !== replicas.A.strips.stripCount ||
+      replica.strips.frameCount !== replicas.A.strips.frameCount
+    )
+      throw new TypeError('Deterministic Replica workloads diverged.')
 
   return {
     run,
@@ -384,65 +399,79 @@ const checkpointMicroseconds = (nanoseconds: number | null): string =>
   nanoseconds === null ? '—' : (nanoseconds / 1_000).toFixed(3)
 
 const printCheckpoint = (checkpoint: CheckpointResult): void => {
-  const observed = checkpoint.replicas.A
+  const replicaNames: Array<ReplicaName> = ['A', 'B', 'C']
   console.log(
     `\nRun ${checkpoint.run + 1} | ${checkpoint.direction} | ${checkpoint.stripCount.toLocaleString('en-US')} Strips | ${checkpoint.frameCount.toLocaleString('en-US')} Frames`
   )
   console.table(
-    operation_names.map((operation) => {
-      const metric = observed.operations[operation]
+    replicaNames.flatMap((replica) =>
+      operation_names.map((operation) => {
+        const metric = checkpoint.replicas[replica].operations[operation]
+        return {
+          replica,
+          operation,
+          calls: metric.count,
+          'ops/sec':
+            metric.operationsPerSecond === null
+              ? '—'
+              : Math.round(metric.operationsPerSecond).toLocaleString('en-US'),
+          'avg µs': checkpointMicroseconds(metric.averageNanoseconds),
+          'min µs': checkpointMicroseconds(metric.minimumNanoseconds),
+          'max µs': checkpointMicroseconds(metric.maximumNanoseconds),
+        }
+      })
+    )
+  )
+  console.table(
+    replicaNames.flatMap((replica) =>
+      Object.entries(checkpoint.replicas[replica].management).map(
+        ([operation, metric]) => ({
+          replica,
+          operation,
+          calls: metric.count,
+          'ops/sec':
+            metric.operationsPerSecond === null
+              ? '—'
+              : Math.round(metric.operationsPerSecond).toLocaleString('en-US'),
+          'avg µs': checkpointMicroseconds(metric.averageNanoseconds),
+        })
+      )
+    )
+  )
+  console.table(
+    replicaNames.map((replica) => {
+      const observed = checkpoint.replicas[replica]
       return {
-        operation,
-        calls: metric.count,
-        'ops/sec':
-          metric.operationsPerSecond === null
-            ? '—'
-            : Math.round(metric.operationsPerSecond).toLocaleString('en-US'),
-        'avg µs': checkpointMicroseconds(metric.averageNanoseconds),
-        'min µs': checkpointMicroseconds(metric.minimumNanoseconds),
-        'max µs': checkpointMicroseconds(metric.maximumNanoseconds),
+        replica,
+        remove: observed.policy.remove,
+        compact: observed.policy.compact,
+        'visible Strips': observed.strips.stripCount,
+        'retained Strips': observed.strips.retainedStructuralStripCount,
+        Frames: observed.strips.frameCount,
+        'avg Strip Frames':
+          observed.strips.averageStripLength?.toFixed(3) ?? '—',
+        'min Strip Frames': observed.strips.minimumStripLength ?? '—',
+        'max Strip Frames': observed.strips.maximumStripLength ?? '—',
+        'estimated memory bytes': observed.memory.bytes,
+        'memory B/Strip': observed.memory.bytesPerStrip?.toFixed(3) ?? '—',
+        'memory B/Frame': observed.memory.bytesPerFrame?.toFixed(3) ?? '—',
+        'snapshot before bytes': observed.storage.beforeCompactBytes,
+        'snapshot after bytes': observed.storage.afterCompactBytes,
+        'process RSS bytes': checkpoint.processMemory.rssBytes,
       }
     })
   )
-  console.table(
-    Object.entries(observed.management).map(([operation, metric]) => ({
-      operation,
-      calls: 'available' in metric ? '—' : metric.count,
-      'ops/sec':
-        'available' in metric || metric.operationsPerSecond === null
-          ? '—'
-          : Math.round(metric.operationsPerSecond).toLocaleString('en-US'),
-      'avg µs':
-        'available' in metric
-          ? 'unavailable'
-          : checkpointMicroseconds(metric.averageNanoseconds),
-    }))
-  )
-  console.table([
-    {
-      'visible Strips': observed.strips.stripCount,
-      'retained Strips': observed.strips.retainedStructuralStripCount,
-      Frames: observed.strips.frameCount,
-      'avg Strip Frames': observed.strips.averageStripLength?.toFixed(3) ?? '—',
-      'min Strip Frames': observed.strips.minimumStripLength ?? '—',
-      'max Strip Frames': observed.strips.maximumStripLength ?? '—',
-      'estimated memory bytes': observed.memory.bytes,
-      'memory B/Strip': observed.memory.bytesPerStrip?.toFixed(3) ?? '—',
-      'memory B/Frame': observed.memory.bytesPerFrame?.toFixed(3) ?? '—',
-      'snapshot before bytes': observed.storage.beforeCompactBytes,
-      'snapshot after bytes': observed.storage.afterCompactBytes,
-      'process RSS bytes': checkpoint.processMemory.rssBytes,
-    },
-  ])
 }
 
 const makeRuntime = (
   name: ReplicaName,
   state: Replica<number>,
-  workloadSeed: number
+  workloadSeed: number,
+  policy: ReplicaPolicy
 ): Runtime => ({
   name,
   state,
+  policy,
   strips: new StripIndex(),
   random: new Random(workloadSeed),
   nextStripId: 1,
@@ -476,9 +505,28 @@ async function runOneLifecycle(
   reportProgress: boolean
 ): Promise<RunResult> {
   const [initializationA, stateA] = snapshotMetric(() => api.create<number>())
-  const workloadSeed = deriveSeed(runSeed, 'replica-A-workload')
+  const [initializationB, stateB] = snapshotMetric(() => api.create<number>())
+  const [initializationC, stateC] = snapshotMetric(() => api.create<number>())
+  const workloadSeed = deriveSeed(runSeed, 'shared-replica-workload')
   const runtimes = {
-    A: makeRuntime('A', stateA, workloadSeed),
+    A: makeRuntime(
+      'A',
+      stateA,
+      workloadSeed,
+      config.replicaPolicies.A
+    ),
+    B: makeRuntime(
+      'B',
+      stateB,
+      workloadSeed,
+      config.replicaPolicies.B
+    ),
+    C: makeRuntime(
+      'C',
+      stateC,
+      workloadSeed,
+      config.replicaPolicies.C
+    ),
   }
   const checkpoints: Array<CheckpointResult> = []
   const checkpointSet = new Set(config.checkpoints)
@@ -489,25 +537,37 @@ async function runOneLifecycle(
     if (reportProgress) printCheckpoint(checkpoint)
   }
 
-  await record('up')
   while (runtimes.A.strips.count < config.maximumStripCount) {
     runScaleUpStep(runtimes.A, config)
+    runScaleUpStep(runtimes.B, config)
+    runScaleUpStep(runtimes.C, config)
     if (checkpointSet.has(runtimes.A.strips.count)) await record('up')
   }
 
   while (runtimes.A.strips.count > 0) {
     runScaleDownStep(runtimes.A, config)
+    runScaleDownStep(runtimes.B, config)
+    runScaleDownStep(runtimes.C, config)
     if (checkpointSet.has(runtimes.A.strips.count)) await record('down')
   }
 
+  void api.destroy(runtimes.A.state)
+  void api.destroy(runtimes.B.state)
+  void api.destroy(runtimes.C.state)
   resultSink = undefined
   return {
     run,
     seed: formatSeed(runSeed),
-    initialization: { A: initializationA },
+    initialization: {
+      A: initializationA,
+      B: initializationB,
+      C: initializationC,
+    },
     checkpoints,
     replicas: {
       A: finishRuntime(runtimes.A),
+      B: finishRuntime(runtimes.B),
+      C: finishRuntime(runtimes.C),
     },
   }
 }
@@ -520,7 +580,7 @@ export async function warmUp(config: BenchmarkConfig): Promise<void> {
     ...config,
     runs: 1,
     maximumStripCount,
-    checkpoints: [0, maximumStripCount],
+    checkpoints: [1, maximumStripCount],
     outputPath: null,
   }
   await runOneLifecycle(
@@ -532,7 +592,7 @@ export async function warmUp(config: BenchmarkConfig): Promise<void> {
   await collectGarbage()
 }
 
-/** Runs one continuously evolving TypeScript API Replica. */
+/** Runs three continuously evolving TypeScript API Replicas. */
 export async function runLifecycles(
   config: BenchmarkConfig
 ): Promise<Array<RunResult>> {
@@ -553,7 +613,7 @@ export async function runLifecycles(
 export function aggregateRuns(
   runs: Array<RunResult>
 ): BenchmarkReport['aggregates'] {
-  const replicaNames: Array<ReplicaName> = ['A']
+  const replicaNames: Array<ReplicaName> = ['A', 'B', 'C']
   const scopes: Array<MetricScope> = [
     'scaleUp',
     'scaleDown',

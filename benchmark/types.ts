@@ -12,15 +12,22 @@ export const operation_names = [
 
 export const management_names = [
   'values',
+  'recover',
   'acknowledge',
+  'compact',
   'snapshot',
   'destroy',
   'initialize',
-  'compact',
 ] as const
 
 export type Direction = 'up' | 'down'
-export type ReplicaName = 'A'
+export type ReplicaName = 'A' | 'B' | 'C'
+export type RemovalPolicy = 'soft' | 'hard'
+export type CompactionPolicy = 'soft' | 'hard'
+export type ReplicaPolicy = {
+  remove: RemovalPolicy
+  compact: CompactionPolicy
+}
 export type OperationName = (typeof operation_names)[number]
 export type ManagementName = (typeof management_names)[number]
 export type MetricScope = 'scaleUp' | 'scaleDown' | 'fullLifecycle'
@@ -33,6 +40,7 @@ export type BenchmarkConfig = {
   maximumStripFrameLength: number
   warmupCycles: number
   mergePoolSize: number
+  replicaPolicies: Record<ReplicaName, ReplicaPolicy>
   baseSeed: string
   outputPath: string | null
 }
@@ -48,12 +56,7 @@ export type MetricResult = {
 
 export type OperationMetrics = Record<OperationName, MetricResult>
 
-export type UnavailableMeasurement = {
-  available: false
-  reason: string
-}
-
-export type ManagementResult = MetricResult | UnavailableMeasurement
+export type ManagementResult = MetricResult
 
 export type StripStatistics = {
   stripCount: number
@@ -86,6 +89,7 @@ export type StorageResult = {
 }
 
 export type ReplicaCheckpoint = {
+  policy: ReplicaPolicy
   operations: OperationMetrics
   management: Record<ManagementName, ManagementResult>
   memory: MemoryResult

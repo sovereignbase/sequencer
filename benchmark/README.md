@@ -90,6 +90,11 @@ continue
 
 The old state must not be reused after the checkpoint.
 
+`destroy` is the public synchronous TypeScript API operation. It releases the
+Replica's native Projector immediately, unregisters automatic finalization,
+and invalidates the Replica in-place. Calling `destroy` again for the same
+Replica is a no-op. No Sequencer method may use the invalidated Replica.
+
 ---
 
 ## Continuous operations
@@ -122,6 +127,12 @@ Remove operations use the replica's configured **soft/hard remove policy**.
 
 Every invocation is timed independently.
 
+One scale-up step adds one Strip at the head or tail (alternating by step), then
+runs each random operation once. `randomRemove` and `randomInsert` balance one
+another, so the step grows the visible Projection by exactly one Strip. One
+scale-down step runs the same random workload and then removes one alternating
+head/tail Strip, shrinking the Projection by exactly one Strip.
+
 For every operation retain:
 
 ```text
@@ -130,12 +141,19 @@ total duration
 average
 minimum
 maximum
+operations per second
 ```
 
 The authoritative average is:
 
 ```text
 sum of measured durations / number of calls
+```
+
+Throughput is derived from that same sample-weighted average:
+
+```text
+operations per second = 1,000,000,000 / average nanoseconds
 ```
 
 Checkpoint logging does not reset the accumulators.
@@ -198,6 +216,17 @@ measure recover
 → initialize new state from snapshot
 → continue
 ```
+
+The pre-compaction snapshot used only for byte-size observation is prepared
+outside every timed region. The timed `snapshot` is the post-compaction state
+that is passed directly to the timed `initialize`. Each checkpoint therefore
+continues from a genuinely new Replica rather than the old live object.
+
+Per-replica memory is reported as an explicit estimate consisting of four bytes
+per retained native snapshot word plus eight bytes per JavaScript Footage slot.
+Process RSS is a shared process-level observation and is not attributed to an
+individual replica. WASM linear-memory size is reported as unavailable because
+the public TypeScript API does not expose its shared `WebAssembly.Memory`.
 
 ---
 

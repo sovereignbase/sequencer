@@ -4,14 +4,11 @@
  * @module
  */
 import {
-  clear_sequence,
   initialize_sequence,
   write_projection_to_buffer,
 } from '../../wasm/index.js'
 import type { Delta, Replica } from '../../types/type.js'
-
-/** Releases the native Projector after its JavaScript Replica is collected. */
-const finalization_registry = new FinalizationRegistry<number>(clear_sequence)
+import { register_replica } from '../../helpers/index.js'
 
 /**
  * Reconstructs an independently maintained Replica without replaying history.
@@ -33,6 +30,8 @@ export function create<T>(data?: unknown): Replica<T> {
   if (projection !== undefined) void write_projection_to_buffer(projection)
 
   const state: Replica<T> = [initialize_sequence(), footage ?? []]
-  void finalization_registry.register(state, state[0])
+
+  void register_replica(state)
+
   return state
 }

@@ -36,11 +36,11 @@ const readInteger = (name: string, value: string | undefined): number => {
 }
 
 export function parseConfig(arguments_: Array<string>): BenchmarkConfig {
-  let runs = 1
+  let runs = 3
   let maximumStripCount = 100_000
   let warmupCycles = 64
   let minimumStripFrameLength = 1
-  let maximumStripFrameLength = 1_000
+  let maximumStripFrameLength = 100
   let baseSeed = 'sequencer-lifecycle-v1'
   let outputPath: string | null = 'benchmark/results/lifecycle.json'
 

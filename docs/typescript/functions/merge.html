@@ -16,7 +16,9 @@
 <div class="tsd-signature tsd-anchor-link" id="merge"><span class="tsd-kind-call-signature">merge</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#merget">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">state</span><span class="tsd-signature-symbol">:</span> <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#merget">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">data</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">false</span> <span class="tsd-signature-symbol">|</span> <a href="../types/Change.html" class="tsd-signature-type tsd-kind-type-alias">Change</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#merget">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#merge" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Integrates encoded Strips and returns the changed suffix of the visible view.
-Missing dependencies remain pending. Merge issues no new SequencePoints.</p>
+Unknown dependencies are ignored, including their Footage. Resend those
+Strips after their sources, or send a complete snapshot. Merge issues no new
+SequencePoints. Invalid native metadata stops at the accepted Delta prefix.</p>
 </div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -34,7 +36,7 @@ Missing dependencies remain pending. Merge issues no new SequencePoints.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">false</span> <span class="tsd-signature-symbol">|</span> <a href="../types/Change.html" class="tsd-signature-type tsd-kind-type-alias">Change</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#merget">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A visible index patch, or false when no visible change occurs.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/0f6994513771fd420986c94bf52bc7502d28378c/src/typescript/algorithms/merge/index.ts#L18">algorithms/merge/index.ts:18</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/3f7865fee2957e3654c945eaa3bfe72a5585b08f/src/typescript/algorithms/merge/index.ts#L24">algorithms/merge/index.ts:24</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

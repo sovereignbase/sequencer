@@ -386,7 +386,7 @@ Its SequencePoint identity and issued length remain intact regardless of how fra
 
 Empty source anchors are skipped without consuming Mask length.
 
-If the Mask's dependency is not yet available during merge, the Mask stays pending.
+If the Mask's source is unknown during merge, the Mask is ignored. It must be sent again after its source, or together with it in a complete snapshot.
 
 ### Footage
 
@@ -562,7 +562,7 @@ A `TrustedSnapshot` contains everything needed to reconstruct a Projector withou
 Its layout is straightforward:
 
 ```text
-[ materialized Projection ][ pending Strips ]
+[ ordered materialized Strips ]
 ```
 
 The materialized part is stored in actual Projection order:
@@ -571,13 +571,7 @@ The materialized part is stored in actual Projection order:
 A0[...] -> B0[...] -> C0[...] -> D0[...]
 ```
 
-Pending Strips follow it:
-
-```text
-P0[...] P1[...]
-```
-
-The snapshot marks where the materialized region ends and the pending region begins.
+Unknown-source operations are not retained and do not appear in snapshots.
 
 ### Snapshot
 
@@ -597,15 +591,7 @@ This includes retained content belonging to Masks, not just currently visible Fr
 
 Hard-deleted values remain `undefined` in their existing Footage positions rather than shifting later values.
 
-After the complete materialized Projection has been written, pending Strips are appended.
-
-```text
-[ ordered materialized Strips ][ pending Strips ]
-```
-
-Pending inserts carry their Footage after the materialized Footage.
-
-A pending Mask has not yet resolved its source, so it does not yet own Footage.
+Mask instructions carry identity but no Footage. Applied source fragments retain soft-deleted content.
 
 The resulting snapshot is trusted state. Its materialized ordering is therefore authoritative during initialization.
 
@@ -643,9 +629,9 @@ It reads the already ordered materialized region directly from left to right:
 ```text
 snapshot:
 
-A0[...]  B0[...]  C0[...]  D0[...]  P0[...] P1[...]
-|-----------------------------|     |-------------|
-        materialized                 pending
+A0[...]  B0[...]  C0[...]  D0[...]
+|-----------------------------|
+        materialized
 ```
 
 and links the materialized Strips back into that same order:
@@ -679,25 +665,6 @@ The jump structure is rebuilt around the same target spacing used by normal Find
 ```text
 sqrt(materialized_strip_count)
 ```
-
-### Pending Strips
-
-After the materialized region has been restored, the remaining snapshot entries are registered as pending Strips.
-
-They are known to the Projector but are not part of the linked Projection.
-
-```text
-materialized:
-A0[...] -> B0[...] -> C0[...]
-
-pending:
-P0[...]
-P1[...]
-```
-
-A pending Strip therefore has enough state to participate in containment and future dependency resolution, but it has no Projection position yet.
-
-When its dependency becomes available, it can be materialized normally.
 
 ## Merging
 
@@ -739,7 +706,13 @@ Insert -> insert semantics
 Mask   -> mask semantics
 ```
 
-If the dependency does not yet exist, the Strip becomes pending.
+If the source is unknown, the Strip and its Footage are ignored without entering containment or acknowledgement state. An arrival of the source does not retry anything. The sender must retransmit the operation after its source, or send a complete snapshot.
+
+Merge consumes the input in one forward pass, without a worklist, staging map, or dependency queue. Independent Strips can arrive in any order; dependent Strips require their sources to be known when processed. Invalid native metadata ends the pass, retaining and reporting changes from the accepted prefix.
+
+In a snapshot, an issued source anchor may precede a Mask instruction while the source content fragments follow it. That source is already known. The instruction is retained immediately, and the following applied fragments carry its hidden content state. Fragment coordinates rebuild source split chains without reading incoming split or competitor links. Existing sources instead receive Mask instructions through normal apply; duplicate source fragments are ignored.
+
+The native Footage span buffer reports accepted input ranges first, followed by visible changes. TypeScript appends only accepted values in that order and then builds the Change. Ignored and duplicate Footage is not retained or defensively copied.
 
 Structural links carried by another Projector are not trusted during merge.
 
@@ -764,7 +737,7 @@ merge:
 SequencePoints + dependencies -> derive structural order
 ```
 
-Because ordering comes from causality and deterministic tie-breaking rather than arrival position, the same set of operations converges to the same Projection regardless of receive order.
+Because ordering comes from causality and deterministic tie-breaking rather than arrival position, replicas that have accepted the same operations converge to the same Projection. Hostile delivery tests explicitly retransmit previously ignored operations with known dependencies.
 
 ## Acknowledgement and Compaction
 
@@ -820,7 +793,7 @@ The inserted `B` content does not shift the source coordinate.
 
 The dependency and prefix stay attached to the operation through snapshots and later structural changes.
 
-If the required source has not materialized yet, the operation remains pending.
+If the source is unknown, the operation is ignored and must be retransmitted.
 
 ### Mask Realms
 

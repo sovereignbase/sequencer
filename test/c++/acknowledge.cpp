@@ -10,9 +10,8 @@
 using EncodedStrip = std::array<std::uint32_t, 12>;
 
 EncodedStrip mask(const std::uint32_t realm, const std::uint32_t counter,
-                  const std::uint32_t length, const std::uint32_t unix_bits = 7,
-                  const bool pending = false) {
-  return {pending ? 5u : 2u, length, realm, unix_bits, counter,
+                  const std::uint32_t length, const std::uint32_t unix_bits = 7) {
+  return {2u, length, realm, unix_bits, counter,
           99, 88, 77, u32_max, u32_max, 0, 0};
 }
 
@@ -55,9 +54,9 @@ int main() {
   check({mask(10, 0, 3), mask(266, 0, 1), mask(10, 0, 2, 8),
          mask(522, 1, 2), {1, 9, 11, 7, 0, 0, 0, 0, u32_max, u32_max, 9, 0}},
         {{10, 7, 4}, {10, 8, 3}, {266, 7, 2}});
-  check({mask(10, 0, 3), mask(10, 4, 1, 7, true)}, {{10, 7, 6}});
-  check({mask(10, 4, 2, 7, true)}, {});
-  check({mask(10, 0, 3, 7, true)}, {{10, 7, 4}});
+  check({mask(10, 0, 3), mask(10, 4, 1, 7)}, {{10, 7, 6}});
+  check({mask(10, 4, 2, 7)}, {});
+  check({mask(10, 0, 3, 7)}, {{10, 7, 4}});
   check({mask(10, 0, u32_max - 1)}, {{10, 7, u32_max}});
   check({}, {});
 }

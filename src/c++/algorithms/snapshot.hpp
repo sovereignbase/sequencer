@@ -9,7 +9,6 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
   const Projector &projector = *projectors[projection_id];
   // Prepare pojection buffer
   const auto count = projector.strip_count;
-  const auto pending_strips = projector.pending_table.values();
 
   std::vector<std::uint32_t> projection_indices(count);
   std::uint32_t projection_strip_index = 0;
@@ -20,7 +19,7 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
        strip_index = projector.right_strip_index_of[strip_index])
     projection_indices[strip_index] = projection_strip_index++;
 
-  projection_buffer.resize(projection_strip_index + pending_strips.size());
+  projection_buffer.resize(projection_strip_index);
   projection_strip_index = 0;
   std::uint32_t projection_frame_index = 0;
   for (std::uint32_t strip_index = projector.head_strip_index;
@@ -63,33 +62,6 @@ snapshot_projection(const std::uint32_t projection_id) noexcept {
       projection_frame_index += frame_count;
   }
 
-  for (const auto strip_index : pending_strips) {
-    const auto &strip_start = projector.strip_start_of[strip_index];
-    const auto &previous_strip_end =
-        projector.previous_strip_end_of[strip_index];
-    projection_buffer.write_projection(
-        projection_strip_index++,
-        {
-            static_cast<std::uint32_t>(projector.strip_type_of[strip_index]) +
-                3,
-            projector.initial_length_of[strip_index],
-            strip_start.crypto_random_bits,
-            strip_start.unix_lower_bits,
-            strip_start.counter_bits,
-            previous_strip_end.crypto_random_bits,
-            previous_strip_end.unix_lower_bits,
-            previous_strip_end.counter_bits,
-            u32_max,
-            u32_max,
-            projector.fragment_length_of[strip_index],
-            projector.dependency_prefix_of[strip_index],
-        });
-    if (projector.strip_type_of[strip_index] != 2 &&
-        projector.fragment_length_of[strip_index] != 0)
-      footage_span_buffer.write_span(
-          u32_max, projector.footage_frame_index_of[strip_index],
-          projector.fragment_length_of[strip_index], 0);
-  }
 }
 
 }

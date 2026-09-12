@@ -10,7 +10,7 @@
  * Link targets are snapshot indices; u32_max means no target.
  * Each Sequence Point uses crypto_random_bits, unix_lower_bits, counter_bits.
  * Footage is supplied in snapshot order, including materialized Masks' retained
- * content and pending inserts. Pending Mask commands carry no Footage.
+ * content. Mask instructions carry no Footage.
  * Indices are reconstructed during initialization.
  */
 #pragma once

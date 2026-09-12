@@ -1,7 +1,7 @@
 {
   "config": {
     "argv": [
-      "C:\\Users\\jorts\\AppData\\Local\\fnm_multishells\\2268_1789231143133\\node.exe",
+      "C:\\Users\\jorts\\AppData\\Local\\fnm_multishells\\22056_1789247842503\\node.exe",
       "C:\\Users\\jorts\\sequencer\\node_modules\\@playwright\\test\\cli.js",
       "test"
     ],
@@ -138,7 +138,7 @@
     "version": "1.63.0",
     "workers": 1,
     "webServer": {
-      "command": "\"C:\\Users\\jorts\\AppData\\Local\\fnm_multishells\\2268_1789231143133\\node.exe\" node_modules/vite/bin/vite.js --host 127.0.0.1 --port 4173 --strictPort",
+      "command": "\"C:\\Users\\jorts\\AppData\\Local\\fnm_multishells\\22056_1789247842503\\node.exe\" node_modules/vite/bin/vite.js --host 127.0.0.1 --port 4173 --strictPort",
       "url": "http://127.0.0.1:4173/test/browser/index.html",
       "reuseExistingServer": false,
       "timeout": 30000
@@ -167,12 +167,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1944,
+                  "duration": 1594,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-12T16:40:56.397Z",
+                  "startTime": "2026-09-12T21:18:51.591Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -214,7 +214,7 @@
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-12T16:41:03.794Z",
+                  "startTime": "2026-09-12T21:18:57.632Z",
                   "annotations": [],
                   "attachments": [
                     {
@@ -254,12 +254,12 @@
                   "workerIndex": 4,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3880,
+                  "duration": 2322,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-12T16:41:09.124Z",
+                  "startTime": "2026-09-12T21:19:02.041Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -288,12 +288,12 @@
                   "workerIndex": 5,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 656,
+                  "duration": 748,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-12T16:41:18.976Z",
+                  "startTime": "2026-09-12T21:19:08.901Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -322,12 +322,12 @@
                   "workerIndex": 6,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 963,
+                  "duration": 1361,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-12T16:41:21.836Z",
+                  "startTime": "2026-09-12T21:19:12.815Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -364,12 +364,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 797,
+                  "duration": 627,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-12T16:40:59.754Z",
+                  "startTime": "2026-09-12T21:18:54.428Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -411,7 +411,7 @@
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-12T16:41:05.504Z",
+                  "startTime": "2026-09-12T21:18:59.049Z",
                   "annotations": [],
                   "attachments": [
                     {
@@ -451,12 +451,12 @@
                   "workerIndex": 4,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 896,
+                  "duration": 1175,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-12T16:41:15.693Z",
+                  "startTime": "2026-09-12T21:19:04.943Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -485,12 +485,12 @@
                   "workerIndex": 5,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 510,
+                  "duration": 597,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-12T16:41:19.889Z",
+                  "startTime": "2026-09-12T21:19:10.011Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -519,12 +519,12 @@
                   "workerIndex": 6,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 709,
+                  "duration": 1061,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-12T16:41:22.999Z",
+                  "startTime": "2026-09-12T21:19:14.454Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -561,12 +561,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 949,
+                  "duration": 806,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-12T16:41:00.664Z",
+                  "startTime": "2026-09-12T21:18:55.115Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -595,7 +595,7 @@
                   "workerIndex": 3,
                   "parallelIndex": 0,
                   "status": "failed",
-                  "duration": 6,
+                  "duration": 5,
                   "error": {
                     "message": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\jorts\\AppData\\Local\\ms-playwright\\firefox-1543\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝",
                     "stack": "Error: browserType.launch: Executable doesn't exist at C:\\Users\\jorts\\AppData\\Local\\ms-playwright\\firefox-1543\\firefox\\firefox.exe\n╔════════════════════════════════════════════════════════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new browsers: ║\n║                                                            ║\n║     npx playwright install                                 ║\n║                                                            ║\n║ <3 Playwright Team                                         ║\n╚════════════════════════════════════════════════════════════╝"
@@ -608,7 +608,7 @@
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-12T16:41:07.299Z",
+                  "startTime": "2026-09-12T21:19:00.426Z",
                   "annotations": [],
                   "attachments": [
                     {
@@ -648,12 +648,12 @@
                   "workerIndex": 4,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1271,
+                  "duration": 1470,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-12T16:41:16.643Z",
+                  "startTime": "2026-09-12T21:19:06.186Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -682,12 +682,12 @@
                   "workerIndex": 5,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 478,
+                  "duration": 727,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-12T16:41:20.459Z",
+                  "startTime": "2026-09-12T21:19:10.670Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -716,12 +716,12 @@
                   "workerIndex": 6,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 870,
+                  "duration": 1209,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-09-12T16:41:23.764Z",
+                  "startTime": "2026-09-12T21:19:15.625Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -739,8 +739,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-09-12T16:40:49.466Z",
-    "duration": 35597.645,
+    "startTime": "2026-09-12T21:18:45.064Z",
+    "duration": 32568.559999999998,
     "expected": 12,
     "skipped": 0,
     "unexpected": 3,

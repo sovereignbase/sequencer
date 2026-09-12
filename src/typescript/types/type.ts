@@ -9,7 +9,7 @@
  * Local runtime state of one replicated sequence, stored as `[id, footage]`.
  *
  * The native Projector owns the known Strip state, including the materialized
- * Projection and detached pending Strips. Footage holds the consumer values
+ * Projection. Footage holds the consumer values
  * referenced by those Strips. The Projector identifier is local to this runtime
  * and is not part of transferable Sequence state.
  *
@@ -23,7 +23,7 @@ export type Replica<T> = [
   id: number,
 
   /**
-   * Consumer-owned values addressed by materialized and pending insert Strips.
+   * Consumer-owned values addressed by materialized source Strips.
    *
    * Released entries remain `undefined` so existing Footage frame indexes stay
    * stable. Sequencer never compacts this array implicitly.
@@ -38,7 +38,7 @@ export type Replica<T> = [
  * inserts or replaces the value at that index.
  *
  * A Change describes visible effects, not Strip identities, structural links,
- * or pending state. It is not a replacement for a Delta used to merge state.
+ * or acknowledgement state. It is not a replacement for a Delta used to merge state.
  *
  * @typeParam T Consumer-owned sequence value.
  */
@@ -53,15 +53,15 @@ export type Change<T> = Record<number, T | undefined>
  * the tuple type alone does not establish completeness or trusted ordering.
  *
  * A trusted snapshot uses this representation to store materialized Strips in
- * Head-to-Tail order, followed by separately marked pending Strips. Structural
+ * Head-to-Tail order. Structural
  * references use snapshot-local indices. Initialization restores the trusted
  * order and derived runtime state directly, without replaying operations.
- * Pending Strips enter both containment and pending tables but remain outside
- * the linked Projection until their dependencies can be resolved.
  *
  * Merge does not trust incoming order or snapshot-local split and competitor
  * links. It deduplicates known SequencePoint ranges and derives structural
- * order from each Strip's own identity and previous Strip end.
+ * order from each Strip's own identity and previous Strip end. Unknown source
+ * dependencies are ignored: send those Strips again after their sources, or
+ * send a complete snapshot containing both. There is no retained retry queue.
  *
  * @typeParam T Consumer-owned value represented by one Frame.
  */

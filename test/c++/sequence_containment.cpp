@@ -1,6 +1,5 @@
 #include "../../src/c++/.auxiliary/strip_contains_previous_strip_end/index.hpp"
 #include "../../src/c++/.containment_table/index.hpp"
-#include "../../src/c++/.pending_table/index.hpp"
 #include <array>
 #include <cassert>
 #include <cstdint>
@@ -16,13 +15,9 @@ int main() {
         continue;
       const SequencePoint point{7, 8, start};
       ContainmentTable containment;
-      PendingTable pending;
       containment.set(point, length, 42);
-      std::vector<std::uint32_t> expected;
-      std::vector<std::uint32_t> remaining;
       for (std::uint32_t index = 0; index < counters.size(); ++index) {
         const SequencePoint candidate{7, 8, counters[index]};
-        pending.set(candidate, index);
         const bool contained = counters[index] >= start &&
             static_cast<std::uint64_t>(counters[index]) <=
                 static_cast<std::uint64_t>(start) + length;
@@ -32,7 +27,6 @@ int main() {
         assert(found.first == (contained ? 42u : u32_max));
         assert(found.second == (contained ? counters[index] - start : u32_max));
         assert(offset == found.second);
-        (contained ? expected : remaining).push_back(index);
       }
       containment.for_each_realm([&](const SequencePoint realm, const auto entries) {
         assert((realm == SequencePoint{7, 8, 0}));
@@ -43,12 +37,7 @@ int main() {
                                         SequencePoint{7, 9, start}}) {
         assert(containment.get(other).first == u32_max);
         assert(strip_contains_previous_strip_end(point, length, other) == u32_max);
-        assert(pending.get(other, length).empty());
       }
-      assert(pending.get(point, length) == expected);
-      assert(pending.take(point, length) == expected);
-      assert(pending.get(point, length).empty());
-      assert(pending.get({7, 8, 0}, u32_max) == remaining);
       assert(containment.erase(point));
       assert(containment.is_empty());
     }

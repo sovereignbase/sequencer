@@ -54,19 +54,19 @@ describe('runtime merge and retained state', () => {
     expect(values(target)).toEqual(['a', 'c'])
   })
 
-  it('retains a valid unresolved Strip in the Snapshot', () => {
+  it('omits an unknown Strip and its Footage from the Snapshot', () => {
     const state = create<string>()
     assert(insert(state, 0, ['root']))
     const orphan: Delta<string> = [
       [1, 1, 11, 22, 0, 33, 44, 0, 0xffff_ffff, 0xffff_ffff, 1, 0],
-      ['pending'],
+      ['ignored'],
     ]
 
     expect(merge(state, orphan)).toBe(false)
     const retained = snapshot(state)
-    expect(retained[0]).toHaveLength(24)
-    expect(retained[0].slice(12)).toEqual([4, ...orphan[0].slice(1)])
-    expect(retained[1]).toEqual(['root', 'pending'])
+    expect(retained[0]).toHaveLength(12)
+    expect(retained[1]).toEqual(['root'])
+    expect(state[1]).toEqual(['root'])
     const restored = create<string>(retained)
     expect(values(restored)).toEqual(['root'])
     expect(snapshot(restored)).toEqual(retained)

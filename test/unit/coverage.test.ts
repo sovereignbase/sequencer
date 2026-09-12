@@ -2,8 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 describe('TypeScript boundaries', () => {
   it('validates flat Delta tuple shapes', async () => {
-    const { is_delta } =
-      await import('../../src/typescript/helpers/index.js')
+    const { is_delta } = await import('../../src/typescript/helpers/index.js')
     const meta = [1, 1, 1, 2, 0, 0, 0, 0, 0xffff_ffff, 0xffff_ffff, 1, 0]
 
     expect(is_delta(null)).toBe(false)

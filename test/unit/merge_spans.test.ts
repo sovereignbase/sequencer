@@ -38,12 +38,15 @@ describe('Native merge change spans', () => {
     expect(values(state)).toEqual(['a', 'b', 'c', 'X'])
   })
 
-  it('retains pending content even when there is no visible change', () => {
+  it('discards unknown content and accepts an explicit retry after restart', () => {
     const state = create<string>()
     expect(merge(state, child)).toBe(false)
+    expect(state[1]).toEqual([])
+    expect(snapshot(state)).toEqual([[], []])
     const restarted = create<string>(snapshot(state))
     for (const target of [state, restarted]) {
-      expect(merge(target, parent)).toEqual({ 0: 'a', 1: 'b', 2: 'c', 3: 'X' })
+      expect(merge(target, parent)).toEqual({ 0: 'a', 1: 'b', 2: 'c' })
+      expect(merge(target, child)).toEqual({ 3: 'X' })
       expect(values(target)).toEqual(['a', 'b', 'c', 'X'])
       expect(merge(target, child)).toBe(false)
       expect(wasm._get_footage_span_buffer_count()).toBe(0)
@@ -79,7 +82,20 @@ describe('Native merge change spans', () => {
     const footage = Array.from({ length: 200000 }, (_, index) => index)
     const state = create<number>()
     const change = merge(state, [
-      [1, footage.length, 10, 20, 0, 0, 0, 0, absent, absent, footage.length, 0],
+      [
+        1,
+        footage.length,
+        10,
+        20,
+        0,
+        0,
+        0,
+        0,
+        absent,
+        absent,
+        footage.length,
+        0,
+      ],
       footage,
     ])
     expect(change).not.toBe(false)

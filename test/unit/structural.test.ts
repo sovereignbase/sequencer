@@ -9,7 +9,7 @@ import {
   values,
 } from '../../src/typescript/index.js'
 
-describe('trusted Snapshot initialization and pending merge', () => {
+describe('trusted Snapshot initialization and dependency retransmission', () => {
   it('restores split insertions in trusted structural order', () => {
     const source = create<string>()
     assert(insert(source, 0, ['a', 'b', 'c']))
@@ -42,7 +42,7 @@ describe('trusted Snapshot initialization and pending merge', () => {
     }
   })
 
-  it('materializes a Mask source that is still Pending', () => {
+  it('ignores an unknown Mask until it is retransmitted after its source', () => {
     const base = create<string>()
     assert(insert(base, 0, ['base']))
     const base_delta = snapshot(base)
@@ -57,6 +57,8 @@ describe('trusted Snapshot initialization and pending merge', () => {
     expect(values(target)).toEqual(['base'])
     expect(merge(target, insertion)).not.toBe(false)
 
+    expect(values(target)).toEqual(['base', 'a', 'b', 'c'])
+    expect(merge(target, deletion)).not.toBe(false)
     expect(values(target)).toEqual(['base', 'a', 'c'])
     expect(recover(target)).toEqual(['base', 'a', 'b', 'c'])
   })

@@ -168,7 +168,8 @@ Doxygen documentation maintained beside every implementation unit in
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer16merge_projectionEKNSt8uint32_tENSt8uint32_tEKNSt8uint32_tE">
 <span id="_CPPv3N9sequencer16merge_projectionEKNSt8uint32_tENSt8uint32_tEKNSt8uint32_tE"></span><span id="_CPPv2N9sequencer16merge_projectionEKNSt8uint32_tENSt8uint32_tEKNSt8uint32_tE"></span><span id="sequencer::merge_projection__std::uint32_tC.std::uint32_t.std::uint32_tC"></span><span class="target" id="merge_8hpp_1a1654692ec44a60458706ea810df76b27"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">merge_projection</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">projection_id</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">footage_frame_index</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">footage_length</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">u32_max</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4N9sequencer16merge_projectionEKNSt8uint32_tENSt8uint32_tEKNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Consume remote Strips and return the earliest changed visible index. </p>
+<dd><p>Consume remote Strips once, ignoring unknown dependencies. </p>
+<p>Snapshot fragments reconstruct newly accepted sources. Their applied Mask types carry the hidden state; instructions may precede those fragments. Incoming split and competitor indices are never used. Invalid metadata stops consumption; changes from the accepted prefix are still returned. </p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -314,7 +315,7 @@ Doxygen documentation maintained beside every implementation unit in
 <dd><p>Reconstruct a fresh Projector from a trusted, ordered snapshot. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Pre<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The Projector is empty and the snapshot has a materialized prefix followed by its pending suffix. Counter spans and encoded links are valid. </p>
+<dd class="field-odd"><p>The Projector is empty. All snapshot Strips are materialized; counter spans and encoded links are valid. </p>
 </dd>
 </dl>
 </dd></dl>
@@ -355,8 +356,6 @@ Doxygen documentation maintained beside every implementation unit in
 <em>#include “<a class="reference internal" href="#find_2projection__frame__index_2index_8hpp"><span class="std std-ref">../find/projection_frame_index/index.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include &lt;algorithm&gt;</em></div>
-<div class="docutils container">
-<em>#include &lt;unordered_map&gt;</em></div>
 </dd></dl>
 
 <dl>
@@ -517,7 +516,7 @@ Doxygen documentation maintained beside every implementation unit in
 <dd><p>Materialize an insert with no parent, ordered among root siblings. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Pre<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The incoming insert is staged and nonempty. Detached pending Strips may already occupy storage and remain detached. </p>
+<dd class="field-odd"><p>The incoming insert is staged and nonempty. </p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Projection Frame count and materialized Strip count differences. </p>

@@ -17,14 +17,14 @@ consumer values. <code>footage</code> contains the values referenced by encoded 
 Strips. A Delta may describe one local change or a complete retained state;
 the tuple type alone does not establish completeness or trusted ordering.</p>
 <p>A trusted snapshot uses this representation to store materialized Strips in
-Head-to-Tail order, followed by separately marked pending Strips. Structural
+Head-to-Tail order. Structural
 references use snapshot-local indices. Initialization restores the trusted
-order and derived runtime state directly, without replaying operations.
-Pending Strips enter both containment and pending tables but remain outside
-the linked Projection until their dependencies can be resolved.</p>
+order and derived runtime state directly, without replaying operations.</p>
 <p>Merge does not trust incoming order or snapshot-local split and competitor
 links. It deduplicates known SequencePoint ranges and derives structural
-order from each Strip's own identity and previous Strip end.</p>
+order from each Strip's own identity and previous Strip end. Unknown source
+dependencies are ignored: send those Strips again after their sources, or
+send a complete snapshot containing both. There is no retained retry queue.</p>
 </div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -33,7 +33,7 @@ order from each Strip's own identity and previous Strip end.</p>
 <div class="tsd-comment tsd-typography"><p>Consumer-owned value represented by one Frame.</p>
 </div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/0f6994513771fd420986c94bf52bc7502d28378c/src/typescript/types/type.ts#L69">types/type.ts:69</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/3f7865fee2957e3654c945eaa3bfe72a5585b08f/src/typescript/types/type.ts#L69">types/type.ts:69</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

@@ -15,7 +15,7 @@ int main() {
       const auto type = strip_index % 11 == 0 ? 2u : strip_index % 2;
       buffer.write_projection(
           strip_index,
-          {type + (strip_index >= strip_count * 9 / 10 ? 3u : 0u),
+          {type,
            strip_index % 7 + 1, type == 2 ? 7u : 5u, 6,
            strip_index * 16, 90, 91, strip_index % 97, u32_max, u32_max,
            type == 2 ? 0u : strip_index % 7 + 1, 0});
@@ -36,7 +36,7 @@ int main() {
                (repetitions * strip_count);
     }
     std::sort(samples.begin(), samples.end());
-    std::printf("strips=%u pending=10%% ns/strip=%.2f Mstrips/s=%.2f\n",
+    std::printf("strips=%u ns/strip=%.2f Mstrips/s=%.2f\n",
                 strip_count, samples[3], 1000.0 / samples[3]);
   }
   std::printf("checksum=%llu\n", static_cast<unsigned long long>(checksum));

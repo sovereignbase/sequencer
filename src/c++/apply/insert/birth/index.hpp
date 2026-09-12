@@ -7,7 +7,6 @@
 /**
  * @brief Materialize an insert with no parent, ordered among root siblings.
  * @pre The incoming insert is staged and nonempty.
- * Detached pending Strips may already occupy storage and remain detached.
  * @return Projection Frame count and materialized Strip count differences.
  */
 [[nodiscard]] inline std::pair<std::int32_t, std::int32_t>

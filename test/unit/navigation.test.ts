@@ -1,6 +1,14 @@
 import { assert, expect, it } from 'vitest'
 import {
-  create, destroy, find, insert, length, merge, remove, snapshot, values,
+  create,
+  destroy,
+  find,
+  insert,
+  length,
+  merge,
+  remove,
+  snapshot,
+  values,
 } from '../../src/typescript/index.js'
 
 it('preserves navigation through head growth and repeated masking', () => {
@@ -25,14 +33,16 @@ it('preserves navigation through head growth and repeated masking', () => {
   const remote = create<number>(snapshot(state))
   const view = values(state)
   for (let edit = 0; edit < 64; ++edit) {
-    const position = edit * 7919 % length(remote)
-    const delta = edit % 2 === 0
-      ? insert(remote, position, [edit])
-      : remove(remote, position, position + 1)
+    const position = (edit * 7919) % length(remote)
+    const delta =
+      edit % 2 === 0
+        ? insert(remote, position, [edit])
+        : remove(remote, position, position + 1)
     assert(delta)
     const change = merge(state, delta)
     assert(change)
-    for (const [index, value] of Object.entries(change)) view[Number(index)] = value
+    for (const [index, value] of Object.entries(change))
+      view[Number(index)] = value
     view.length = length(state)
     expect(view).toEqual(values(remote))
     expect(values(state)).toEqual(view)

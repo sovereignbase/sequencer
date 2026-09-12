@@ -9,8 +9,8 @@
 
 /**
  * @brief Reconstruct a fresh Projector from a trusted, ordered snapshot.
- * @pre The Projector is empty and the snapshot has a materialized prefix
- * followed by its pending suffix. Counter spans and encoded links are valid.
+ * @pre The Projector is empty. All snapshot Strips are materialized;
+ * counter spans and encoded links are valid.
  */
 inline void initialize_projector(
     Projector &projector,
@@ -20,13 +20,7 @@ inline void initialize_projector(
     const std::uint32_t shared_realm_unix_lower_bits) noexcept {
   if (!projection.empty()) {
     const auto strip_count = static_cast<std::uint32_t>(projection.size());
-    const auto first_pending_strip =
-        std::find_if(projection.begin(), projection.end(),
-                     [](const auto &strip) noexcept {
-                       return strip[0] >= 3 && strip[0] <= 5;
-                     });
-    const auto materialized_strip_count =
-        static_cast<std::uint32_t>(first_pending_strip - projection.begin());
+    const auto materialized_strip_count = strip_count;
     projector.reserve_strips(strip_count);
     projector.strip_count = strip_count;
     projector.materialized_strip_count = materialized_strip_count;
@@ -45,9 +39,8 @@ inline void initialize_projector(
       projector.right_jump_strip_count_of[strip_index] = 0;
       projector.left_jump_length_of[strip_index] = 0;
       projector.right_jump_length_of[strip_index] = 0;
-      const bool pending = strip_index >= materialized_strip_count;
       const auto strip_type =
-          static_cast<std::uint8_t>(pending ? strip[0] - 3 : strip[0]);
+          static_cast<std::uint8_t>(strip[0]);
       const SequencePoint strip_start{strip[2], strip[3], strip[4]};
       projector.strip_type_of[strip_index] = strip_type;
       projector.initial_length_of[strip_index] = strip[1];
@@ -58,16 +51,12 @@ inline void initialize_projector(
       projector.larger_split_strip_index_of[strip_index] = strip[8];
       projector.smaller_competitor_strip_index_of[strip_index] = strip[9];
       projector.left_strip_index_of[strip_index] =
-          pending ? strip_index
-                  : (strip_index == 0 ? u32_max : strip_index - 1);
+          strip_index == 0 ? u32_max : strip_index - 1;
       projector.right_strip_index_of[strip_index] =
-          pending ? strip_index
-                  : (strip_index + 1 == materialized_strip_count
-                         ? u32_max
-                         : strip_index + 1);
+          strip_index + 1 == materialized_strip_count ? u32_max : strip_index + 1;
       projector.footage_frame_index_of[strip_index] =
           strip_type == 2 || (strip_type & 16) != 0 ? u32_max : footage_frame_index;
-      if (!pending && strip_index != 0 &&
+      if (strip_index != 0 &&
           (strip_index - previous_jump_strip_index >= optimal_jump_distance ||
            strip_index + 1 == materialized_strip_count)) {
         const auto jump_length = projector.projection_frame_count -
@@ -85,16 +74,13 @@ inline void initialize_projector(
         previous_jump_strip_index = strip_index;
         previous_jump_projection_index = projector.projection_frame_count;
       }
-      if (!pending && strip_type < 2 && strip[10] != 0 &&
+      if (strip_type < 2 && strip[10] != 0 &&
           projector.gate_strip_index == u32_max)
         projector.gate_strip_index = strip_index;
       if (strip_type != 2 && (strip_type & 16) == 0)
         footage_frame_index += strip[10];
-      if (!pending && strip_type < 2)
+      if (strip_type < 2)
         projector.projection_frame_count += strip[10];
-      if (pending)
-        projector.pending_table.set(projector.dependency_origin(strip_index),
-                                    strip_index, true);
       if (!projector.is_fragment(strip_index))
         projector.containment_table.set(strip_start, strip[1], strip_index, true);
       if (strip_start.crypto_random_bits == insert_realm_crypto_random_bits &&
@@ -111,7 +97,6 @@ inline void initialize_projector(
     }
 
     projector.containment_table.sort_realms();
-    projector.pending_table.sort_realms();
     projector.head_strip_index = materialized_strip_count == 0 ? u32_max : 0;
     projector.tail_strip_index =
         materialized_strip_count == 0 ? u32_max : materialized_strip_count - 1;

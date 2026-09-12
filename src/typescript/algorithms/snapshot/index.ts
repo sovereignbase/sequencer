@@ -12,12 +12,12 @@ import {
 } from '../../wasm/index.js'
 
 /**
- * Captures materialized Strips in Head-to-Tail order, then pending Strips.
+ * Captures materialized Strips in Head-to-Tail order.
  *
  * Copies the flat Projection and its ordered Footage spans into independent
  * arrays. Materialized Masks retain their soft-deleted content; released values
- * remain undefined. Pending inserts carry Footage, while unresolved Mask
- * commands do not yet own the content they address.
+ * remain undefined. Mask instructions carry identity, not Footage. Unknown
+ * dependencies were ignored during merge and are not part of this snapshot.
  *
  * @param state Replica whose complete retained state is captured.
  * @returns A trusted snapshot with snapshot-local links and packed Footage.

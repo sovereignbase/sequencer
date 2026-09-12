@@ -75,10 +75,8 @@ export class MetricAccumulator {
       averageNanoseconds,
       operationsPerSecond:
         averageNanoseconds === null ? null : 1_000_000_000 / averageNanoseconds,
-      minimumNanoseconds:
-        this.count === 0 ? null : this.minimumNanoseconds,
-      maximumNanoseconds:
-        this.count === 0 ? null : this.maximumNanoseconds,
+      minimumNanoseconds: this.count === 0 ? null : this.minimumNanoseconds,
+      maximumNanoseconds: this.count === 0 ? null : this.maximumNanoseconds,
     }
   }
 }
@@ -94,8 +92,7 @@ export class OperationAccumulator {
   private readonly fullLifecycle = makeAccumulatorRecord()
 
   add(name: OperationName, direction: Direction, nanoseconds: number): void {
-    const directionMetrics =
-      direction === 'up' ? this.scaleUp : this.scaleDown
+    const directionMetrics = direction === 'up' ? this.scaleUp : this.scaleDown
     directionMetrics[name].add(nanoseconds)
     this.fullLifecycle[name].add(nanoseconds)
   }
@@ -130,10 +127,8 @@ type StripNode = {
   subtreeMaximum: number
 }
 
-const nodeCount = (node: StripNode | null): number =>
-  node?.subtreeCount ?? 0
-const nodeFrames = (node: StripNode | null): number =>
-  node?.subtreeFrames ?? 0
+const nodeCount = (node: StripNode | null): number => node?.subtreeCount ?? 0
+const nodeFrames = (node: StripNode | null): number => node?.subtreeFrames ?? 0
 
 const refresh = (node: StripNode): StripNode => {
   node.subtreeCount = 1 + nodeCount(node.left) + nodeCount(node.right)
@@ -162,10 +157,7 @@ const split = (
     node.left = right
     return [left, refresh(node)]
   }
-  const [left, right] = split(
-    node.right,
-    leftCount - nodeCount(node.left) - 1
-  )
+  const [left, right] = split(node.right, leftCount - nodeCount(node.left) - 1)
   node.right = left
   return [refresh(node), right]
 }
@@ -238,8 +230,7 @@ export class StripIndex {
     let remaining = index
     while (node) {
       const leftCount = nodeCount(node.left)
-      if (remaining === leftCount)
-        return { id: node.id, length: node.length }
+      if (remaining === leftCount) return { id: node.id, length: node.length }
       if (remaining < leftCount) node = node.left
       else {
         remaining -= leftCount + 1
@@ -329,11 +320,9 @@ export class SpaceAccumulator {
     return {
       memoryBytesPerFrame: this.memoryFrames.snapshot(),
       memoryBytesPerStrip: this.memoryStrips.snapshot(),
-      storageBytesPerFrameBeforeCompact:
-        this.storageFramesBefore.snapshot(),
+      storageBytesPerFrameBeforeCompact: this.storageFramesBefore.snapshot(),
       storageBytesPerFrameAfterCompact: this.storageFramesAfter.snapshot(),
-      storageBytesPerStripBeforeCompact:
-        this.storageStripsBefore.snapshot(),
+      storageBytesPerStripBeforeCompact: this.storageStripsBefore.snapshot(),
       storageBytesPerStripAfterCompact: this.storageStripsAfter.snapshot(),
     }
   }

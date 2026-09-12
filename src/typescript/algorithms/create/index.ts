@@ -13,7 +13,7 @@ import { register_replica } from '../../helpers/index.js'
 /**
  * Reconstructs an independently maintained Replica without replaying history.
  *
- * Transfers the ordered materialized prefix and detached pending suffix in one
+ * Transfers the ordered materialized Strips in one
  * buffer copy. Native initialization restores structural links, lookup tables,
  * counters, and Footage positions, including retained soft-masked content.
  *

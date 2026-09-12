@@ -89,15 +89,12 @@ describe('Projection read adapters', () => {
   it.each([
     [1, 1],
     [6, 6],
-  ])(
-    'delegates empty range [%s, %s) to native read',
-    (start, end) => {
-      expect(values(state, start, end)).toEqual([])
-      expect(
-        native._write_projection_footage_spans_to_buffer
-      ).toHaveBeenCalledWith(42, start, end)
-    }
-  )
+  ])('delegates empty range [%s, %s) to native read', (start, end) => {
+    expect(values(state, start, end)).toEqual([])
+    expect(
+      native._write_projection_footage_spans_to_buffer
+    ).toHaveBeenCalledWith(42, start, end)
+  })
 
   it('reads the replaced heap after native allocation', () => {
     native._write_projection_footage_spans_to_buffer.mockImplementation(() => {

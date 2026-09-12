@@ -26,8 +26,7 @@ const head: Delta<string> = [
 function instructions(delta: Delta<unknown>) {
   const result: number[][] = []
   for (let offset = 0; offset < delta[0].length; offset += 12)
-    if (delta[0][offset] === 2 || delta[0][offset] === 5)
-      result.push(delta[0].slice(offset, offset + 12))
+    if (delta[0][offset] === 2) result.push(delta[0].slice(offset, offset + 12))
   return result
 }
 
@@ -55,15 +54,16 @@ describe('Mask creation-time dependency prefix', () => {
     }
   )
 
-  it('keeps the prefix through a pending snapshot and later source arrival', () => {
-    const pending = create<string>()
-    expect(merge(pending, mask)).toBe(false)
-    const saved = snapshot(pending)
-    expect(instructions(saved)[0][0]).toBe(5)
-    expect(instructions(saved)[0][11]).toBe(1)
+  it('keeps no unknown Mask and resolves its prefix on retransmission', () => {
+    const empty = create<string>()
+    expect(merge(empty, mask)).toBe(false)
+    const saved = snapshot(empty)
+    expect(saved).toEqual([[], []])
+    expect(acknowledge(empty)).toBe(false)
     const state = create<string>(saved)
     merge(state, parent)
     merge(state, head)
+    merge(state, mask)
     expect(values(state)).toEqual(['X', 'a', 'c'])
   })
 

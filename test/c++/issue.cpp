@@ -54,20 +54,6 @@ int main() {
   assert(projector.gate_strip_index == u32_max);
   assert(projector.head_strip_index == u32_max);
   assert(projector.tail_strip_index == u32_max);
-  for (std::uint32_t strip_index = 0; strip_index < 4; ++strip_index)
-    projector.pending_table.set(dependency, strip_index);
-  sequencer::snapshot_projection(projection_id);
-  sequencer::footage_span_buffer.clear();
-  const auto restored_id = sequencer::initialize_projection();
-  auto &restored = *sequencer::projectors[restored_id];
-  assert(restored.operation_count == 0);
-  assert(restored.mask_operation_count == 0);
-  assert(restored.pending_table.values().size() == 4);
-  assert(sequencer::issue_strip(restored, 1, 2, dependency, 4) == 4);
-  assert(sequencer::issue_strip(restored, 2, 2, dependency) == 5);
-  check_staged(restored, 4, 1, 2, 0, dependency, 4);
-  check_staged(restored, 5, 2, 2, 0, dependency, u32_max);
-  sequencer::clear_projection(restored_id);
   sequencer::clear_projection(projection_id);
 
   Projector invalid;

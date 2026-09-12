@@ -56,6 +56,7 @@ describe('Immutable issued identities', () => {
     const target = create<string>(parent)
     merge(target, second)
     merge(target, first)
+    merge(target, second)
     expect(values(target)).toEqual(values(state))
   })
 
@@ -96,7 +97,7 @@ describe('Immutable issued identities', () => {
     expect(values(target)).toEqual(values(author))
   })
 
-  it('resolves pending Masks in merge without changing their original targets', () => {
+  it('accepts retransmitted Masks after their source without changing their original targets', () => {
     const author = create<string>()
     const birth = insert(author, 0, ['a', 'b', 'c'])
     const first = remove(author, 0, 1)
@@ -107,24 +108,29 @@ describe('Immutable issued identities', () => {
     merge(target, first)
     target = create<string>(snapshot(target))
     merge(target, birth)
+    expect(values(target)).toEqual(['a', 'b', 'c'])
+    merge(target, first)
+    merge(target, second)
     expect(values(target)).toEqual(['c'])
     expect(rows(snapshot(target)).filter((strip) => strip[0] === 5)).toEqual([])
   })
 
-  it('does not process pending operations during a local apply', () => {
+  it('does not process ignored operations during a local apply', () => {
     const state = create<string>()
     const birth = insert(state, 0, ['a'])
     assert(birth !== false)
     const dependency = [...birth[0].slice(2, 4), birth[0][4] + 2]
-    const pending: Delta<string> = [
+    const ignored: Delta<string> = [
       [1, 1, 70, 80, 0, ...dependency, absent, absent, 1, 0],
-      ['pending'],
+      ['ignored'],
     ]
-    expect(merge(state, pending)).toBe(false)
+    expect(merge(state, ignored)).toBe(false)
     insert(state, 1, ['b'])
     expect(values(state)).toEqual(['a', 'b'])
     expect(
       rows(snapshot(state)).filter((strip) => strip[0] === 4)
-    ).toHaveLength(1)
+    ).toHaveLength(0)
+    expect(merge(state, ignored)).not.toBe(false)
+    expect(values(state)).toEqual(['a', 'ignored', 'b'])
   })
 })

@@ -76,20 +76,23 @@ describe('concurrent Strip ordering', () => {
 })
 
 describe('hostile Delta staging', () => {
-  it('materializes a child merged before its predecessor', () => {
+  it('accepts a child retransmitted after its predecessor', () => {
     const source = create<string>()
     const parent_result = insert(source, 0, ['parent'])
     assert(parent_result !== false)
     const child_result = insert(source, 1, ['child'])
     assert(child_result !== false)
 
-    const target = deliver<string>([[], []], [child_result, parent_result])
+    const target = deliver<string>(
+      [[], []],
+      [child_result, parent_result, child_result]
+    )
 
     expect(projection_values(target)).toEqual(['parent', 'child'])
     expect_converged(source, target)
   })
 
-  it('converges after reverse, shuffled, duplicate, and restart staging', async () => {
+  it('converges after hostile delivery, restart, and causal retransmission', async () => {
     const base = create_seed(['base-0', 'base-1', 'base-2'])
     const base_delta = snapshot(base)
     const left_actor = await create_actor()
@@ -132,8 +135,10 @@ describe('hostile Delta staging', () => {
       Math.ceil(restart_order.length / 2)
     )
 
-    for (const target of [reversed, shuffled, duplicated, restarted])
+    for (const target of [reversed, shuffled, duplicated, restarted]) {
+      for (const delta of strips) merge(target, delta)
       expect_converged(ordered, target)
+    }
   })
 
   it('converges for a concurrent Mask and sibling insertion', async () => {

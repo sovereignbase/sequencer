@@ -16,11 +16,13 @@
  * 3  masked
  * @endcode
  *
- * Snapshot spans include soft-masked content in structural order followed by
- * pending insert content. Pending spans use UINT32_MAX as their Projection
- * index. Empty Strips and pending Mask commands contribute no span.
+ * Snapshot spans include soft-masked content in structural order. Empty Strips
+ * and Mask instructions contribute no span.
  *
- * Merge emits visible changed-suffix spans followed, when needed, by a tail
+ * Merge first emits accepted input Footage ranges: Projection index UINT32_MAX,
+ * input-relative Footage index, length, and masked = 0. TypeScript appends only
+ * these ranges, without retaining ignored or duplicate values. Visible changes
+ * follow the transfers. Merge emits changed-suffix spans followed by a tail
  * removal span with footage_frame_index UINT32_MAX and masked = 1.
  */
 #pragma once

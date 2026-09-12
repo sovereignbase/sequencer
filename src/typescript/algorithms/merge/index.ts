@@ -5,11 +5,17 @@
  */
 import { is_delta } from '../../helpers/is_delta/index.js'
 import type { Change, Replica } from '../../types/type.js'
-import { clear_footage_spans, merge_sequence } from '../../wasm/index.js'
+import {
+  clear_footage_spans,
+  merge_sequence,
+  no_projection_frame_index,
+} from '../../wasm/index.js'
 
 /**
  * Integrates encoded Strips and returns the changed suffix of the visible view.
- * Missing dependencies remain pending. Merge issues no new SequencePoints.
+ * Unknown dependencies are ignored, including their Footage. Resend those
+ * Strips after their sources, or send a complete snapshot. Merge issues no new
+ * SequencePoints. Invalid native metadata stops at the accepted Delta prefix.
  *
  * @param state Replica receiving remote material.
  * @param data Transferable `[projection, footage]` tuple.
@@ -27,22 +33,25 @@ export function merge<T>(state: Replica<T>, data: unknown): Change<T> | false {
     state[1].length,
     frame_count
   )
-  if (footage !== undefined) {
-    const start = state[1].length
-    state[1].length = start + frame_count
-    for (let frame = 0; frame < frame_count; ++frame)
-      state[1][start + frame] = footage[frame]
-  }
   if (!spans) return false
 
   const change: Change<T> = {}
+  let changed = false
   for (let span = 0; span < spans.length; span += 4) {
     const projection_index = spans[span]
     const footage_index = spans[span + 1]
+    if (projection_index === no_projection_frame_index) {
+      const start = state[1].length
+      state[1].length = start + spans[span + 2]
+      for (let frame = 0; frame < spans[span + 2]; ++frame)
+        state[1][start + frame] = footage![footage_index + frame]
+      continue
+    }
+    changed = true
     for (let frame = 0; frame < spans[span + 2]; ++frame)
       change[projection_index + frame] =
         spans[span + 3] === 0 ? state[1][footage_index + frame] : undefined
   }
   void clear_footage_spans()
-  return change
+  return changed ? change : false
 }

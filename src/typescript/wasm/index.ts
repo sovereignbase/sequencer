@@ -292,7 +292,7 @@ export function update_sequence(
   )
 }
 
-/** Merges input and borrows visible suffix spans, including removed tail slots. */
+/** Borrows accepted Footage transfers, then visible changes and tail removals. */
 export function merge_sequence(
   sequence_id: number,
   projection: Array<number>,
@@ -300,13 +300,13 @@ export function merge_sequence(
   footage_length: number
 ): Uint32Array | false {
   write_projection_to_buffer(projection)
-  const position =
-    wasm._merge_projection(sequence_id, footage_index, footage_length) >>> 0
-  if (position === no_projection_frame_index) {
+  wasm._merge_projection(sequence_id, footage_index, footage_length)
+  const count = wasm._get_footage_span_buffer_count() >>> 0
+  if (count === 0) {
     clear_footage_spans()
     return false
   }
-  return read_footage_spans()
+  return read_footage_spans(count)
 }
 
 /** Writes both snapshot buffers; the synchronous caller consumes them. */

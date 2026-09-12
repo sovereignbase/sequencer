@@ -38,8 +38,9 @@ int main() {
     const auto id = sequencer::initialize_projection();
     for (const auto operation : order)
       static_cast<void>(merge(id, operations[operation], footage_starts[operation]));
+    for (std::uint32_t operation = 0; operation < operations.size(); ++operation)
+      static_cast<void>(merge(id, operations[operation], footage_starts[operation]));
     assert(read(id, "abcXY!") == "abcXY!");
-    assert(sequencer::projectors[id]->pending_table.is_empty());
     const auto known = sequencer::projectors[id]->strip_count;
     for (const auto operation : order)
       assert(merge(id, operations[operation], footage_starts[operation]) == u32_max);
@@ -64,24 +65,24 @@ int main() {
   assert(merge(id, mask, 0) == 1);
   assert(read(id, "abc") == "ac");
   assert(merge(id, mask, 0) == u32_max);
-  const Words pending{3, 1, 90, 91, 0, 99, 98, 0, u32_max, u32_max, 1, 0};
+  const Words unknown{1, 1, 90, 91, 0, 99, 98, 0, u32_max, u32_max, 1, 0};
   const auto known = sequencer::projectors[id]->strip_count;
-  assert(merge(id, pending, 0) == u32_max);
+  assert(merge(id, unknown, 0) == u32_max);
   assert(sequencer::projectors[id]->strip_count == known);
   sequencer::clear_projection(id);
 
-  for (const bool mask_pending : {false, true}) {
+  for (const bool mask_unknown : {false, true}) {
     const auto anchored_id = sequencer::initialize_projection();
     const Words inserted{0, 1, 30, 40, 0, 10, 20, 0, u32_max, u32_max, 1, 0};
     const Words anchored_mask{2, 3, 70, 80, 0, 10, 20, 0, u32_max, u32_max, 0, 0};
     assert(merge(anchored_id, inserted, 3) == u32_max);
-    if (mask_pending)
+    if (mask_unknown)
       assert(merge(anchored_id, anchored_mask, 0) == u32_max);
     assert(merge(anchored_id, parent, 0) == 0);
-    if (!mask_pending)
-      assert(merge(anchored_id, anchored_mask, 0) == 1);
+    assert(read(anchored_id, "abcX") == "abc");
+    assert(merge(anchored_id, inserted, 3) == 0);
+    assert(merge(anchored_id, anchored_mask, 0) == 1);
     assert(read(anchored_id, "abcX") == "X");
-    assert(sequencer::projectors[anchored_id]->pending_table.is_empty());
     assert(merge(anchored_id, anchored_mask, 0) == u32_max);
     sequencer::clear_projection(anchored_id);
   }

@@ -13,13 +13,7 @@
   "config": {
     "runs": 3,
     "maximumStripCount": 10000,
-    "checkpoints": [
-      1,
-      10,
-      100,
-      1000,
-      10000
-    ],
+    "checkpoints": [1, 10, 100, 1000, 10000],
     "minimumStripFrameLength": 1,
     "maximumStripFrameLength": 100,
     "warmupCycles": 64,

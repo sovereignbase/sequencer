@@ -9,21 +9,13 @@
 #include <string>
 #include <vector>
 
-void check(const std::uint8_t type, const std::uint32_t length, const bool pending) {
+void check(const std::uint8_t type, const std::uint32_t length) {
   const auto projection_id = sequencer::initialize_projection();
   auto &projector = *sequencer::projectors[projection_id];
   std::string footage;
-  if (pending) {
-    const SequencePoint dependency{99, 98, 97};
-    const SequencePoint start{projector.insert_session_crypto_random_bits ^ 1u,
-                              projector.shared_session_unix_lower_bits, 0};
-    const auto waiting = stage_strip(projector, 1, 2, start, dependency, 0);
-    projector.pending_table.set(dependency, waiting);
-    footage = "pq";
-  }
   const auto incoming = sequencer::issue_strip(
       projector, type, length, {0, 0, 0}, static_cast<std::uint32_t>(footage.size()));
-  assert(incoming == (pending ? 1u : 0u));
+  assert(incoming == 0u);
   footage += std::string(length, 'a');
   const auto before_counter = projector.operation_count;
   const auto [frames, strips] = insert_birth(projector, incoming);
@@ -41,11 +33,6 @@ void check(const std::uint8_t type, const std::uint32_t length, const bool pendi
   assert(projector.left_jump_strip_index_of[incoming] == u32_max);
   assert(projector.right_jump_strip_index_of[incoming] == u32_max);
   assert(projector.materialized_strip_count == 1);
-  if (pending) {
-    assert(projector.left_strip_index_of[0] == 0);
-    assert(projector.right_strip_index_of[0] == 0);
-    assert(projector.pending_table.values() == std::vector<std::uint32_t>{0});
-  }
 
   std::string expected(length, 'a');
   for (std::uint32_t edit = 0; edit < 64; ++edit) {
@@ -90,7 +77,6 @@ void check(const std::uint8_t type, const std::uint32_t length, const bool pendi
   auto &restored = *sequencer::projectors[restored_id];
   assert(restored.operation_count == 0);
   assert(restored.projection_frame_count == expected.size());
-  assert(restored.pending_table.values().size() == (pending ? 1u : 0u));
   for (std::uint32_t frame = 0; frame < expected.size(); ++frame)
     assert(packed[sequencer::get_footage_frame_index(restored_id, frame)] == expected[frame]);
   const auto tail = restored.tail_strip_index;
@@ -116,6 +102,5 @@ void check(const std::uint8_t type, const std::uint32_t length, const bool pendi
 int main() {
   for (const auto type : {0u, 1u})
     for (const auto length : {1u, 3u, 64u})
-      for (const auto pending : {false, true})
-        check(static_cast<std::uint8_t>(type), length, pending);
+      check(static_cast<std::uint8_t>(type), length);
 }

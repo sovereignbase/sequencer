@@ -22,11 +22,11 @@ Koneen kuorma ja ajojen hajonta vaikuttavat tuloksiin. Prosentit eivät ole ylei
 
 100 000 aloitus-Strippiä, 1 024 lämmittelyä, 8 192 mitattua inserttiä per tapaus. Kasvava Projector; ei uudelleeninitialisointia operaatioiden välillä. Lopullinen pituus ja reunojen Footage tarkistetaan.
 
-| Tapaus | Ennen µs | Jälkeen µs | Ajan muutos |
-| --- | ---: | ---: | ---: |
-| head | 4.70 | 3.80 | -19.1 % |
-| tail | 2.50 | 1.40 | -44.0 % |
-| alternating | 3.30 | 3.20 | -3.0 % |
+| Tapaus      | Ennen µs | Jälkeen µs | Ajan muutos |
+| ----------- | -------: | ---------: | ----------: |
+| head        |     4.70 |       3.80 |     -19.1 % |
+| tail        |     2.50 |       1.40 |     -44.0 % |
+| alternating |     3.30 |       3.20 |      -3.0 % |
 
 Tail-insertin p95: 4.80 → 2.80 µs. Kaikki jakaumat eivät parantuneet: vuorottelevan tapauksen p95 kasvoi 5.80 → 8.00 µs. Head-ajossa esiintyi myös noin 9 ms yksittäinen poikkeama.
 
@@ -34,15 +34,15 @@ Tail-insertin p95: 4.80 → 2.80 µs. Kaikki jakaumat eivät parantuneet: vuorot
 
 `benchmark/latency.ts`: satunnaiset paikalliset operaatiot ja erilaiset merge-tapaukset.
 
-| Operaatio | Ennen µs | Jälkeen µs | Ajan muutos |
-| --- | ---: | ---: | ---: |
-| find | 3.70 | 3.60 | -2.7 % |
-| insert | 11.00 | 8.40 | -23.6 % |
-| remove | 12.60 | 12.30 | -2.4 % |
-| replace | 19.40 | 15.60 | -19.6 % |
-| merge-new-tail | 26.70 | 31.30 | 17.2 % |
-| merge-new-head | 16657.90 | 13707.80 | -17.7 % |
-| merge-duplicate | 1.40 | 1.30 | -7.1 % |
+| Operaatio       | Ennen µs | Jälkeen µs | Ajan muutos |
+| --------------- | -------: | ---------: | ----------: |
+| find            |     3.70 |       3.60 |      -2.7 % |
+| insert          |    11.00 |       8.40 |     -23.6 % |
+| remove          |    12.60 |      12.30 |      -2.4 % |
+| replace         |    19.40 |      15.60 |     -19.6 % |
+| merge-new-tail  |    26.70 |      31.30 |      17.2 % |
+| merge-new-head  | 16657.90 |   13707.80 |     -17.7 % |
+| merge-duplicate |     1.40 |       1.30 |      -7.1 % |
 
 Myös huonommat tulokset on säilytetty: tämän lyhyen `merge-new-tail`-tapauksen mediaani kasvoi. Se lisää 128 eri sisarusta samaan riippuvuuteen; palautettava muuttunut suffix kasvaa. `merge-new-head` palauttaa suuren osan listan sisällöstä eikä ole yhden alkion patchin mittaus. Duplicate-merge mittaa jo tunnetun operaation ohitusta.
 
@@ -50,9 +50,9 @@ Myös huonommat tulokset on säilytetty: tämän lyhyen `merge-new-tail`-tapauks
 
 `benchmark/merge-tail.ts`: 256 000 aloitus-Strippiä, 8 192 lämmittelyä ja 32 768 mitattua uutta, peräkkäin riippuvaa tail-inserttiä. Jokaisen mergen Change tarkistetaan: täsmälleen oikea uusi indeksi ja Footage. Lopullinen näkymän pituus ja tail tarkistetaan.
 
-| Operaatio | Ennen µs | Jälkeen µs | Ajan muutos |
-| --- | ---: | ---: | ---: |
-| public-merge-new-tail-chain | 4.40 | 4.10 | -6.8 % |
+| Operaatio                   | Ennen µs | Jälkeen µs | Ajan muutos |
+| --------------------------- | -------: | ---------: | ----------: |
+| public-merge-new-tail-chain |     4.40 |       4.10 |      -6.8 % |
 
 Ero on pieni ja ajokohtainen suunta vaihtelee. Näistä mittauksista ei pidä päätellä yleistä merge-nopeutusta.
 
@@ -64,13 +64,13 @@ Miljoona julkista `find`-kutsua yhden kelloparin sisällä, 100 000 Stripin list
 
 `benchmark/components.cpp` suoritetaan WASMina Nodessa. 100 000 aloitus-Strippiä, 8 192 näytettä. Stage, apply ja find mitataan erikseen peräkkäisissä tail-inserteissä; split jakaa olemassa olevia lähdestrippejä. Sijainnit ja suffixien pituudet tarkistetaan.
 
-| Komponentti | Ennen ns | Jälkeen ns | Ajan muutos |
-| --- | ---: | ---: | ---: |
-| clock_pair | 200.00 | 200.00 | 0.0 % |
-| stage_strip | 500.00 | 300.00 | -40.0 % |
-| apply_insert | 300.00 | 300.00 | 0.0 % |
-| find_projection_frame_index_of | 2800.00 | 2600.00 | -7.1 % |
-| split_strip | 400.00 | 300.00 | -25.0 % |
+| Komponentti                    | Ennen ns | Jälkeen ns | Ajan muutos |
+| ------------------------------ | -------: | ---------: | ----------: |
+| clock_pair                     |   200.00 |     200.00 |       0.0 % |
+| stage_strip                    |   500.00 |     300.00 |     -40.0 % |
+| apply_insert                   |   300.00 |     300.00 |       0.0 % |
+| find_projection_frame_index_of |  2800.00 |    2600.00 |      -7.1 % |
+| split_strip                    |   400.00 |     300.00 |     -25.0 % |
 
 Komponenttiluvut sisältävät kellotuksen hinnan. Noin 200 ns kelloparin mediaanin vuoksi 300 ns tulosta ei saa esittää tarkkana 100 ns operaation mittauksena. Find-komponentti käyttää yleistä sijainninhakua; julkisen paikallisen updaten tunnettu-sijainti-polku sisältyy TypeScript-mittauksiin.
 
@@ -102,4 +102,3 @@ node --experimental-strip-types benchmark/gate-hit.ts 100000
 em++ benchmark/components.cpp -std=c++23 -O3 -msimd128 -sENVIRONMENT=node -sSINGLE_FILE=1 -sALLOW_MEMORY_GROWTH=1 -o temp/components.cjs
 node temp/components.cjs 100000
 ```
-

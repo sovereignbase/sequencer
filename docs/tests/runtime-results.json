@@ -1,38 +1,38 @@
 {
-  "generated_at": "2026-09-12T16:40:46.132Z",
+  "generated_at": "2026-09-12T21:18:42.131Z",
   "results": [
     {
       "name": "Node.js",
       "status": "passed",
-      "duration_ms": 486,
+      "duration_ms": 426,
       "version": "24.16.0",
       "assertions": 8
     },
     {
       "name": "Deno",
       "status": "passed",
-      "duration_ms": 682,
+      "duration_ms": 2935,
       "version": "2.9.6",
       "assertions": 8
     },
     {
       "name": "Bun",
       "status": "passed",
-      "duration_ms": 552,
+      "duration_ms": 2272,
       "version": "1.4.2",
       "assertions": 8
     },
     {
       "name": "Edge Runtime",
       "status": "passed",
-      "duration_ms": 1167,
+      "duration_ms": 2218,
       "version": "edge-runtime",
       "assertions": 8
     },
     {
       "name": "Cloudflare Workers",
       "status": "passed",
-      "duration_ms": 5631,
+      "duration_ms": 6592,
       "version": "workerd via Wrangler 4.131.0",
       "assertions": 8
     }

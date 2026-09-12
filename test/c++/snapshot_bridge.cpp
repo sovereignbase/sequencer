@@ -4,10 +4,24 @@
 #include "../../src/c++/algorithms/buffers.hpp"
 #include "../../src/c++/algorithms/acknowledge.hpp"
 #include "../../src/c++/algorithms/update.hpp"
+#include "../../src/c++/algorithms/merge.hpp"
+#include "../../src/c++/algorithms/compact.hpp"
 #include "../../src/c++/.auxiliary/stage_strip/index.hpp"
 #include <emscripten/emscripten.h>
 
 extern "C" {
+
+EMSCRIPTEN_KEEPALIVE std::uint32_t merge_projection(
+    std::uint32_t projection_id, std::uint32_t footage_index,
+    std::uint32_t footage_length) {
+  return sequencer::merge_projection(projection_id, footage_index, footage_length);
+}
+
+EMSCRIPTEN_KEEPALIVE void release_mask_footage(
+    std::uint32_t projection_id, std::uint32_t crypto, std::uint32_t unix_bits,
+    std::uint32_t counter) {
+  sequencer::release_mask_footage(projection_id, crypto, unix_bits, counter);
+}
 
 EMSCRIPTEN_KEEPALIVE std::uint32_t update_projection(
     std::uint32_t projection_id, std::uint32_t index, std::uint8_t type,

@@ -6,11 +6,16 @@
 #include "../apply/insert/index.hpp"
 #include "../find/projection_frame_index/index.hpp"
 #include <algorithm>
-#include <unordered_map>
 
 namespace sequencer {
 
-/** @brief Consume remote Strips and return the earliest changed visible index. */
+/**
+ * @brief Consume remote Strips once, ignoring unknown dependencies.
+ * @details Snapshot fragments reconstruct newly accepted sources. Their applied
+ * Mask types carry the hidden state; instructions may precede those fragments.
+ * Incoming split and competitor indices are never used. Invalid metadata stops
+ * consumption; changes from the accepted prefix are still returned.
+ */
 inline std::uint32_t
 merge_projection(const std::uint32_t projection_id,
                  std::uint32_t footage_frame_index,
@@ -18,125 +23,122 @@ merge_projection(const std::uint32_t projection_id,
   const auto projection = projection_buffer.read_buffer();
   Projector &projector = *projectors[projection_id];
   const auto previous_length = projector.projection_frame_count;
-  std::uint32_t remaining_footage = std::min(footage_length, u32_max - footage_frame_index);
-  for (const auto &strip : projection) {
-    if (strip[0] >= 3 && strip[0] <= 5)
-      break;
-    if (strip[0] == 8 || strip[0] == 9)
-      continue;
-    if ((strip[4] != u32_max && strip[1] >= u32_max - strip[4]) ||
-        strip[11] > strip[7])
-      return u32_max;
-    if (strip[0] != 2 && (strip[0] & 16) == 0) {
-      if (strip[10] > remaining_footage)
-        return u32_max;
-      remaining_footage -= strip[10];
-    }
-  }
+  const auto previous_strip_count = projector.strip_count;
+  auto remaining_footage = std::min(footage_length, u32_max - footage_frame_index);
+  std::uint32_t incoming_footage_index = 0;
   std::uint32_t first_change = u32_max;
-  std::vector<std::uint32_t> ready;
-  std::unordered_map<std::uint32_t, std::uint32_t> new_sources;
+  std::uint32_t fragment_source = u32_max;
+  std::uint32_t fragment_tail = u32_max;
 
   for (const auto &strip : projection) {
-    if (strip[0] >= 3 && strip[0] <= 5)
+    const auto type = strip[0];
+    if ((type > 2 && type != 6 && type != 7 && type != 22 && type != 23) ||
+        (strip[4] != u32_max && strip[1] >= u32_max - strip[4]) ||
+        strip[11] > strip[7])
       break;
-    if (strip[0] == 8 || strip[0] == 9)
-      continue;
-    const auto footage = strip[0] == 2 || (strip[0] & 16) != 0
+    const auto footage = type == 2 || (type & 16) != 0
         ? u32_max : footage_frame_index;
-    if (footage != u32_max)
-      footage_frame_index += strip[10];
+    const auto incoming_footage = incoming_footage_index;
+    if (footage != u32_max) {
+      if (strip[10] > remaining_footage)
+        break;
+      remaining_footage -= strip[10];
+      incoming_footage_index += strip[10];
+    }
+    const auto accept_footage = [&] {
+      if (footage != u32_max && strip[10] != 0) {
+        footage_span_buffer.write_span(u32_max, incoming_footage, strip[10], 0);
+        footage_frame_index += strip[10];
+      }
+    };
+    const SequencePoint dependency{strip[5], strip[6], strip[7]};
+    const SequencePoint origin{strip[5], strip[6], strip[7] - strip[11]};
+    auto source = projector.containment_table.get(origin).first;
+    if (source != u32_max && projector.strip_start_of[source] != origin)
+      source = u32_max;
+
     if (strip[4] == u32_max) {
-      if (strip[10] == 0)
+      if (type == 2 || source == u32_max || source < previous_strip_count ||
+          strip[11] > projector.initial_length_of[source] ||
+          strip[10] > projector.initial_length_of[source] - strip[11])
         continue;
-      const SequencePoint origin{strip[5], strip[6], strip[7] - strip[11]};
-      const auto source = projector.containment_table.get(origin).first;
-      const auto tail = new_sources.find(source);
-      if (tail == new_sources.end() || projector.strip_start_of[source] != origin)
+      auto previous = fragment_source == source ? fragment_tail : source;
+      while (projector.larger_split_strip_index_of[previous] != u32_max)
+        previous = projector.larger_split_strip_index_of[previous];
+      if (strip[11] < projector.fragment_offset(previous) +
+                          projector.fragment_length_of[previous])
         continue;
-      const auto fragment = stage_strip(
-          projector, static_cast<std::uint8_t>(strip[0]), 0,
-          {u32_max, u32_max, u32_max}, {strip[5], strip[6], strip[7]},
-          footage, strip[11], strip[10]);
-      projector.larger_split_strip_index_of[tail->second] = fragment;
-      tail->second = fragment;
+      const auto fragment = stage_strip(projector, static_cast<std::uint8_t>(type),
+          0, {u32_max, u32_max, u32_max}, dependency, footage, strip[11], strip[10]);
+      const auto left = subtree_end(projector, previous);
+      projector.larger_split_strip_index_of[previous] = fragment;
+      insert_between(projector, left, fragment, projector.right_strip_index_of[left]);
+      const auto length = projector.get_projected_strip_length(fragment);
+      projector.projection_frame_count += length;
+      const auto position = find_projection_frame_index_of(projector, fragment, length, 1);
+      projector.gate_strip_index = fragment;
+      projector.projection_frame_index = position;
+      if (length != 0)
+        first_change = std::min(first_change, position);
+      fragment_source = source;
+      fragment_tail = fragment;
+      accept_footage();
       continue;
     }
+
     const SequencePoint start{strip[2], strip[3], strip[4]};
-    const auto [known, known_offset] = projector.containment_table.get(start);
-    if (known != u32_max && known_offset <= projector.initial_length_of[known])
+    if (projector.containment_table.get(start).first != u32_max)
       continue;
-    const auto incoming = stage_strip(
-        projector, static_cast<std::uint8_t>(strip[0]), strip[1], start,
-        {strip[5], strip[6], strip[7]}, footage, strip[11], strip[10]);
-    ready.push_back(incoming);
-    if (strip[0] != 2)
-      new_sources.emplace(incoming, incoming);
+    const bool birth = type != 2 && origin == SequencePoint{0, 0, 0};
+    if (!birth && (source == u32_max ||
+                  strip[11] > projector.initial_length_of[source]))
+      continue;
+    if (type == 2 && (projector.strip_type_of[source] == 2 || strip[1] == 0 ||
+        strip[1] > projector.initial_length_of[source] - strip[11]))
+      continue;
+    if (type != 2 && strip[10] > strip[1])
+      continue;
+
+    const auto incoming = stage_strip(projector, static_cast<std::uint8_t>(type),
+        strip[1], start, dependency, footage, strip[11], strip[10]);
+    auto [containing, offset] = projector.resolve_dependency(incoming);
+    std::pair<std::int32_t, std::int32_t> counts{0, 0};
+    bool snapshot_mask = false;
+    if (type == 2 && source >= previous_strip_count) {
+      auto tail = fragment_source == source ? fragment_tail : source;
+      while (projector.larger_split_strip_index_of[tail] != u32_max)
+        tail = projector.larger_split_strip_index_of[tail];
+      snapshot_mask = projector.fragment_offset(tail) +
+          projector.fragment_length_of[tail] < projector.initial_length_of[source];
+      if (snapshot_mask) {
+        const auto left = containing == u32_max ? tail : containing;
+        insert_between(projector, left, incoming, projector.right_strip_index_of[left]);
+        projector.projection_frame_index =
+            find_projection_frame_index_of(projector, incoming, 0, 1);
+      }
+    }
+    if (!snapshot_mask && (birth || containing != u32_max))
+      counts = apply_insert(projector, birth ? u32_max : containing, incoming,
+                            birth ? 0 : offset, &first_change);
+    if (projector.left_strip_index_of[incoming] == incoming) {
+      projector.containment_table.erase(start);
+      --projector.strip_count;
+      continue;
+    }
+    const auto position = type == 2 ? projector.projection_frame_index
+        : find_projection_frame_index_of(projector, incoming, counts.first, counts.second);
+    projector.gate_strip_index = incoming;
+    projector.projection_frame_index = position;
+    if (counts.first != 0 && type != 2)
+      first_change = std::min(first_change, position);
+    accept_footage();
     if (start.unix_lower_bits == projector.shared_session_unix_lower_bits) {
       if (start.crypto_random_bits == projector.insert_session_crypto_random_bits)
         projector.operation_count = std::max(projector.operation_count,
-                                              start.counter_bits + strip[1] + 1);
+                                             start.counter_bits + strip[1] + 1);
       if (start.crypto_random_bits == projector.mask_session_crypto_random_bits)
         projector.mask_operation_count = std::max(projector.mask_operation_count,
-                                                   start.counter_bits + strip[1] + 1);
-    }
-  }
-  for (std::size_t next = 0; next < ready.size(); ++next) {
-    const auto candidate = ready[next];
-    if (projector.left_strip_index_of[candidate] != candidate)
-      continue;
-    const auto type = projector.strip_type_of[candidate];
-    auto dependency = projector.dependency_origin(candidate);
-    const bool birth = type != 2 && dependency == SequencePoint{0, 0, 0};
-    auto [containing, offset] = projector.resolve_dependency(candidate);
-    if (birth) {
-      containing = u32_max;
-      offset = 0;
-    } else if (containing == u32_max ||
-               projector.left_strip_index_of[containing] == containing) {
-      projector.pending_table.set(dependency, candidate);
-      continue;
-    }
-
-    const auto [frame_diff, strip_diff] =
-        apply_insert(projector, containing, candidate, offset, &first_change);
-    if (projector.left_strip_index_of[candidate] == candidate) {
-      projector.pending_table.set(dependency, candidate);
-      continue;
-    }
-    auto total_frames = frame_diff;
-    auto total_strips = strip_diff;
-    if (type != 2) {
-      auto previous = candidate;
-      for (auto fragment = projector.larger_split_strip_index_of[candidate];
-           fragment != u32_max;
-           fragment = projector.larger_split_strip_index_of[fragment]) {
-        insert_between(projector, previous, fragment,
-                       projector.right_strip_index_of[previous]);
-        const auto length = projector.get_projected_strip_length(fragment);
-        projector.projection_frame_count += length;
-        total_frames += static_cast<std::int32_t>(length);
-        ++total_strips;
-        previous = fragment;
-      }
-    }
-    const auto position = type == 2 ? projector.projection_frame_index
-        : find_projection_frame_index_of(projector, candidate, total_frames, total_strips);
-    projector.gate_strip_index = candidate;
-    projector.projection_frame_index = position;
-    if (total_frames != 0 && type != 2)
-      first_change = std::min(first_change, position);
-
-    auto waiters = projector.pending_table.take(
-        projector.strip_start_of[candidate], projector.initial_length_of[candidate]);
-    ready.insert(ready.end(), waiters.begin(), waiters.end());
-    if (containing != u32_max && !projector.pending_table.is_empty()) {
-      const auto source = projector.containment_table.get(dependency).first;
-      if (source != u32_max) {
-        auto source_waiters = projector.pending_table.take(
-            projector.strip_start_of[source], projector.initial_length_of[source]);
-        ready.insert(ready.end(), source_waiters.begin(), source_waiters.end());
-      }
+                                                  start.counter_bits + strip[1] + 1);
     }
   }
   if (first_change != u32_max) {

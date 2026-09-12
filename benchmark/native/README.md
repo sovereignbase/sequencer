@@ -28,9 +28,9 @@ warms up with 10,000 queries and reports the median of seven 50,000-query sample
 This measures lookup only, not insert/merge throughput or full CRDT behavior.
 
 The workload initializes and destroys fresh Projectors from 1,000- and
-10,000-Strip snapshots. Ten percent of each snapshot is pending. Both inserts
-and Masks are present, with two identity Realms and repeated pending dependency
-points. Timing includes allocations, containment construction, pending grouping,
+10,000-Strip snapshots. Every Strip is materialized. Both inserts
+and Masks are present, with two identity Realms.
+Timing includes allocations and containment construction,
 jump construction, and destruction, but excludes snapshot preparation.
 Each reported value is the median of seven samples processing 500,000 Strips.
 The checksum prevents unused initialization results from being discarded.
@@ -53,10 +53,10 @@ into one `-O3 -msimd128` WASM module and run alternately in Node. The baseline u
 writes by Strip index. After discarding the first warm-up pair, the three paired
 measurements were:
 
-| Strips | Baseline ns/Strip | Indexed writes ns/Strip |
-| --- | --- | --- |
-| 1,000 | 129.11 / 123.46 / 141.23 | 63.83 / 60.45 / 53.91 |
-| 10,000 | 121.15 / 176.18 / 140.71 | 63.30 / 82.08 / 84.12 |
+| Strips | Baseline ns/Strip        | Indexed writes ns/Strip |
+| ------ | ------------------------ | ----------------------- |
+| 1,000  | 129.11 / 123.46 / 141.23 | 63.83 / 60.45 / 53.91   |
+| 10,000 | 121.15 / 176.18 / 140.71 | 63.30 / 82.08 / 84.12   |
 
 Median-of-medians speedups in this workload were approximately 2.14x and 1.71x.
 Independent process timings varied substantially; these are local measurements,
@@ -86,16 +86,16 @@ against visible prefix sums, including structural Masks with zero projected
 length, while retaining the existing adaptive jump strategy.
 
 `sequence_containment` compares direct containment, indexed containment, and
-pending range lookup against the same inclusive-boundary oracle. It includes
+inclusive containment boundaries. It includes
 zero-length anchors and counters near `UINT32_MAX`. `acknowledge` checks complete
-Mask Realms, missing intervals, Realm collisions, pending state, and snapshot
+Mask Realms, missing intervals, Realm collisions, and snapshot
 round trips. The encoded content length remains unchanged in every case.
 
 `mask_split` covers empty-prefix split links, zero-content placeholder chains,
 Mask traversal past unrelated inserts, partial masking, and repeated masking.
 It tests the existing fragment-masking primitive, not the unfinished standalone
 Mask-Strip materialization in the public update/merge path. `issue` checks local
-insert/Mask counter separation, staging, and continued issuance after hydration.
+insert/Mask counter separation, staging, and counter exhaustion.
 
 `before_insert` exercises head, body, and Strip-boundary insertion through
 `insert_before`. It checks that split continuations do not compete with real
@@ -109,29 +109,27 @@ by SequencePoint, and the smallest sibling follows the preceding sibling's
 descendants. Head, body, and empty-anchor cases retain reciprocal jumps and
 correct Find results. This is not a complete public after-insert or merge test.
 
-`birth_insert` checks the first materialized Strip without Find, including a
-Projector that already contains detached pending state. Both insert types and
+`birth_insert` checks the first materialized Strip without Find. Both insert types and
 multiple initial lengths are followed by 64 tail appends, snapshot/hydration,
-and another append. Content, containment boundaries, counters, and pending
+and another append. Content, containment boundaries, counters, and
 isolation are checked. This exercises native primitives, not the unfinished
 public update dispatch.
 
 `update` checks the native local-insert dispatcher through the actual update
 entry point: both birth directions, before/after at every Frame in 1-, 2-, 10-,
-and 64-Strip states, 100 successive edits, pending-only and masked-only states,
+and 64-Strip states, 100 successive edits, empty and masked-only states,
 result encoding, reciprocal jumps, and visible content. It does not establish
 merge convergence or complete own-Realm Mask materialization.
 
 `read` checks single-frame lookup and batched visible ranges, including clipped
-boundaries, noncontiguous Footage, Masks, placeholders, and detached pending
-state. `test/unit/read_adapter.test.ts` separately checks the TypeScript tuple
+boundaries, noncontiguous Footage, Masks, and placeholders. `test/unit/read_adapter.test.ts` separately checks the TypeScript tuple
 contract and four-word transfer layout against a mocked native ABI, including
 replacement of the WASM heap after allocation.
 
-`snapshot` checks packed Footage order, retained soft-masked content, pending
+`snapshot` checks packed Footage order, retained soft-masked content,
 inserts, and equality of visible values after hydration. The initialization
-test requires materialized Masks to retain Footage positions; pending Mask
-commands have no target Footage yet. `test/unit/snapshot_adapter.test.ts` checks
+test requires applied source fragments to retain Footage positions; Mask
+instructions themselves carry no Footage. `test/unit/snapshot_adapter.test.ts` checks
 buffer copies, released slots, and heap replacement against a mocked ABI.
 
 The following isolated bridge compiles the current snapshot, initialization,
@@ -144,7 +142,7 @@ node test/wasm/run-snapshot.mjs
 ```
 
 This tests a soft-masked split, released Footage slots, masked-only and
-pending-only states, empty snapshots, and snapshot/hydration round trips.
+empty states, empty snapshots, and snapshot/hydration round trips.
 Creation uses the production buffer-preparation and initialization exports,
 including creating an empty Replica immediately after another Replica's
 snapshot. `test/unit/create_adapter.test.ts` separately checks trusted buffer
@@ -162,7 +160,7 @@ compaction's transfer contract with a mocked native consumer, not GC semantics.
 
 The same bridge exercises the public TypeScript `insert` through native update:
 birth, head/body/tail insertion, 100 edits with periodic snapshot restoration,
-and insertion into masked-only or pending-only states. The separate
+and insertion into masked-only or empty states. The separate
 `test/unit/insert_adapter.test.ts` checks rejection, buffer consumption, memory
 growth, array ownership, and large input batches. These are local-edit tests,
 not multi-replica convergence tests.
@@ -178,9 +176,8 @@ operation order, rejected operations, large transfers, and Footage aliasing
 during hard deletion. It mocks remove and insert; it does not establish native
 Mask materialization or end-to-end replacement behavior.
 
-The WASM bridge now also checks local public `remove` and `replace` content:
-all 45 nonempty ranges across three Strips in both soft and hard modes,
-stable Footage slots, snapshot views, and 100 mixed edits in each mode.
+The WASM bridge checks public remove and snapshot/merge round trips in soft
+and hard modes, unknown-source rejection, retransmission, and 100 insertions.
 `test/unit/remove_adapter.test.ts` covers bounded native results, rejection,
 heap replacement, and both output buffers' synchronous consumption. Native
 `update` tests check Mask clipping and jump distances, including edits at jump
@@ -192,11 +189,12 @@ and its ACK across snapshot restoration. This does not establish split-chain or
 overlapping Mask behavior, nor structural garbage collection.
 
 `merge` tests basic out-of-order dependencies, root sibling order, duplicate
-identities, bounded Masks, and ignored pending snapshot records. The current
+identities, bounded Masks, ignored unknown-dependency records, and explicit
+causally ordered retransmission. The current
 build/test audit, including failures, is in `docs/tests/runtime-audit.md`.
 
 ```powershell
-foreach ($test in @('containment_table', 'pending_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'after_insert', 'birth_insert', 'update', 'merge', 'read', 'transfer_buffers')) {
+foreach ($test in @('containment_table', 'sequence_containment', 'projection_buffer', 'initialize', 'snapshot', 'insert_order', 'find', 'acknowledge', 'issue', 'mask_split', 'before_insert', 'after_insert', 'birth_insert', 'update', 'merge', 'read', 'transfer_buffers')) {
   clang++ -std=c++23 -Wall -Wextra -Wpedantic -Werror "test/c++/$test.cpp" -o "temp/$test-test.exe"
   if ($LASTEXITCODE -ne 0) { throw "Compilation failed: $test" }
   & "./temp/$test-test.exe"

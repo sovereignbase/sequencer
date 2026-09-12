@@ -19,7 +19,10 @@ const child: Delta<string> = [
   [1, 1, 30, 40, 0, 10, 20, 3, absent, absent, 1, 3],
   ['X'],
 ]
-const mask: Delta<string> = [[2, 1, 70, 80, 0, 10, 20, 1, absent, absent, 0, 1], []]
+const mask: Delta<string> = [
+  [2, 1, 70, 80, 0, 10, 20, 1, absent, absent, 0, 1],
+  [],
+]
 
 describe('Compiled production runtime', () => {
   it.each([1, 16, 64])(
@@ -133,20 +136,7 @@ describe('Compiled production runtime', () => {
         )
         words.push(1, 1, 30, 40, index * 2, 10, 20, 0, absent, absent, 1, 0)
       }
-      words.push(
-        1,
-        0,
-        absent,
-        absent,
-        absent,
-        10,
-        20,
-        0,
-        absent,
-        absent,
-        3,
-        0
-      )
+      words.push(1, 0, absent, absent, absent, 10, 20, 0, absent, absent, 3, 0)
       const state = create<string>([words, [...inserted, 'a', 'b', 'c']])
       const deletion: Delta<string> = [
         [2, 2, 70, 80, 0, 10, 20, 0, absent, absent, 0, 0],
@@ -170,11 +160,12 @@ describe('Compiled production runtime', () => {
     }
   )
 
-  it('resolves a pending child and ignores repeated identities', () => {
+  it('accepts a retransmitted child and ignores repeated identities', () => {
     const state = create<string>()
     expect(merge(state, child)).toBe(false)
     expect(values(state)).toEqual([])
-    expect(merge(state, parent)).toEqual({ 0: 'a', 1: 'b', 2: 'c', 3: 'X' })
+    expect(merge(state, parent)).toEqual({ 0: 'a', 1: 'b', 2: 'c' })
+    expect(merge(state, child)).toEqual({ 3: 'X' })
     expect(values(state)).toEqual(['a', 'b', 'c', 'X'])
     expect(merge(state, parent)).toBe(false)
     expect(merge(state, child)).toBe(false)

@@ -5,9 +5,7 @@
  */
 import type { Replica } from '../../types/type.js'
 
-import {
-  get_footage_frame_index,
-} from '../../wasm/index.js'
+import { get_footage_frame_index } from '../../wasm/index.js'
 
 /**
  * Reads one visible value by zero-based index.

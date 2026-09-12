@@ -15,11 +15,11 @@
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="snapshot"><span class="tsd-kind-call-signature">snapshot</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#snapshott">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">state</span><span class="tsd-signature-symbol">:</span> <a href="../types/Replica.html" class="tsd-signature-type tsd-kind-type-alias">Replica</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#snapshott">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../types/Delta.html" class="tsd-signature-type tsd-kind-type-alias">Delta</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#snapshott">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#snapshot" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Captures materialized Strips in Head-to-Tail order, then pending Strips.</p>
+<div class="tsd-comment tsd-typography"><p>Captures materialized Strips in Head-to-Tail order.</p>
 <p>Copies the flat Projection and its ordered Footage spans into independent
 arrays. Materialized Masks retain their soft-deleted content; released values
-remain undefined. Pending inserts carry Footage, while unresolved Mask
-commands do not yet own the content they address.</p>
+remain undefined. Mask instructions carry identity, not Footage. Unknown
+dependencies were ignored during merge and are not part of this snapshot.</p>
 </div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -40,7 +40,7 @@ Array storage is copied; consumer-owned values are not deep-cloned. Both
 transfer buffers are cleared after their contents have been consumed.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/0f6994513771fd420986c94bf52bc7502d28378c/src/typescript/algorithms/snapshot/index.ts#L28">algorithms/snapshot/index.ts:28</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/3f7865fee2957e3654c945eaa3bfe72a5585b08f/src/typescript/algorithms/snapshot/index.ts#L28">algorithms/snapshot/index.ts:28</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

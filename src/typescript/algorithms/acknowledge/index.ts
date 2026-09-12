@@ -11,8 +11,8 @@ import type { Acknowledgement, Replica } from '../../types/type.js'
  *
  * Each flat triple identifies a Mask Realm and its exclusive final counter.
  * Every known interval must continue from zero without gaps. Insert Realms do
- * not contribute. Pending Masks are known state; acknowledgement alone does
- * not establish that their dependencies are safe to compact.
+ * not contribute. Ignored Masks are not known state and cannot be acknowledged.
+ * Compaction additionally requires agreement from every Actor.
  *
  * @typeParam T Consumer-owned value represented by one Frame.
  * @param state Replica whose known Mask Realms are acknowledged.

@@ -21,7 +21,7 @@ describe('Trusted snapshot initialization', () => {
   const projection = [
     ...[1, 1, 50, 60, 0, 99, 98, 0, absent, absent, 1, 0],
     ...[2, 2, 70, 80, 0, 0, 0, 0, absent, absent, 0, 0],
-    ...[3, 1, 90, 91, 0, 99, 98, 0, absent, absent, 1, 0],
+    ...[6, 1, 90, 91, 0, 99, 98, 0, absent, absent, 1, 0],
   ]
 
   beforeEach(() => {
@@ -71,10 +71,10 @@ describe('Trusted snapshot initialization', () => {
     expect(native._initialize_projection).toHaveBeenCalledTimes(1)
   })
 
-  it('initializes structural and pending state even with no Footage', () => {
+  it('initializes structural anchors and Mask instructions even with no Footage', () => {
     const words = [
       ...[1, 0, 10, 20, 0, 0, 0, 0, absent, absent, 0, 0],
-      ...[5, 3, 70, 80, 0, 99, 98, 0, absent, absent, 0, 0],
+      ...[2, 3, 70, 80, 0, 99, 98, 0, absent, absent, 0, 0],
     ]
     expect(create([words, []])).toEqual([42, []])
     expect(native._prepare_projection_buffer).toHaveBeenCalledExactlyOnceWith(2)

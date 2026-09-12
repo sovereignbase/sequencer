@@ -9,7 +9,6 @@
 #pragma once
 
 #include "../../.containment_table/index.hpp"
-#include "../../.pending_table/index.hpp"
 #include "../sentinels/index.hpp"
 #include <algorithm>
 #include <chrono>
@@ -26,16 +25,16 @@
  * @brief Owned runtime state that materializes one Sequence and its Projection.
  *
  * `strips`, `left`, and `right` share the Strip Index index domain.
- * Materialized Strips form one circular bidirectional chain. A valid unresolved
- * Strip remains self-linked until Initial Projection Resolution or a later
- * operation materializes it. HashTable maps Sequence Point containment to this
- * dense domain; Strip-local jumps provide bounded Projection traversal.
+ * Materialized Strips form one bidirectional chain. ContainmentTable maps
+ * issued Sequence Points to this dense domain; Strip-local jumps provide
+ * bounded Projection traversal. Unknown remote dependencies are ignored.
  *
  * The Gate caches one materialized Strip Index and its visible Projection
  * start. It accelerates navigation but never determines Sequence order.
  *
- * @invariant All SoA lanes share one allocation and capacity; strip_count is\n * the live append-only index limit.
- * @invariant The materialized circular chain contains each materialized Strip,
+ * @invariant All SoA lanes share one allocation and capacity; strip_count is
+ * the live append-only index limit.
+ * @invariant The materialized chain contains each materialized Strip,
  * including Masks, exactly once.
  * @invariant Adjacent structural Strips have mutually consistent forward and
  * backward links.
@@ -154,14 +153,14 @@ struct Projector {
   /**
    * @brief Strip Index immediately to the right in Structural Order.
    *
-   * A Pending Strip points to itself until materialized.
+   * A staged Strip points to itself until linked by the current operation.
    */
   std::span<std::uint32_t> right_strip_index_of;
 
   /**
    * @brief Strip Index immediately to the left in Structural Order.
    *
-   * A Pending Strip points to itself until materialized.
+   * A staged Strip points to itself until linked by the current operation.
    */
   std::span<std::uint32_t> left_strip_index_of;
 
@@ -192,13 +191,6 @@ struct Projector {
    * owned by `strips`.
    */
   ContainmentTable containment_table;
-
-  /**
-   * @brief Pending Strip indices grouped by their missing previous Strip end.
-   *
-   * An arriving Strip releases all waiters whose dependency is in its span.
-   */
-  PendingTable pending_table;
 
   // Movable Projection traversal Gate.
 

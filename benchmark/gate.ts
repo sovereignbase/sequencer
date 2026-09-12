@@ -21,8 +21,10 @@ for (const mode of ['head', 'tail', 'alternating']) {
   }
   function measure() {
     for (let sample = 0; sample < samples; ++sample) {
-      const operation = mode === 'head' || (mode === 'alternating' && sample % 2 === 0)
-        ? headInsert : tailInsert
+      const operation =
+        mode === 'head' || (mode === 'alternating' && sample % 2 === 0)
+          ? headInsert
+          : tailInsert
       const start = performance.now()
       const delta = operation()
       times[sample] = (performance.now() - start) * 1000
@@ -31,15 +33,23 @@ for (const mode of ['head', 'tail', 'alternating']) {
     }
   }
   measure()
-  if (length(state) !== count || find(state, 0) !== 42 || find(state, count - 1) !== 42)
+  if (
+    length(state) !== count ||
+    find(state, 0) !== 42 ||
+    find(state, count - 1) !== 42
+  )
     throw new Error('Projection verification failed')
   times.sort((left, right) => left - right)
-  console.log(JSON.stringify({
-    mode, stripCount, samples,
-    mean_us: times.reduce((total, value) => total + value, 0) / samples,
-    median_us: times[Math.floor(samples / 2)],
-    p95_us: times[Math.floor(samples * 0.95)],
-    max_us: times[samples - 1],
-  }))
+  console.log(
+    JSON.stringify({
+      mode,
+      stripCount,
+      samples,
+      mean_us: times.reduce((total, value) => total + value, 0) / samples,
+      median_us: times[Math.floor(samples / 2)],
+      p95_us: times[Math.floor(samples * 0.95)],
+      max_us: times[samples - 1],
+    })
+  )
   destroy(state)
 }

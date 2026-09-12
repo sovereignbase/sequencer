@@ -13,7 +13,7 @@
 <div class="tsd-signature"><span class="tsd-kind-type-alias">Replica</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">[</span>id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span> footage<span class="tsd-signature-symbol">:</span> (<a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span>)<span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">]</span></div>
 <div class="tsd-comment tsd-typography"><p>Local runtime state of one replicated sequence, stored as <code>[id, footage]</code>.</p>
 <p>The native Projector owns the known Strip state, including the materialized
-Projection and detached pending Strips. Footage holds the consumer values
+Projection. Footage holds the consumer values
 referenced by those Strips. The Projector identifier is local to this runtime
 and is not part of transferable Sequence state.</p>
 <p>Replicas integrating the same Strips derive the same Projection from their
@@ -26,7 +26,7 @@ SequencePoints and causality, independently of merge arrival order.</p>
 <div class="tsd-comment tsd-typography"><p>Consumer-owned value represented by one Frame.</p>
 </div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/0f6994513771fd420986c94bf52bc7502d28378c/src/typescript/types/type.ts#L21">types/type.ts:21</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/3f7865fee2957e3654c945eaa3bfe72a5585b08f/src/typescript/types/type.ts#L21">types/type.ts:21</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

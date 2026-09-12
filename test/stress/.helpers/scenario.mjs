@@ -149,9 +149,21 @@ merge(batched, [
   strips.flatMap((strip) => strip[1] ?? []),
 ])
 targets.push(['batch', batched])
+const saved = snapshot(ordered)
+const restored_remote = create()
+merge(restored_remote, saved)
+targets.push(['full-snapshot', restored_remote])
+const partial_remote = deliver(
+  base_delta,
+  strips.slice(0, Math.ceil(strips.length / 2))
+)
+merge(partial_remote, saved)
+targets.push(['partial-snapshot', partial_remote])
 
 // Compare every hostile target with the chronological reference state.
 for (const [delivery_name, target] of targets) {
+  if (delivery_name !== 'batch' && !delivery_name.endsWith('snapshot'))
+    for (const strip of strips) merge(target, strip)
   const actual = signature(target)
   if (actual !== expected) {
     finish(

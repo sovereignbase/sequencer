@@ -25,15 +25,15 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
     if (remaining > projector.fragment_length_of[containing_strip_index] - offset) {
       auto source = containing_strip_index;
       auto start = offset;
-      auto pending = remaining;
+      auto unchecked = remaining;
       auto expected = projector.dependency_prefix_of[incoming_strip_index];
-      while (pending != 0) {
+      while (unchecked != 0) {
         if (source == u32_max || projector.left_strip_index_of[source] == source ||
             projector.strip_type_of[source] == 2 ||
             projector.fragment_offset(source) + start != expected)
           return {0, 0};
-        const auto length = std::min(pending, projector.fragment_length_of[source] - start);
-        pending -= length;
+        const auto length = std::min(unchecked, projector.fragment_length_of[source] - start);
+        unchecked -= length;
         expected += length;
         source = projector.larger_split_strip_index_of[source];
         start = 0;

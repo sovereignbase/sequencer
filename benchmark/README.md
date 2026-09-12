@@ -2,11 +2,27 @@
 
 ## Purpose
 
-Measure one Sequencer replica through a realistic changing lifecycle instead of isolated fixed-size states.
+Measure Sequencer through a realistic changing lifecycle instead of isolated fixed-size states.
 
 Each benchmark performs **3 independent runs**.
 
-Each run uses exactly **one replica** and scales through powers of ten:
+Each run contains **3 replicas** receiving the same deterministic workload:
+
+```text
+Replica A
+    remove: soft
+    compact: soft
+
+Replica B
+    remove: soft
+    compact: hard
+
+Replica C
+    remove: hard
+    compact: hard
+```
+
+Each replica scales through powers of ten:
 
 ```text
 0
@@ -32,26 +48,41 @@ Strip lengths are deterministic pseudo-random values in:
 1 ... 100 frames
 ```
 
-The run seed controls the random workload so every run is reproducible.
+The run seed controls the random workload so every replica within the run receives the same workload and every run is reproducible.
+
+---
+
+## Replicas
+
+The three replicas differ only in remove and compact behavior:
+
+| Replica | Remove | Compact |
+| ------- | ------ | ------- |
+| A       | soft   | soft    |
+| B       | soft   | hard    |
+| C       | hard   | hard    |
+
+All other benchmark behavior must remain identical between replicas.
+
+Measurements are stored independently for each replica.
 
 ---
 
 ## State lifecycle
 
-Every run begins from a completely fresh initialized state.
+Every run begins with three completely fresh initialized replicas.
 
-At every checkpoint:
+At every checkpoint, independently for each replica:
 
 ```text
 reach checkpoint
 
 measure
 acknowledge
-compact
+compact using replica policy
 snapshot
 destroy old state
 discard old JS state
-
 initialize completely new state from snapshot
 
 continue
@@ -86,6 +117,8 @@ randomReplace
 randomMerge
 randomInsert
 ```
+
+Remove operations use the replica's configured **soft/hard remove policy**.
 
 Every invocation is timed independently.
 
@@ -124,7 +157,7 @@ Checkpoints are powers of ten:
 
 and the same values in reverse during scale-down.
 
-At every checkpoint record:
+At every checkpoint record for every replica:
 
 ```text
 Strip count
@@ -133,6 +166,7 @@ frame count
 operation averages
 
 values
+recover
 acknowledge
 compact
 snapshot
@@ -149,10 +183,13 @@ snapshot bytes / Strip
 snapshot bytes / frame
 ```
 
-The checkpoint lifecycle is always:
+`values` and `recover` are separate checkpoint measurements.
+
+The checkpoint lifecycle is:
 
 ```text
-measure
+measure values
+measure recover
 → acknowledge
 → compact
 → snapshot
@@ -166,7 +203,7 @@ measure
 
 ## Runs
 
-Run the complete lifecycle **3 times**:
+Run the complete three-replica lifecycle **3 times**:
 
 ```text
 Run 0
@@ -177,10 +214,11 @@ Run 2
 Each run:
 
 - has its own deterministic seed
-- begins from a completely fresh state
+- begins with three completely fresh replicas
+- applies the same generated workload to all three replicas
 - shares no Sequencer state with another run
 
-Store each run independently.
+Store every run and replica independently.
 
 After all three runs report:
 
@@ -189,6 +227,8 @@ mean
 minimum
 maximum
 ```
+
+for each replica separately.
 
 ---
 
@@ -208,13 +248,23 @@ serialization
 benchmark bookkeeping
 ```
 
-`acknowledge`, `compact`, `snapshot`, `destroy`, and `initialize` are timed separately.
+The following checkpoint operations are timed separately:
+
+```text
+values
+recover
+acknowledge
+compact
+snapshot
+destroy
+initialize
+```
 
 ---
 
 ## Primary benchmark
 
-The benchmark is one logical lifecycle:
+Each run consists of three equivalent logical lifecycles:
 
 ```text
 fresh state
@@ -224,7 +274,15 @@ fresh state
 → 0
 ```
 
-At every power-of-ten checkpoint the runtime state is replaced through:
+with different structural policies:
+
+```text
+A: soft remove + soft compact
+B: soft remove + hard compact
+C: hard remove + hard compact
+```
+
+At every power-of-ten checkpoint each replica is persisted and replaced through:
 
 ```text
 acknowledge
@@ -234,4 +292,4 @@ acknowledge
 → initialize fresh state from snapshot
 ```
 
-The benchmark consists of **3 complete runs** of this lifecycle.
+The benchmark consists of **3 complete runs × 3 replicas**, allowing the cost and scaling behavior of the three remove/compact policies to be compared directly.

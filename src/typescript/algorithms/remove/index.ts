@@ -60,7 +60,7 @@ export function remove<T>(
 
     const mask = read_projection_from_buffer(12)
     const mask_frame_count = mask[1]
-    for (const word of mask) void projection.push(word)
+    void projection.push(...mask)
 
     if (hard) {
       const footage_frame_index = read_footage_spans(1)[1]

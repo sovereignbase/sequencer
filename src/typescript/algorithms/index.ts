@@ -1,6 +1,7 @@
 export { acknowledge } from './acknowledge/index.js'
 export { compact } from './compact/index.js'
 export { create } from './create/index.js'
+export { destroy } from './destroy/index.js'
 export { find } from './find/index.js'
 export { insert } from './insert/index.js'
 export { length } from './length/index.js'

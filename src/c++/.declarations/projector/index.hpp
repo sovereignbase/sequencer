@@ -51,7 +51,7 @@ struct Projector {
     if (required <= strip_capacity)
       return;
     const auto capacity = std::max(required, std::max(64u, strip_capacity * 2));
-    constexpr auto bytes_per_strip = sizeof(std::uint8_t) +
+    constexpr auto bytes_per_strip = 2 * sizeof(std::uint8_t) +
         14 * sizeof(std::uint32_t) + 2 * sizeof(SequencePoint);
     if (capacity > std::numeric_limits<std::size_t>::max() / bytes_per_strip)
       throw std::bad_array_new_length{};
@@ -83,6 +83,7 @@ struct Projector {
     relocate(right_jump_length_of);
     relocate(footage_frame_index_of);
     relocate(strip_type_of);
+    relocate(masked_of);
     strip_storage = std::move(storage);
     strip_capacity = capacity;
   }
@@ -98,6 +99,9 @@ struct Projector {
   // ENCODING //
   /////////////
   std::span<uint8_t> strip_type_of;
+
+  /** Runtime visibility state. Issued Strip types remain only 0, 1, or 2. */
+  std::span<uint8_t> masked_of;
 
   /**
    * @brief Immutable issued SequencePoint span lengths, excluding the zero
@@ -234,7 +238,8 @@ struct Projector {
    */
   [[nodiscard]] std::uint32_t
   get_projected_strip_length(const std::uint32_t strip_index) const noexcept {
-    return strip_type_of[strip_index] < 2 ? fragment_length_of[strip_index] : 0;
+    return strip_type_of[strip_index] != 2 && masked_of[strip_index] == 0
+        ? fragment_length_of[strip_index] : 0;
   }
 
   /** @brief Recover the creation-time source anchor without rewriting the

@@ -66,7 +66,6 @@ inline void release_mask_footage(const std::uint32_t id, const std::uint32_t cry
     return;
   projector.for_each_mask_target(mask, [&](const auto source, const auto, const auto) {
     projector.footage_frame_index_of[source] = u32_max;
-    projector.strip_type_of[source] |= 16;
   });
 }
 
@@ -128,7 +127,8 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
   if (incomplete)
     std::fill(blocked.begin(), blocked.end(), true);
   for (std::uint32_t strip = 0; strip < count; ++strip)
-    if (projector.strip_type_of[strip] >= 6 && projector.left_strip_index_of[strip] != strip)
+    if (projector.masked_of[strip] != 0 &&
+        projector.left_strip_index_of[strip] != strip)
       remove[strip] = covered[strip] && !blocked[strip];
 
   std::vector<bool> retain_anchor(count);
@@ -186,7 +186,7 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
       });
       projector.fragment_length_of[strip] = 0;
       projector.footage_frame_index_of[strip] = u32_max;
-      projector.strip_type_of[strip] &= 1;
+      projector.masked_of[strip] = 0;
     }
     if (remove[strip]) {
       if (projector.strip_type_of[strip] != 2) {
@@ -206,6 +206,7 @@ inline std::uint32_t compact_projection(const std::uint32_t projection_id,
       projector.right_strip_index_of[strip] = strip;
       projector.footage_frame_index_of[strip] = u32_max;
       projector.strip_type_of[strip] = 255;
+      projector.masked_of[strip] = 0;
       projector.larger_split_strip_index_of[strip] = u32_max;
       --projector.materialized_strip_count;
     } else {

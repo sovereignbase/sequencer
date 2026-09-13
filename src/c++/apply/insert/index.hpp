@@ -55,9 +55,7 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
       if (length < projector.fragment_length_of[source])
         static_cast<void>(split_strip(projector, source, length));
       const auto visible = projector.get_projected_strip_length(source);
-      projector.strip_type_of[source] = static_cast<std::uint8_t>(
-          6 + (projector.strip_type_of[source] & 1) +
-          (projector.strip_type_of[source] & 16));
+      projector.masked_of[source] = 1;
       projector.projection_frame_count -= visible;
       const auto frame_diff = -static_cast<std::int32_t>(visible);
       const auto strip_diff = static_cast<std::int32_t>(

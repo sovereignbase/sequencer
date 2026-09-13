@@ -13,6 +13,7 @@ stage_strip(Projector &projector, const std::uint8_t strip_type,
   const auto strip_index =
       projector.append_strip();
   projector.strip_type_of[strip_index] = strip_type;
+  projector.masked_of[strip_index] = 0;
   projector.initial_length_of[strip_index] = strip_length;
   projector.fragment_length_of[strip_index] = fragment_length == u32_max
       ? (strip_type == 2 ? 0 : strip_length) : fragment_length;

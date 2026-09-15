@@ -144,8 +144,8 @@ inline void garbage_collect_projector(
 /** Completes trusted creation: automatic GC, then a collision-free Mask clock. */
 inline void finalize_projection(const std::uint32_t projection_id) noexcept {
   auto &projector = *projectors[projection_id];
-  projector.frontier_table.acknowledge(projector.actor_id,
-                                       [](const auto) {});
+  projector.frontier_table.acknowledge_all(projector.actor_id,
+                                           [](const auto) {});
   const auto compactable = projector.frontier_table.get_compactable_sessions();
   garbage_collect_projector(projector, compactable);
   projector.frontier_table.free_compacted_sessions(compactable);
@@ -154,7 +154,7 @@ inline void finalize_projection(const std::uint32_t projection_id) noexcept {
       projector.frontier_table.free_compacted_session(
           projector.insert_clock_of[strip].actor);
   projector.mask_session = projector.frontier_table.get_safe_session_id();
-  projector.refresh_acknowledgement();
+  projector.refresh_acknowledgement(true);
 }
 
 } // namespace sequencer

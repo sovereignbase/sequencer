@@ -5,11 +5,10 @@
 
 namespace sequencer {
 
-/** Replaces one visible range and emits its Masks plus Insert as one batch. */
-inline std::uint32_t replace_projection(
+/** Masks one visible range and emits all source-local Masks as one batch. */
+inline std::uint32_t remove_projection(
     const std::uint32_t projection_id, const std::uint32_t operation_index,
-    const std::uint32_t operation_length,
-    const std::uint32_t footage_frame_index) noexcept {
+    const std::uint32_t operation_length) noexcept {
   auto &projector = *projectors[projection_id];
   if (operation_length == 0 ||
       operation_index > projector.projection_frame_count ||
@@ -29,6 +28,18 @@ inline std::uint32_t replace_projection(
       return u32_max;
     remaining -= removed;
   }
+
+  return operation_index;
+}
+
+/** Replaces one visible range and emits its Masks plus Insert as one batch. */
+inline std::uint32_t replace_projection(
+    const std::uint32_t projection_id, const std::uint32_t operation_index,
+    const std::uint32_t operation_length,
+    const std::uint32_t footage_frame_index) noexcept {
+  if (remove_projection(projection_id, operation_index, operation_length) ==
+      u32_max)
+    return u32_max;
 
   return update_projection(projection_id, operation_index, 1,
                            operation_length, footage_frame_index, true);

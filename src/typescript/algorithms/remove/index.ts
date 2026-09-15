@@ -3,15 +3,15 @@
  *
  * @module
  */
-import type { Mutation, Replica } from '../../types/type.js'
+import { get_outbound_acknowledgement } from '../../helpers/index.js'
+import type { Delta, Replica } from '../../types/type.js'
 import {
   get_projection_frame_count,
   no_projection_frame_index,
-  update_sequence,
-  read_acknowledgement,
-  read_deltas,
+  read_projection,
   read_footage_spans,
   clear_footage_spans,
+  remove_sequence,
 } from '../../wasm/index.js'
 
 /**
@@ -38,36 +38,24 @@ export function remove<T>(
   state: Replica<T>,
   start_index = 0,
   end_index?: number
-): Mutation<T> | false {
+): Delta<T> | false {
   const deletion_end_index = end_index ?? get_projection_frame_count(state[0])
+  const frameCount = deletion_end_index - start_index
+  const position = remove_sequence(state[0], start_index, frameCount)
+  if (position === no_projection_frame_index) return false
 
-  const deltas: Mutation<T>[1] = []
-  let remaining_frame_count = deletion_end_index - start_index
-
-  while (remaining_frame_count > 0) {
-    const position =
-      update_sequence(
-        state[0],
-        start_index,
-        2,
-        remaining_frame_count,
-        no_projection_frame_index
-      ) >>> 0
-    if (position === no_projection_frame_index) break
-
-    const mask = read_deltas<T>()[0]
-    const mask_frame_count = mask[2]
-    void deltas.push(mask)
-
-    const footage_frame_index = read_footage_spans(1)[1]
+  const projection = read_projection()
+  const spans = read_footage_spans()
+  for (let span = 0; span < spans.length; span += 4) {
+    const footage_frame_index = spans[span + 1]
+    const mask_frame_count = spans[span + 2]
     void state[1].fill(
       undefined,
       footage_frame_index,
       footage_frame_index + mask_frame_count
     )
-    void clear_footage_spans()
-    remaining_frame_count -= mask_frame_count
   }
+  void clear_footage_spans()
 
-  return deltas.length === 0 ? false : [read_acknowledgement(state[0]), deltas]
+  return [get_outbound_acknowledgement(state), projection]
 }

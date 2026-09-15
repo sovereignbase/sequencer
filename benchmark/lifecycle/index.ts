@@ -1,6 +1,6 @@
 import { serialize } from 'node:v8'
 import * as api from '../../dist/index.js'
-import type { Mutation, Replica } from '../../dist/index.js'
+import type { Delta, Replica } from '../../dist/index.js'
 import {
   deriveSeed,
   formatSeed,
@@ -49,9 +49,9 @@ const ratio = (bytes: number, units: number): number | null =>
   units === 0 ? null : bytes / units
 
 const requireMutation = (
-  result: Mutation<number> | false,
+  result: Delta<number> | false,
   operation: string
-): Mutation<number> => {
+): Delta<number> => {
   if (result === false)
     throw new TypeError(`Sequencer rejected benchmark ${operation}.`)
   return result
@@ -91,14 +91,14 @@ const createReplacementStrip = (
 
 const ingestIntoPeer = (
   runtime: Runtime,
-  mutation: Mutation<number>,
+  mutation: Delta<number>,
   operation: string
 ): void => {
   if (api.ingest(runtime.peer, mutation) === false)
     throw new TypeError(
       `Replica ${runtime.name} peer rejected new ${operation} Mutation ` +
         `(state=${api.length(runtime.state)}, peer=${api.length(runtime.peer)}, ` +
-        `deltas=${mutation[1].length}).`
+        `deltas=${mutation[1].length / 8}).`
     )
 }
 
@@ -173,7 +173,7 @@ const randomIngest = (runtime: Runtime, direction: Direction): void => {
     api.replace(runtime.peer, frameIndex, strip.values),
     'randomIngest peer replacement'
   )
-  if (!mutation[1].some((delta) => delta[8]?.length))
+  if (!mutation[2]?.length)
     throw new TypeError('Random ingest received no Footage Mutation.')
   const change = timeOperation(runtime, direction, 'randomIngest', () =>
     api.ingest(runtime.state, mutation)
@@ -273,13 +273,9 @@ const observeReplica = (
       (words, acknowledgement) => words + acknowledgement.length,
       0
     ) +
-      checkpointSnapshot[1].length * 8) *
+      checkpointSnapshot[1].length) *
     4
-  const javascriptFootageSlotBytes =
-    checkpointSnapshot[1].reduce(
-      (slots, delta) => slots + (delta[8]?.length ?? 0),
-      0
-    ) * 8
+  const javascriptFootageSlotBytes = checkpointSnapshot[2].length * 8
   const estimatedMemoryBytes =
     nativeSnapshotWordBytes + javascriptFootageSlotBytes
 
@@ -314,7 +310,7 @@ const observeReplica = (
       averageStripLength: ratio(frameCount, stripCount),
       minimumStripLength: runtime.strips.minimumLength,
       maximumStripLength: runtime.strips.maximumLength,
-      retainedDeltaCount: checkpointSnapshot[1].length,
+      retainedDeltaCount: checkpointSnapshot[1].length / 8,
     },
   }
 

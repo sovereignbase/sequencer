@@ -3,12 +3,12 @@
  *
  * @module
  */
-import type { Mutation, Replica } from '../../types/type.js'
+import { get_outbound_acknowledgement } from '../../helpers/index.js'
+import type { Delta, Replica } from '../../types/type.js'
 import {
   no_projection_frame_index,
   update_sequence,
-  read_acknowledgement,
-  read_deltas,
+  read_projection,
 } from '../../wasm/index.js'
 
 /**
@@ -33,19 +33,17 @@ export function insert<T>(
   state: Replica<T>,
   index: number,
   values: Array<T>
-): Mutation<T> | false {
+): Delta<T> | false {
   const footage_start = state[1].length
   const frame_count = values.length
   const position =
     update_sequence(state[0], index, 1, frame_count, footage_start) >>> 0
   if (position === no_projection_frame_index) return false
 
-  const deltas = read_deltas<T>()
-  const acknowledgement = read_acknowledgement(state[0])
+  const projection = read_projection()
 
   state[1].length = footage_start + frame_count
   for (let frame = 0; frame < frame_count; ++frame)
     state[1][footage_start + frame] = values[frame]
-  deltas[0][8] = values
-  return [acknowledgement, deltas]
+  return [get_outbound_acknowledgement(state), projection, values]
 }

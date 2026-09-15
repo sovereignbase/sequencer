@@ -101,11 +101,15 @@ struct Projector {
   FrontierTable frontier_table;
   std::vector<std::uint32_t> acknowledgement_cache;
 
-  void refresh_acknowledgement() {
+  void refresh_acknowledgement(const bool full = false) {
     acknowledgement_cache.clear();
-    frontier_table.acknowledge(actor_id, [this](const auto word) {
+    const auto append = [this](const auto word) {
       acknowledgement_cache.push_back(word);
-    });
+    };
+    if (full)
+      frontier_table.acknowledge_all(actor_id, append);
+    else
+      frontier_table.acknowledge_changed(actor_id, append);
   }
 
   [[nodiscard]] bool is_fragment(const std::uint32_t strip) const noexcept {

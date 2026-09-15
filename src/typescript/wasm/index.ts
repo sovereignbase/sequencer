@@ -1,14 +1,12 @@
 import create_module, { type MainModule } from './raw/sequencer_wasm.mjs'
-import type { Acknowledgement, Delta } from '../types/type.js'
+import type { Acknowledgement, Projection } from '../types/type.js'
 
 export const wasm: MainModule = create_module()
 export const no_projection_frame_index = 0xffff_ffff
 
-function write_deltas(deltas: Array<Delta<unknown>>): void {
-  const start = wasm._prepare_projection_buffer(deltas.length) >>> 2
-  for (let delta = 0; delta < deltas.length; ++delta)
-    for (let word = 0; word < 8; ++word)
-      wasm.HEAPU32[start + delta * 8 + word] = deltas[delta][word] as number
+function write_projection(projection: Projection): void {
+  const start = wasm._prepare_projection_buffer(projection.length >>> 3) >>> 2
+  wasm.HEAPU32.set(projection, start)
 }
 
 function write_acknowledgement(acknowledgement: Acknowledgement): void {
@@ -16,39 +14,25 @@ function write_acknowledgement(acknowledgement: Acknowledgement): void {
   wasm.HEAPU32.set(acknowledgement, start)
 }
 
-export function read_deltas<T>(): Array<Delta<T>> {
+export function read_projection(): Uint32Array {
   const wordCount = wasm._get_projection_buffer_word_count() >>> 0
   const start = wasm._get_projection_buffer_pointer() >>> 2
-  const words = wasm.HEAPU32
-  const deltas = new Array<Delta<T>>(wordCount / 8)
-  for (let delta = 0; delta < deltas.length; ++delta) {
-    const offset = start + delta * 8
-    deltas[delta] = [
-      words[offset],
-      words[offset + 1],
-      words[offset + 2],
-      words[offset + 3],
-      words[offset + 4],
-      words[offset + 5],
-      words[offset + 6],
-      words[offset + 7],
-    ] as Delta<T>
-  }
+  const projection = wasm.HEAPU32.slice(start, start + wordCount)
   wasm._clear_projection_buffer()
-  return deltas
+  return projection
 }
 
 export function read_acknowledgement(sequenceId: number): Acknowledgement {
   const wordCount =
     wasm._get_cached_acknowledgement_word_count(sequenceId) >>> 0
   const start = wasm._get_cached_acknowledgement_pointer(sequenceId) >>> 2
-  return Array.from(wasm.HEAPU32.subarray(start, start + wordCount))
+  return wasm.HEAPU32.slice(start, start + wordCount)
 }
 
 export function create_sequence<T>(
   actorId: number,
   frontiers: Array<Acknowledgement>,
-  projection: Array<Delta<T>>,
+  projection: Projection,
   footageLength: number
 ): number {
   let frontierWordCount = frontiers.length
@@ -61,12 +45,8 @@ export function create_sequence<T>(
   }
 
   const projectionStart =
-    wasm._prepare_projection_buffer(projection.length) >>> 2
-  for (let strip = 0; strip < projection.length; ++strip)
-    for (let word = 0; word < 8; ++word)
-      wasm.HEAPU32[projectionStart + strip * 8 + word] = projection[strip][
-        word
-      ] as number
+    wasm._prepare_projection_buffer(projection.length >>> 3) >>> 2
+  wasm.HEAPU32.set(projection, projectionStart)
   return wasm._create_projection(actorId, footageLength) >>> 0
 }
 
@@ -131,15 +111,23 @@ export function replace_sequence(
   return wasm._replace_projection(sequenceId, index, length, footageIndex) >>> 0
 }
 
+export function remove_sequence(
+  sequenceId: number,
+  index: number,
+  length: number
+): number {
+  return wasm._remove_projection(sequenceId, index, length) >>> 0
+}
+
 export function ingest_sequence<T>(
   sequenceId: number,
   acknowledgement: Acknowledgement,
-  deltas: Array<Delta<T>>,
+  projection: Projection,
   footageIndex: number,
   footageLength: number
 ): Uint32Array | false {
   write_acknowledgement(acknowledgement)
-  write_deltas(deltas)
+  write_projection(projection)
   const accepted =
     wasm._ingest_projection(sequenceId, footageIndex, footageLength) !== 0
   if (!accepted) return false
@@ -151,8 +139,8 @@ export function snapshot_sequence(sequenceId: number): void {
   wasm._snapshot_projection(sequenceId)
 }
 
-export function read_snapshot_deltas<T>(): Array<Delta<T>> {
-  return read_deltas<T>()
+export function read_snapshot_projection(): Uint32Array {
+  return read_projection()
 }
 
 export function get_snapshot_frontiers(sequenceId: number): number[][] {

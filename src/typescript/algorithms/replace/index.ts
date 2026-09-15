@@ -1,9 +1,9 @@
-import type { Mutation, Replica } from '../../types/type.js'
+import { get_outbound_acknowledgement } from '../../helpers/index.js'
+import type { Delta, Replica } from '../../types/type.js'
 import {
   clear_footage_spans,
   no_projection_frame_index,
-  read_acknowledgement,
-  read_deltas,
+  read_projection,
   read_footage_spans,
   replace_sequence,
 } from '../../wasm/index.js'
@@ -13,14 +13,14 @@ export function replace<T>(
   state: Replica<T>,
   index: number,
   values: Array<T>
-): Mutation<T> | false {
+): Delta<T> | false {
   const footageStart = state[1].length
   const frameCount = values.length
   const position =
     replace_sequence(state[0], index, frameCount, footageStart) >>> 0
   if (position === no_projection_frame_index) return false
 
-  const deltas = read_deltas<T>()
+  const projection = read_projection()
   const spans = read_footage_spans()
   for (let span = 0; span < spans.length; span += 4) {
     const footageIndex = spans[span + 1]
@@ -33,6 +33,5 @@ export function replace<T>(
   state[1].length = footageStart + frameCount
   for (let frame = 0; frame < frameCount; ++frame)
     state[1][footageStart + frame] = values[frame]
-  deltas[deltas.length - 1][8] = values
-  return [read_acknowledgement(state[0]), deltas]
+  return [get_outbound_acknowledgement(state), projection, values]
 }

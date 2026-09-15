@@ -1,55 +1,44 @@
-import { is_acknowledgement, is_delta } from '../../helpers/index.js'
-import type { Change, Mutation, Replica } from '../../types/type.js'
+import {
+  is_delta,
+  set_outbound_acknowledgement,
+} from '../../helpers/index.js'
+import type { Change, Delta, Replica } from '../../types/type.js'
 import {
   clear_footage_spans,
   ingest_sequence,
   no_projection_frame_index,
+  read_acknowledgement,
 } from '../../wasm/index.js'
 
 /** Integrates one cached acknowledgement plus its native Delta batch. */
 export function ingest<T>(state: Replica<T>, data: unknown): Change<T> | false {
-  if (
-    !Array.isArray(data) ||
-    data.length !== 2 ||
-    !is_acknowledgement(data[0]) ||
-    !Array.isArray(data[1]) ||
-    data[1].length === 0 ||
-    !data[1].every(is_delta<T>)
-  )
-    return false
-  const [acknowledgement, deltas] = data as Mutation<T>
-  let incomingFootageLength = 0
-  for (const delta of deltas) incomingFootageLength += delta[8]?.length ?? 0
+  if (!is_delta<T>(data)) return false
+  const [acknowledgement, projection, footage] = data as Delta<T>
+  const incomingFootageLength = footage?.length ?? 0
   const spans = ingest_sequence(
     state[0],
     acknowledgement,
-    deltas,
+    projection,
     state[1].length,
     incomingFootageLength
   )
   if (!spans) return false
+  set_outbound_acknowledgement(
+    state,
+    read_acknowledgement(state[0])
+  )
 
   const change: Change<T> = {}
   let changed = false
-  let sourceDelta = 0
-  let sourceStart = 0
   for (let span = 0; span < spans.length; span += 4) {
     const projectionIndex = spans[span]
     const footageIndex = spans[span + 1]
     const frameCount = spans[span + 2]
     const masked = spans[span + 3] !== 0
     if (projectionIndex === no_projection_frame_index) {
-      while (sourceDelta < deltas.length) {
-        const source = deltas[sourceDelta][8]
-        const sourceEnd = sourceStart + (source?.length ?? 0)
-        if (footageIndex < sourceEnd) break
-        sourceStart = sourceEnd
-        ++sourceDelta
-      }
-      const source = deltas[sourceDelta]?.[8]
       const start = state[1].length
       for (let frame = 0; frame < frameCount; ++frame)
-        state[1][start + frame] = source?.[footageIndex - sourceStart + frame]
+        state[1][start + frame] = footage?.[footageIndex + frame]
       continue
     }
     changed = true

@@ -12,7 +12,7 @@ export type Change<T> = Record<number, T | undefined>
  *   actorX, timeX, actorY, timeY]`.
  * X is the causal anchor clock and Y is this operation's insert/mask clock.
  */
-export type Projection = /**  [
+export type Projection = /** [
   type: number,
   dependencyPrefix: number,
   initialLength: number,
@@ -29,13 +29,13 @@ export type Acknowledgement = Uint32List
 
 /** Trusted persisted state: actor frontiers and dependency-ordered Deltas. */
 export type Delta<T> = [
-  frontiers: Acknowledgement,
+  acknowledgement: Acknowledgement,
   projection: Projection,
-  footage?: Array<T>,
+  footage?: Array<T | undefined>,
 ]
 
 export type Snapshot<T> = [
   frontiers: Array<Acknowledgement>,
   projection: Projection,
-  footage: Array<T>,
+  footage: Array<T | undefined>,
 ]

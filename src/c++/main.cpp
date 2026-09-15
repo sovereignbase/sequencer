@@ -107,6 +107,13 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t replace_projection(
                                        footage_frame_index);
 }
 
+EMSCRIPTEN_KEEPALIVE std::uint32_t remove_projection(
+    const std::uint32_t projection_id, const std::uint32_t operation_index,
+    const std::uint32_t operation_length) noexcept {
+  return sequencer::remove_projection(projection_id, operation_index,
+                                      operation_length);
+}
+
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 snapshot_frontiers(const std::uint32_t projection_id) noexcept {
   return sequencer::snapshot_frontiers(projection_id);

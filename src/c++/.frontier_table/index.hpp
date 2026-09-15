@@ -15,6 +15,7 @@ class FrontierTable {
   std::unordered_map<std::uint32_t,
                      std::unordered_map<std::uint32_t, std::uint32_t>> pending;
   std::unordered_map<std::uint32_t, std::uint32_t> mask_frontiers;
+  std::unordered_set<std::uint32_t> changed_sessions;
 
 public:
   void observe_actor(const std::uint32_t actor_id) {
@@ -38,6 +39,7 @@ public:
     used_sessions.insert(session_id);
     pending[session_id][prefix] = end;
     auto &frontier = mask_frontiers[session_id];
+    const auto previous = frontier;
     auto &intervals = pending[session_id];
     while (true) {
       const auto next = intervals.find(frontier);
@@ -46,16 +48,33 @@ public:
       frontier = next->second;
       intervals.erase(next);
     }
+    if (frontier != previous)
+      changed_sessions.insert(session_id);
   }
 
   template <typename Visitor>
-  void acknowledge(const std::uint32_t actor_id, Visitor &&visit) {
+  void acknowledge_all(const std::uint32_t actor_id, Visitor &&visit) {
     visit(actor_id);
     for (const auto &[session_id, frontier] : mask_frontiers) {
       sessions[session_id][actor_id] = frontier;
       visit(session_id);
       visit(frontier);
     }
+    changed_sessions.clear();
+  }
+
+  template <typename Visitor>
+  void acknowledge_changed(const std::uint32_t actor_id, Visitor &&visit) {
+    visit(actor_id);
+    for (const auto session_id : changed_sessions) {
+      const auto frontier = mask_frontiers.find(session_id);
+      if (frontier == mask_frontiers.end())
+        continue;
+      sessions[session_id][actor_id] = frontier->second;
+      visit(session_id);
+      visit(frontier->second);
+    }
+    changed_sessions.clear();
   }
 
   template <typename Begin, typename Word>
@@ -102,6 +121,7 @@ public:
     sessions.erase(session_id);
     pending.erase(session_id);
     mask_frontiers.erase(session_id);
+    changed_sessions.erase(session_id);
   }
 
   [[nodiscard]] std::uint32_t get_safe_session_id() {

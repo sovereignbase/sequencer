@@ -1003,3 +1003,9 @@ Muistin `B/Strip` scale-downissa on siksi myös harhaanjohtava mittari: kun deno
 Eli tämän perusteella tärkein seuraava optimointikohde ei ole vielä yksittäinen `find`-mikro-optimointi vaan **compaction/GC**, koska nykyinen rakenne palautuu visuaalisesti 10k → 0 mutta ei tilallisesti takaisin kohti nollaa. Benchmark myös nimenomaan kertoo, että checkpointissa vanha replica tuhotaan ja luodaan snapshotista uudelleen, joten kyse ei ole vain vanhan JS-heapin jäämisestä roikkumaan. 
 
 Lyhyesti: **live-rakenne skaalautuu vielä siedettävästi; retained history ei.** Tämä benchmark on erittäin hyvä testi juuri compactionin vaikutuksen mittaamiseen.
+
+WebSocket fanout functionality Testi
+
+Monta replicaa browsereissa connectanneet websocket servulle joka fanouttaa aina deltat muille
+tavoite testata tuleeko normaalissia käytössä tarvetta pending storelle vai vaatiiko pending tarve
+aina sen että joku välttämättä sekoittaa asoita. Replicas converge in realtime over regular use over websocket fanout /relay

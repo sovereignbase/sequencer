@@ -22,6 +22,8 @@ console.log(sequencer.__read(sequence, 0)) // "Hello World"
 
 Every operation should run in **O(d)**, where _d_ is the logically unavoidable distance required to guarantee its effect, traversing that distance **exactly once** while performing at each step only the minimum necessary work—or strictly positive-value work—with minimal computation, memory traffic, allocation, and state.
 
+Memory should remain O(s), where s is the minimum semantically necessary live state, with obsolete history reclaimed as soon as its invariants allow and no auxiliary state growing with past work.
+
 ### Exceptional performance
 
 /// Summary and link to in detail benchmark readme

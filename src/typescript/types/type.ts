@@ -12,7 +12,7 @@ export type Change<T> = Record<number, T | undefined>
  *   actorX, timeX, actorY, timeY]`.
  * X is the causal anchor clock and Y is this operation's insert/mask clock.
  */
-export type Delta<T> = [
+export type Projection = /**  [
   type: number,
   dependencyPrefix: number,
   initialLength: number,
@@ -21,22 +21,21 @@ export type Delta<T> = [
   timeX: number,
   actorY: number,
   timeY: number,
-  footage?: Array<T | undefined>,
-]
+] 
+*/ Uint32List
 
 /** `[actorId, maskSessionId, frontier, ...]`. */
 export type Acknowledgement = Uint32List
 
-/** One atomic replication packet with one cached ACK and one Delta batch. */
-export type Mutation<T> = [
-  acknowledgement: Acknowledgement,
-  deltas: Array<Delta<T>>,
+/** Trusted persisted state: actor frontiers and dependency-ordered Deltas. */
+export type Delta<T> = [
+  frontiers: Acknowledgement,
+  projection: Projection,
+  footage?: Array<T>,
 ]
 
-/** Trusted persisted state: actor frontiers and dependency-ordered Deltas. */
 export type Snapshot<T> = [
   frontiers: Array<Acknowledgement>,
-  projection: Array<Delta<T>>,
+  projection: Projection,
+  footage: Array<T>,
 ]
-
-export type ActorIdMap = Record<string, number>

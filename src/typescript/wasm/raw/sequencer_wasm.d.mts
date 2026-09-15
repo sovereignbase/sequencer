@@ -37,6 +37,7 @@ interface WasmModule {
   _get_frontier_buffer_pointer(): number;
   _get_cached_acknowledgement_pointer(_0: number): number;
   _get_cached_acknowledgement_word_count(_0: number): number;
+  _consume_cached_acknowledgement(_0: number): void;
   _get_frontier_buffer_word_count(): number;
   _prepare_frontier_buffer(_0: number): number;
   _get_footage_span_buffer_pointer(): number;

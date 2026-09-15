@@ -1,8 +1,8 @@
-import { get_outbound_acknowledgement } from '../../helpers/index.js'
 import type { Delta, Replica } from '../../types/type.js'
 import {
   clear_footage_spans,
   no_projection_frame_index,
+  read_acknowledgement,
   read_projection,
   read_footage_spans,
   replace_sequence,
@@ -33,5 +33,5 @@ export function replace<T>(
   state[1].length = footageStart + frameCount
   for (let frame = 0; frame < frameCount; ++frame)
     state[1][footageStart + frame] = values[frame]
-  return [get_outbound_acknowledgement(state), projection, values]
+  return [read_acknowledgement(state[0]), projection, values]
 }

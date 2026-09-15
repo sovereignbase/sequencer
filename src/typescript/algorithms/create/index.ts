@@ -1,6 +1,6 @@
 import { register_replica } from '../../helpers/index.js'
 import type { Replica, Snapshot } from '../../types/type.js'
-import { create_sequence, read_acknowledgement } from '../../wasm/index.js'
+import { create_sequence } from '../../wasm/index.js'
 
 /** Creates a Replica; native creation restores and compacts the snapshot. */
 export function create<T>(actorId: number, data?: unknown): Replica<T> {
@@ -20,6 +20,6 @@ export function create<T>(actorId: number, data?: unknown): Replica<T> {
     sequenceId,
     footage,
   ]
-  register_replica(state, read_acknowledgement(sequenceId))
+  register_replica(state)
   return state
 }

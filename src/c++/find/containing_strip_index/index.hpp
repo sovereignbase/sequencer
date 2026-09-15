@@ -34,14 +34,21 @@ find_strip_index_of(Projector &projector,
   std::uint32_t cursor_strip_index = projector.gate_strip_index;
   std::uint32_t cursor_projection_frame_index =
       projector.projection_frame_index;
+  auto left_jump_to_patch = projector.left_jump_to_patch;
+  auto right_jump_to_patch = projector.right_jump_to_patch;
 
   if (projection_frame_index == 0 ||
       (head_distance < gate_distance && head_distance <= tail_distance)) {
     cursor_strip_index = projector.head_strip_index;
     cursor_projection_frame_index = 0;
+    left_jump_to_patch = cursor_strip_index;
+    right_jump_to_patch =
+        projector.right_jump_strip_index_of[cursor_strip_index];
   } else if (tail_distance < gate_distance) {
     cursor_strip_index = projector.tail_strip_index;
     cursor_projection_frame_index = tail_projection_frame_index;
+    left_jump_to_patch = u32_max;
+    right_jump_to_patch = u32_max;
   }
 
   // Calculate ideal jump distance.
@@ -62,6 +69,7 @@ find_strip_index_of(Projector &projector,
             projection_frame_index < cursor_projection_frame_index + length) {
           projector.gate_strip_index = cursor_strip_index;
           projector.projection_frame_index = cursor_projection_frame_index;
+          projector.cache_jump_to_patch(u32_max, u32_max);
           return;
         }
         cursor_projection_frame_index += length;
@@ -137,6 +145,11 @@ find_strip_index_of(Projector &projector,
 
         const std::uint32_t jump_projection_frame_index =
             cursor_projection_frame_index + right_jump_length;
+        if (cursor_projection_frame_index <= projection_frame_index &&
+            projection_frame_index < jump_projection_frame_index) {
+          left_jump_to_patch = cursor_strip_index;
+          right_jump_to_patch = right_jump_strip_index;
+        }
         const std::uint32_t jump_distance = absolute_distance(
             jump_projection_frame_index, projection_frame_index);
 
@@ -208,6 +221,11 @@ find_strip_index_of(Projector &projector,
 
         const std::uint32_t jump_projection_frame_index =
             cursor_projection_frame_index - left_jump_length;
+        if (jump_projection_frame_index <= projection_frame_index &&
+            projection_frame_index < cursor_projection_frame_index) {
+          left_jump_to_patch = left_jump_strip_index;
+          right_jump_to_patch = cursor_strip_index;
+        }
         const std::uint32_t jump_distance = absolute_distance(
             jump_projection_frame_index, projection_frame_index);
 
@@ -225,4 +243,12 @@ find_strip_index_of(Projector &projector,
 
   projector.gate_strip_index = cursor_strip_index;
   projector.projection_frame_index = cursor_projection_frame_index;
+  const auto outgoing =
+      projector.right_jump_strip_index_of[cursor_strip_index];
+  if (outgoing != u32_max)
+    projector.cache_jump_to_patch(cursor_strip_index, outgoing);
+  else if (projector.left_jump_strip_index_of[cursor_strip_index] != u32_max)
+    projector.cache_jump_to_patch(u32_max, u32_max);
+  else
+    projector.cache_jump_to_patch(left_jump_to_patch, right_jump_to_patch);
 }

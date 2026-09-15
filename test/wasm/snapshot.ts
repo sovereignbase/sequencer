@@ -33,7 +33,10 @@ for (let edit = 0; edit < 100; ++edit) {
   assert.notEqual(mutation, false)
   expected.splice(position, 0, ...text)
   assert.deepEqual(values(editing), expected)
-  if (edit % 20 === 0) editing = create<string>(10, snapshot(editing))
+  if (edit % 20 === 0) {
+    editing = create<string>(10, snapshot(editing))
+    assert.deepEqual(values(editing), expected)
+  }
 }
-assert.deepEqual(snapshot(create(11)), [[], []])
+assert.deepEqual(snapshot(create(11)), [[[11]], new Uint32Array(), []])
 console.log('Public WASM snapshot round trips passed.')

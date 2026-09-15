@@ -10,7 +10,7 @@ import {
   values,
 } from '../../../src/typescript/index.js'
 import type {
-  Mutation,
+  Delta,
   Replica,
   Snapshot,
 } from '../../../src/typescript/index.js'
@@ -23,15 +23,15 @@ import {
 type SixEditorMutations = {
   base: Snapshot<string>
   base_state: Replica<string>
-  online: Array<Mutation<string>>
+  online: Array<Delta<string>>
   offline: [
-    Array<Mutation<string>>,
-    Array<Mutation<string>>,
-    Array<Mutation<string>>,
+    Array<Delta<string>>,
+    Array<Delta<string>>,
+    Array<Delta<string>>,
   ]
 }
 
-const accepted = <T>(result: Mutation<T> | false): Mutation<T> => {
+const accepted = <T>(result: Delta<T> | false): Delta<T> => {
   assert(result !== false)
   return result
 }
@@ -93,7 +93,7 @@ const build_lifecycle_scenario = (): SixEditorMutations => {
   const base = snapshot(base_state)
 
   const online_1 = create<string>(90, base)
-  const online: Array<Mutation<string>> = [
+  const online: Array<Delta<string>> = [
     accepted(insert(online_1, length(online_1), ['online-1'])),
     accepted(insert(online_1, length(online_1), ['online-trash'])),
   ]
@@ -147,7 +147,7 @@ const build_lifecycle_scenario = (): SixEditorMutations => {
 const all_mutations = ({
   online,
   offline,
-}: SixEditorMutations): Array<Mutation<string>> => [
+}: SixEditorMutations): Array<Delta<string>> => [
   ...online,
   ...offline.flat(),
 ]
@@ -155,9 +155,9 @@ const all_mutations = ({
 const offline_during_online = ({
   online,
   offline,
-}: SixEditorMutations): Array<Mutation<string>> => {
+}: SixEditorMutations): Array<Delta<string>> => {
   const pending_offline = offline.flatMap((branch) => [...branch].reverse())
-  const interleaved: Array<Mutation<string>> = []
+  const interleaved: Array<Delta<string>> = []
   let offline_index = 0
   for (let online_index = 0; online_index < online.length; ++online_index) {
     interleaved.push(online[online_index])

@@ -3,10 +3,10 @@
  *
  * @module
  */
-import { get_outbound_acknowledgement } from '../../helpers/index.js'
 import type { Delta, Replica } from '../../types/type.js'
 import {
   no_projection_frame_index,
+  read_acknowledgement,
   update_sequence,
   read_projection,
 } from '../../wasm/index.js'
@@ -45,5 +45,5 @@ export function insert<T>(
   state[1].length = footage_start + frame_count
   for (let frame = 0; frame < frame_count; ++frame)
     state[1][footage_start + frame] = values[frame]
-  return [get_outbound_acknowledgement(state), projection, values]
+  return [read_acknowledgement(state[0]), projection, values]
 }

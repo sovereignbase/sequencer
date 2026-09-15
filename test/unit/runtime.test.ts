@@ -18,14 +18,14 @@ describe('automatic runtime lifecycle', () => {
     const input = ['a', 'b', 'c', 'd']
     const inserted = insert(state, 0, input)
     assert(inserted !== false)
-    expect(inserted[1][0][8]).toBe(input)
+    expect(inserted[2]).toBe(input)
     expect(values(state)).toEqual(['a', 'b', 'c', 'd'])
     expect(find(state, 2)).toBe('c')
 
     const replacement = replace(state, 1, ['x', 'y'])
     assert(replacement !== false)
     expect(replacement[0]).toHaveLength(1)
-    expect(replacement[1].map((delta) => delta[0])).toEqual([2, 1])
+    expect([replacement[1][0], replacement[1][8]]).toEqual([2, 1])
     expect(values(state)).toEqual(['a', 'x', 'y', 'd'])
 
     const deletion = remove(state, 1, 3)

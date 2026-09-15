@@ -136,6 +136,11 @@ get_cached_acknowledgement_word_count(
   return sequencer::cached_acknowledgement_word_count(projection_id);
 }
 
+EMSCRIPTEN_KEEPALIVE void consume_cached_acknowledgement(
+    const std::uint32_t projection_id) noexcept {
+  return sequencer::consume_cached_acknowledgement(projection_id);
+}
+
 EMSCRIPTEN_KEEPALIVE std::uint32_t get_frontier_buffer_word_count() noexcept {
   return sequencer::get_frontier_buffer_word_count();
 }

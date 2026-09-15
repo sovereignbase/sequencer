@@ -22,6 +22,8 @@ find_projection_frame_index_of(Projector &projector,
   };
   // CACHE
   const std::uint32_t projection_frame_count = projector.projection_frame_count;
+  const bool patched_jump =
+      projector.patch_cached_jump(frame_count_diff, strip_count_diff);
 
   // ITER
   std::uint32_t left_cursor = strip_index;
@@ -88,36 +90,18 @@ find_projection_frame_index_of(Projector &projector,
     }
   }
 
-  // UPDATE NEAREST LEFT JUMP
-  if (projector.right_jump_strip_index_of[left_cursor] != u32_max) {
-    projector.right_jump_length_of[left_cursor] = static_cast<std::uint32_t>(
-        static_cast<std::int64_t>(projector.right_jump_length_of[left_cursor]) +
-        frame_count_diff);
-
-    projector.right_jump_strip_count_of[left_cursor] =
-        static_cast<std::uint32_t>(
-            static_cast<std::int64_t>(
-                projector.right_jump_strip_count_of[left_cursor]) +
-            strip_count_diff);
-  }
-
-  // UPDATE NEAREST RIGHT JUMP
-  if (jump_anchor) {
-    const auto right_jump = projector.right_jump_strip_index_of[strip_index];
-    if (right_jump != u32_max) {
-      projector.left_jump_length_of[right_jump] = projector.right_jump_length_of[strip_index];
-      projector.left_jump_strip_count_of[right_jump] = projector.right_jump_strip_count_of[strip_index];
-    }
-  } else if (projector.left_jump_strip_index_of[right_cursor] != u32_max) {
-    projector.left_jump_length_of[right_cursor] = static_cast<std::uint32_t>(
-        static_cast<std::int64_t>(projector.left_jump_length_of[right_cursor]) +
-        frame_count_diff);
-
-    projector.left_jump_strip_count_of[right_cursor] =
-        static_cast<std::uint32_t>(
-            static_cast<std::int64_t>(
-                projector.left_jump_strip_count_of[right_cursor]) +
-            strip_count_diff);
+  // A newly materialized Strip has no pre-mutation cache. The two searches
+  // above already measured its enclosing jump, so rewrite that link from the
+  // measured distances instead of applying a diff to an assumed neighbour.
+  if (!patched_jump && !jump_anchor &&
+      projector.right_jump_strip_index_of[left_cursor] == right_cursor &&
+      projector.left_jump_strip_index_of[right_cursor] == left_cursor) {
+    const auto frames = left_distance + right_distance;
+    const auto strips = left_strip_distance + right_strip_distance;
+    projector.right_jump_length_of[left_cursor] = frames;
+    projector.right_jump_strip_count_of[left_cursor] = strips;
+    projector.left_jump_length_of[right_cursor] = frames;
+    projector.left_jump_strip_count_of[right_cursor] = strips;
   }
 
   if (projector.left_jump_strip_index_of[strip_index] == u32_max &&
@@ -152,6 +136,14 @@ find_projection_frame_index_of(Projector &projector,
       }
     }
   }
+
+  const auto outgoing = projector.right_jump_strip_index_of[strip_index];
+  if (outgoing != u32_max)
+    projector.cache_jump_to_patch(strip_index, outgoing);
+  else if (projector.right_jump_strip_index_of[left_cursor] == right_cursor)
+    projector.cache_jump_to_patch(left_cursor, right_cursor);
+  else
+    projector.cache_jump_to_patch(u32_max, u32_max);
 
   if (local_position != u32_max)
     return local_position;

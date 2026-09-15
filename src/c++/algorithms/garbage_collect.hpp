@@ -12,6 +12,8 @@ inline void rebuild_projection(Projector &projector) noexcept {
   projector.projection_frame_count = 0;
   projector.gate_strip_index = projector.head_strip_index;
   projector.projection_frame_index = 0;
+  projector.left_jump_to_patch = u32_max;
+  projector.right_jump_to_patch = u32_max;
   for (std::uint32_t strip = 0; strip < projector.strip_count; ++strip) {
     projector.left_jump_strip_index_of[strip] = u32_max;
     projector.right_jump_strip_index_of[strip] = u32_max;
@@ -145,7 +147,7 @@ inline void garbage_collect_projector(
 inline void finalize_projection(const std::uint32_t projection_id) noexcept {
   auto &projector = *projectors[projection_id];
   projector.frontier_table.acknowledge_all(projector.actor_id,
-                                           [](const auto) {});
+                                           [](const auto, const auto) {});
   const auto compactable = projector.frontier_table.get_compactable_sessions();
   garbage_collect_projector(projector, compactable);
   projector.frontier_table.free_compacted_sessions(compactable);

@@ -11,6 +11,7 @@
 #include <limits>
 #include <memory>
 #include <span>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -97,19 +98,42 @@ struct Projector {
   std::uint32_t materialized_strip_count{0};
   std::uint32_t projection_frame_index{0};
   std::uint32_t projection_frame_count{0};
+  std::uint32_t left_jump_to_patch{u32_max};
+  std::uint32_t right_jump_to_patch{u32_max};
   ContainmentTable containment_table;
   FrontierTable frontier_table;
   std::vector<std::uint32_t> acknowledgement_cache;
+  std::unordered_map<std::uint32_t, std::uint32_t>
+      acknowledgement_frontier_offset;
 
   void refresh_acknowledgement(const bool full = false) {
-    acknowledgement_cache.clear();
-    const auto append = [this](const auto word) {
-      acknowledgement_cache.push_back(word);
+    if (full) {
+      acknowledgement_cache.clear();
+      acknowledgement_frontier_offset.clear();
+    }
+    if (acknowledgement_cache.empty())
+      acknowledgement_cache.push_back(actor_id);
+    const auto update = [this](const auto session, const auto frontier) {
+      const auto known = acknowledgement_frontier_offset.find(session);
+      if (known == acknowledgement_frontier_offset.end()) {
+        acknowledgement_cache.push_back(session);
+        acknowledgement_cache.push_back(frontier);
+        acknowledgement_frontier_offset.emplace(
+            session,
+            static_cast<std::uint32_t>(acknowledgement_cache.size() - 1));
+      } else {
+        acknowledgement_cache[known->second] = frontier;
+      }
     };
     if (full)
-      frontier_table.acknowledge_all(actor_id, append);
+      frontier_table.acknowledge_all(actor_id, update);
     else
-      frontier_table.acknowledge_changed(actor_id, append);
+      frontier_table.acknowledge_changed(actor_id, update);
+  }
+
+  void consume_acknowledgement() noexcept {
+    acknowledgement_cache.resize(1);
+    acknowledgement_frontier_offset.clear();
   }
 
   [[nodiscard]] bool is_fragment(const std::uint32_t strip) const noexcept {
@@ -134,6 +158,8 @@ struct Projector {
 
   void anchor_gate_after_mask(const std::uint32_t mask,
                               const std::uint32_t position) noexcept {
+    left_jump_to_patch = u32_max;
+    right_jump_to_patch = u32_max;
     if (projection_frame_count == 0) {
       gate_strip_index = mask;
       projection_frame_index = 0;
@@ -158,6 +184,8 @@ struct Projector {
   }
 
   void clear_jumps() noexcept {
+    left_jump_to_patch = u32_max;
+    right_jump_to_patch = u32_max;
     for (std::uint32_t strip = 0; strip < strip_count; ++strip) {
       left_jump_strip_index_of[strip] = u32_max;
       right_jump_strip_index_of[strip] = u32_max;
@@ -166,6 +194,40 @@ struct Projector {
       left_jump_length_of[strip] = 0;
       right_jump_length_of[strip] = 0;
     }
+  }
+
+  void cache_jump_to_patch(const std::uint32_t left,
+                           const std::uint32_t right) noexcept {
+    if (left != u32_max && right != u32_max &&
+        right_jump_strip_index_of[left] == right &&
+        left_jump_strip_index_of[right] == left) {
+      left_jump_to_patch = left;
+      right_jump_to_patch = right;
+    } else {
+      left_jump_to_patch = u32_max;
+      right_jump_to_patch = u32_max;
+    }
+  }
+
+  [[nodiscard]] bool patch_cached_jump(const std::int32_t frame_diff,
+                                       const std::int32_t strip_diff) noexcept {
+    const auto left = left_jump_to_patch;
+    const auto right = right_jump_to_patch;
+    left_jump_to_patch = u32_max;
+    right_jump_to_patch = u32_max;
+    if (left == u32_max || right == u32_max ||
+        right_jump_strip_index_of[left] != right ||
+        left_jump_strip_index_of[right] != left)
+      return false;
+    const auto frames = static_cast<std::uint32_t>(
+        static_cast<std::int64_t>(right_jump_length_of[left]) + frame_diff);
+    const auto strips = static_cast<std::uint32_t>(
+        static_cast<std::int64_t>(right_jump_strip_count_of[left]) + strip_diff);
+    right_jump_length_of[left] = frames;
+    right_jump_strip_count_of[left] = strips;
+    left_jump_length_of[right] = frames;
+    left_jump_strip_count_of[right] = strips;
+    return true;
   }
 
   template <typename Visitor>
@@ -181,9 +243,13 @@ struct Projector {
   resolve_dependency(const std::uint32_t strip) const noexcept {
     auto source = containment_table.get(anchor_clock_of[strip]);
     const auto offset = offset_length_of[strip];
-    while (source != u32_max &&
-           offset > get_fragment_offset(source) + fragment_length_of[source])
-      source = larger_split_strip_index_of[source];
+    while (source != u32_max) {
+      const auto next = larger_split_strip_index_of[source];
+      if (next == u32_max ||
+          offset < get_fragment_offset(source) + fragment_length_of[source])
+        break;
+      source = next;
+    }
     if (source == u32_max || offset < get_fragment_offset(source))
       return {u32_max, 0};
     return {source, offset - get_fragment_offset(source)};

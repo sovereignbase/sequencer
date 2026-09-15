@@ -1,13 +1,9 @@
-import {
-  is_delta,
-  set_outbound_acknowledgement,
-} from '../../helpers/index.js'
+import { is_delta } from '../../helpers/index.js'
 import type { Change, Delta, Replica } from '../../types/type.js'
 import {
   clear_footage_spans,
   ingest_sequence,
   no_projection_frame_index,
-  read_acknowledgement,
 } from '../../wasm/index.js'
 
 /** Integrates one cached acknowledgement plus its native Delta batch. */
@@ -23,11 +19,6 @@ export function ingest<T>(state: Replica<T>, data: unknown): Change<T> | false {
     incomingFootageLength
   )
   if (!spans) return false
-  set_outbound_acknowledgement(
-    state,
-    read_acknowledgement(state[0])
-  )
-
   const change: Change<T> = {}
   let changed = false
   for (let span = 0; span < spans.length; span += 4) {

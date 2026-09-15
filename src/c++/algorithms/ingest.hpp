@@ -70,6 +70,8 @@ inline std::uint32_t ingest_projection(
     }
 
     std::uint32_t candidate_change = u32_max;
+    if (type == 1)
+      projector.cache_jump_to_patch(u32_max, u32_max);
     const auto counts = apply_insert(
         projector, containing, incoming, physical_offset,
         [&](const auto position, const auto masked_footage,

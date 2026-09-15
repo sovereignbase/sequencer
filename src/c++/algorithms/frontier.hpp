@@ -16,6 +16,11 @@ inline std::uint32_t cached_acknowledgement_word_count(
       projectors[projection_id]->acknowledgement_cache.size());
 }
 
+inline void consume_cached_acknowledgement(
+    const std::uint32_t projection_id) noexcept {
+  projectors[projection_id]->consume_acknowledgement();
+}
+
 /** Encodes snapshot frontiers as `[wordCount, ...words]` records. */
 inline std::uint32_t snapshot_frontiers(
     const std::uint32_t projection_id) noexcept {

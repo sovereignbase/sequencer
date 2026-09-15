@@ -7,7 +7,7 @@ import {
   replace,
   snapshot,
 } from '../../../src/typescript/index.js'
-import type { Mutation } from '../../../src/typescript/index.js'
+import type { Delta } from '../../../src/typescript/index.js'
 import {
   create_seed,
   deliver,
@@ -21,7 +21,7 @@ describe('restart and redelivery', () => {
     const retained = snapshot(base)
     const left = create<string>(41, retained)
     const right = create<string>(42, retained)
-    const mutations: Array<Mutation<string>> = []
+    const mutations: Array<Delta<string>> = []
     for (const mutation of [
       insert(left, 1, ['left-0', 'left-1']),
       insert(left, 2, ['left-child']),

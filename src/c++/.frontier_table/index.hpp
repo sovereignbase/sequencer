@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <random>
 #include <span>
@@ -28,7 +29,8 @@ public:
       return;
     const auto actor_id = frontier.front();
     for (std::size_t index = 1; index + 1 < frontier.size(); index += 2) {
-      sessions[frontier[index]][actor_id] = frontier[index + 1];
+      auto &known = sessions[frontier[index]][actor_id];
+      known = std::max(known, frontier[index + 1]);
       used_sessions.insert(frontier[index]);
     }
   }
@@ -54,25 +56,21 @@ public:
 
   template <typename Visitor>
   void acknowledge_all(const std::uint32_t actor_id, Visitor &&visit) {
-    visit(actor_id);
     for (const auto &[session_id, frontier] : mask_frontiers) {
       sessions[session_id][actor_id] = frontier;
-      visit(session_id);
-      visit(frontier);
+      visit(session_id, frontier);
     }
     changed_sessions.clear();
   }
 
   template <typename Visitor>
   void acknowledge_changed(const std::uint32_t actor_id, Visitor &&visit) {
-    visit(actor_id);
     for (const auto session_id : changed_sessions) {
       const auto frontier = mask_frontiers.find(session_id);
       if (frontier == mask_frontiers.end())
         continue;
       sessions[session_id][actor_id] = frontier->second;
-      visit(session_id);
-      visit(frontier->second);
+      visit(session_id, frontier->second);
     }
     changed_sessions.clear();
   }
@@ -101,11 +99,13 @@ public:
     for (const auto &[session_id, frontiers] : sessions) {
       if (frontiers.size() != actors.size() || frontiers.empty())
         continue;
-      const auto expected = frontiers.begin()->second;
-      bool agreed = true;
+      const auto known = mask_frontiers.find(session_id);
+      if (known == mask_frontiers.end())
+        continue;
+      bool complete = true;
       for (const auto &[actor, frontier] : frontiers)
-        agreed = agreed && frontier == expected;
-      if (agreed)
+        complete = complete && frontier >= known->second;
+      if (complete)
         result.insert(session_id);
     }
     return result;

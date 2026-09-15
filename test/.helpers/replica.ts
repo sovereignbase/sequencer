@@ -1,4 +1,4 @@
-/** Shared fixtures for the current actor-id and Mutation API. */
+/** Shared fixtures for the current actor-id and Delta API. */
 import { expect } from 'vitest'
 import {
   create,
@@ -8,7 +8,7 @@ import {
   snapshot,
   values,
 } from '../../src/typescript/index.js'
-import type { Mutation, Replica, Snapshot } from '../../src/typescript/index.js'
+import type { Delta, Replica, Snapshot } from '../../src/typescript/index.js'
 
 let next_actor_id = 10_000
 
@@ -20,9 +20,9 @@ export function create_seed<T>(seed_values: Array<T>): Replica<T> {
 }
 
 export function shuffle_mutations<T>(
-  mutations: Array<Mutation<T>>,
+  mutations: Array<Delta<T>>,
   seed: number
-): Array<Mutation<T>> {
+): Array<Delta<T>> {
   const shuffled = [...mutations]
   let state = seed >>> 0
   for (let index = shuffled.length - 1; index > 0; --index) {
@@ -38,14 +38,14 @@ export function shuffle_mutations<T>(
 
 export function deliver<T>(
   base: Snapshot<T>,
-  mutations: Array<Mutation<T>>,
+  mutations: Array<Delta<T>>,
   restart_index?: number
 ): Replica<T> {
   let state = create<T>(next_actor_id++, base)
   let pending = [...mutations]
   let delivered = 0
   while (pending.length !== 0) {
-    const next: Array<Mutation<T>> = []
+    const next: Array<Delta<T>> = []
     let progress = false
     for (const mutation of pending) {
       if (delivered === restart_index)

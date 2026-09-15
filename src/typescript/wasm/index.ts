@@ -26,7 +26,9 @@ export function read_acknowledgement(sequenceId: number): Acknowledgement {
   const wordCount =
     wasm._get_cached_acknowledgement_word_count(sequenceId) >>> 0
   const start = wasm._get_cached_acknowledgement_pointer(sequenceId) >>> 2
-  return wasm.HEAPU32.slice(start, start + wordCount)
+  const acknowledgement = wasm.HEAPU32.slice(start, start + wordCount)
+  wasm._consume_cached_acknowledgement(sequenceId)
+  return acknowledgement
 }
 
 export function create_sequence<T>(

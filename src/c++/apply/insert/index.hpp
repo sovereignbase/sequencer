@@ -60,6 +60,7 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
         static_cast<void>(split_strip(projector, source, length));
       const auto visible = projector.get_projected_strip_length(source);
       const auto footage = projector.footage_frame_index_of[source];
+      projector.footage_frame_index_of[source] = u32_max;
       projector.projection_frame_count -= visible;
       const auto frame_diff = -static_cast<std::int32_t>(visible);
       const auto strip_diff = static_cast<std::int32_t>(
@@ -68,7 +69,6 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
           projector, source, frame_diff, strip_diff, masked_position);
       if (visible != 0)
         visit_mask(position, footage, visible);
-      projector.footage_frame_index_of[source] = u32_max;
       projector.gate_strip_index = source;
       projector.projection_frame_index = position;
       counts.first += frame_diff;
@@ -77,6 +77,7 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
       source = projector.larger_split_strip_index_of[source];
       start = 0;
     }
+    projector.cache_jump_to_patch(u32_max, u32_max);
     insert_between(projector, containing_strip_index, incoming_strip_index,
                    projector.right_strip_index_of[containing_strip_index]);
     ++counts.second;

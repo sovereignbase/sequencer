@@ -3,11 +3,11 @@
  *
  * @module
  */
-import { get_outbound_acknowledgement } from '../../helpers/index.js'
 import type { Delta, Replica } from '../../types/type.js'
 import {
   get_projection_frame_count,
   no_projection_frame_index,
+  read_acknowledgement,
   read_projection,
   read_footage_spans,
   clear_footage_spans,
@@ -57,5 +57,5 @@ export function remove<T>(
   }
   void clear_footage_spans()
 
-  return [get_outbound_acknowledgement(state), projection]
+  return [read_acknowledgement(state[0]), projection]
 }

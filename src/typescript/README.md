@@ -1,17 +1,17 @@
-# TypeScript adapter
+### Rule 1: Keep TypeScript minimal
 
-TypeScript is a thin synchronous adapter over the native Projector. It owns the
-consumer Footage array, performs the unavoidable copies across Wasm linear
-memory, and maps native Footage spans to visible values or changes.
+Do as little work in TypeScript as possible.
 
-Local `insert`, `remove`, and `replace` return replication packets containing
-an acknowledgement and a Delta. `ingest` accepts exactly one such packet.
-Frontier maintenance and safe automatic collection happen entirely in C++.
+TypeScript should only perform the minimum validation needed (only at untrusted paths) to ensure that the values passed into WASM are valid `Uint32` values. Everything else should be handled inside the WASM runtime.
 
-`create(actorId, snapshot?)` copies snapshot metadata into the reusable native
-buffers once. Native creation restores the projection and collects safe history
-before returning. `snapshot` returns `[frontiers, projection]`; each insert
-Delta owns only the Footage required by that persisted snapshot.
+The goal is to keep validation and runtime logic out of the TypeScript layer whenever WASM can safely handle it.
 
-Deletes are hard. There is no recovery API, explicit acknowledgement API, or
-public compaction API.
+Local operations trust their caller: indexes, ranges, and arrays must already be valid. Invalid local input is a programming error and may throw; no validation pass or fallback result is promised. Network input is validated by `ingest`.
+
+### Rule 2: Preserve the user-facing TypeScript API
+
+Existing user-space TypeScript signatures must not change.
+
+New methods may be added, but existing public signatures must remain compatible.
+
+The underlying runtime, memory layout, validation strategy, and WASM implementation may change freely when this improves performance, as long as the user-facing API remains unchanged.

@@ -4,12 +4,9 @@
 #include "../.auxiliary/split_strip/index.hpp"
 #include <cstdint>
 #include <unordered_set>
+#include <vector>
 
 namespace sequencer {
-
-[[nodiscard]] inline std::uint64_t clock_key(const Clock clock) noexcept {
-  return (std::uint64_t{clock.actor} << 32) | clock.time;
-}
 
 inline void rebuild_projection(Projector &projector) noexcept {
   projector.projection_frame_count = 0;
@@ -68,45 +65,68 @@ inline void garbage_collect_projector(
     projector.strip_type_of[strip] = 3;
   }
 
-  bool removed = true;
-  while (removed) {
-    removed = false;
-    std::unordered_set<std::uint64_t> referenced;
-    for (std::uint32_t strip = 0; strip < projector.strip_count; ++strip)
-      if (!projector.is_fragment(strip) && projector.strip_type_of[strip] != 255 &&
-          projector.strip_type_of[strip] != 3 &&
-          projector.anchor_clock_of[strip] != Clock{0, 0})
-        referenced.insert(clock_key(projector.anchor_clock_of[strip]));
-
-    for (std::uint32_t origin = 0; origin < projector.strip_count; ++origin) {
-      if (projector.is_fragment(origin) || projector.strip_type_of[origin] != 1 ||
-          referenced.contains(clock_key(projector.insert_clock_of[origin])))
-        continue;
-      bool fully_deleted = true;
-      for (auto fragment = origin; fragment != u32_max;
-           fragment = projector.larger_split_strip_index_of[fragment])
-        fully_deleted = fully_deleted &&
-            (projector.fragment_length_of[fragment] == 0 ||
-             projector.footage_frame_index_of[fragment] == u32_max);
-      if (!fully_deleted)
-        continue;
-      projector.containment_table.erase(projector.insert_clock_of[origin]);
-      for (std::uint32_t mask = 0; mask < projector.strip_count; ++mask)
-        if (projector.strip_type_of[mask] == 3 &&
-            projector.anchor_clock_of[mask] ==
-                projector.insert_clock_of[origin]) {
-          projector.containment_table.erase(projector.insert_clock_of[mask]);
-          projector.strip_type_of[mask] = 255;
-        }
-      for (auto fragment = origin; fragment != u32_max;) {
-        const auto next = projector.larger_split_strip_index_of[fragment];
-        if (projector.strip_type_of[fragment] != 255)
-          unlink_strip(projector, fragment);
-        fragment = next;
-      }
-      removed = true;
-    }
+  // A live operation contributes one reference to its anchor origin. Removing
+  // an unreferenced deleted origin can make its own anchor unreferenced, so the
+  // collection fixed point is a reference-count queue rather than repeated
+  // full-table scans.
+  std::vector<std::uint32_t> references(projector.strip_count, 0);
+  for (std::uint32_t strip = 0; strip < projector.strip_count; ++strip) {
+    if (projector.is_fragment(strip) || projector.strip_type_of[strip] == 255 ||
+        projector.strip_type_of[strip] == 3 ||
+        projector.anchor_clock_of[strip] == Clock{0, 0})
+      continue;
+    const auto anchor =
+        projector.containment_table.get(projector.anchor_clock_of[strip]);
+    if (anchor != u32_max)
+      ++references[anchor];
   }
+
+  const auto fully_deleted = [&](const std::uint32_t origin) noexcept {
+    for (auto fragment = origin; fragment != u32_max;
+         fragment = projector.larger_split_strip_index_of[fragment])
+      if (projector.fragment_length_of[fragment] != 0 &&
+          projector.footage_frame_index_of[fragment] != u32_max)
+        return false;
+    return true;
+  };
+
+  std::vector<std::uint32_t> ready;
+  ready.reserve(projector.strip_count);
+  for (std::uint32_t origin = 0; origin < projector.strip_count; ++origin)
+    if (!projector.is_fragment(origin) &&
+        projector.strip_type_of[origin] == 1 && references[origin] == 0 &&
+        fully_deleted(origin))
+      ready.push_back(origin);
+
+  for (std::size_t next = 0; next < ready.size(); ++next) {
+    const auto origin = ready[next];
+    const auto anchor_clock = projector.anchor_clock_of[origin];
+    const auto anchor = anchor_clock == Clock{0, 0}
+        ? u32_max
+        : projector.containment_table.get(anchor_clock);
+    projector.containment_table.erase(projector.insert_clock_of[origin]);
+    for (auto fragment = origin; fragment != u32_max;) {
+      const auto following =
+          projector.larger_split_strip_index_of[fragment];
+      if (projector.strip_type_of[fragment] != 255)
+        unlink_strip(projector, fragment);
+      fragment = following;
+    }
+    if (anchor != u32_max && references[anchor] != 0 &&
+        --references[anchor] == 0 && projector.strip_type_of[anchor] == 1 &&
+        fully_deleted(anchor))
+      ready.push_back(anchor);
+  }
+
+  // Compacted Masks can be forgotten once their source origin was collected.
+  // This single pass replaces the former all-Masks scan for every origin.
+  for (std::uint32_t mask = 0; mask < projector.strip_count; ++mask)
+    if (projector.strip_type_of[mask] == 3 &&
+        projector.containment_table.get(projector.anchor_clock_of[mask]) ==
+            u32_max) {
+      projector.containment_table.erase(projector.insert_clock_of[mask]);
+      projector.strip_type_of[mask] = 255;
+    }
   for (std::uint32_t strip = 0; strip < projector.strip_count; ++strip) {
     if (projector.strip_type_of[strip] == 255)
       continue;

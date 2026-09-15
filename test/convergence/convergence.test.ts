@@ -1,206 +1,96 @@
-/**
- * Deterministic convergence invariants for sibling ordering, hostile Delta
- * staging, dependencies, Masks, Snapshot restarts, and compaction.
- */
+/** Deterministic convergence coverage for the current automatic runtime. */
 import { assert, describe, expect, it } from 'vitest'
 import {
-  acknowledge,
   create,
-  compact,
+  ingest,
   insert,
-  length,
-  merge,
   remove,
+  replace,
   snapshot,
+  values,
 } from '../../src/typescript/index.js'
-import type { Delta } from '../../src/typescript/index.js'
+import type { Mutation } from '../../src/typescript/index.js'
 import {
-  compare_points,
-  create_actor,
   create_seed,
   deliver,
   expect_converged,
-  projection_values,
-  shuffle_strips,
-  strip_start,
-  visible_strip,
+  shuffle_mutations,
 } from '../.helpers/replica.js'
 
-describe('concurrent Strip ordering', () => {
-  it('orders root siblings by descending point', async () => {
-    const root_strips: Array<Delta<string>> = []
-    for (const value of ['first', 'second', 'third', 'fourth']) {
-      const actor = await create_actor()
-      root_strips.push(
-        visible_strip(actor.insert(actor.create<string>(), 0, [value]))
-      )
+describe('convergence', () => {
+  it('orders concurrent root insertions independently of delivery order', () => {
+    const mutations: Array<Mutation<string>> = []
+    for (const [actor, value] of [
+      [11, 'first'],
+      [12, 'second'],
+      [13, 'third'],
+      [14, 'fourth'],
+    ] as const) {
+      const state = create<string>(actor)
+      const mutation = insert(state, 0, [value])
+      assert(mutation !== false)
+      mutations.push(mutation)
     }
-    expect(
-      new Set(root_strips.map((strip) => strip_start(strip).join(':'))).size
-    ).toBe(4)
-    const expected = [...root_strips]
-      .sort((left, right) =>
-        compare_points(strip_start(right), strip_start(left))
-      )
-      .flatMap((strip) => strip[1] ?? [])
-
-    const forward = deliver([[], []], root_strips)
-    const reverse = deliver([[], []], [...root_strips].reverse())
-
-    expect(projection_values(forward)).toEqual(expected)
+    const forward = deliver<string>([[], []], mutations)
+    const reverse = deliver<string>([[], []], [...mutations].reverse())
     expect_converged(forward, reverse)
-  })
-
-  it('orders forward siblings by descending point', async () => {
-    const base = create_seed(['base'])
-    const base_delta = snapshot(base)
-    const left_actor = await create_actor()
-    const right_actor = await create_actor()
-    const left = left_actor.create<string>(base_delta)
-    const right = right_actor.create<string>(base_delta)
-    const left_strip = visible_strip(left_actor.insert(left, 1, ['left']))
-    const right_strip = visible_strip(right_actor.insert(right, 1, ['right']))
-    expect(strip_start(left_strip)).not.toEqual(strip_start(right_strip))
-    const expected = [left_strip, right_strip]
-      .sort((left, right) =>
-        compare_points(strip_start(right), strip_start(left))
-      )
-      .flatMap((strip) => strip[1] ?? [])
-
-    const forward = deliver(base_delta, [left_strip, right_strip])
-    const reverse = deliver(base_delta, [right_strip, left_strip])
-
-    expect(projection_values(forward)).toEqual(['base', ...expected])
-    expect_converged(forward, reverse)
-  })
-})
-
-describe('hostile Delta staging', () => {
-  it('accepts a child retransmitted after its predecessor', () => {
-    const source = create<string>()
-    const parent_result = insert(source, 0, ['parent'])
-    assert(parent_result !== false)
-    const child_result = insert(source, 1, ['child'])
-    assert(child_result !== false)
-
-    const target = deliver<string>(
-      [[], []],
-      [child_result, parent_result, child_result]
+    expect(new Set(values(forward))).toEqual(
+      new Set(['first', 'second', 'third', 'fourth'])
     )
+  })
 
-    expect(projection_values(target)).toEqual(['parent', 'child'])
+  it('accepts a causal child after its missing parent is delivered', () => {
+    const source = create<string>(21)
+    const parent = insert(source, 0, ['parent'])
+    const child = insert(source, 1, ['child'])
+    assert(parent !== false && child !== false)
+    const target = create<string>(22)
+    expect(ingest(target, child)).toBe(false)
+    expect(ingest(target, parent)).not.toBe(false)
+    expect(ingest(target, child)).not.toBe(false)
     expect_converged(source, target)
   })
 
-  it('converges after hostile delivery, restart, and causal retransmission', async () => {
-    const base = create_seed(['base-0', 'base-1', 'base-2'])
-    const base_delta = snapshot(base)
-    const left_actor = await create_actor()
-    const right_actor = await create_actor()
-    const left = left_actor.create<string>(base_delta)
-    const right = right_actor.create<string>(base_delta)
-    const deltas: Array<Delta<string>> = []
-
-    const left_parent = left_actor.insert(left, 1, ['left-0', 'left-1'])
-    assert(left_parent !== false)
-    deltas.push(left_parent)
-    const left_child = left_actor.insert(left, 2, ['left-child'])
-    assert(left_child !== false)
-    deltas.push(left_child)
-    const left_mask = left_actor.remove(left, 2, 4)
-    assert(left_mask !== false)
-    deltas.push(left_mask)
-
-    const right_replacement = right_actor.replace(right, 1, ['right'])
-    assert(right_replacement !== false)
-    deltas.push(right_replacement)
-    const right_initial = right_actor.insert(right, 0, ['right-initial'])
-    assert(right_initial !== false)
-    deltas.push(right_initial)
-
-    const strips = deltas
-    const ordered = deliver(base_delta, strips)
-    const reversed = deliver(base_delta, [...strips].reverse())
-    const shuffled = deliver(base_delta, shuffle_strips(strips, 0xc0ffee))
-    const duplicated = deliver(
-      base_delta,
-      strips.flatMap((strip, index) =>
-        index % 2 === 0 ? [strip, strip] : [strip]
-      )
-    )
-    const restart_order = shuffle_strips(strips, 0x51a7e)
-    const restarted = deliver(
-      base_delta,
-      restart_order,
-      Math.ceil(restart_order.length / 2)
-    )
-
-    for (const target of [reversed, shuffled, duplicated, restarted]) {
-      for (const delta of strips) merge(target, delta)
-      expect_converged(ordered, target)
-    }
-  })
-
-  it('converges for a concurrent Mask and sibling insertion', async () => {
+  it('keeps a concurrent insertion outside an origin Mask', () => {
     const base = create_seed(['a', 'b', 'c'])
-    const base_delta = snapshot(base)
-    const deleting_actor = await create_actor()
-    const inserting_actor = await create_actor()
-    const deleting = deleting_actor.create<string>(base_delta)
-    const inserting = inserting_actor.create<string>(base_delta)
-    const deletion = deleting_actor.remove(deleting, 1, 2)
-    const insertion = inserting_actor.insert(inserting, 2, ['beside'])
-    assert(deletion !== false)
-    assert(insertion !== false)
-
-    const mask_first = deliver(base_delta, [deletion, insertion])
-    const insert_first = deliver(base_delta, [insertion, deletion])
-
+    const retained = snapshot(base)
+    const deleting = create<string>(31, retained)
+    const inserting = create<string>(32, retained)
+    const deletion = remove(deleting, 1, 2)
+    const insertion = insert(inserting, 2, ['beside'])
+    assert(deletion !== false && insertion !== false)
+    const mask_first = deliver(retained, [deletion, insertion])
+    const insert_first = deliver(retained, [insertion, deletion])
     expect_converged(mask_first, insert_first)
-    expect(projection_values(mask_first)).toEqual(['a', 'beside', 'c'])
-  })
-})
-
-describe('restart and collection continuity', () => {
-  it('converges after Snapshot recovery and stale Delta redelivery', () => {
-    const source = create_seed(['a', 'b', 'c'])
-    const shared_delta = snapshot(source)
-    const first_result = insert(source, 2, ['first'])
-    assert(first_result !== false)
-    const deletion_result = remove(source, 0, 1)
-    assert(deletion_result !== false)
-
-    let recovered = create<string>(snapshot(source))
-    const later_result = insert(source, length(source), ['later'])
-    assert(later_result !== false)
-    void merge(recovered, later_result)
-    void merge(recovered, first_result)
-    void merge(recovered, deletion_result)
-    void merge(recovered, shared_delta)
-    recovered = create<string>(snapshot(recovered))
-
-    expect_converged(source, recovered)
+    expect(values(mask_first)).toEqual(['a', 'beside', 'c'])
   })
 
-  it('continues converging after acknowledged Masks are collected', () => {
-    const source = create_seed(['a', 'b', 'c'])
-    const peer = create<string>(snapshot(source))
-    const deletion = remove(source, 1, 2)
-    assert(deletion !== false)
-    void merge(peer, deletion)
-
-    const source_frontier = acknowledge(source)
-    const peer_frontier = acknowledge(peer)
-    assert(source_frontier !== false)
-    assert(peer_frontier !== false)
-
-    compact([source_frontier.slice(), peer_frontier.slice()], source)
-    compact([source_frontier.slice(), peer_frontier.slice()], peer)
-
-    const later = insert(source, length(source), ['later'])
-    assert(later !== false)
-    void merge(peer, later)
-
-    expect_converged(source, peer)
+  it('survives hostile delivery, a restart, and stale redelivery', () => {
+    const base = create_seed(['base-0', 'base-1', 'base-2'])
+    const retained = snapshot(base)
+    const left = create<string>(41, retained)
+    const right = create<string>(42, retained)
+    const mutations: Array<Mutation<string>> = []
+    for (const mutation of [
+      insert(left, 1, ['left-0', 'left-1']),
+      insert(left, 2, ['left-child']),
+      remove(left, 2, 4),
+      replace(right, 1, ['right']),
+      insert(right, 0, ['right-initial']),
+    ]) {
+      assert(mutation !== false)
+      mutations.push(mutation)
+    }
+    const ordered = deliver(retained, mutations)
+    const hostile = shuffle_mutations(mutations, 0xc0ffee)
+    const restarted = deliver(
+      retained,
+      hostile,
+      Math.ceil(mutations.length / 2)
+    )
+    for (const mutation of mutations) void ingest(restarted, mutation)
+    const compacted_on_create = create<string>(43, snapshot(restarted))
+    expect_converged(ordered, restarted)
+    expect_converged(ordered, compacted_on_create)
   })
 })

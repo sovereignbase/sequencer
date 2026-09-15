@@ -8,7 +8,7 @@ import {
   no_projection_frame_index,
   update_sequence,
   read_acknowledgement,
-  read_delta,
+  read_deltas,
 } from '../../wasm/index.js'
 
 /**
@@ -40,12 +40,12 @@ export function insert<T>(
     update_sequence(state[0], index, 1, frame_count, footage_start) >>> 0
   if (position === no_projection_frame_index) return false
 
-  const delta = read_delta<T>()
-  const acknowledgement = read_acknowledgement()
+  const deltas = read_deltas<T>()
+  const acknowledgement = read_acknowledgement(state[0])
 
   state[1].length = footage_start + frame_count
   for (let frame = 0; frame < frame_count; ++frame)
     state[1][footage_start + frame] = values[frame]
-  delta[8] = values
-  return [acknowledgement, delta]
+  deltas[0][8] = values
+  return [acknowledgement, deltas]
 }

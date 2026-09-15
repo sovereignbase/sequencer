@@ -19,8 +19,8 @@ inline std::uint32_t ingest_projection(
   const auto acknowledgement = frontier_buffer.read();
   auto remaining_footage = std::min(footage_length, u32_max - footage_frame_index);
   std::uint32_t incoming_footage_index = 0;
-  std::uint32_t first_change = u32_max;
-  bool accepted = rows.empty();
+  bool integrated = false;
+  std::size_t processed = 0;
 
   for (const auto &row : rows) {
     const auto type = static_cast<std::uint8_t>(row[0]);
@@ -43,7 +43,7 @@ inline std::uint32_t ingest_projection(
     }
 
     if (projector.containment_table.has(inserted)) {
-      accepted = true;
+      ++processed;
       continue;
     }
 
@@ -86,11 +86,10 @@ inline std::uint32_t ingest_projection(
     }
 
     if (type == 3) {
-      accepted = true;
-      if (candidate_change != u32_max)
-        first_change = std::min(first_change, candidate_change);
+      integrated = true;
       unlink_strip(projector, incoming);
       projector.strip_type_of[incoming] = 3;
+      ++processed;
       continue;
     }
 
@@ -98,15 +97,19 @@ inline std::uint32_t ingest_projection(
         ? projector.projection_frame_index
         : find_projection_frame_index_of(projector, incoming, counts.first,
                                          counts.second);
-    projector.gate_strip_index = incoming;
-    projector.projection_frame_index = position;
+    if (type == 2)
+      projector.anchor_gate_after_mask(
+          incoming, candidate_change == u32_max ? position : candidate_change);
+    else {
+      projector.gate_strip_index = incoming;
+      projector.projection_frame_index = position;
+    }
     if (type == 1) {
       projector.frontier_table.observe_actor(inserted.actor);
       if (emit_spans)
         footage_span_buffer.write_span(u32_max, input_footage, length, 0);
       footage_frame_index += length;
       if (counts.first > 0) {
-        first_change = std::min(first_change, position);
         if (emit_spans)
           footage_span_buffer.write_span(position,
               projector.footage_frame_index_of[incoming],
@@ -117,21 +120,21 @@ inline std::uint32_t ingest_projection(
     } else {
       projector.frontier_table.observe_mask(inserted.actor, prefix,
                                              inserted.time);
-      if (candidate_change != u32_max)
-        first_change = std::min(first_change, candidate_change);
       if (inserted.actor == projector.mask_session)
         projector.mask_time = std::max(projector.mask_time, inserted.time);
     }
-    accepted = true;
+    integrated = true;
+    ++processed;
   }
-  if (accepted) {
+  const bool complete = processed == rows.size();
+  if (complete && !trusted_snapshot) {
     if (!acknowledgement.empty())
       projector.frontier_table.observe_actor(acknowledgement.front());
     projector.frontier_table.observe_acknowledgement(acknowledgement);
-    projector.frontier_table.acknowledge(projector.actor_id,
-                                         [](const auto) {});
+    if (integrated)
+      projector.refresh_acknowledgement();
   }
-  return first_change;
+  return complete && (trusted_snapshot || integrated) ? 1u : 0u;
 }
 
 } // namespace sequencer

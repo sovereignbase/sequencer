@@ -61,6 +61,21 @@ public:
     local = true;
   }
 
+  void begin_batch() noexcept {
+    count = 0;
+    local = false;
+  }
+
+  void append_strip(
+      const std::array<std::uint32_t, words_per_strip> &strip_words) {
+    if (count == strips.size())
+      strips.push_back(strip_words);
+    else
+      strips[count] = strip_words;
+    ++count;
+    local = false;
+  }
+
   /**
    * @brief Write a twelve-word Strip at its prepared projection position.
    * @pre projection_strip_index is within the previously resized storage.

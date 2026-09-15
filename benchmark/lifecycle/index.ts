@@ -48,15 +48,13 @@ const createReplica = (actorId: number, data?: unknown): Replica<number> =>
 const ratio = (bytes: number, units: number): number | null =>
   units === 0 ? null : bytes / units
 
-const requireMutations = (
-  result: Mutation<number> | Array<Mutation<number>> | false,
+const requireMutation = (
+  result: Mutation<number> | false,
   operation: string
-): Array<Mutation<number>> => {
+): Mutation<number> => {
   if (result === false)
     throw new TypeError(`Sequencer rejected benchmark ${operation}.`)
-  return Array.isArray(result[1]) && typeof result[1][0] === 'number'
-    ? [result as Mutation<number>]
-    : (result as Array<Mutation<number>>)
+  return result
 }
 
 const timeOperation = <T>(
@@ -93,14 +91,15 @@ const createReplacementStrip = (
 
 const ingestIntoPeer = (
   runtime: Runtime,
-  mutations: Array<Mutation<number>>,
+  mutation: Mutation<number>,
   operation: string
 ): void => {
-  for (const mutation of mutations)
-    if (api.ingest(runtime.peer, mutation) === false)
-      throw new TypeError(
-        `Replica ${runtime.name} peer rejected new ${operation} Mutation.`
-      )
+  if (api.ingest(runtime.peer, mutation) === false)
+    throw new TypeError(
+      `Replica ${runtime.name} peer rejected new ${operation} Mutation ` +
+        `(state=${api.length(runtime.state)}, peer=${api.length(runtime.peer)}, ` +
+        `deltas=${mutation[1].length}).`
+    )
 }
 
 const insertAt = (
@@ -115,7 +114,7 @@ const insertAt = (
   const mutation = timeOperation(runtime, direction, operationName, () =>
     api.insert(runtime.state, frameIndex, strip.values)
   )
-  const accepted = requireMutations(mutation, operationName)
+  const accepted = requireMutation(mutation, operationName)
   ingestIntoPeer(runtime, accepted, operationName)
   runtime.strips.insert(stripIndex, strip)
 }
@@ -132,7 +131,7 @@ const removeAt = (
   const mutation = timeOperation(runtime, direction, operationName, () =>
     api.remove(runtime.state, frameIndex, frameIndex + strip.length)
   )
-  const accepted = requireMutations(mutation, operationName)
+  const accepted = requireMutation(mutation, operationName)
   ingestIntoPeer(runtime, accepted, operationName)
   runtime.strips.remove(stripIndex)
 }
@@ -160,7 +159,7 @@ const randomReplace = (
   const mutation = timeOperation(runtime, direction, 'randomReplace', () =>
     api.replace(runtime.state, frameIndex, strip.values)
   )
-  const accepted = requireMutations(mutation, 'randomReplace')
+  const accepted = requireMutation(mutation, 'randomReplace')
   ingestIntoPeer(runtime, accepted, 'randomReplace')
   runtime.strips.replace(stripIndex, strip)
 }
@@ -170,21 +169,17 @@ const randomIngest = (runtime: Runtime, direction: Direction): void => {
   const frameIndex = runtime.strips.frameOffsetAt(stripIndex)
   const replaced = runtime.strips.at(stripIndex)
   const strip = createReplacementStrip(runtime, replaced.length)
-  const mutations = requireMutations(
+  const mutation = requireMutation(
     api.replace(runtime.peer, frameIndex, strip.values),
     'randomIngest peer replacement'
   )
-  if (!mutations.some((mutation) => mutation[1][8]?.length))
+  if (!mutation[1].some((delta) => delta[8]?.length))
     throw new TypeError('Random ingest received no Footage Mutation.')
-  for (const mutation of mutations) {
-    const change = timeOperation(runtime, direction, 'randomIngest', () =>
-      api.ingest(runtime.state, mutation)
-    )
-    if (change === false)
-      throw new TypeError(
-        'Random ingest did not integrate a new peer Mutation.'
-      )
-  }
+  const change = timeOperation(runtime, direction, 'randomIngest', () =>
+    api.ingest(runtime.state, mutation)
+  )
+  if (change === false)
+    throw new TypeError('Random ingest did not integrate a new peer Mutation.')
   runtime.strips.replace(stripIndex, strip)
 }
 

@@ -12,8 +12,11 @@
 inline void
 find_strip_index_of(Projector &projector,
                     const std::uint32_t &projection_frame_index) noexcept {
-  if (projection_frame_index - projector.projection_frame_index <
-      projector.get_projected_strip_length(projector.gate_strip_index))
+  if (!(projection_frame_index == 0 &&
+        projector.gate_strip_index != projector.head_strip_index) &&
+      projection_frame_index >= projector.projection_frame_index &&
+      projection_frame_index - projector.projection_frame_index <
+          projector.get_projected_strip_length(projector.gate_strip_index))
     return;
 
   // Calculate distances to the requested index.
@@ -32,7 +35,8 @@ find_strip_index_of(Projector &projector,
   std::uint32_t cursor_projection_frame_index =
       projector.projection_frame_index;
 
-  if (head_distance < gate_distance && head_distance <= tail_distance) {
+  if (projection_frame_index == 0 ||
+      (head_distance < gate_distance && head_distance <= tail_distance)) {
     cursor_strip_index = projector.head_strip_index;
     cursor_projection_frame_index = 0;
   } else if (tail_distance < gate_distance) {
@@ -45,7 +49,26 @@ find_strip_index_of(Projector &projector,
       std::sqrt(projector.materialized_strip_count) + 0.5);
 
   // UPDATE AS YOU WALK
+  std::uint32_t traversed = 0;
   while (true) {
+    if (++traversed > projector.materialized_strip_count + 1) {
+      projector.clear_jumps();
+      cursor_strip_index = projector.head_strip_index;
+      cursor_projection_frame_index = 0;
+      while (cursor_strip_index != u32_max) {
+        const auto length =
+            projector.get_projected_strip_length(cursor_strip_index);
+        if (cursor_projection_frame_index <= projection_frame_index &&
+            projection_frame_index < cursor_projection_frame_index + length) {
+          projector.gate_strip_index = cursor_strip_index;
+          projector.projection_frame_index = cursor_projection_frame_index;
+          return;
+        }
+        cursor_projection_frame_index += length;
+        cursor_strip_index = projector.right_strip_index_of[cursor_strip_index];
+      }
+      return;
+    }
     const std::uint32_t strip_length =
         projector.get_projected_strip_length(cursor_strip_index);
 
@@ -117,8 +140,7 @@ find_strip_index_of(Projector &projector,
         const std::uint32_t jump_distance = absolute_distance(
             jump_projection_frame_index, projection_frame_index);
 
-        if ((jump_distance < current_distance && jump_distance < walk_distance) ||
-            (jump_distance == 0 && right_jump_length == 0)) {
+        if (jump_distance < current_distance && jump_distance < walk_distance) {
           cursor_strip_index = right_jump_strip_index;
           cursor_projection_frame_index = jump_projection_frame_index;
           continue;

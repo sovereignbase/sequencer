@@ -2,7 +2,7 @@ import * as sequencer from '/dist/index.js'
 
 self.addEventListener('message', () => {
   try {
-    const state = sequencer.create()
+    const state = sequencer.create(1)
     const result = sequencer.insert(state, 0, ['worker-alpha', 'worker-beta'])
     self.postMessage({
       accepted: result !== false,

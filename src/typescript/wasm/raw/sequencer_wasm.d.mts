@@ -31,8 +31,11 @@ interface WasmModule {
   _write_projection_footage_spans_to_buffer(_0: number, _1: number, _2: number): number;
   _update_projection(_0: number, _1: number, _2: number, _3: number, _4: number): number;
   _ingest_projection(_0: number, _1: number, _2: number): number;
+  _replace_projection(_0: number, _1: number, _2: number, _3: number): number;
   _snapshot_frontiers(_0: number): number;
   _get_frontier_buffer_pointer(): number;
+  _get_cached_acknowledgement_pointer(_0: number): number;
+  _get_cached_acknowledgement_word_count(_0: number): number;
   _get_frontier_buffer_word_count(): number;
   _prepare_frontier_buffer(_0: number): number;
   _get_footage_span_buffer_pointer(): number;

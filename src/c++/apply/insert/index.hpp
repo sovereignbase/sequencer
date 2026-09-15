@@ -27,11 +27,11 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
       auto source = containing_strip_index;
       auto start = offset;
       auto unchecked = remaining;
-        auto expected = projector.offset_length_of[incoming_strip_index];
+      auto expected = projector.offset_length_of[incoming_strip_index];
       while (unchecked != 0) {
         if (source == u32_max || projector.left_strip_index_of[source] == source ||
             projector.strip_type_of[source] == 2 ||
-            projector.fragment_offset_of[source] + start != expected)
+            projector.get_fragment_offset(source) + start != expected)
           return {0, 0};
         const auto length = std::min(unchecked, projector.fragment_length_of[source] - start);
         unchecked -= length;
@@ -50,6 +50,9 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
         start = 0;
         continue;
       }
+      const auto source_position = find_projection_frame_index_of(
+          projector, source, 0, 0);
+      const auto masked_position = source_position + start;
       const auto previous_count = projector.materialized_strip_count;
       if (start != 0 || !projector.is_fragment(source))
         source = split_strip(projector, source, start);
@@ -57,12 +60,12 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
         static_cast<void>(split_strip(projector, source, length));
       const auto visible = projector.get_projected_strip_length(source);
       const auto footage = projector.footage_frame_index_of[source];
-      projector.masked_of[source] = 1;
       projector.projection_frame_count -= visible;
       const auto frame_diff = -static_cast<std::int32_t>(visible);
       const auto strip_diff = static_cast<std::int32_t>(
           projector.materialized_strip_count - previous_count);
-      const auto position = find_projection_frame_index_of(projector, source, frame_diff, strip_diff);
+      const auto position = find_projection_frame_index_of(
+          projector, source, frame_diff, strip_diff, masked_position);
       if (visible != 0)
         visit_mask(position, footage, visible);
       projector.footage_frame_index_of[source] = u32_max;

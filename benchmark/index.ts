@@ -10,7 +10,7 @@ const defaultCheckpoints = [1, 10, 100, 1_000, 10_000, 100_000]
 
 const usage = [
   'Sequencer TypeScript API lifecycle benchmark',
-  '',g
+  '',
   'Usage:',
   '  npm run bench -- [options]',
   '',

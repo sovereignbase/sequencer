@@ -4,6 +4,18 @@
 
 namespace sequencer {
 
+inline std::uint32_t *cached_acknowledgement_pointer(
+    const std::uint32_t projection_id) noexcept {
+  auto &cache = projectors[projection_id]->acknowledgement_cache;
+  return cache.empty() ? nullptr : cache.data();
+}
+
+inline std::uint32_t cached_acknowledgement_word_count(
+    const std::uint32_t projection_id) noexcept {
+  return static_cast<std::uint32_t>(
+      projectors[projection_id]->acknowledgement_cache.size());
+}
+
 /** Encodes snapshot frontiers as `[wordCount, ...words]` records. */
 inline std::uint32_t snapshot_frontiers(
     const std::uint32_t projection_id) noexcept {

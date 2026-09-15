@@ -27,8 +27,11 @@ export type Delta<T> = [
 /** `[actorId, maskSessionId, frontier, ...]`. */
 export type Acknowledgement = Uint32List
 
-/** One atomic replication packet. `ingest` always consumes this pair. */
-export type Mutation<T> = [acknowledgement: Acknowledgement, delta: Delta<T>]
+/** One atomic replication packet with one cached ACK and one Delta batch. */
+export type Mutation<T> = [
+  acknowledgement: Acknowledgement,
+  deltas: Array<Delta<T>>,
+]
 
 /** Trusted persisted state: actor frontiers and dependency-ordered Deltas. */
 export type Snapshot<T> = [

@@ -9,6 +9,17 @@ find_projection_frame_index_of(Projector &projector,
                                const std::int32_t frame_count_diff,
                                const std::int32_t strip_count_diff,
                                const std::uint32_t local_position = u32_max) noexcept {
+  const auto fallback = [&]() noexcept {
+    projector.clear_jumps();
+    std::uint32_t position = 0;
+    for (auto strip = projector.head_strip_index; strip != u32_max;
+         strip = projector.right_strip_index_of[strip]) {
+      if (strip == strip_index)
+        return position;
+      position += projector.get_projected_strip_length(strip);
+    }
+    return u32_max;
+  };
   // CACHE
   const std::uint32_t projection_frame_count = projector.projection_frame_count;
 
@@ -36,7 +47,10 @@ find_projection_frame_index_of(Projector &projector,
   bool left_jump_found = jump_anchor || left_cursor == projector.head_strip_index;
   bool right_jump_found = jump_anchor || right_cursor == projector.tail_strip_index;
 
+  std::uint32_t searched = 0;
   while (!left_jump_found || !right_jump_found) {
+    if (++searched > projector.materialized_strip_count + 1)
+      return fallback();
     if (!left_jump_found) {
       left_cursor = projector.left_strip_index_of[left_cursor];
       left_distance += projector.get_projected_strip_length(left_cursor);
@@ -145,7 +159,10 @@ find_projection_frame_index_of(Projector &projector,
     return known_position;
 
   // RUN
+  searched = 0;
   while (true) {
+    if (++searched > projector.materialized_strip_count + 1)
+      return fallback();
     // CHECK IF LEFT IS AT HEAD
     if (left_cursor == projector.head_strip_index)
       return left_distance;

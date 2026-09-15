@@ -15,7 +15,6 @@ class FrontierTable {
   std::unordered_map<std::uint32_t,
                      std::unordered_map<std::uint32_t, std::uint32_t>> pending;
   std::unordered_map<std::uint32_t, std::uint32_t> mask_frontiers;
-  std::unordered_map<std::uint32_t, std::uint32_t> compacted_frontiers;
 
 public:
   void observe_actor(const std::uint32_t actor_id) {
@@ -84,10 +83,6 @@ public:
       if (frontiers.size() != actors.size() || frontiers.empty())
         continue;
       const auto expected = frontiers.begin()->second;
-      const auto compacted = compacted_frontiers.find(session_id);
-      if (compacted != compacted_frontiers.end() &&
-          expected <= compacted->second)
-        continue;
       bool agreed = true;
       for (const auto &[actor, frontier] : frontiers)
         agreed = agreed && frontier == expected;
@@ -95,15 +90,6 @@ public:
         result.insert(session_id);
     }
     return result;
-  }
-
-  void mark_compacted(
-      const std::unordered_set<std::uint32_t> &compacted) {
-    for (const auto session_id : compacted) {
-      const auto session = sessions.find(session_id);
-      if (session != sessions.end() && !session->second.empty())
-        compacted_frontiers[session_id] = session->second.begin()->second;
-    }
   }
 
   void free_compacted_sessions(
@@ -116,7 +102,6 @@ public:
     sessions.erase(session_id);
     pending.erase(session_id);
     mask_frontiers.erase(session_id);
-    compacted_frontiers.erase(session_id);
   }
 
   [[nodiscard]] std::uint32_t get_safe_session_id() {

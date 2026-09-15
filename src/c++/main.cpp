@@ -3,6 +3,7 @@
 #include "./algorithms/snapshot.hpp"
 #include "./algorithms/read.hpp"
 #include "./algorithms/update.hpp"
+#include "./algorithms/replace.hpp"
 #include "./algorithms/ingest.hpp"
 #include "./algorithms/frontier.hpp"
 #include "./algorithms/garbage_collect.hpp"
@@ -86,8 +87,6 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t update_projection(
   const auto position = sequencer::update_projection(
       projection_id, operation_index, operation_type, operation_length,
       footage_frame_index);
-  if (position != u32_max)
-    sequencer::complete_mutation(projection_id);
   return position;
 }
 
@@ -99,6 +98,15 @@ ingest_projection(const std::uint32_t projection_id,
                                       footage_length);
 }
 
+EMSCRIPTEN_KEEPALIVE std::uint32_t replace_projection(
+    const std::uint32_t projection_id, const std::uint32_t operation_index,
+    const std::uint32_t operation_length,
+    const std::uint32_t footage_frame_index) noexcept {
+  return sequencer::replace_projection(projection_id, operation_index,
+                                       operation_length,
+                                       footage_frame_index);
+}
+
 EMSCRIPTEN_KEEPALIVE std::uint32_t
 snapshot_frontiers(const std::uint32_t projection_id) noexcept {
   return sequencer::snapshot_frontiers(projection_id);
@@ -107,6 +115,18 @@ snapshot_frontiers(const std::uint32_t projection_id) noexcept {
 EMSCRIPTEN_KEEPALIVE std::uint32_t *
 get_frontier_buffer_pointer() noexcept {
   return sequencer::get_frontier_buffer_pointer();
+}
+
+EMSCRIPTEN_KEEPALIVE std::uint32_t *
+get_cached_acknowledgement_pointer(
+    const std::uint32_t projection_id) noexcept {
+  return sequencer::cached_acknowledgement_pointer(projection_id);
+}
+
+EMSCRIPTEN_KEEPALIVE std::uint32_t
+get_cached_acknowledgement_word_count(
+    const std::uint32_t projection_id) noexcept {
+  return sequencer::cached_acknowledgement_word_count(projection_id);
 }
 
 EMSCRIPTEN_KEEPALIVE std::uint32_t get_frontier_buffer_word_count() noexcept {

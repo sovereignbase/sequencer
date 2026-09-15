@@ -50,7 +50,6 @@ inline void unlink_strip(Projector &projector,
   projector.right_strip_index_of[strip] = strip;
   projector.footage_frame_index_of[strip] = u32_max;
   projector.strip_type_of[strip] = 255;
-  projector.masked_of[strip] = 0;
   --projector.materialized_strip_count;
 }
 
@@ -88,7 +87,7 @@ inline void garbage_collect_projector(
            fragment = projector.larger_split_strip_index_of[fragment])
         fully_deleted = fully_deleted &&
             (projector.fragment_length_of[fragment] == 0 ||
-             projector.masked_of[fragment] != 0);
+             projector.footage_frame_index_of[fragment] == u32_max);
       if (!fully_deleted)
         continue;
       projector.containment_table.erase(projector.insert_clock_of[origin]);
@@ -135,16 +134,7 @@ inline void finalize_projection(const std::uint32_t projection_id) noexcept {
       projector.frontier_table.free_compacted_session(
           projector.insert_clock_of[strip].actor);
   projector.mask_session = projector.frontier_table.get_safe_session_id();
-}
-
-inline std::uint32_t complete_mutation(
-    const std::uint32_t projection_id) noexcept {
-  auto &projector = *projectors[projection_id];
-  frontier_buffer.clear();
-  projector.frontier_table.acknowledge(
-      projector.actor_id,
-      [](const auto word) { frontier_buffer.push(word); });
-  return frontier_buffer.size();
+  projector.refresh_acknowledgement();
 }
 
 } // namespace sequencer

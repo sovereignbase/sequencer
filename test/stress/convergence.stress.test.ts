@@ -17,7 +17,6 @@ const scenario_arbitrary = fc.record({
       kind: fc.constantFrom('insert', 'replace', 'remove'),
       index_selector: fc.nat(),
       frame_count: fc.integer({ min: 1, max: 4 }),
-      hard: fc.boolean(),
     }),
     { minLength: 6, maxLength: 30 }
   ),

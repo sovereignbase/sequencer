@@ -1,40 +1,26 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
+import {
+  is_acknowledgement,
+  is_delta,
+} from '../../src/typescript/helpers/index.js'
 
-describe('TypeScript boundaries', () => {
-  it('validates flat Delta tuple shapes', async () => {
-    const { is_delta } = await import('../../src/typescript/helpers/index.js')
-    const meta = [1, 1, 1, 2, 0, 0, 0, 0, 0xffff_ffff, 0xffff_ffff, 1, 0]
-
+describe('transfer validation', () => {
+  it('accepts only the current eight-word Delta shape', () => {
+    const insertion = [1, 0, 1, 0, 0, 0, 7, 2, ['a']]
+    const mask = [2, 0, 1, 0, 7, 2, 8, 2]
+    expect(is_delta(insertion)).toBe(true)
+    expect(is_delta(mask)).toBe(true)
     expect(is_delta(null)).toBe(false)
-    expect(is_delta([[meta, ['a']]])).toBe(false)
-    expect(is_delta([meta])).toBe(true)
-    expect(is_delta([[-1], []])).toBe(false)
-    expect(is_delta([[0x1_0000_0000], []])).toBe(false)
-    expect(is_delta([meta, ['a']])).toBe(true)
-    expect(is_delta([[2, ...meta.slice(1)], []])).toBe(true)
-    expect(is_delta([[], []])).toBe(true)
+    expect(is_delta([1, 0, 1, 0, 0, 0, 7, 2])).toBe(false)
+    expect(is_delta([2, 0, 1, 0, 7, 2, 8, 2, []])).toBe(false)
+    expect(is_delta([1, 0, 1, 0, 0, 0, -1, 2, ['a']])).toBe(false)
   })
 
-  it('releases the native sequence through its finalizer', async () => {
-    vi.resetModules()
-    let cleanup: ((held_value: number) => void) | undefined
-    vi.stubGlobal(
-      'FinalizationRegistry',
-      class {
-        constructor(callback: (held_value: number) => void) {
-          cleanup = callback
-        }
-
-        register(): void {}
-      }
-    )
-
-    const { create } =
-      await import('../../src/typescript/algorithms/create/index.js')
-    const state = create()
-
-    expect(cleanup).toBeTypeOf('function')
-    cleanup?.(state[0])
-    vi.unstubAllGlobals()
+  it('accepts odd-length unsigned acknowledgement words', () => {
+    expect(is_acknowledgement([7])).toBe(true)
+    expect(is_acknowledgement(new Uint32Array([7, 8, 9]))).toBe(true)
+    expect(is_acknowledgement([])).toBe(false)
+    expect(is_acknowledgement([7, 8])).toBe(false)
+    expect(is_acknowledgement([7, -1, 9])).toBe(false)
   })
 })

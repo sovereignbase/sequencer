@@ -22,27 +22,23 @@ test('converges after opposite Delta staging orders in a browser', async ({
 
   const projections = await page.evaluate(async () => {
     const api = (window as unknown as SequencerWindow).sequencer
-    const left_path = '/dist/index.js?actor=left'
-    const right_path = '/dist/index.js?actor=right'
-    const left_api: SequencerApi = await import(left_path)
-    const right_api: SequencerApi = await import(right_path)
-    const base = api.create<string>()
+    const base = api.create<string>(1)
     void api.insert(base, 0, ['base'])
     const retained = api.snapshot(base)
-    const left = left_api.create<string>(retained)
-    const right = right_api.create<string>(retained)
-    const left_result = left_api.insert(left, 1, ['left'])
-    const right_result = right_api.insert(right, 1, ['right'])
+    const left = api.create<string>(2, retained)
+    const right = api.create<string>(3, retained)
+    const left_result = api.insert(left, 1, ['left'])
+    const right_result = api.insert(right, 1, ['right'])
 
     if (left_result === false || right_result === false)
       return { forward: [], reverse: ['update rejected'] }
 
-    const forward = api.create<string>(retained)
-    const reverse = api.create<string>(retained)
-    api.merge(forward, left_result)
-    api.merge(forward, right_result)
-    api.merge(reverse, right_result)
-    api.merge(reverse, left_result)
+    const forward = api.create<string>(4, retained)
+    const reverse = api.create<string>(5, retained)
+    api.ingest(forward, left_result)
+    api.ingest(forward, right_result)
+    api.ingest(reverse, right_result)
+    api.ingest(reverse, left_result)
 
     return { forward: api.values(forward), reverse: api.values(reverse) }
   })

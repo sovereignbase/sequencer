@@ -25,8 +25,8 @@ subtree_end(const Projector &projector,
             projector.larger_split_strip_index_of[ancestor_strip_index] !=
                next_strip_index) &&
            (projector.insert_clock_of[ancestor_strip_index] != dependency ||
-            dependency_offset < projector.fragment_offset_of[ancestor_strip_index] ||
-            dependency_offset > projector.fragment_offset_of[ancestor_strip_index] +
+            dependency_offset < projector.get_fragment_offset(ancestor_strip_index) ||
+            dependency_offset > projector.get_fragment_offset(ancestor_strip_index) +
                                     projector.fragment_length_of[ancestor_strip_index])) {
       if (ancestors.empty())
         return last_strip_index;

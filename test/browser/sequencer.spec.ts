@@ -23,7 +23,7 @@ test('executes the public sequence API in a browser', async ({ page }) => {
   // Exercise one complete local update through the browser WebAssembly module.
   const observation = await page.evaluate(() => {
     const api = (window as unknown as SequencerWindow).sequencer
-    const state = api.create<string>()
+    const state = api.create<string>(1)
     const result = api.insert(state, 0, ['alpha', 'beta'])
 
     return {

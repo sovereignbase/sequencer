@@ -32,15 +32,12 @@ split_strip(Projector &projector, const std::uint32_t strip_index,
   const std::uint32_t source_length = projector.fragment_length_of[strip_index];
 
   projector.strip_type_of[suffix_strip_index] = projector.strip_type_of[strip_index];
-  projector.masked_of[suffix_strip_index] = projector.masked_of[strip_index];
   projector.fragment_length_of[suffix_strip_index] = source_length - frame_offset;
   projector.initial_length_of[suffix_strip_index] = 0;
   projector.dependency_prefix_of[suffix_strip_index] =
-      projector.dependency_prefix_of[strip_index];
+      projector.dependency_prefix_of[strip_index] + frame_offset;
   projector.offset_length_of[suffix_strip_index] =
-      projector.offset_length_of[strip_index];
-  projector.fragment_offset_of[suffix_strip_index] =
-      projector.fragment_offset_of[strip_index] + frame_offset;
+      projector.offset_length_of[strip_index] + frame_offset;
 
   projector.smaller_competitor_strip_index_of[suffix_strip_index] = u32_max;
   projector.larger_split_strip_index_of[suffix_strip_index] =

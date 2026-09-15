@@ -13,7 +13,8 @@ namespace sequencer {
 inline std::uint32_t update_projection(
     const std::uint32_t projection_id, const std::uint32_t operation_index,
     const std::uint8_t operation_type, const std::uint32_t operation_length,
-    const std::uint32_t footage_frame_index = u32_max) noexcept {
+    const std::uint32_t footage_frame_index = u32_max,
+    const bool append_delta = false) noexcept {
   auto &projector = *projectors[projection_id];
   if ((operation_type != 1 && operation_type != 2) || operation_length == 0 ||
       operation_index > projector.projection_frame_count ||
@@ -31,7 +32,7 @@ inline std::uint32_t update_projection(
     find_strip_index_of(projector, lookup_index);
     containing = projector.gate_strip_index;
     physical_offset = operation_index - projector.projection_frame_index;
-    logical_offset = projector.fragment_offset_of[containing] + physical_offset;
+    logical_offset = projector.get_fragment_offset(containing) + physical_offset;
     anchor = projector.insert_clock_of[containing];
   }
 
@@ -54,11 +55,15 @@ inline std::uint32_t update_projection(
       ? operation_index
       : find_projection_frame_index_of(projector, incoming, frame_diff,
                                        strip_diff, local_position);
-  projector.gate_strip_index = incoming;
-  projector.projection_frame_index = position;
+  if (operation_type == 2)
+    projector.anchor_gate_after_mask(incoming, position);
+  else {
+    projector.gate_strip_index = incoming;
+    projector.projection_frame_index = position;
+  }
 
   const auto inserted = projector.insert_clock_of[incoming];
-  projection_buffer.write_strip({
+  const std::array<std::uint32_t, 8> delta{
       projector.strip_type_of[incoming],
       projector.dependency_prefix_of[incoming],
       projector.initial_length_of[incoming],
@@ -67,7 +72,11 @@ inline std::uint32_t update_projection(
       anchor.time,
       inserted.actor,
       inserted.time,
-  });
+  };
+  if (append_delta)
+    projection_buffer.append_strip(delta);
+  else
+    projection_buffer.write_strip(delta);
   if (operation_type == 2)
     footage_span_buffer.write_span(operation_index, masked_footage,
                                    issued_length, 1);

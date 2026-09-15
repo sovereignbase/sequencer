@@ -37,7 +37,7 @@ inline void snapshot_projection(const std::uint32_t projection_id) noexcept {
           footage_span_buffer.write_span(
               delta_index, projector.footage_frame_index_of[fragment],
               projector.fragment_length_of[fragment],
-              projector.fragment_offset_of[fragment]);
+              projector.get_fragment_offset(fragment));
     }
     ++delta_index;
   }

@@ -30,13 +30,13 @@ randomIngest
 
 All deletes are hard. `insert`, `remove`, and `replace` return complete
 acknowledgement-plus-Delta Mutation packets. Those packets are ingested by the
-peer immediately outside the local timed region, so acknowledgement and native
-garbage collection remain part of the normal runtime path.
+peer immediately outside the local timed region. Native physical compaction is
+measured only by `create(snapshot)`.
 
 For `randomIngest`, the peer performs an equal-length replacement outside the
-timed region. The measured Replica then ingests its Mask and insert Mutations
-one at a time. Each atomic `ingest` call is one sample. The final scale-down
-step has no `randomIngest` sample because no visible Strip remains to replace.
+timed region. The measured Replica then ingests its single ACK plus native
+Mask-and-insert Delta batch in one call. The final scale-down step has no
+`randomIngest` sample because no visible Strip remains to replace.
 
 ## Checkpoints
 

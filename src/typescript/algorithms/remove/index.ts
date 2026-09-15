@@ -9,7 +9,7 @@ import {
   no_projection_frame_index,
   update_sequence,
   read_acknowledgement,
-  read_delta,
+  read_deltas,
   read_footage_spans,
   clear_footage_spans,
 } from '../../wasm/index.js'
@@ -38,10 +38,10 @@ export function remove<T>(
   state: Replica<T>,
   start_index = 0,
   end_index?: number
-): Mutation<T> | Array<Mutation<T>> | false {
+): Mutation<T> | false {
   const deletion_end_index = end_index ?? get_projection_frame_count(state[0])
 
-  const mutations: Array<Mutation<T>> = []
+  const deltas: Mutation<T>[1] = []
   let remaining_frame_count = deletion_end_index - start_index
 
   while (remaining_frame_count > 0) {
@@ -55,10 +55,9 @@ export function remove<T>(
       ) >>> 0
     if (position === no_projection_frame_index) break
 
-    const mask = read_delta<T>()
-    const acknowledgement = read_acknowledgement()
+    const mask = read_deltas<T>()[0]
     const mask_frame_count = mask[2]
-    void mutations.push([acknowledgement, mask])
+    void deltas.push(mask)
 
     const footage_frame_index = read_footage_spans(1)[1]
     void state[1].fill(
@@ -70,9 +69,5 @@ export function remove<T>(
     remaining_frame_count -= mask_frame_count
   }
 
-  return mutations.length === 0
-    ? false
-    : mutations.length === 1
-      ? mutations[0]
-      : mutations
+  return deltas.length === 0 ? false : [read_acknowledgement(state[0]), deltas]
 }

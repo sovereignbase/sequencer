@@ -4,10 +4,11 @@ import type { Acknowledgement, Delta } from '../types/type.js'
 export const wasm: MainModule = create_module()
 export const no_projection_frame_index = 0xffff_ffff
 
-function write_delta(delta: Delta<unknown>): void {
-  const start = wasm._prepare_projection_buffer(1) >>> 2
-  for (let index = 0; index < 8; ++index)
-    wasm.HEAPU32[start + index] = delta[index] as number
+function write_deltas(deltas: Array<Delta<unknown>>): void {
+  const start = wasm._prepare_projection_buffer(deltas.length) >>> 2
+  for (let delta = 0; delta < deltas.length; ++delta)
+    for (let word = 0; word < 8; ++word)
+      wasm.HEAPU32[start + delta * 8 + word] = deltas[delta][word] as number
 }
 
 function write_acknowledgement(acknowledgement: Acknowledgement): void {
@@ -15,31 +16,33 @@ function write_acknowledgement(acknowledgement: Acknowledgement): void {
   wasm.HEAPU32.set(acknowledgement, start)
 }
 
-export function read_delta<T>(): Delta<T> {
+export function read_deltas<T>(): Array<Delta<T>> {
+  const wordCount = wasm._get_projection_buffer_word_count() >>> 0
   const start = wasm._get_projection_buffer_pointer() >>> 2
   const words = wasm.HEAPU32
-  const delta = [
-    words[start],
-    words[start + 1],
-    words[start + 2],
-    words[start + 3],
-    words[start + 4],
-    words[start + 5],
-    words[start + 6],
-    words[start + 7],
-  ] as Delta<T>
+  const deltas = new Array<Delta<T>>(wordCount / 8)
+  for (let delta = 0; delta < deltas.length; ++delta) {
+    const offset = start + delta * 8
+    deltas[delta] = [
+      words[offset],
+      words[offset + 1],
+      words[offset + 2],
+      words[offset + 3],
+      words[offset + 4],
+      words[offset + 5],
+      words[offset + 6],
+      words[offset + 7],
+    ] as Delta<T>
+  }
   wasm._clear_projection_buffer()
-  return delta
+  return deltas
 }
 
-export function read_acknowledgement(): Acknowledgement {
-  const wordCount = wasm._get_frontier_buffer_word_count() >>> 0
-  const start = wasm._get_frontier_buffer_pointer() >>> 2
-  const acknowledgement = Array.from(
-    wasm.HEAPU32.subarray(start, start + wordCount)
-  )
-  wasm._clear_frontier_buffer()
-  return acknowledgement
+export function read_acknowledgement(sequenceId: number): Acknowledgement {
+  const wordCount =
+    wasm._get_cached_acknowledgement_word_count(sequenceId) >>> 0
+  const start = wasm._get_cached_acknowledgement_pointer(sequenceId) >>> 2
+  return Array.from(wasm.HEAPU32.subarray(start, start + wordCount))
 }
 
 export function create_sequence<T>(
@@ -119,17 +122,29 @@ export function update_sequence(
   )
 }
 
+export function replace_sequence(
+  sequenceId: number,
+  index: number,
+  length: number,
+  footageIndex: number
+): number {
+  return wasm._replace_projection(sequenceId, index, length, footageIndex) >>> 0
+}
+
 export function ingest_sequence<T>(
   sequenceId: number,
   acknowledgement: Acknowledgement,
-  delta: Delta<T>,
-  footageIndex: number
+  deltas: Array<Delta<T>>,
+  footageIndex: number,
+  footageLength: number
 ): Uint32Array | false {
   write_acknowledgement(acknowledgement)
-  write_delta(delta)
-  wasm._ingest_projection(sequenceId, footageIndex, delta[8]?.length ?? 0)
+  write_deltas(deltas)
+  const accepted =
+    wasm._ingest_projection(sequenceId, footageIndex, footageLength) !== 0
+  if (!accepted) return false
   const count = wasm._get_footage_span_buffer_count() >>> 0
-  return count === 0 ? false : read_footage_spans(count)
+  return read_footage_spans(count)
 }
 
 export function snapshot_sequence(sequenceId: number): void {
@@ -137,17 +152,7 @@ export function snapshot_sequence(sequenceId: number): void {
 }
 
 export function read_snapshot_deltas<T>(): Array<Delta<T>> {
-  const wordCount = wasm._get_projection_buffer_word_count() >>> 0
-  const start = wasm._get_projection_buffer_pointer() >>> 2
-  const result = new Array<Delta<T>>(wordCount / 8)
-  for (let strip = 0; strip < result.length; ++strip) {
-    const offset = start + strip * 8
-    result[strip] = Array.from(
-      wasm.HEAPU32.subarray(offset, offset + 8)
-    ) as Delta<T>
-  }
-  wasm._clear_projection_buffer()
-  return result
+  return read_deltas<T>()
 }
 
 export function get_snapshot_frontiers(sequenceId: number): number[][] {

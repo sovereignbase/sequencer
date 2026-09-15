@@ -1,10 +1,6 @@
-/**
- * Browser proof that opposite Delta delivery orders converge through the same
- * TypeScript and WebAssembly surface exercised by the Vitest convergence suite.
- */
 import { expect, test } from '@playwright/test'
 
-type SequencerApi = typeof import('../../src/typescript/index.js')
+type SequencerApi = typeof import('../../../src/typescript/index.js')
 
 type SequencerWindow = Window & {
   sequencer: SequencerApi
@@ -44,7 +40,5 @@ test('converges after opposite Delta staging orders in a browser', async ({
   })
 
   expect(projections.forward).toEqual(projections.reverse)
-  expect(projections.forward).toHaveLength(3)
-  expect(projections.forward[0]).toBe('base')
-  expect(projections.forward.slice(1).sort()).toEqual(['left', 'right'])
+  expect(projections.forward).toEqual(['base', 'right', 'left'])
 })

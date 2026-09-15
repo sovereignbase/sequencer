@@ -18,6 +18,8 @@ int main() {
     }
     const auto projection = buffer.read_buffer();
     Projector projector;
+    projector.reserve_strips(materialized_count);
+    std::fill_n(projector.masked_of.begin(), materialized_count, 1);
     initialize_projector(projector, projection, 5, 7, 6);
     assert(projector.materialized_strip_count == materialized_count);
     assert(projector.strip_count == projection.size());
@@ -37,6 +39,7 @@ int main() {
       const auto length = strip_index + 1;
       const auto point = projector.strip_start_of[strip_index];
       assert(projector.strip_type_of[strip_index] == type);
+      assert(projector.masked_of[strip_index] == 0);
       assert((projector.containment_table.get(point) ==
               std::pair{strip_index, 0u}));
       assert((projector.containment_table.get(
@@ -106,11 +109,11 @@ int main() {
   ProjectionBuffer anchored(4);
   anchored.write_projection(0, {1, 3, 5, 6, 0, 0, 0, 0, u32_max, u32_max, 3, 0});
   anchored.write_projection(1, {1, 0, 5, 6, 4, 5, 6, 3, u32_max, u32_max, 0, 0});
-  anchored.write_projection(2, {6, 2, 5, 6, 5, 90, 91, 0, u32_max, u32_max, 2, 0});
+  anchored.write_projection(2, {1, 2, 5, 6, 5, 90, 91, 0, u32_max, u32_max, 2, 0});
   anchored.write_projection(3, {2, 3, 7, 6, 0, 90, 91, 1, u32_max, u32_max, 0, 0});
   Projector reserved;
   initialize_projector(reserved, anchored.read_buffer(), 5, 7, 6);
-  assert(reserved.projection_frame_count == 3);
+  assert(reserved.projection_frame_count == 5);
   assert(reserved.operation_count == 8);
   assert(reserved.mask_operation_count == 4);
   assert((reserved.containment_table.get({5, 6, 0}) == std::pair{0u, 0u}));

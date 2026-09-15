@@ -6,28 +6,19 @@ export const operation_names = [
   'randomFind',
   'randomRemove',
   'randomReplace',
-  'randomMerge',
   'randomInsert',
+  'randomIngest',
 ] as const
 
 export const management_names = [
   'values',
-  'recover',
-  'acknowledge',
-  'compact',
   'snapshot',
   'destroy',
-  'initialize',
+  'create',
 ] as const
 
 export type Direction = 'up' | 'down'
 export type ReplicaName = 'A'
-export type RemovalPolicy = 'soft' | 'hard'
-export type CompactionPolicy = 'soft' | 'hard'
-export type ReplicaPolicy = {
-  remove: RemovalPolicy
-  compact: CompactionPolicy
-}
 export type OperationName = (typeof operation_names)[number]
 export type ManagementName = (typeof management_names)[number]
 export type MetricScope = 'scaleUp' | 'scaleDown' | 'fullLifecycle'
@@ -39,7 +30,6 @@ export type BenchmarkConfig = {
   minimumStripFrameLength: number
   maximumStripFrameLength: number
   warmupCycles: number
-  replicaPolicies: Record<ReplicaName, ReplicaPolicy>
   baseSeed: string
   outputPath: string | null
 }
@@ -63,7 +53,7 @@ export type StripStatistics = {
   averageStripLength: number | null
   minimumStripLength: number | null
   maximumStripLength: number | null
-  retainedStructuralStripCount: number
+  retainedDeltaCount: number
 }
 
 export type MemoryResult = {
@@ -71,7 +61,7 @@ export type MemoryResult = {
   bytesPerStrip: number | null
   bytesPerFrame: number | null
   measurement: 'estimated-native-words-plus-js-footage-slots'
-  nativeProjectionWordBytes: number
+  nativeSnapshotWordBytes: number
   javascriptFootageSlotBytes: number
   wasmLinearMemoryBytes: null
   wasmLinearMemoryReason: string
@@ -79,16 +69,12 @@ export type MemoryResult = {
 
 export type StorageResult = {
   serialization: 'node:v8.serialize'
-  beforeCompactBytes: number
-  afterCompactBytes: number
-  beforeCompactBytesPerStrip: number | null
-  afterCompactBytesPerStrip: number | null
-  beforeCompactBytesPerFrame: number | null
-  afterCompactBytesPerFrame: number | null
+  snapshotBytes: number
+  bytesPerStrip: number | null
+  bytesPerFrame: number | null
 }
 
 export type ReplicaCheckpoint = {
-  policy: ReplicaPolicy
   operations: OperationMetrics
   management: Record<ManagementName, ManagementResult>
   memory: MemoryResult
@@ -124,10 +110,8 @@ export type RatioAverage = {
 export type SpaceAverages = {
   memoryBytesPerFrame: RatioAverage
   memoryBytesPerStrip: RatioAverage
-  storageBytesPerFrameBeforeCompact: RatioAverage
-  storageBytesPerFrameAfterCompact: RatioAverage
-  storageBytesPerStripBeforeCompact: RatioAverage
-  storageBytesPerStripAfterCompact: RatioAverage
+  storageBytesPerFrame: RatioAverage
+  storageBytesPerStrip: RatioAverage
 }
 
 export type ReplicaRunResult = {
@@ -159,7 +143,7 @@ export type AggregateMetric = {
 }
 
 export type BenchmarkReport = {
-  schemaVersion: 1
+  schemaVersion: 2
   generatedAt: string
   environment: {
     node: string
@@ -173,7 +157,7 @@ export type BenchmarkReport = {
     implementation: 'TypeScript public API backed by the package WebAssembly runtime'
     timer: 'process.hrtime.bigint'
     stripCount: string
-    merge: string
+    ingest: string
     average: string
     memory: string
     storage: string

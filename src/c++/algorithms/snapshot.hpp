@@ -4,65 +4,43 @@
 
 namespace sequencer {
 
-inline void
-snapshot_projection(const std::uint32_t projection_id) noexcept {
-  const Projector &projector = *projectors[projection_id];
-  // Prepare pojection buffer
-  const auto count = projector.strip_count;
+/** Serializes retained origin operations; fragments remain a runtime detail. */
+inline void snapshot_projection(const std::uint32_t projection_id) noexcept {
+  const auto &projector = *projectors[projection_id];
+  std::uint32_t origin_count = 0;
+  for (std::uint32_t strip = 0; strip < projector.strip_count; ++strip)
+    if (!projector.is_fragment(strip) && projector.strip_type_of[strip] != 255)
+      ++origin_count;
+  projection_buffer.resize(origin_count);
 
-  std::vector<std::uint32_t> projection_indices(count);
-  std::uint32_t projection_strip_index = 0;
-
-  // Encode ordered strip indices
-  for (std::uint32_t strip_index = projector.head_strip_index;
-       strip_index != u32_max;
-       strip_index = projector.right_strip_index_of[strip_index])
-    projection_indices[strip_index] = projection_strip_index++;
-
-  projection_buffer.resize(projection_strip_index);
-  projection_strip_index = 0;
-  std::uint32_t projection_frame_index = 0;
-  for (std::uint32_t strip_index = projector.head_strip_index;
-       strip_index != u32_max;
-       strip_index = projector.right_strip_index_of[strip_index]) {
-    const auto &strip_start = projector.strip_start_of[strip_index];
-    const auto &previous_strip_end =
-        projector.previous_strip_end_of[strip_index];
-    const auto larger_split_strip =
-        projector.larger_split_strip_index_of[strip_index];
-    const auto smaller_competitor_strip =
-        projector.smaller_competitor_strip_index_of[strip_index];
-    projection_buffer.write_projection(
-        projection_strip_index++,
-        {
-            projector.strip_type_of[strip_index],
-            projector.initial_length_of[strip_index],
-            strip_start.crypto_random_bits,
-            strip_start.unix_lower_bits,
-            strip_start.counter_bits,
-            previous_strip_end.crypto_random_bits,
-            previous_strip_end.unix_lower_bits,
-            previous_strip_end.counter_bits,
-            larger_split_strip == u32_max
-                ? u32_max
-                : projection_indices[larger_split_strip],
-            smaller_competitor_strip == u32_max
-                ? u32_max
-                : projection_indices[smaller_competitor_strip],
-            projector.fragment_length_of[strip_index],
-            projector.dependency_prefix_of[strip_index],
-        });
-    const auto frame_count = projector.fragment_length_of[strip_index];
-    const bool masked = projector.strip_type_of[strip_index] == 2 ||
-                        projector.masked_of[strip_index] != 0;
-    if (frame_count != 0)
-      projector.for_each_footage_span(strip_index, [&](const auto footage, const auto length) {
-        footage_span_buffer.write_span(projection_frame_index, footage, length, masked);
-      });
-    if (!masked)
-      projection_frame_index += frame_count;
+  std::uint32_t delta_index = 0;
+  for (std::uint32_t strip = 0; strip < projector.strip_count; ++strip) {
+    if (projector.is_fragment(strip) || projector.strip_type_of[strip] == 255)
+      continue;
+    const auto anchor = projector.anchor_clock_of[strip];
+    const auto inserted = projector.insert_clock_of[strip];
+    projection_buffer.write_projection(delta_index, {
+        projector.strip_type_of[strip],
+        projector.dependency_prefix_of[strip],
+        projector.initial_length_of[strip],
+        projector.offset_length_of[strip],
+        anchor.actor,
+        anchor.time,
+        inserted.actor,
+        inserted.time,
+    });
+    if (projector.strip_type_of[strip] == 1) {
+      for (auto fragment = strip; fragment != u32_max;
+           fragment = projector.larger_split_strip_index_of[fragment])
+        if (projector.footage_frame_index_of[fragment] != u32_max &&
+            projector.fragment_length_of[fragment] != 0)
+          footage_span_buffer.write_span(
+              delta_index, projector.footage_frame_index_of[fragment],
+              projector.fragment_length_of[fragment],
+              projector.fragment_offset_of[fragment]);
+    }
+    ++delta_index;
   }
-
 }
 
-}
+} // namespace sequencer

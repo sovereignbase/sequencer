@@ -21,7 +21,7 @@ describe('Trusted snapshot initialization', () => {
   const projection = [
     ...[1, 1, 50, 60, 0, 99, 98, 0, absent, absent, 1, 0],
     ...[2, 2, 70, 80, 0, 0, 0, 0, absent, absent, 0, 0],
-    ...[6, 1, 90, 91, 0, 99, 98, 0, absent, absent, 1, 0],
+    ...[0, 1, 90, 91, 0, 99, 98, 0, absent, absent, 1, 0],
   ]
 
   beforeEach(() => {

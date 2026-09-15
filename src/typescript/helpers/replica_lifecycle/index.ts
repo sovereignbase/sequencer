@@ -10,6 +10,6 @@ export function unregister_replica<T>(state: Replica<T>): void {
 }
 
 /** Adds automatic wasm cleanup for a Replica. */
-export function register_replica<T>(state: Replica<T>) {
+export function register_replica<T>(state: Replica<T>): void {
   void finalization_registry.register(state, state[0], state)
 }

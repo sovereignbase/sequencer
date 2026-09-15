@@ -1,37 +1,24 @@
-/**
- * Replica creation from an optional trusted snapshot.
- *
- * @module
- */
-import {
-  initialize_sequence,
-  write_projection_to_buffer,
-} from '../../wasm/index.js'
-import type { Delta, Replica } from '../../types/type.js'
 import { register_replica } from '../../helpers/index.js'
+import type { Replica, Snapshot } from '../../types/type.js'
+import { create_sequence } from '../../wasm/index.js'
 
-/**
- * Reconstructs an independently maintained Replica without replaying history.
- *
- * Transfers the ordered materialized Strips in one
- * buffer copy. Native initialization restores structural links, lookup tables,
- * counters, and Footage positions, including retained soft-masked content.
- *
- * @typeParam T Consumer-owned value represented by one Frame.
- * @param data Optional trusted Delta; omitted data creates an empty Replica.
- * @returns A new Replica using the supplied Footage array and a native Projector.
- * @remarks Input must be a valid trusted snapshot. Strip contents and ordering
- * are not validated or resolved again. Footage is used directly without a copy.
- * No SequencePoints are issued.
- */
-export function create<T>(data?: unknown): Replica<T> {
-  const [projection, footage] = (data ?? []) as Delta<T>
-
-  if (projection !== undefined) void write_projection_to_buffer(projection)
-
-  const state: Replica<T> = [initialize_sequence(), footage ?? []]
-
-  void register_replica(state)
-
+/** Creates a Replica; native creation restores and compacts the snapshot. */
+export function create<T>(actorId: number, data?: unknown): Replica<T> {
+  const [frontiers, projection] = (data ?? [[], []]) as Snapshot<T>
+  let footageLength = 0
+  for (const delta of projection) if (delta[0] === 1) footageLength += delta[2]
+  const footage = new Array<T | undefined>(footageLength)
+  let footageIndex = 0
+  for (const delta of projection) {
+    if (delta[0] !== 1) continue
+    const source = delta[8]
+    for (let frame = 0; frame < delta[2]; ++frame)
+      footage[footageIndex++] = source?.[frame]
+  }
+  const state: Replica<T> = [
+    create_sequence(actorId, frontiers, projection, footageLength),
+    footage,
+  ]
+  register_replica(state)
   return state
 }

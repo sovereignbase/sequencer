@@ -1,17 +1,9 @@
 /**
  * @file
- * @brief Owns dense twelve-word Strips in caller-supplied projection order.
+ * @brief Owns dense eight-word Delta metadata rows.
  *
- * Each Strip occupies twelve consecutive unsigned 32-bit words:
- * 0 type (0 inverse/root Insert, 1 Insert, 2 Mask), 1 initial_length,
- * 2..4 this_strip_start, 5..7 previous_strip_end,
- * 8 larger_split_strip_index, 9 smaller_competitor_strip_index,
- * 10 fragment_length, 11 dependency_prefix.
- * Link targets are snapshot indices; u32_max means no target.
- * Each Sequence Point uses crypto_random_bits, unix_lower_bits, counter_bits.
- * Footage is supplied in snapshot order, including materialized Masks' retained
- * content. Mask instructions carry no Footage.
- * Indices are reconstructed during initialization.
+ * The layout is type, dependency prefix, initial length, anchor offset,
+ * anchor actor/time, and insert actor/time. Footage stays in JavaScript.
  */
 #pragma once
 
@@ -32,7 +24,7 @@
  */
 class ProjectionBuffer {
 private:
-  static constexpr std::size_t words_per_strip = 12;
+  static constexpr std::size_t words_per_strip = 8;
   static_assert(sizeof(std::array<std::uint32_t, words_per_strip>) ==
                 words_per_strip * sizeof(std::uint32_t));
 

@@ -1,5 +1,6 @@
 #include "../../src/c++/algorithms/lifecycle.hpp"
 #include "../../src/c++/algorithms/snapshot.hpp"
+#include "../../src/c++/algorithms/update.hpp"
 #include "../../src/c++/algorithms/read.hpp"
 #include "../../src/c++/algorithms/buffers.hpp"
 #include "../../src/c++/.auxiliary/split_strip/index.hpp"
@@ -84,53 +85,42 @@ int main() {
   assert(split_restored.footage_frame_index_of[1] == 0);
   sequencer::clear_projection(split_restored_id);
 
-  buffer.resize(5);
-  buffer.write_projection(0, {7, 2, 70, 80, 0, 0, 0, 0, u32_max, u32_max, 2, 0});
-  buffer.write_projection(1, {1, 3, 10, 20, 0, 0, 0, 0, 2, u32_max, 0, 0});
-  buffer.write_projection(2, {1, 0, u32_max, u32_max, u32_max, 10, 20, 0, u32_max, u32_max, 3, 0});
-  buffer.write_projection(3, {7, 2, 70, 80, 3, 0, 0, 0, u32_max, u32_max, 2, 0});
-  buffer.write_projection(4, {0, 1, 30, 40, 0, 0, 0, 0, u32_max, u32_max, 1, 0});
+  buffer.resize(1);
+  buffer.write_projection(0, {1, 6, 10, 20, 0, 0, 0, 0, u32_max, u32_max, 6, 0});
   const auto retained_id = sequencer::initialize_projection();
+  assert(sequencer::update_projection(retained_id, 1, 2, 2) == 1);
+  buffer.clear();
+  sequencer::footage_span_buffer.clear();
   auto &retained = *sequencer::projectors[retained_id];
-  const std::array<std::uint32_t, 5> footage_starts{8, 4, 4, 0, 11};
-  std::copy(footage_starts.begin(), footage_starts.end(), retained.footage_frame_index_of.begin());
-  const std::vector<char> source{'X', 'Y', 'p', 'q', 'a', 'b', 'c', 'r',
-                                 'H', 'I', '?', 'd'};
-  std::vector<char> original_view;
-  for (std::uint32_t frame = 0; frame < retained.projection_frame_count; ++frame)
-    original_view.push_back(source[sequencer::get_footage_frame_index(retained_id, frame)]);
-  assert((original_view == std::vector<char>{'a', 'b', 'c', 'd'}));
+  for (auto strip = retained.head_strip_index; strip != u32_max;
+       strip = retained.right_strip_index_of[strip]) {
+    assert(retained.strip_type_of[strip] <= 2);
+    if (retained.strip_type_of[strip] == 2)
+      continue;
+    const auto offset = retained.fragment_offset(strip);
+    retained.footage_frame_index_of[strip] = offset == 0 ? 7 : offset == 1 ? 3 : 0;
+    assert(retained.masked_of[strip] == (offset == 1));
+  }
+  const std::vector<char> source{'d', 'e', 'f', 'b', 'c', '?', '?', 'a'};
+  const std::vector<char> visible{'a', 'd', 'e', 'f'};
+  for (std::uint32_t frame = 0; frame < visible.size(); ++frame)
+    assert(source[sequencer::get_footage_frame_index(retained_id, frame)] == visible[frame]);
   sequencer::snapshot_projection(retained_id);
-  assert(sequencer::get_projection_buffer_word_count() == 60);
-  assert(sequencer::get_footage_span_buffer_count() == 4);
+  assert(sequencer::get_footage_span_buffer_count() == 3);
   const auto spans = sequencer::get_footage_span_buffer_pointer();
-  assert(spans[0] == 0 && spans[1] == 8 && spans[2] == 2 && spans[3] == 1);
-  assert(spans[4] == 0 && spans[5] == 4 && spans[6] == 3 && spans[7] == 0);
-  assert(spans[8] == 3 && spans[9] == 0 && spans[10] == 2 && spans[11] == 1);
-  assert(spans[12] == 3 && spans[13] == 11 && spans[14] == 1 && spans[15] == 0);
+  assert(spans[0] == 0 && spans[1] == 7 && spans[2] == 1 && spans[3] == 0);
+  assert(spans[4] == 1 && spans[5] == 3 && spans[6] == 2 && spans[7] == 1);
+  assert(spans[8] == 1 && spans[9] == 0 && spans[10] == 3 && spans[11] == 0);
   std::vector<char> packed;
-  for (std::uint32_t span = 0; span < 4; ++span) {
+  for (std::uint32_t span = 0; span < 3; ++span)
     for (std::uint32_t offset = 0; offset < spans[span * 4 + 2]; ++offset)
       packed.push_back(source[spans[span * 4 + 1] + offset]);
-  }
-  assert(packed.size() == 8);
+  assert((packed == std::vector<char>{'a', 'b', 'c', 'd', 'e', 'f'}));
   sequencer::clear_footage_span_buffer();
-  const auto retained_restored_id = sequencer::initialize_projection();
-  const auto &original_retained = *sequencer::projectors[retained_id];
-  const auto &retained_restored = *sequencer::projectors[retained_restored_id];
-  assert(retained_restored.projection_frame_count == original_view.size());
-  for (std::uint32_t frame = 0; frame < original_view.size(); ++frame)
-    assert(packed[sequencer::get_footage_frame_index(retained_restored_id, frame)] ==
-           original_view[frame]);
-  for (std::uint32_t strip = 0; strip < 5; ++strip) {
-    const auto point = retained_restored.strip_start_of[strip];
-    const auto original_strip = retained_restored.is_fragment(strip) ? 2u
-        : original_retained.containment_table.get(point).first;
-    assert(original_strip != u32_max);
-    for (std::uint32_t offset = 0; offset < retained_restored.fragment_length_of[strip]; ++offset)
-      assert(packed[retained_restored.footage_frame_index_of[strip] + offset] ==
-             source[original_retained.footage_frame_index_of[original_strip] + offset]);
-  }
+  const auto restored_retained_id = sequencer::initialize_projection();
+  assert(sequencer::get_projection_frame_count(restored_retained_id) == visible.size());
+  for (std::uint32_t frame = 0; frame < visible.size(); ++frame)
+    assert(packed[sequencer::get_footage_frame_index(restored_retained_id, frame)] == visible[frame]);
+  sequencer::clear_projection(restored_retained_id);
   sequencer::clear_projection(retained_id);
-  sequencer::clear_projection(retained_restored_id);
 }

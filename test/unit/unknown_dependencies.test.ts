@@ -39,16 +39,17 @@ describe('No retained dependency queue', () => {
     expect(values(target)).toEqual(values(author))
   })
 
-  it('does not retry an earlier row when its source arrives later in the same Delta', () => {
+  it('drops the whole Delta when its first dependency is unknown', () => {
     const state = create<string>()
     expect(
       merge(state, [
         [...child[0], ...parent[0]],
         ['X', 'a', 'b', 'c'],
       ])
-    ).toEqual({ 0: 'a', 1: 'b', 2: 'c' })
-    expect(state[1]).toEqual(['a', 'b', 'c'])
-    expect(snapshot(state)).toEqual(parent)
+    ).toBe(false)
+    expect(state[1]).toEqual([])
+    expect(snapshot(state)).toEqual([[], []])
+    expect(merge(state, parent)).not.toBe(false)
     expect(merge(state, child)).toEqual({ 3: 'X' })
     expect(merge(state, child)).toBe(false)
     expect(state[1]).toEqual(['a', 'b', 'c', 'X'])
@@ -80,7 +81,7 @@ describe('No retained dependency queue', () => {
     expect(saved[0][0]).toBeLessThan(2)
     expect(saved[0][10]).toBe(0)
     expect(saved[0][12]).toBe(2)
-    expect(saved[0][24]).toBeGreaterThanOrEqual(6)
+    expect(saved[0][24]).toBeLessThan(2)
     const state = create<string>()
     expect(merge(state, mask)).toBe(false)
     expect(acknowledge(state)).toBe(false)

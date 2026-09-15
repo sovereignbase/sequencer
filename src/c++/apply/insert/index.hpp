@@ -10,11 +10,12 @@
  * @brief Apply an instruction to source fragments, keeping its identity intact.
  * @pre The incoming Strip is staged and its dependency is resolved.
  */
+template <typename MaskVisitor>
 [[nodiscard]] inline std::pair<std::int32_t, std::int32_t>
 apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
              const std::uint32_t incoming_strip_index,
              const std::uint32_t offset,
-             std::uint32_t *const first_change = nullptr) noexcept {
+             const MaskVisitor &visit_mask) noexcept {
   if (projector.left_strip_index_of[incoming_strip_index] != incoming_strip_index)
     return {0, 0};
   if (projector.strip_type_of[incoming_strip_index] == 2) {
@@ -26,11 +27,11 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
       auto source = containing_strip_index;
       auto start = offset;
       auto unchecked = remaining;
-      auto expected = projector.dependency_prefix_of[incoming_strip_index];
+        auto expected = projector.offset_length_of[incoming_strip_index];
       while (unchecked != 0) {
         if (source == u32_max || projector.left_strip_index_of[source] == source ||
             projector.strip_type_of[source] == 2 ||
-            projector.fragment_offset(source) + start != expected)
+            projector.fragment_offset_of[source] + start != expected)
           return {0, 0};
         const auto length = std::min(unchecked, projector.fragment_length_of[source] - start);
         unchecked -= length;
@@ -55,14 +56,16 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
       if (length < projector.fragment_length_of[source])
         static_cast<void>(split_strip(projector, source, length));
       const auto visible = projector.get_projected_strip_length(source);
+      const auto footage = projector.footage_frame_index_of[source];
       projector.masked_of[source] = 1;
       projector.projection_frame_count -= visible;
       const auto frame_diff = -static_cast<std::int32_t>(visible);
       const auto strip_diff = static_cast<std::int32_t>(
           projector.materialized_strip_count - previous_count);
       const auto position = find_projection_frame_index_of(projector, source, frame_diff, strip_diff);
-      if (first_change != nullptr && visible != 0)
-        *first_change = std::min(*first_change, position);
+      if (visible != 0)
+        visit_mask(position, footage, visible);
+      projector.footage_frame_index_of[source] = u32_max;
       projector.gate_strip_index = source;
       projector.projection_frame_index = position;
       counts.first += frame_diff;
@@ -84,4 +87,15 @@ apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
   if ((projector.strip_type_of[incoming_strip_index] & 1) == 0)
     return insert_before(projector, containing_strip_index, incoming_strip_index, offset);
   return insert_after(projector, containing_strip_index, incoming_strip_index, offset);
+}
+
+/** @brief Apply a local instruction without producing remote removal spans. */
+[[nodiscard]] inline std::pair<std::int32_t, std::int32_t>
+apply_insert(Projector &projector, const std::uint32_t containing_strip_index,
+             const std::uint32_t incoming_strip_index,
+             const std::uint32_t offset) noexcept {
+  return apply_insert(projector, containing_strip_index, incoming_strip_index,
+                      offset,
+                      [](std::uint32_t, std::uint32_t,
+                         std::uint32_t) noexcept {});
 }

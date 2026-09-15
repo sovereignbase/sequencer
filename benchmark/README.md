@@ -1,267 +1,101 @@
-# Sequencer Dynamic Lifecycle Benchmark
+# Sequencer lifecycle benchmark
 
-## Purpose
-
-Benchmark one Sequencer policy workload through a full dynamic lifecycle. The
-workload contains two replicas editing the same document: one measured replica
-and one peer.
-
-Run the complete benchmark **3 times**.
-
-Replicas:
-
-| Replica pair | Remove | Compact |
-| ------------ | ------ | ------- |
-| A            | soft   | hard    |
-
-Both replicas use soft deletion and hard compaction.
-
-## Scale
-
-Each run:
+This benchmark drives one measured Replica and one continuously synchronized
+peer through a complete dynamic lifecycle:
 
 ```text
-0
-→ 1
-→ 10
-→ 100
-→ 1,000
-→ 10,000
-→ 100,000
-→ 10,000
-→ 1,000
-→ 100
-→ 10
-→ 1
-→ 0
+0 → 1 → 10 → 100 → 1,000 → 10,000 → 1,000 → 100 → 10 → 1 → 0
 ```
 
-Scale is visible Strip count.
+The maximum is configurable. Checkpoints are zero, the powers of ten at or
+below the maximum, and the exact maximum. Strip lengths default to 1–100
+Frames, and all random choices are deterministic from the run seed.
 
-Strip length:
+## Continuous workload
 
-```text
-1 ... 100 frames
-```
-
-All random workload is deterministic from the run seed.
-
-## Merge samples
-
-`randomMerge` measures the throughput of the measured replica integrating a
-newly issued Strip from its peer. It is not a convergence test.
-
-The measured replica's local insert, remove, and replace Deltas are merged into
-its peer outside timed regions, keeping both on the same document history. For
-`randomMerge`, the peer issues an equal-length replacement Delta containing a
-Mask, a new Strip, and its Footage. Only the measured replica's integration of
-that fresh Delta is timed.
-
-Peer issuance, target selection, and synchronization remain outside the timed
-region. No cross-workload convergence comparison is performed.
-
-## Continuous operations
-
-Scale-up:
+Every scale-up step grows the visible Strip count by exactly one and every
+scale-down step shrinks it by exactly one. The timed operations are:
 
 ```text
 tailInsert
 headInsert
-randomFind
-randomRemove
-randomReplace
-randomMerge
-randomInsert
-```
-
-Scale-down:
-
-```text
 headRemove
 tailRemove
 randomFind
 randomRemove
 randomReplace
-randomMerge
 randomInsert
+randomIngest
 ```
 
-One scale-up step grows visible Strip count by exactly one.
+All deletes are hard. `insert`, `remove`, and `replace` return complete
+acknowledgement-plus-Delta Mutation packets. Those packets are ingested by the
+peer immediately outside the local timed region, so acknowledgement and native
+garbage collection remain part of the normal runtime path.
 
-One scale-down step shrinks visible Strip count by exactly one.
-
-Remove operations use each replica's configured soft/hard policy.
-
-For every operation record:
-
-```text
-calls
-total duration
-average
-minimum
-maximum
-operations per second
-```
-
-Authoritative average:
-
-```text
-sum(duration) / calls
-```
-
-Checkpoint logging does not reset operation metrics.
+For `randomIngest`, the peer performs an equal-length replacement outside the
+timed region. The measured Replica then ingests its Mask and insert Mutations
+one at a time. Each atomic `ingest` call is one sample. The final scale-down
+step has no `randomIngest` sample because no visible Strip remains to replace.
 
 ## Checkpoints
 
-Checkpoints:
+At each checkpoint the benchmark validates the public Frame count and measures:
 
 ```text
-1
-10
-100
-1,000
-10,000
-100,000
-```
-
-and the same values in reverse during scale-down.
-
-At every checkpoint, for each replica, measure:
-
-```text
-Strip count
-frame count
-
-operation averages
-
 values
-recover
-acknowledge
-compact
 snapshot
 destroy
-initialize
-
-memory bytes
-memory / Strip
-memory / frame
-
-snapshot bytes before compact
-snapshot bytes after compact
-snapshot bytes / Strip
-snapshot bytes / frame
+create(snapshot)
 ```
 
-Checkpoint lifecycle:
+The old Replica is never reused. Both replicas are recreated from the same
+synchronized snapshot, with independent native and JavaScript runtime state.
+There is no separate recovery, acknowledgement, merge, or compact phase.
+Native collection happens during ordinary mutations and ingestion, and native
+`create` performs the safe restore-time compaction.
+
+The report includes visible Strip and Frame counts, retained snapshot Delta
+count, serialized snapshot size, an estimated retained-state size, and shared
+process RSS. The retained-state estimate is:
 
 ```text
-values
-recover
-→ acknowledge
-→ compact
-→ snapshot
-→ destroy
-→ discard old state
-→ initialize fresh Replica from snapshot
-→ continue
-```
-
-The old Replica must not be reused.
-
-The pre-compaction snapshot used for size measurement is created outside timed regions.
-
-The timed post-compaction `snapshot` is passed to the timed `initialize`.
-The peer acknowledges and compacts with the same policy and is independently
-snapshotted, destroyed, and reinitialized outside the measured regions.
-
-## State lifecycle
-
-Every run starts with two completely fresh replicas: the measured replica and
-its peer.
-
-`destroy` must release the native Projector and invalidate the Replica.
-
-After every checkpoint the benchmark continues using a newly initialized Replica restored from the checkpoint snapshot.
-
-## Timing
-
-Only the actual API operation belongs inside its timed region.
-
-Exclude:
-
-```text
-random generation
-target selection
-merge source selection
-Delta selection
-checkpoint detection
-metric calculation
-logging
-serialization
-benchmark bookkeeping
-```
-
-Checkpoint methods are timed independently:
-
-```text
-values
-recover
-acknowledge
-compact
-snapshot
-destroy
-initialize
-```
-
-## Memory
-
-Per-replica memory estimate:
-
-```text
-4 bytes × retained native snapshot words
+4 bytes × snapshot frontier and Delta metadata words
 +
 8 bytes × JavaScript Footage slots
 ```
 
-Process RSS is reported separately as process-level memory.
+Serialization uses `node:v8.serialize` and is kept outside timed API regions.
+Checkpoint logging never resets cumulative operation metrics.
 
-## Runs
+## Timing and warmup
 
-Execute:
+Only the selected public API call is inside each timed region. Random
+generation, target selection, peer synchronization, serialization, metric
+calculation, and logging are excluded. Latency is calculated as total measured
+nanoseconds divided by call count.
 
-```text
-Run 0
-Run 1
-Run 2
+Warmup exercises only the continuous operation paths. It does not run hidden
+checkpoints, snapshots, restarts, serialization, or forced garbage collection.
+
+## Running
+
+```powershell
+npm run bench
 ```
 
-Each run:
+A short development run:
 
-- uses its own deterministic seed
-- starts from two completely fresh replicas
-- runs the soft-remove, hard-compact workload
-- receives one fresh merge sample per workload step from its paired replica
-- shares no state with another run
-
-Store every run and replica independently.
-
-Report at least:
-
-```text
-mean
-minimum
-maximum
+```powershell
+npm run bench -- --runs 1 --max-strips 100 --warmup-cycles 8 --no-output
 ```
 
-## Primary benchmark
+Useful options are documented by:
 
-Each run measures:
-
-```text
-1 policy workload × 2 replicas
-×
-0 → 100,000 → 0 visible Strips
+```powershell
+npm run bench -- --help
 ```
 
-using soft removal, hard compaction, and fresh within-pair merge samples
-throughout the lifecycle.
+The default run count is three and the default maximum is 10,000 visible
+Strips. JSON and Markdown reports are written to
+`benchmark/results/lifecycle.{json,md}` unless `--no-output` is supplied.

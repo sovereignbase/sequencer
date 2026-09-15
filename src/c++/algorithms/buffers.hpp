@@ -12,8 +12,8 @@ inline void clear_footage_span_buffer() noexcept {
   footage_span_buffer.clear();
 }
 
-inline void clear_sequence_point_buffer() noexcept {
-  sequence_point_buffer.clear();
+inline void clear_frontier_buffer() noexcept {
+  frontier_buffer.clear();
 }
 
 inline std::uint32_t *prepare_projection_buffer(
@@ -35,26 +35,23 @@ inline std::uint32_t get_footage_span_buffer_count() noexcept {
 }
 
 inline std::uint32_t *
-get_acknowledgement_sequence_point_buffer_pointer() noexcept {
-  // Expose the current shared Frontier transfer storage.
-  return sequence_point_buffer.get_memory_pointer();
+get_frontier_buffer_pointer() noexcept {
+  return frontier_buffer.data();
 }
 
-inline std::uint32_t *prepare_compaction_sequence_point_buffer(
-    const std::uint32_t frontier_count) noexcept {
-  // Allocate the exact writable Frontier transfer span.
-  sequence_point_buffer.resize(frontier_count);
-  return sequence_point_buffer.get_memory_pointer();
+inline std::uint32_t get_frontier_buffer_word_count() noexcept {
+  return frontier_buffer.size();
+}
+
+inline std::uint32_t *prepare_frontier_buffer(
+    const std::uint32_t word_count) noexcept {
+  frontier_buffer.resize(word_count);
+  return frontier_buffer.data();
 }
 
 inline std::uint32_t *get_footage_span_buffer_pointer() noexcept {
   // Expose Footage spans written by the most recent operation.
   return footage_span_buffer.get_memory_pointer();
-}
-
-inline std::uint32_t *get_strip_buffer_pointer() noexcept {
-  // Expose the fixed shared Strip transfer storage.
-  return projection_buffer.get_memory_pointer();
 }
 
 }

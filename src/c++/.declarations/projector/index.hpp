@@ -1,58 +1,51 @@
-/**
- * @file
- * @brief Defines the Projector state for one materialized Sequence.
- *
- * A Projector owns Strip storage, dense Structural Order, point containment,
- * bounded Projection navigation, and a movable Gate. It references but never
- * owns consumer Footage.
- */
 #pragma once
 
 #include "../../.containment_table/index.hpp"
+#include "../../.frontier_table/index.hpp"
+#include "../clock/index.hpp"
 #include "../sentinels/index.hpp"
 #include <algorithm>
-#include <chrono>
 #include <cstddef>
-#include <cstring>
-#include <memory>
-#include <limits>
-#include <span>
 #include <cstdint>
-#include <random>
+#include <cstring>
+#include <limits>
+#include <memory>
+#include <span>
 #include <utility>
 
-/**
- * @brief Owned runtime state that materializes one Sequence and its Projection.
- *
- * `strips`, `left`, and `right` share the Strip Index index domain.
- * Materialized Strips form one bidirectional chain. ContainmentTable maps
- * issued Sequence Points to this dense domain; Strip-local jumps provide
- * bounded Projection traversal. Unknown remote dependencies are ignored.
- *
- * The Gate caches one materialized Strip Index and its visible Projection
- * start. It accelerates navigation but never determines Sequence order.
- *
- * @invariant All SoA lanes share one allocation and capacity; strip_count is
- * the live append-only index limit.
- * @invariant The materialized chain contains each materialized Strip,
- * including Masks, exactly once.
- * @invariant Adjacent structural Strips have mutually consistent forward and
- * backward links.
- * @invariant `projection_frame_count` equals the sum of `frame_count` over all
- * visible materialized Strips.
- * @invariant A non-empty Projection has visible Head, Tail, and Gate Strips.
- */
+/** Native, cache-friendly materialization of one replicated sequence. */
 struct Projector {
-  std::uint32_t strip_count = 0;
-  std::uint32_t strip_capacity = 0;
+  std::uint32_t strip_count{0};
+  std::uint32_t strip_capacity{0};
   std::unique_ptr<std::byte[]> strip_storage;
+
+  std::span<std::uint8_t> strip_type_of;
+  std::span<std::uint8_t> masked_of;
+  std::span<std::uint32_t> initial_length_of;
+  std::span<std::uint32_t> fragment_length_of;
+  std::span<std::uint32_t> dependency_prefix_of;
+  std::span<std::uint32_t> offset_length_of;
+  std::span<std::uint32_t> fragment_offset_of;
+  std::span<std::uint32_t> smaller_competitor_strip_index_of;
+  std::span<std::uint32_t> larger_split_strip_index_of;
+  std::span<Clock> anchor_clock_of;
+  std::span<Clock> insert_clock_of;
+  std::span<std::uint32_t> right_strip_index_of;
+  std::span<std::uint32_t> left_strip_index_of;
+  std::span<std::uint32_t> left_jump_strip_index_of;
+  std::span<std::uint32_t> left_jump_strip_count_of;
+  std::span<std::uint32_t> left_jump_length_of;
+  std::span<std::uint32_t> right_jump_strip_index_of;
+  std::span<std::uint32_t> right_jump_strip_count_of;
+  std::span<std::uint32_t> right_jump_length_of;
+  std::span<std::uint32_t> footage_frame_index_of;
 
   void reserve_strips(const std::uint32_t required) {
     if (required <= strip_capacity)
       return;
     const auto capacity = std::max(required, std::max(64u, strip_capacity * 2));
     constexpr auto bytes_per_strip = 2 * sizeof(std::uint8_t) +
-        14 * sizeof(std::uint32_t) + 2 * sizeof(SequencePoint);
+        16 * sizeof(std::uint32_t) + 2 * sizeof(Clock);
     if (capacity > std::numeric_limits<std::size_t>::max() / bytes_per_strip)
       throw std::bad_array_new_length{};
     auto storage = std::unique_ptr<std::byte[]>{
@@ -69,10 +62,12 @@ struct Projector {
     relocate(initial_length_of);
     relocate(fragment_length_of);
     relocate(dependency_prefix_of);
+    relocate(offset_length_of);
+    relocate(fragment_offset_of);
     relocate(smaller_competitor_strip_index_of);
     relocate(larger_split_strip_index_of);
-    relocate(strip_start_of);
-    relocate(previous_strip_end_of);
+    relocate(anchor_clock_of);
+    relocate(insert_clock_of);
     relocate(right_strip_index_of);
     relocate(left_strip_index_of);
     relocate(left_jump_strip_index_of);
@@ -88,229 +83,80 @@ struct Projector {
     strip_capacity = capacity;
   }
 
-  std::uint32_t append_strip() {
+  [[nodiscard]] std::uint32_t append_strip() {
     if (strip_count == strip_capacity)
       reserve_strips(strip_count + 1);
     return strip_count++;
   }
 
-  // Authoritative materialized Sequence and Projection state.
-  ///////////////
-  // ENCODING //
-  /////////////
-  std::span<uint8_t> strip_type_of;
-
-  /** Runtime visibility state. Issued Strip types remain only 0, 1, or 2. */
-  std::span<uint8_t> masked_of;
-
-  /**
-   * @brief Immutable issued SequencePoint span lengths, excluding the zero
-   * anchor.
-   */
-  std::span<std::uint32_t> initial_length_of;
-
-  /** @brief Current physical source fragment lengths. */
-  std::span<std::uint32_t> fragment_length_of;
-
-  /** @brief Creation-time dependency offset; structural fragments store their
-   * source offset. */
-  std::span<std::uint32_t> dependency_prefix_of;
-
-  /** @brief Next smaller sibling sharing the same previous Strip end. */
-  std::span<std::uint32_t> smaller_competitor_strip_index_of;
-
-  /** @brief Next physical source fragment; instructions never have a split
-   * link. */
-  std::span<std::uint32_t> larger_split_strip_index_of;
-
-  /**
-   * @brief Strip start Sequence Points indexed by Strip Index .
-   */
-  std::span<SequencePoint> strip_start_of;
-
-  /**
-   * @brief Previous Strip End Sequence Points indexed by Strip Index .
-   */
-  std::span<SequencePoint> previous_strip_end_of;
-
-  //////////////
-  // RUNTIME //
-  ////////////
-
-  /** @brief Next local insert counter, advanced by content length plus one. */
-  std::uint32_t operation_count{0};
-
-  /** @brief Next local Mask Realm counter, independent of insert issuance. */
-  std::uint32_t mask_operation_count{0};
-
-  /** @brief Strip Index of the materialized Strip holding the first projection
-   * frame. */
+  std::uint32_t actor_id{0};
+  std::uint32_t insert_time{0};
+  std::uint32_t mask_time{0};
+  std::uint32_t mask_session{u32_max};
   std::uint32_t head_strip_index{u32_max};
-
-  /** @brief Strip Index of the materialized Strip cached by the Gate. */
   std::uint32_t gate_strip_index{u32_max};
-
-  /** @brief Strip Index of the materialized Strip holding the last projection
-   * frame. */
   std::uint32_t tail_strip_index{u32_max};
-
-  /**
-   * @brief Strip Index immediately to the right in Structural Order.
-   *
-   * A staged Strip points to itself until linked by the current operation.
-   */
-  std::span<std::uint32_t> right_strip_index_of;
-
-  /**
-   * @brief Strip Index immediately to the left in Structural Order.
-   *
-   * A staged Strip points to itself until linked by the current operation.
-   */
-  std::span<std::uint32_t> left_strip_index_of;
-
-  /** @brief Visible Strip reached by the current left Projection jump. */
-  std::span<std::uint32_t> left_jump_strip_index_of;
-
-  /** @brief Visible Strip reached by the current right Projection jump. */
-  std::span<std::uint32_t> left_jump_strip_count_of;
-
-  /** @brief Projection Frame distance to `left_jump_strip_index`. */
-  std::span<std::uint32_t> left_jump_length_of;
-
-  /** @brief Visible Strip reached by the current right Projection jump. */
-  std::span<std::uint32_t> right_jump_strip_index_of;
-
-  /** @brief Visible Strip reached by the current right Projection jump. */
-  std::span<std::uint32_t> right_jump_strip_count_of;
-
-  /** @brief Projection Frame distance to `right_jump_strip_index`. */
-  std::span<std::uint32_t> right_jump_length_of;
-
   std::uint32_t materialized_strip_count{0};
-
-  /**
-   * @brief Sequence Point containment index returning Strip Indexs.
-   *
-   * ContainmentTable owns compact Realm entries only; Strip objects remain
-   * owned by `strips`.
-   */
-  ContainmentTable containment_table;
-
-  // Movable Projection traversal Gate.
-
-  /**
-   * @brief Projection frame index at which the Gate Strip begins.
-   *
-   * A Mask has zero projected length, so it may share this position with an
-   * adjacent Strip.
-   */
   std::uint32_t projection_frame_index{0};
-
-  /** @brief Total number of visible frames in the current Projection. */
   std::uint32_t projection_frame_count{0};
+  ContainmentTable containment_table;
+  FrontierTable frontier_table;
 
-  std::span<std::uint32_t> footage_frame_index_of;
-
-  const std::uint32_t mask_session_crypto_random_bits = std::random_device{}();
-  const std::uint32_t insert_session_crypto_random_bits =
-      std::random_device{}();
-  const std::uint32_t shared_session_unix_lower_bits =
-      static_cast<std::uint32_t>(
-          std::chrono::duration_cast<std::chrono::milliseconds>(
-              std::chrono::system_clock::now().time_since_epoch())
-              .count());
-
-  /**
-   * @brief Visit retained Footage without copying it or splitting a Mask.
-   * @param strip_index Materialized Strip whose content is read.
-   * @param visit Receives each Footage start and content length in order.
-   */
-  template <typename Visitor>
-  void for_each_footage_span(const std::uint32_t strip_index,
-                             Visitor &&visit) const noexcept {
-    if (strip_type_of[strip_index] != 2 &&
-        footage_frame_index_of[strip_index] != u32_max)
-      visit(footage_frame_index_of[strip_index],
-            fragment_length_of[strip_index]);
+  [[nodiscard]] bool is_fragment(const std::uint32_t strip) const noexcept {
+    return initial_length_of[strip] == 0;
   }
 
-  /** @brief Visible length; Masks retain identity spans but project no Frames.
-   */
   [[nodiscard]] std::uint32_t
-  get_projected_strip_length(const std::uint32_t strip_index) const noexcept {
-    return strip_type_of[strip_index] != 2 && masked_of[strip_index] == 0
-        ? fragment_length_of[strip_index] : 0;
+  get_projected_strip_length(const std::uint32_t strip) const noexcept {
+    return strip_type_of[strip] != 2 && strip_type_of[strip] != 255 &&
+                   masked_of[strip] == 0
+        ? fragment_length_of[strip]
+        : 0;
   }
 
-  /** @brief Recover the creation-time source anchor without rewriting the
-   * instruction. */
-  SequencePoint dependency_origin(const std::uint32_t strip) const noexcept {
-    auto origin = previous_strip_end_of[strip];
-    origin.counter_bits -= dependency_prefix_of[strip];
-    return origin;
-  }
-
-  bool is_fragment(const std::uint32_t strip) const noexcept {
-    return strip_start_of[strip].counter_bits == u32_max;
-  }
-
-  SequencePoint fragment_start(const std::uint32_t strip) const noexcept {
-    return is_fragment(strip) ? previous_strip_end_of[strip]
-                              : strip_start_of[strip];
-  }
-
-  std::uint32_t fragment_offset(const std::uint32_t strip) const noexcept {
-    return is_fragment(strip) ? dependency_prefix_of[strip] : 0;
-  }
-
-  std::pair<std::uint32_t, std::uint32_t>
-  resolve_dependency(const std::uint32_t strip) const noexcept {
-    const auto origin = dependency_origin(strip);
-    auto source = containment_table.get(origin).first;
-    auto offset = dependency_prefix_of[strip];
-    if (source == u32_max || strip_start_of[source] != origin)
-      return {u32_max, 0};
-    while (source != u32_max &&
-           offset > fragment_offset(source) + fragment_length_of[source]) {
-      source = larger_split_strip_index_of[source];
-    }
-    if (source == u32_max || offset < fragment_offset(source))
-      return {u32_max, 0};
-    return {source, offset - fragment_offset(source)};
-  }
-
-  /** @brief Resolve a Mask in its creation-time source coordinate system. */
   template <typename Visitor>
-  bool for_each_mask_target(const std::uint32_t mask, Visitor &&visit,
-                            const bool include_prefix = false) const noexcept {
-    const auto origin = dependency_origin(mask);
-    auto [source, offset] = containment_table.get(origin);
-    if (source == u32_max || strip_start_of[source] != origin)
-      return false;
-    offset = dependency_prefix_of[mask];
-    std::uint64_t remaining = initial_length_of[mask];
-    if (include_prefix) {
-      remaining += offset;
-      offset = 0;
-    }
+  void for_each_footage_span(const std::uint32_t strip,
+                             Visitor &&visit) const noexcept {
+    if (strip_type_of[strip] != 2 && strip_type_of[strip] != 255 &&
+        footage_frame_index_of[strip] != u32_max &&
+        fragment_length_of[strip] != 0)
+      visit(footage_frame_index_of[strip], fragment_length_of[strip]);
+  }
+
+  [[nodiscard]] std::pair<std::uint32_t, std::uint32_t>
+  resolve_dependency(const std::uint32_t strip) const noexcept {
+    auto source = containment_table.get(anchor_clock_of[strip]);
+    const auto offset = offset_length_of[strip];
+    while (source != u32_max &&
+           offset > fragment_offset_of[source] + fragment_length_of[source])
+      source = larger_split_strip_index_of[source];
+    if (source == u32_max || offset < fragment_offset_of[source])
+      return {u32_max, 0};
+    return {source, offset - fragment_offset_of[source]};
+  }
+
+  template <typename Visitor>
+  bool for_each_mask_target(const std::uint32_t mask,
+                            Visitor &&visit) const noexcept {
+    auto source = containment_table.get(anchor_clock_of[mask]);
+    auto offset = offset_length_of[mask];
+    std::uint32_t remaining = initial_length_of[mask];
     while (remaining != 0) {
-      if (source == u32_max || left_strip_index_of[source] == source ||
-          strip_type_of[source] == 2)
+      if (source == u32_max || strip_type_of[source] == 2 ||
+          strip_type_of[source] == 255)
         return false;
-      const auto start = fragment_offset(source);
+      const auto start = fragment_offset_of[source];
       if (offset < start)
         return false;
       if (offset >= start + fragment_length_of[source]) {
         source = larger_split_strip_index_of[source];
         continue;
       }
-      const auto length = static_cast<std::uint32_t>(std::min<std::uint64_t>(
-          remaining, start + fragment_length_of[source] - offset));
-      if (length != 0) {
-        visit(source, offset - start, length);
-        remaining -= length;
-        offset += length;
-      }
+      const auto length = std::min(remaining,
+                                   start + fragment_length_of[source] - offset);
+      visit(source, offset - start, length);
+      remaining -= length;
+      offset += length;
       source = larger_split_strip_index_of[source];
     }
     return true;

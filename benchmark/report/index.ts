@@ -165,8 +165,8 @@ const makeMarkdown = (report: BenchmarkReport): string => {
     '',
     '## Memory and storage efficiency',
     '',
-    '| Run | direction | Replica | remove | compact | visible Strips | retained structural Strips | Frames | estimated memory bytes | memory B/Strip | memory B/Frame | snapshot before | snapshot after | before B/Strip | after B/Strip | before B/Frame | after B/Frame | process RSS |',
-    '| ---: | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |'
+    '| Run | direction | Replica | visible Strips | retained Deltas | Frames | estimated memory bytes | memory B/Strip | memory B/Frame | snapshot bytes | snapshot B/Strip | snapshot B/Frame | process RSS |',
+    '| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |'
   )
   for (const run of report.runs)
     for (const checkpoint of run.checkpoints)
@@ -177,22 +177,15 @@ const makeMarkdown = (report: BenchmarkReport): string => {
             run.run,
             checkpoint.direction,
             replica,
-            observed.policy.remove,
-            observed.policy.compact,
             observed.strips.stripCount.toLocaleString('en-US'),
-            observed.strips.retainedStructuralStripCount.toLocaleString(
-              'en-US'
-            ),
+            observed.strips.retainedDeltaCount.toLocaleString('en-US'),
             observed.strips.frameCount.toLocaleString('en-US'),
             observed.memory.bytes.toLocaleString('en-US'),
             decimal(observed.memory.bytesPerStrip),
             decimal(observed.memory.bytesPerFrame),
-            observed.storage.beforeCompactBytes.toLocaleString('en-US'),
-            observed.storage.afterCompactBytes.toLocaleString('en-US'),
-            decimal(observed.storage.beforeCompactBytesPerStrip),
-            decimal(observed.storage.afterCompactBytesPerStrip),
-            decimal(observed.storage.beforeCompactBytesPerFrame),
-            decimal(observed.storage.afterCompactBytesPerFrame),
+            observed.storage.snapshotBytes.toLocaleString('en-US'),
+            decimal(observed.storage.bytesPerStrip),
+            decimal(observed.storage.bytesPerFrame),
             checkpoint.processMemory.rssBytes.toLocaleString('en-US'),
           ])
         )
@@ -202,8 +195,8 @@ const makeMarkdown = (report: BenchmarkReport): string => {
     '',
     '## Lifecycle space averages',
     '',
-    '| Run | Replica | scope | memory B/Strip | memory B/Frame | storage before B/Strip | storage after B/Strip | storage before B/Frame | storage after B/Frame |',
-    '| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |'
+    '| Run | Replica | scope | memory B/Strip | memory B/Frame | storage B/Strip | storage B/Frame |',
+    '| ---: | --- | --- | ---: | ---: | ---: | ---: |'
   )
   for (const run of report.runs)
     for (const replica of replicas)
@@ -216,14 +209,8 @@ const makeMarkdown = (report: BenchmarkReport): string => {
             scope,
             decimal(space.memoryBytesPerStrip.averageBytesPerUnit),
             decimal(space.memoryBytesPerFrame.averageBytesPerUnit),
-            decimal(
-              space.storageBytesPerStripBeforeCompact.averageBytesPerUnit
-            ),
-            decimal(space.storageBytesPerStripAfterCompact.averageBytesPerUnit),
-            decimal(
-              space.storageBytesPerFrameBeforeCompact.averageBytesPerUnit
-            ),
-            decimal(space.storageBytesPerFrameAfterCompact.averageBytesPerUnit),
+            decimal(space.storageBytesPerStrip.averageBytesPerUnit),
+            decimal(space.storageBytesPerFrame.averageBytesPerUnit),
           ])
         )
       }
@@ -233,10 +220,10 @@ const makeMarkdown = (report: BenchmarkReport): string => {
     '## Measurement notes',
     '',
     '- ' + report.methodology.stripCount,
-    '- ' + report.methodology.merge,
+    '- ' + report.methodology.ingest,
     '- ' + report.methodology.memory,
     '- ' + report.methodology.storage,
-    '- Every checkpoint explicitly destroys the old Replica and initializes a fresh Replica from the post-compaction snapshot.',
+    '- Every checkpoint explicitly destroys the old Replica and creates a fresh Replica from the automatically collected snapshot.',
     ''
   )
   return lines.join('\n')

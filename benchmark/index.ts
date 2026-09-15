@@ -91,6 +91,7 @@ export function parseConfig(arguments_: Array<string>): BenchmarkConfig {
 
   const checkpoints = Array.from(
     new Set([
+      0,
       ...defaultCheckpoints.filter(
         (checkpoint) => checkpoint <= maximumStripCount
       ),
@@ -105,9 +106,6 @@ export function parseConfig(arguments_: Array<string>): BenchmarkConfig {
     minimumStripFrameLength,
     maximumStripFrameLength,
     warmupCycles,
-    replicaPolicies: {
-      A: { remove: 'soft', compact: 'hard' },
-    },
     baseSeed,
     outputPath,
   }
@@ -124,7 +122,7 @@ export async function runBenchmark(
   await warmUp(config)
   const runs = await runLifecycles(config)
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt: new Date().toISOString(),
     environment: {
       node: process.versions.node,
@@ -140,14 +138,14 @@ export async function runBenchmark(
       timer: 'process.hrtime.bigint',
       stripCount:
         'Scale is the number of visible logical Strips maintained by the benchmark model. Every mutation targets a complete Strip boundary; retained Mask structures are reported separately.',
-      merge:
-        'Each policy workload has two Replicas editing the same document. Local Deltas are synchronized to the peer outside timed regions; randomMerge times the measured Replica integrating a newly issued, equal-length replacement Delta from its peer, including both its Mask and new Footage.',
+      ingest:
+        'The workload has two Replicas editing the same document. Local Mutations are ingested by the peer outside timed regions; randomIngest times the measured Replica consuming each atomic acknowledgement-plus-Delta packet from a peer replacement.',
       average:
         'Operation averages are calculated directly from count and total measured nanoseconds; checkpoint averages are never averaged together.',
       memory:
-        'Per-Replica bytes after policy compaction and restart are an explicit estimate: four bytes per retained native snapshot word plus eight bytes per JavaScript Footage array slot. Process RSS is shared and reported at checkpoint scope; WebAssembly linear memory is unavailable through the public API.',
+        'Per-Replica bytes after automatic native collection and restart are an explicit estimate: four bytes per retained snapshot metadata word plus eight bytes per JavaScript Footage array slot. Process RSS is shared and reported at checkpoint scope; WebAssembly linear memory is unavailable through the public API.',
       storage:
-        'Persistent representation size is the byte length of node:v8.serialize over the public snapshot before and after isolated hard compaction.',
+        'Persistent representation size is the byte length of node:v8.serialize over the automatically collected public snapshot.',
     },
     runs,
     aggregates: aggregateRuns(runs),

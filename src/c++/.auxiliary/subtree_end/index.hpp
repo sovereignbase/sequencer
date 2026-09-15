@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../../.declarations/projector/index.hpp"
-#include "../strip_contains_previous_strip_end/index.hpp"
 #include <cstdint>
 #include <vector>
 
@@ -20,14 +19,15 @@ subtree_end(const Projector &projector,
   auto next_strip_index = projector.right_strip_index_of[last_strip_index];
   while (next_strip_index != u32_max) {
     auto ancestor_strip_index = last_strip_index;
-    const auto &dependency = projector.previous_strip_end_of[next_strip_index];
+    const auto dependency = projector.anchor_clock_of[next_strip_index];
+    const auto dependency_offset = projector.offset_length_of[next_strip_index];
     while ((projector.strip_type_of[ancestor_strip_index] == 2 ||
             projector.larger_split_strip_index_of[ancestor_strip_index] !=
                next_strip_index) &&
-           strip_contains_previous_strip_end(
-               projector.fragment_start(ancestor_strip_index),
-               projector.fragment_length_of[ancestor_strip_index], dependency) ==
-               u32_max) {
+           (projector.insert_clock_of[ancestor_strip_index] != dependency ||
+            dependency_offset < projector.fragment_offset_of[ancestor_strip_index] ||
+            dependency_offset > projector.fragment_offset_of[ancestor_strip_index] +
+                                    projector.fragment_length_of[ancestor_strip_index])) {
       if (ancestors.empty())
         return last_strip_index;
       ancestor_strip_index = ancestors.back();

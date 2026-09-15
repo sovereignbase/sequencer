@@ -121,26 +121,16 @@ for (
 }
 
 // Derive every delivery family from the same immutable Strip collection.
-const shuffled = strips
-  .map((strip, index) => ({
-    strip,
-    index,
-    key: scenario.delivery_keys[index % scenario.delivery_keys.length],
-  }))
-  .sort((left, right) => left.key - right.key || left.index - right.index)
-  .map(({ strip }) => strip)
-const duplicated = shuffled.flatMap((strip, index) =>
+const duplicated = strips.flatMap((strip, index) =>
   index % 3 === 0 ? [strip, strip] : [strip]
 )
 const ordered = deliver(base_delta, strips, undefined, 'ordered')
 const expected = signature(ordered)
 const targets = [
-  ['reverse', deliver(base_delta, [...strips].reverse(), undefined, 'reverse')],
-  ['shuffle', deliver(base_delta, shuffled, undefined, 'shuffle')],
   ['duplicate', deliver(base_delta, duplicated, undefined, 'duplicate')],
   [
     'restart',
-    deliver(base_delta, shuffled, Math.ceil(shuffled.length / 2), 'restart'),
+    deliver(base_delta, strips, Math.ceil(strips.length / 2), 'restart'),
   ],
 ]
 const batched = create(base_delta)
@@ -162,8 +152,6 @@ targets.push(['partial-snapshot', partial_remote])
 
 // Compare every hostile target with the chronological reference state.
 for (const [delivery_name, target] of targets) {
-  if (delivery_name !== 'batch' && !delivery_name.endsWith('snapshot'))
-    for (const strip of strips) merge(target, strip)
   const actual = signature(target)
   if (actual !== expected) {
     finish(

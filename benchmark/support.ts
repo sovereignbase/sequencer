@@ -296,34 +296,27 @@ export class RatioAccumulator {
 export class SpaceAccumulator {
   private readonly memoryFrames = new RatioAccumulator()
   private readonly memoryStrips = new RatioAccumulator()
-  private readonly storageFramesBefore = new RatioAccumulator()
-  private readonly storageFramesAfter = new RatioAccumulator()
-  private readonly storageStripsBefore = new RatioAccumulator()
-  private readonly storageStripsAfter = new RatioAccumulator()
+  private readonly storageFrames = new RatioAccumulator()
+  private readonly storageStrips = new RatioAccumulator()
 
   add(
     memoryBytes: number,
-    beforeCompactBytes: number,
-    afterCompactBytes: number,
+    storageBytes: number,
     stripCount: number,
     frameCount: number
   ): void {
     this.memoryFrames.add(memoryBytes, frameCount)
     this.memoryStrips.add(memoryBytes, stripCount)
-    this.storageFramesBefore.add(beforeCompactBytes, frameCount)
-    this.storageFramesAfter.add(afterCompactBytes, frameCount)
-    this.storageStripsBefore.add(beforeCompactBytes, stripCount)
-    this.storageStripsAfter.add(afterCompactBytes, stripCount)
+    this.storageFrames.add(storageBytes, frameCount)
+    this.storageStrips.add(storageBytes, stripCount)
   }
 
   snapshot(): SpaceAverages {
     return {
       memoryBytesPerFrame: this.memoryFrames.snapshot(),
       memoryBytesPerStrip: this.memoryStrips.snapshot(),
-      storageBytesPerFrameBeforeCompact: this.storageFramesBefore.snapshot(),
-      storageBytesPerFrameAfterCompact: this.storageFramesAfter.snapshot(),
-      storageBytesPerStripBeforeCompact: this.storageStripsBefore.snapshot(),
-      storageBytesPerStripAfterCompact: this.storageStripsAfter.snapshot(),
+      storageBytesPerFrame: this.storageFrames.snapshot(),
+      storageBytesPerStrip: this.storageStrips.snapshot(),
     }
   }
 }

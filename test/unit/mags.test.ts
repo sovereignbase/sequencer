@@ -50,7 +50,7 @@ describe('runtime merge and retained state', () => {
     const result = remove(source, 1, 2)
     assert(result)
 
-    expect(merge(target, result)).toEqual({ 1: 'c', 2: undefined })
+    expect(merge(target, result)).toEqual({ 1: undefined })
     expect(values(target)).toEqual(['a', 'c'])
   })
 

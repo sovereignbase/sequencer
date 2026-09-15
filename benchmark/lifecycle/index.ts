@@ -1,6 +1,6 @@
 import { serialize } from 'node:v8'
 import * as api from '../../dist/index.js'
-import type { Delta, Replica } from '../../dist/index.js'
+import type { Mutation, Replica } from '../../dist/index.js'
 import {
   deriveSeed,
   formatSeed,
@@ -23,16 +23,16 @@ import {
   type OperationName,
   type ReplicaCheckpoint,
   type ReplicaName,
-  type ReplicaPolicy,
   type ReplicaRunResult,
   type RunResult,
 } from '../types.ts'
 
 type Runtime = {
   name: ReplicaName
+  actorId: number
+  peerActorId: number
   state: Replica<number>
   peer: Replica<number>
-  policy: ReplicaPolicy
   strips: StripIndex
   random: Random
   nextStripId: number
@@ -42,16 +42,21 @@ type Runtime = {
 
 let resultSink: unknown
 
+const createReplica = (actorId: number, data?: unknown): Replica<number> =>
+  api.create<number>(actorId, data)
+
 const ratio = (bytes: number, units: number): number | null =>
   units === 0 ? null : bytes / units
 
-const requireDelta = (
-  result: Delta<number> | false,
+const requireMutations = (
+  result: Mutation<number> | Array<Mutation<number>> | false,
   operation: string
-): Delta<number> => {
+): Array<Mutation<number>> => {
   if (result === false)
     throw new TypeError(`Sequencer rejected benchmark ${operation}.`)
-  return result
+  return Array.isArray(result[1]) && typeof result[1][0] === 'number'
+    ? [result as Mutation<number>]
+    : (result as Array<Mutation<number>>)
 }
 
 const timeOperation = <T>(
@@ -86,15 +91,16 @@ const createReplacementStrip = (
   return { id, length, values: new Array<number>(length).fill(id) }
 }
 
-const mergeIntoPeer = (
+const ingestIntoPeer = (
   runtime: Runtime,
-  delta: Delta<number>,
+  mutations: Array<Mutation<number>>,
   operation: string
 ): void => {
-  if (api.merge(runtime.peer, delta) === false)
-    throw new TypeError(
-      `Replica ${runtime.name} peer rejected new ${operation} Delta.`
-    )
+  for (const mutation of mutations)
+    if (api.ingest(runtime.peer, mutation) === false)
+      throw new TypeError(
+        `Replica ${runtime.name} peer rejected new ${operation} Mutation.`
+      )
 }
 
 const insertAt = (
@@ -106,11 +112,11 @@ const insertAt = (
 ): void => {
   const frameIndex = runtime.strips.frameOffsetAt(stripIndex)
   const strip = createStrip(runtime, config)
-  const delta = timeOperation(runtime, direction, operationName, () =>
+  const mutation = timeOperation(runtime, direction, operationName, () =>
     api.insert(runtime.state, frameIndex, strip.values)
   )
-  const accepted = requireDelta(delta, operationName)
-  mergeIntoPeer(runtime, accepted, operationName)
+  const accepted = requireMutations(mutation, operationName)
+  ingestIntoPeer(runtime, accepted, operationName)
   runtime.strips.insert(stripIndex, strip)
 }
 
@@ -123,16 +129,11 @@ const removeAt = (
 ): void => {
   const frameIndex = runtime.strips.frameOffsetAt(stripIndex)
   const strip = runtime.strips.at(stripIndex)
-  const delta = timeOperation(runtime, direction, operationName, () =>
-    api.remove(
-      runtime.state,
-      frameIndex,
-      frameIndex + strip.length,
-      runtime.policy.remove === 'hard'
-    )
+  const mutation = timeOperation(runtime, direction, operationName, () =>
+    api.remove(runtime.state, frameIndex, frameIndex + strip.length)
   )
-  const accepted = requireDelta(delta, operationName)
-  mergeIntoPeer(runtime, accepted, operationName)
+  const accepted = requireMutations(mutation, operationName)
+  ingestIntoPeer(runtime, accepted, operationName)
   runtime.strips.remove(stripIndex)
 }
 
@@ -156,51 +157,44 @@ const randomReplace = (
   // The public replace operation removes exactly values.length Frames. Keeping
   // the selected Strip's length preserves Strip boundaries and scale.
   const strip = createReplacementStrip(runtime, replaced.length)
-  const delta = timeOperation(runtime, direction, 'randomReplace', () =>
-    api.replace(
-      runtime.state,
-      frameIndex,
-      strip.values,
-      runtime.policy.remove === 'hard'
-    )
+  const mutation = timeOperation(runtime, direction, 'randomReplace', () =>
+    api.replace(runtime.state, frameIndex, strip.values)
   )
-  const accepted = requireDelta(delta, 'randomReplace')
-  mergeIntoPeer(runtime, accepted, 'randomReplace')
+  const accepted = requireMutations(mutation, 'randomReplace')
+  ingestIntoPeer(runtime, accepted, 'randomReplace')
   runtime.strips.replace(stripIndex, strip)
 }
 
-const randomMerge = (runtime: Runtime, direction: Direction): void => {
+const randomIngest = (runtime: Runtime, direction: Direction): void => {
   const stripIndex = runtime.random.integer(runtime.strips.count)
   const frameIndex = runtime.strips.frameOffsetAt(stripIndex)
   const replaced = runtime.strips.at(stripIndex)
   const strip = createReplacementStrip(runtime, replaced.length)
-  const delta = requireDelta(
-    api.replace(
-      runtime.peer,
-      frameIndex,
-      strip.values,
-      runtime.policy.remove === 'hard'
-    ),
-    'randomMerge peer replacement'
+  const mutations = requireMutations(
+    api.replace(runtime.peer, frameIndex, strip.values),
+    'randomIngest peer replacement'
   )
-  if ((delta[1]?.length ?? 0) === 0)
-    throw new TypeError('Random merge received a Footage-free Delta.')
-  const change = timeOperation(runtime, direction, 'randomMerge', () =>
-    api.merge(runtime.state, delta)
-  )
-  if (change === false)
-    throw new TypeError('Random merge did not integrate a new peer Delta.')
+  if (!mutations.some((mutation) => mutation[1][8]?.length))
+    throw new TypeError('Random ingest received no Footage Mutation.')
+  for (const mutation of mutations) {
+    const change = timeOperation(runtime, direction, 'randomIngest', () =>
+      api.ingest(runtime.state, mutation)
+    )
+    if (change === false)
+      throw new TypeError(
+        'Random ingest did not integrate a new peer Mutation.'
+      )
+  }
   runtime.strips.replace(stripIndex, strip)
 }
 
-const runRandomWorkload = (
+const runPrimaryRandomWorkload = (
   runtime: Runtime,
   config: BenchmarkConfig,
   direction: Direction
 ): void => {
   randomFind(runtime, direction)
   randomReplace(runtime, config, direction)
-  randomMerge(runtime, direction)
   removeAt(
     runtime,
     config,
@@ -226,11 +220,12 @@ const runScaleUpStep = (runtime: Runtime, config: BenchmarkConfig): void => {
     tail ? 'tailInsert' : 'headInsert',
     tail ? runtime.strips.count : 0
   )
-  runRandomWorkload(runtime, config, 'up')
+  runPrimaryRandomWorkload(runtime, config, 'up')
+  randomIngest(runtime, 'up')
 }
 
 const runScaleDownStep = (runtime: Runtime, config: BenchmarkConfig): void => {
-  runRandomWorkload(runtime, config, 'down')
+  runPrimaryRandomWorkload(runtime, config, 'down')
   const head = runtime.strips.count % 2 === 0
   removeAt(
     runtime,
@@ -239,6 +234,7 @@ const runScaleDownStep = (runtime: Runtime, config: BenchmarkConfig): void => {
     head ? 'headRemove' : 'tailRemove',
     head ? 0 : runtime.strips.count - 1
   )
+  if (runtime.strips.count > 0) randomIngest(runtime, 'down')
 }
 
 const snapshotMetric = <T>(operation: () => T): [MetricResult, T] => {
@@ -260,60 +256,52 @@ const observeReplica = (
     )
 
   const [valuesMetric] = snapshotMetric(() => api.values(runtime.state))
-  const [recoverMetric] = snapshotMetric(() => api.recover(runtime.state))
-  const beforeCompact = api.snapshot(runtime.state)
-  const beforeCompactBytes = serialize(beforeCompact).byteLength
-  const [acknowledgeMetric, frontier] = snapshotMetric(() =>
-    api.acknowledge(runtime.state)
-  )
-  const peerFrontier = api.acknowledge(runtime.peer)
-  const frontiers = [frontier, peerFrontier].filter(
-    (candidate): candidate is Array<number> => candidate !== false
-  )
-  const [compactMetric] = snapshotMetric(() =>
-    api.compact(frontiers, runtime.state, runtime.policy.compact === 'hard')
-  )
-  api.compact(frontiers, runtime.peer, runtime.policy.compact === 'hard')
-  const [snapshotResult, afterCompact] = snapshotMetric(() =>
+  const [snapshotResult, checkpointSnapshot] = snapshotMetric(() =>
     api.snapshot(runtime.state)
   )
-  const peerAfterCompact = api.snapshot(runtime.peer)
-  const afterCompactBytes = serialize(afterCompact).byteLength
+  const snapshotBytes = serialize(checkpointSnapshot).byteLength
 
   const oldState = runtime.state
   const [destroyMetric] = snapshotMetric(() => api.destroy(oldState))
   void api.destroy(runtime.peer)
-  const [initializeMetric, initializedState] = snapshotMetric(() =>
-    api.create<number>(afterCompact)
+  const [createMetric, initializedState] = snapshotMetric(() =>
+    createReplica(runtime.actorId, checkpointSnapshot)
   )
+  const initializedPeer = createReplica(runtime.peerActorId, checkpointSnapshot)
   runtime.state = initializedState
-  runtime.peer = api.create<number>(peerAfterCompact)
+  runtime.peer = initializedPeer
 
   const stripCount = runtime.strips.count
   const frameCount = runtime.strips.frameCount
-  const nativeProjectionWordBytes = afterCompact[0].length * 4
-  const javascriptFootageSlotBytes = (afterCompact[1]?.length ?? 0) * 8
+  const nativeSnapshotWordBytes =
+    (checkpointSnapshot[0].reduce(
+      (words, acknowledgement) => words + acknowledgement.length,
+      0
+    ) +
+      checkpointSnapshot[1].length * 8) *
+    4
+  const javascriptFootageSlotBytes =
+    checkpointSnapshot[1].reduce(
+      (slots, delta) => slots + (delta[8]?.length ?? 0),
+      0
+    ) * 8
   const estimatedMemoryBytes =
-    nativeProjectionWordBytes + javascriptFootageSlotBytes
+    nativeSnapshotWordBytes + javascriptFootageSlotBytes
 
   const checkpoint: ReplicaCheckpoint = {
-    policy: runtime.policy,
     operations: runtime.metrics.snapshot(),
     management: {
       values: valuesMetric,
-      recover: recoverMetric,
-      acknowledge: acknowledgeMetric,
-      compact: compactMetric,
       snapshot: snapshotResult,
       destroy: destroyMetric,
-      initialize: initializeMetric,
+      create: createMetric,
     },
     memory: {
       bytes: estimatedMemoryBytes,
       bytesPerStrip: ratio(estimatedMemoryBytes, stripCount),
       bytesPerFrame: ratio(estimatedMemoryBytes, frameCount),
       measurement: 'estimated-native-words-plus-js-footage-slots',
-      nativeProjectionWordBytes,
+      nativeSnapshotWordBytes,
       javascriptFootageSlotBytes,
       wasmLinearMemoryBytes: null,
       wasmLinearMemoryReason:
@@ -321,12 +309,9 @@ const observeReplica = (
     },
     storage: {
       serialization: 'node:v8.serialize',
-      beforeCompactBytes,
-      afterCompactBytes,
-      beforeCompactBytesPerStrip: ratio(beforeCompactBytes, stripCount),
-      afterCompactBytesPerStrip: ratio(afterCompactBytes, stripCount),
-      beforeCompactBytesPerFrame: ratio(beforeCompactBytes, frameCount),
-      afterCompactBytesPerFrame: ratio(afterCompactBytes, frameCount),
+      snapshotBytes,
+      bytesPerStrip: ratio(snapshotBytes, stripCount),
+      bytesPerFrame: ratio(snapshotBytes, frameCount),
     },
     strips: {
       stripCount,
@@ -334,7 +319,7 @@ const observeReplica = (
       averageStripLength: ratio(frameCount, stripCount),
       minimumStripLength: runtime.strips.minimumLength,
       maximumStripLength: runtime.strips.maximumLength,
-      retainedStructuralStripCount: afterCompact[0].length / 12,
+      retainedDeltaCount: checkpointSnapshot[1].length,
     },
   }
 
@@ -342,8 +327,7 @@ const observeReplica = (
   for (const selectedScope of [scope, 'fullLifecycle'] as const)
     runtime.space[selectedScope].add(
       estimatedMemoryBytes,
-      beforeCompactBytes,
-      afterCompactBytes,
+      snapshotBytes,
       stripCount,
       frameCount
     )
@@ -435,10 +419,8 @@ const printCheckpoint = (checkpoint: CheckpointResult): void => {
       const observed = checkpoint.replicas[replica]
       return {
         replica,
-        remove: observed.policy.remove,
-        compact: observed.policy.compact,
         'visible Strips': observed.strips.stripCount,
-        'retained Strips': observed.strips.retainedStructuralStripCount,
+        'retained Deltas': observed.strips.retainedDeltaCount,
         Frames: observed.strips.frameCount,
         'avg Strip Frames':
           observed.strips.averageStripLength?.toFixed(3) ?? '—',
@@ -447,8 +429,7 @@ const printCheckpoint = (checkpoint: CheckpointResult): void => {
         'estimated memory bytes': observed.memory.bytes,
         'memory B/Strip': observed.memory.bytesPerStrip?.toFixed(3) ?? '—',
         'memory B/Frame': observed.memory.bytesPerFrame?.toFixed(3) ?? '—',
-        'snapshot before bytes': observed.storage.beforeCompactBytes,
-        'snapshot after bytes': observed.storage.afterCompactBytes,
+        'snapshot bytes': observed.storage.snapshotBytes,
         'process RSS bytes': checkpoint.processMemory.rssBytes,
       }
     })
@@ -459,12 +440,14 @@ const makeRuntime = (
   name: ReplicaName,
   state: Replica<number>,
   workloadSeed: number,
-  policy: ReplicaPolicy
+  actorId: number,
+  peerActorId: number
 ): Runtime => ({
   name,
+  actorId,
+  peerActorId,
   state,
-  peer: api.create<number>(api.snapshot(state)),
-  policy,
+  peer: createReplica(peerActorId, api.snapshot(state)),
   strips: new StripIndex(),
   random: new Random(workloadSeed),
   nextStripId: 1,
@@ -495,14 +478,9 @@ async function runOneLifecycle(
   config: BenchmarkConfig,
   reportProgress: boolean
 ): Promise<RunResult> {
-  const [initializationA, stateA] = snapshotMetric(() => api.create<number>())
+  const [initializationA, stateA] = snapshotMetric(() => createReplica(1))
   const workloadSeed = deriveSeed(runSeed, 'shared-replica-workload')
-  const runtime = makeRuntime(
-    'A',
-    stateA,
-    workloadSeed,
-    config.replicaPolicies.A
-  )
+  const runtime = makeRuntime('A', stateA, workloadSeed, 1, 2)
   const checkpoints: Array<CheckpointResult> = []
   const checkpointSet = new Set(config.checkpoints)
 
@@ -541,21 +519,26 @@ async function runOneLifecycle(
 /** Warms the package, JS/WASM boundary, JIT paths, buffers, and timer code. */
 export async function warmUp(config: BenchmarkConfig): Promise<void> {
   if (config.warmupCycles === 0) return
-  const maximumStripCount = config.warmupCycles
-  const warmupConfig: BenchmarkConfig = {
-    ...config,
-    runs: 1,
-    maximumStripCount,
-    checkpoints: [1, maximumStripCount],
-    outputPath: null,
-  }
-  await runOneLifecycle(
-    -1,
+  const state = createReplica(3)
+  const runtime = makeRuntime(
+    'A',
+    state,
     deriveSeed(seedFromString(config.baseSeed), 'warmup'),
-    warmupConfig,
-    false
+    3,
+    4
   )
-  await collectGarbage()
+
+  // Warm only the continuously measured operation paths. Running a hidden
+  // lifecycle here also performs checkpoint snapshots, restarts,
+  // serialization, and forced garbage collection, which is not warmup work.
+  for (let cycle = 0; cycle < config.warmupCycles; cycle++)
+    runScaleUpStep(runtime, config)
+  for (let cycle = 0; cycle < config.warmupCycles; cycle++)
+    runScaleDownStep(runtime, config)
+
+  void api.destroy(runtime.state)
+  void api.destroy(runtime.peer)
+  resultSink = undefined
 }
 
 /** Runs one measured Replica and its continuously synchronized peer. */

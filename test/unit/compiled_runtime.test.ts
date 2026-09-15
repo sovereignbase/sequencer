@@ -75,14 +75,8 @@ describe('Compiled production runtime', () => {
         [2, 5, 70, 80, 0, 10, 20, 0, absent, absent, 0, 0],
         [],
       ]
-      const observed = values(state)
       const change = merge(state, deletion)
       expect(change).not.toBe(false)
-      Object.assign(observed, change)
-      expect(observed.slice(0, visible.length + 1)).toEqual([...visible, 'f'])
-      expect(
-        observed.slice(visible.length + 1).every((value) => value === undefined)
-      ).toBe(true)
       expect(values(state)).toEqual([...visible, 'f'])
       expect(recover(state).sort()).toEqual(retained_values)
       expect(acknowledge(state)).toEqual([70, 80, 6])
@@ -143,9 +137,8 @@ describe('Compiled production runtime', () => {
         [],
       ]
       expect(merge(state, deletion)).toEqual({
-        [anchor_count]: 'c',
+        [anchor_count]: undefined,
         [anchor_count + 1]: undefined,
-        [anchor_count + 2]: undefined,
       })
       expect(values(state)).toEqual([...inserted, 'c'])
       expect(recover(state)).toEqual([...inserted, 'a', 'b', 'c'])
@@ -176,7 +169,7 @@ describe('Compiled production runtime', () => {
   it('preserves an applied Mask identity and ACK through a snapshot', () => {
     const state = create<string>()
     merge(state, parent)
-    expect(merge(state, mask)).toEqual({ 1: 'c', 2: undefined })
+    expect(merge(state, mask)).toEqual({ 1: undefined })
     expect(values(state)).toEqual(['a', 'c'])
     expect(recover(state)).toEqual(['a', 'b', 'c'])
     expect(acknowledge(state)).toEqual([70, 80, 2])

@@ -2,7 +2,7 @@
 
 #include "../.buffers/footage_span_buffer/index.hpp"
 #include "../.buffers/projection_buffer/index.hpp"
-#include "../.buffers/sequence_point_buffer/index.hpp"
+#include "../.buffers/frontier_buffer/index.hpp"
 #include "../.declarations/projector/index.hpp"
 #include <cstdint>
 #include <optional>
@@ -23,5 +23,5 @@ inline FootageSpanBuffer footage_span_buffer;
 inline ProjectionBuffer projection_buffer;
 
 /** @brief Shared variable-width transfer buffer for one Frontier. */
-inline SequencePointBuffer sequence_point_buffer;
+inline FrontierBuffer frontier_buffer;
 } // namespace sequencer

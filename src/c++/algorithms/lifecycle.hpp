@@ -1,11 +1,10 @@
 #pragma once
 
 #include "./runtime.hpp"
-#include "./initialize.hpp"
 
 namespace sequencer {
 
-inline std::uint32_t initialize_projection() noexcept {
+inline std::uint32_t initialize_projection(const std::uint32_t actor_id) noexcept {
   std::uint32_t projection_id;
   if (available_projection_ids.empty()) {
     projection_id = static_cast<std::uint32_t>(projectors.size());
@@ -15,13 +14,8 @@ inline std::uint32_t initialize_projection() noexcept {
     available_projection_ids.pop_back();
     projectors[projection_id].emplace();
   }
-  // CHECK IF A TRUSTED DELTA WAS PROVIDED
-  const auto projection = projection_buffer.read_buffer();
-  auto &projector = *projectors[projection_id];
-  initialize_projector(projector, projection,
-                       projector.insert_session_crypto_random_bits,
-                       projector.mask_session_crypto_random_bits,
-                       projector.shared_session_unix_lower_bits);
+  projectors[projection_id]->actor_id = actor_id;
+  projectors[projection_id]->frontier_table.observe_actor(actor_id);
   return projection_id;
 }
 

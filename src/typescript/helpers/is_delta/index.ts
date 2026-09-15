@@ -1,32 +1,26 @@
-/**
- * Runtime validation of transferable Delta entries.
- *
- * @module
- */
-import type { Delta } from '../../types/type.js'
+import type { Acknowledgement, Delta } from '../../types/type.js'
 import { is_uint32 } from '../is_uint32/index.js'
 
-/**
- * Checks the transferable Delta tuple and unsigned metadata word shape.
- *
- * Projection contains complete twelve-word records. Footage is optional; native
- * merge checks whether the supplied content covers the encoded records.
- *
- * @typeParam T Value represented by a single Frame.
- * @param data Value to validate.
- * @returns Whether `data` has the transferable Delta shape.
- * @remarks This checks the transfer shape only. Native materialization resolves
- * coordinate containment and dependency availability.
- */
 export function is_delta<T>(data: unknown): data is Delta<T> {
-  if (!Array.isArray(data) || data.length < 1 || data.length > 2) return false
-
-  const [projection, footage] = data as Delta<T>
-
+  if (!Array.isArray(data) || (data.length !== 8 && data.length !== 9))
+    return false
+  for (let index = 0; index < 8; ++index)
+    if (!is_uint32(data[index])) return false
+  const type = data[0]
+  const length = data[2]
   return (
-    Array.isArray(projection) &&
-    projection.length % 12 === 0 &&
-    projection.every(is_uint32) &&
-    (footage === undefined || Array.isArray(footage))
+    (type === 1 && Array.isArray(data[8]) && data[8].length === length) ||
+    (type === 2 && data[8] === undefined)
   )
+}
+
+export function is_acknowledgement(data: unknown): data is Acknowledgement {
+  if (
+    (!Array.isArray(data) && !(data instanceof Uint32Array)) ||
+    data.length % 2 !== 1
+  )
+    return false
+  for (let index = 0; index < data.length; ++index)
+    if (!is_uint32(data[index])) return false
+  return true
 }

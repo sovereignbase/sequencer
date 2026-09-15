@@ -1,16 +1,16 @@
 /**
- * Soft and hard deletion represented by Masks over existing Frames.
+ * Hard deletion represented by Masks over existing Frames.
  *
  * @module
  */
-import type { Delta, Replica } from '../../types/type.js'
+import type { Mutation, Replica } from '../../types/type.js'
 import {
   get_projection_frame_count,
   no_projection_frame_index,
   update_sequence,
-  read_strip_from_buffer,
+  read_acknowledgement,
+  read_delta,
   read_footage_spans,
-  release_mask_footage,
   clear_footage_spans,
 } from '../../wasm/index.js'
 
@@ -19,8 +19,8 @@ import {
  *
  * Native update issues one Mask for each containing Strip crossed by the range.
  * Each update reports its actual bounded length and retained Footage span.
- * The returned Delta contains flat Mask encodings and no new Footage. A hard
- * deletion also releases the corresponding JavaScript Footage immediately.
+ * Each returned packet contains an acknowledgement and one Mask Delta. The
+ * corresponding JavaScript Footage is released immediately.
  * Released entries become `undefined`; the Footage array is not compacted, so
  * all retained indexes stay stable.
  *
@@ -29,8 +29,6 @@ import {
  * @param start_index Index of the first value to delete.
  * @param end_index Boundary immediately after the final value to delete;
  * defaults to the current length.
- * @param hard Whether to release deleted values immediately instead of
- * retaining them for recovery until garbage collection.
  * @returns The transferable Delta, or `false` when the requested range is
  * empty, or the first issuance is rejected. If a later issuance is
  * rejected, returns the accepted prefix Delta.
@@ -39,12 +37,11 @@ import {
 export function remove<T>(
   state: Replica<T>,
   start_index = 0,
-  end_index?: number,
-  hard = false
-): Delta<T> | false {
+  end_index?: number
+): Mutation<T> | Array<Mutation<T>> | false {
   const deletion_end_index = end_index ?? get_projection_frame_count(state[0])
 
-  const projection: number[] = []
+  const mutations: Array<Mutation<T>> = []
   let remaining_frame_count = deletion_end_index - start_index
 
   while (remaining_frame_count > 0) {
@@ -58,22 +55,24 @@ export function remove<T>(
       ) >>> 0
     if (position === no_projection_frame_index) break
 
-    const mask = read_strip_from_buffer<T>()
-    const mask_frame_count = mask[1]
-    void projection.push(...mask)
+    const mask = read_delta<T>()
+    const acknowledgement = read_acknowledgement()
+    const mask_frame_count = mask[2]
+    void mutations.push([acknowledgement, mask])
 
-    if (hard) {
-      const footage_frame_index = read_footage_spans(1)[1]
-      void state[1].fill(
-        undefined,
-        footage_frame_index,
-        footage_frame_index + mask_frame_count
-      )
-      void release_mask_footage(state[0], mask[2], mask[3], mask[4])
-    }
+    const footage_frame_index = read_footage_spans(1)[1]
+    void state[1].fill(
+      undefined,
+      footage_frame_index,
+      footage_frame_index + mask_frame_count
+    )
     void clear_footage_spans()
     remaining_frame_count -= mask_frame_count
   }
 
-  return projection.length === 0 ? false : [projection]
+  return mutations.length === 0
+    ? false
+    : mutations.length === 1
+      ? mutations[0]
+      : mutations
 }

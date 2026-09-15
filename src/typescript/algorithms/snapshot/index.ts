@@ -1,46 +1,29 @@
-/**
- * Complete retained state transferred through the native snapshot buffers.
- *
- * @module
- */
-import type { Delta, Replica } from '../../types/type.js'
+import type { Replica, Snapshot } from '../../types/type.js'
 import {
-  snapshot_sequence,
-  read_projection_from_buffer,
-  read_footage_spans,
   clear_footage_spans,
+  read_footage_spans,
+  get_snapshot_frontiers,
+  read_snapshot_deltas,
+  snapshot_sequence,
 } from '../../wasm/index.js'
 
-/**
- * Captures materialized Strips in Head-to-Tail order.
- *
- * Copies the flat Projection and its ordered Footage spans into independent
- * arrays. Materialized Masks retain their soft-deleted content; released values
- * remain undefined. Mask instructions carry identity, not Footage. Unknown
- * dependencies were ignored during merge and are not part of this snapshot.
- *
- * @param state Replica whose complete retained state is captured.
- * @returns A trusted snapshot with snapshot-local links and packed Footage.
- * @remarks Issues no SequencePoints and does not change the source Footage.
- * Array storage is copied; consumer-owned values are not deep-cloned. Both
- * transfer buffers are cleared after their contents have been consumed.
- */
-export function snapshot<T>(state: Replica<T>): Delta<T> {
+/** Captures frontiers and dependency-ordered origin Deltas. */
+export function snapshot<T>(state: Replica<T>): Snapshot<T> {
   snapshot_sequence(state[0])
-  const projection = read_projection_from_buffer()
-  const buffer = read_footage_spans()
-  const footage: Array<T> = []
-  let result_index = 0
-  for (let span_index = 0; span_index < buffer.length; span_index += 4) {
-    const footage_start = buffer[span_index + 1]
-    const footage_end = footage_start + buffer[span_index + 2]
-    for (
-      let footage_index = footage_start;
-      footage_index < footage_end;
-      ++footage_index
-    )
-      footage[result_index++] = state[1][footage_index] as T
+  const deltas = read_snapshot_deltas<T>()
+  for (const delta of deltas)
+    if (delta[0] === 1) delta[8] = new Array<T | undefined>(delta[2])
+
+  const spans = read_footage_spans()
+  for (let span = 0; span < spans.length; span += 4) {
+    const footage = deltas[spans[span]][8]
+    if (!footage) continue
+    const source = spans[span + 1]
+    const length = spans[span + 2]
+    const target = spans[span + 3]
+    for (let frame = 0; frame < length; ++frame)
+      footage[target + frame] = state[1][source + frame]
   }
-  void clear_footage_spans()
-  return [projection, footage]
+  clear_footage_spans()
+  return [get_snapshot_frontiers(state[0]), deltas]
 }

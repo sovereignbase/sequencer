@@ -9,6 +9,8 @@ int main() {
     const auto capacity = projector.strip_capacity;
     assert(stage_strip(projector, 1, 8, {10, 20, strip * 9},
                        {30, 40, strip}, strip * 8, strip) == strip);
+    assert(projector.masked_of[strip] == 0);
+    projector.masked_of[strip] = strip % 2;
     assert(projector.strip_count == strip + 1);
     if (strip < capacity)
       assert(projector.strip_storage.get() == storage);
@@ -16,6 +18,7 @@ int main() {
       assert(projector.strip_capacity == std::max(64u, capacity * 2));
     for (std::uint32_t previous = 0; previous <= strip; ++previous) {
       assert(projector.strip_type_of[previous] == 1);
+      assert(projector.masked_of[previous] == previous % 2);
       assert(projector.initial_length_of[previous] == 8);
       assert(projector.fragment_length_of[previous] == 8);
       assert(projector.dependency_prefix_of[previous] == previous);
@@ -39,8 +42,11 @@ int main() {
   projector.head_strip_index = projector.tail_strip_index = 0;
   projector.materialized_strip_count = 1;
   projector.right_jump_length_of[0] = 123;
+  projector.masked_of[0] = 1;
   const auto suffix = split_strip(projector, 0, 3);
   assert(suffix == 1024);
+  assert(projector.strip_type_of[suffix] == 1);
+  assert(projector.masked_of[suffix] == 1);
   assert(projector.strip_capacity == 2048);
   assert(projector.fragment_length_of[0] == 3);
   assert(projector.fragment_length_of[suffix] == 5);

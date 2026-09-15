@@ -21,7 +21,7 @@
  * @return Newly appended Strip Index of the suffix.
  * @pre The source is not a Mask and `frame_offset < fragment_length_of[strip_index]`.
  * @post Prefix and suffix cover the original Footage without copying it.
- * Original SequencePoints and the issued containment span remain unchanged.
+ * The operation clocks and exact containment entry remain unchanged.
  * A zero-length prefix retains its split link to the content continuation.
  * @complexity Amortized O(1), excluding shared SoA growth.
  */
@@ -31,23 +31,25 @@ split_strip(Projector &projector, const std::uint32_t strip_index,
   const std::uint32_t suffix_strip_index = projector.append_strip();
   const std::uint32_t source_length = projector.fragment_length_of[strip_index];
 
-  const SequencePoint suffix_start{u32_max, u32_max, u32_max};
-  SequencePoint suffix_previous_end = projector.fragment_start(strip_index);
-  suffix_previous_end.counter_bits += frame_offset;
-
   projector.strip_type_of[suffix_strip_index] = projector.strip_type_of[strip_index];
   projector.masked_of[suffix_strip_index] = projector.masked_of[strip_index];
   projector.fragment_length_of[suffix_strip_index] = source_length - frame_offset;
   projector.initial_length_of[suffix_strip_index] = 0;
   projector.dependency_prefix_of[suffix_strip_index] =
-      projector.fragment_offset(strip_index) + frame_offset;
+      projector.dependency_prefix_of[strip_index];
+  projector.offset_length_of[suffix_strip_index] =
+      projector.offset_length_of[strip_index];
+  projector.fragment_offset_of[suffix_strip_index] =
+      projector.fragment_offset_of[strip_index] + frame_offset;
 
   projector.smaller_competitor_strip_index_of[suffix_strip_index] = u32_max;
   projector.larger_split_strip_index_of[suffix_strip_index] =
       projector.larger_split_strip_index_of[strip_index];
 
-  projector.strip_start_of[suffix_strip_index] = suffix_start;
-  projector.previous_strip_end_of[suffix_strip_index] = suffix_previous_end;
+  projector.anchor_clock_of[suffix_strip_index] =
+      projector.anchor_clock_of[strip_index];
+  projector.insert_clock_of[suffix_strip_index] =
+      projector.insert_clock_of[strip_index];
 
   projector.right_strip_index_of[suffix_strip_index] = suffix_strip_index;
   projector.left_strip_index_of[suffix_strip_index] = suffix_strip_index;

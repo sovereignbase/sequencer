@@ -27,13 +27,15 @@ inline void insert_between(Projector &projector, std::uint32_t left_strip_index,
        projector.larger_split_strip_index_of[left_strip_index] !=
            right_strip_index) &&
       !projector.is_fragment(right_strip_index) &&
-      projector.previous_strip_end_of[right_strip_index] ==
-          projector.previous_strip_end_of[middle_strip_index]) {
+      projector.anchor_clock_of[right_strip_index] ==
+          projector.anchor_clock_of[middle_strip_index] &&
+      projector.offset_length_of[right_strip_index] ==
+          projector.offset_length_of[middle_strip_index]) {
     std::uint32_t larger_sibling = u32_max;
     std::uint32_t smaller_sibling = right_strip_index;
     while (smaller_sibling != u32_max &&
-           projector.strip_start_of[middle_strip_index] <
-               projector.strip_start_of[smaller_sibling]) {
+           projector.insert_clock_of[middle_strip_index] <
+               projector.insert_clock_of[smaller_sibling]) {
       larger_sibling = smaller_sibling;
       smaller_sibling =
           projector.smaller_competitor_strip_index_of[smaller_sibling];

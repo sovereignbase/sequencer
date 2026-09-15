@@ -51,11 +51,7 @@ describe('Instruction and applied Masks', () => {
           .map((row) => row.slice(0, 5))
           .sort()
       ).toEqual([left[0].slice(0, 5), right[0].slice(0, 5)].sort())
-      expect(
-        rows(saved)
-          .filter((row) => row[0] === 6 || row[0] === 7)
-          .reduce((sum, row) => sum + row[10], 0)
-      ).toBe(3)
+      expect(rows(saved).every((row) => row[0] <= 2)).toBe(true)
       const restored = create<string>(saved)
       expect(values(restored)).toEqual(['a'])
       expect(recover(restored)).toEqual(recover(state))
@@ -101,11 +97,7 @@ describe('Instruction and applied Masks', () => {
       compact([[70, 80, 3, 90, 100, 3]], target, true)
       expect(values(target)).toEqual(['a'])
       expect(recover(target)).toEqual(['a'])
-      expect(
-        rows(snapshot(target)).filter(
-          (row) => row[0] === 2 || row[0] === 6 || row[0] === 7
-        )
-      ).toEqual([])
+      expect(rows(snapshot(target)).filter((row) => row[0] === 2)).toEqual([])
       expect(merge(target, parent)).toBe(false)
       expect(acknowledge(target)).toBe(false)
       expect(
@@ -132,11 +124,7 @@ describe('Instruction and applied Masks', () => {
       compact([frontier], target)
       expect(values(target)).toEqual(['a', 'd'])
       expect(recover(target)).toEqual(['a', 'd'])
-      expect(
-        rows(snapshot(target)).filter(
-          (row) => row[0] === 2 || row[0] === 22 || row[0] === 23
-        )
-      ).toEqual([])
+      expect(rows(snapshot(target)).filter((row) => row[0] === 2)).toEqual([])
       expect(acknowledge(target)).toBe(false)
       const compacted = snapshot(target)
       expect(rows(compacted).some((row) => row[0] === 8 || row[0] === 9)).toBe(

@@ -21,7 +21,7 @@ const child: Delta<string> = [
 ]
 
 describe('Native merge change spans', () => {
-  it('returns the changed suffix without separate length or values calls', () => {
+  it('returns only incoming content without separate length or values calls', () => {
     const state = create([parent[0], ['a', 'b', 'c']])
     const length = vi.spyOn(wasm, '_get_projection_frame_count')
     const read = vi.spyOn(wasm, '_write_projection_footage_spans_to_buffer')
@@ -66,14 +66,12 @@ describe('Native merge change spans', () => {
     expect(wasm._get_footage_span_buffer_count()).toBe(0)
   })
 
-  it('returns retained values and tail removals in the same change', () => {
+  it('does not materialize unchanged values after a removal', () => {
     const state = create([parent[0], ['a', 'b', 'c']])
     expect(
       merge(state, [[2, 1, 70, 80, 0, 10, 20, 0, absent, absent, 0, 0]])
     ).toEqual({
-      0: 'b',
-      1: 'c',
-      2: undefined,
+      0: undefined,
     })
     expect(values(state)).toEqual(['b', 'c'])
   })
@@ -100,7 +98,6 @@ describe('Native merge change spans', () => {
     ])
     expect(change).not.toBe(false)
     if (change !== false) {
-      expect(Object.keys(change)).toHaveLength(footage.length)
       expect(change[0]).toBe(0)
       expect(change[footage.length - 1]).toBe(footage.length - 1)
     }

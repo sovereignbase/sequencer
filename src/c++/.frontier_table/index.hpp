@@ -2,7 +2,11 @@
 
 #include <algorithm>
 #include <cstdint>
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#else
 #include <random>
+#endif
 #include <span>
 #include <unordered_map>
 #include <unordered_set>
@@ -21,6 +25,9 @@ class FrontierTable {
 public:
   void observe_actor(const std::uint32_t actor_id) {
     actors.insert(actor_id);
+    // Insert clocks and Mask clocks share Clock's actor lane. Never allocate a
+    // Mask session that is already a known Insert-clock actor.
+    used_sessions.insert(actor_id);
   }
 
   void observe_acknowledgement(
@@ -124,10 +131,29 @@ public:
     changed_sessions.erase(session_id);
   }
 
-  [[nodiscard]] std::uint32_t get_safe_session_id() {
-    std::uint32_t session_id = std::random_device{}();
+  [[nodiscard]] std::uint32_t
+  get_safe_session_id(const std::uint32_t actor_id) {
+#ifdef __EMSCRIPTEN__
+    const auto entropy = static_cast<std::uint32_t>(EM_ASM_INT({
+      const word = new Uint32Array(1);
+      globalThis.crypto.getRandomValues(word);
+      return word[0];
+    }));
+#else
+    const auto entropy = std::random_device{}();
+#endif
+    // This bijective actor mix keeps distinct actors distinct even when two
+    // isolated hosts expose the same entropy stream. Cryptographic host
+    // entropy still rotates the session when an actor is recreated.
+    auto actor_mix = actor_id;
+    actor_mix ^= actor_mix >> 16;
+    actor_mix *= 0x7feb352du;
+    actor_mix ^= actor_mix >> 15;
+    actor_mix *= 0x846ca68bu;
+    actor_mix ^= actor_mix >> 16;
+    auto session_id = entropy ^ actor_mix;
     while (used_sessions.contains(session_id))
-      session_id = std::random_device{}();
+      session_id += 0x9e3779b9u;
     used_sessions.insert(session_id);
     sessions.emplace(session_id,
                      std::unordered_map<std::uint32_t, std::uint32_t>{});

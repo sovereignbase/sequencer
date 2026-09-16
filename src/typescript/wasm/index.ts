@@ -127,12 +127,16 @@ export function ingest_sequence<T>(
   projection: Projection,
   footageIndex: number,
   footageLength: number
-): Uint32Array | false {
+): Uint32Array | false | null {
   write_acknowledgement(acknowledgement)
   write_projection(projection)
-  const accepted =
-    wasm._ingest_projection(sequenceId, footageIndex, footageLength) !== 0
-  if (!accepted) return false
+  const status = wasm._ingest_projection(
+    sequenceId,
+    footageIndex,
+    footageLength
+  )
+  if (status === 2) return null
+  if (status !== 1) return false
   const count = wasm._get_footage_span_buffer_count() >>> 0
   return read_footage_spans(count)
 }

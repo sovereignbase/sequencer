@@ -1,5 +1,91 @@
 import { expect, test } from '@playwright/test'
 
+test('peer gossip resolves B child at C after delayed A parent', async ({
+  browser,
+}) => {
+  const context = await browser.newContext()
+  const [a, b, c] = await Promise.all([0, 1, 2].map(() => context.newPage()))
+
+  try {
+    await Promise.all(
+      [a, b, c].map(async (page, peer) => {
+        await page.goto('/test/browser/index.html')
+        await page.waitForFunction(
+          () => typeof (window as any).sequencer?.create === 'function'
+        )
+        await page.evaluate((actor) => {
+          const api = (window as any).sequencer
+          ;(window as any).causalPeer = { api, state: api.create(actor) }
+        }, 300 + peer)
+      })
+    )
+
+    // A authors the parent and gossips it only to B.
+    const parent = await a.evaluate(() => {
+      const { api, state } = (window as any).causalPeer
+      const delta = api.insert(state, 0, ['A:parent'])
+      if (delta === false) throw new Error('A rejected its local parent.')
+      return [Array.from(delta[0]), Array.from(delta[1]), delta[2]]
+    })
+    expect(
+      await b.evaluate((delta) => {
+        const { api, state } = (window as any).causalPeer
+        return api.ingest(state, delta) !== false
+      }, parent)
+    ).toBe(true)
+
+    // B's child causally depends on A's parent, but reaches C first.
+    const child = await b.evaluate(() => {
+      const { api, state } = (window as any).causalPeer
+      const delta = api.insert(state, 1, ['B:child'])
+      if (delta === false) throw new Error('B rejected its local child.')
+      return [Array.from(delta[0]), Array.from(delta[1]), delta[2]]
+    })
+    expect(
+      await c.evaluate((delta) => {
+        const { api, state } = (window as any).causalPeer
+        return api.ingest(state, delta) !== false
+      }, child)
+    ).toBe(true)
+    expect(
+      await c.evaluate(() => {
+        const { api, state } = (window as any).causalPeer
+        return api.values(state)
+      })
+    ).toEqual([])
+
+    // The delayed parent unlocks the retained child without child redelivery.
+    expect(
+      await c.evaluate((delta) => {
+        const { api, state } = (window as any).causalPeer
+        return api.ingest(state, delta) !== false
+      }, parent)
+    ).toBe(true)
+    expect(
+      await a.evaluate((delta) => {
+        const { api, state } = (window as any).causalPeer
+        return api.ingest(state, delta) !== false
+      }, child)
+    ).toBe(true)
+
+    const values = await Promise.all(
+      [a, b, c].map((page) =>
+        page.evaluate(() => {
+          const { api, state } = (window as any).causalPeer
+          return api.values(state)
+        })
+      )
+    )
+    expect(values).toEqual([
+      ['A:parent', 'B:child'],
+      ['A:parent', 'B:child'],
+      ['A:parent', 'B:child'],
+    ])
+  } finally {
+    await context.close()
+  }
+})
+
 test('peer browsers converge with independent reordering and editor timers', async ({
   browser,
 }) => {
@@ -59,7 +145,12 @@ test('peer browsers converge with independent reordering and editor timers', asy
                   `root:${editor}`,
                 ])
                 if (delta === false) ++runtime.localRejected
-                else runtime.channel.postMessage({ source: editor, ordinal: 0, delta })
+                else
+                  runtime.channel.postMessage({
+                    source: editor,
+                    ordinal: 0,
+                    delta,
+                  })
                 resolve()
               }, editor * 3)
             ),
@@ -83,24 +174,27 @@ test('peer browsers converge with independent reordering and editor timers', asy
               const runtime = (window as any).peerRuntime
               let remaining = 3
               for (let edit = editor; edit < 9; edit += 3)
-                setTimeout(() => {
-                  const { api, state, channel } = runtime
-                  const size = api.length(state)
-                  const delta =
-                    edit % 3 === 0
-                      ? api.insert(state, size, [`insert:${edit}`])
-                      : edit % 3 === 1
-                        ? api.replace(state, edit % size, [`replace:${edit}`])
-                        : api.remove(state, edit % size, (edit % size) + 1)
-                  if (delta === false) ++runtime.localRejected
-                  else
-                    channel.postMessage({
-                      source: editor,
-                      ordinal: edit + 1,
-                      delta,
-                    })
-                  if (--remaining === 0) resolve()
-                }, 50 + edit * 40)
+                setTimeout(
+                  () => {
+                    const { api, state, channel } = runtime
+                    const size = api.length(state)
+                    const delta =
+                      edit % 3 === 0
+                        ? api.insert(state, size, [`insert:${edit}`])
+                        : edit % 3 === 1
+                          ? api.replace(state, edit % size, [`replace:${edit}`])
+                          : api.remove(state, edit % size, (edit % size) + 1)
+                    if (delta === false) ++runtime.localRejected
+                    else
+                      channel.postMessage({
+                        source: editor,
+                        ordinal: edit + 1,
+                        delta,
+                      })
+                    if (--remaining === 0) resolve()
+                  },
+                  50 + edit * 40
+                )
             }),
           editor
         )

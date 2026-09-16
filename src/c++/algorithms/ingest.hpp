@@ -20,6 +20,7 @@ inline std::uint32_t ingest_projection(
   auto remaining_footage = std::min(footage_length, u32_max - footage_frame_index);
   std::uint32_t incoming_footage_index = 0;
   bool integrated = false;
+  bool missing_dependency = false;
   std::size_t processed = 0;
 
   for (const auto &row : rows) {
@@ -49,7 +50,11 @@ inline std::uint32_t ingest_projection(
 
     const bool birth = type == 1 && anchor == Clock{0, 0};
     auto source = birth ? u32_max : projector.containment_table.get(anchor);
-    if (!birth && (source == u32_max || offset > projector.initial_length_of[source]))
+    if (!birth && source == u32_max) {
+      missing_dependency = true;
+      break;
+    }
+    if (!birth && offset > projector.initial_length_of[source])
       break;
     if (type != 1 &&
         (source == u32_max || projector.strip_type_of[source] == 2 ||
@@ -136,7 +141,9 @@ inline std::uint32_t ingest_projection(
     if (integrated)
       projector.refresh_acknowledgement();
   }
-  return complete && (trusted_snapshot || integrated) ? 1u : 0u;
+  if (complete && (trusted_snapshot || integrated))
+    return 1u;
+  return missing_dependency && !integrated ? 2u : 0u;
 }
 
 } // namespace sequencer

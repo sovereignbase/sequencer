@@ -155,7 +155,8 @@ inline void finalize_projection(const std::uint32_t projection_id) noexcept {
     if (projector.strip_type_of[strip] == 3)
       projector.frontier_table.free_compacted_session(
           projector.insert_clock_of[strip].actor);
-  projector.mask_session = projector.frontier_table.get_safe_session_id();
+  projector.mask_session =
+      projector.frontier_table.get_safe_session_id(projector.actor_id);
   projector.refresh_acknowledgement(true);
 }
 

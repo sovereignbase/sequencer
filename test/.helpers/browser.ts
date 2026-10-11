@@ -20,7 +20,6 @@ export async function browserRuntime() {
     ),
     format: 'esm',
     platform: 'browser',
-    deps: { neverBundle: ['node:worker_threads'] },
     dts: false,
     write: false,
     clean: false,

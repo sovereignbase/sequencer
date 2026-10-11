@@ -18,15 +18,39 @@ std::vector<std::unique_ptr<Projection>> projections;
 std::span<const Word> input;
 
 std::vector<Word> input_buffer;
+Word address(const void *pointer) { return Word(reinterpret_cast<std::uintptr_t>(pointer)); }
+struct EntryView {
+  Word tag, pointer, count, content;
+};
+struct SpliceView {
+  Word start, end, pointer, count;
+};
+struct ArrayView {
+  Word pointer, count;
+};
+struct InsertionView {
+  Word coordinates, pointer, count, content;
+};
 struct Output {
-  std::array<Word, 8> header{};
+  std::array<Word, 7> header{};
   Gossip entries;
   Result result;
   Sequence sequence;
   std::vector<Span> values, releases;
-  std::vector<Word> buffer;
+  std::vector<EntryView> gossip;
+  std::vector<SpliceView> splices;
+  std::vector<ArrayView> frontiers;
+  std::vector<InsertionView> insertions;
+  void expose(const Gossip &source) {
+    gossip.clear();
+    for (const auto &e : source)
+      gossip.push_back(
+          e.acknowledgement
+              ? EntryView{1, address(e.frontier.data()), Word(e.frontier.size()), 0}
+              : EntryView{0, address(&e.insertion.coordinates), 6, e.insertion.content});
+  }
 };
-static_assert(sizeof(Span) == 12);
+static_assert(sizeof(Span) == 12 && sizeof(EntryView) == 16 && sizeof(SpliceView) == 16);
 Output out;
 std::unordered_set<Word> session_ids;
 Word random_state = 0x9e3779b9;
@@ -37,7 +61,7 @@ Word next_session() {
     random_state ^= random_state >> 17;
     random_state ^= random_state << 5;
     id = random_state;
-  } while (!id || !session_ids.insert(id).second);
+  } while (!id || session_ids.contains(id));
   return id;
 }
 struct Reader {
@@ -114,7 +138,8 @@ EMSCRIPTEN_KEEPALIVE void runtime_seed(std::uint32_t seed) {
 }
 EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_reserve(std::uint32_t count) {
   using namespace sequencer;
-  input_buffer.resize(count);
+  if (input_buffer.size() < count)
+    input_buffer.resize(count);
   return input_buffer.data();
 }
 void runtime_create(std::uint32_t id, std::uint32_t actor) {
@@ -130,10 +155,10 @@ void runtime_destroy(std::uint32_t id) {
 
 EMSCRIPTEN_KEEPALIVE std::uint32_t *
 runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, std::uint32_t arg1,
-                 std::uint32_t arg2, const std::uint32_t *pointer, std::uint32_t input_count) {
+                 std::uint32_t arg2, const std::uint32_t *pointer, std::uint32_t count) {
   using namespace sequencer;
-  input = {pointer, input_count};
-  out.header = {6, 0, 0, 0, 0, 0, 0, 8};
+  input = {pointer, count};
+  out.header = {6, 0, 0, 0, 0, 0, 0};
   if (operation == 11) {
     runtime_destroy(id);
     return out.header.data();
@@ -141,7 +166,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
   if (operation == 0)
     runtime_create(id, arg0);
   if (id >= projections.size() || !projections[id]) {
-    out.header = {7, 0, 0, 1, 0, 0, 0, 8};
+    out.header = {7, 0, 0, 1, 0, 0, 0};
     return out.header.data();
   }
   auto &p = *projections[id];
@@ -253,110 +278,55 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
   }
   out.releases.swap(p.released);
   out.header[0] = kind;
+  out.header[1] = address(out.releases.data());
   out.header[2] = Word(out.releases.size());
-  const auto gossip_words = [](const Gossip &gossip) {
-    Word count = Word(gossip.size()) * 4;
-    for (const auto &e : gossip)
-      count += e.acknowledgement ? Word(e.frontier.size()) : 6;
-    return count;
-  };
-  Word count = 8 + Word(out.releases.size()) * 3;
   switch (kind) {
   case 2:
-    count += gossip_words(out.entries);
+    out.expose(out.entries);
+    out.header[3] = address(out.gossip.data());
+    out.header[4] = Word(out.gossip.size());
     break;
   case 3:
-    count += Word(out.values.size()) * 3;
+    out.header[3] = address(out.values.data());
+    out.header[4] = Word(out.values.size());
     break;
   case 4:
-    count += Word(out.result.changes.size()) * 4 + gossip_words(out.result.gossip);
+    out.splices.clear();
     for (const auto &s : out.result.changes)
-      count += Word(s.values.size()) * 3;
+      out.splices.push_back({s.start, s.end, address(s.values.data()), Word(s.values.size())});
+    out.expose(out.result.gossip);
+    out.header[3] = address(out.splices.data());
+    out.header[4] = Word(out.splices.size());
+    out.header[5] = address(out.gossip.data());
+    out.header[6] = Word(out.gossip.size());
     break;
   case 5:
-    count += Word(out.sequence.frontiers.size()) * 2 + Word(out.sequence.insertions.size()) * 10;
+    out.frontiers.clear();
+    out.insertions.clear();
     for (const auto &f : out.sequence.frontiers)
-      count += Word(f.size());
+      out.frontiers.push_back({address(f.data()), Word(f.size())});
     for (const auto &i : out.sequence.insertions)
-      count += Word(i.footage.size()) * 3;
+      out.insertions.push_back(
+          {address(&i.coordinates), address(i.footage.data()), Word(i.footage.size()), i.content});
+    out.header[3] = address(out.frontiers.data());
+    out.header[4] = Word(out.frontiers.size());
+    out.header[5] = address(out.insertions.data());
+    out.header[6] = Word(out.insertions.size());
     break;
   }
-  out.buffer.resize(count);
-  std::copy(out.header.begin(), out.header.end(), out.buffer.begin());
-  auto *header = out.buffer.data();
-  header[7] = count;
-  Word position = 8;
-  const auto append = [&](const void *data, Word words) {
-    const auto pointer = position * 4;
-    if (words)
-      std::memcpy(header + position, data, words * sizeof(Word));
-    position += words;
-    return pointer;
-  };
-  const auto expose = [&](const Gossip &gossip) {
-    const auto pointer = position * 4;
-    auto *rows = header + position;
-    position += Word(gossip.size()) * 4;
-    for (const auto &e : gossip) {
-      const auto n = e.acknowledgement ? Word(e.frontier.size()) : 6;
-      rows[0] = e.acknowledgement;
-      rows[1] = append(e.acknowledgement ? static_cast<const void *>(e.frontier.data())
-                                         : &e.insertion.coordinates,
-                       n);
-      rows[2] = n;
-      rows[3] = e.insertion.content;
-      rows += 4;
-    }
-    return pointer;
-  };
-  header[1] = append(out.releases.data(), Word(out.releases.size()) * 3);
-  switch (kind) {
-  case 2:
-    header[3] = expose(out.entries);
-    header[4] = Word(out.entries.size());
-    break;
-  case 3:
-    header[3] = append(out.values.data(), Word(out.values.size()) * 3);
-    header[4] = Word(out.values.size());
-    break;
-  case 4:
-    header[3] = position * 4;
-    header[4] = Word(out.result.changes.size());
-    position += header[4] * 4;
-    for (Word i = 0; i < header[4]; ++i) {
-      const auto &s = out.result.changes[i];
-      auto *row = header + header[3] / 4 + i * 4;
-      row[0] = s.start;
-      row[1] = s.end;
-      row[2] = append(s.values.data(), Word(s.values.size()) * 3);
-      row[3] = Word(s.values.size());
-    }
-    header[5] = expose(out.result.gossip);
-    header[6] = Word(out.result.gossip.size());
-    break;
-  case 5:
-    header[3] = position * 4;
-    header[4] = Word(out.sequence.frontiers.size());
-    position += header[4] * 2;
-    for (Word i = 0; i < header[4]; ++i) {
-      const auto &f = out.sequence.frontiers[i];
-      auto *row = header + header[3] / 4 + i * 2;
-      row[0] = append(f.data(), Word(f.size()));
-      row[1] = Word(f.size());
-    }
-    header[5] = position * 4;
-    header[6] = Word(out.sequence.insertions.size());
-    position += header[6] * 4;
-    for (Word i = 0; i < header[6]; ++i) {
-      const auto &insertion = out.sequence.insertions[i];
-      auto *row = header + header[5] / 4 + i * 4;
-      row[0] = append(&insertion.coordinates, 6);
-      row[1] = append(insertion.footage.data(), Word(insertion.footage.size()) * 3);
-      row[2] = Word(insertion.footage.size());
-      row[3] = insertion.content;
-    }
-    break;
-  }
-  return out.buffer.data();
+  return out.header.data();
+}
+EMSCRIPTEN_KEEPALIVE std::uint32_t runtime_length(std::uint32_t id) {
+  return sequencer::projections[id]->length();
+}
+EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_value(std::uint32_t id, std::uint32_t at) {
+  using namespace sequencer;
+  auto &p = *projections[id];
+  if (at >= p.length())
+    return nullptr;
+  const auto frame = p.find_frame(at);
+  static std::array<Word, 2> value;
+  value = {p.strips.identity[p.gate].content, frame};
+  return value.data();
 }
 }

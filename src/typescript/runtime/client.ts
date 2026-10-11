@@ -1,141 +1,44 @@
-import { workerSource } from './source.js'
-import {
-  Operation,
-  Failure,
-  slots,
-  type Opcode,
-  type Response,
-} from './protocol.js'
+import module from '../wasm/index.js'
+import { Operation, type Opcode } from './protocol.js'
 import type { U32List } from '../types/type.js'
 
-type Call = {
-  operation: Opcode
-  id: number
-  args: readonly unknown[]
-  resolve: (value: any) => void
-  reject: (error: unknown) => void
-}
-type Endpoint = {
-  postMessage(message: unknown, transfer: ArrayBuffer[]): void
-  terminate(): unknown
-  ref?(): void
-  unref?(): void
-}
-
-/** One worker owns the native heap. Generic content stays on the calling thread. */
 class Runtime {
-  private worker?: Endpoint
-  private starting = false
-  private ready = false
-  private failure?: Error
   private nextProjection = 0
   private nextContent = 0
-  private readonly content = new Map<
-    number,
-    Map<number, ReadonlyArray<unknown>>
-  >()
-  private readonly creationErrors = new Map<number, unknown>()
-  private readonly free = Array.from({ length: slots }, (_, i) => slots - i - 1)
-  private readonly calls: Array<Call | undefined> = []
-  private readonly queue: Call[] = []
-  private queueHead = 0
-  private readonly buffers: ArrayBuffer[] = []
-  private readonly finalizer = new FinalizationRegistry<number>((id) => {
-    if (this.worker && !this.failure)
-      void this.call(Operation.Destroy, id).catch(() => {})
-  })
+  private readonly content: Array<Map<number, ReadonlyArray<unknown>> | undefined> = []
+  private readonly free: number[] = []
+  private readonly finalizer = new FinalizationRegistry<number>(id => this.release(id))
 
   create(owner: object, actorID: number, sequence?: unknown): number {
-    const id = this.nextProjection++
-    this.content.set(id, new Map())
-    void this.call(Operation.Create, id, actorID, sequence).catch((error) => {
-      this.creationErrors.set(id, error)
-    })
+    const id = this.free.pop() ?? this.nextProjection++
+    this.content[id] = new Map()
+    try { this.call(Operation.Create, id, actorID, sequence) }
+    catch(error) { this.release(id); throw error }
     this.finalizer.register(owner, id, owner)
     return id
   }
-
-  destroy(owner: object, id: number): Promise<void> {
+  destroy(owner: object, id: number): void {
     this.finalizer.unregister(owner)
-    return this.call(Operation.Destroy, id)
+    this.release(id)
   }
-
-  call<T>(
-    operation: Opcode,
-    id: number,
-    ...args: readonly unknown[]
-  ): Promise<T> {
-    if (this.failure) return Promise.reject(this.failure)
-    const { promise, resolve, reject } = Promise.withResolvers<T>()
-    this.queue.push({ operation, id, args, resolve, reject })
-    try {
-      this.worker?.ref?.()
-      if (!this.starting) {
-        this.starting = true
-        void this.start().catch((error) => this.fail(error))
-      }
-      this.flush()
-    } catch (error) {
-      this.fail(error instanceof Error ? error : new Error(String(error)))
-    }
-    return promise
+  private release(id: number): void {
+    if (!this.content[id]) return
+    module._runtime_dispatch(Operation.Destroy, id, 0, 0, 0, 0, 0)
+    this.content[id] = undefined
+    this.free.push(id)
   }
-
-  private async start(): Promise<void> {
-    if (typeof Worker === 'undefined') {
-      const { Worker: Thread } = await import('node:worker_threads')
-      const worker = new Thread(
-        `import('node:worker_threads').then(({parentPort}) => {
-          globalThis.self = globalThis;
-          self.postMessage = (message, transfer) => parentPort.postMessage(message, transfer);
-          parentPort.on('message', data => self.onmessage({data}));
-          ${workerSource}
-        });`,
-        { eval: true, name: 'sequencer' }
-      )
-      worker.on('message', (data) => this.complete(data))
-      worker.on('error', (error) =>
-        this.fail(error instanceof Error ? error : new Error(String(error)))
-      )
-      this.worker = worker
-      return
-    }
-    const url = URL.createObjectURL(
-      new Blob([workerSource], { type: 'text/javascript' })
-    )
-    try {
-      const worker = new Worker(url, { name: 'sequencer' })
-      worker.onmessage = (event) => this.complete(event.data)
-      worker.onerror = (event) =>
-        this.fail(new Error(event.message || 'Sequencer worker failed'))
-      worker.onmessageerror = () =>
-        this.fail(new Error('Sequencer worker response could not be received'))
-      this.worker = worker
-    } finally {
-      URL.revokeObjectURL(url)
-    }
+  length(id: number): number {
+    if (id < 0) throw new Error('Projection has been destroyed')
+    return module._runtime_length(id)
   }
-
-  private flush(): void {
-    if (!this.ready) return
-    while (this.free.length && this.queueHead < this.queue.length) {
-      const call = this.queue[this.queueHead++]
-      const error = this.creationErrors.get(call.id)
-      if (error && call.operation !== Operation.Destroy) {
-        call.reject(error)
-        continue
-      }
-      const slot = this.free.pop()!
-      this.calls[slot] = call
-      this.send(slot)
-    }
-    if (this.queueHead === this.queue.length) {
-      this.queue.length = 0
-      this.queueHead = 0
-    }
+  value<T>(id: number, at: number): T | undefined {
+    if (id < 0) throw new Error('Projection has been destroyed')
+    const pointer = module._runtime_value(id, at) >>> 2
+    if (!pointer) return
+    const heap = module.HEAPU32
+    return this.content[id]!.get(heap[pointer])?.[heap[pointer + 1]] as T | undefined
   }
-
-  private inputSize({ operation, args }: Call): number {
+  private inputSize(operation: Opcode, value: unknown, other: unknown): number {
     if (operation === Operation.Replace) return 1
     if (
       operation !== Operation.Create &&
@@ -143,7 +46,7 @@ class Runtime {
       operation !== Operation.Merge
     )
       return 0
-    const sequence = operation === Operation.Create ? args[1] : args[0]
+    const sequence = operation === Operation.Create ? other : value
     const groups =
       operation === Operation.Apply
         ? [Array.isArray(sequence) ? sequence : [null]]
@@ -166,21 +69,15 @@ class Runtime {
     return words
   }
 
-  private send(slot: number): void {
-    const call = this.calls[slot]!
-    const { operation, id, args } = call
-    const count = this.inputSize(call)
-    const heap = new Uint32Array(
-        count
-          ? new ArrayBuffer((count + 8) * 4)
-          : (this.buffers.pop() ?? new ArrayBuffer(32))
-      ),
-      base = 8,
-      contents = this.content.get(id)
+  call<T>(operation: Opcode, id: number, value?: unknown, at?: unknown, end?: unknown): T {
+    if (id < 0) throw new Error('Projection has been destroyed')
+    const count = this.inputSize(operation, value, at)
+    const pointer = count ? module._runtime_reserve(count) : 0
+    const heap = module.HEAPU32, base = pointer >>> 2, contents = this.content[id]!
     const bind = (values: unknown): number => {
       if (!Array.isArray(values)) return 0
       const token = ++this.nextContent
-      contents?.set(token, values)
+      contents.set(token, values)
       return token
     }
     const absent = 0xffffffff
@@ -188,29 +85,29 @@ class Runtime {
       a1 = 0,
       a2 = 0
     if (operation === Operation.Insert || operation === Operation.Replace) {
-      a0 = (args[0] as unknown[]).length
-      a1 = bind(args[0])
-      a2 = (args[1] as number | undefined) ?? absent
+      a0 = (value as unknown[]).length
+      a1 = bind(value)
+      a2 = (at as number | undefined) ?? absent
       if (operation === Operation.Replace)
-        heap[base] = (args[2] as number | undefined) ?? absent
+        heap[base] = (end as number | undefined) ?? absent
     } else if (
       operation === Operation.Remove ||
       operation === Operation.Values
     ) {
-      a0 = (args[0] as number | undefined) ?? absent
-      a1 = (args[1] as number | undefined) ?? absent
+      a0 = (value as number | undefined) ?? absent
+      a1 = (at as number | undefined) ?? absent
     } else if (
       operation === Operation.Retire ||
       operation === Operation.Value
     ) {
-      a0 = args[0] as number
+      a0 = value as number
     } else if (
       operation === Operation.Create ||
       operation === Operation.Apply ||
       operation === Operation.Merge
     ) {
-      a0 = operation === Operation.Create ? (args[0] as number) : 0
-      const sequence = operation === Operation.Create ? args[1] : args[0]
+      a0 = operation === Operation.Create ? (value as number) : 0
+      const sequence = operation === Operation.Create ? at : value
       const valid =
         (operation === Operation.Create && sequence === undefined) ||
         (Array.isArray(sequence) &&
@@ -267,25 +164,12 @@ class Runtime {
           data += count
         }
     }
-    heap.set([slot, operation, id, a0, a1, a2, 0, count])
-    this.worker!.postMessage(heap.buffer, [heap.buffer])
-  }
 
-  private complete(message: Response): void {
-    if (!(message instanceof ArrayBuffer)) {
-      if (message[0] === Failure) this.fail(message[1])
-      else {
-        this.ready = true
-        this.flush()
-      }
-      return
-    }
-    const heap = new Uint32Array(message),
-      slot = heap[7]
-    const call = this.calls[slot]!
-    try {
-      const header = 0,
-        content = this.content.get(call.id)
+    const resultPointer = module._runtime_dispatch(operation, id, a0, a1, a2, pointer, count)
+    return this.result(operation, id, resultPointer) as T
+  }
+  private result(operation: Opcode, id: number, pointer: number): unknown {
+    const heap = module.HEAPU32, header = pointer >>> 2, content = this.content[id]!
       const kind = heap[header],
         p0 = heap[header + 3],
         n0 = heap[header + 4],
@@ -349,7 +233,7 @@ class Runtime {
           break
         case 3: {
           const items = values(p0, n0)
-          result = call.operation === Operation.Value ? items[0] : items
+          result = operation === Operation.Value ? items[0] : items
           break
         }
         case 4: {
@@ -386,41 +270,19 @@ class Runtime {
           break
         }
         case 6:
-          if (call.operation === Operation.Destroy) {
-            this.content.delete(call.id)
-            this.creationErrors.delete(call.id)
+          if (operation === Operation.Destroy) {
+            this.content[id] = undefined
           }
           break
         case 7:
           throw new Error(
             p0 === 1
               ? 'Projection has been destroyed'
-              : `Native operation ${call.operation} failed`
+              : `Native operation ${operation} failed`
           )
       }
-      call.resolve(result)
-    } catch (error) {
-      if (call.operation === Operation.Create)
-        this.creationErrors.set(call.id, error)
-      call.reject(error)
-    }
-    this.calls[slot] = undefined
-    if (message.byteLength === 32 && this.buffers.length < slots)
-      this.buffers.push(message)
-    this.free.push(slot)
-    this.flush()
-    if (this.free.length === slots && this.queue.length === 0)
-      this.worker?.unref?.()
-  }
 
-  private fail(error: Error): void {
-    this.failure = error
-    this.worker?.terminate()
-    for (const call of this.calls) call?.reject(error)
-    for (let i = this.queueHead; i < this.queue.length; ++i)
-      this.queue[i].reject(error)
-    this.calls.length = this.queue.length = 0
-    this.content.clear()
+    return result
   }
 }
 export const runtime = new Runtime()

@@ -12,8 +12,7 @@ uint32 words, with signed effects interpreted in C++.
 - `types/type.hpp` defines coordinates, strips, spans and operation results.
 - `bindings.cpp` exposes scalar calls and contiguous numeric result buffers.
 
-The dedicated worker exclusively owns native allocation and algorithm execution.
-Ordinary linear memory remains inside the worker. Numeric buffers transfer
-ownership between the caller and the worker; the WASM boundary uses bulk copies.
-Generic Footage stays on the calling thread; native spans address opaque content
-IDs and offsets. No JS sequence graph or algorithm state is required.
+One synchronous WASM instance owns native allocation and algorithm execution.
+JavaScript reads borrowed numeric result views and retains generic Footage.
+Native spans address opaque content IDs and offsets. No JS sequence graph or
+algorithm state is required.

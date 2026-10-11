@@ -14,4 +14,4 @@ Existing public TypeScript signatures must remain compatible.
 
 New methods may be added, but existing methods and their public signatures must not change.
 
-The internal runtime, memory layout, validation strategy, worker architecture, and WASM implementation may change freely when doing so improves performance, provided that the user-facing API remains compatible.
+The internal runtime, memory layout, validation strategy, and WASM implementation may change freely when doing so improves performance, provided that the user-facing API remains compatible.

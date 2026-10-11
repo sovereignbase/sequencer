@@ -13,10 +13,3 @@ export const Operation = {
   Destroy: 11,
 } as const
 export type Opcode = (typeof Operation)[keyof typeof Operation]
-export const slots = 64
-export const Ready = -1
-export const Failure = -3
-/** Numeric buffers change ownership at each worker message. */
-export type Request = ArrayBuffer
-export type Response =
-  ArrayBuffer | readonly [typeof Ready] | readonly [typeof Failure, Error]

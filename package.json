@@ -37,8 +37,7 @@
   "scripts": {
     "configure:wasm": "emcmake cmake --preset wasm-release",
     "build": "npm run build:wasm && npm run build:package",
-    "build:worker": "node scripts/build-worker.mjs",
-    "build:package": "npm run build:worker && tsdown",
+    "build:package": "tsdown",
     "build:wasm": "node scripts/build-wasm.mjs",
     "docs": "typedoc",
     "docs:c++": "node scripts/build-cpp-docs.mjs",

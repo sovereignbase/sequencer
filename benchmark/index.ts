@@ -8,7 +8,7 @@ import type { BenchmarkConfig } from './.shared/types.ts'
 const defaults = {
   suites: ['lifecycle', 'throughput'] as const,
   runs: 3,
-  maximumStripCount: { lifecycle: 1000, throughput: 1000 },
+  maximumStripCount: { lifecycle: 10000, throughput: 10000 },
   initialStripCount: 100,
   burstMilliseconds: 100,
   maximumCalls: 10000,

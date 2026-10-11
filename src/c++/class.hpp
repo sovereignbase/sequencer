@@ -2,6 +2,7 @@
 #include "components/ContainmentTable/class.hpp"
 #include "components/FrontierTable/class.hpp"
 #include "components/PendingTable/class.hpp"
+#include "components/StripStorage/class.hpp"
 #include <cmath>
 #include <stdexcept>
 
@@ -9,7 +10,7 @@ namespace sequencer {
 class Projection {
 public:
   const Word actor;
-  std::vector<Strip> strips{Strip{}};
+  StripStorage strips;
   Index structural_head{}, head{}, tail{}, gate{};
   Word structural_count{}, frame_count{}, gate_position{};
   Index left_jump_to_patch{}, right_jump_to_patch{};
@@ -21,14 +22,8 @@ public:
 
   Projection(Word actor_id, Word increasing_session, Word decreasing_session)
       : actor(actor_id), increase_clock{increasing_session, 0},
-        decrease_clock{decreasing_session, 0} {
-    strips.reserve(64);
-  }
-  Index allocate(Insertion i) {
-    auto index = static_cast<Index>(strips.size());
-    strips.push_back({i.coordinates, i.content});
-    return index;
-  }
+        decrease_clock{decreasing_session, 0} {}
+  Index allocate(Insertion i) { return strips.append(i); }
   Word length() const { return frame_count; }
   void insert_first(Index i);
   Index split_strip(Index anchor, Word point, std::int32_t incoming_diff);

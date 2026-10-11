@@ -2,8 +2,8 @@
 
 namespace sequencer {
 void link_jumps(Projection &p, Index left, Index right, Word frames, Word strips) {
-  auto &a = p.strips[left];
-  auto &b = p.strips[right];
+  auto a = p.strips[left];
+  auto b = p.strips[right];
   if (a.right_jump && a.right_jump != right)
     p.strips[a.right_jump].left_jump = none;
   if (b.left_jump && b.left_jump != left)

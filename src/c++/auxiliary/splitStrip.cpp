@@ -5,7 +5,7 @@
 namespace sequencer {
 Index Projection::split_strip(Index a, Word point, std::int32_t incoming_diff) {
   // Copy before arena growth: indices survive relocation, C++ references do not.
-  const auto old = strips[a];
+  const Strip old = strips[a];
   if (incoming_diff < 0 && old.content)
     released.push_back({old.content, point, magnitude(incoming_diff)});
   const auto left_diff = (old.effect() < 0 ? -1 : 1) * std::int32_t(point - old.fragment_start);

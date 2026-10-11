@@ -2,7 +2,8 @@
 #include "../types/type.hpp"
 
 namespace sequencer {
-inline bool competition_is_larger(const Strip &incoming, const Strip &competitor) {
+template <class Incoming, class Competitor>
+inline bool competition_is_larger(const Incoming &incoming, const Competitor &competitor) {
   const auto &a = incoming.coordinates;
   const auto &b = competitor.coordinates;
   return (a.diff < 0 && b.diff > 0) ||

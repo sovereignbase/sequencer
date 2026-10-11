@@ -1,7 +1,6 @@
 import { workerSource } from './source.js'
 import {
   Operation,
-  Ready,
   Failure,
   slots,
   type Opcode,
@@ -171,7 +170,11 @@ class Runtime {
     const call = this.calls[slot]!
     const { operation, id, args } = call
     const count = this.inputSize(call)
-    const heap = new Uint32Array(count ? new ArrayBuffer((count + 8) * 4) : this.buffers.pop() ?? new ArrayBuffer(32)),
+    const heap = new Uint32Array(
+        count
+          ? new ArrayBuffer((count + 8) * 4)
+          : (this.buffers.pop() ?? new ArrayBuffer(32))
+      ),
       base = 8,
       contents = this.content.get(id)
     const bind = (values: unknown): number => {
@@ -277,10 +280,12 @@ class Runtime {
       }
       return
     }
-    const heap = new Uint32Array(message), slot = heap[7]
+    const heap = new Uint32Array(message),
+      slot = heap[7]
     const call = this.calls[slot]!
     try {
-      const header = 0, content = this.content.get(call.id)
+      const header = 0,
+        content = this.content.get(call.id)
       const kind = heap[header],
         p0 = heap[header + 3],
         n0 = heap[header + 4],
@@ -314,7 +319,8 @@ class Runtime {
       }
       const words = (pointer: number, count: number): number[] => {
         const result = new Array<number>(count)
-        for (let i = 0, at = pointer >>> 2; i < count; ++i) result[i] = heap[at + i]
+        for (let i = 0, at = pointer >>> 2; i < count; ++i)
+          result[i] = heap[at + i]
         return result
       }
       const gossip = (pointer: number, count: number): unknown[] => {
@@ -365,11 +371,15 @@ class Runtime {
             insertions: unknown[] = []
           for (let at = p0 >>> 2, end = at + n0 * 2; at < end; at += 2)
             frontiers.push(words(heap[at], heap[at + 1]))
-          for (let at = p1 >>> 2, end = at + n1 * 3; at < end; at += 3) {
+          for (let at = p1 >>> 2, end = at + n1 * 4; at < end; at += 4) {
             const coordinates = words(heap[at], 6),
-              footage = values(heap[at + 1], heap[at + 2])
+              footage = heap[at + 3]
+                ? content?.get(heap[at + 3])
+                : heap[at + 2]
+                  ? values(heap[at + 1], heap[at + 2])
+                  : undefined
             insertions.push(
-              footage.length ? [coordinates, footage] : [coordinates]
+              footage === undefined ? [coordinates] : [coordinates, footage]
             )
           }
           result = [frontiers, insertions]
@@ -395,7 +405,8 @@ class Runtime {
       call.reject(error)
     }
     this.calls[slot] = undefined
-    if (message.byteLength === 32 && this.buffers.length < slots) this.buffers.push(message)
+    if (message.byteLength === 32 && this.buffers.length < slots)
+      this.buffers.push(message)
     this.free.push(slot)
     this.flush()
     if (this.free.length === slots && this.queue.length === 0)

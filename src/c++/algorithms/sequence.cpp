@@ -68,6 +68,7 @@ Sequence Projection::sequence() const {
     if (first) {
       auto exported = c;
       std::vector<Span> footage;
+      Word content = 0;
       if (c.diff > 0 && !compactable.empty()) {
         exported.anchor_session = left == omitted ? 0 : output.insertions[left].coordinates.session;
         exported.anchor_start = left == omitted ? 0 : output.insertions[left].coordinates.start;
@@ -94,10 +95,10 @@ Sequence Projection::sequence() const {
         exported.diff +=
             std::int32_t(before(target, c.anchor_diff - c.diff) - before(target, c.anchor_diff));
       } else if (c.diff > 0)
-        footage.push_back({strips.identity[s].content, 0, Word(c.diff)});
+        content = strips.identity[s].content;
       if (exported.diff) {
         insertion = Word(output.insertions.size());
-        output.insertions.push_back({exported, std::move(footage)});
+        output.insertions.push_back({exported, std::move(footage), content});
       }
       included.emplace(key, insertion);
     } else

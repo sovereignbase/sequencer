@@ -18,7 +18,9 @@ export async function run(
   try {
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
     const page = await browser.newPage()
-    await page.goto(`http://127.0.0.1:${(server.address() as { port: number }).port}`)
+    await page.goto(
+      `http://127.0.0.1:${(server.address() as { port: number }).port}`
+    )
     await page.addScriptTag({ content: source })
     return await page.evaluate('Compatibility.runSuite()')
   } finally {

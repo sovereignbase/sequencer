@@ -18,4 +18,5 @@ export const Ready = -1
 export const Failure = -3
 /** Numeric buffers change ownership at each worker message. */
 export type Request = ArrayBuffer
-export type Response = ArrayBuffer | readonly [typeof Ready] | readonly [typeof Failure, Error]
+export type Response =
+  ArrayBuffer | readonly [typeof Ready] | readonly [typeof Failure, Error]

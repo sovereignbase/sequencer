@@ -9,7 +9,16 @@ scope.onmessage = ({ data }: MessageEvent<Request>) => {
     const request = new Uint32Array(data)
     const pointer = module._runtime_reserve(request[7])
     module.HEAPU32.set(request.subarray(8, 8 + request[7]), pointer >>> 2)
-    const result = module._runtime_dispatch(request[1], request[2], request[3], request[4], request[5], pointer, request[7]) >>> 2
+    const result =
+      module._runtime_dispatch(
+        request[1],
+        request[2],
+        request[3],
+        request[4],
+        request[5],
+        pointer,
+        request[7]
+      ) >>> 2
     const heap = module.HEAPU32
     const count = heap[result + 7]
     const reply = count <= request.length ? request : new Uint32Array(count)

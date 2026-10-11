@@ -274,7 +274,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
       count += Word(s.values.size()) * 3;
     break;
   case 5:
-    count += Word(out.sequence.frontiers.size()) * 2 + Word(out.sequence.insertions.size()) * 9;
+    count += Word(out.sequence.frontiers.size()) * 2 + Word(out.sequence.insertions.size()) * 10;
     for (const auto &f : out.sequence.frontiers)
       count += Word(f.size());
     for (const auto &i : out.sequence.insertions)
@@ -346,13 +346,14 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     }
     header[5] = position * 4;
     header[6] = Word(out.sequence.insertions.size());
-    position += header[6] * 3;
+    position += header[6] * 4;
     for (Word i = 0; i < header[6]; ++i) {
       const auto &insertion = out.sequence.insertions[i];
-      auto *row = header + header[5] / 4 + i * 3;
+      auto *row = header + header[5] / 4 + i * 4;
       row[0] = append(&insertion.coordinates, 6);
       row[1] = append(insertion.footage.data(), Word(insertion.footage.size()) * 3);
       row[2] = Word(insertion.footage.size());
+      row[3] = insertion.content;
     }
     break;
   }

@@ -51,6 +51,7 @@ struct Result {
 struct ExportInsertion {
   Coordinates coordinates;
   std::vector<Span> footage;
+  Word content{};
 };
 struct Sequence {
   std::vector<Acknowledgement> frontiers;

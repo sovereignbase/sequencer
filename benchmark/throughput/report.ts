@@ -16,7 +16,7 @@ export async function writeThroughputReport(report: ThroughputReport) {
     '',
     `Runs: ${report.config.runs}; initial Strips: ${report.config.checkpoints.join(', ')}; Strip length: ${report.config.minimumStripFrameLength}…${report.config.maximumStripFrameLength} Frames.`,
     '',
-    `Each burst runs for approximately ${report.config.burstMilliseconds} ms, up to ${report.config.maximumCalls} calls.`,
+    `Each burst awaits public API completion, including worker RPC. Each burst runs for approximately ${report.config.burstMilliseconds} ms, up to ${report.config.maximumCalls} calls.`,
     '',
     '## Aggregate throughput',
     '',
@@ -69,8 +69,8 @@ export async function writeThroughputReport(report: ThroughputReport) {
     '',
     'Estimated bytes describe the exported Sequence representation. Process memory is shared by all fixtures, inputs and temporary results; it is not attributable to one Projection. Use `node --expose-gc benchmark/index.ts --suite throughput` to collect garbage between bursts.',
     '',
-    '| Method | case | run | initial Strips | visible Strips | structural Strips | initial estimated bytes | final estimated bytes | memory B/Strip | memory B/Frame | initial process RSS | final process RSS | final process heap used |',
-    '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |'
+    '| Method | case | run | initial Strips | visible Strips | initial estimated bytes | final estimated bytes | memory B/Strip | memory B/Frame | initial process RSS | final process RSS | final process heap used |',
+    '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |'
   )
   for (const {
     run,
@@ -85,7 +85,6 @@ export async function writeThroughputReport(report: ThroughputReport) {
         run + 1,
         initialStripCount,
         after.stripCount,
-        after.structuralStripCount,
         before.memory.bytes,
         after.memory.bytes,
         decimal(after.memory.bytesPerStrip),
@@ -134,7 +133,7 @@ export async function writeThroughputReport(report: ThroughputReport) {
     '- apply.insert and merge.insert receive one fresh causally ordered tail insertion per call; duplicate cases repeatedly receive one already materialized insertion. Both merge cases include the same actor-only frontier; earlier parents are already materialized.',
     '- create.sequence hydrates the complete initial Sequence; create.empty constructs an empty Projection. Their temporary results are discarded before memory observation; before/after sizes describe the retained source fixture.',
     '- retire removes distinct active Actors established before timing. length reads the maintained count. values and sequence process the entire document.',
-    '- Memory estimate: four bytes per Sequence metadata word plus eight bytes per JavaScript Footage slot. Visible Strip counts after a burst count positive runtime fragments, not hidden Masks.',
+    '- Memory estimate: four bytes per Sequence metadata word plus eight bytes per JavaScript Footage slot. Visible Strip counts after a burst count positive insertions in the exported Sequence.',
     ''
   )
   return writeReportFiles(report.config.outputPath, report, lines.join('\n'))

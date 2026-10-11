@@ -1,30 +1,12 @@
 // TypeScript bindings for emscripten-generated code.  Automatically generated at compile time.
 declare namespace RuntimeExports {
-    /**
-     * @param {string|null=} returnType
-     * @param {Array=} argTypes
-     * @param {Array=} args
-     * @param {Object=} opts
-     */
-    function ccall(ident: any, returnType?: (string | null) | undefined, argTypes?: any[] | undefined, args?: any[] | undefined, opts?: Object | undefined): any;
-    /**
-     * @param {string=} returnType
-     * @param {Array=} argTypes
-     * @param {Object=} opts
-     */
-    function cwrap(ident: any, returnType?: string | undefined, argTypes?: any[] | undefined, opts?: Object | undefined): any;
     let HEAPU32: Uint32Array;
 }
 interface WasmModule {
   _runtime_seed(_0: number): void;
   _runtime_arena_pointer(): number;
   _runtime_reserve(_0: number, _1: number): number;
-  _runtime_create(_0: number, _1: number, _2: number, _3: number): void;
-  _runtime_destroy(_0: number): void;
-  _runtime_output_pointer(_0: number): number;
-  _runtime_output_count(_0: number): number;
-  _runtime_execute(_0: number, _1: number, _2: number, _3: number, _4: number): void;
-  _runtime_dispatch(_0: number, _1: number, _2: number, _3: number, _4: number, _5: number, _6: number, _7: number): void;
+  _runtime_dispatch(_0: number, _1: number, _2: number, _3: number, _4: number, _5: number, _6: number, _7: number): number;
 }
 
 export type MainModule = WasmModule & typeof RuntimeExports;

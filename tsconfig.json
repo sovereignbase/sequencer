@@ -9,6 +9,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "strict": true,
+    "types": ["node"],
     "skipLibCheck": true,
     "lib": ["es2024", "dom", "dom.iterable", "webworker"],
     "allowJs": true,

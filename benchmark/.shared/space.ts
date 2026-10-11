@@ -23,7 +23,7 @@ export function measureSpace(
     4
   const javascriptFootageSlotBytes =
     sequence[1].reduce(
-      (slots, insertion) => slots + (insertion[6]?.length ?? 0),
+      (slots, insertion) => slots + (insertion[1]?.length ?? 0),
       0
     ) * 8
   const bytes = sequenceMetadataWordBytes + javascriptFootageSlotBytes

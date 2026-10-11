@@ -1,15 +1,39 @@
 import { defineConfig as define_config } from 'vitest/config'
+import { playwright } from '@vitest/browser-playwright'
 
 /**
  * Runs the TypeScript unit, convergence, and generative stress suites against
  * the current source tree while publishing test and V8 coverage reports.
  */
 export default define_config({
+  server: {
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
+  },
   test: {
-    include: [
-      'test/unit/**/*.test.ts',
-      'test/convergence/**/*.test.ts',
-      'test/stress/**/*.test.ts',
+    projects: [
+      {
+        extends: true,
+        test: {
+          include: ['test/unit/**/test.ts', 'test/convergence/**/test.ts'],
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: playwright(),
+            instances: [{ browser: 'chromium' }],
+          },
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'stress',
+          include: ['test/stress/**/*.test.ts', 'test/integration/**/test.ts'],
+          environment: 'node',
+        },
+      },
     ],
     environment: 'node',
     fileParallelism: false,

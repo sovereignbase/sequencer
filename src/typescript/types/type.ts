@@ -6,7 +6,7 @@ export type U32List = Uint32Array | ReadonlyArray<number>
  * `[anchorSession, anchorStart, anchorDiff,
  *   insertionSession, insertionStart, insertionDiff]`.
  * Signed coordinates use their 32-bit bit pattern; WASM interprets those lanes
- * as signed. There is no kind/prefix/end-time encoding from the old runtime.
+ * as signed.
  */
 export type InsertionWords = U32List
 

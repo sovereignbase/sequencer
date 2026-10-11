@@ -14,14 +14,19 @@ scope.onmessage = ({ data }: MessageEvent<Request>) => {
       scope.postMessage([Reserve, operation, address, memory])
       return
     }
-    module._runtime_dispatch(slot, operation, id, a0, a1, a2, pointer, words)
+    const result = module._runtime_dispatch(slot, operation, id, a0, a1, a2, pointer, words)
     const current = module.HEAPU32.buffer as SharedArrayBuffer
     scope.postMessage([
-      slot, module._runtime_output_pointer(slot), module._runtime_output_count(slot),
+      slot,
+      result,
+      0,
       current === memory ? undefined : current,
     ])
     memory = current
   } catch (error) {
-    scope.postMessage([Failure, error])
+    scope.postMessage([
+      Failure,
+      error instanceof Error ? error : new Error(String(error)),
+    ])
   }
 }

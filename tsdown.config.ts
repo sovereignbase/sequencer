@@ -25,6 +25,7 @@ export default defineConfig({
   format: ['esm', 'cjs'],
   outDir: 'dist',
   platform: 'neutral',
+  deps: { neverBundle: ['node:worker_threads'] },
   target: 'es2024',
   dts: true,
   sourcemap: true,

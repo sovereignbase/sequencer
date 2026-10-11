@@ -75,7 +75,7 @@ if(EMSCRIPTEN)
       "-sINITIAL_MEMORY=67108864"
       "-sFILESYSTEM=0"
       "-sDYNAMIC_EXECUTION=0"
-      "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','HEAPU32']"
+      "-sEXPORTED_RUNTIME_METHODS=['HEAPU32']"
       "--emit-tsd=${CMAKE_CURRENT_BINARY_DIR}/sequencer_wasm.d.mts"
   )
 

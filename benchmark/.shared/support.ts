@@ -105,12 +105,12 @@ export class OperationAccumulator {
   }
 }
 
-export function measure<T>(operation: () => T): {
+export async function measure<T>(operation: () => T | Promise<T>): Promise<{
   result: T
   nanoseconds: number
-} {
+}> {
   const start = process.hrtime.bigint()
-  const result = operation()
+  const result = await operation()
   const end = process.hrtime.bigint()
   return { result, nanoseconds: Number(end - start) }
 }

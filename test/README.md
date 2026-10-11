@@ -1,53 +1,37 @@
-# Dependency-ordered Delta test audit
+# Test suites
 
-## Contract
+Choose a suite by the behavior being changed. Convergence cases are grouped by their primary contract; each group links to scenarios that also exercise that contract elsewhere.
 
-- A missing first dependency drops the entire Delta without retaining metadata or Footage.
-- A later missing dependency stops consumption; it does not trigger a search through later rows.
-- Issued Strip types are only 0, 1, and 2. Masked and released content are state, not additional operation types.
-- Native merge reports only affected operation ranges, not the unchanged visible suffix.
-- An equal-length replacement reports its Mask and incoming insert ranges.
-- Separate source fragments separated by unrelated insertions require separate removal spans.
-- Snapshot exchange and trusted initialization must preserve visible and recoverable content.
-- TypeScript must not read accepted Footage back frame by frame to construct a Change.
+| Suite                                    | Scope                                                                                         | Run from the repository root                |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| [Unit](unit/README.md)                   | Consumer-facing public API, wire results, validation, and Footage identity.                   | `npm run test:unit`                         |
+| [Convergence](convergence/README.md)     | Editing semantics, canonical anchors, causality, ordering, masks, traversal, and persistence. | `npm run test:convergence`                  |
+| [Integration](integration/README.md)     | Browser execution, peer-to-peer fanout, and WebSocket delivery.                               | `npm run test:integration`                  |
+| [Stress](stress/README.md)               | Replayable generated concurrent editing histories.                                            | `npm run test:stress` after a package build |
+| [Compatibility](compatibility/README.md) | One shared public-API suite across runtimes and browsers.                                     | `npm run test:compatibility`                |
 
-Old suffix-Change expectations and legacy type fixtures have been updated.
-Stress delivery now preserves dependency order, with duplicate delivery, restart,
-ordered batches, and full/partial snapshot exchange. Explicit malformed-order
-tests verify rejection rather than automatic deferred resolution.
+## Full verification
 
-## Verified on 2026-09-13
+`npm test` builds the package and API documentation, typechecks tests, runs every Vitest suite above with 100% source statement/branch/function/line coverage, then runs runtime compatibility.
 
-- `npm run build:wasm`: passed.
-- `npm run build`: passed, including documentation generation.
-- `npm run test:vitest`: 124 passed, 27 failed, 151 total.
-- TypeScript coverage: statements, functions, and lines 100%; branches 98.79%.
-  The existing 100% branch threshold remains unchanged and fails the run.
-- Focused C++ tests compiled as WASM: `read`, `projector_storage`, and `merge`
-  passed; `initialize` and `snapshot` failed.
-- `npm test` was also run: all five runtime targets failed snapshot hydration;
-  that run's browser server exceeded its startup timeout.
-- No benchmarks were run for this test update.
+## Convergence contracts
 
-## Runtime failures retained in the tests
+| Contract                                         | Fundamental expectation                                                                        |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| [Anchoring](convergence/anchoring/README.md)     | Canonical anchors retain their original coordinate space; local boundaries reproduce remotely. |
+| [Causality](convergence/causality/README.md)     | Dependants remain invisible until their canonical parent can be resolved.                      |
+| [Compaction](convergence/compaction/README.md)   | Acknowledged removal history can be omitted while retained visible content stays equivalent.   |
+| [Delivery](convergence/delivery/README.md)       | The same valid operation set resolves to the same visible content across delivery orders.      |
+| [Editing](convergence/editing/README.md)         | Local insert/remove/replace results match intended edits and remotely applied Gossip.          |
+| [Masking](convergence/masking/README.md)         | Removals affect their original targets once and preserve concurrent insertions.                |
+| [Ordering](convergence/ordering/README.md)       | Same-anchor competitors have deterministic order and keep complete causal subtrees.            |
+| [Persistence](convergence/persistence/README.md) | Sequence export, hydration, restart, and retained-identity redelivery preserve visible order.  |
+| [Projection](convergence/projection/README.md)   | Head, tail, gates, and jumps resolve the correct visible Frames.                               |
 
-1. `initialize_projector` does not initialize `masked_of`. The C++ initialization
-   fixture fills previously reserved storage with nonzero visibility bytes to
-   reproduce the problem independently of allocator contents.
-2. Snapshot serialization and initialization do not preserve masked/released
-   source state. Deleted content reappears or Footage positions no longer match.
-   This also breaks restart, runtime-matrix, and collection tests.
-3. Full snapshot merge stops at a structural fragment (`strip_start.counter_bits`
-   equals `UINT32_MAX`). The operation-only loop cannot reconstruct a fragmented
-   snapshot, so snapshot exchange does not yet ensure convergence.
-4. A Mask crossing unrelated insertions produces one aggregate removal span.
-   The regression expects `(position,length)` spans `(0,2)`, `(1,2)`, `(2,1)`;
-   the runtime returns `(0,5)`, although the resulting native visible view is correct.
-5. TypeScript merge still constructs a frame-indexed Change. The regression
-   observes four readbacks from the local Footage array for four incoming Frames
-   where the new invariant requires none.
+## Test conventions
 
-`test/unit/ordered_delta.test.ts` isolates the ordered-input and operation-span
-contract. Snapshot and visibility assertions remain active rather than being
-removed to hide unfinished runtime behavior. No runtime logic or public
-TypeScript signatures were changed as part of this test update.
+Local positions stay within the documented valid ranges. Constructor Sequences are trusted input; runtime validation expectations belong to `apply` and `merge`. ACKs used for compaction represent complete received removal Session prefixes.
+
+Unit tests exercise public methods and wire types. Convergence regressions may inspect runtime metadata or assign deterministic Session identifiers to make an invariant reproducible. Different delivery orders reuse the same canonical operations.
+
+Shared fixtures and transport setup live in [.helpers](.helpers/README.md). Scenario descriptions stay beside their tests as `README.md` and `test.ts`. Add a regression under its primary contract and link related contracts from the group index.

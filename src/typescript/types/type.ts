@@ -1,6 +1,3 @@
-/** Local runtime state: native Projector id and consumer-owned Footage. */
-export type Replica<T> = [id: number, footage: Array<T | undefined>]
-
 /** Consumer-facing visible patch keyed by zero-based Projection index. */
 export type Change<T> = Record<number, T | undefined>
 

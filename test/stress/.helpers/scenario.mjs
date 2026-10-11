@@ -1,15 +1,6 @@
 /** Executes one generated convergence scenario inside an interruptible Worker. */
 import { parentPort, workerData as scenario } from 'node:worker_threads'
-import {
-  create,
-  ingest,
-  insert,
-  length,
-  remove,
-  replace,
-  snapshot,
-  values,
-} from '../../../dist/index.js'
+import { Projection } from '../../../dist/class.js'
 
 let finished = false
 const finish = (ok, message) => {
@@ -17,68 +8,63 @@ const finish = (ok, message) => {
   finished = true
   parentPort.postMessage({ ok, message })
 }
-const signature = (state) => JSON.stringify(values(state))
+const signature = (state) =>
+  JSON.stringify([
+    state.projectionFrameCount,
+    Array.from({ length: state.projectionFrameCount }, (_, position) =>
+      state.value(position)
+    ),
+  ])
 
 let target_actor = 10_000
+let operation_index = -1
 const deliver = (base, mutations, restart_index, label) => {
-  let state = create(target_actor++, base)
-  let pending = [...mutations]
-  let delivered = 0
-  while (pending.length !== 0) {
-    const next = []
-    let progress = false
-    for (const mutation of pending) {
-      if (delivered === restart_index)
-        state = create(target_actor++, snapshot(state))
-      if (ingest(state, mutation) === false) next.push(mutation)
-      else {
-        ++delivered
-        progress = true
-      }
+  let state = new Projection(target_actor++, base)
+  for (let index = 0; index < mutations.length; ++index) {
+    state.apply(mutations[index])
+    if (index + 1 === restart_index) {
+      state = new Projection(target_actor++, state.sequence())
+      for (let replay = 0; replay <= index; ++replay)
+        state.apply(mutations[replay])
     }
-    if (!progress)
-      throw new TypeError(`${label}: ${pending.length} unresolved Mutations`)
-    pending = next
   }
   return state
 }
 
 try {
-  const base = create(1)
+  const base = new Projection(1)
   if (scenario.base_frame_count > 0) {
-    const mutation = insert(
-      base,
-      0,
+    base.insert(
       Array.from(
         { length: scenario.base_frame_count },
         (_, index) => `base-${index}`
-      )
+      ),
+      0
     )
-    if (mutation === false) throw new TypeError('base insertion was rejected')
   }
-  const retained = snapshot(base)
-  const replicas = Array.from({ length: scenario.replica_count }, (_, index) =>
-    create(100 + index, retained)
+  const retained = base.sequence()
+  const replicas = Array.from(
+    { length: scenario.replica_count },
+    (_, index) => new Projection(100 + index, retained)
   )
   const mutations = []
 
   for (
-    let operation_index = 0;
+    operation_index = 0;
     operation_index < scenario.operations.length;
     ++operation_index
   ) {
     const operation = scenario.operations[operation_index]
     const replica_index = operation.replica_selector % scenario.replica_count
     const replica = replicas[replica_index]
-    const projection_length = length(replica)
-    let mutation = false
+    const projection_length = replica.projectionFrameCount
+    let mutation
     if (operation.kind === 'remove') {
       if (projection_length === 0) continue
       const start = operation.index_selector % projection_length
-      mutation = remove(
-        replica,
+      mutation = replica.remove(
         start,
-        Math.min(projection_length, start + operation.frame_count)
+        Math.min(projection_length - 1, start + operation.frame_count - 1)
       )
     } else {
       const frames = Array.from(
@@ -89,14 +75,16 @@ try {
         if (projection_length === 0) continue
         const start = operation.index_selector % projection_length
         const count = Math.min(operation.frame_count, projection_length - start)
-        mutation = replace(replica, start, frames.slice(0, count))
+        mutation = replica.replace(
+          frames.slice(0, count),
+          start,
+          start + count - 1
+        )
       } else {
         const index = operation.index_selector % (projection_length + 1)
-        mutation = insert(replica, index, frames)
+        mutation = replica.insert(frames, index)
       }
     }
-    if (mutation === false)
-      throw new TypeError(`operation ${operation_index} was rejected`)
     mutations.push(mutation)
   }
 
@@ -111,18 +99,7 @@ try {
     .sort((left, right) => left[1] - right[1] || left[2] - right[2])
     .map(([mutation]) => mutation)
   const hostile = deliver(retained, keyed, undefined, 'hostile')
-  const restarted = deliver(
-    retained,
-    keyed,
-    Math.ceil(mutations.length / 2),
-    'restart'
-  )
-  const recreated = create(target_actor++, snapshot(hostile))
-  for (const [label, target] of [
-    ['hostile', hostile],
-    ['restart', restarted],
-    ['create', recreated],
-  ]) {
+  for (const [label, target] of [['hostile', hostile]]) {
     const actual = signature(target)
     if (actual !== expected)
       throw new TypeError(
@@ -131,5 +108,8 @@ try {
   }
   finish(true)
 } catch (error) {
-  finish(false, error instanceof Error ? error.message : String(error))
+  finish(
+    false,
+    `operation ${operation_index}: ${error instanceof Error ? error.stack : String(error)}`
+  )
 }

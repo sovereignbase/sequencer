@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
-import { Projection } from '../../../../src/class.ts'
-import type { Insertion } from '../../../../src/class.ts'
+import { Projection } from '../../../../src/typescript/class.ts'
+import type { Insertion } from '../../../../src/typescript/class.ts'
 
 it('retains its visible tail across concurrent removals of the same suffix', () => {
   const insertions: Array<Insertion<number>> = []

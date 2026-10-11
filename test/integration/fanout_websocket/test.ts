@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, expect, it } from 'vitest'
 import { WebSocket as RelaySocket, WebSocketServer } from 'ws'
-import type { Projection } from '../../../src/class.ts'
+import type { Projection } from '../../../src/typescript/class.ts'
 import { browserRuntime, loadProjection } from '../../.helpers/browser.ts'
 
 declare global {

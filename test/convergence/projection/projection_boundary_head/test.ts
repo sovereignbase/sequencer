@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Projection } from '../../../../src/class.ts'
+import { Projection } from '../../../../src/typescript/class.ts'
 import { expect_converged } from '../../../.helpers/replica.ts'
 
 describe('head projection boundary', () => {

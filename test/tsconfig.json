@@ -3,10 +3,11 @@
   "compilerOptions": {
     "declaration": false,
     "declarationMap": false,
+    "emitDeclarationOnly": false,
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "rootDir": "..",
     "types": ["node"]
   },
-  "include": ["**/*.ts", "../playwright.config.ts", "../vitest.config.ts"]
+  "include": ["**/*.ts", "../benchmark/**/*.ts", "../playwright.config.ts", "../vitest.config.ts"]
 }

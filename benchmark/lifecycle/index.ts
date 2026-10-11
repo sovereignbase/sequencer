@@ -1,8 +1,8 @@
 import { arch, cpus, platform } from 'node:os'
-import { Projection } from '../../dist/class.js'
+import { Projection } from '../../dist/index.js'
 import { caseColumns } from '../.shared/report.ts'
 import { measureProcessMemory, measureSpace } from '../.shared/space.ts'
-import type { Gossip, Result } from '../../dist/class.js'
+import type { Gossip, Result } from '../../dist/index.js'
 import {
   deriveSeed,
   formatSeed,

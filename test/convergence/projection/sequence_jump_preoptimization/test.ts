@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Projection } from '../../../../src/class.ts'
-import type { Insertion, Strip } from '../../../../src/types/type.ts'
+import { Projection } from '../../../../src/typescript/class.ts'
+import type { Insertion, Strip } from '../../../../src/typescript/types/type.ts'
 
 describe('sequence jump preoptimization', () => {
   it('hydrates successive fragment boundaries and their same-point competitors', () => {

@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
-import { Projection } from '../../../../src/class.ts'
-import type { Change } from '../../../../src/class.ts'
+import { Projection } from '../../../../src/typescript/class.ts'
+import type { Change } from '../../../../src/typescript/class.ts'
 
 const fixture = () => {
   const author = new Projection<string>(1)

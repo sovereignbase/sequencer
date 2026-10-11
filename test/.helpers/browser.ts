@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 import type { Page } from 'playwright'
 import { build } from 'tsdown'
-import type { Projection } from '../../src/class.ts'
+import type { Projection } from '../../src/typescript/class.ts'
 
 declare global {
   interface Window {
@@ -13,7 +13,7 @@ declare global {
 export async function browserRuntime() {
   const built = await build({
     config: false,
-    entry: fileURLToPath(new URL('../../src/class.ts', import.meta.url)),
+    entry: fileURLToPath(new URL('../../src/typescript/class.ts', import.meta.url)),
     format: 'esm',
     platform: 'browser',
     dts: false,

@@ -1,6 +1,6 @@
 import { caseColumns } from '../.shared/report.ts'
 import { arch, cpus, platform } from 'node:os'
-import { Projection, type Gossip, type Sequence } from '../../dist/class.js'
+import { Projection, type Gossip, type Sequence } from '../../dist/index.js'
 import { deriveSeed, Random, seedFromString } from '../.shared/support.ts'
 import { measureProcessMemory, measureSpace } from '../.shared/space.ts'
 import type {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Projection } from '../../../../src/class.ts'
-import type { Gossip } from '../../../../src/types/type.ts'
+import { Projection } from '../../../../src/typescript/class.ts'
+import type { Gossip } from '../../../../src/typescript/types/type.ts'
 
 describe.each(['ordered', 'reverse', 'shuffled'] as const)(
   'snapshot/live tail append with %s delivery',

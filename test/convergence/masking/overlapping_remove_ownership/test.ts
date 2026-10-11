@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Projection } from '../../../../src/class.ts'
-import type { Gossip, Sequence } from '../../../../src/types/type.ts'
+import { Projection } from '../../../../src/typescript/class.ts'
+import type { Gossip, Sequence } from '../../../../src/typescript/types/type.ts'
 
 /**
  * Deterministic three-replica workload containing overlapping removes,

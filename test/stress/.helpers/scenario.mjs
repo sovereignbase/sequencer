@@ -1,6 +1,6 @@
 /** Executes one generated convergence scenario inside an interruptible Worker. */
 import { parentPort, workerData as scenario } from 'node:worker_threads'
-import { Projection } from '../../../dist/class.js'
+import { Projection } from '../../../dist/index.js'
 
 let finished = false
 const finish = (ok, message) => {

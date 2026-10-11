@@ -3,4 +3,4 @@ import { runSuite } from '../.shared/suite.ts'
 
 export const esm = () => runSuite()
 export const cjs = () =>
-  runSuite(createRequire(import.meta.url)('../../../dist/class.cjs').Projection)
+  runSuite(createRequire(import.meta.url)('../../../dist/index.cjs').Projection)

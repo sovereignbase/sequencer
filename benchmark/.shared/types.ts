@@ -1,21 +1,21 @@
 export const operation_names = [
-  'tailInsert',
-  'headInsert',
-  'headRemove',
-  'tailRemove',
-  'randomFind',
-  'randomRemove',
-  'randomReplace',
-  'randomInsert',
-  'randomIngest',
+  'apply.random',
+  'insert.head',
+  'insert.random',
+  'insert.tail',
+  'remove.head',
+  'remove.random',
+  'remove.tail',
+  'replace.head',
+  'replace.random',
+  'replace.tail',
+  'value.head',
+  'value.random',
+  'value.tail',
 ] as const
 
-export const management_names = [
-  'values',
-  'snapshot',
-  'destroy',
-  'create',
-] as const
+export const management_names = ['create', 'sequence', 'values'] as const
+export const aggregate_names = [...operation_names, ...management_names].sort()
 
 export type Direction = 'up' | 'down'
 export type ReplicaName = 'A'
@@ -24,6 +24,10 @@ export type ManagementName = (typeof management_names)[number]
 export type MetricScope = 'scaleUp' | 'scaleDown' | 'fullLifecycle'
 
 export type BenchmarkConfig = {
+  suite: 'lifecycle' | 'throughput'
+  initialStripCount: number
+  burstMilliseconds: number
+  maximumCalls: number
   runs: number
   maximumStripCount: number
   checkpoints: Array<number>
@@ -60,16 +64,14 @@ export type MemoryResult = {
   bytes: number
   bytesPerStrip: number | null
   bytesPerFrame: number | null
-  measurement: 'estimated-native-words-plus-js-footage-slots'
-  nativeSnapshotWordBytes: number
+  measurement: 'estimated-sequence-words-plus-js-footage-slots'
+  sequenceMetadataWordBytes: number
   javascriptFootageSlotBytes: number
-  wasmLinearMemoryBytes: null
-  wasmLinearMemoryReason: string
 }
 
 export type StorageResult = {
   serialization: 'node:v8.serialize'
-  snapshotBytes: number
+  sequenceBytes: number
   bytesPerStrip: number | null
   bytesPerFrame: number | null
 }
@@ -143,7 +145,7 @@ export type AggregateMetric = {
 }
 
 export type BenchmarkReport = {
-  schemaVersion: 2
+  schemaVersion: 3
   generatedAt: string
   environment: {
     node: string
@@ -154,7 +156,7 @@ export type BenchmarkReport = {
   }
   config: BenchmarkConfig
   methodology: {
-    implementation: 'TypeScript public API backed by the package WebAssembly runtime'
+    implementation: 'TypeScript Projection class public API'
     timer: 'process.hrtime.bigint'
     stripCount: string
     ingest: string
@@ -165,6 +167,7 @@ export type BenchmarkReport = {
   runs: Array<RunResult>
   aggregates: Record<
     ReplicaName,
-    Record<MetricScope, Record<OperationName, AggregateMetric>>
+    Record<MetricScope, Record<OperationName | ManagementName, AggregateMetric>>
   >
+  spaceAggregates: Record<ReplicaName, Record<MetricScope, SpaceAverages>>
 }

@@ -1,6 +1,8 @@
-import { serialize } from 'node:v8'
-import * as api from '../../dist/index.js'
-import type { Delta, Replica } from '../../dist/index.js'
+import { arch, cpus, platform } from 'node:os'
+import { Projection } from '../../dist/class.js'
+import { caseColumns } from '../.shared/report.ts'
+import { measureProcessMemory, measureSpace } from '../.shared/space.ts'
+import type { Gossip, Result } from '../../dist/class.js'
 import {
   deriveSeed,
   formatSeed,
@@ -11,13 +13,15 @@ import {
   seedFromString,
   SpaceAccumulator,
   StripIndex,
-} from '../support.ts'
+} from '../.shared/support.ts'
 import {
+  aggregate_names,
   operation_names,
   type BenchmarkConfig,
   type BenchmarkReport,
   type CheckpointResult,
   type Direction,
+  type ManagementName,
   type MetricResult,
   type MetricScope,
   type OperationName,
@@ -25,14 +29,14 @@ import {
   type ReplicaName,
   type ReplicaRunResult,
   type RunResult,
-} from '../types.ts'
+} from '../.shared/types.ts'
 
 type Runtime = {
   name: ReplicaName
   actorId: number
   peerActorId: number
-  state: Replica<number>
-  peer: Replica<number>
+  state: Projection<number>
+  peer: Projection<number>
   strips: StripIndex
   random: Random
   nextStripId: number
@@ -42,20 +46,11 @@ type Runtime = {
 
 let resultSink: unknown
 
-const createReplica = (actorId: number, data?: unknown): Replica<number> =>
-  api.create<number>(actorId, data)
+const createReplica = (actorId: number, data?: unknown): Projection<number> =>
+  new Projection<number>(actorId, data)
 
 const ratio = (bytes: number, units: number): number | null =>
   units === 0 ? null : bytes / units
-
-const requireMutation = (
-  result: Delta<number> | false,
-  operation: string
-): Delta<number> => {
-  if (result === false)
-    throw new TypeError(`Sequencer rejected benchmark ${operation}.`)
-  return result
-}
 
 const timeOperation = <T>(
   runtime: Runtime,
@@ -89,33 +84,40 @@ const createReplacementStrip = (
   return { id, length, values: new Array<number>(length).fill(id) }
 }
 
-const ingestIntoPeer = (
-  runtime: Runtime,
-  mutation: Delta<number>,
+const applyUpdate = (
+  receiver: Projection<number>,
+  update: Gossip<number>,
+  operation: string
+): Result<number> => {
+  const result = receiver.apply(update)
+  if (!result) throw new TypeError(`Sequencer rejected benchmark ${operation}.`)
+  return result
+}
+
+const gossip = (
+  sender: Projection<number>,
+  receiver: Projection<number>,
+  update: Gossip<number>,
   operation: string
 ): void => {
-  if (api.ingest(runtime.peer, mutation) === false)
-    throw new TypeError(
-      `Replica ${runtime.name} peer rejected new ${operation} Mutation ` +
-        `(state=${api.length(runtime.state)}, peer=${api.length(runtime.peer)}, ` +
-        `deltas=${mutation[1].length / 8}).`
-    )
+  const acknowledgements = applyUpdate(receiver, update, operation)[1]
+  if (acknowledgements?.length)
+    void applyUpdate(sender, acknowledgements, operation + ' acknowledgements')
 }
 
 const insertAt = (
   runtime: Runtime,
   config: BenchmarkConfig,
   direction: Direction,
-  operationName: 'tailInsert' | 'headInsert' | 'randomInsert',
+  operationName: 'insert.tail' | 'insert.head' | 'insert.random',
   stripIndex: number
 ): void => {
   const frameIndex = runtime.strips.frameOffsetAt(stripIndex)
   const strip = createStrip(runtime, config)
   const mutation = timeOperation(runtime, direction, operationName, () =>
-    api.insert(runtime.state, frameIndex, strip.values)
+    runtime.state.insert(strip.values, frameIndex)
   )
-  const accepted = requireMutation(mutation, operationName)
-  ingestIntoPeer(runtime, accepted, operationName)
+  gossip(runtime.state, runtime.peer, mutation, operationName)
   runtime.strips.insert(stripIndex, strip)
 }
 
@@ -123,85 +125,109 @@ const removeAt = (
   runtime: Runtime,
   config: BenchmarkConfig,
   direction: Direction,
-  operationName: 'headRemove' | 'tailRemove' | 'randomRemove',
+  operationName: 'remove.head' | 'remove.tail' | 'remove.random',
   stripIndex: number
 ): void => {
   const frameIndex = runtime.strips.frameOffsetAt(stripIndex)
   const strip = runtime.strips.at(stripIndex)
   const mutation = timeOperation(runtime, direction, operationName, () =>
-    api.remove(runtime.state, frameIndex, frameIndex + strip.length)
+    runtime.state.remove(frameIndex, frameIndex + strip.length - 1)
   )
-  const accepted = requireMutation(mutation, operationName)
-  ingestIntoPeer(runtime, accepted, operationName)
+  gossip(runtime.state, runtime.peer, mutation, operationName)
   runtime.strips.remove(stripIndex)
 }
 
-const randomFind = (runtime: Runtime, direction: Direction): void => {
-  const frameIndex = runtime.random.integer(runtime.strips.frameCount)
-  const value = timeOperation(runtime, direction, 'randomFind', () =>
-    api.find(runtime.state, frameIndex)
+const valueAt = (
+  runtime: Runtime,
+  direction: Direction,
+  operationName: 'value.head' | 'value.random' | 'value.tail',
+  frameIndex: number
+): void => {
+  const value = timeOperation(runtime, direction, operationName, () =>
+    runtime.state.value(frameIndex)
   )
   if (value === undefined)
-    throw new TypeError('Random find did not resolve a visible Frame.')
+    throw new TypeError(`${operationName} did not resolve a projected Frame.`)
 }
 
-const randomReplace = (
+const replaceAt = (
   runtime: Runtime,
-  config: BenchmarkConfig,
-  direction: Direction
+  direction: Direction,
+  operationName: 'replace.head' | 'replace.random' | 'replace.tail',
+  stripIndex: number
 ): void => {
-  const stripIndex = runtime.random.integer(runtime.strips.count)
   const frameIndex = runtime.strips.frameOffsetAt(stripIndex)
   const replaced = runtime.strips.at(stripIndex)
   // The public replace operation removes exactly values.length Frames. Keeping
   // the selected Strip's length preserves Strip boundaries and scale.
   const strip = createReplacementStrip(runtime, replaced.length)
-  const mutation = timeOperation(runtime, direction, 'randomReplace', () =>
-    api.replace(runtime.state, frameIndex, strip.values)
+  const mutation = timeOperation(runtime, direction, operationName, () =>
+    runtime.state.replace(
+      strip.values,
+      frameIndex,
+      frameIndex + replaced.length - 1
+    )
   )
-  const accepted = requireMutation(mutation, 'randomReplace')
-  ingestIntoPeer(runtime, accepted, 'randomReplace')
+  gossip(runtime.state, runtime.peer, mutation, operationName)
   runtime.strips.replace(stripIndex, strip)
 }
 
-const randomIngest = (runtime: Runtime, direction: Direction): void => {
+const randomApply = (runtime: Runtime, direction: Direction): void => {
   const stripIndex = runtime.random.integer(runtime.strips.count)
   const frameIndex = runtime.strips.frameOffsetAt(stripIndex)
   const replaced = runtime.strips.at(stripIndex)
   const strip = createReplacementStrip(runtime, replaced.length)
-  const mutation = requireMutation(
-    api.replace(runtime.peer, frameIndex, strip.values),
-    'randomIngest peer replacement'
+  const mutation = runtime.peer.replace(
+    strip.values,
+    frameIndex,
+    frameIndex + replaced.length - 1
   )
-  if (!mutation[2]?.length)
-    throw new TypeError('Random ingest received no Footage Mutation.')
-  const change = timeOperation(runtime, direction, 'randomIngest', () =>
-    api.ingest(runtime.state, mutation)
+  const result = timeOperation(runtime, direction, 'apply.random', () =>
+    applyUpdate(runtime.state, mutation, 'randomApply peer replacement')
   )
-  if (change === false)
-    throw new TypeError('Random ingest did not integrate a new peer Mutation.')
+  const acknowledgements = result[1]
+  if (acknowledgements?.length)
+    void applyUpdate(
+      runtime.peer,
+      acknowledgements,
+      'randomApply acknowledgements'
+    )
   runtime.strips.replace(stripIndex, strip)
 }
 
-const runPrimaryRandomWorkload = (
+const runPrimaryWorkload = (
   runtime: Runtime,
   config: BenchmarkConfig,
   direction: Direction
 ): void => {
-  randomFind(runtime, direction)
-  randomReplace(runtime, config, direction)
+  valueAt(runtime, direction, 'value.head', 0)
+  valueAt(
+    runtime,
+    direction,
+    'value.random',
+    runtime.random.integer(runtime.strips.frameCount)
+  )
+  valueAt(runtime, direction, 'value.tail', runtime.strips.frameCount - 1)
+  replaceAt(runtime, direction, 'replace.head', 0)
+  replaceAt(
+    runtime,
+    direction,
+    'replace.random',
+    runtime.random.integer(runtime.strips.count)
+  )
+  replaceAt(runtime, direction, 'replace.tail', runtime.strips.count - 1)
   removeAt(
     runtime,
     config,
     direction,
-    'randomRemove',
+    'remove.random',
     runtime.random.integer(runtime.strips.count)
   )
   insertAt(
     runtime,
     config,
     direction,
-    'randomInsert',
+    'insert.random',
     runtime.random.integer(runtime.strips.count + 1)
   )
 }
@@ -212,27 +238,27 @@ const runScaleUpStep = (runtime: Runtime, config: BenchmarkConfig): void => {
     runtime,
     config,
     'up',
-    tail ? 'tailInsert' : 'headInsert',
+    tail ? 'insert.tail' : 'insert.head',
     tail ? runtime.strips.count : 0
   )
-  runPrimaryRandomWorkload(runtime, config, 'up')
-  randomIngest(runtime, 'up')
+  runPrimaryWorkload(runtime, config, 'up')
+  randomApply(runtime, 'up')
 }
 
 const runScaleDownStep = (runtime: Runtime, config: BenchmarkConfig): void => {
-  runPrimaryRandomWorkload(runtime, config, 'down')
+  runPrimaryWorkload(runtime, config, 'down')
   const head = runtime.strips.count % 2 === 0
   removeAt(
     runtime,
     config,
     'down',
-    head ? 'headRemove' : 'tailRemove',
+    head ? 'remove.head' : 'remove.tail',
     head ? 0 : runtime.strips.count - 1
   )
-  if (runtime.strips.count > 0) randomIngest(runtime, 'down')
+  if (runtime.strips.count > 0) randomApply(runtime, 'down')
 }
 
-const snapshotMetric = <T>(operation: () => T): [MetricResult, T] => {
+const managementMetric = <T>(operation: () => T): [MetricResult, T] => {
   const accumulator = new MetricAccumulator()
   const timed = measure(operation)
   accumulator.add(timed.nanoseconds)
@@ -244,81 +270,61 @@ const observeReplica = (
   runtime: Runtime,
   direction: Direction
 ): ReplicaCheckpoint => {
-  const publicFrameCount = api.length(runtime.state)
+  const publicFrameCount = runtime.state.projectionFrameCount
   if (publicFrameCount !== runtime.strips.frameCount)
     throw new TypeError(
       `Replica ${runtime.name} model has ${runtime.strips.frameCount} Frames but Sequencer reports ${publicFrameCount}.`
     )
 
-  const [valuesMetric] = snapshotMetric(() => api.values(runtime.state))
-  const [snapshotResult, checkpointSnapshot] = snapshotMetric(() =>
-    api.snapshot(runtime.state)
-  )
-  const snapshotBytes = serialize(checkpointSnapshot).byteLength
+  if (runtime.peer.projectionFrameCount !== publicFrameCount)
+    throw new TypeError(`Replica ${runtime.name} peers did not converge.`)
 
-  const oldState = runtime.state
-  const [destroyMetric] = snapshotMetric(() => api.destroy(oldState))
-  void api.destroy(runtime.peer)
-  const [createMetric, initializedState] = snapshotMetric(() =>
-    createReplica(runtime.actorId, checkpointSnapshot)
+  for (let index = 0; index < publicFrameCount; ++index)
+    if (runtime.peer.value(index) !== runtime.state.value(index))
+      throw new TypeError(
+        `Replica ${runtime.name} peers diverged at projection position ${index}.`
+      )
+
+  const [valuesMetric] = managementMetric(() => runtime.state.values())
+  const [sequenceResult, checkpointSequence] = managementMetric(() =>
+    runtime.state.sequence()
   )
-  const initializedPeer = createReplica(runtime.peerActorId, checkpointSnapshot)
-  runtime.state = initializedState
-  runtime.peer = initializedPeer
+  const [createMetric] = managementMetric(() =>
+    createReplica(runtime.actorId, checkpointSequence)
+  )
 
   const stripCount = runtime.strips.count
   const frameCount = runtime.strips.frameCount
-  const nativeSnapshotWordBytes =
-    (checkpointSnapshot[0].reduce(
-      (words, acknowledgement) => words + acknowledgement.length,
-      0
-    ) +
-      checkpointSnapshot[1].length) *
-    4
-  const javascriptFootageSlotBytes = checkpointSnapshot[2].length * 8
-  const estimatedMemoryBytes =
-    nativeSnapshotWordBytes + javascriptFootageSlotBytes
+  const { memory, storage } = measureSpace(
+    checkpointSequence,
+    stripCount,
+    frameCount
+  )
 
   const checkpoint: ReplicaCheckpoint = {
     operations: runtime.metrics.snapshot(),
     management: {
-      values: valuesMetric,
-      snapshot: snapshotResult,
-      destroy: destroyMetric,
       create: createMetric,
+      sequence: sequenceResult,
+      values: valuesMetric,
     },
-    memory: {
-      bytes: estimatedMemoryBytes,
-      bytesPerStrip: ratio(estimatedMemoryBytes, stripCount),
-      bytesPerFrame: ratio(estimatedMemoryBytes, frameCount),
-      measurement: 'estimated-native-words-plus-js-footage-slots',
-      nativeSnapshotWordBytes,
-      javascriptFootageSlotBytes,
-      wasmLinearMemoryBytes: null,
-      wasmLinearMemoryReason:
-        'The public package API does not expose its shared WebAssembly.Memory.',
-    },
-    storage: {
-      serialization: 'node:v8.serialize',
-      snapshotBytes,
-      bytesPerStrip: ratio(snapshotBytes, stripCount),
-      bytesPerFrame: ratio(snapshotBytes, frameCount),
-    },
+    memory,
+    storage,
     strips: {
       stripCount,
       frameCount,
       averageStripLength: ratio(frameCount, stripCount),
       minimumStripLength: runtime.strips.minimumLength,
       maximumStripLength: runtime.strips.maximumLength,
-      retainedDeltaCount: checkpointSnapshot[1].length / 8,
+      retainedDeltaCount: checkpointSequence[1].length,
     },
   }
 
   const scope = direction === 'up' ? 'scaleUp' : 'scaleDown'
   for (const selectedScope of [scope, 'fullLifecycle'] as const)
     runtime.space[selectedScope].add(
-      estimatedMemoryBytes,
-      snapshotBytes,
+      memory.bytes,
+      storage.sequenceBytes,
       stripCount,
       frameCount
     )
@@ -343,21 +349,13 @@ const takeCheckpoint = async (
     A: observeReplica(runtime, direction),
   }
   await collectGarbage()
-  const processMemory = process.memoryUsage()
 
   return {
     run,
     direction,
     stripCount: replicas.A.strips.stripCount,
     frameCount: replicas.A.strips.frameCount,
-    processMemory: {
-      scope: 'shared-process-not-attributable-to-one-replica',
-      rssBytes: processMemory.rss,
-      heapTotalBytes: processMemory.heapTotal,
-      heapUsedBytes: processMemory.heapUsed,
-      externalBytes: processMemory.external,
-      arrayBufferBytes: processMemory.arrayBuffers,
-    },
+    processMemory: measureProcessMemory(),
     replicas,
   }
 }
@@ -376,7 +374,7 @@ const printCheckpoint = (checkpoint: CheckpointResult): void => {
         const metric = checkpoint.replicas[replica].operations[operation]
         return {
           replica,
-          operation,
+          ...caseColumns(operation),
           calls: metric.count,
           'ops/sec':
             metric.operationsPerSecond === null
@@ -394,7 +392,7 @@ const printCheckpoint = (checkpoint: CheckpointResult): void => {
       Object.entries(checkpoint.replicas[replica].management).map(
         ([operation, metric]) => ({
           replica,
-          operation,
+          ...caseColumns(operation),
           calls: metric.count,
           'ops/sec':
             metric.operationsPerSecond === null
@@ -405,13 +403,14 @@ const printCheckpoint = (checkpoint: CheckpointResult): void => {
       )
     )
   )
+  console.log('Memory usage')
   console.table(
     replicaNames.map((replica) => {
       const observed = checkpoint.replicas[replica]
       return {
         replica,
-        'visible Strips': observed.strips.stripCount,
-        'retained Deltas': observed.strips.retainedDeltaCount,
+        'projected Strips': observed.strips.stripCount,
+        'retained insertions': observed.strips.retainedDeltaCount,
         Frames: observed.strips.frameCount,
         'avg Strip Frames':
           observed.strips.averageStripLength?.toFixed(3) ?? '—',
@@ -420,16 +419,27 @@ const printCheckpoint = (checkpoint: CheckpointResult): void => {
         'estimated memory bytes': observed.memory.bytes,
         'memory B/Strip': observed.memory.bytesPerStrip?.toFixed(3) ?? '—',
         'memory B/Frame': observed.memory.bytesPerFrame?.toFixed(3) ?? '—',
-        'snapshot bytes': observed.storage.snapshotBytes,
         'process RSS bytes': checkpoint.processMemory.rssBytes,
+        'process heap used bytes': checkpoint.processMemory.heapUsedBytes,
       }
     })
+  )
+  console.log('Disk usage (serialized Sequence)')
+  console.table(
+    replicaNames.map((replica) => ({
+      replica,
+      'sequence bytes': checkpoint.replicas[replica].storage.sequenceBytes,
+      'disk B/Strip':
+        checkpoint.replicas[replica].storage.bytesPerStrip?.toFixed(3) ?? '—',
+      'disk B/Frame':
+        checkpoint.replicas[replica].storage.bytesPerFrame?.toFixed(3) ?? '—',
+    }))
   )
 }
 
 const makeRuntime = (
   name: ReplicaName,
-  state: Replica<number>,
+  state: Projection<number>,
   workloadSeed: number,
   actorId: number,
   peerActorId: number
@@ -438,7 +448,7 @@ const makeRuntime = (
   actorId,
   peerActorId,
   state,
-  peer: createReplica(peerActorId, api.snapshot(state)),
+  peer: createReplica(peerActorId, state.sequence()),
   strips: new StripIndex(),
   random: new Random(workloadSeed),
   nextStripId: 1,
@@ -469,7 +479,7 @@ async function runOneLifecycle(
   config: BenchmarkConfig,
   reportProgress: boolean
 ): Promise<RunResult> {
-  const [initializationA, stateA] = snapshotMetric(() => createReplica(1))
+  const [initializationA, stateA] = managementMetric(() => createReplica(1))
   const workloadSeed = deriveSeed(runSeed, 'shared-replica-workload')
   const runtime = makeRuntime('A', stateA, workloadSeed, 1, 2)
   const checkpoints: Array<CheckpointResult> = []
@@ -491,8 +501,6 @@ async function runOneLifecycle(
     if (checkpointSet.has(runtime.strips.count)) await record('down')
   }
 
-  void api.destroy(runtime.state)
-  void api.destroy(runtime.peer)
   resultSink = undefined
   return {
     run,
@@ -507,7 +515,7 @@ async function runOneLifecycle(
   }
 }
 
-/** Warms the package, JS/WASM boundary, JIT paths, buffers, and timer code. */
+/** Warms the package, Projection methods, JIT paths, arrays, and timer code. */
 export async function warmUp(config: BenchmarkConfig): Promise<void> {
   if (config.warmupCycles === 0) return
   const state = createReplica(3)
@@ -520,15 +528,13 @@ export async function warmUp(config: BenchmarkConfig): Promise<void> {
   )
 
   // Warm only the continuously measured operation paths. Running a hidden
-  // lifecycle here also performs checkpoint snapshots, restarts,
+  // lifecycle here also performs checkpoint sequences, restarts,
   // serialization, and forced garbage collection, which is not warmup work.
   for (let cycle = 0; cycle < config.warmupCycles; cycle++)
     runScaleUpStep(runtime, config)
   for (let cycle = 0; cycle < config.warmupCycles; cycle++)
     runScaleDownStep(runtime, config)
 
-  void api.destroy(runtime.state)
-  void api.destroy(runtime.peer)
   resultSink = undefined
 }
 
@@ -562,13 +568,33 @@ export function aggregateRuns(
         scopes.map((scope) => [
           scope,
           Object.fromEntries(
-            operation_names.map((operationName) => {
+            aggregate_names.map((operationName) => {
               const samples = runs
-                .map((run) => ({
-                  run: run.run,
-                  metric:
-                    run.replicas[replicaName].operations[scope][operationName],
-                }))
+                .map((run) => {
+                  if (operationName.includes('.'))
+                    return {
+                      run: run.run,
+                      metric:
+                        run.replicas[replicaName].operations[scope][
+                          operationName as OperationName
+                        ],
+                    }
+                  const metric = new MetricAccumulator()
+                  for (const checkpoint of run.checkpoints)
+                    if (
+                      scope === 'fullLifecycle' ||
+                      checkpoint.direction ===
+                        (scope === 'scaleUp' ? 'up' : 'down')
+                    )
+                      metric.add(
+                        checkpoint.replicas[replicaName].management[
+                          operationName as ManagementName
+                        ].totalNanoseconds
+                      )
+                  if (operationName === 'create' && scope !== 'scaleDown')
+                    metric.add(run.initialization[replicaName].totalNanoseconds)
+                  return { run: run.run, metric: metric.snapshot() }
+                })
                 .filter((sample) => sample.metric.averageNanoseconds !== null)
               const ordered = samples
                 .map((sample) => ({
@@ -639,6 +665,68 @@ export function aggregateRuns(
       ),
     ])
   ) as BenchmarkReport['aggregates']
+}
+
+export async function runBenchmark(
+  config: BenchmarkConfig
+): Promise<BenchmarkReport> {
+  console.log(
+    'Warming TypeScript API (' +
+      config.warmupCycles.toLocaleString('en-US') +
+      ' cycles)...'
+  )
+  await warmUp(config)
+  const runs = await runLifecycles(config)
+  return {
+    schemaVersion: 3,
+    generatedAt: new Date().toISOString(),
+    environment: {
+      node: process.versions.node,
+      v8: process.versions.v8,
+      platform: platform(),
+      architecture: arch(),
+      cpu: cpus()[0]?.model ?? 'Unknown CPU',
+    },
+    config,
+    methodology: {
+      implementation: 'TypeScript Projection class public API',
+      timer: 'process.hrtime.bigint',
+      stripCount:
+        'Scale is the number of visible logical Strips maintained by the benchmark model. Every mutation targets a complete Strip boundary; retained Mask structures are reported separately.',
+      ingest:
+        'The workload has two peers editing the same document. Every local Gossip is applied by the receiver and every acknowledgement returned by apply is gossiped back to the sender. apply.random times only the measured peer applying the remote replacement Gossip.',
+      average:
+        'Operation averages are calculated directly from count and total measured nanoseconds; checkpoint averages are never averaged together.',
+      memory:
+        'Per-Replica retained bytes after restart are estimated as four bytes per Sequence metadata word plus eight bytes per JavaScript Footage array slot. Process RSS is shared and reported at checkpoint scope.',
+      storage:
+        'Persistent representation size is the byte length of node:v8.serialize over the automatically collected public Sequence.',
+    },
+    runs,
+    aggregates: aggregateRuns(runs),
+    spaceAggregates: {
+      A: Object.fromEntries(
+        (['scaleUp', 'scaleDown', 'fullLifecycle'] as const).map((scope) => {
+          const space = new SpaceAccumulator()
+          for (const run of runs)
+            for (const checkpoint of run.checkpoints)
+              if (
+                scope === 'fullLifecycle' ||
+                checkpoint.direction === (scope === 'scaleUp' ? 'up' : 'down')
+              ) {
+                const observed = checkpoint.replicas.A
+                space.add(
+                  observed.memory.bytes,
+                  observed.storage.sequenceBytes,
+                  observed.strips.stripCount,
+                  observed.strips.frameCount
+                )
+              }
+          return [scope, space.snapshot()]
+        })
+      ) as BenchmarkReport['spaceAggregates']['A'],
+    },
+  }
 }
 
 void resultSink

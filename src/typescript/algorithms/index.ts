@@ -1,6 +1,4 @@
-export { create } from './create/index.js'
 export { destroy } from './destroy/index.js'
-export { find } from './find/index.js'
 export { insert } from './insert/index.js'
 export { length } from './length/index.js'
 export { ingest } from './ingest/index.js'

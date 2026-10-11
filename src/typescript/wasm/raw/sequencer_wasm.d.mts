@@ -16,31 +16,15 @@ declare namespace RuntimeExports {
     let HEAPU32: Uint32Array;
 }
 interface WasmModule {
-  _clear_projection_buffer(): void;
-  _clear_footage_span_buffer(): void;
-  _clear_frontier_buffer(): void;
-  _prepare_projection_buffer(_0: number): number;
-  _get_projection_buffer_pointer(): number;
-  _get_projection_buffer_word_count(): number;
-  _get_footage_span_buffer_count(): number;
-  _create_projection(_0: number, _1: number): number;
-  _clear_projection(_0: number): void;
-  _snapshot_projection(_0: number): void;
-  _get_projection_frame_count(_0: number): number;
-  _get_footage_frame_index(_0: number, _1: number): number;
-  _write_projection_footage_spans_to_buffer(_0: number, _1: number, _2: number): number;
-  _update_projection(_0: number, _1: number, _2: number, _3: number, _4: number): number;
-  _ingest_projection(_0: number, _1: number, _2: number): number;
-  _replace_projection(_0: number, _1: number, _2: number, _3: number): number;
-  _remove_projection(_0: number, _1: number, _2: number): number;
-  _snapshot_frontiers(_0: number): number;
-  _get_frontier_buffer_pointer(): number;
-  _get_cached_acknowledgement_pointer(_0: number): number;
-  _get_cached_acknowledgement_word_count(_0: number): number;
-  _consume_cached_acknowledgement(_0: number): void;
-  _get_frontier_buffer_word_count(): number;
-  _prepare_frontier_buffer(_0: number): number;
-  _get_footage_span_buffer_pointer(): number;
+  _runtime_seed(_0: number): void;
+  _runtime_arena_pointer(): number;
+  _runtime_reserve(_0: number, _1: number): number;
+  _runtime_create(_0: number, _1: number, _2: number, _3: number): void;
+  _runtime_destroy(_0: number): void;
+  _runtime_output_pointer(_0: number): number;
+  _runtime_output_count(_0: number): number;
+  _runtime_execute(_0: number, _1: number, _2: number, _3: number, _4: number): void;
+  _runtime_dispatch(_0: number, _1: number, _2: number, _3: number, _4: number, _5: number, _6: number, _7: number): void;
 }
 
 export type MainModule = WasmModule & typeof RuntimeExports;

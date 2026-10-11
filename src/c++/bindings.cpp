@@ -8,6 +8,7 @@
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
+#include <pthread.h>
 #else
 #define EMSCRIPTEN_KEEPALIVE
 #endif
@@ -60,15 +61,7 @@ struct Reader {
     if (position >= input.size()) throw std::runtime_error("Truncated numeric input");
     return input[position++];
   }
-  Acknowledgement acknowledgement() {
-    auto count = word();
-    if (!count || count > input.size() - position || !(count & 1)) throw std::runtime_error("Invalid acknowledgement");
-    Acknowledgement a(input.begin() + position, input.begin() + position + count);
-    position += count;
-    return a;
-  }
-  Gossip gossip() {
-    auto count = word();
+  Gossip gossip(Word count) {
     if (count > input.size() - position) throw std::runtime_error("Invalid gossip count");
     Gossip entries;
     entries.reserve(count);
@@ -77,21 +70,30 @@ struct Reader {
   }
   Entry entry() {
       const auto tag = word();
-      if (tag == 1) return Entry::acknowledge(acknowledgement());
+      const auto offset = word(), count = word(), content = word();
+      if (offset > input.size() || count > input.size() - offset) throw std::runtime_error("Invalid input span");
+      const auto data = input.subspan(offset, count);
+      if (tag == 1) {
+        if (!count || !(count & 1)) throw std::runtime_error("Invalid acknowledgement");
+        return Entry::acknowledge({data.begin(), data.end()});
+      }
       else if (tag == 0) {
-        Coordinates c{word(), word(), word(), word(), word(), std::bit_cast<std::int32_t>(word())};
-        const auto content = word();
+        if (count != 6) throw std::runtime_error("Invalid insertion width");
+        Coordinates c{data[0], data[1], data[2], data[3], data[4], std::bit_cast<std::int32_t>(data[5])};
         if (!c.diff || c.diff == std::numeric_limits<std::int32_t>::min()) throw std::runtime_error("Invalid insertion coordinates");
         session_ids.insert(c.anchor_session);
         session_ids.insert(c.session);
         return Entry::insert({c, content});
       } else throw std::runtime_error("Invalid gossip entry");
   }
-  std::vector<Acknowledgement> frontiers() {
-    auto count = word();
+  std::vector<Acknowledgement> frontiers(Word count) {
     if (count > input.size() - position) throw std::runtime_error("Invalid frontier count");
     std::vector<Acknowledgement> entries;
-    for (Word n = 0; n < count; ++n) entries.push_back(acknowledgement());
+    for (Word n = 0; n < count; ++n) {
+      auto e = entry();
+      if (!e.acknowledgement) throw std::runtime_error("Invalid frontier entry");
+      entries.push_back(std::move(e.frontier));
+    }
     return entries;
   }
 };
@@ -99,6 +101,12 @@ struct Reader {
 }
 
 extern "C" {
+#ifdef __EMSCRIPTEN__
+// The dedicated worker is the sole C++ heap owner. Shared memory exposes only
+// leased numeric regions to JS; no other thread enters the native allocator.
+int pthread_mutex_lock(pthread_mutex_t*) { return 0; }
+int pthread_mutex_unlock(pthread_mutex_t*) { return 0; }
+#endif
 EMSCRIPTEN_KEEPALIVE void runtime_seed(std::uint32_t seed) { sequencer::random_state = seed ? seed : 1; }
 EMSCRIPTEN_KEEPALIVE std::uint32_t* runtime_arena_pointer() { return sequencer::arena.data(); }
 EMSCRIPTEN_KEEPALIVE std::uint32_t* runtime_reserve(std::uint32_t lease, std::uint32_t count) {
@@ -130,7 +138,18 @@ EMSCRIPTEN_KEEPALIVE void runtime_execute(std::uint32_t operation, std::uint32_t
   try {
     // Output starts with operation data; release spans are prepended afterwards.
     switch (operation) {
-      case 0: { Reader r; auto f = r.frontiers(); auto g = r.gossip(); p.hydrate(g, f); break; }
+      case 0: {
+        Reader r;
+        if (r.word() != 1) throw std::runtime_error("Invalid sequence");
+        const auto nf = r.word(), ni = r.word();
+        auto f = r.frontiers(nf); auto g = r.gossip(ni);
+        for (const auto& e : g) {
+          const auto c = e.insertion.coordinates;
+          for (auto* clock : {&p.increase_clock, &p.decrease_clock})
+            if ((*clock)[0] == c.session || (*clock)[0] == c.anchor_session) (*clock)[0] = next_session();
+        }
+        p.hydrate(g, f); break;
+      }
       case 1: {
         Reader r;
         const auto count = r.word();
@@ -144,7 +163,13 @@ EMSCRIPTEN_KEEPALIVE void runtime_execute(std::uint32_t operation, std::uint32_t
       }
       case 2: gossip(p.insert(arg0, arg1, arg2)); kind = 2; break;
       case 3: output.push_back(p.length()); kind = 1; break;
-      case 4: { Reader r; auto f = r.frontiers(); auto g = r.gossip(); result(p.merge(g, f)); kind = 4; break; }
+      case 4: {
+        Reader r;
+        if (r.word() != 1) throw std::runtime_error("Invalid sequence");
+        const auto nf = r.word(), ni = r.word();
+        auto f = r.frontiers(nf); auto g = r.gossip(ni);
+        result(p.merge(g, f)); kind = 4; break;
+      }
       case 5: gossip(p.remove(arg0 == UINT32_MAX ? 0 : arg0, arg1 == UINT32_MAX ? std::int64_t(p.length()) - 1 : arg1)); kind = 2; break;
       case 6: { Reader r; auto end = r.word(); gossip(p.replace(arg0, arg1, arg2 == UINT32_MAX ? 0 : arg2, end == UINT32_MAX ? std::int64_t(p.length()) - 1 : end)); kind = 2; break; }
       case 7: p.frontier.retire(arg0); break;

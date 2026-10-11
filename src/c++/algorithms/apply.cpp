@@ -17,7 +17,10 @@ Result Projection::apply(const Gossip& gossip) {
         frontier.observe(a);
         result.gossip.push_back(Entry::acknowledge(std::move(a)));
       }
-      if (containment.has(c)) continue;
+      if (containment.has(c)) {
+        if (insertion.content) released.push_back({insertion.content, 0, 0});
+        continue;
+      }
       // Stage before allocating so repeated out-of-order delivery cannot leak
       // unlinked arena nodes. A dependent retains numeric metadata only.
       const auto origin = c.birth() ? none : containment.get(c.anchor_session, c.anchor_start);

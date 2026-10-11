@@ -4,6 +4,7 @@
 #include <memory>
 #include <limits>
 #include <unordered_set>
+#include <span>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
@@ -14,7 +15,11 @@
 namespace sequencer {
 namespace {
 std::vector<std::unique_ptr<Projection>> projections;
-std::vector<Word> input, output;
+std::span<const Word> input;
+std::vector<Word> output;
+constexpr Word lease_count = 64, lease_words = 4096;
+std::vector<Word> arena(lease_count * lease_words);
+std::array<std::vector<Word>, lease_count> large_inputs, outputs;
 std::unordered_set<Word> session_ids;
 Word random_state = 0x9e3779b9;
 Word next_session() {
@@ -95,9 +100,12 @@ struct Reader {
 
 extern "C" {
 EMSCRIPTEN_KEEPALIVE void runtime_seed(std::uint32_t seed) { sequencer::random_state = seed ? seed : 1; }
-EMSCRIPTEN_KEEPALIVE std::uint32_t* runtime_prepare_input(std::uint32_t count) {
-  sequencer::input.resize(count);
-  return sequencer::input.data();
+EMSCRIPTEN_KEEPALIVE std::uint32_t* runtime_arena_pointer() { return sequencer::arena.data(); }
+EMSCRIPTEN_KEEPALIVE std::uint32_t* runtime_reserve(std::uint32_t lease, std::uint32_t count) {
+  using namespace sequencer;
+  if (count <= lease_words) return arena.data() + lease * lease_words;
+  large_inputs[lease].resize(count);
+  return large_inputs[lease].data();
 }
 EMSCRIPTEN_KEEPALIVE void runtime_create(std::uint32_t id, std::uint32_t actor, std::uint32_t increase, std::uint32_t decrease) {
   using namespace sequencer;
@@ -109,19 +117,12 @@ EMSCRIPTEN_KEEPALIVE void runtime_create(std::uint32_t id, std::uint32_t actor, 
 EMSCRIPTEN_KEEPALIVE void runtime_destroy(std::uint32_t id) {
   if (id < sequencer::projections.size()) sequencer::projections[id].reset();
 }
-#ifdef SEQUENCER_TESTING
-EMSCRIPTEN_KEEPALIVE std::uint32_t runtime_clock_word(std::uint32_t id, std::uint32_t word, std::uint32_t value, std::uint32_t write) {
-  auto& p = *sequencer::projections[id];
-  auto& clock = word < 2 ? p.increase_clock : p.decrease_clock;
-  if (write) clock[word & 1] = value;
-  return clock[word & 1];
-}
-#endif
-EMSCRIPTEN_KEEPALIVE std::uint32_t* runtime_output_pointer() { return sequencer::output.data(); }
-EMSCRIPTEN_KEEPALIVE std::uint32_t runtime_output_count() { return std::uint32_t(sequencer::output.size()); }
+EMSCRIPTEN_KEEPALIVE std::uint32_t* runtime_output_pointer(std::uint32_t lease) { return sequencer::outputs[lease].data(); }
+EMSCRIPTEN_KEEPALIVE std::uint32_t runtime_output_count(std::uint32_t lease) { return std::uint32_t(sequencer::outputs[lease].size()); }
 EMSCRIPTEN_KEEPALIVE void runtime_execute(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, std::uint32_t arg1, std::uint32_t arg2) {
   using namespace sequencer;
   output.clear();
+  if (operation == 11) { runtime_destroy(id); output.insert(output.end(), {6, 0}); return; }
   if (id >= projections.size() || !projections[id]) { output.insert(output.end(), {7, 0, 1}); return; }
   auto& p = *projections[id];
   p.released.clear();
@@ -157,7 +158,6 @@ EMSCRIPTEN_KEEPALIVE void runtime_execute(std::uint32_t operation, std::uint32_t
       }
       case 9: spans(p.values(arg0, arg0)); kind = 3; break;
       case 10: spans(p.values(arg0 == UINT32_MAX ? 0 : arg0, arg1 == UINT32_MAX ? p.length() - 1 : arg1)); kind = 3; break;
-      case 11: runtime_destroy(id); output.insert(output.end(), {6, 0}); return;
       default: throw std::runtime_error("Unknown operation");
     }
   } catch (const std::exception&) {
@@ -169,5 +169,14 @@ EMSCRIPTEN_KEEPALIVE void runtime_execute(std::uint32_t operation, std::uint32_t
   std::vector<Word> header{kind, Word(p.released.size())};
   for (const auto& s : p.released) header.insert(header.end(), {s.content, s.start, s.count});
   output.insert(output.begin(), header.begin(), header.end());
+}
+EMSCRIPTEN_KEEPALIVE void runtime_dispatch(std::uint32_t lease, std::uint32_t operation, std::uint32_t id,
+  std::uint32_t arg0, std::uint32_t arg1, std::uint32_t arg2, const std::uint32_t* pointer, std::uint32_t count) {
+  using namespace sequencer;
+  input = {pointer, count};
+  output.swap(outputs[lease]);
+  if (operation == 0) runtime_create(id, arg0, 0, 0);
+  runtime_execute(operation, id, arg0, arg1, arg2);
+  output.swap(outputs[lease]);
 }
 }

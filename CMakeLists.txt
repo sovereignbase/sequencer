@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.28)
 project(
   sequencer_wasm
   VERSION 0.0.0
-  DESCRIPTION "C++ WebAssembly scaffold for sequencer."
+  DESCRIPTION "Sequencer WebAssembly runtime."
   LANGUAGES CXX
 )
 
@@ -40,7 +40,7 @@ else()
 endif()
 
 if(EMSCRIPTEN)
-  target_compile_options(sequencer_runtime PRIVATE -msimd128 -fwasm-exceptions -Wall -Wextra -Wpedantic)
+  target_compile_options(sequencer_runtime PRIVATE -msimd128 -matomics -mbulk-memory -fwasm-exceptions -Wall -Wextra -Wpedantic)
   set_target_properties(
     sequencer_wasm
     PROPERTIES
@@ -52,6 +52,8 @@ if(EMSCRIPTEN)
     sequencer_wasm
     PRIVATE
       -msimd128
+      -matomics
+      -mbulk-memory
       -fwasm-exceptions
   )
 
@@ -59,6 +61,8 @@ if(EMSCRIPTEN)
     sequencer_wasm
     PRIVATE
       -msimd128
+      -matomics
+      -mbulk-memory
       -fwasm-exceptions
       "-sWASM=1"
       "-sMODULARIZE=1"
@@ -67,22 +71,14 @@ if(EMSCRIPTEN)
       "-sSINGLE_FILE=1"
       "-sWASM_ASYNC_COMPILATION=0"
       "-sALLOW_MEMORY_GROWTH=1"
+      "-sSHARED_MEMORY=1"
+      "-sINITIAL_MEMORY=67108864"
       "-sFILESYSTEM=0"
       "-sDYNAMIC_EXECUTION=0"
       "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','HEAPU32']"
       "--emit-tsd=${CMAKE_CURRENT_BINARY_DIR}/sequencer_wasm.d.mts"
   )
 
-  add_executable(sequencer_runtime_test src/c++/bindings.cpp $<TARGET_OBJECTS:sequencer_runtime>)
-  set_target_properties(sequencer_runtime_test PROPERTIES OUTPUT_NAME "runtime-test" SUFFIX ".cjs")
-  target_compile_features(sequencer_runtime_test PRIVATE cxx_std_23)
-  target_compile_definitions(sequencer_runtime_test PRIVATE SEQUENCER_TESTING)
-  target_compile_options(sequencer_runtime_test PRIVATE -msimd128 -fwasm-exceptions)
-  target_link_options(sequencer_runtime_test PRIVATE
-    -msimd128 -fwasm-exceptions
-    "-sMODULARIZE=1" "-sENVIRONMENT=node" "-sSINGLE_FILE=1"
-    "-sALLOW_MEMORY_GROWTH=1" "-sEXPORTED_RUNTIME_METHODS=['HEAPU32']"
-  )
 endif()
 
 install(TARGETS sequencer_wasm RUNTIME DESTINATION .)

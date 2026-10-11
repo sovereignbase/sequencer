@@ -11,11 +11,11 @@ Word Projection::position_of(Index target, std::int32_t gate_diff) {
   Word left_jumped = 0, right_jumped = 0;
   std::optional<Word> known;
   const auto spacing = Word(std::round(std::sqrt(structural_count)));
-  bool found_left = !strips[left].left, found_right = !strips[right].right;
+  bool found_left = !strips.left[left], found_right = !strips.right[right];
   while (!found_left || !found_right) {
     if (!found_left) {
-      left = strips[left].left;
-      left_frames += std::max(0, strips[left].effect());
+      left = strips.left[left];
+      left_frames += std::max(0, strips.fragment_diff[left]);
       ++left_distance;
       if (left == gate)
         known = gate_position + left_frames;
@@ -23,12 +23,12 @@ Word Projection::position_of(Index target, std::int32_t gate_diff) {
         left_jump = left;
         left_jumped = left_frames;
       }
-      found_left = left == head || left == tail || !strips[left].left || strips[left].right_jump ||
-                   strips[left].left_jump;
+      found_left = left == head || left == tail || !strips.left[left] || strips.right_jump[left] ||
+                   strips.left_jump[left];
     }
     if (!found_right) {
-      right_frames += std::max(0, strips[right].effect());
-      right = strips[right].right;
+      right_frames += std::max(0, strips.fragment_diff[right]);
+      right = strips.right[right];
       ++right_distance;
       if (right == gate)
         known = gate_position + gate_diff - right_frames;
@@ -36,8 +36,8 @@ Word Projection::position_of(Index target, std::int32_t gate_diff) {
         right_jump = right;
         right_jumped = right_frames;
       }
-      found_right = right == head || right == tail || !strips[right].right ||
-                    strips[right].left_jump || strips[right].right_jump;
+      found_right = right == head || right == tail || !strips.right[right] ||
+                    strips.left_jump[right] || strips.right_jump[right];
     }
   }
   if (left != target) {
@@ -55,11 +55,11 @@ Word Projection::position_of(Index target, std::int32_t gate_diff) {
       link_jumps(*this, target, right, right_frames, right_distance);
   }
   left_jump_to_patch = target;
-  right_jump_to_patch = strips[target].right_jump;
+  right_jump_to_patch = strips.right_jump[target];
   if (right == head && target != head)
     return 0;
   if (left == tail && target != tail)
-    return frame_count - std::max(0, strips[target].effect());
+    return frame_count - std::max(0, strips.fragment_diff[target]);
   if (known)
     return *known;
   while (true) {
@@ -68,46 +68,46 @@ Word Projection::position_of(Index target, std::int32_t gate_diff) {
     if (right == head)
       return 0;
     if (left == tail)
-      return frame_count - std::max(0, strips[target].effect());
+      return frame_count - std::max(0, strips.fragment_diff[target]);
     if (right == tail)
-      return frame_count - std::max(0, strips[right].effect()) - right_frames;
-    if (!strips[left].left)
+      return frame_count - std::max(0, strips.fragment_diff[right]) - right_frames;
+    if (!strips.left[left])
       return left_frames;
-    if (!strips[right].right)
-      return frame_count - std::max(0, strips[right].effect()) - right_frames;
-    const auto lj = strips[left].left_jump;
+    if (!strips.right[right])
+      return frame_count - std::max(0, strips.fragment_diff[right]) - right_frames;
+    const auto lj = strips.left_jump[left];
     if (lj) {
-      auto frames = strips[left].left_jump_frames, distance = strips[left].left_jump_strips;
-      const auto next = strips[lj].left_jump;
+      auto frames = strips.left_jump_frames[left], distance = strips.left_jump_strips.identity[left].coordinates;
+      const auto next = strips.left_jump[lj];
       if (distance < spacing && lj != head && lj != tail && lj != gate && next &&
-          strips[lj].left_jump_strips <= spacing - distance) {
-        frames += strips[lj].left_jump_frames;
-        distance += strips[lj].left_jump_strips;
+          strips.left_jump_strips.identity[lj].coordinates <= spacing - distance) {
+        frames += strips.left_jump_frames[lj];
+        distance += strips.left_jump_strips.identity[lj].coordinates;
         link_jumps(*this, next, left, frames, distance);
         left = next;
       } else
         left = lj;
       left_frames += frames;
     } else {
-      left = strips[left].left;
-      left_frames += std::max(0, strips[left].effect());
+      left = strips.left[left];
+      left_frames += std::max(0, strips.fragment_diff[left]);
     }
-    const auto rj = strips[right].right_jump;
+    const auto rj = strips.right_jump[right];
     if (rj) {
-      auto frames = strips[right].right_jump_frames, distance = strips[right].right_jump_strips;
-      const auto next = strips[rj].right_jump;
+      auto frames = strips.right_jump_frames[right], distance = strips.right_jump_strips.identity[right].coordinates;
+      const auto next = strips.right_jump[rj];
       if (distance < spacing && rj != head && rj != tail && rj != gate && next &&
-          strips[rj].right_jump_strips <= spacing - distance) {
-        frames += strips[rj].right_jump_frames;
-        distance += strips[rj].right_jump_strips;
+          strips.right_jump_strips.identity[rj].coordinates <= spacing - distance) {
+        frames += strips.right_jump_frames[rj];
+        distance += strips.right_jump_strips.identity[rj].coordinates;
         link_jumps(*this, right, next, frames, distance);
         right = next;
       } else
         right = rj;
       right_frames += frames;
     } else {
-      right_frames += std::max(0, strips[right].effect());
-      right = strips[right].right;
+      right_frames += std::max(0, strips.fragment_diff[right]);
+      right = strips.right[right];
     }
   }
 }

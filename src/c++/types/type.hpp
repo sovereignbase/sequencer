@@ -1,7 +1,11 @@
 #pragma once
 #include <array>
+#include <algorithm>
 #include <bit>
+#include <cstddef>
 #include <cstdint>
+#include <cstring>
+#include <memory>
 #include <vector>
 
 namespace sequencer {
@@ -55,16 +59,61 @@ struct Sequence {
 
 // Links are arena indices: growth cannot invalidate links, there are no
 // per-fragment heap objects, and all fields fit wasm32 loads/stores.
-struct Strip {
-  Coordinates coordinates;
-  Word content{};
-  Word fragment_start{};
-  std::int32_t fragment_diff{};
-  bool fragmented{};
-  bool offset{};
-  Index left{}, right{}, competitor{}, fragment{};
-  Index left_jump{}, right_jump{};
-  Word left_jump_frames{}, left_jump_strips{}, right_jump_frames{}, right_jump_strips{};
-  std::int32_t effect() const { return fragmented ? fragment_diff : coordinates.diff; }
+struct Strips {
+  std::unique_ptr<std::byte[]> memory;
+  Word count{}, capacity{};
+  Insertion *identity{};
+  Word *fragment_start{};
+  std::int32_t *fragment_diff{};
+  Index *left{}, *right{}, *competitor{}, *fragment{}, *left_jump{}, *right_jump{};
+  Word *left_jump_frames{}, *left_jump_strips{}, *right_jump_frames{}, *right_jump_strips{};
+  std::uint8_t *fragmented{}, *offset{};
+
+  Strips() { append({}); }
+  Index append(Insertion insertion) {
+    constexpr Word lanes = 12;
+    if (count == capacity) {
+      const Word next = std::max(Word(64), capacity * 2);
+      auto grown = std::make_unique_for_overwrite<std::byte[]>(
+          (sizeof(Insertion) + lanes * sizeof(Word) + 2) * next);
+      auto *identities = reinterpret_cast<Insertion *>(grown.get());
+      auto *fields = reinterpret_cast<Word *>(identities + next);
+      auto *bits = reinterpret_cast<std::uint8_t *>(fields + lanes * next);
+      if (count) {
+        std::memcpy(identities, identity, count * sizeof(Insertion));
+        auto *old = reinterpret_cast<Word *>(identity + capacity);
+        for (Word field = 0; field < lanes; ++field)
+          std::memcpy(fields + field * next, old + field * capacity, count * sizeof(Word));
+        std::memcpy(bits, fragmented, count);
+        std::memcpy(bits + next, offset, count);
+      }
+      memory = std::move(grown);
+      capacity = next;
+      identity = identities;
+      fragment_start = fields;
+      fragment_diff = reinterpret_cast<std::int32_t *>(fields + next);
+      left = fields + 2 * next;
+      right = fields + 3 * next;
+      competitor = fields + 4 * next;
+      fragment = fields + 5 * next;
+      left_jump = fields + 6 * next;
+      right_jump = fields + 7 * next;
+      left_jump_frames = fields + 8 * next;
+      left_jump_strips = fields + 9 * next;
+      right_jump_frames = fields + 10 * next;
+      right_jump_strips = fields + 11 * next;
+      fragmented = bits;
+      offset = bits + next;
+    }
+    const auto index = count++;
+    std::construct_at(identity + index, insertion);
+    auto *fields = reinterpret_cast<Word *>(identity + capacity);
+    for (Word field = 0; field < lanes; ++field)
+      std::construct_at(fields + field * capacity + index, Word(0));
+    std::construct_at(fragmented + index, std::uint8_t(0));
+    std::construct_at(offset + index, std::uint8_t(0));
+    fragment_diff[index] = insertion.coordinates.diff;
+    return index;
+  }
 };
 } // namespace sequencer

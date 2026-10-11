@@ -25,14 +25,14 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
         const auto origin = containment.get(c.anchor_session, c.anchor_start);
         const auto known = fragments.find(origin);
         const auto fragment =
-            strips[origin].fragment && known != fragments.end() ? known->second : origin;
+            strips.fragment[origin] && known != fragments.end() ? known->second : origin;
         const auto resolved = find_containing_fragment(
-            c.anchor_diff > strips[fragment].fragment_start ? fragment : origin, incoming);
+            c.anchor_diff > strips.fragment_start[fragment] ? fragment : origin, incoming);
         point = resolved.first;
         anchor = resolved.second;
-        if (strips[origin].fragment &&
-            strips[anchor].coordinates.session == strips[origin].coordinates.session &&
-            strips[anchor].coordinates.start == strips[origin].coordinates.start)
+        if (strips.fragment[origin] &&
+            strips.identity[anchor].coordinates.session == strips.identity[origin].coordinates.session &&
+            strips.identity[anchor].coordinates.start == strips.identity[origin].coordinates.start)
           fragments[origin] = anchor;
       }
       anchor_strip(incoming, anchor, point);
@@ -44,7 +44,7 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
       jump_start = cursor = structural_head;
     const auto stop = n + 1 < insertions.size() ? incoming : none;
     while (cursor && cursor != stop) {
-      const auto diff = strips[cursor].effect();
+      const auto diff = strips.fragment_diff[cursor];
       if (diff > 0) {
         if (!visible_head) {
           visible_head = jump_start = cursor;
@@ -55,7 +55,7 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
       }
       jump_frames += std::max(0, diff);
       ++jump_strips;
-      cursor = strips[cursor].right;
+      cursor = strips.right[cursor];
       if (jump_strips == spacing && cursor) {
         link_jumps(*this, jump_start, cursor, jump_frames, jump_strips);
         jump_start = cursor;
@@ -65,9 +65,9 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
   }
   head = visible_head;
   tail = visible_tail;
-  if (tail_jump_start && tail_jump_start != tail && strips[tail_jump_start].right_jump) {
-    strips[strips[tail_jump_start].right_jump].left_jump = none;
-    strips[tail_jump_start].right_jump = none;
+  if (tail_jump_start && tail_jump_start != tail && strips.right_jump[tail_jump_start]) {
+    strips.left_jump[strips.right_jump[tail_jump_start]] = none;
+    strips.right_jump[tail_jump_start] = none;
   }
   gate = head;
   gate_position = 0;

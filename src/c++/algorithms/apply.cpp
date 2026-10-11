@@ -48,45 +48,45 @@ Result Projection::apply(const Gossip &gossip) {
         if (!frame_count) {
           gate = none;
           gate_position = 0;
-        } else if (gate && strips[gate].effect() <= 0)
+        } else if (gate && strips.fragment_diff[gate] <= 0)
           find_frame(std::min(gate_position, frame_count - 1));
         diff = anchor_strip(incoming, anchor, point);
         auto gate_diff = diff;
-        if (diff < 0 && strips[incoming].fragment && gate) {
+        if (diff < 0 && strips.fragment[incoming] && gate) {
           auto parent = gate;
           while (parent &&
-                 !(strips[parent].coordinates.session == c.anchor_session &&
-                   strips[parent].coordinates.start == c.anchor_start) &&
-                 !(strips[parent].coordinates.anchor_session == c.anchor_session &&
-                   strips[parent].coordinates.anchor_start == c.anchor_start))
-            parent = containment.get(strips[parent].coordinates.anchor_session,
-                                     strips[parent].coordinates.anchor_start);
+                 !(strips.identity[parent].coordinates.session == c.anchor_session &&
+                   strips.identity[parent].coordinates.start == c.anchor_start) &&
+                 !(strips.identity[parent].coordinates.anchor_session == c.anchor_session &&
+                   strips.identity[parent].coordinates.anchor_start == c.anchor_start))
+            parent = containment.get(strips.identity[parent].coordinates.anchor_session,
+                                     strips.identity[parent].coordinates.anchor_start);
           if (parent) {
-            const auto boundary = strips[parent].coordinates.session == c.anchor_session &&
-                                          strips[parent].coordinates.start == c.anchor_start
-                                      ? strips[parent].fragment_start
-                                      : strips[parent].coordinates.anchor_diff;
+            const auto boundary = strips.identity[parent].coordinates.session == c.anchor_session &&
+                                          strips.identity[parent].coordinates.start == c.anchor_start
+                                      ? strips.fragment_start[parent]
+                                      : strips.identity[parent].coordinates.anchor_diff;
             gate_diff = 0;
             for (auto mask = incoming;
                  mask &&
-                 strips[mask].coordinates.anchor_diff + strips[mask].fragment_start < boundary;
-                 mask = strips[mask].fragment)
+                 strips.identity[mask].coordinates.anchor_diff + strips.fragment_start[mask] < boundary;
+                 mask = strips.fragment[mask])
               gate_diff -= std::min(
-                  -strips[mask].fragment_diff,
-                  std::max(0, std::int32_t(boundary - strips[mask].coordinates.anchor_diff -
-                                           strips[mask].fragment_start)));
+                  -strips.fragment_diff[mask],
+                  std::max(0, std::int32_t(boundary - strips.identity[mask].coordinates.anchor_diff -
+                                           strips.fragment_start[mask])));
           }
         }
         start = position_of(incoming, gate_diff);
         if (start <= gate_position)
           gate_position =
               Word(std::max<std::int64_t>(start, std::int64_t(gate_position) + gate_diff));
-        if (diff > 0 && gate && strips[gate].fragmented && !strips[gate].fragment_diff) {
-          gate = strips[gate].fragment;
-          const auto right = strips[incoming].right_jump;
+        if (diff > 0 && gate && strips.fragmented[gate] && !strips.fragment_diff[gate]) {
+          gate = strips.fragment[gate];
+          const auto right = strips.right_jump[incoming];
           if (right && right != gate)
-            link_jumps(*this, gate, right, strips[incoming].right_jump_frames - diff,
-                       strips[incoming].right_jump_strips - 1);
+            link_jumps(*this, gate, right, strips.right_jump_frames[incoming] - diff,
+                       strips.right_jump_strips.identity[incoming].coordinates - 1);
           link_jumps(*this, incoming, gate, Word(diff), 1);
         }
       }
@@ -99,13 +99,13 @@ Result Projection::apply(const Gossip &gossip) {
         result.changes.push_back({start, start, {{insertion.content, 0, Word(c.diff)}}});
       } else if (diff < 0) {
         auto position = start;
-        for (auto mask = incoming; mask; mask = strips[mask].fragment) {
-          if (strips[mask].fragment_diff < 0)
-            result.changes.push_back({position, position - strips[mask].fragment_diff, {}});
-          const auto next = strips[mask].fragment;
+        for (auto mask = incoming; mask; mask = strips.fragment[mask]) {
+          if (strips.fragment_diff[mask] < 0)
+            result.changes.push_back({position, position - strips.fragment_diff[mask], {}});
+          const auto next = strips.fragment[mask];
           if (next)
-            for (auto i = strips[mask].right; i && i != next; i = strips[i].right)
-              position += std::max(0, strips[i].effect());
+            for (auto i = strips.right[mask]; i && i != next; i = strips.right[i])
+              position += std::max(0, strips.fragment_diff[i]);
         }
       }
       if (!frame_count) {
@@ -114,11 +114,11 @@ Result Projection::apply(const Gossip &gossip) {
       } else if (!gate) {
         gate = head;
         gate_position = 0;
-      } else if (strips[gate].effect() <= 0)
+      } else if (strips.fragment_diff[gate] <= 0)
         find_frame(std::min(gate_position, frame_count - 1));
-      if (gate && strips[gate].right_jump) {
+      if (gate && strips.right_jump[gate]) {
         left_jump_to_patch = gate;
-        right_jump_to_patch = strips[gate].right_jump;
+        right_jump_to_patch = strips.right_jump[gate];
       }
       auto released_pending = pending.take(c);
       for (auto it = released_pending.rbegin(); it != released_pending.rend(); ++it)

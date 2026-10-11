@@ -20,18 +20,18 @@ Sequence Projection::sequence() const {
   };
   std::unordered_map<std::uint64_t, Removed> removed;
   if (!compactable.empty()) {
-    for (auto i = structural_head; i; i = strips[i].right) {
-      const auto &s = strips[i];
-      const auto &c = s.coordinates;
-      const auto diff = s.effect();
+    for (auto i = structural_head; i; i = strips.right[i]) {
+      const auto s = i;
+      const auto &c = strips.identity[s].coordinates;
+      const auto diff = strips.fragment_diff[s];
       if (diff >= 0 || !compactable.contains(c.session))
         continue;
-      const auto start = c.anchor_diff + s.fragment_start;
+      const auto start = c.anchor_diff + strips.fragment_start[s];
       auto [it, added] = removed.try_emplace(identity(c.anchor_session, c.anchor_start));
       auto &frames = it->second;
       if (added) {
         const auto parent = containment.get(c.anchor_session, c.anchor_start);
-        const auto count = Word(strips[parent].coordinates.diff);
+        const auto count = Word(strips.identity[parent].coordinates.diff);
         if (!start && magnitude(diff) == count)
           frames.whole = count;
         else
@@ -53,9 +53,9 @@ Sequence Projection::sequence() const {
   constexpr auto omitted = std::numeric_limits<Word>::max();
   std::unordered_map<std::uint64_t, Word> included;
   Word left = omitted, left_diff = 0;
-  for (auto i = structural_head; i; i = strips[i].right) {
-    const auto &s = strips[i];
-    const auto &c = s.coordinates;
+  for (auto i = structural_head; i; i = strips.right[i]) {
+    const auto s = i;
+    const auto &c = strips.identity[s].coordinates;
     if (c.diff < 0 && compactable.contains(c.session))
       continue;
     auto *frames = removed_frames(c.session, c.start);
@@ -83,7 +83,7 @@ Sequence Projection::sequence() const {
             if (!footage.empty() && footage.back().start + footage.back().count == n)
               ++footage.back().count;
             else
-              footage.push_back({s.content, n, 1});
+              footage.push_back({strips.identity[s].content, n, 1});
           }
           count += frames->frames[n];
           frames->frames[n] = count;
@@ -94,7 +94,7 @@ Sequence Projection::sequence() const {
         exported.diff +=
             std::int32_t(before(target, c.anchor_diff - c.diff) - before(target, c.anchor_diff));
       } else if (c.diff > 0)
-        footage.push_back({s.content, 0, Word(c.diff)});
+        footage.push_back({strips.identity[s].content, 0, Word(c.diff)});
       if (exported.diff) {
         insertion = Word(output.insertions.size());
         output.insertions.push_back({exported, std::move(footage)});
@@ -102,9 +102,9 @@ Sequence Projection::sequence() const {
       included.emplace(key, insertion);
     } else
       insertion = found->second;
-    if (insertion != omitted && (first || s.fragment_diff != 0)) {
+    if (insertion != omitted && (first || strips.fragment_diff[s] != 0)) {
       left = insertion;
-      left_diff = s.fragment_start + magnitude(s.effect());
+      left_diff = strips.fragment_start[s] + magnitude(strips.fragment_diff[s]);
       if (!removed.empty() && c.diff > 0)
         left_diff -= before(frames, left_diff);
       else if (!removed.empty()) {

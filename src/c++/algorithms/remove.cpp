@@ -9,9 +9,9 @@ Gossip Projection::remove(Word start, std::int64_t end) {
     const auto point = find_frame(start);
     const auto anchor = gate;
     const auto count = Word(std::min<std::int64_t>(
-        remaining, std::int64_t(strips[anchor].fragment_start) + strips[anchor].effect() - point));
-    Coordinates c{strips[anchor].coordinates.session,
-                  strips[anchor].coordinates.start,
+        remaining, std::int64_t(strips.fragment_start[anchor]) + strips.fragment_diff[anchor] - point));
+    Coordinates c{strips.identity[anchor].coordinates.session,
+                  strips.identity[anchor].coordinates.start,
                   point,
                   decrease_clock[0],
                   decrease_clock[1],

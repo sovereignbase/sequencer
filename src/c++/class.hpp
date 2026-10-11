@@ -2,7 +2,6 @@
 #include "components/ContainmentTable/class.hpp"
 #include "components/FrontierTable/class.hpp"
 #include "components/PendingTable/class.hpp"
-#include "components/StripStorage/class.hpp"
 #include <cmath>
 #include <stdexcept>
 
@@ -10,7 +9,7 @@ namespace sequencer {
 class Projection {
 public:
   const Word actor;
-  StripStorage strips;
+  Strips strips;
   Index structural_head{}, head{}, tail{}, gate{};
   Word structural_count{}, frame_count{}, gate_position{};
   Index left_jump_to_patch{}, right_jump_to_patch{};

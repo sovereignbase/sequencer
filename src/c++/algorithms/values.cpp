@@ -10,17 +10,17 @@ std::vector<Span> Projection::values(Word start, Word end) {
   auto cursor = gate;
   auto remaining = std::int64_t(end) - start + 1;
   while (cursor && remaining > 0) {
-    const auto effect = strips[cursor].effect();
+    const auto effect = strips.fragment_diff[cursor];
     if (effect > 0) {
       const auto count = Word(std::max<std::int64_t>(
-          0, std::min(remaining, std::int64_t(effect) - frame + strips[cursor].fragment_start)));
+          0, std::min(remaining, std::int64_t(effect) - frame + strips.fragment_start[cursor])));
       if (count)
-        output.push_back({strips[cursor].content, frame, count});
+        output.push_back({strips.identity[cursor].content, frame, count});
       remaining -= count;
     }
-    const auto next = strips[cursor].right;
-    frame = strips[next].fragment_start +
-            Word(std::max<std::int64_t>(0, std::int64_t(frame) - strips[cursor].fragment_start -
+    const auto next = strips.right[cursor];
+    frame = strips.fragment_start[next] +
+            Word(std::max<std::int64_t>(0, std::int64_t(frame) - strips.fragment_start[cursor] -
                                                std::max(0, effect)));
     cursor = next;
   }

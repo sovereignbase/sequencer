@@ -7,108 +7,108 @@
 namespace sequencer {
 std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point) {
   const auto removal_end =
-      strips[incoming].coordinates.anchor_diff - strips[incoming].coordinates.diff;
+      strips.identity[incoming].coordinates.anchor_diff - strips.identity[incoming].coordinates.diff;
   std::int32_t total = 0;
   while (true) {
     auto left = anchor;
     Index right = none;
-    auto diff = strips[incoming].effect();
-    if (strips[incoming].coordinates.diff < 0 && strips[anchor].coordinates.diff > 0) {
-      const auto available = std::max<std::int64_t>(0, std::int64_t(strips[anchor].fragment_start) +
-                                                           strips[anchor].effect() - point);
+    auto diff = strips.fragment_diff[incoming];
+    if (strips.identity[incoming].coordinates.diff < 0 && strips.identity[anchor].coordinates.diff > 0) {
+      const auto available = std::max<std::int64_t>(0, std::int64_t(strips.fragment_start[anchor]) +
+                                                           strips.fragment_diff[anchor] - point);
       diff = -std::int32_t(std::min<std::int64_t>(-std::int64_t(diff), available));
-      strips[incoming].fragmented = true;
-      strips[incoming].fragment_diff = diff;
+      strips.fragmented[incoming] = true;
+      strips.fragment_diff[incoming] = diff;
     }
-    if (strips[incoming].coordinates.diff < 0 && diff == 0)
-      point = std::clamp(point, strips[anchor].fragment_start,
-                         strips[anchor].fragment_start + magnitude(strips[anchor].effect()));
+    if (strips.identity[incoming].coordinates.diff < 0 && diff == 0)
+      point = std::clamp(point, strips.fragment_start[anchor],
+                         strips.fragment_start[anchor] + magnitude(strips.fragment_diff[anchor]));
     if (anchor) {
-      right = point == strips[anchor].fragment_start + magnitude(strips[anchor].effect())
-                  ? strips[anchor].right
+      right = point == strips.fragment_start[anchor] + magnitude(strips.fragment_diff[anchor])
+                  ? strips.right[anchor]
                   : split_strip(anchor, point, diff);
     } else
       right = structural_head;
-    const auto c = strips[incoming].coordinates;
-    if (c.diff > 0 && anchor && strips[anchor].coordinates.diff < 0 &&
-        c.anchor_session == strips[anchor].coordinates.session &&
-        c.anchor_start == strips[anchor].coordinates.start && right &&
-        strips[right].coordinates.anchor_session == strips[anchor].coordinates.anchor_session &&
-        strips[right].coordinates.anchor_start == strips[anchor].coordinates.anchor_start &&
-        strips[right].coordinates.anchor_diff ==
-            strips[anchor].coordinates.anchor_diff + c.anchor_diff) {
-      while (strips[right].competitor)
-        right = strips[right].competitor;
+    const auto c = strips.identity[incoming].coordinates;
+    if (c.diff > 0 && anchor && strips.identity[anchor].coordinates.diff < 0 &&
+        c.anchor_session == strips.identity[anchor].coordinates.session &&
+        c.anchor_start == strips.identity[anchor].coordinates.start && right &&
+        strips.identity[right].coordinates.anchor_session == strips.identity[anchor].coordinates.anchor_session &&
+        strips.identity[right].coordinates.anchor_start == strips.identity[anchor].coordinates.anchor_start &&
+        strips.identity[right].coordinates.anchor_diff ==
+            strips.identity[anchor].coordinates.anchor_diff + c.anchor_diff) {
+      while (strips.competitor[right])
+        right = strips.competitor[right];
       left = subtree_end(right);
-      right = strips[left].right;
+      right = strips.right[left];
     }
-    while (right && strips[right].effect() == 0 &&
-           strips[right].coordinates.anchor_session == c.anchor_session &&
-           strips[right].coordinates.anchor_start == c.anchor_start &&
-           strips[right].coordinates.anchor_diff < c.anchor_diff) {
+    while (right && strips.fragment_diff[right] == 0 &&
+           strips.identity[right].coordinates.anchor_session == c.anchor_session &&
+           strips.identity[right].coordinates.anchor_start == c.anchor_start &&
+           strips.identity[right].coordinates.anchor_diff < c.anchor_diff) {
       left = right;
-      right = strips[right].right;
+      right = strips.right[right];
     }
-    if (right && anchors_overlap(strips[incoming], strips[right])) {
+    if (right && anchors_overlap(strips.identity[incoming].coordinates, strips.identity[right].coordinates)) {
       Index larger = none;
       auto smaller = right;
-      while (smaller && competition_is_larger(strips[incoming], strips[smaller])) {
+      while (smaller && competition_is_larger(strips.identity[incoming].coordinates, strips.identity[smaller].coordinates)) {
         larger = smaller;
-        smaller = strips[smaller].competitor;
+        smaller = strips.competitor[smaller];
       }
-      strips[incoming].competitor = smaller;
+      strips.competitor[incoming] = smaller;
       if (larger) {
-        strips[larger].competitor = incoming;
+        strips.competitor[larger] = incoming;
         left = subtree_end(larger);
-        right = strips[left].right;
+        right = strips.right[left];
       } else {
         right = smaller;
-        left = strips[smaller].left;
+        left = strips.left[smaller];
       }
     }
-    strips[incoming].left = left;
-    strips[incoming].right = right;
+    strips.left[incoming] = left;
+    strips.right[incoming] = right;
     if (left)
-      strips[left].right = incoming;
+      strips.right[left] = incoming;
     else
       structural_head = incoming;
     if (right)
-      strips[right].left = incoming;
+      strips.left[right] = incoming;
     if (diff > 0) {
       if (!head || !left || right == head)
         head = incoming;
       if (!tail || !right || left == tail)
         tail = incoming;
     }
-    while (head && strips[head].effect() <= 0) {
-      if (strips[head].right_jump && strips[head].right_jump_frames > 0) {
-        strips[strips[head].right_jump].left_jump = none;
-        strips[head].right_jump = none;
+    while (head && strips.fragment_diff[head] <= 0) {
+      if (strips.right_jump[head] && strips.right_jump_frames[head] > 0) {
+        strips.left_jump[strips.right_jump[head]] = none;
+        strips.right_jump[head] = none;
       }
-      head = strips[head].right;
+      head = strips.right[head];
     }
-    while (tail && strips[tail].effect() <= 0) {
-      if (strips[tail].left_jump && strips[tail].left_jump_frames > 0) {
-        strips[strips[tail].left_jump].right_jump = none;
-        strips[tail].left_jump = none;
+    while (tail && strips.fragment_diff[tail] <= 0) {
+      if (strips.left_jump[tail] && strips.left_jump_frames[tail] > 0) {
+        strips.right_jump[strips.left_jump[tail]] = none;
+        strips.left_jump[tail] = none;
       }
-      tail = strips[tail].left_jump && !strips[tail].left_jump_frames ? strips[tail].left_jump
-                                                                      : strips[tail].left;
+      tail = strips.left_jump[tail] && !strips.left_jump_frames[tail] ? strips.left_jump[tail]
+                                                                      : strips.left[tail];
     }
     ++structural_count;
     frame_count += diff;
     total += diff;
     const auto next =
-        anchor && strips[anchor].coordinates.diff > 0 ? strips[anchor].fragment : none;
-    if (c.diff >= 0 || !next || strips[next].fragment_start >= removal_end)
+        anchor && strips.identity[anchor].coordinates.diff > 0 ? strips.fragment[anchor] : none;
+    if (c.diff >= 0 || !next || strips.fragment_start[next] >= removal_end)
       return total;
-    const auto start = strips[next].fragment_start;
+    const auto start = strips.fragment_start[next];
     const auto mask = allocate({c, 0});
-    strips[mask].offset = strips[mask].fragmented = true;
-    strips[mask].fragment_start = start - c.anchor_diff;
-    strips[mask].fragment_diff =
-        -std::int32_t(std::min(Word(std::max(0, strips[next].effect())), removal_end - start));
-    strips[incoming].fragment = mask;
+    strips.offset[mask] = strips.fragmented[mask] = true;
+    strips.fragment_start[mask] = start - c.anchor_diff;
+    strips.fragment_diff[mask] =
+        -std::int32_t(std::min(Word(std::max(0, strips.fragment_diff[next])), removal_end - start));
+    strips.fragment[incoming] = mask;
     incoming = mask;
     anchor = next;
     point = start;

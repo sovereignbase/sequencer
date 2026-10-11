@@ -9,18 +9,18 @@ Word Projection::find_frame(Word position, bool for_insertion) {
   auto cursor = gate;
   Word after = 0;
   auto patch_left = left_jump_to_patch, patch_right = right_jump_to_patch;
-  const auto tail_index = std::int64_t(frame_count) - strips[tail].effect();
+  const auto tail_index = std::int64_t(frame_count) - strips.fragment_diff[tail];
   const auto tail_distance = std::abs(tail_index - index);
   const auto gate_distance = std::abs(cursor_index - index);
   if (index < gate_distance && index <= tail_distance) {
     cursor = head;
     cursor_index = 0;
     patch_left = cursor;
-    patch_right = strips[cursor].right_jump;
+    patch_right = strips.right_jump[cursor];
   } else if (tail_distance < gate_distance) {
     cursor = tail;
     cursor_index = tail_index;
-    patch_left = strips[cursor].left_jump;
+    patch_left = strips.left_jump[cursor];
     patch_right = cursor;
   }
   const auto spacing = Word(std::round(std::sqrt(structural_count)));
@@ -28,36 +28,36 @@ Word Projection::find_frame(Word position, bool for_insertion) {
   auto jump_index = cursor_index;
   std::int32_t steps = 0;
   while (cursor) {
-    if (strips[cursor].left_jump || strips[cursor].right_jump) {
+    if (strips.left_jump[cursor] || strips.right_jump[cursor]) {
       jump_start = cursor;
       jump_index = cursor_index;
       steps = 0;
     }
-    const auto length = std::max(0, strips[cursor].effect());
+    const auto length = std::max(0, strips.fragment_diff[cursor]);
     if (cursor_index <= index && index < cursor_index + length) {
-      if (for_insertion && !after && index == cursor_index && strips[cursor].offset) {
-        const auto mask = strips[cursor].left;
-        const auto &m = strips[mask];
-        const auto &c = strips[cursor];
+      if (for_insertion && !after && index == cursor_index && strips.offset[cursor]) {
+        const auto mask = strips.left[cursor];
+        const auto m = mask;
+        const auto c = cursor;
         const bool original_zero =
-            mask && m.coordinates.diff < 0 && m.coordinates.anchor_diff == 0 &&
-            m.coordinates.anchor_session == c.coordinates.session &&
-            m.coordinates.anchor_start == c.coordinates.start && m.left &&
-            strips[m.left].coordinates.session == m.coordinates.anchor_session &&
-            strips[m.left].coordinates.start == m.coordinates.anchor_start &&
-            !strips[m.left].offset;
-        if ((original_zero || c.fragment_start == 0 ||
-             (index == 0 && (m.coordinates.anchor_session != c.coordinates.session ||
-                             m.coordinates.anchor_start != c.coordinates.start))) &&
-            mask && m.coordinates.diff < 0) {
-          if (original_zero && (m.left_jump || m.right_jump)) {
+            mask && strips.identity[m].coordinates.diff < 0 && strips.identity[m].coordinates.anchor_diff == 0 &&
+            strips.identity[m].coordinates.anchor_session == strips.identity[c].coordinates.session &&
+            strips.identity[m].coordinates.anchor_start == strips.identity[c].coordinates.start && strips.left[m] &&
+            strips.identity[strips.left[m]].coordinates.session == strips.identity[m].coordinates.anchor_session &&
+            strips.identity[strips.left[m]].coordinates.start == strips.identity[m].coordinates.anchor_start &&
+            !strips.offset[strips.left[m]];
+        if ((original_zero || strips.fragment_start[c] == 0 ||
+             (index == 0 && (strips.identity[m].coordinates.anchor_session != strips.identity[c].coordinates.session ||
+                             strips.identity[m].coordinates.anchor_start != strips.identity[c].coordinates.start))) &&
+            mask && strips.identity[m].coordinates.diff < 0) {
+          if (original_zero && (strips.left_jump[m] || strips.right_jump[m])) {
             jump_start = mask;
             jump_index = cursor_index;
             steps = 1;
           }
-          after = original_zero ? 0 : magnitude(m.fragment_diff);
-          cursor = original_zero ? m.left : mask;
-          steps = strips[cursor].left_jump || strips[cursor].right_jump
+          after = original_zero ? 0 : magnitude(strips.fragment_diff[m]);
+          cursor = original_zero ? strips.left[m] : mask;
+          steps = strips.left_jump[cursor] || strips.right_jump[cursor]
                       ? 0
                       : steps - (original_zero ? 2 : 1);
         } else if (index > 0) {
@@ -67,42 +67,42 @@ Word Projection::find_frame(Word position, bool for_insertion) {
         }
       }
       if (steps > 0) {
-        const auto right = strips[jump_start].right_jump;
+        const auto right = strips.right_jump[jump_start];
         const auto frames = Word(cursor_index - jump_index);
         if (right)
-          link_jumps(*this, cursor, right, strips[jump_start].right_jump_frames - frames,
-                     strips[jump_start].right_jump_strips - steps);
+          link_jumps(*this, cursor, right, strips.right_jump_frames[jump_start] - frames,
+                     strips.right_jump_strips.identity[jump_start].coordinates - steps);
         link_jumps(*this, jump_start, cursor, frames, Word(steps));
       } else if (steps < 0) {
-        const auto left = strips[jump_start].left_jump;
+        const auto left = strips.left_jump[jump_start];
         const auto frames = Word(jump_index - cursor_index);
         if (left)
-          link_jumps(*this, left, cursor, strips[jump_start].left_jump_frames - frames,
-                     strips[jump_start].left_jump_strips + steps);
+          link_jumps(*this, left, cursor, strips.left_jump_frames[jump_start] - frames,
+                     strips.left_jump_strips.identity[jump_start].coordinates + steps);
         link_jumps(*this, cursor, jump_start, frames, Word(-steps));
       }
-      if (strips[cursor].right_jump) {
+      if (strips.right_jump[cursor]) {
         patch_left = cursor;
-        patch_right = strips[cursor].right_jump;
+        patch_right = strips.right_jump[cursor];
       } else if (cursor == patch_right)
         patch_left = patch_right = none;
       gate = cursor;
       gate_position = Word(cursor_index);
       left_jump_to_patch = patch_left;
       right_jump_to_patch = patch_right;
-      return Word(strips[cursor].fragment_start + index - cursor_index + after);
+      return Word(strips.fragment_start[cursor] + index - cursor_index + after);
     }
     if (cursor_index <= index) {
-      const auto walk = strips[cursor].right;
+      const auto walk = strips.right[cursor];
       const auto walk_index = cursor_index + length;
-      auto jump = strips[cursor].right_jump;
+      auto jump = strips.right_jump[cursor];
       if (jump && cursor_index >= 0) {
-        auto frames = strips[cursor].right_jump_frames, distance = strips[cursor].right_jump_strips;
+        auto frames = strips.right_jump_frames[cursor], distance = strips.right_jump_strips.identity[cursor].coordinates;
         if (distance < spacing && jump != head && jump != tail) {
-          const auto next = strips[jump].right_jump;
-          if (next && strips[jump].right_jump_strips <= spacing - distance) {
-            frames += strips[jump].right_jump_frames;
-            distance += strips[jump].right_jump_strips;
+          const auto next = strips.right_jump[jump];
+          if (next && strips.right_jump_strips.identity[jump].coordinates <= spacing - distance) {
+            frames += strips.right_jump_frames[jump];
+            distance += strips.right_jump_strips.identity[jump].coordinates;
             link_jumps(*this, cursor, next, frames, distance);
             jump = next;
           }
@@ -129,16 +129,16 @@ Word Projection::find_frame(Word position, bool for_insertion) {
       if (cursor == patch_right)
         patch_left = patch_right = none;
     } else {
-      const auto walk = strips[cursor].left;
-      const auto walk_index = cursor_index - std::max(0, strips[walk].effect());
-      auto jump = strips[cursor].left_jump;
+      const auto walk = strips.left[cursor];
+      const auto walk_index = cursor_index - std::max(0, strips.fragment_diff[walk]);
+      auto jump = strips.left_jump[cursor];
       if (jump) {
-        auto frames = strips[cursor].left_jump_frames, distance = strips[cursor].left_jump_strips;
+        auto frames = strips.left_jump_frames[cursor], distance = strips.left_jump_strips.identity[cursor].coordinates;
         if (distance < spacing && jump != head && jump != tail) {
-          const auto next = strips[jump].left_jump;
-          if (next && strips[jump].left_jump_strips <= spacing - distance) {
-            frames += strips[jump].left_jump_frames;
-            distance += strips[jump].left_jump_strips;
+          const auto next = strips.left_jump[jump];
+          if (next && strips.left_jump_strips.identity[jump].coordinates <= spacing - distance) {
+            frames += strips.left_jump_frames[jump];
+            distance += strips.left_jump_strips.identity[jump].coordinates;
             link_jumps(*this, next, cursor, frames, distance);
             jump = next;
           }

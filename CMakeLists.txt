@@ -40,7 +40,7 @@ else()
 endif()
 
 if(EMSCRIPTEN)
-  target_compile_options(sequencer_runtime PRIVATE -msimd128 -matomics -mbulk-memory -fwasm-exceptions -Wall -Wextra -Wpedantic)
+  target_compile_options(sequencer_runtime PRIVATE -msimd128 -mbulk-memory -fwasm-exceptions -Wall -Wextra -Wpedantic)
   set_target_properties(
     sequencer_wasm
     PROPERTIES
@@ -52,7 +52,6 @@ if(EMSCRIPTEN)
     sequencer_wasm
     PRIVATE
       -msimd128
-      -matomics
       -mbulk-memory
       -fwasm-exceptions
   )
@@ -61,7 +60,6 @@ if(EMSCRIPTEN)
     sequencer_wasm
     PRIVATE
       -msimd128
-      -matomics
       -mbulk-memory
       -fwasm-exceptions
       "-sWASM=1"
@@ -71,7 +69,6 @@ if(EMSCRIPTEN)
       "-sSINGLE_FILE=1"
       "-sWASM_ASYNC_COMPILATION=0"
       "-sALLOW_MEMORY_GROWTH=1"
-      "-sSHARED_MEMORY=1"
       "-sINITIAL_MEMORY=67108864"
       "-sFILESYSTEM=0"
       "-sDYNAMIC_EXECUTION=0"

@@ -9,8 +9,8 @@ Gossip Projection::insert(Word count, Word content, Word at) {
     containment.set(c, incoming);
   } else {
     const auto [point, anchor] = select_anchor(at);
-    c.anchor_session = strips[anchor].coordinates.session;
-    c.anchor_start = strips[anchor].coordinates.start;
+    c.anchor_session = strips.identity[anchor].coordinates.session;
+    c.anchor_start = strips.identity[anchor].coordinates.start;
     c.anchor_diff = point;
     const auto incoming = allocate({c, content});
     const auto previous_count = structural_count;

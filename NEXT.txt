@@ -1,0 +1,117 @@
+Tein testin Node `worker_threads` + transferable `ArrayBuffer`illa. Yksi viesti kerrallaan, worker pidettiin lämpimänä, ja mittasin erikseen `postMessage()`-kutsun sekä hetken jolloin worker oikeasti vastaanottaa viestin.
+
+Ympäristö tässä: **Node v22.16.0, Linux x64**.
+
+| Transferable | `postMessage()` mainissa p50 | main → worker p50 | mean | p95 | p99 |
+|---|---:|---:|---:|---:|---:|
+| 16 B | 5.5 µs | **9.3 µs** | 11.8 µs | 14.8 µs | 48.1 µs |
+| 1 KiB | 6.9 µs | **12.9 µs** | 14.4 µs | 17.6 µs | 59.6 µs |
+| 1 MiB | 5.6 µs | **9.2 µs** | 11.5 µs | 14.1 µs | 42.4 µs |
+
+Eli **ei, 46 µs ei näytä olevan transferable `postMessage`in normaali kustannus**. Tässä 46 µs osuu pikemminkin p99-luokan scheduler/jitter-piikkiin.
+
+Oleellinen tulos on myös tämä:
+
+> **16 tavua ja 1 MiB maksavat käytännössä saman verran.**
+
+Se on juuri mitä transferablelta pitäisi odottaa: itse bufferia ei kopioida workerille, vaan ownership siirtyy. Suurin kustannus on threadien välinen viestitys, queue + workerin herätys/scheduling.
+
+Roundtrip-testissä sain pienelle viestille:
+
+```text
+main -> worker -> main
+p50 ≈ 18 µs
+```
+
+eli sekin antaa noin **9 µs/suunta**.
+
+Jos Sequencerissa olet laskenut jotain tyyliin:
+
+```text
+postMessage ≈ 46 µs
+```
+
+niin käyttäisin tällä perusteella ennemmin mallia:
+
+```text
+main -> worker transferable:
+tyypillinen: ~9–13 µs
+p95:         ~15–18 µs
+p99:         ~40–60 µs
+```
+
+Ja itse main threadin blokkaava:
+
+```text
+worker.postMessage(...)
+≈ 5–7 µs
+```
+
+Tuo viimeinen on tärkeä: **~10 µs delivery latency ei tarkoita, että main thread olisi blokissa 10 µs**. Main thread on tässä blokissa vain noin **5–7 µs**, jonka jälkeen viesti matkustaa workerille asyncisti.
+
+Sinun Windows + Node 24.16.0 -ympäristössä luvut voivat tietysti olla eri, joten 46 µs kannattaa ajaa samalla benchmarkilla juuri siinä koneessa.
+
+Se **ei näytä oikeasti blokkaavan tyypillisesti 5–7 µs**. Aiempi mittaukseni yliarvioi juuri `postMessage()`-kutsun synkronisen osuuden.
+
+Ajoin nyt erikseen tiukemman benchmarkin, jossa mitataan vain tämä:
+
+```js
+const t0 = process.hrtime.bigint()
+worker.postMessage(buffer, [buffer])
+const t1 = process.hrtime.bigint()
+```
+
+16 B transferable `ArrayBuffer`:
+
+```text
+p50   1.04 µs
+mean  1.85 µs
+p95   6.50 µs
+p99   9.86 µs
+```
+
+Ja batch-throughput:
+
+```text
+number                    0.84 µs / call
+small object              1.32 µs / call
+16 B ArrayBuffer copied   0.89 µs / call
+16 B ArrayBuffer transfer 1.89 µs / call
+```
+
+Eli transferable itse asiassa **maksaa vähän enemmän synkronisesti pienellä bufferilla**, koska V8:n pitää käsitellä transfer list ja irrottaa (`detach`) buffer main threadiltä.
+
+Synkronisesti tapahtuu suunnilleen:
+
+```text
+JS
+↓
+V8 ValueSerializer
+↓
+transfer list validation
+↓
+ArrayBuffer backing store ownership transfer / detach
+↓
+Node MessagePort queue enqueue
+↓
+signal worker
+↓
+return
+```
+
+Se ei siis odota workeria. **Varsinainen thread-hop jatkuu asyncisti.**
+
+Sequencerin kannalta käyttäisin siis mieluummin:
+
+```text
+main-thread synchronous overhead:
+~1–2 µs typical transferable postMessage
+
+main → worker delivery:
+~9–13 µs typical
+
+occasional scheduler/queue spikes:
+~tens of µs
+```
+
+Tuo on jo aika eri kuva kuin **46 µs per operation**. Jos yksi Sequencer-operaatio pakataan yhteen worker-viestiin, worker-hop maksaa silti paljon suhteessa sinun sub-µs engine-kustannuksiin, mutta main threadin blokkaus itsessään on lähempänä **~1 µs kuin ~5–46 µs**.

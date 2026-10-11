@@ -2,7 +2,7 @@ import type { Gossip, Result, Sequence } from './types/type.js'
 import { runtime } from './runtime/client.js'
 import { Operation } from './runtime/protocol.js'
 
-/** Reference public API; all work is dispatched to one shared dedicated worker. */
+/** Public API; all work is dispatched to one shared dedicated worker. */
 export class Projection<T> {
   private readonly id: number
 

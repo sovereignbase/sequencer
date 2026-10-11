@@ -4,12 +4,12 @@ import type { Gossip, Sequence } from '../../../../src/typescript/types/type.ts'
 /**
  * Materializes every visible Frame for exact Projection comparison.
  */
-const project = async <T>(sequence: Projection<T>): Promise<Array<T | undefined>> => await Promise.all(Array.from({ length: await sequence.length() }, async (_, index) => await sequence.value(index))
+const project = async <T>(sequence: Projection<T>): Promise<Array<T | undefined>> => await Promise.all(await Promise.all(Array.from({ length: await sequence.length() }, async (_, index) => await sequence.value(index))
 /**
  * Verifies that every supplied replica exposes the same visible Projection as
  * the expected replica.
  */
-);
+));
 /**
  * Verifies that every supplied replica exposes the same visible Projection as
  * the expected replica.

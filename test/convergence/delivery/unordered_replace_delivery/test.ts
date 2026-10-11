@@ -40,12 +40,12 @@ const deliveryKeys = [
  * Materializes the complete visible Projection for exact convergence
  * comparison.
  */
-const project = async (sequence: Projection<string>): Promise<Array<string | undefined>> => await Promise.all(Array.from({ length: await sequence.length() }, async (_, index) => await sequence.value(index))
+const project = async (sequence: Projection<string>): Promise<Array<string | undefined>> => await Promise.all(await Promise.all(Array.from({ length: await sequence.length() }, async (_, index) => await sequence.value(index))
 /**
  * Reconstructs one live replica from the retained base Sequence and applies
  * every mutation in exactly the supplied delivery order.
  */
-);
+));
 /**
  * Reconstructs one live replica from the retained base Sequence and applies
  * every mutation in exactly the supplied delivery order.
@@ -89,7 +89,7 @@ describe('unordered replace delivery', () => {
         ];
         const mutations: Array<Gossip<string>> = [];
         // Author the deterministic concurrent workload.
-        await Promise.all(operations.map(async ([kind, replicaSelector, indexSelector, frameCount], operationIndex) => {
+        await Promise.all(await Promise.all(operations.map(async ([kind, replicaSelector, indexSelector, frameCount], operationIndex) => {
             const replicaIndex = replicaSelector % replicas.length;
             const replica = replicas[replicaIndex];
             const length = await replica.length();
@@ -114,7 +114,7 @@ describe('unordered replace delivery', () => {
             mutations.push(await replica.insert(frames, indexSelector % (length + 1)));
         })
         // Baseline reconstruction in workload creation order.
-        );
+        ));
         // Baseline reconstruction in workload creation order.
         const chronological = await deliver(retained, mutations);
         // Reconstruct the same operation set in exact reverse order.

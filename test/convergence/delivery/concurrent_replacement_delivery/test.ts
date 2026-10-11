@@ -35,12 +35,12 @@ const deliveryKeys = [
 /**
  * Materializes the visible Projection for exact convergence comparison.
  */
-const project = async (sequence: Projection<string>): Promise<Array<string | undefined>> => await Promise.all(Array.from({ length: await sequence.length() }, async (_, index) => await sequence.value(index))
+const project = async (sequence: Projection<string>): Promise<Array<string | undefined>> => await Promise.all(await Promise.all(Array.from({ length: await sequence.length() }, async (_, index) => await sequence.value(index))
 /**
  * Reconstructs a replica from the retained base Sequence and applies the given
  * Gossip updates in exactly the supplied delivery order.
  */
-);
+));
 /**
  * Reconstructs a replica from the retained base Sequence and applies the given
  * Gossip updates in exactly the supplied delivery order.
@@ -94,7 +94,7 @@ describe('concurrent replacement delivery', () => {
          * count and that replica's current local Projection. Replacement and removal
          * ranges are clipped to remain within the locally visible Frames.
          */
-        await Promise.all(operations.map(async ([kind, replicaSelector, indexSelector, frameCount], operationIndex) => {
+        await Promise.all(await Promise.all(operations.map(async ([kind, replicaSelector, indexSelector, frameCount], operationIndex) => {
             const replicaIndex = replicaSelector % replicas.length;
             const replica = replicas[replicaIndex];
             const length = await replica.length();
@@ -124,7 +124,7 @@ describe('concurrent replacement delivery', () => {
         /**
          * Baseline reconstruction using workload authoring order.
          */
-        );
+        ));
         /**
          * Baseline reconstruction using workload authoring order.
          */

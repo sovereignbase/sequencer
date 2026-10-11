@@ -19,7 +19,7 @@ type Runtime = {
  */
 const expectLivePeers = async (runtime: Runtime): Promise<void> => {
     expect(await runtime.peer.length()).toBe(await runtime.state.length());
-    expect(await Promise.all(Array.from({ length: await runtime.peer.length() }, async (_, index) => await runtime.peer.value(index)))).toEqual(await Promise.all(Array.from({ length: await runtime.state.length() }, async (_, index) => await runtime.state.value(index))));
+    expect(await Promise.all(await Promise.all(Array.from({ length: await runtime.peer.length() }, async (_, index) => await runtime.peer.value(index))))).toEqual(await Promise.all(await Promise.all(Array.from({ length: await runtime.state.length() }, async (_, index) => await runtime.state.value(index)))));
 };
 /**
  * Delivers one locally authored Gossip update immediately to the other peer,

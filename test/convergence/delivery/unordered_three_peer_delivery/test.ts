@@ -49,12 +49,12 @@ const sessionOrders = [
  * Materializes the complete visible Projection for exact Frame-by-Frame
  * convergence comparison.
  */
-const project = async (sequence: Projection<string>): Promise<Array<string | undefined>> => await Promise.all(Array.from({ length: await sequence.length() }, async (_, index) => await sequence.value(index))
+const project = async (sequence: Projection<string>): Promise<Array<string | undefined>> => await Promise.all(await Promise.all(Array.from({ length: await sequence.length() }, async (_, index) => await sequence.value(index))
 /**
  * Creates a fresh receiver from the retained Sequence and applies the supplied
  * Gossip mutations in exactly that order.
  */
-);
+));
 /**
  * Creates a fresh receiver from the retained Sequence and applies the supplied
  * Gossip mutations in exactly that order.
@@ -106,7 +106,7 @@ describe('hostile three-peer delivery', () => {
                 const mutations: Array<Gossip<string>> = [];
                 // Author the complete deterministic workload against each replica's
                 // independent local Projection.
-                await Promise.all(operations.map(async ([kind, replicaSelector, indexSelector, frameCount], operationIndex) => {
+                await Promise.all(await Promise.all(operations.map(async ([kind, replicaSelector, indexSelector, frameCount], operationIndex) => {
                     const replicaIndex = replicaSelector % replicas.length;
                     const replica = replicas[replicaIndex];
                     const length = await replica.length();
@@ -132,7 +132,7 @@ describe('hostile three-peer delivery', () => {
                     mutations.push(await replica.insert(frames, indexSelector % (length + 1)));
                 })
                 // Baseline reconstruction in workload creation order.
-                );
+                ));
                 // Baseline reconstruction in workload creation order.
                 const chronological = await deliver(retained, mutations);
                 // Reconstruct the same operation set in a hostile mixed order.

@@ -63,13 +63,13 @@ const build_insert_scenario = async (): Promise<SixEditorMutations> => {
     const online_middle = accepted(await online_2.insert(['online-2'], await online_2.length()));
     const online_3 = new Projection<string>(92, await online_2.sequence());
     const online_tail = accepted(await online_3.insert(['online-3'], await online_3.length()));
-    const offline = await Promise.all(([80, 70, 60] as const).map(async (actor, branch_index) => {
+    const offline = await Promise.all(await Promise.all(([80, 70, 60] as const).map(async (actor, branch_index) => {
         const editor = new Projection<string>(actor, base);
         const branch = branch_index + 1;
         const root = accepted(await editor.insert([`offline-${branch}-1`], await editor.length()));
         const tail = accepted(await editor.insert([`offline-${branch}-2`], await editor.length()));
         return [root, tail];
-    })) as SixEditorMutations['offline'];
+    }))) as SixEditorMutations['offline'];
     return {
         base,
         base_state,

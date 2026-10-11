@@ -16,7 +16,7 @@ const frames = (value: number, length: number): Array<number> => new Array<numbe
  */
 const expectLivePeers = async (left: Projection<number>, right: Projection<number>): Promise<void> => {
     expect(await right.length()).toBe(await left.length());
-    expect(await Promise.all(Array.from({ length: await right.length() }, async (_, index) => await right.value(index)))).toEqual(await Promise.all(Array.from({ length: await left.length() }, async (_, index) => await left.value(index))));
+    expect(await Promise.all(await Promise.all(Array.from({ length: await right.length() }, async (_, index) => await right.value(index))))).toEqual(await Promise.all(await Promise.all(Array.from({ length: await left.length() }, async (_, index) => await left.value(index)))));
 };
 /**
  * Delivers one locally authored Gossip update immediately to the other peer,

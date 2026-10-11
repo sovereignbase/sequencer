@@ -1,8 +1,7 @@
 # Runtime scaffold
 
-The TypeScript reference is canonical. The old native ABI is not adapted.
 `Projection` only dispatches calls; it has no WASM imports or algorithm helpers.
-Its public method names and arguments match the reference, with Promise returns.
+All operations return Promises.
 
 ## Build
 
@@ -28,12 +27,12 @@ The client uses pooled numeric resolver slots, generation checks and array
 indexing rather than string IDs or a Map per request. Main-thread invocation
 arguments are retained only until completion. The bootstrap control messages
 contain numeric IDs/opcodes; application Footage is never posted to the worker.
-The dispatcher intentionally rejects calls until the canonical C++ ABI exists.
+The dispatcher intentionally rejects calls until the C++ ABI exists.
 Payload encoding and result materialization are also deliberately unfinished:
 the current scaffold does not pretend to execute Projection operations.
 
 Footage remains on the main thread. The new native interface receives six-word
-Insertion coordinates in reference order, plus numeric content references. It
+Insertion coordinates in replication order, plus numeric content references. It
 returns numeric results and spans; main-thread content access resolves those
 spans to application values. No JS causal pending table, Strip graph, content
 blocks or independently maintained Footage length is part of this scaffold.
@@ -59,6 +58,6 @@ leases avoid that extra JS/WASM copy on the primary path.
 
 The existing postMessage bootstrap only establishes worker ownership and RPC
 correlation. It is not a claim that the final zero-copy transport is complete.
-When implementing the C++ reference model, native code must own causal staging,
+When implementing the C++ model, native code must own causal staging,
 validation of untrusted input, traversal, clocks, acknowledgement frontiers,
 retirement and export compaction. Local calls remain trusted and unvalidated.

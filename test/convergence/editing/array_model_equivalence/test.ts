@@ -13,11 +13,11 @@ const operation = fc.record({
 });
 it('reports a head insertion at zero after resolving a free original zero in the middle', async () => {
     const peers = [new Projection<string>(1), new Projection<string>(2)];
-    await Promise.all(peers.map(async (peer, index) => {
+    await Promise.all(await Promise.all(peers.map(async (peer, index) => {
         peer.increaseClock[0] = 1000 + index;
         peer.decreaseClock[0] = 2000 + index;
         await peer.apply([[1], [2], [3]]);
-    }));
+    })));
     const deliver = async (author: number, update: ReturnType<Projection<string>['insert']>) => {
         const result = (await peers[1 - author].apply(structuredClone(update)))!;
         if (result[1])
@@ -85,9 +85,9 @@ it.each([false, true])('matches array editing and consumer splices with compacti
             for (let index = expected.length - 1; index >= 0; --index)
                 expect(await peer.value(index)).toBe(expected[index]);
         };
-        await Promise.all(operations.map(async (op, step) => {
+        await Promise.all(await Promise.all(operations.map(async (op, step) => {
             if (op.kind === 'hydrate') {
-                peers = await Promise.all(peers.map(async (peer) => new Projection<string>(peer.actorID, structuredClone(await peer.sequence()))));
+                peers = await Promise.all(await Promise.all(peers.map(async (peer) => new Projection<string>(peer.actorID, structuredClone(await peer.sequence())))));
                 await clocks();
             }
             else {
@@ -134,7 +134,7 @@ it.each([false, true])('matches array editing and consumer splices with compacti
                     }
                 }
             }
-        }));
+        })));
         peers.forEach(check);
     }), { seed: 0x51ced, numRuns: 1024 });
 });

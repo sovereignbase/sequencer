@@ -2,7 +2,7 @@
 export type U32List = Uint32Array | ReadonlyArray<number>
 
 /**
- * Exactly six words, in the canonical reference order:
+ * Exactly six words, in the replication order:
  * `[anchorSession, anchorStart, anchorDiff,
  *   insertionSession, insertionStart, insertionDiff]`.
  * Signed coordinates use their 32-bit bit pattern; WASM interprets those lanes
@@ -10,12 +10,12 @@ export type U32List = Uint32Array | ReadonlyArray<number>
  */
 export type InsertionWords = U32List
 
-/** Reference insertion coordinates plus optional JS-owned content. Only words enter WASM. */
+/** Insertion coordinates plus optional JS-owned content. Only words enter WASM. */
 export type Insertion<T> = Readonly<
   [words: InsertionWords, footage?: ReadonlyArray<T | undefined>]
 >
 
-/** `[actorID, sessionID, sessionEnd, ...]`, as in the reference. */
+/** `[actorID, sessionID, sessionEnd, ...]`. */
 export type Acknowledgement = U32List
 
 export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>

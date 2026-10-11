@@ -10,7 +10,7 @@ import { deriveSeed, Random, seedFromString, StripIndex, } from '../../../../ben
  * differently while still being convergent as long as every visible Projection
  * Frame resolves to the same value.
  */
-const project = async (sequence: Projection<number>): Promise<Array<number | undefined>> => await Promise.all(Array.from({ length: await sequence.length() }, async (_, index) => await sequence.value(index)));
+const project = async (sequence: Projection<number>): Promise<Array<number | undefined>> => await Promise.all(await Promise.all(Array.from({ length: await sequence.length() }, async (_, index) => await sequence.value(index))));
 const structure = (projection: Projection<number>) => {
     const result = [];
     for (let strip = projection.head; strip; strip = strip.rightStep)

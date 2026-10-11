@@ -3,7 +3,7 @@ import { Projection } from '../../../../src/typescript/class.ts';
 const expect_projection = async <T>(projection: Projection<T>, expected: Array<T>): Promise<void> => {
     expect(await projection.values()).toEqual(expected);
     expect(await projection.length()).toBe(expected.length);
-    expect(await Promise.all(Array.from({ length: await projection.length() }, async (_, index) => await projection.value(index)))).toEqual(expected);
+    expect(await Promise.all(await Promise.all(Array.from({ length: await projection.length() }, async (_, index) => await projection.value(index))))).toEqual(expected);
 };
 describe('local editing lifecycle', () => {
     it('preserves visible values through local edits and reconstruction', async () => {

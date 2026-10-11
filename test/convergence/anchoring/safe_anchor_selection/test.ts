@@ -132,7 +132,7 @@ describe('safe local anchor selection', () => {
             for (const update of order)
                 await receiver.apply(update);
             expect(await receiver.values()).toEqual(expected);
-            expect(await Promise.all(Array.from({ length: await receiver.length() }, async (_, index) => await receiver.value(index)))).toEqual(expected);
+            expect(await Promise.all(await Promise.all(Array.from({ length: await receiver.length() }, async (_, index) => await receiver.value(index))))).toEqual(expected);
         }
     });
     it('uses the fresh mask end before a fully removed whole successor', async () => {

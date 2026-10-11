@@ -22,14 +22,14 @@ export type Request = readonly [
   generation: number,
   operation: Opcode,
   projection: number,
-  arg0?: unknown,
-  arg1?: unknown,
-  arg2?: unknown,
+  arg0?: number,
+  arg1?: number,
+  arg2?: number,
 ]
 
 export type Response = readonly [
   slot: number,
   generation: number,
   status: 0 | 1,
-  value?: unknown,
+  value?: number | Error,
 ]

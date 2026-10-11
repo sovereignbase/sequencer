@@ -1,9 +1,9 @@
-import create_module from '../wasm/raw/sequencer_wasm.mjs'
-import { dispatch } from './native.js'
-import type { Request, Response } from './protocol.js'
+import create_module from './raw/sequencer_wasm.mjs'
+import { dispatch } from './dispatch.js'
+import type { Request, Response } from '../runtime/protocol.js'
 
 const scope = self as unknown as DedicatedWorkerGlobalScope
-// This is the only factory call. The build embeds it and its WASM in this worker.
+// One factory call in the one dedicated worker shared by all Projections.
 const module = create_module()
 
 scope.onmessage = ({ data }: MessageEvent<Request>) => {

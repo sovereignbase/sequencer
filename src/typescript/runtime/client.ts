@@ -13,6 +13,9 @@ class Runtime {
   private readonly generations: number[] = []
   private readonly resolves: Array<Resolve | undefined> = []
   private readonly rejects: Array<Reject | undefined> = []
+  // Invocation arguments stay on the main thread. Content-ID/span bindings are
+  // filled in with the new native ABI; generic Footage never enters the worker.
+  private readonly inputs: Array<readonly unknown[] | undefined> = []
   private readonly creationErrors: Array<unknown> = []
   private readonly finalizer = new FinalizationRegistry<number>((id) => {
     if (this.worker && !this.failure)
@@ -44,14 +47,15 @@ class Runtime {
     const { promise, resolve, reject } = Promise.withResolvers<T>()
     this.resolves[slot] = resolve as Resolve
     this.rejects[slot] = reject
+    this.inputs[slot] = [arg0, arg1, arg2]
     try {
       const worker = this.worker ?? this.start()
-      const request: Request = [slot, generation, operation, id, arg0, arg1, arg2]
-      // Bootstrap transport only. Shared-memory payload transport is specified
-      // separately; transferring caller-owned buffers would detach their values.
+      // Numeric control-plane scaffold. Payload/content-ID encoding belongs to
+      // the new ABI stage, not an adaptation of the old runtime.
+      const request: Request = [slot, generation, operation, id]
       worker.postMessage(request)
     } catch (error) {
-      this.complete([slot, generation, 1, error])
+      this.complete([slot, generation, 1, error instanceof Error ? error : new Error(String(error))])
     }
     return promise
   }
@@ -77,6 +81,7 @@ class Runtime {
     if (!resolve || !reject) return
     this.resolves[slot] = undefined
     this.rejects[slot] = undefined
+    this.inputs[slot] = undefined
     this.free.push(slot)
     if (status === 0) resolve(value)
     else reject(value instanceof Error ? value : new Error(String(value)))
@@ -89,6 +94,7 @@ class Runtime {
       this.rejects[slot]?.(error)
       this.resolves[slot] = undefined
       this.rejects[slot] = undefined
+      this.inputs[slot] = undefined
     }
   }
 }

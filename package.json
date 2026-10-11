@@ -40,9 +40,10 @@
   "sideEffects": false,
   "scripts": {
     "configure:wasm": "emcmake cmake --preset wasm-release",
-    "build": "npm run build:package && npm run build:docs",
-    "build:package": "tsdown",
-    "build:wasm": "cmake --build --preset wasm-release && cmake --install temp/build/wasm-release --prefix src/typescript/wasm/raw && node -e \"const fs=require('node:fs');const p='src/typescript/wasm/raw/sequencer_wasm.mjs';const b=fs.readFileSync(p);const a=Buffer.from('async function Module');const c=Buffer.from('function Module');if(b.subarray(0,a.length).equals(a))fs.writeFileSync(p,Buffer.concat([c,b.subarray(a.length)]))\" && npm run docs:c++",
+    "build": "npm run build:wasm && npm run build:package",
+    "build:worker": "node scripts/build-worker.mjs",
+    "build:package": "npm run build:worker && tsdown",
+    "build:wasm": "node scripts/build-wasm.mjs",
     "docs": "typedoc",
     "docs:c++": "node scripts/build-cpp-docs.mjs",
     "format": "prettier . --write",

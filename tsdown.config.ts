@@ -1,5 +1,4 @@
 import { defineConfig } from 'tsdown/config'
-import { buildSync } from 'esbuild'
 
 /** Apache-2.0 notice prepended to every emitted JavaScript bundle. */
 const apache_2_banner = [
@@ -30,24 +29,6 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  plugins: [{
-    name: 'inline-sequencer-worker',
-    load(id) {
-      if (!id.replaceAll('\\', '/').endsWith('/runtime/source.ts')) return
-      const built = buildSync({
-        entryPoints: ['src/typescript/runtime/worker.ts'],
-        bundle: true,
-        write: false,
-        format: 'iife',
-        platform: 'browser',
-        target: 'es2024',
-        minify: true,
-        // The embedded module has no external files; it does not use this URL.
-        define: { 'import.meta.url': '"blob:sequencer-worker"' },
-      })
-      return `export const workerSource = ${JSON.stringify(built.outputFiles[0].text)}`
-    },
-  }],
   banner: {
     js: `${apache_2_banner}\n`,
   },

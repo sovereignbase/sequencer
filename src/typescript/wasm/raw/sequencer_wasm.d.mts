@@ -6,13 +6,13 @@ declare namespace RuntimeExports {
      * @param {Array=} args
      * @param {Object=} opts
      */
-    function ccall(ident: any, returnType?: (string | null) | undefined, argTypes?: any[] | undefined, args?: any[] | undefined, opts?: any | undefined): any;
+    function ccall(ident: any, returnType?: (string | null) | undefined, argTypes?: any[] | undefined, args?: any[] | undefined, opts?: Object | undefined): any;
     /**
      * @param {string=} returnType
      * @param {Array=} argTypes
      * @param {Object=} opts
      */
-    function cwrap(ident: any, returnType?: string | undefined, argTypes?: any[] | undefined, opts?: any | undefined): any;
+    function cwrap(ident: any, returnType?: string | undefined, argTypes?: any[] | undefined, opts?: Object | undefined): any;
     let HEAPU32: Uint32Array;
 }
 interface WasmModule {

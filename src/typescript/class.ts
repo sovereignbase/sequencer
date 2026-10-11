@@ -4,19 +4,18 @@
  * @packageDocumentation
  */
 
-import { register_replica } from './helpers/index.js';
-import { create_sequence, get_footage_frame_index } from './wasm/index.js';
-import type {Snapshot} from "./types/type.js"
+import { register_replica } from './helpers/index.js'
+import { create_sequence, get_footage_frame_index } from './wasm/index.js'
+import type { Snapshot } from './types/type.js'
 
 /** Visible Projection of a replicated Sequence. */
 export class Projection<T> {
-    private sequenceID: number = 0
-    private actorID: number = 0
-    private footage: Array<T> = []
+  private sequenceID: number = 0
+  private actorID: number = 0
+  private footage: Array<T> = []
+  private worker: Worker
 
-
-
-  apply(gossip: unknown): Result<T> | undefined {
+  async apply(gossip: unknown): Promise<Result<T> | undefined> {
     // Bind the algorithm to this live Projection; the type assertion does not transform the returned tuple.
     return apply.call(this, gossip) as Result<T> | undefined
   }
@@ -31,23 +30,22 @@ export class Projection<T> {
     trustedSequence?: unknown
   ) {
     // Hydrate the graph and initialize fresh session clocks before the instance is used.
-      const [frontiers, projection, sourceFootage] = (trustedSequence ?? [
-    [],
-    new Uint32Array(),
-    [],
-  ]) as Snapshot<T>
-  //Unessecary copy!!!
-  this.actorID = actorID
-  this.footage = sourceFootage.slice() as Array<T>
-  this.sequenceID = create_sequence(
-    actorID,
-    frontiers,
-    projection,
-   this.footage.length
-  )
+    const [frontiers, projection, sourceFootage] = (trustedSequence ?? [
+      [],
+      new Uint32Array(),
+      [],
+    ]) as Snapshot<T>
+    //Unessecary copy!!!
+    this.actorID = actorID
+    this.footage = sourceFootage.slice() as Array<T>
+    this.sequenceID = create_sequence(
+      actorID,
+      frontiers,
+      projection,
+      this.footage.length
+    )
 
-
-  register_replica(this, this.sequenceID)
+    register_replica(this, this.sequenceID)
   }
 
   /**
@@ -57,7 +55,7 @@ export class Projection<T> {
    * @param at Insertion position in `0..length()`, inclusive.
    * @returns Gossip describing the insertion.
    */
-  insert(values: Array<T>, at: number): Gossip<T> {
+  async insert(values: Array<T>, at: number): Promise<Gossip<T>> {
     // Return canonical replication data for the edit already applied to this Projection.
     return insert.call(this, values, at) as Gossip<T>
   }
@@ -66,7 +64,7 @@ export class Projection<T> {
    *
    * @returns Current Projection length.
    */
-  length(): number {
+  async length(): Promise<number> {
     // Read the maintained visible count; length does not traverse structural history.
     return this.projectionFrameCount
   }
@@ -77,7 +75,7 @@ export class Projection<T> {
    * @returns Visible changes and optional acknowledgement Gossip, or
    * `undefined` if the Sequence has an invalid runtime shape.
    */
-  merge(sequence: unknown): Result<T> | undefined {
+  async merge(sequence: unknown): Promise<Result<T> | undefined> {
     // Use the validated snapshot path while retaining this instance's materialized history.
     return merge.call(this, sequence) as Result<T> | undefined
   }
@@ -88,7 +86,7 @@ export class Projection<T> {
    * @param endWith Last position to remove; defaults to `length() - 1`.
    * @returns Reducing Insertions and their acknowledgement as Gossip.
    */
-  remove(startAt?: number, endWith?: number): Gossip<T> {
+  async remove(startAt?: number, endWith?: number): Promise<Gossip<T>> {
     // Delegate inclusive bounds; omitted arguments receive the algorithm's whole-Projection defaults.
     return remove.call(this, startAt, endWith) as Gossip<T>
   }
@@ -100,7 +98,11 @@ export class Projection<T> {
    * @param endWith Last position to replace; defaults to `length() - 1`.
    * @returns Removal and insertion Gossip, in that order.
    */
-  replace(withValues: Array<T>, startAt?: number, endWith?: number): Gossip<T> {
+  async replace(
+    withValues: Array<T>,
+    startAt?: number,
+    endWith?: number
+  ): Promise<Gossip<T>> {
     // Keep removal and insertion sequencing in one algorithm so returned Gossip preserves operation order.
     return replace.call(this, withValues, startAt, endWith) as Gossip<T>
   }
@@ -123,7 +125,7 @@ export class Projection<T> {
    * @param actorID Number identifying the Actor whose acknowledgements are no
    * longer required for safe compaction.
    */
-  retire(actorID: number): void {
+  async retire(actorID: number): Promise<void> {
     // Change acknowledgement membership only; retiring an Actor does not remove its authored Insertions.
     void this.frontierTable.eraseActor(actorID)
   }
@@ -132,7 +134,7 @@ export class Projection<T> {
    *
    * @returns A Sequence with acknowledged removals compacted in the exported state.
    */
-  sequence(): Sequence<T> {
+  async sequence(): Promise<Sequence<T>> {
     // Export compacted state without replacing this instance's live structural graph.
     return sequence.call(this) as Sequence<T>
   }
@@ -142,11 +144,12 @@ export class Projection<T> {
    * @param at Valid visible position in `0..length() - 1`.
    * @returns The corresponding Footage value.
    */
-  value(at: number): T | undefined {
- {
-// Read through visible-position resolution rather than indexing a structural Strip directly.
-  return this.footage[get_footage_frame_index(this.sequenceID, at)] ?? undefined  
-}
+  async value(at: number): Promise<T | undefined> {
+    // Read through visible-position resolution rather than indexing a structural Strip directly.
+    return (
+      this.footage[get_footage_frame_index(this.sequenceID, at)] ?? undefined
+    )
+  }
   /**
    * Returns values from an inclusive range of Projection positions.
    *
@@ -154,7 +157,7 @@ export class Projection<T> {
    * @param endWith Last included position; defaults to `length() - 1`.
    * @returns A new array of values, or an empty array for an empty range.
    */
-  values(startAt?: number, endWith?: number): Array<T> {
+  async values(startAt?: number, endWith?: number): Promise<Array<T>> {
     // Materialize the inclusive visible range; underlying Footage references remain in place.
     return values.call(this, startAt, endWith) as Array<T>
   }

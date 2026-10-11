@@ -16,7 +16,7 @@ const usage = [
   '',
   'Options:',
   '  --runs <n>            Complete runs (default: 3)',
-  '  --max-strips <n>      Maximum visible Strip count (default: 10_000)',
+  '  --max-strips <n>      Maximum visible Strip count (default: 1_000)',
   '  --seed <text>          Reproducible base seed (default: sequencer-lifecycle-v1)',
   '  --warmup-cycles <n>    Unreported up/down workload cycles (default: 64)',
   '  --strip-length <n>     Use one fixed Strip length instead of 1...100',
@@ -37,7 +37,7 @@ const readInteger = (name: string, value: string | undefined): number => {
 
 export function parseConfig(arguments_: Array<string>): BenchmarkConfig {
   let runs = 3
-  let maximumStripCount = 10_000
+  let maximumStripCount = 1_000
   let warmupCycles = 64
   let minimumStripFrameLength = 1
   let maximumStripFrameLength = 100

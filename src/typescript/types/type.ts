@@ -39,3 +39,26 @@ export type Snapshot<T> = [
   projection: Projection,
   footage: Array<T | undefined>,
 ]
+
+/**
+ * Consumer-facing Projection splice.
+ *
+ * Replaces the half-open range `[startAt, endAt)` with optional `values`.
+ */
+export type Splice<T> = Readonly<
+  [startAt: number, endAt: number, values?: ReadonlyArray<T | undefined>]
+>
+
+/**
+ * Ordered visible Projection mutations produced by applying remote data.
+ */
+export type Change<T> = ReadonlyArray<Splice<T>>
+
+/**
+ * Result of a mutating Sequence operation.
+ *
+ * `change` describes the visible Projection mutations.
+ *
+ * `delta` contains replication data when the operation emitted any.
+ */
+export type Result<T> = Readonly<[change: Change<T>, delta?: Delta<T>]>

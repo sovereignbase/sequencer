@@ -4,9 +4,8 @@ import type { U32List } from '../types/type.js'
 
 class Runtime {
   private nextProjection = 0
-  private nextContent = 0
   private readonly content: Array<
-    Map<number, ReadonlyArray<unknown>> | undefined
+    Array<ReadonlyArray<unknown> | undefined> | undefined
   > = []
   private readonly free: number[] = []
   private readonly finalizer = new FinalizationRegistry<number>((id) =>
@@ -15,7 +14,7 @@ class Runtime {
 
   create(owner: object, actorID: number, sequence?: unknown): number {
     const id = this.free.pop() ?? this.nextProjection++
-    this.content[id] = new Map()
+    this.content[id] = [undefined]
     try {
       this.call(Operation.Create, id, actorID, sequence)
     } catch (error) {
@@ -44,7 +43,7 @@ class Runtime {
     const pointer = module._runtime_value(id, at) >>> 2
     if (!pointer) return
     const heap = module.HEAPU32
-    return this.content[id]!.get(heap[pointer])?.[heap[pointer + 1]] as
+    return this.content[id]![heap[pointer]]?.[heap[pointer + 1]] as
       T | undefined
   }
   private inputSize(operation: Opcode, value: unknown, other: unknown): number {
@@ -93,9 +92,7 @@ class Runtime {
       contents = this.content[id]!
     const bind = (values: unknown): number => {
       if (!Array.isArray(values)) return 0
-      const token = ++this.nextContent
-      contents.set(token, values)
-      return token
+      return contents.push(values) - 1
     }
     const absent = 0xffffffff
     let a0 = 0,
@@ -103,7 +100,7 @@ class Runtime {
       a2 = 0
     if (operation === Operation.Insert || operation === Operation.Replace) {
       a0 = (value as unknown[]).length
-      a1 = bind(value)
+      a1 = contents.push(value as unknown[]) - 1
       a2 = (at as number | undefined) ?? absent
       if (operation === Operation.Replace)
         heap[base] = (end as number | undefined) ?? absent
@@ -172,11 +169,20 @@ class Runtime {
             Array.isArray(numbers) || numbers instanceof Uint32Array
               ? numbers.length
               : 0
-          heap.set(
-            [tag, data - base, count, insertion ? bind(entry[1]) : 0],
-            descriptor
-          )
-          if (numeric) heap.set(numbers as U32List, data)
+          heap[descriptor] = tag
+          heap[descriptor + 1] = data - base
+          heap[descriptor + 2] = count
+          heap[descriptor + 3] = insertion ? bind(entry[1]) : 0
+          if (numeric) {
+            if (insertion && count === 6) {
+              heap[data] = numbers[0]
+              heap[data + 1] = numbers[1]
+              heap[data + 2] = numbers[2]
+              heap[data + 3] = numbers[3]
+              heap[data + 4] = numbers[4]
+              heap[data + 5] = numbers[5]
+            } else heap.set(numbers as U32List, data)
+          }
           descriptor += 4
           data += count
         }
@@ -210,9 +216,9 @@ class Runtime {
       const token = heap[at],
         start = heap[at + 1],
         length = heap[at + 2]
-      if (length === 0) content?.delete(token)
+      if (length === 0) content[token] = undefined
       else
-        (content?.get(token) as unknown[] | undefined)?.fill(
+        (content[token] as unknown[] | undefined)?.fill(
           undefined,
           start,
           start + length
@@ -226,7 +232,7 @@ class Runtime {
       const result = new Array<unknown>(size)
       let target = 0
       for (let at = pointer >>> 2, end = at + count * 3; at < end; at += 3) {
-        const source = content?.get(heap[at]),
+        const source = content[heap[at]],
           start = heap[at + 1],
           length = heap[at + 2]
         for (let j = 0; j < length; ++j) result[target++] = source?.[start + j]
@@ -245,7 +251,7 @@ class Runtime {
         const coordinates = words(heap[at + 1], heap[at + 2])
         if (heap[at] === 1) entries.push(coordinates)
         else {
-          const footage = content?.get(heap[at + 3])
+          const footage = content[heap[at + 3]]
           entries.push(
             footage === undefined ? [coordinates] : [coordinates, footage]
           )
@@ -290,7 +296,7 @@ class Runtime {
         for (let at = p1 >>> 2, end = at + n1 * 4; at < end; at += 4) {
           const coordinates = words(heap[at], 6),
             footage = heap[at + 3]
-              ? content?.get(heap[at + 3])
+              ? content[heap[at + 3]]
               : heap[at + 2]
                 ? values(heap[at + 1], heap[at + 2])
                 : undefined

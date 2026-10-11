@@ -6,7 +6,10 @@ import { Operation } from './runtime/protocol.js'
 export class Projection<T> {
   private id: number
 
-  constructor(public readonly actorID: number, trustedSequence?: unknown) {
+  constructor(
+    public readonly actorID: number,
+    trustedSequence?: unknown
+  ) {
     this.id = runtime.create(this, actorID, trustedSequence)
   }
 
@@ -31,7 +34,13 @@ export class Projection<T> {
   }
 
   replace(withValues: Array<T>, startAt?: number, endWith?: number): Gossip<T> {
-    return runtime.call(Operation.Replace, this.id, withValues, startAt, endWith)
+    return runtime.call(
+      Operation.Replace,
+      this.id,
+      withValues,
+      startAt,
+      endWith
+    )
   }
 
   retire(actorID: number): void {

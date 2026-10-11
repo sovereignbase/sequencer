@@ -17,12 +17,14 @@ Gossip Projection::insert(Word count, Word content, Word at) {
     anchor_strip(incoming, anchor, point);
     patch_jumps(c.diff, structural_count - previous_count, incoming);
     containment.set(c, incoming);
-    if (count && !at) head = incoming;
-    if (count && at + count == frame_count) tail = incoming;
+    if (count && !at)
+      head = incoming;
+    if (count && at + count == frame_count)
+      tail = incoming;
     gate = incoming;
     gate_position = at;
   }
   increase_clock[1] += count + 1;
   return {Entry::insert({c, content})};
 }
-}
+} // namespace sequencer

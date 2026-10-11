@@ -8,4 +8,4 @@ void Projection::insert_first(Index i) {
   gate_position = 0;
   left_jump_to_patch = right_jump_to_patch = none;
 }
-}
+} // namespace sequencer

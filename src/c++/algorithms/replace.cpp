@@ -9,4 +9,4 @@ Gossip Projection::replace(Word count, Word content, Word start, std::int64_t en
   }
   return output;
 }
-}
+} // namespace sequencer

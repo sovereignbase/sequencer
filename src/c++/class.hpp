@@ -1,7 +1,7 @@
 #pragma once
 #include "components/ContainmentTable/class.hpp"
-#include "components/PendingTable/class.hpp"
 #include "components/FrontierTable/class.hpp"
+#include "components/PendingTable/class.hpp"
 #include <cmath>
 #include <stdexcept>
 
@@ -20,7 +20,8 @@ public:
   std::vector<Span> released;
 
   Projection(Word actor_id, Word increasing_session, Word decreasing_session)
-    : actor(actor_id), increase_clock{increasing_session, 0}, decrease_clock{decreasing_session, 0} {
+      : actor(actor_id), increase_clock{increasing_session, 0},
+        decrease_clock{decreasing_session, 0} {
     strips.reserve(64);
   }
   Index allocate(Insertion i) {
@@ -41,10 +42,10 @@ public:
   Gossip insert(Word count, Word content, Word at);
   Gossip remove(Word start, std::int64_t end);
   Gossip replace(Word count, Word content, Word start, std::int64_t end);
-  Result apply(const Gossip& gossip);
-  void hydrate(const Gossip& insertions, const std::vector<Acknowledgement>& frontiers);
-  Result merge(const Gossip& insertions, const std::vector<Acknowledgement>& frontiers);
+  Result apply(const Gossip &gossip);
+  void hydrate(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers);
+  Result merge(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers);
   std::vector<Span> values(Word start, Word end);
   Sequence sequence() const;
 };
-}
+} // namespace sequencer

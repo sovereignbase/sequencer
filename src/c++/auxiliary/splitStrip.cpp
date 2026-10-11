@@ -12,7 +12,8 @@ Index Projection::split_strip(Index a, Word point, std::int32_t incoming_diff) {
   const auto right_diff = old.effect() - left_diff + std::min(0, incoming_diff);
   strips[a].fragmented = true;
   strips[a].fragment_diff = left_diff;
-  if (!right_diff) return old.right;
+  if (!right_diff)
+    return old.right;
   const auto right = allocate({old.coordinates, old.content});
   strips[right].fragment = old.fragment;
   strips[right].fragment_start = point + (incoming_diff < 0 ? magnitude(incoming_diff) : 0);
@@ -21,9 +22,11 @@ Index Projection::split_strip(Index a, Word point, std::int32_t incoming_diff) {
   strips[right].left = a;
   strips[right].right = old.right;
   strips[a].fragment = strips[a].right = right;
-  if (old.right) strips[old.right].left = right;
-  if (tail == a) tail = right;
+  if (old.right)
+    strips[old.right].left = right;
+  if (tail == a)
+    tail = right;
   ++structural_count;
   return right;
 }
-}
+} // namespace sequencer

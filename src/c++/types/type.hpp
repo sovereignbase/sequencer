@@ -20,7 +20,10 @@ static_assert(sizeof(Coordinates) == 6 * sizeof(Word));
 inline std::uint64_t identity(Word session, Word start) {
   return (std::uint64_t(session) << 32) | start;
 }
-struct Insertion { Coordinates coordinates; Word content{}; };
+struct Insertion {
+  Coordinates coordinates;
+  Word content{};
+};
 using Acknowledgement = std::vector<Word>;
 struct Entry {
   bool acknowledgement{};
@@ -30,11 +33,25 @@ struct Entry {
   static Entry acknowledge(Acknowledgement a) { return {true, {}, std::move(a)}; }
 };
 using Gossip = std::vector<Entry>;
-struct Span { Word content{}, start{}, count{}; };
-struct Splice { Word start{}, end{}; std::vector<Span> values; };
-struct Result { std::vector<Splice> changes; Gossip gossip; };
-struct ExportInsertion { Coordinates coordinates; std::vector<Span> footage; };
-struct Sequence { std::vector<Acknowledgement> frontiers; std::vector<ExportInsertion> insertions; };
+struct Span {
+  Word content{}, start{}, count{};
+};
+struct Splice {
+  Word start{}, end{};
+  std::vector<Span> values;
+};
+struct Result {
+  std::vector<Splice> changes;
+  Gossip gossip;
+};
+struct ExportInsertion {
+  Coordinates coordinates;
+  std::vector<Span> footage;
+};
+struct Sequence {
+  std::vector<Acknowledgement> frontiers;
+  std::vector<ExportInsertion> insertions;
+};
 
 // Links are arena indices: growth cannot invalidate links, there are no
 // per-fragment heap objects, and all fields fit wasm32 loads/stores.
@@ -50,4 +67,4 @@ struct Strip {
   Word left_jump_frames{}, left_jump_strips{}, right_jump_frames{}, right_jump_strips{};
   std::int32_t effect() const { return fragmented ? fragment_diff : coordinates.diff; }
 };
-}
+} // namespace sequencer

@@ -43,7 +43,7 @@
     "docs": "typedoc",
     "docs:c++": "node scripts/build-cpp-docs.mjs",
     "format": "prettier . --write",
-    "format:c++": "",
+    "format:c++": "node scripts/format-cpp.mjs",
     "typecheck": "tsc --noEmit --project test/tsconfig.json",
     "typecheck:runtime": "tsc --noEmit --project tsconfig.json",
     "test": "npm run build && npm run typecheck && npm run test:vitest && node --test test/compatibility/index.ts",

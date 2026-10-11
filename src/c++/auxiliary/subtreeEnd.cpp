@@ -31,8 +31,10 @@ Index Projection::subtree_end(Index root) {
   for (auto next = strips[previous].right; next; next = strips[previous].right) {
     auto ancestor = previous;
     while (strips[ancestor].fragment != next &&
-           !contains_anchor(strips[ancestor], strips[next], 0, magnitude(strips[ancestor].coordinates.diff))) {
-      if (ancestors.empty()) return finish();
+           !contains_anchor(strips[ancestor], strips[next], 0,
+                            magnitude(strips[ancestor].coordinates.diff))) {
+      if (ancestors.empty())
+        return finish();
       ancestor = ancestors.back();
       ancestors.pop_back();
     }
@@ -54,4 +56,4 @@ Index Projection::subtree_end(Index root) {
   }
   return finish();
 }
-}
+} // namespace sequencer

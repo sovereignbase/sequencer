@@ -1,8 +1,0 @@
-export { destroy } from './destroy/index.js'
-export { insert } from './insert/index.js'
-export { length } from './length/index.js'
-export { ingest } from './ingest/index.js'
-export { remove } from './remove/index.js'
-export { replace } from './replace/index.js'
-export { snapshot } from './snapshot/index.js'
-export { values } from './values/index.js'

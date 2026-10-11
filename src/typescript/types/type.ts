@@ -1,61 +1,35 @@
-/** Consumer-facing visible patch keyed by zero-based Projection index. */
-export type Change<T> = Record<number, T | undefined>
+/** Structural words may be typed views or numeric arrays received as JSON. */
+export type U32List = Uint32Array | ReadonlyArray<number>
 
 /**
- * One transferable operation.
- *
- * The numeric prefix is
- * `[type, dependencyPrefix, initialLength, offsetLength,
- *   actorX, timeX, actorY, timeY]`.
- * X is the causal anchor clock and Y is this operation's insert/mask clock.
+ * Exactly six words, in the canonical reference order:
+ * `[anchorSession, anchorStart, anchorDiff,
+ *   insertionSession, insertionStart, insertionDiff]`.
+ * Signed coordinates use their 32-bit bit pattern; WASM interprets those lanes
+ * as signed. There is no kind/prefix/end-time encoding from the old runtime.
  */
-export type Projection = /** [
-  type: number,
-  dependencyPrefix: number,
-  initialLength: number,
-  offsetLength: number,
-  actorX: number,
-  timeX: number,
-  actorY: number,
-  timeY: number,
-] 
-*/ Uint32List
+export type InsertionWords = U32List
 
-/** `[actorId, maskSessionId, frontier, ...]`. */
-export type Acknowledgement = Uint32List
-
-/** Trusted persisted state: actor frontiers and dependency-ordered Deltas. */
-export type Delta<T> = [
-  acknowledgement: Acknowledgement,
-  projection: Projection,
-  footage?: Array<T | undefined>,
-]
-
-export type Snapshot<T> = [
-  frontiers: Array<Acknowledgement>,
-  projection: Projection,
-  footage: Array<T | undefined>,
-]
-
-/**
- * Consumer-facing Projection splice.
- *
- * Replaces the half-open range `[startAt, endAt)` with optional `values`.
- */
-export type Splice<T> = Readonly<
-  [startAt: number, endAt: number, values?: ReadonlyArray<T | undefined>]
+/** Reference insertion coordinates plus optional JS-owned content. Only words enter WASM. */
+export type Insertion<T> = Readonly<
+  [words: InsertionWords, footage?: ReadonlyArray<T | undefined>]
 >
 
-/**
- * Ordered visible Projection mutations produced by applying remote data.
- */
-export type Change<T> = ReadonlyArray<Splice<T>>
+/** `[actorID, sessionID, sessionEnd, ...]`, as in the reference. */
+export type Acknowledgement = U32List
 
-/**
- * Result of a mutating Sequence operation.
- *
- * `change` describes the visible Projection mutations.
- *
- * `delta` contains replication data when the operation emitted any.
- */
-export type Result<T> = Readonly<[change: Change<T>, delta?: Delta<T>]>
+export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>
+
+export type Sequence<T> = Readonly<
+  [
+    frontiers: ReadonlyArray<Acknowledgement>,
+    insertions: ReadonlyArray<Insertion<T>>,
+  ]
+>
+
+export type Splice<T> = Readonly<
+  [startAt: number, endWith: number, values?: ReadonlyArray<T | undefined>]
+>
+
+export type Change<T> = ReadonlyArray<Splice<T>>
+export type Result<T> = Readonly<[change: Change<T>, gossip?: Gossip<T>]>

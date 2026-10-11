@@ -2,12 +2,9 @@ import { workerSource } from './source.js'
 import {
   Operation,
   Ready,
-  Reserve,
   Failure,
   slots,
-  wordsPerSlot,
   type Opcode,
-  type Request,
   type Response,
 } from './protocol.js'
 import type { U32List } from '../types/type.js'
@@ -18,10 +15,9 @@ type Call = {
   args: readonly unknown[]
   resolve: (value: any) => void
   reject: (error: unknown) => void
-  words: number
 }
 type Endpoint = {
-  postMessage(message: unknown): void
+  postMessage(message: unknown, transfer: ArrayBuffer[]): void
   terminate(): unknown
   ref?(): void
   unref?(): void
@@ -31,8 +27,7 @@ type Endpoint = {
 class Runtime {
   private worker?: Endpoint
   private starting = false
-  private heap?: Uint32Array
-  private arena = 0
+  private ready = false
   private failure?: Error
   private nextProjection = 0
   private nextContent = 0
@@ -45,7 +40,7 @@ class Runtime {
   private readonly calls: Array<Call | undefined> = []
   private readonly queue: Call[] = []
   private queueHead = 0
-  private reservation?: number
+  private readonly buffers: ArrayBuffer[] = []
   private readonly finalizer = new FinalizationRegistry<number>((id) => {
     if (this.worker && !this.failure)
       void this.call(Operation.Destroy, id).catch(() => {})
@@ -73,7 +68,7 @@ class Runtime {
   ): Promise<T> {
     if (this.failure) return Promise.reject(this.failure)
     const { promise, resolve, reject } = Promise.withResolvers<T>()
-    this.queue.push({ operation, id, args, resolve, reject, words: 0 })
+    this.queue.push({ operation, id, args, resolve, reject })
     try {
       this.worker?.ref?.()
       if (!this.starting) {
@@ -93,7 +88,7 @@ class Runtime {
       const worker = new Thread(
         `import('node:worker_threads').then(({parentPort}) => {
           globalThis.self = globalThis;
-          self.postMessage = message => parentPort.postMessage(message);
+          self.postMessage = (message, transfer) => parentPort.postMessage(message, transfer);
           parentPort.on('message', data => self.onmessage({data}));
           ${workerSource}
         });`,
@@ -123,7 +118,7 @@ class Runtime {
   }
 
   private flush(): void {
-    if (!this.heap || this.reservation !== undefined) return
+    if (!this.ready) return
     while (this.free.length && this.queueHead < this.queue.length) {
       const call = this.queue[this.queueHead++]
       const error = this.creationErrors.get(call.id)
@@ -133,13 +128,7 @@ class Runtime {
       }
       const slot = this.free.pop()!
       this.calls[slot] = call
-      call.words = this.inputSize(call)
-      if (call.words > wordsPerSlot) {
-        this.reservation = slot
-        this.worker!.postMessage([Reserve, slot, call.words])
-        break
-      }
-      this.send(slot, this.arena + slot * wordsPerSlot * 4)
+      this.send(slot)
     }
     if (this.queueHead === this.queue.length) {
       this.queue.length = 0
@@ -178,10 +167,12 @@ class Runtime {
     return words
   }
 
-  private send(slot: number, pointer: number): void {
-    const { operation, id, args, words } = this.calls[slot]!
-    const heap = this.heap!,
-      base = pointer >>> 2,
+  private send(slot: number): void {
+    const call = this.calls[slot]!
+    const { operation, id, args } = call
+    const count = this.inputSize(call)
+    const heap = new Uint32Array(count ? new ArrayBuffer((count + 8) * 4) : this.buffers.pop() ?? new ArrayBuffer(32)),
+      base = 8,
       contents = this.content.get(id)
     const bind = (values: unknown): number => {
       if (!Array.isArray(values)) return 0
@@ -273,34 +264,23 @@ class Runtime {
           data += count
         }
     }
-    const request: Request = [slot, operation, id, a0, a1, a2, pointer, words]
-    this.worker!.postMessage(request)
+    heap.set([slot, operation, id, a0, a1, a2, 0, count])
+    this.worker!.postMessage(heap.buffer, [heap.buffer])
   }
 
   private complete(message: Response): void {
-    const [slot, pointer, count, memory] = message
-    if (slot === Failure) {
-      this.fail(pointer as unknown as Error)
+    if (!(message instanceof ArrayBuffer)) {
+      if (message[0] === Failure) this.fail(message[1])
+      else {
+        this.ready = true
+        this.flush()
+      }
       return
     }
-    if (slot === Ready) {
-      this.arena = pointer
-      this.heap = new Uint32Array(count as unknown as SharedArrayBuffer)
-      this.flush()
-      return
-    }
-    if (memory) this.heap = new Uint32Array(memory)
-    if (slot === Reserve) {
-      this.send(pointer, count)
-      this.reservation = undefined
-      this.flush()
-      return
-    }
+    const heap = new Uint32Array(message), slot = heap[7]
     const call = this.calls[slot]!
     try {
-      const heap = this.heap!,
-        header = pointer >>> 2,
-        content = this.content.get(call.id)
+      const header = 0, content = this.content.get(call.id)
       const kind = heap[header],
         p0 = heap[header + 3],
         n0 = heap[header + 4],
@@ -332,8 +312,11 @@ class Runtime {
         }
         return result
       }
-      const words = (pointer: number, count: number): number[] =>
-        Array.from(heap.subarray(pointer >>> 2, (pointer >>> 2) + count))
+      const words = (pointer: number, count: number): number[] => {
+        const result = new Array<number>(count)
+        for (let i = 0, at = pointer >>> 2; i < count; ++i) result[i] = heap[at + i]
+        return result
+      }
       const gossip = (pointer: number, count: number): unknown[] => {
         const entries: unknown[] = []
         for (let at = pointer >>> 2, end = at + count * 4; at < end; at += 4) {
@@ -412,6 +395,7 @@ class Runtime {
       call.reject(error)
     }
     this.calls[slot] = undefined
+    if (message.byteLength === 32 && this.buffers.length < slots) this.buffers.push(message)
     this.free.push(slot)
     this.flush()
     if (this.free.length === slots && this.queue.length === 0)

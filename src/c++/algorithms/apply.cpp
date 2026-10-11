@@ -62,19 +62,21 @@ Result Projection::apply(const Gossip &gossip) {
             parent = containment.get(strips.identity[parent].coordinates.anchor_session,
                                      strips.identity[parent].coordinates.anchor_start);
           if (parent) {
-            const auto boundary = strips.identity[parent].coordinates.session == c.anchor_session &&
-                                          strips.identity[parent].coordinates.start == c.anchor_start
-                                      ? strips.fragment_start[parent]
-                                      : strips.identity[parent].coordinates.anchor_diff;
+            const auto boundary =
+                strips.identity[parent].coordinates.session == c.anchor_session &&
+                        strips.identity[parent].coordinates.start == c.anchor_start
+                    ? strips.fragment_start[parent]
+                    : strips.identity[parent].coordinates.anchor_diff;
             gate_diff = 0;
-            for (auto mask = incoming;
-                 mask &&
-                 strips.identity[mask].coordinates.anchor_diff + strips.fragment_start[mask] < boundary;
+            for (auto mask = incoming; mask && strips.identity[mask].coordinates.anchor_diff +
+                                                       strips.fragment_start[mask] <
+                                                   boundary;
                  mask = strips.fragment[mask])
-              gate_diff -= std::min(
-                  -strips.fragment_diff[mask],
-                  std::max(0, std::int32_t(boundary - strips.identity[mask].coordinates.anchor_diff -
-                                           strips.fragment_start[mask])));
+              gate_diff -=
+                  std::min(-strips.fragment_diff[mask],
+                           std::max(0, std::int32_t(boundary -
+                                                    strips.identity[mask].coordinates.anchor_diff -
+                                                    strips.fragment_start[mask])));
           }
         }
         start = position_of(incoming, gate_diff);
@@ -86,7 +88,7 @@ Result Projection::apply(const Gossip &gossip) {
           const auto right = strips.right_jump[incoming];
           if (right && right != gate)
             link_jumps(*this, gate, right, strips.right_jump_frames[incoming] - diff,
-                       strips.right_jump_strips.identity[incoming].coordinates - 1);
+                       strips.right_jump_strips[incoming] - 1);
           link_jumps(*this, incoming, gate, Word(diff), 1);
         }
       }

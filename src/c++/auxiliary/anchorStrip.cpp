@@ -6,14 +6,15 @@
 
 namespace sequencer {
 std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point) {
-  const auto removal_end =
-      strips.identity[incoming].coordinates.anchor_diff - strips.identity[incoming].coordinates.diff;
+  const auto removal_end = strips.identity[incoming].coordinates.anchor_diff -
+                           strips.identity[incoming].coordinates.diff;
   std::int32_t total = 0;
   while (true) {
     auto left = anchor;
     Index right = none;
     auto diff = strips.fragment_diff[incoming];
-    if (strips.identity[incoming].coordinates.diff < 0 && strips.identity[anchor].coordinates.diff > 0) {
+    if (strips.identity[incoming].coordinates.diff < 0 &&
+        strips.identity[anchor].coordinates.diff > 0) {
       const auto available = std::max<std::int64_t>(0, std::int64_t(strips.fragment_start[anchor]) +
                                                            strips.fragment_diff[anchor] - point);
       diff = -std::int32_t(std::min<std::int64_t>(-std::int64_t(diff), available));
@@ -33,8 +34,10 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point) 
     if (c.diff > 0 && anchor && strips.identity[anchor].coordinates.diff < 0 &&
         c.anchor_session == strips.identity[anchor].coordinates.session &&
         c.anchor_start == strips.identity[anchor].coordinates.start && right &&
-        strips.identity[right].coordinates.anchor_session == strips.identity[anchor].coordinates.anchor_session &&
-        strips.identity[right].coordinates.anchor_start == strips.identity[anchor].coordinates.anchor_start &&
+        strips.identity[right].coordinates.anchor_session ==
+            strips.identity[anchor].coordinates.anchor_session &&
+        strips.identity[right].coordinates.anchor_start ==
+            strips.identity[anchor].coordinates.anchor_start &&
         strips.identity[right].coordinates.anchor_diff ==
             strips.identity[anchor].coordinates.anchor_diff + c.anchor_diff) {
       while (strips.competitor[right])
@@ -49,10 +52,12 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point) 
       left = right;
       right = strips.right[right];
     }
-    if (right && anchors_overlap(strips.identity[incoming].coordinates, strips.identity[right].coordinates)) {
+    if (right && anchors_overlap(strips.identity[incoming].coordinates,
+                                 strips.identity[right].coordinates)) {
       Index larger = none;
       auto smaller = right;
-      while (smaller && competition_is_larger(strips.identity[incoming].coordinates, strips.identity[smaller].coordinates)) {
+      while (smaller && competition_is_larger(strips.identity[incoming].coordinates,
+                                              strips.identity[smaller].coordinates)) {
         larger = smaller;
         smaller = strips.competitor[smaller];
       }

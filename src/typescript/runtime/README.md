@@ -12,23 +12,18 @@ The worker owns native allocation and all sequence algorithms, traversal,
 clocks, containment, causal staging, frontiers and compaction. Local edits are
 trusted. Footage remains on the calling thread and retains object identity.
 
-The data plane is shared WASM linear memory. Insertion coordinates are exactly
-six uint32 words. Input descriptors contain numeric offsets, counts and opaque
-content IDs. Typed lists and JSON numeric lists are copied directly into the
-leased native input region with `Uint32Array.set`.
+Messages transfer ownership of ordinary ArrayBuffers. Insertion coordinates
+remain exactly six uint32 words. Numeric descriptors identify coordinates,
+frontiers and content spans; Footage never leaves the calling thread.
 
-Outputs expose native coordinates and span arrays through pointers and counts;
-they are not flattened into a wire stream. Main-thread work attaches retained
-Footage to public results. Public coordinate arrays remain valid after a memory
-lease is reused.
+The worker owns ordinary WASM linear memory and reuses one native input and
+output area. Each request is copied into WASM with one `Uint32Array.set`; the
+numeric result is copied out once and its buffer is transferred to the caller.
+Worker transfers do not copy buffer contents. WASM memory stays worker-owned.
 
-RPC control messages contain numeric slots, operations, handles and pointers.
-64 reusable slots bound concurrent native inputs and borrowed outputs. A slot
-is released after its public result is consumed; larger inputs are reserved by
-the worker before writing them. No thread spins or synchronously waits for RPC.
-
-Browser hosts must serve `Cross-Origin-Opener-Policy: same-origin` and
-`Cross-Origin-Embedder-Policy: require-corp` to expose shared WASM memory.
+64 reusable call slots route Promise completion. No additional allocation RPC,
+shared memory, spinning or synchronous caller wait is needed. Main-thread work
+attaches retained Footage to public results and preserves JSON numeric lists.
 
 `destroy()` releases the instance and its retained content without terminating
 the shared worker. Calls after destruction reject; repeated destruction is safe.

@@ -16,7 +16,7 @@ Index Projection::subtree_end(Index root) {
     if (jump_start && previous != jump_start) {
       const auto right = strips.right_jump[jump_start];
       const auto frames = strips.right_jump_frames[jump_start];
-      const auto steps = strips.right_jump_strips.identity[jump_start].coordinates;
+      const auto steps = strips.right_jump_strips[jump_start];
       link_jumps(*this, previous, right, frames - jump_frames, steps - jump_steps);
       link_jumps(*this, jump_start, previous, jump_frames, jump_steps);
       left_jump_to_patch = previous;
@@ -31,7 +31,8 @@ Index Projection::subtree_end(Index root) {
   for (auto next = strips.right[previous]; next; next = strips.right[previous]) {
     auto ancestor = previous;
     while (strips.fragment[ancestor] != next &&
-           !contains_anchor(strips.identity[ancestor].coordinates, strips.identity[next].coordinates, 0,
+           !contains_anchor(strips.identity[ancestor].coordinates,
+                            strips.identity[next].coordinates, 0,
                             magnitude(strips.identity[ancestor].coordinates.diff))) {
       if (ancestors.empty())
         return finish();

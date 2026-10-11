@@ -10,9 +10,10 @@ uint32 words, with signed effects interpreted in C++.
 - `components/PendingTable/` retains insertions awaiting their native dependencies.
 - `components/FrontierTable/` tracks acknowledgements and retired actors.
 - `types/type.hpp` defines coordinates, strips, spans and operation results.
-- `bindings.cpp` exposes scalar calls and leased views of native arrays.
+- `bindings.cpp` exposes scalar calls and contiguous numeric result buffers.
 
 The dedicated worker exclusively owns native allocation and algorithm execution.
-Shared linear memory exposes numeric input regions and borrowed output views to
-JS. Generic Footage stays on the calling thread; native spans address opaque
-content IDs and offsets. No JS sequence graph or algorithm state is required.
+Ordinary linear memory remains inside the worker. Numeric buffers transfer
+ownership between the caller and the worker; the WASM boundary uses bulk copies.
+Generic Footage stays on the calling thread; native spans address opaque content
+IDs and offsets. No JS sequence graph or algorithm state is required.

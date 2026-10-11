@@ -31,7 +31,8 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
         point = resolved.first;
         anchor = resolved.second;
         if (strips.fragment[origin] &&
-            strips.identity[anchor].coordinates.session == strips.identity[origin].coordinates.session &&
+            strips.identity[anchor].coordinates.session ==
+                strips.identity[origin].coordinates.session &&
             strips.identity[anchor].coordinates.start == strips.identity[origin].coordinates.start)
           fragments[origin] = anchor;
       }

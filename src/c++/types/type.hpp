@@ -1,6 +1,6 @@
 #pragma once
-#include <array>
 #include <algorithm>
+#include <array>
 #include <bit>
 #include <cstddef>
 #include <cstdint>

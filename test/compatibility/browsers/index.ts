@@ -12,8 +12,6 @@ export async function run(
   const server = createServer((_request, response) => {
     response.writeHead(200, {
       'Content-Type': 'text/html',
-      'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'require-corp',
     })
     response.end('<!doctype html>')
   })

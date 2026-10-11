@@ -6,12 +6,6 @@ import { playwright } from '@vitest/browser-playwright'
  * the current source tree while publishing test and V8 coverage reports.
  */
 export default define_config({
-  server: {
-    headers: {
-      'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'require-corp',
-    },
-  },
   test: {
     projects: [
       {

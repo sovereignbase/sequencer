@@ -23,16 +23,18 @@ std::pair<Word, Index> Projection::find_containing_fragment(Index origin, Index 
       if (strips.identity[m].coordinates.anchor_session != parent.session ||
           strips.identity[m].coordinates.anchor_start != parent.start)
         break;
-      const auto end = strips.identity[m].coordinates.anchor_diff + strips.fragment_start[m] + magnitude(strips.fragment_diff[m]);
+      const auto end = strips.identity[m].coordinates.anchor_diff + strips.fragment_start[m] +
+                       magnitude(strips.fragment_diff[m]);
       if (!(strips.fragment_diff[m] == 0 || strips.identity[m].coordinates.diff > 0 ||
             (c.diff < 0 ? c.anchor_diff >= end : c.anchor_diff > end)))
         break;
       if (strips.identity[m].coordinates.diff > 0)
         mask = strips.competitor[m];
-      else if (strips.fragment[m] && (c.diff < 0 ? c.anchor_diff >= strips.identity[m].coordinates.anchor_diff +
-                                                                strips.fragment_start[strips.fragment[m]]
-                                         : c.anchor_diff > strips.identity[m].coordinates.anchor_diff +
-                                                               strips.fragment_start[strips.fragment[m]]))
+      else if (strips.fragment[m] &&
+               (c.diff < 0 ? c.anchor_diff >= strips.identity[m].coordinates.anchor_diff +
+                                                  strips.fragment_start[strips.fragment[m]]
+                           : c.anchor_diff > strips.identity[m].coordinates.anchor_diff +
+                                                 strips.fragment_start[strips.fragment[m]]))
         mask = strips.fragment[m];
       else
         mask = strips.competitor[m] ? strips.competitor[m] : strips.right[m];
@@ -41,11 +43,13 @@ std::pair<Word, Index> Projection::find_containing_fragment(Index origin, Index 
         strips.identity[mask].coordinates.anchor_session == parent.session &&
         strips.identity[mask].coordinates.anchor_start == parent.start) {
       const auto m = mask;
-      const auto end = strips.identity[m].coordinates.anchor_diff + strips.fragment_start[m] + magnitude(strips.fragment_diff[m]);
+      const auto end = strips.identity[m].coordinates.anchor_diff + strips.fragment_start[m] +
+                       magnitude(strips.fragment_diff[m]);
       const auto point = c.anchor_diff - strips.identity[m].coordinates.anchor_diff;
       if (c.diff > 0)
         return {point, mask};
-      const auto consumed = std::min(magnitude(strips.fragment_diff[incoming]), end - c.anchor_diff);
+      const auto consumed =
+          std::min(magnitude(strips.fragment_diff[incoming]), end - c.anchor_diff);
       strips.fragment_start[incoming] += consumed;
       strips.offset[incoming] = strips.fragmented[incoming] = true;
       strips.fragment_diff[incoming] = c.diff + std::int32_t(strips.fragment_start[incoming]);
@@ -53,7 +57,8 @@ std::pair<Word, Index> Projection::find_containing_fragment(Index origin, Index 
         return {point + consumed, mask};
       const auto advanced = c.anchor_diff + consumed;
       auto right = strips.fragment[anchor];
-      while (right && advanced >= strips.fragment_start[right] + magnitude(strips.fragment_diff[right]))
+      while (right &&
+             advanced >= strips.fragment_start[right] + magnitude(strips.fragment_diff[right]))
         right = strips.fragment[right];
       if (!right) {
         strips.fragment_start[incoming] = magnitude(c.diff);

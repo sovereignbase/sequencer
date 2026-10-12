@@ -1,3 +1,4 @@
+import { makeSequence, sequenceInsertions } from '../../../.shared/sequence.ts'
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type {
@@ -46,14 +47,11 @@ describe('contiguous insertion extensions', () => {
   )
 
   it('keeps extending an intact local insertion before an existing tail', () => {
-    const source = new Projection<string>(1, [
-      [],
-      [[[0, 0, 0, 100, 0, 1], ['tail']]],
-    ])
+    const source = new Projection<string>(1, makeSequence([], [[[0, 0, 0, 100, 0, 1], ['tail']]]))
     const target = new Projection<string>(2, source.sequence())
     for (let i = 0; i < 30; ++i)
       target.apply(structuredClone(source.insert([String(i)], i)))
-    expect(source.sequence()[1]).toHaveLength(2)
+    expect(sequenceInsertions(source.sequence())).toHaveLength(2)
     expect(target.values()).toEqual(source.values())
     expect(source.values()).toEqual([
       ...Array.from({ length: 30 }, (_, i) => String(i)),
@@ -83,9 +81,9 @@ describe('contiguous insertion extensions', () => {
     expect(remote.apply(extension)).toEqual([[[2, 2, incoming]]])
     expect(local.values()).toEqual(['a', 'b', 'c', 'd'])
     expect(remote.values()).toEqual(local.values())
-    expect(local.sequence()[1]).toHaveLength(1)
-    expect(local.sequence()[1][0][0][5]).toBe(4)
-    expect(snapshot[1][0][1]).toEqual(['a', 'b'])
+    expect(sequenceInsertions(local.sequence())).toHaveLength(1)
+    expect(sequenceInsertions(local.sequence())[0][0][5]).toBe(4)
+    expect(sequenceInsertions(snapshot)[0][1]).toEqual(['a', 'b'])
     expect(initialFootage).toEqual(['a', 'b'])
     expect(new Projection<string>(3, local.sequence()).values()).toEqual(
       local.values()
@@ -97,9 +95,9 @@ describe('contiguous insertion extensions', () => {
     for (let i = 0; i < 100; ++i) p.insert([i], p.length())
     const snapshot = p.sequence()
     for (let i = 100; i < 200; ++i) p.insert([i], p.length())
-    expect(snapshot[1]).toHaveLength(1)
-    expect(snapshot[1][0][1]).toEqual(Array.from({ length: 100 }, (_, i) => i))
-    expect(p.sequence()[1][0][1]).toEqual(
+    expect(sequenceInsertions(snapshot)).toHaveLength(1)
+    expect(sequenceInsertions(snapshot)[0][1]).toEqual(Array.from({ length: 100 }, (_, i) => i))
+    expect(sequenceInsertions(p.sequence())[0][1]).toEqual(
       Array.from({ length: 200 }, (_, i) => i)
     )
   })
@@ -142,20 +140,17 @@ describe('contiguous insertion extensions', () => {
   it('merges a longer insertion into a known prefix and ignores earlier Gossip', () => {
     const p = new Projection<string>(1)
     p.apply([structuredClone(root)])
-    const snapshot: Sequence<string> = [
-      [],
-      [
+    const snapshot: Sequence<string> = makeSequence([], [
         [
           [0, 0, 0, 100, 0, 6],
           ['a', 'b', 'c', 'd', 'e', 'f'],
         ],
-      ],
-    ]
+      ])
     expect(p.merge(snapshot)).toEqual([[[2, 2, ['c', 'd', 'e', 'f']]]])
     for (const entry of [first, second, root])
       expect(p.apply([structuredClone(entry)])).toEqual([[]])
     expect(p.merge(snapshot)).toEqual([[]])
-    expect(p.values()).toEqual(snapshot[1][0][1])
+    expect(p.values()).toEqual(sequenceInsertions(snapshot)[0][1])
   })
 
   it.each([false, true])(
@@ -205,6 +200,6 @@ describe('contiguous insertion extensions', () => {
       [4, 4, ['e', 'f']],
     ])
     expect(p.values()).toEqual(['a', 'b', 'c', 'd', 'e', 'f'])
-    expect(p.sequence()[1]).toHaveLength(1)
+    expect(sequenceInsertions(p.sequence())).toHaveLength(1)
   })
 })

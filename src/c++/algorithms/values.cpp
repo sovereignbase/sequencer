@@ -15,7 +15,8 @@ std::vector<Span> Projection::values(Word start, Word end) {
       const auto count = Word(std::max<std::int64_t>(
           0, std::min(remaining, std::int64_t(effect) - frame + strips.fragment_start[cursor])));
       if (count)
-        output.push_back({strips.identity[cursor].content, frame, count});
+        output.push_back({strips.identity[cursor].content,
+                          strips.identity[cursor].content_start + frame, count});
       remaining -= count;
     }
     const auto next = strips.right[cursor];

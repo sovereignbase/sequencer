@@ -121,8 +121,11 @@ function prepare(
     for (const payload of payloads) {
       updates.push(sender.insert(payload, sender.length()))
     }
-  } else if (operation === 'apply.duplicate' || operation === 'merge.duplicate')
-    updates.push([snapshot[1].at(-1)!])
+  } else if (operation === 'apply.duplicate' || operation === 'merge.duplicate') {
+    const coordinates = Array.from(snapshot[0].slice(-6))
+    updates.push([[coordinates, snapshot[1].slice(-(coordinates[5] | 0))]])
+  }
+  const mergeWords = updates.map((gossip) => [3, 1, 2, ...(gossip[0] as [ReadonlyArray<number>])[0]])
   if (operation === 'retire')
     // Establish distinct active Actors outside the measured retirement calls.
     state.apply(
@@ -184,11 +187,11 @@ function prepare(
       case 'apply.insert':
         return state.apply(updates[index])
       case 'merge.insert':
-        return state.merge([[[2]], updates[index]])
+        return state.merge([mergeWords[index], (updates[index][0] as [unknown, unknown])[1]])
       case 'apply.duplicate':
         return state.apply(updates[0])
       case 'merge.duplicate':
-        return state.merge([[[2]], updates[0]])
+        return state.merge([mergeWords[0], (updates[0][0] as [unknown, unknown])[1]])
       case 'retire':
         return state.retire(index + 2)
     }
@@ -207,15 +210,14 @@ async function collectGarbage(): Promise<void> {
 }
 function observe(state: Projection<number>): Observation {
   const sequence = state.sequence()
-  const stripCount = sequence[1].filter((entry) =>
-    typeof entry[0] === 'number'
-      ? (entry as unknown as number[])[5] > 0
-      : (entry[0][5] | 0) > 0
-  ).length
+  const words = sequence[0]
+  let stripCount = 0
+  for (let at = words[0] ?? 0; at < words.length; at += 6)
+    if ((words[at + 5] | 0) > 0) ++stripCount
   return {
     stripCount,
     frameCount: state.length(),
-    retainedInsertionCount: sequence[1].length,
+    retainedInsertionCount: (words.length - (words[0] ?? 0)) / 6,
     ...measureSpace(sequence, stripCount, state.length()),
     processMemory: measureProcessMemory(),
   }

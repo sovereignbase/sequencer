@@ -3,6 +3,7 @@
 #include "components/FrontierTable/class.hpp"
 #include "components/PendingTable/class.hpp"
 #include <cmath>
+#include <span>
 #include <stdexcept>
 
 namespace sequencer {
@@ -20,6 +21,7 @@ public:
   FrontierTable frontier;
   std::vector<Span> released;
   std::vector<ContentAppend> appended;
+  std::vector<Span> copied;
 
   Projection(Word actor_id, Word increasing_session, Word decreasing_session)
       : actor(actor_id), increase_clock{increasing_session, 0},
@@ -35,11 +37,12 @@ public:
   Word position_of(Index strip, std::int32_t gate_diff = 0);
   void patch_jumps(std::int32_t frame_diff, Word strip_diff, Index incoming);
   std::pair<Word, Index> select_anchor(Word position);
-  Gossip insert(Word count, Word content, Word at);
+  Insertion insert(Word count, Word content, Word at);
   Word extend(Index origin, Word count, Word content, Word source_start = 0);
+  void own_content(Index fragment);
   Gossip remove(Word start, std::int64_t end);
   Gossip replace(Word count, Word content, Word start, std::int64_t end);
-  Result apply(const Gossip &gossip);
+  Result apply(std::span<const Entry> gossip);
   void hydrate(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers);
   Result merge(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers);
   std::vector<Span> values(Word start, Word end);

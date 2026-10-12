@@ -9,7 +9,8 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
   auto last = origin;
   while (strips.fragment[last])
     last = strips.fragment[last];
-  appended.push_back({original.content, content, source_start, count, end});
+  appended.push_back(
+      {original.content, content, source_start, count, end, original.content_start});
   if (content)
     released.push_back({content, 0, 0});
   const auto next = strips.right[last];
@@ -31,8 +32,11 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
       strips.right_jump_frames[last] += count;
       strips.left_jump_frames[right] += count;
     }
-    for (auto fragment = origin; fragment; fragment = strips.fragment[fragment])
+    for (auto fragment = origin; fragment; fragment = strips.fragment[fragment]) {
       strips.identity[fragment].coordinates.diff += std::int32_t(count);
+      strips.identity[fragment].content_start = 0;
+      strips.identity[fragment].content_owned = true;
+    }
     return at;
   }
 
@@ -43,6 +47,8 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
   const auto [point, anchor] = find_containing_fragment(origin, incoming);
   auto grown = original;
   grown.coordinates.diff += std::int32_t(count);
+  grown.content_start = 0;
+  grown.content_owned = true;
   strips.identity[incoming] = grown;
   strips.fragment_start[incoming] = end;
   strips.fragment_diff[incoming] = std::int32_t(count);
@@ -51,6 +57,8 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
   anchor_strip(incoming, anchor, point, true);
   for (auto fragment = origin; fragment; fragment = strips.fragment[fragment]) {
     strips.identity[fragment].coordinates.diff = grown.coordinates.diff;
+    strips.identity[fragment].content_start = 0;
+    strips.identity[fragment].content_owned = true;
     strips.fragmented[fragment] = true;
   }
   strips.fragment[last] = incoming;

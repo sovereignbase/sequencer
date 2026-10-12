@@ -20,11 +20,15 @@ export type Acknowledgement = U32List
 
 export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>
 
+/**
+ * One structural array and one JS-owned content array.
+ * `words[0]` is the start of the six-word insertion records. Before that:
+ * `[frontiersEnd, acknowledgementLength, ...acknowledgement, ...]`.
+ * Positive insertion diffs consume successive spans of `footage`.
+ * `[[], []]` is an empty Sequence. Both numeric arrays and typed views are accepted.
+ */
 export type Sequence<T> = Readonly<
-  [
-    frontiers: ReadonlyArray<Acknowledgement>,
-    insertions: ReadonlyArray<Insertion<T>>,
-  ]
+  [words: U32List, footage: ReadonlyArray<T | undefined>]
 >
 
 export type Splice<T> = Readonly<

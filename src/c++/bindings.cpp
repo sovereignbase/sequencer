@@ -25,23 +25,16 @@ struct EntryView {
 struct SpliceView {
   Word start, end, pointer, count;
 };
-struct ArrayView {
-  Word pointer, count;
-};
-struct InsertionView {
-  Word coordinates, pointer, count, content;
-};
 struct Output {
-  std::array<Word, 9> header{};
+  std::array<Word, 11> header{};
   Gossip entries;
   Result result;
   Sequence sequence;
   std::vector<Span> values, releases;
+  std::vector<Span> copies;
   std::vector<ContentAppend> appends;
   std::vector<EntryView> gossip;
   std::vector<SpliceView> splices;
-  std::vector<ArrayView> frontiers;
-  std::vector<InsertionView> insertions;
   void expose(const Gossip &source) {
     gossip.clear();
     for (const auto &e : source)
@@ -129,6 +122,45 @@ struct Reader {
     }
     return entries;
   }
+  std::pair<Gossip, std::vector<Acknowledgement>> sequence(Word content) {
+    Gossip insertions;
+    std::vector<Acknowledgement> frontiers;
+    if (input.empty())
+      return {std::move(insertions), std::move(frontiers)};
+    const auto end = word();
+    if (!end || end > input.size() || (input.size() - end) % 6) {
+      valid = false;
+      return {};
+    }
+    while (position < end) {
+      const auto count = word();
+      if (!count || !(count & 1) || count > end - position) {
+        valid = false;
+        return {};
+      }
+      frontiers.emplace_back(input.begin() + position, input.begin() + position + count);
+      position += count;
+    }
+    insertions.reserve((input.size() - end) / 6);
+    Word offset = 0;
+    while (position < input.size()) {
+      const auto data = input.subspan(position, 6);
+      Coordinates c{data[0], data[1], data[2], data[3], data[4],
+                    std::bit_cast<std::int32_t>(data[5])};
+      if (!c.diff || c.diff == std::numeric_limits<std::int32_t>::min()) {
+        valid = false;
+        return {};
+      }
+      session_ids.insert(c.anchor_session);
+      session_ids.insert(c.session);
+      insertions.push_back(Entry::insert(
+          {c, c.diff > 0 ? content + Word(insertions.size()) : 0, offset}));
+      if (c.diff > 0)
+        offset += Word(c.diff);
+      position += 6;
+    }
+    return {std::move(insertions), std::move(frontiers)};
+  }
 };
 } // namespace
 } // namespace sequencer
@@ -173,15 +205,14 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
   auto &p = *projections[id];
   p.released.clear();
   p.appended.clear();
+  p.copied.clear();
   Word kind = 6;
   try {
     switch (operation) {
     case 0: {
       Reader r;
-      const auto flag = r.word(), nf = r.word(), ni = r.word();
-      auto f = r.frontiers(nf);
-      auto g = r.gossip(ni);
-      if (flag != 1 || !r.valid) {
+      auto [g, f] = r.sequence(arg1);
+      if (arg2 != 1 || !r.valid) {
         kind = 7;
         out.header[3] = 2;
         break;
@@ -207,7 +238,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
           kind = 0;
           break;
         }
-        auto applied = p.apply({entry});
+        auto applied = p.apply(std::span(&entry, 1));
         out.result.changes.insert(out.result.changes.end(),
                                   std::make_move_iterator(applied.changes.begin()),
                                   std::make_move_iterator(applied.changes.end()));
@@ -220,7 +251,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
       break;
     }
     case 2:
-      out.entries = p.insert(arg0, arg1, arg2);
+      out.entries = {Entry::insert(p.insert(arg0, arg1, arg2))};
       kind = 2;
       break;
     case 3:
@@ -229,10 +260,8 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
       break;
     case 4: {
       Reader r;
-      const auto flag = r.word(), nf = r.word(), ni = r.word();
-      auto f = r.frontiers(nf);
-      auto g = r.gossip(ni);
-      if (flag != 1 || !r.valid) {
+      auto [g, f] = r.sequence(arg1);
+      if (arg2 != 1 || !r.valid) {
         kind = 0;
         break;
       }
@@ -280,11 +309,14 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
   }
   out.releases.swap(p.released);
   out.appends.swap(p.appended);
+  out.copies.swap(p.copied);
   out.header[0] = kind;
   out.header[1] = address(out.releases.data());
   out.header[2] = Word(out.releases.size());
   out.header[7] = address(out.appends.data());
   out.header[8] = Word(out.appends.size());
+  out.header[9] = address(out.copies.data());
+  out.header[10] = Word(out.copies.size());
   switch (kind) {
   case 2:
     out.expose(out.entries);
@@ -306,23 +338,44 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     out.header[6] = Word(out.gossip.size());
     break;
   case 5:
-    out.frontiers.clear();
-    out.insertions.clear();
-    for (const auto &f : out.sequence.frontiers)
-      out.frontiers.push_back({address(f.data()), Word(f.size())});
-    for (const auto &i : out.sequence.insertions)
-      out.insertions.push_back(
-          {address(&i.coordinates), address(i.footage.data()), Word(i.footage.size()), i.content});
-    out.header[3] = address(out.frontiers.data());
-    out.header[4] = Word(out.frontiers.size());
-    out.header[5] = address(out.insertions.data());
-    out.header[6] = Word(out.insertions.size());
+    if (!out.sequence.words.empty() &&
+        out.sequence.words.size() - out.sequence.words[0] == 6 &&
+        out.sequence.footage.size() == 1) {
+      const auto at = out.sequence.words[0];
+      for (auto i = p.containment.get(out.sequence.words[at + 3], out.sequence.words[at + 4]);
+           i; i = p.strips.fragment[i])
+        p.strips.identity[i].content_owned = false;
+    }
+    out.header[3] = address(out.sequence.words.data());
+    out.header[4] = Word(out.sequence.words.size());
+    out.header[5] = address(out.sequence.footage.data());
+    out.header[6] = Word(out.sequence.footage.size());
     break;
   }
   return out.header.data();
 }
 EMSCRIPTEN_KEEPALIVE std::uint32_t runtime_length(std::uint32_t id) {
   return sequencer::projections[id]->length();
+}
+EMSCRIPTEN_KEEPALIVE const std::uint32_t *
+runtime_insert(std::uint32_t id, std::uint32_t count, std::uint32_t content, std::uint32_t at) {
+  using namespace sequencer;
+  auto &p = *projections[id];
+  p.appended.clear();
+  p.released.clear();
+  p.copied.clear();
+  const auto insertion = p.insert(count, content, at);
+  static std::array<Word, 9> result;
+  const auto coordinates = std::bit_cast<std::array<Word, 6>>(insertion.coordinates);
+  std::copy(coordinates.begin(), coordinates.end(), result.begin());
+  result[6] = 0;
+  if (!p.appended.empty()) {
+    const auto &append = p.appended.back();
+    result[6] = append.target;
+    result[7] = append.at;
+    result[8] = append.base;
+  }
+  return result.data();
 }
 EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_value(std::uint32_t id, std::uint32_t at) {
   using namespace sequencer;
@@ -331,7 +384,7 @@ EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_value(std::uint32_t id, std::u
     return nullptr;
   const auto frame = p.find_frame(at);
   static std::array<Word, 2> value;
-  value = {p.strips.identity[p.gate].content, frame};
+  value = {p.strips.identity[p.gate].content, p.strips.identity[p.gate].content_start + frame};
   return value.data();
 }
 }

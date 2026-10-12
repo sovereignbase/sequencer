@@ -1,3 +1,4 @@
+import { makeSequence, sequenceInsertions } from '../../../.shared/sequence.ts'
 import { expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Insertion } from '../../../../src/typescript/class.ts'
@@ -10,7 +11,7 @@ it('retains its visible tail across concurrent removals of the same suffix', () 
     ])
   for (let index = 0; index < 46; ++index)
     insertions.push([[983, 0, 1, 2000 - index, 0, 4294967293]])
-  const projection = new Projection<number>(1, [[[2]], insertions])
+  const projection = new Projection<number>(1, makeSequence([[2]], insertions))
   const expected = Array.from({ length: 18 }, (_, index) => index)
   expect(projection.values()).toEqual(expected)
   const hydrated = new Projection<number>(3, projection.sequence())
@@ -28,7 +29,7 @@ it('retains visible root boundaries across an unacknowledged hidden suffix', () 
     if (index >= 17)
       insertions.push([[session, 0, 0, 2000, (index - 17) * 2, 0xffffffff]])
   }
-  const projection = new Projection<number>(1, [[[2]], insertions])
+  const projection = new Projection<number>(1, makeSequence([[2]], insertions))
   const expected = Array.from({ length: 17 }, (_, index) => index)
   expect(projection.values()).toEqual(expected)
   const hydrated = new Projection<number>(3, projection.sequence())
@@ -48,7 +49,7 @@ it.each([17, 28, 31])(
     source.remove(visibleCount)
     const snapshot = source.sequence()
     expect(
-      snapshot[1].some(
+      sequenceInsertions(snapshot).some(
         (entry) => ((entry[0] as ReadonlyArray<number>)[5] | 0) < 0
       )
     ).toBe(true)

@@ -50,6 +50,19 @@ Sequence Projection::sequence() const {
     return frames ? frames->before(at) : 0;
   };
   Sequence output;
+  output.words.reserve(1 + structural_count * 6);
+  output.footage.reserve(structural_count);
+  output.words.push_back(0);
+  for (const auto &a : frontier.frontiers()) {
+    const auto begin = output.words.size();
+    output.words.insert(output.words.end(), {0, a[0]});
+    for (std::size_t i = 1; i + 1 < a.size(); i += 2) {
+      if (!compactable.contains(a[i]))
+        output.words.insert(output.words.end(), {a[i], a[i + 1]});
+    }
+    output.words[begin] = Word(output.words.size() - begin - 1);
+  }
+  output.words[0] = Word(output.words.size());
   constexpr auto omitted = std::numeric_limits<Word>::max();
   std::unordered_map<std::uint64_t, Word> included;
   Word left = omitted, left_diff = 0;
@@ -67,11 +80,10 @@ Sequence Projection::sequence() const {
     Word insertion = omitted;
     if (first) {
       auto exported = c;
-      std::vector<Span> footage;
-      Word content = 0;
+      auto &footage = output.footage;
       if (c.diff > 0 && !compactable.empty()) {
-        exported.anchor_session = left == omitted ? 0 : output.insertions[left].coordinates.session;
-        exported.anchor_start = left == omitted ? 0 : output.insertions[left].coordinates.start;
+        exported.anchor_session = left == omitted ? 0 : output.words[left + 3];
+        exported.anchor_start = left == omitted ? 0 : output.words[left + 4];
         exported.anchor_diff = left_diff;
       } else if (c.diff < 0 && !removed.empty()) {
         exported.anchor_diff -=
@@ -81,10 +93,12 @@ Sequence Projection::sequence() const {
         Word count = 0;
         for (Word n = 0; n < Word(c.diff); ++n) {
           if (!frames->frames[n]) {
-            if (!footage.empty() && footage.back().start + footage.back().count == n)
+            if (!footage.empty() && footage.back().content == strips.identity[s].content &&
+                footage.back().start + footage.back().count == strips.identity[s].content_start + n)
               ++footage.back().count;
             else
-              footage.push_back({strips.identity[s].content, n, 1});
+              footage.push_back({strips.identity[s].content,
+                                 strips.identity[s].content_start + n, 1});
           }
           count += frames->frames[n];
           frames->frames[n] = count;
@@ -95,10 +109,11 @@ Sequence Projection::sequence() const {
         exported.diff +=
             std::int32_t(before(target, c.anchor_diff - c.diff) - before(target, c.anchor_diff));
       } else if (c.diff > 0)
-        content = strips.identity[s].content;
+        footage.push_back({strips.identity[s].content, strips.identity[s].content_start, Word(c.diff)});
       if (exported.diff) {
-        insertion = Word(output.insertions.size());
-        output.insertions.push_back({exported, std::move(footage), content});
+        insertion = Word(output.words.size());
+        const auto words = std::bit_cast<std::array<Word, 6>>(exported);
+        output.words.insert(output.words.end(), words.begin(), words.end());
       }
       included.emplace(key, insertion);
     } else
@@ -114,15 +129,8 @@ Sequence Projection::sequence() const {
       }
     }
   }
-  for (const auto &a : frontier.frontiers()) {
-    auto &exported = output.frontiers.emplace_back(Acknowledgement{a[0]});
-    for (std::size_t i = 1; i + 1 < a.size(); i += 2) {
-      if (compactable.contains(a[i]))
-        continue;
-      exported.push_back(a[i]);
-      exported.push_back(a[i + 1]);
-    }
-  }
+  if (output.words.size() == 1)
+    output.words.clear();
   return output;
 }
 } // namespace sequencer

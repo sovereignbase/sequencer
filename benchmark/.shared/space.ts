@@ -17,15 +17,8 @@ export function measureSpace(
 } {
   const ratio = (bytes: number, units: number) =>
     units === 0 ? null : bytes / units
-  const sequenceMetadataWordBytes =
-    (sequence[0].reduce((words, ack) => words + ack.length, 0) +
-      sequence[1].length * 6) *
-    4
-  const javascriptFootageSlotBytes =
-    sequence[1].reduce(
-      (slots, insertion) => slots + (insertion[1]?.length ?? 0),
-      0
-    ) * 8
+  const sequenceMetadataWordBytes = sequence[0].length * 4
+  const javascriptFootageSlotBytes = sequence[1].length * 8
   const bytes = sequenceMetadataWordBytes + javascriptFootageSlotBytes
   const sequenceBytes = serialize(sequence).byteLength
   return {

@@ -30,6 +30,8 @@ inline std::uint64_t identity(Word session, Word start) {
 struct Insertion {
   Coordinates coordinates;
   Word content{};
+  Word content_start{};
+  bool content_owned{};
 };
 using Acknowledgement = std::vector<Word>;
 struct Entry {
@@ -44,7 +46,7 @@ struct Span {
   Word content{}, start{}, count{};
 };
 struct ContentAppend {
-  Word target{}, source{}, start{}, count{}, at{};
+  Word target{}, source{}, start{}, count{}, at{}, base{};
 };
 struct Splice {
   Word start{}, end{};
@@ -54,14 +56,9 @@ struct Result {
   std::vector<Splice> changes;
   Gossip gossip;
 };
-struct ExportInsertion {
-  Coordinates coordinates;
-  std::vector<Span> footage;
-  Word content{};
-};
 struct Sequence {
-  std::vector<Acknowledgement> frontiers;
-  std::vector<ExportInsertion> insertions;
+  std::vector<Word> words;
+  std::vector<Span> footage;
 };
 
 // Links are arena indices: growth cannot invalidate links, there are no

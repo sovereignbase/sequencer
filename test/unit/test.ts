@@ -1,15 +1,13 @@
+import { makeSequence, sequenceInsertions, sequenceFrontiers } from '../.shared/sequence.ts'
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../src/typescript/class.ts'
 import type { Gossip, Sequence } from '../../src/typescript/class.ts'
-const seed = (): Sequence<string> => [
-  [],
-  [
+const seed = (): Sequence<string> => makeSequence([], [
     [
       [0, 0, 0, 100, 0, 3],
       ['a', 'b', 'c'],
     ],
-  ],
-]
+  ])
 const seeded = () => new Projection<string>(1, seed())
 function expectGossip(gossip: Gossip<string>, expected: string[]): void {
   const receiver = new Projection<string>(2, seed())
@@ -29,15 +27,32 @@ describe('Projection public API', () => {
       expect(projection.actorID).toBe(7)
       expect(projection.length()).toBe(3)
       expect(projection.values()).toEqual(['a', 'b', 'c'])
+      const retained = seed()
+      expect(new Projection<string>(8, [new Uint32Array(retained[0]), retained[1]]).values()).toEqual(['a', 'b', 'c'])
+    })
+    it('keeps a flat snapshot unchanged when an offset insertion is removed and extended', () => {
+      const snapshot = makeSequence<string>([[2]], [
+        [[0, 0, 0, 100, 0, 2], ['a', 'b']],
+        [[100, 0, 2, 200, 0, 2], ['c', 'd']],
+      ])
+      const p = new Projection<string>(1, snapshot)
+      p.remove(2, 2)
+      p.apply([[[200, 0, 2, 200, 2, 1], ['e']]])
+      expect(p.values()).toEqual(['a', 'b', 'd', 'e'])
+      expect(snapshot[1]).toEqual(['a', 'b', 'c', 'd'])
+      const exported = p.sequence()
+      expect(exported).toHaveLength(2)
+      expect(exported[0].every((word) => typeof word === 'number')).toBe(true)
+      expect(new Projection<string>(3, JSON.parse(JSON.stringify(exported))).values()).toEqual(p.values())
     })
   })
   describe('apply', () => {
     it('returns insertion splices using visible positions', () => {
       const projection = new Projection<string>(2)
-      const incoming = seed()
-      const result = projection.apply(incoming[1])
+      const incoming = sequenceInsertions(seed())
+      const result = projection.apply(incoming)
       expect(result).toEqual([[[0, 0, ['a', 'b', 'c']]]])
-      expect(result?.[0][0][2]).toBe(incoming[1][0][1])
+      expect(result?.[0][0][2]).toBe(incoming[0][1])
       expect(projection.values()).toEqual(['a', 'b', 'c'])
     })
     it('returns removal splices with an exclusive end and receipt Gossip', () => {
@@ -57,7 +72,7 @@ describe('Projection public API', () => {
     })
     it('accepts empty batches, acknowledgements, and duplicate Insertions without visible changes', () => {
       const projection = seeded()
-      for (const gossip of [[], [[2]], seed()[1]])
+      for (const gossip of [[], [[2]], sequenceInsertions(seed())])
         expect(projection.apply(gossip)).toEqual([[]])
       expect(projection.values()).toEqual(['a', 'b', 'c'])
     })
@@ -65,7 +80,7 @@ describe('Projection public API', () => {
       const projection = new Projection<string>(1)
       expect(projection.apply([[[100, 0, 1, 200, 0, 1], ['X']]])).toEqual([[]])
       expect(projection.values()).toEqual([])
-      expect(projection.apply(seed()[1])).toEqual([
+      expect(projection.apply(sequenceInsertions(seed()))).toEqual([
         [
           [0, 0, ['a', 'b', 'c']],
           [1, 1, ['X']],
@@ -90,7 +105,7 @@ describe('Projection public API', () => {
     })
     it('retains earlier valid entries when a later entry is invalid', () => {
       const projection = new Projection<string>(1)
-      expect(projection.apply([...seed()[1], null])).toBeUndefined()
+      expect(projection.apply([...sequenceInsertions(seed()), null])).toBeUndefined()
       expect(projection.values()).toEqual(['a', 'b', 'c'])
     })
   })
@@ -136,7 +151,7 @@ describe('Projection public API', () => {
       const source = seeded()
       source.remove(1, 1)
       const snapshot = source.sequence()
-      expect(snapshot[0].length).toBeGreaterThan(0)
+      expect(sequenceFrontiers(snapshot).length).toBeGreaterThan(0)
       const receiver = new Projection<string>(2)
       expect(receiver.merge(snapshot)).toBeDefined()
       expect(receiver.values()).toEqual(['a', 'c'])
@@ -155,11 +170,11 @@ describe('Projection public API', () => {
         {},
         [],
         [[], [], []],
-        [[], [...seed()[1], null]],
+        [[1, 0, 0, 0, 100, 0], []],
         [null, []],
         [[], {}],
-        [[null], seed()[1]],
-        [[[1, 2]], seed()[1]],
+        [[null], sequenceInsertions(seed())],
+        [[[1, 2]], sequenceInsertions(seed())],
       ].map((input) => ({ input }))
     )(
       'rejects malformed input $input before applying any part of it',
@@ -223,13 +238,13 @@ describe('Projection public API', () => {
       projection.apply([[2]])
       projection.remove(1, 1)
       expect(
-        projection.sequence()[1].some((entry) => (entry[0][5] | 0) < 0)
+        sequenceInsertions(projection.sequence()).some((entry) => (entry[0][5] | 0) < 0)
       ).toBe(true)
       expect(projection.retire(2)).toBeUndefined()
       projection.apply([[2]])
       const sequence = projection.sequence()
-      expect(sequence[0].some((frontier) => frontier[0] === 2)).toBe(false)
-      expect(sequence[1].every((entry) => (entry[0][5] | 0) > 0)).toBe(true)
+      expect(sequenceFrontiers(sequence).some((frontier) => frontier[0] === 2)).toBe(false)
+      expect(sequenceInsertions(sequence).every((entry) => (entry[0][5] | 0) > 0)).toBe(true)
       expect(new Projection<string>(3, sequence).values()).toEqual(['a', 'c'])
       expect(projection.values()).toEqual(['a', 'c'])
     })
@@ -242,7 +257,7 @@ describe('Projection public API', () => {
       const projection = seeded()
       projection.remove(1, 1)
       const sequence = projection.sequence()
-      expect(sequence[1].every((entry) => (entry[0][5] | 0) > 0)).toBe(true)
+      expect(sequenceInsertions(sequence).every((entry) => (entry[0][5] | 0) > 0)).toBe(true)
       expect(new Projection<string>(2, sequence).values()).toEqual(['a', 'c'])
       expect(projection.values()).toEqual(['a', 'c'])
       projection.insert(['X'], 1)
@@ -257,12 +272,12 @@ describe('Projection public API', () => {
       author.apply(receipt[1])
       const second = author.remove(0, 0)
       const retained = author.sequence()
-      expect(retained[1].filter((entry) => (entry[0][5] | 0) < 0)).toHaveLength(
+      expect(sequenceInsertions(retained).filter((entry) => (entry[0][5] | 0) < 0)).toHaveLength(
         2
       )
       expect(new Projection<string>(3, retained).values()).toEqual(['c'])
       author.apply(receiver.apply(second)![1])
-      expect(author.sequence()[1].every((entry) => (entry[0][5] | 0) > 0)).toBe(
+      expect(sequenceInsertions(author.sequence()).every((entry) => (entry[0][5] | 0) > 0)).toBe(
         true
       )
       expect(author.values()).toEqual(['c'])

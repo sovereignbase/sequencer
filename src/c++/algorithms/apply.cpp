@@ -3,27 +3,31 @@
 #include <algorithm>
 
 namespace sequencer {
-Result Projection::apply(const Gossip &gossip) {
+Result Projection::apply(std::span<const Entry> gossip) {
   Result result;
   for (const auto &entry : gossip) {
     if (entry.acknowledgement) {
       frontier.observe(entry.frontier);
       continue;
     }
-    std::vector<Insertion> queue{entry.insertion};
-    while (!queue.empty()) {
-      const auto insertion = queue.back();
+    std::vector<Insertion> queue;
+    bool first = true;
+    while (first || !queue.empty()) {
+      const auto insertion = first ? entry.insertion : queue.back();
       last_insert = none;
-      queue.pop_back();
+      if (first)
+        first = false;
+      else
+        queue.pop_back();
       const auto c = insertion.coordinates;
       if (c.diff < 0) {
         Acknowledgement a{actor, c.session, c.start - c.diff};
         frontier.observe(a);
         result.gossip.push_back(Entry::acknowledge(std::move(a)));
       }
-      const auto existing = containment.get(c.session, c.start);
-      const auto origin = c.birth() ? none : containment.get(c.anchor_session, c.anchor_start);
       const auto extension = c.extension();
+      const auto existing = extension ? none : containment.get(c.session, c.start);
+      const auto origin = c.birth() ? none : containment.get(c.anchor_session, c.anchor_start);
       const auto growing = existing && c.diff > 0 &&
                            strips.identity[existing].coordinates.diff > 0 &&
                            c.diff > strips.identity[existing].coordinates.diff;
@@ -38,8 +42,10 @@ Result Projection::apply(const Gossip &gossip) {
         const auto end = growing ? Word(c.diff) : c.anchor_diff + Word(c.diff);
         if (end > known && (growing || c.anchor_diff == known)) {
           const auto source_start = growing ? known : known - c.anchor_diff;
-          const auto at = extend(parent, end - known, insertion.content, source_start);
-          result.changes.push_back({at, at, {{insertion.content, source_start, end - known}}});
+          const auto at = extend(parent, end - known, insertion.content,
+                                 insertion.content_start + source_start);
+          result.changes.push_back(
+              {at, at, {{insertion.content, insertion.content_start + source_start, end - known}}});
           auto released_pending = pending.take(strips.identity[parent].coordinates);
           for (auto it = released_pending.rbegin(); it != released_pending.rend(); ++it)
             queue.push_back(*it);
@@ -127,7 +133,8 @@ Result Projection::apply(const Gossip &gossip) {
           head = incoming;
         if (start + Word(diff) == frame_count)
           tail = incoming;
-        result.changes.push_back({start, start, {{insertion.content, 0, Word(c.diff)}}});
+        result.changes.push_back(
+            {start, start, {{insertion.content, insertion.content_start, Word(c.diff)}}});
       } else if (diff < 0) {
         auto position = start;
         for (auto mask = incoming; mask; mask = strips.fragment[mask]) {

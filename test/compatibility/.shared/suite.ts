@@ -1,3 +1,4 @@
+import { sequenceInsertions } from '../../.shared/sequence.ts'
 import { Projection } from '../../../dist/index.js'
 import type { Sequence } from '../../../dist/index.js'
 export type Outcome = {
@@ -5,14 +6,7 @@ export type Outcome = {
   error: string | null
 }
 function snapshot<T>(projection: Projection<T>): Sequence<T> {
-  const [frontiers, insertions] = projection.sequence()
-  // Omit absent Footage: JSON otherwise turns the optional field into invalid null.
-  return JSON.parse(
-    JSON.stringify([
-      frontiers,
-      insertions.map((entry) => (entry[1] === undefined ? [entry[0]] : entry)),
-    ])
-  )
+  return JSON.parse(JSON.stringify(projection.sequence()))
 }
 function equal(actual: unknown, expected: unknown): void {
   if (!Object.is(actual, expected))
@@ -159,7 +153,7 @@ export function runSuite(
         check(projection, ['a', 'X', 'c'])
         const retained = snapshot(projection)
         equal(
-          retained[1].some(
+          sequenceInsertions(retained).some(
             (entry) => ((entry[0] as ReadonlyArray<number>)[5] | 0) < 0
           ),
           !compact

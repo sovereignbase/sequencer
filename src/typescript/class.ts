@@ -18,7 +18,7 @@ export class Projection<T> {
   }
 
   insert(values: Array<T>, at: number): Gossip<T> {
-    return runtime.call(Operation.Insert, this.id, values, at)
+    return runtime.insert(this.id, values, at) as Gossip<T>
   }
 
   length(): number {

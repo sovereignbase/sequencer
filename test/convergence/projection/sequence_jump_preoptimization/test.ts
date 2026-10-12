@@ -1,3 +1,4 @@
+import { makeSequence } from '../../../.shared/sequence.ts'
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Insertion } from '../../../../src/typescript/types/type.ts'
@@ -14,7 +15,7 @@ describe('sequence jump preoptimization', () => {
       insertions.push([[100, 0, at, 200, index * 2, 1], [-at - 1000]])
       expected.splice(index * 4 + 1, 0, -at, -at - 1000)
     }
-    const hydrated = new Projection<number>(1, [[], insertions])
+    const hydrated = new Projection<number>(1, makeSequence([], insertions))
     expect(hydrated.values()).toEqual(expected)
     expect(new Projection<number>(1, hydrated.sequence()).values()).toEqual(
       expected

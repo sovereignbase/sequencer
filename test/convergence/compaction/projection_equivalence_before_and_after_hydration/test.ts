@@ -1,3 +1,4 @@
+import { makeSequence, sequenceInsertions } from '../../../.shared/sequence.ts'
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 
@@ -5,14 +6,11 @@ it.each([false, true])(
   'retains repeated middle replacements before an older mask with compaction %s',
   (compact) => {
     const session = 4294967294
-    const state = new Projection<number>(1, [
-      [],
-      [
+    const state = new Projection<number>(1, makeSequence([], [
         [[0, 0, 0, session, 0, 1], [1]],
         [[session, 0, 1, session, 2, 79], new Array(79).fill(79)],
         [[session, 2, 79, session, 82, 1], [1]],
-      ],
-    ])
+      ]))
     if (!compact) state.apply([[2]])
     for (let i = 0; i < 8; ++i) state.replace([i], 1, 1)
     const expected = [1, 7, ...new Array(78).fill(79), 1]
@@ -36,7 +34,7 @@ describe('projection equivalence before and after hydration', () => {
       projection.replace(['z'], 0, 1)
       const snapshot = structuredClone(projection.sequence())
       expect(
-        snapshot[1].some(
+        sequenceInsertions(snapshot).some(
           (entry) => ((entry[0] as ReadonlyArray<number>)[5] | 0) < 0
         )
       ).toBe(!compact)
@@ -81,7 +79,7 @@ describe('projection equivalence before and after hydration', () => {
       }
       const snapshot = local.sequence()
       expect(
-        snapshot[1].some(
+        sequenceInsertions(snapshot).some(
           (entry) =>
             (entry[0] as ReadonlyArray<number>)[3] ===
               (removal[0] as Insertion<string>)[0][3] &&
@@ -90,7 +88,7 @@ describe('projection equivalence before and after hydration', () => {
       ).toBe(!compact)
       if (compact)
         expect(
-          snapshot[1].some(
+          sequenceInsertions(snapshot).some(
             (entry) =>
               (entry[0] as ReadonlyArray<number>)[3] ===
               (branch[0] as Insertion<string>)[0][3]
@@ -105,17 +103,14 @@ describe('projection equivalence before and after hydration', () => {
     }
   )
   it('preserves children at distinct points collapsed by compaction', () => {
-    const projection = new Projection<string>(1, [
-      [],
-      [
+    const projection = new Projection<string>(1, makeSequence([], [
         [
           [0, 0, 0, 100, 0, 4],
           ['a', 'b', 'c', 'tail'],
         ],
         [[100, 0, 1, 200, 0, 1], ['A']],
         [[100, 0, 2, 300, 0, 1], ['B']],
-      ],
-    ])
+      ]))
     expect(projection.values()).toEqual(['a', 'A', 'b', 'B', 'c', 'tail'])
     projection.remove(4, 4)
     projection.remove(2, 2)
@@ -123,11 +118,11 @@ describe('projection equivalence before and after hydration', () => {
     expect(projection.values()).toEqual(['A', 'B', 'tail'])
     const snapshot = projection.sequence()
     expect(
-      snapshot[1].every(
+      sequenceInsertions(snapshot).every(
         (entry) => ((entry[0] as ReadonlyArray<number>)[5] | 0) > 0
       )
     ).toBe(true)
-    expect(snapshot[1][0][1]).toEqual(['tail'])
+    expect(sequenceInsertions(snapshot)[0][1]).toEqual(['tail'])
     const hydrated = new Projection<string>(1, snapshot)
     expect(hydrated.values()).toEqual(['A', 'B', 'tail'])
     hydrated.insert(['X'], 1)
@@ -140,12 +135,10 @@ describe('projection equivalence before and after hydration', () => {
     ])
   })
   it('retains children when the only compactable mask is fully overlapped', () => {
-    const projection = new Projection<string>(1, [
-      [
+    const projection = new Projection<string>(1, makeSequence([
         [1, 300, 2],
         [2, 300, 2],
-      ],
-      [
+      ], [
         [
           [0, 0, 0, 100, 0, 2],
           ['a', 'b'],
@@ -153,29 +146,26 @@ describe('projection equivalence before and after hydration', () => {
         [[100, 0, 0, 200, 0, 4294967294]],
         [[100, 0, 0, 300, 0, 4294967294]],
         [[300, 0, 2, 400, 0, 1], ['X']],
-      ],
-    ])
+      ]))
     expect(projection.values()).toEqual(['X'])
     const snapshot = projection.sequence()
     expect(
-      snapshot[1].some(
+      sequenceInsertions(snapshot).some(
         (entry) => (entry[0] as ReadonlyArray<number>)[3] === 300
       )
     ).toBe(false)
     expect(
-      snapshot[1].some(
+      sequenceInsertions(snapshot).some(
         (entry) => (entry[0] as ReadonlyArray<number>)[3] === 200
       )
     ).toBe(true)
     expect(new Projection<string>(3, snapshot).values()).toEqual(['X'])
   })
   it('compacts an acknowledged mask while retaining an overlapping unacknowledged mask', () => {
-    const projection = new Projection<string>(1, [
-      [
+    const projection = new Projection<string>(1, makeSequence([
         [1, 200, 2],
         [2, 200, 2],
-      ],
-      [
+      ], [
         [
           [0, 0, 0, 100, 0, 4],
           ['a', 'b', 'c', 'd'],
@@ -183,21 +173,20 @@ describe('projection equivalence before and after hydration', () => {
         [[100, 0, 0, 200, 0, 4294967294]],
         [[100, 0, 1, 300, 0, 4294967294]],
         [[300, 0, 2, 400, 0, 1], ['X']],
-      ],
-    ])
+      ]))
     expect(projection.values()).toEqual(['X', 'd'])
     const snapshot = projection.sequence()
     expect(
-      snapshot[1].some(
+      sequenceInsertions(snapshot).some(
         (entry) => (entry[0] as ReadonlyArray<number>)[3] === 200
       )
     ).toBe(false)
     expect(
-      snapshot[1].find(
+      sequenceInsertions(snapshot).find(
         (entry) => (entry[0] as ReadonlyArray<number>)[3] === 300
       )?.[0][5]
     ).toBe(-1 >>> 0)
-    expect(snapshot[1][0][1]).toEqual([undefined, 'd'])
+    expect(sequenceInsertions(snapshot)[0][1]).toEqual([undefined, 'd'])
     const hydrated = new Projection<string>(1, snapshot)
     expect(hydrated.values()).toEqual(['X', 'd'])
     expect(new Projection<string>(1, hydrated.sequence()).values()).toEqual([

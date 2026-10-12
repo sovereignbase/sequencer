@@ -1,3 +1,4 @@
+import { makeSequence, sequenceInsertions } from '../../../.shared/sequence.ts'
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type {
@@ -10,15 +11,12 @@ describe.each(['ordered', 'reverse', 'shuffled'] as const)(
     it.each([2, 4, 128])(
       'converges across %i replacements before and after hydration',
       (replacements) => {
-        const live = new Projection<number>(2, [
-          [],
-          [
+        const live = new Projection<number>(2, makeSequence([], [
             [
               [0, 0, 0, 100, 0, 2],
               [0, 1],
             ],
-          ],
-        ])
+          ]))
         // The joining actor has not received the masks, so compaction cannot retire them.
         live.apply([[1]])
         for (let index = 0; index < replacements; ++index)
@@ -60,7 +58,7 @@ describe.each(['ordered', 'reverse', 'shuffled'] as const)(
         for (const peer of [live, hydrated]) {
           const compacted = peer.sequence()
           expect(
-            compacted[1].every(
+            sequenceInsertions(compacted).every(
               (entry) => ((entry[0] as ReadonlyArray<number>)[5] | 0) > 0
             )
           ).toBe(true)
@@ -73,15 +71,12 @@ describe.each(['ordered', 'reverse', 'shuffled'] as const)(
   }
 )
 it('preserves competing offline tail appends before a later mask-end replacement', () => {
-  const live = new Projection<string>(2, [
-    [[1], [2], [3]],
-    [
+  const live = new Projection<string>(2, makeSequence([[1], [2], [3]], [
       [
         [0, 0, 0, 100, 0, 2],
         ['a', 'old'],
       ],
-    ],
-  ])
+    ]))
   live.replace(['previous'], 1, 1)
   live.replace(['tail'], 1, 1)
   const snapshot = live.sequence()

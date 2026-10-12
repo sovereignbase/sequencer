@@ -1,0 +1,56 @@
+diff --git a/src/c++/algorithms/sequence.cpp b/src/c++/algorithms/sequence.cpp
+index f36354a..7d3e8f5 100644
+--- a/src/c++/algorithms/sequence.cpp
++++ b/src/c++/algorithms/sequence.cpp
+@@ -64,7 +64,23 @@ Sequence Projection::sequence() const {
+   }
+   output.words[0] = Word(output.words.size());
+   constexpr auto omitted = std::numeric_limits<Word>::max();
+-  std::unordered_map<std::uint64_t, Word> included;
++  // Only fragments can visit an insertion twice. Arena indices need no hash.
++  std::array<std::pair<Index, Word>, 8> local{};
++  std::size_t local_count = 0;
++  std::vector<Word> included;
++  const auto slot = [&](Index root) -> Word & {
++    if (!included.empty())
++      return included[root];
++    for (std::size_t n = 0; n < local_count; ++n)
++      if (local[n].first == root)
++        return local[n].second;
++    if (local_count < local.size())
++      return (local[local_count++] = {root, 0}).second;
++    included.resize(strips.count);
++    for (const auto &[index, insertion] : local)
++      included[index] = insertion;
++    return included[root];
++  };
+   Word left = omitted, left_diff = 0;
+   for (auto i = structural_head; i; i = strips.right[i]) {
+     const auto s = i;
+@@ -74,9 +90,10 @@ Sequence Projection::sequence() const {
+     auto *frames = removed_frames(c.session, c.start);
+     if (frames && frames->whole)
+       continue;
+-    const auto key = identity(c.session, c.start);
+-    auto found = included.find(key);
+-    const auto first = found == included.end();
++    const auto root = strips.offset[s] ? containment.get(c.session, c.start) : s;
++    const auto fragmented = strips.fragment[root] != none;
++    auto *exported_insertion = fragmented ? &slot(root) : nullptr;
++    const auto first = !exported_insertion || !*exported_insertion;
+     Word insertion = omitted;
+     if (first) {
+       auto exported = c;
+@@ -116,9 +133,10 @@ Sequence Projection::sequence() const {
+         const auto words = std::bit_cast<std::array<Word, 6>>(exported);
+         output.words.insert(output.words.end(), words.begin(), words.end());
+       }
+-      included.emplace(key, insertion);
++      if (exported_insertion)
++        *exported_insertion = insertion;
+     } else
+-      insertion = found->second;
++      insertion = *exported_insertion;
+     if (insertion != omitted && (first || strips.fragment_diff[s] != 0)) {
+       left = insertion;
+       left_diff = strips.fragment_start[s] + magnitude(strips.fragment_diff[s]);

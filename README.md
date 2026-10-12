@@ -55,7 +55,7 @@ single-Frame insertions. These are five-run medians from isolated Node processes
 Module import and a small warm-up are excluded from the heap delta. WASM
 capacity includes the initial 1 MiB allocation. These are not process RSS or
 per-Projection total memory. Measurements and complete before/after results are
-retained in [the optimization report](archives/optimizations/flat_sequence/README.md).
+retained in [the optimization report](archives/optimizations_12_10_2026/flat_sequence/README.md).
 
 ### Moderate bundle size
 

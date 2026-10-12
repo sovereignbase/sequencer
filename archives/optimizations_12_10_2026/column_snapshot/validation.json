@@ -1,0 +1,10 @@
+{
+  "assertions": "passed",
+  "frames": 5872,
+  "plainWords": 36721,
+  "exportedWords": 19432,
+  "jsonAndTypedHydration": true,
+  "merge": true,
+  "replay": true,
+  "copyOnWrite": true
+}

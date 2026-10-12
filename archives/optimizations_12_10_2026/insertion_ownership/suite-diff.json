@@ -1,0 +1,3074 @@
+[
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleUp",
+    "op": "apply.random",
+    "baseline": 64000.73,
+    "candidate": 62451.48,
+    "baselineIqr": 30611.570000000007,
+    "candidateIqr": 16093.519999999997,
+    "baselineRuns": [
+      51456.53,
+      120403.37,
+      82068.1,
+      50181.92,
+      64000.73
+    ],
+    "candidateRuns": [
+      55425.15,
+      181893.48,
+      56548.37,
+      62451.48,
+      72641.89
+    ],
+    "percent": -2.420675514169912
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleUp",
+    "op": "create",
+    "baseline": 1541100,
+    "candidate": 1533740,
+    "baselineIqr": 195540,
+    "candidateIqr": 112680,
+    "baselineRuns": [
+      1353480,
+      1784720,
+      1604760,
+      1409220,
+      1541100
+    ],
+    "candidateRuns": [
+      1540880,
+      2128820,
+      1428200,
+      1533740,
+      1371340
+    ],
+    "percent": -0.4775809486730287
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleUp",
+    "op": "insert.head",
+    "baseline": 2548.06,
+    "candidate": 2585.16,
+    "baselineIqr": 1544.6599999999999,
+    "candidateIqr": 637.1599999999999,
+    "baselineRuns": [
+      2359.52,
+      5597.1,
+      3904.18,
+      2147.92,
+      2548.06
+    ],
+    "candidateRuns": [
+      2492.5,
+      10814.82,
+      2237.32,
+      2585.16,
+      3129.66
+    ],
+    "percent": 1.4560096701019543
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleUp",
+    "op": "insert.random",
+    "baseline": 25189.09,
+    "candidate": 22502.95,
+    "baselineIqr": 10706.550000000003,
+    "candidateIqr": 4885.610000000001,
+    "baselineRuns": [
+      18973.6,
+      44152.07,
+      30140.24,
+      19433.69,
+      25189.09
+    ],
+    "candidateRuns": [
+      20646.54,
+      75040.52,
+      19282.95,
+      22502.95,
+      25532.15
+    ],
+    "percent": -10.663902506998069
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleUp",
+    "op": "insert.tail",
+    "baseline": 2283.48,
+    "candidate": 2082.18,
+    "baselineIqr": 1064.6000000000004,
+    "candidateIqr": 2988.02,
+    "baselineRuns": [
+      2074.7,
+      4284.14,
+      3139.3,
+      1742.94,
+      2283.48
+    ],
+    "candidateRuns": [
+      2036.46,
+      5042.62,
+      2082.18,
+      2054.6,
+      5385.18
+    ],
+    "percent": -8.815492143570347
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleUp",
+    "op": "remove.head",
+    "baseline": null,
+    "candidate": null,
+    "baselineIqr": 0,
+    "candidateIqr": 0,
+    "baselineRuns": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "candidateRuns": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "percent": null
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleUp",
+    "op": "remove.random",
+    "baseline": 34005.01,
+    "candidate": 36190.17,
+    "baselineIqr": 14818.719999999998,
+    "candidateIqr": 7658.369999999995,
+    "baselineRuns": [
+      26819.49,
+      65945.86,
+      41638.21,
+      26564.67,
+      34005.01
+    ],
+    "candidateRuns": [
+      29223.58,
+      100101.05,
+      27944.45,
+      36190.17,
+      36881.95
+    ],
+    "percent": 6.425994287312364
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleUp",
+    "op": "remove.tail",
+    "baseline": null,
+    "candidate": null,
+    "baselineIqr": 0,
+    "candidateIqr": 0,
+    "baselineRuns": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "candidateRuns": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "percent": null
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleUp",
+    "op": "replace.head",
+    "baseline": 7521.25,
+    "candidate": 8143.71,
+    "baselineIqr": 8895.66,
+    "candidateIqr": 1282.2599999999993,
+    "baselineRuns": [
+      7085.04,
+      15980.7,
+      16483.29,
+      5958.09,
+      7521.25
+    ],
+    "candidateRuns": [
+      8143.71,
+      21694.07,
+      7330.65,
+      7723.29,
+      9005.55
+    ],
+    "percent": 8.276017949144098
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleUp",
+    "op": "replace.random",
+    "baseline": 34609.81,
+    "candidate": 33104.18,
+    "baselineIqr": 13437.8,
+    "candidateIqr": 7514.860000000001,
+    "baselineRuns": [
+      27380.55,
+      62132.78,
+      42254.67,
+      28816.87,
+      34609.81
+    ],
+    "candidateRuns": [
+      29771.97,
+      94848.23,
+      28474.51,
+      33104.18,
+      37286.83
+    ],
+    "percent": -4.3502983691617985
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleUp",
+    "op": "replace.tail",
+    "baseline": 6865.02,
+    "candidate": 6688,
+    "baselineIqr": 3616.25,
+    "candidateIqr": 2926.21,
+    "baselineRuns": [
+      6865.02,
+      12218.36,
+      9616.83,
+      5465.33,
+      6000.58
+    ],
+    "candidateRuns": [
+      5838.28,
+      20010.59,
+      5575.37,
+      6688,
+      8764.49
+    ],
+    "percent": -2.5785795234391173
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleUp",
+    "op": "sequence",
+    "baseline": 13030020,
+    "candidate": 13199800,
+    "baselineIqr": 6429220,
+    "candidateIqr": 4179120,
+    "baselineRuns": [
+      11345320,
+      22774320,
+      19176860,
+      12747640,
+      13030020
+    ],
+    "candidateRuns": [
+      11977860,
+      33818740,
+      13199800,
+      12335200,
+      16514320
+    ],
+    "percent": 1.3029910928763044
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleUp",
+    "op": "value.head",
+    "baseline": 867.54,
+    "candidate": 1028,
+    "baselineIqr": 906.1399999999999,
+    "candidateIqr": 197.28999999999996,
+    "baselineRuns": [
+      867.54,
+      1763.83,
+      5314.03,
+      756.66,
+      857.69
+    ],
+    "candidateRuns": [
+      970.8,
+      2412.55,
+      709.93,
+      1028,
+      1168.09
+    ],
+    "percent": 18.495977130737494
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleUp",
+    "op": "value.random",
+    "baseline": 26573.37,
+    "candidate": 26701.64,
+    "baselineIqr": 12444.14,
+    "candidateIqr": 4737.940000000002,
+    "baselineRuns": [
+      21535.61,
+      56175.28,
+      34267.72,
+      21823.58,
+      26573.37
+    ],
+    "candidateRuns": [
+      23872.69,
+      73129.61,
+      25237.87,
+      26701.64,
+      29975.81
+    ],
+    "percent": 0.4827012908035444
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleUp",
+    "op": "value.tail",
+    "baseline": 616.59,
+    "candidate": 643.1,
+    "baselineIqr": 326.94999999999993,
+    "candidateIqr": 134.9899999999999,
+    "baselineRuns": [
+      561.69,
+      1009.32,
+      888.64,
+      535.53,
+      616.59
+    ],
+    "candidateRuns": [
+      556.07,
+      1414.55,
+      526.03,
+      643.1,
+      691.06
+    ],
+    "percent": 4.299453445563506
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleUp",
+    "op": "values",
+    "baseline": 4885800,
+    "candidate": 4830240,
+    "baselineIqr": 534940,
+    "candidateIqr": 850040,
+    "baselineRuns": [
+      3445660,
+      6860520,
+      4928340,
+      4885800,
+      4393400
+    ],
+    "candidateRuns": [
+      3694560,
+      7419920,
+      4830240,
+      4273860,
+      5123900
+    ],
+    "percent": -1.1371730320520745
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleDown",
+    "op": "apply.random",
+    "baseline": 85339.17391739174,
+    "candidate": 94542.28422842284,
+    "baselineIqr": 2514.3314331433066,
+    "candidateIqr": 3680.858085808577,
+    "baselineRuns": [
+      85752.15521552155,
+      109457.89578957896,
+      85339.17391739174,
+      83237.82378237824,
+      80819.29192919291
+    ],
+    "candidateRuns": [
+      80391.4091409141,
+      220543.76437643764,
+      97289.35893589359,
+      93608.50085008501,
+      94542.28422842284
+    ],
+    "percent": 10.784156781198394
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleDown",
+    "op": "create",
+    "baseline": 206220,
+    "candidate": 251720,
+    "baselineIqr": 24380,
+    "candidateIqr": 150400,
+    "baselineRuns": [
+      206220,
+      179560,
+      296380,
+      226060,
+      201680
+    ],
+    "candidateRuns": [
+      178740,
+      251720,
+      196760,
+      739480,
+      347160
+    ],
+    "percent": 22.063815342837746
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleDown",
+    "op": "insert.head",
+    "baseline": null,
+    "candidate": null,
+    "baselineIqr": 0,
+    "candidateIqr": 0,
+    "baselineRuns": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "candidateRuns": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "percent": null
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleDown",
+    "op": "insert.random",
+    "baseline": 30581.39,
+    "candidate": 34599.11,
+    "baselineIqr": 2147.619999999999,
+    "candidateIqr": 3571.3899999999994,
+    "baselineRuns": [
+      30093.56,
+      44139.05,
+      32241.18,
+      30581.39,
+      29163.31
+    ],
+    "candidateRuns": [
+      26624.54,
+      77380.8,
+      36061.93,
+      34599.11,
+      32490.54
+    ],
+    "percent": 13.137793932846087
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleDown",
+    "op": "insert.tail",
+    "baseline": null,
+    "candidate": null,
+    "baselineIqr": 0,
+    "candidateIqr": 0,
+    "baselineRuns": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "candidateRuns": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "percent": null
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleDown",
+    "op": "remove.head",
+    "baseline": 6918.9,
+    "candidate": 7919.96,
+    "baselineIqr": 592.8000000000002,
+    "candidateIqr": 1015.8599999999997,
+    "baselineRuns": [
+      6918.9,
+      9000.9,
+      7126.5,
+      6533.7,
+      6290.1
+    ],
+    "candidateRuns": [
+      5986.28,
+      17085.58,
+      8180.58,
+      7164.72,
+      7919.96
+    ],
+    "percent": 14.468484874763332
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleDown",
+    "op": "remove.random",
+    "baseline": 40318.42,
+    "candidate": 45539.26,
+    "baselineIqr": 1161.3499999999985,
+    "candidateIqr": 9084.620000000003,
+    "baselineRuns": [
+      40318.42,
+      59849.98,
+      41060.02,
+      39898.67,
+      39173.05
+    ],
+    "candidateRuns": [
+      37663.26,
+      106439.41,
+      52858.57,
+      45539.26,
+      43773.95
+    ],
+    "percent": 12.949019331610723
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleDown",
+    "op": "remove.tail",
+    "baseline": 6939.1,
+    "candidate": 7264.9,
+    "baselineIqr": 3014.8399999999992,
+    "candidateIqr": 972.1799999999994,
+    "baselineRuns": [
+      6939.1,
+      10900.4,
+      9489.48,
+      6474.64,
+      6100.78
+    ],
+    "candidateRuns": [
+      5923.38,
+      17564.9,
+      7264.9,
+      6808.72,
+      7780.9
+    ],
+    "percent": 4.695133374645111
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleDown",
+    "op": "replace.head",
+    "baseline": 9873.14,
+    "candidate": 9832.76,
+    "baselineIqr": 205.34000000000015,
+    "candidateIqr": 1420.380000000001,
+    "baselineRuns": [
+      9975.04,
+      10516.73,
+      9873.14,
+      9769.7,
+      9011.29
+    ],
+    "candidateRuns": [
+      11182.27,
+      20649.68,
+      8420.5,
+      9832.76,
+      9761.89
+    ],
+    "percent": -0.40898842718728456
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleDown",
+    "op": "replace.random",
+    "baseline": 42429.31,
+    "candidate": 45562.11,
+    "baselineIqr": 4787.82,
+    "candidateIqr": 5188.889999999999,
+    "baselineRuns": [
+      45336.46,
+      56734.49,
+      42429.31,
+      40548.64,
+      38420.17
+    ],
+    "candidateRuns": [
+      35999.8,
+      92670.67,
+      49545.7,
+      44356.81,
+      45562.11
+    ],
+    "percent": 7.383575174802526
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleDown",
+    "op": "replace.tail",
+    "baseline": 9329.07,
+    "candidate": 8622.98,
+    "baselineIqr": 1747.3799999999992,
+    "candidateIqr": 2323.45,
+    "baselineRuns": [
+      8533.43,
+      10280.81,
+      11093.46,
+      9329.07,
+      7037.87
+    ],
+    "candidateRuns": [
+      6884.4,
+      16795.01,
+      10139.92,
+      7816.47,
+      8622.98
+    ],
+    "percent": -7.568707277359909
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleDown",
+    "op": "sequence",
+    "baseline": 76564020,
+    "candidate": 85831960,
+    "baselineIqr": 10488280,
+    "candidateIqr": 13964680,
+    "baselineRuns": [
+      70348020,
+      69989980,
+      83708640,
+      76564020,
+      80836300
+    ],
+    "candidateRuns": [
+      93252740,
+      147274920,
+      65663800,
+      79288060,
+      85831960
+    ],
+    "percent": 12.10482417198051
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleDown",
+    "op": "value.head",
+    "baseline": 1348.41,
+    "candidate": 1447.42,
+    "baselineIqr": 136.87999999999988,
+    "candidateIqr": 1185.97,
+    "baselineRuns": [
+      1348.41,
+      2131.88,
+      1400.55,
+      1226.02,
+      1263.67
+    ],
+    "candidateRuns": [
+      1279.03,
+      4290.86,
+      1402.3,
+      1447.42,
+      2588.27
+    ],
+    "percent": 7.3427221690732125
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleDown",
+    "op": "value.random",
+    "baseline": 33499.64,
+    "candidate": 37074.85,
+    "baselineIqr": 1029.7099999999991,
+    "candidateIqr": 5454.810000000005,
+    "baselineRuns": [
+      33499.64,
+      45169.84,
+      34037.88,
+      33008.17,
+      31568.56
+    ],
+    "candidateRuns": [
+      33518.91,
+      83861.85,
+      39622.15,
+      37074.85,
+      34167.34
+    ],
+    "percent": 10.672383345015056
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleDown",
+    "op": "value.tail",
+    "baseline": 990.26,
+    "candidate": 1003.15,
+    "baselineIqr": 85.75999999999999,
+    "candidateIqr": 49.219999999999914,
+    "baselineRuns": [
+      1016.26,
+      1162.14,
+      990.26,
+      930.5,
+      929.12
+    ],
+    "candidateRuns": [
+      859.36,
+      2908.65,
+      975.15,
+      1003.15,
+      1024.37
+    ],
+    "percent": 1.3016783471007543
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "scaleDown",
+    "op": "values",
+    "baseline": 952500,
+    "candidate": 1381980,
+    "baselineIqr": 436280,
+    "candidateIqr": 424940,
+    "baselineRuns": [
+      812800,
+      952500,
+      1546340,
+      943760,
+      1380040
+    ],
+    "candidateRuns": [
+      984160,
+      1868040,
+      1019640,
+      1381980,
+      1444580
+    ],
+    "percent": 45.08976377952756
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "fullLifecycle",
+    "op": "apply.random",
+    "baseline": 72409.59047952398,
+    "candidate": 78029.21146057303,
+    "baselineIqr": 15100.070003500165,
+    "candidateIqr": 6673.693684684229,
+    "baselineRuns": [
+      68603.48517425872,
+      114930.90654532726,
+      83703.55517775888,
+      66709.0454522726,
+      72409.59047952398
+    ],
+    "candidateRuns": [
+      67907.65538276914,
+      201217.65588279415,
+      76917.84589229462,
+      78029.21146057303,
+      83591.53957697884
+    ],
+    "percent": 7.760879386050634
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "fullLifecycle",
+    "op": "create",
+    "baseline": 871390,
+    "candidate": 859810,
+    "baselineIqr": 132930,
+    "candidateIqr": 277360,
+    "baselineRuns": [
+      779850,
+      982140,
+      950570,
+      817640,
+      871390
+    ],
+    "candidateRuns": [
+      859810,
+      1190270,
+      812480,
+      1136610,
+      859250
+    ],
+    "percent": -1.3289112796795899
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "fullLifecycle",
+    "op": "insert.head",
+    "baseline": 2548.06,
+    "candidate": 2585.16,
+    "baselineIqr": 1544.6599999999999,
+    "candidateIqr": 637.1599999999999,
+    "baselineRuns": [
+      2359.52,
+      5597.1,
+      3904.18,
+      2147.92,
+      2548.06
+    ],
+    "candidateRuns": [
+      2492.5,
+      10814.82,
+      2237.32,
+      2585.16,
+      3129.66
+    ],
+    "percent": 1.4560096701019543
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "fullLifecycle",
+    "op": "insert.random",
+    "baseline": 27176.2,
+    "candidate": 28551.03,
+    "baselineIqr": 6183.169999999998,
+    "candidateIqr": 1338.9050000000025,
+    "baselineRuns": [
+      24533.58,
+      44145.56,
+      31190.71,
+      25007.54,
+      27176.2
+    ],
+    "candidateRuns": [
+      23635.54,
+      76210.66,
+      27672.44,
+      28551.03,
+      29011.345
+    ],
+    "percent": 5.058948638882543
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "fullLifecycle",
+    "op": "insert.tail",
+    "baseline": 2283.48,
+    "candidate": 2082.18,
+    "baselineIqr": 1064.6000000000004,
+    "candidateIqr": 2988.02,
+    "baselineRuns": [
+      2074.7,
+      4284.14,
+      3139.3,
+      1742.94,
+      2283.48
+    ],
+    "candidateRuns": [
+      2036.46,
+      5042.62,
+      2082.18,
+      2054.6,
+      5385.18
+    ],
+    "percent": -8.815492143570347
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "fullLifecycle",
+    "op": "remove.head",
+    "baseline": 6918.9,
+    "candidate": 7919.96,
+    "baselineIqr": 592.8000000000002,
+    "candidateIqr": 1015.8599999999997,
+    "baselineRuns": [
+      6918.9,
+      9000.9,
+      7126.5,
+      6533.7,
+      6290.1
+    ],
+    "candidateRuns": [
+      5986.28,
+      17085.58,
+      8180.58,
+      7164.72,
+      7919.96
+    ],
+    "percent": 14.468484874763332
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "fullLifecycle",
+    "op": "remove.random",
+    "baseline": 36589.03,
+    "candidate": 40401.51,
+    "baselineIqr": 7780.159999999996,
+    "candidateIqr": 536.7649999999994,
+    "baselineRuns": [
+      33568.955,
+      62897.92,
+      41349.115,
+      33231.67,
+      36589.03
+    ],
+    "candidateRuns": [
+      33443.42,
+      103270.23,
+      40401.51,
+      40864.715,
+      40327.95
+    ],
+    "percent": 10.41973509546441
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "fullLifecycle",
+    "op": "remove.tail",
+    "baseline": 6939.1,
+    "candidate": 7264.9,
+    "baselineIqr": 3014.8399999999992,
+    "candidateIqr": 972.1799999999994,
+    "baselineRuns": [
+      6939.1,
+      10900.4,
+      9489.48,
+      6474.64,
+      6100.78
+    ],
+    "candidateRuns": [
+      5923.38,
+      17564.9,
+      7264.9,
+      6808.72,
+      7780.9
+    ],
+    "percent": 4.695133374645111
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "fullLifecycle",
+    "op": "replace.head",
+    "baseline": 8530.04,
+    "candidate": 9383.72,
+    "baselineIqr": 4911.945,
+    "candidateIqr": 884.9650000000001,
+    "baselineRuns": [
+      8530.04,
+      13248.715,
+      13178.215,
+      7863.895,
+      8266.27
+    ],
+    "candidateRuns": [
+      9662.99,
+      21171.875,
+      7875.575,
+      8778.025,
+      9383.72
+    ],
+    "percent": 10.007924933529022
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "fullLifecycle",
+    "op": "replace.random",
+    "baseline": 36514.99,
+    "candidate": 39010.105,
+    "baselineIqr": 5983.485000000001,
+    "candidateIqr": 2693.9749999999985,
+    "baselineRuns": [
+      36358.505,
+      59433.635,
+      42341.99,
+      34682.755,
+      36514.99
+    ],
+    "candidateRuns": [
+      32885.885,
+      93759.45,
+      39010.105,
+      38730.495,
+      41424.47
+    ],
+    "percent": 6.833125245275995
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "fullLifecycle",
+    "op": "replace.tail",
+    "baseline": 7699.225,
+    "candidate": 7857.645,
+    "baselineIqr": 2957.9450000000006,
+    "candidateIqr": 1441.500000000001,
+    "baselineRuns": [
+      7699.225,
+      11249.585,
+      10355.145,
+      7397.2,
+      6519.225
+    ],
+    "candidateRuns": [
+      6361.34,
+      18402.8,
+      7857.645,
+      7252.235,
+      8693.735
+    ],
+    "percent": 2.057609694482232
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "fullLifecycle",
+    "op": "sequence",
+    "baseline": 46382150,
+    "candidate": 51173140,
+    "baselineIqr": 2277330,
+    "candidateIqr": 6803670,
+    "baselineRuns": [
+      40846670,
+      46382150,
+      51442750,
+      44655830,
+      46933160
+    ],
+    "candidateRuns": [
+      52615300,
+      90546830,
+      39431800,
+      45811630,
+      51173140
+    ],
+    "percent": 10.32938317865817
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "fullLifecycle",
+    "op": "value.head",
+    "baseline": 1107.975,
+    "candidate": 1237.71,
+    "baselineIqr": 887.175,
+    "candidateIqr": 753.2650000000001,
+    "baselineRuns": [
+      1107.975,
+      1947.855,
+      3357.29,
+      991.34,
+      1060.68
+    ],
+    "candidateRuns": [
+      1124.915,
+      3351.705,
+      1056.115,
+      1237.71,
+      1878.18
+    ],
+    "percent": 11.70919921478375
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "fullLifecycle",
+    "op": "value.random",
+    "baseline": 29070.965,
+    "candidate": 32071.575,
+    "baselineIqr": 6635.175000000003,
+    "candidateIqr": 541.7649999999994,
+    "baselineRuns": [
+      27517.625,
+      50672.56,
+      34152.8,
+      27415.875,
+      29070.965
+    ],
+    "candidateRuns": [
+      28695.8,
+      78495.73,
+      32430.01,
+      31888.245,
+      32071.575
+    ],
+    "percent": 10.321673188351333
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "fullLifecycle",
+    "op": "value.tail",
+    "baseline": 788.975,
+    "candidate": 823.125,
+    "baselineIqr": 166.59500000000003,
+    "candidateIqr": 107.125,
+    "baselineRuns": [
+      788.975,
+      1085.73,
+      939.45,
+      733.015,
+      772.855
+    ],
+    "candidateRuns": [
+      707.715,
+      2161.6,
+      750.59,
+      823.125,
+      857.715
+    ],
+    "percent": 4.328400773155039
+  },
+  {
+    "suite": "lifecycle",
+    "actor": "A",
+    "phase": "fullLifecycle",
+    "op": "values",
+    "baseline": 2914780,
+    "candidate": 2924940,
+    "baselineIqr": 350620,
+    "candidateIqr": 456320,
+    "baselineRuns": [
+      2129230,
+      3906510,
+      3237340,
+      2914780,
+      2886720
+    ],
+    "candidateRuns": [
+      2339360,
+      4643980,
+      2924940,
+      2827920,
+      3284240
+    ],
+    "percent": 0.348568331057586
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "apply.duplicate",
+    "baseline": 3658.22,
+    "candidate": 3491.75,
+    "baselineIqr": 1582.2200000000003,
+    "candidateIqr": 1950.3799999999997,
+    "baselineRuns": [
+      2593.75,
+      3658.22,
+      4885.35,
+      1980.47,
+      4175.97
+    ],
+    "candidateRuns": [
+      2594.4,
+      4544.78,
+      1884.46,
+      3491.75,
+      5330.83
+    ],
+    "percent": -4.550573776317435
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "apply.duplicate",
+    "baseline": 1817.74,
+    "candidate": 2174.87,
+    "baselineIqr": 104.6099999999999,
+    "candidateIqr": 348.87000000000035,
+    "baselineRuns": [
+      1556.06,
+      2050.63,
+      1817.74,
+      1888.59,
+      1783.98
+    ],
+    "candidateRuns": [
+      2098.89,
+      2447.76,
+      2174.87,
+      1660.61,
+      4780.9
+    ],
+    "percent": 19.64692420258123
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "apply.duplicate",
+    "baseline": 1819.46,
+    "candidate": 2418.86,
+    "baselineIqr": 981.4699999999998,
+    "candidateIqr": 504.8800000000001,
+    "baselineRuns": [
+      2251.91,
+      1194.64,
+      1819.46,
+      1270.44,
+      2828.24
+    ],
+    "candidateRuns": [
+      1994.75,
+      2418.86,
+      1292.97,
+      2499.63,
+      3034.34
+    ],
+    "percent": 32.94384048014247
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "apply.insert",
+    "baseline": 4102.63,
+    "candidate": 5202.26,
+    "baselineIqr": 1317.4500000000003,
+    "candidateIqr": 5413.049999999999,
+    "baselineRuns": [
+      4102.63,
+      3760.52,
+      6392.98,
+      3409.46,
+      5077.97
+    ],
+    "candidateRuns": [
+      3875.33,
+      9288.38,
+      3356.07,
+      13089.27607913669,
+      5202.26
+    ],
+    "percent": 26.803050725997714
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "apply.insert",
+    "baseline": 4342.6,
+    "candidate": 5175.01,
+    "baselineIqr": 1176.2700000000004,
+    "candidateIqr": 3252.0299999999997,
+    "baselineRuns": [
+      4204.69,
+      5380.96,
+      4342.6,
+      4008.44,
+      5612.22
+    ],
+    "candidateRuns": [
+      4101.09,
+      9466.28,
+      5175.01,
+      3671.45,
+      7353.12
+    ],
+    "percent": 19.168470501542846
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "apply.insert",
+    "baseline": 3863.85,
+    "candidate": 4980.67,
+    "baselineIqr": 780.69,
+    "candidateIqr": 2980.6499999999996,
+    "baselineRuns": [
+      4609,
+      3094.75,
+      2887.14,
+      3875.44,
+      3863.85
+    ],
+    "candidateRuns": [
+      2465.37,
+      6541.04,
+      2608.09,
+      4980.67,
+      5588.74
+    ],
+    "percent": 28.904331172276354
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "create.empty",
+    "baseline": 2320.44,
+    "candidate": 3107.06,
+    "baselineIqr": 971.29,
+    "candidateIqr": 876.8300000000004,
+    "baselineRuns": [
+      1865.27,
+      2320.44,
+      3030.92,
+      2059.63,
+      3138.79
+    ],
+    "candidateRuns": [
+      2366.45,
+      3107.06,
+      2175.25,
+      3243.28,
+      3322.41
+    ],
+    "percent": 33.89960524728068
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "create.empty",
+    "baseline": 1922.17,
+    "candidate": 2112.82,
+    "baselineIqr": 129.6199999999999,
+    "candidateIqr": 617.53,
+    "baselineRuns": [
+      1821.9,
+      4349.35,
+      1951.52,
+      1779.58,
+      1922.17
+    ],
+    "candidateRuns": [
+      1669.69,
+      2563.39,
+      1945.86,
+      2112.82,
+      3353.01
+    ],
+    "percent": 9.918477554014471
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "create.empty",
+    "baseline": 1936.99,
+    "candidate": 1980.65,
+    "baselineIqr": 146.41999999999985,
+    "candidateIqr": 504.27999999999975,
+    "baselineRuns": [
+      2260.16,
+      2010.55,
+      1303.39,
+      1864.13,
+      1936.99
+    ],
+    "candidateRuns": [
+      1980.65,
+      3041.58,
+      1554.28,
+      1855.88,
+      2360.16
+    ],
+    "percent": 2.254012669141292
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "create.sequence",
+    "baseline": 4463.18,
+    "candidate": 4901.22,
+    "baselineIqr": 1538.8199999999997,
+    "candidateIqr": 1397.58,
+    "baselineRuns": [
+      3411.8,
+      4463.18,
+      5545.48,
+      4006.66,
+      5816.81
+    ],
+    "candidateRuns": [
+      4832.92,
+      7497.13,
+      4901.22,
+      3756.88,
+      6230.5
+    ],
+    "percent": 9.814526862013185
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "create.sequence",
+    "baseline": 4906.46,
+    "candidate": 7275.84,
+    "baselineIqr": 1020.6400000000003,
+    "candidateIqr": 4214.26,
+    "baselineRuns": [
+      5311.08,
+      4248.01,
+      4906.46,
+      4290.44,
+      6338.06
+    ],
+    "candidateRuns": [
+      3329.37,
+      8079.31,
+      3865.05,
+      8121.81,
+      7275.84
+    ],
+    "percent": 48.29102856234433
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "create.sequence",
+    "baseline": 3865.7,
+    "candidate": 4707.25,
+    "baselineIqr": 865.5999999999999,
+    "candidateIqr": 2043.2200000000003,
+    "baselineRuns": [
+      4696.92,
+      5942.02,
+      3865.7,
+      3768.31,
+      3831.32
+    ],
+    "candidateRuns": [
+      3270.53,
+      8259.48,
+      3321.21,
+      4707.25,
+      5364.43
+    ],
+    "percent": 21.76966655456969
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "insert.head",
+    "baseline": 1224.12,
+    "candidate": 1260.8,
+    "baselineIqr": 44.97000000000003,
+    "candidateIqr": 314.3600000000001,
+    "baselineRuns": [
+      771.61,
+      1224.12,
+      1221.62,
+      1266.59,
+      1510.36
+    ],
+    "candidateRuns": [
+      1260.8,
+      2022.45,
+      1098.85,
+      825.96,
+      1413.21
+    ],
+    "percent": 2.9964382576871618
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "insert.head",
+    "baseline": 970.53,
+    "candidate": 1088.76,
+    "baselineIqr": 86.06000000000006,
+    "candidateIqr": 309,
+    "baselineRuns": [
+      956.15,
+      890.7,
+      1045.29,
+      970.53,
+      1042.21
+    ],
+    "candidateRuns": [
+      874.95,
+      1088.76,
+      913.21,
+      1222.21,
+      1646.29
+    ],
+    "percent": 12.18200364749158
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "insert.head",
+    "baseline": 860.16,
+    "candidate": 965.96,
+    "baselineIqr": 169.01999999999998,
+    "candidateIqr": 213.12999999999988,
+    "baselineRuns": [
+      860.16,
+      1002.45,
+      864.54,
+      672.55,
+      695.52
+    ],
+    "candidateRuns": [
+      829.99,
+      1753.16,
+      601.68,
+      1043.12,
+      965.96
+    ],
+    "percent": 12.300037202380953
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "insert.middle",
+    "baseline": 1363.61,
+    "candidate": 1290.07,
+    "baselineIqr": 451.0999999999999,
+    "candidateIqr": 72.56999999999994,
+    "baselineRuns": [
+      1137.98,
+      985.19,
+      1363.61,
+      1735.84,
+      1589.08
+    ],
+    "candidateRuns": [
+      1241.4,
+      1723.24,
+      1290.07,
+      1359.74,
+      1287.17
+    ],
+    "percent": -5.393037598726902
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "insert.middle",
+    "baseline": 939.63,
+    "candidate": 1158.44,
+    "baselineIqr": 233.91000000000008,
+    "candidateIqr": 277.1100000000001,
+    "baselineRuns": [
+      939.63,
+      1162.97,
+      881.55,
+      1115.46,
+      826.73
+    ],
+    "candidateRuns": [
+      1146.04,
+      1423.15,
+      1082.14,
+      1158.44,
+      1656.63
+    ],
+    "percent": 23.286825665421507
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "insert.middle",
+    "baseline": 988.13,
+    "candidate": 1042.18,
+    "baselineIqr": 77.23000000000002,
+    "candidateIqr": 369.46000000000004,
+    "baselineRuns": [
+      988.13,
+      918.01,
+      995.24,
+      1116.66,
+      904.95
+    ],
+    "candidateRuns": [
+      989.2,
+      1358.66,
+      780.7,
+      1443.42,
+      1042.18
+    ],
+    "percent": 5.469928045904893
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "insert.random",
+    "baseline": 3105.55,
+    "candidate": 3356.65,
+    "baselineIqr": 367.9899999999998,
+    "candidateIqr": 911.79,
+    "baselineRuns": [
+      3456.34,
+      2118.31,
+      2940.84,
+      3308.83,
+      3105.55
+    ],
+    "candidateRuns": [
+      3356.65,
+      4162.02,
+      2853.18,
+      2710.89,
+      3764.97
+    ],
+    "percent": 8.085524303263503
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "insert.random",
+    "baseline": 2559.63,
+    "candidate": 2965.31,
+    "baselineIqr": 29,
+    "candidateIqr": 852.1500000000001,
+    "baselineRuns": [
+      2577.08,
+      2529.71,
+      2559.63,
+      2765.46,
+      2548.08
+    ],
+    "candidateRuns": [
+      2943.94,
+      3796.09,
+      2126.8,
+      2965.31,
+      6261.14
+    ],
+    "percent": 15.849165699730028
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "insert.random",
+    "baseline": 2228.17,
+    "candidate": 2633.09,
+    "baselineIqr": 478.03999999999996,
+    "candidateIqr": 2085.4100000000003,
+    "baselineRuns": [
+      2689.34,
+      4276.1,
+      1979.11,
+      2211.3,
+      2228.17
+    ],
+    "candidateRuns": [
+      2184.23,
+      4269.64,
+      1734.44,
+      4649.36,
+      2633.09
+    ],
+    "percent": 18.172760606237404
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "insert.sameIndex",
+    "baseline": 1135.37,
+    "candidate": 967.9,
+    "baselineIqr": 573.98,
+    "candidateIqr": 137.2299999999999,
+    "baselineRuns": [
+      1439.23,
+      1135.37,
+      865.25,
+      809.82,
+      1581.02
+    ],
+    "candidateRuns": [
+      967.9,
+      1049.36,
+      912.13,
+      1303.18,
+      782.58
+    ],
+    "percent": -14.750257625267526
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "insert.sameIndex",
+    "baseline": 897.4,
+    "candidate": 1049.11,
+    "baselineIqr": 25.960000000000036,
+    "candidateIqr": 307.64999999999986,
+    "baselineRuns": [
+      891.25,
+      825.81,
+      927.39,
+      897.4,
+      917.21
+    ],
+    "candidateRuns": [
+      748.82,
+      1049.11,
+      774.21,
+      1081.86,
+      1634
+    ],
+    "percent": 16.90550479162023
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "insert.sameIndex",
+    "baseline": 951.53,
+    "candidate": 831.94,
+    "baselineIqr": 82.49000000000001,
+    "candidateIqr": 152.68999999999994,
+    "baselineRuns": [
+      954.92,
+      872.43,
+      951.53,
+      1051.87,
+      764.2
+    ],
+    "candidateRuns": [
+      971.52,
+      1069.69,
+      666.11,
+      818.83,
+      831.94
+    ],
+    "percent": -12.56817966853383
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "insert.tail",
+    "baseline": 1659.73,
+    "candidate": 1803.15,
+    "baselineIqr": 303.6500000000001,
+    "candidateIqr": 515.19,
+    "baselineRuns": [
+      1731.48,
+      1659.73,
+      1427.83,
+      1341.23,
+      1813.88
+    ],
+    "candidateRuns": [
+      1318.51,
+      2258.54,
+      1743.35,
+      6089.39,
+      1803.15
+    ],
+    "percent": 8.641164526760381
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "insert.tail",
+    "baseline": 1280.79,
+    "candidate": 1502.16,
+    "baselineIqr": 18.98999999999978,
+    "candidateIqr": 974.2,
+    "baselineRuns": [
+      1282.96,
+      1233.36,
+      1282.62,
+      1280.79,
+      1263.63
+    ],
+    "candidateRuns": [
+      1205.22,
+      2179.42,
+      1201.92,
+      1502.16,
+      3540.36
+    ],
+    "percent": 17.283863865270654
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "insert.tail",
+    "baseline": 1228.01,
+    "candidate": 1902.09,
+    "baselineIqr": 416.68000000000006,
+    "candidateIqr": 717.1500000000001,
+    "baselineRuns": [
+      1828.8,
+      1159.53,
+      1228.01,
+      1576.21,
+      1027.26
+    ],
+    "candidateRuns": [
+      1471.5,
+      2188.65,
+      754.29,
+      2289.65,
+      1902.09
+    ],
+    "percent": 54.89206113956726
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "length",
+    "baseline": 206.16,
+    "candidate": 178.05,
+    "baselineIqr": 70.70999999999998,
+    "candidateIqr": 62.619999999999976,
+    "baselineRuns": [
+      279.89,
+      156.61,
+      206.16,
+      155.99,
+      227.32
+    ],
+    "candidateRuns": [
+      178.05,
+      335.44,
+      235.95,
+      173.33,
+      164.36
+    ],
+    "percent": -13.635040745052384
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "length",
+    "baseline": 45.83,
+    "candidate": 42.66,
+    "baselineIqr": 1.2000000000000028,
+    "candidateIqr": 8.310000000000002,
+    "baselineRuns": [
+      47.02,
+      45.82,
+      45.83,
+      48.75,
+      45.23
+    ],
+    "candidateRuns": [
+      42.66,
+      38.96,
+      36.2,
+      47.27,
+      61.26
+    ],
+    "percent": -6.916866681213185
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "length",
+    "baseline": 38.3,
+    "candidate": 46.04,
+    "baselineIqr": 17.340000000000003,
+    "candidateIqr": 8.060000000000002,
+    "baselineRuns": [
+      53.82,
+      36.48,
+      38.3,
+      76.64,
+      35.86
+    ],
+    "candidateRuns": [
+      46.04,
+      58.91,
+      30.31,
+      53.25,
+      45.19
+    ],
+    "percent": 20.208877284595307
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "merge.duplicate",
+    "baseline": 6265.35,
+    "candidate": 5109.93,
+    "baselineIqr": 2013.0299999999997,
+    "candidateIqr": 1041.12,
+    "baselineRuns": [
+      6280.94,
+      3920.02,
+      6265.35,
+      4267.91,
+      6414.49
+    ],
+    "candidateRuns": [
+      5109.93,
+      7621.92,
+      3657.53,
+      4162.62,
+      5203.74
+    ],
+    "percent": -18.44142785319256
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "merge.duplicate",
+    "baseline": 3254.32,
+    "candidate": 4040.64,
+    "baselineIqr": 89.82000000000016,
+    "candidateIqr": 2554.1800000000003,
+    "baselineRuns": [
+      3254.32,
+      3317.63,
+      3906.57,
+      2899.28,
+      3227.81
+    ],
+    "candidateRuns": [
+      4040.64,
+      5837.05,
+      2390.9,
+      3282.87,
+      6576.92
+    ],
+    "percent": 24.16234420708472
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "merge.duplicate",
+    "baseline": 3036.29,
+    "candidate": 3399.75,
+    "baselineIqr": 1165.06,
+    "candidateIqr": 142.6300000000001,
+    "baselineRuns": [
+      4086.98,
+      5380.07,
+      2921.92,
+      3036.29,
+      2461.33
+    ],
+    "candidateRuns": [
+      3342.5,
+      6180.2,
+      2011.97,
+      3399.75,
+      3485.13
+    ],
+    "percent": 11.970529824226283
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "merge.insert",
+    "baseline": 5146.98,
+    "candidate": 5996.71,
+    "baselineIqr": 2385.2800000000007,
+    "candidateIqr": 689.9499999999998,
+    "baselineRuns": [
+      5107.11,
+      4304.31,
+      7492.39,
+      5146.98,
+      7776
+    ],
+    "candidateRuns": [
+      5996.71,
+      11948.101851851852,
+      6008.05,
+      5318.1,
+      5113.26
+    ],
+    "percent": 16.509292828027313
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "merge.insert",
+    "baseline": 4958.41,
+    "candidate": 8025.34,
+    "baselineIqr": 1518.8000000000002,
+    "candidateIqr": 3310.8499999999995,
+    "baselineRuns": [
+      4958.41,
+      6200.27,
+      5775.17,
+      4256.37,
+      4203.3
+    ],
+    "candidateRuns": [
+      8025.34,
+      8680.78,
+      4304.39,
+      5352.97,
+      8663.82
+    ],
+    "percent": 61.853094036193056
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "merge.insert",
+    "baseline": 4061.99,
+    "candidate": 4795.71,
+    "baselineIqr": 769.0999999999995,
+    "candidateIqr": 2765.8799999999997,
+    "baselineRuns": [
+      5932.03,
+      3968.69,
+      4061.99,
+      4768.9,
+      3999.8
+    ],
+    "candidateRuns": [
+      3822.33,
+      8825.76,
+      3887.32,
+      4795.71,
+      6653.2
+    ],
+    "percent": 18.063067609718388
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "remove.head",
+    "baseline": 3657.9486188912497,
+    "candidate": 3088.7966003476918,
+    "baselineIqr": 1314.525787135407,
+    "candidateIqr": 323.68166892022373,
+    "baselineRuns": [
+      2128.974309445625,
+      4161.000579486189,
+      3657.9486188912497,
+      4251.960594939154,
+      2846.474792350782
+    ],
+    "candidateRuns": [
+      2794.282402936063,
+      4055.225033803361,
+      3130.8286652501447,
+      2807.146996329921,
+      3088.7966003476918
+    ],
+    "percent": -15.559322391905873
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "remove.head",
+    "baseline": 2246.6,
+    "candidate": 2288.83,
+    "baselineIqr": 165.02999999999975,
+    "candidateIqr": 999.73,
+    "baselineRuns": [
+      2246.6,
+      2672.27,
+      2375.62,
+      2210.59,
+      1889.53
+    ],
+    "candidateRuns": [
+      3025.9,
+      3511.86,
+      1972.26,
+      2288.83,
+      2026.17
+    ],
+    "percent": 1.8797293688240124
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "remove.head",
+    "baseline": 2391.88,
+    "candidate": 2181.82,
+    "baselineIqr": 324.3699999999999,
+    "candidateIqr": 1117.9899999999998,
+    "baselineRuns": [
+      2391.88,
+      2094.08,
+      2476.54,
+      3181.65,
+      2152.17
+    ],
+    "candidateRuns": [
+      2181.82,
+      4081.55,
+      2002.19,
+      1748.23,
+      3120.18
+    ],
+    "percent": -8.78221315450608
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "remove.middle",
+    "baseline": 4798.493335908827,
+    "candidate": 3812.8452771875604,
+    "baselineIqr": 1043.7512072628933,
+    "candidateIqr": 1811.898783079003,
+    "baselineRuns": [
+      3547.6917133474985,
+      4798.493335908827,
+      4925.36217886807,
+      5325.478076105853,
+      3881.610971605177
+    ],
+    "candidateRuns": [
+      3455.8238361985705,
+      6764.574077651149,
+      3632.1035348657524,
+      3812.8452771875604,
+      5444.002317944755
+    ],
+    "percent": -20.540782068932195
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "remove.middle",
+    "baseline": 3189.38,
+    "candidate": 3154.81,
+    "baselineIqr": 98.19999999999982,
+    "candidateIqr": 2553.51,
+    "baselineRuns": [
+      3189.38,
+      4774.05,
+      3152.02,
+      3250.22,
+      2724.99
+    ],
+    "candidateRuns": [
+      2973.26,
+      5892.71,
+      3154.81,
+      3018.84,
+      5572.35
+    ],
+    "percent": -1.0839097254011776
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "remove.middle",
+    "baseline": 4652.3,
+    "candidate": 3803.22,
+    "baselineIqr": 595.9000000000005,
+    "candidateIqr": 2682,
+    "baselineRuns": [
+      6643.76,
+      3360.53,
+      4304.07,
+      4899.97,
+      4652.3
+    ],
+    "candidateRuns": [
+      3254.41,
+      7232.82,
+      2977.11,
+      3803.22,
+      5936.41
+    ],
+    "percent": -18.250757689744866
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "remove.tail",
+    "baseline": 2332.0842186594555,
+    "candidate": 2125.8257678192003,
+    "baselineIqr": 804.6745219238942,
+    "candidateIqr": 388.00463588951106,
+    "baselineRuns": [
+      1738.3619857060073,
+      2332.0842186594555,
+      2592.8916360826734,
+      1788.2171141587792,
+      2657.1952868456633
+    ],
+    "candidateRuns": [
+      1551.1686304809734,
+      2801.661193741549,
+      1830.152598029747,
+      2125.8257678192003,
+      2218.157233919258
+    ],
+    "percent": -8.84438259947653
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "remove.tail",
+    "baseline": 1772.41,
+    "candidate": 1784.8,
+    "baselineIqr": 413.45000000000005,
+    "candidateIqr": 1455.5,
+    "baselineRuns": [
+      1907.54,
+      3273.84,
+      1393.42,
+      1772.41,
+      1494.09
+    ],
+    "candidateRuns": [
+      1502.67,
+      2958.17,
+      1346.71,
+      1784.8,
+      3082.04
+    ],
+    "percent": 0.6990481886245181
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "remove.tail",
+    "baseline": 1989.12,
+    "candidate": 2025.55,
+    "baselineIqr": 66.09000000000015,
+    "candidateIqr": 1478.19,
+    "baselineRuns": [
+      1969.6,
+      1989.12,
+      1369.44,
+      2035.69,
+      2689.53
+    ],
+    "candidateRuns": [
+      2025.55,
+      4237.12,
+      2006.73,
+      1951.81,
+      3484.92
+    ],
+    "percent": 1.8314631595881536
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "replace.head",
+    "baseline": 3068.96,
+    "candidate": 3047.62,
+    "baselineIqr": 339.28999999999996,
+    "candidateIqr": 799.71,
+    "baselineRuns": [
+      3281.9,
+      2914.73,
+      2942.61,
+      3411.17,
+      3068.96
+    ],
+    "candidateRuns": [
+      2785.15,
+      6416.62,
+      2636.33,
+      3047.62,
+      3584.86
+    ],
+    "percent": -0.6953495646733754
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "replace.head",
+    "baseline": 2872.77,
+    "candidate": 4597.6,
+    "baselineIqr": 887.6700000000001,
+    "candidateIqr": 2077.9199999999996,
+    "baselineRuns": [
+      6908.99,
+      3698.4,
+      2682.03,
+      2810.73,
+      2872.77
+    ],
+    "candidateRuns": [
+      4597.6,
+      5379.61,
+      2847.85,
+      3301.69,
+      7068.44
+    ],
+    "percent": 60.040657623130315
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "replace.head",
+    "baseline": 3577.74,
+    "candidate": 3205.19,
+    "baselineIqr": 984.04,
+    "candidateIqr": 1176.8600000000001,
+    "baselineRuns": [
+      3577.74,
+      3478.08,
+      2486.32,
+      5381.03,
+      4462.12
+    ],
+    "candidateRuns": [
+      3708.11,
+      5387.03,
+      1976.26,
+      3205.19,
+      2531.25
+    ],
+    "percent": -10.412998149669894
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "replace.middle",
+    "baseline": 2883.17,
+    "candidate": 4349.03,
+    "baselineIqr": 343.80999999999995,
+    "candidateIqr": 1719.37,
+    "baselineRuns": [
+      2951.75,
+      2510.02,
+      3289.24,
+      2607.94,
+      2883.17
+    ],
+    "candidateRuns": [
+      3203.88,
+      5610.99,
+      2558.79,
+      4923.25,
+      4349.03
+    ],
+    "percent": 50.841955209023396
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "replace.middle",
+    "baseline": 3397.37,
+    "candidate": 3718.27,
+    "baselineIqr": 729.7800000000002,
+    "candidateIqr": 2133.7300000000005,
+    "baselineRuns": [
+      12243.310546875,
+      3424.07,
+      3397.37,
+      2694.29,
+      2476.47
+    ],
+    "candidateRuns": [
+      3718.27,
+      4958.43,
+      2790.62,
+      2824.7,
+      5239.11
+    ],
+    "percent": 9.445541698431438
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "replace.middle",
+    "baseline": 4000.76,
+    "candidate": 3323.15,
+    "baselineIqr": 813.6799999999998,
+    "candidateIqr": 1827.1400000000003,
+    "baselineRuns": [
+      4487.78,
+      3597.93,
+      4000.76,
+      5187.21,
+      3674.1
+    ],
+    "candidateRuns": [
+      3323.15,
+      5670.51,
+      2606.34,
+      2907.74,
+      4734.88
+    ],
+    "percent": -16.937031963926852
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "replace.tail",
+    "baseline": 2969.16,
+    "candidate": 4478.42,
+    "baselineIqr": 932.56,
+    "candidateIqr": 1566.9899999999998,
+    "baselineRuns": [
+      3428.84,
+      2075.87,
+      3266.24,
+      2333.68,
+      2969.16
+    ],
+    "candidateRuns": [
+      2984.26,
+      5001.18,
+      2838.87,
+      4551.25,
+      4478.42
+    ],
+    "percent": 50.83121152110361
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "replace.tail",
+    "baseline": 3408.29,
+    "candidate": 3788.35,
+    "baselineIqr": 1383.7999999999997,
+    "candidateIqr": 2022.2999999999997,
+    "baselineRuns": [
+      4842.14,
+      3408.29,
+      4495.45,
+      3111.65,
+      2626.96
+    ],
+    "candidateRuns": [
+      3788.35,
+      5945.48,
+      2900.31,
+      2294.1,
+      4922.61
+    ],
+    "percent": 11.151046419172083
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "replace.tail",
+    "baseline": 3671.33,
+    "candidate": 3727.1,
+    "baselineIqr": 628.6300000000001,
+    "candidateIqr": 1421.3400000000001,
+    "baselineRuns": [
+      2549.2,
+      4260.83,
+      3671.33,
+      4496.87,
+      3632.2
+    ],
+    "candidateRuns": [
+      3727.1,
+      5960.79,
+      2974.75,
+      4396.09,
+      2531.75
+    ],
+    "percent": 1.519068021670611
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "retire",
+    "baseline": 542.21,
+    "candidate": 873.3,
+    "baselineIqr": 203.28999999999996,
+    "candidateIqr": 285.1700000000001,
+    "baselineRuns": [
+      542.21,
+      540.62,
+      743.91,
+      511.1,
+      785.5
+    ],
+    "candidateRuns": [
+      602.15,
+      985.19,
+      891.48,
+      606.31,
+      873.3
+    ],
+    "percent": 61.063056749229986
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "retire",
+    "baseline": 479.74,
+    "candidate": 623.7,
+    "baselineIqr": 162.46000000000004,
+    "candidateIqr": 674.4000000000001,
+    "baselineRuns": [
+      559.21,
+      582.9,
+      479.74,
+      396.75,
+      292.95
+    ],
+    "candidateRuns": [
+      623.7,
+      1118.46,
+      320.76,
+      444.06,
+      1523.95
+    ],
+    "percent": 30.007920957185142
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "retire",
+    "baseline": 865.44,
+    "candidate": 924.45,
+    "baselineIqr": 386.97,
+    "candidateIqr": 403.93999999999994,
+    "baselineRuns": [
+      865.44,
+      802.52,
+      705.44,
+      3004.46,
+      1189.49
+    ],
+    "candidateRuns": [
+      729.19,
+      1210.07,
+      806.13,
+      924.45,
+      1369.28
+    ],
+    "percent": 6.818496949528563
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "sequence",
+    "baseline": 1297.48,
+    "candidate": 1285.74,
+    "baselineIqr": 75.17000000000007,
+    "candidateIqr": 742.14,
+    "baselineRuns": [
+      1387.35,
+      1256.56,
+      1297.48,
+      1062.74,
+      1331.73
+    ],
+    "candidateRuns": [
+      1285.74,
+      2082.13,
+      917.57,
+      762.94,
+      1659.71
+    ],
+    "percent": -0.9048309029811685
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "sequence",
+    "baseline": 1292.94,
+    "candidate": 1975.94,
+    "baselineIqr": 134.92000000000007,
+    "candidateIqr": 76.1099999999999,
+    "baselineRuns": [
+      1757.05,
+      1393.75,
+      997.82,
+      1258.83,
+      1292.94
+    ],
+    "candidateRuns": [
+      2000.75,
+      1924.64,
+      1429.07,
+      1975.94,
+      2521.5
+    ],
+    "percent": 52.825343790121735
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "sequence",
+    "baseline": 999.98,
+    "candidate": 902.19,
+    "baselineIqr": 321.69000000000005,
+    "candidateIqr": 717.3499999999999,
+    "baselineRuns": [
+      832.57,
+      1288.65,
+      999.98,
+      966.96,
+      1312.3
+    ],
+    "candidateRuns": [
+      814.98,
+      1560.86,
+      843.51,
+      902.19,
+      1579.72
+    ],
+    "percent": -9.77919558391167
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "value.head",
+    "baseline": 382.64,
+    "candidate": 425.72,
+    "baselineIqr": 127.96000000000004,
+    "candidateIqr": 210.18000000000006,
+    "baselineRuns": [
+      416.04,
+      284.96,
+      412.92,
+      242.99,
+      382.64
+    ],
+    "candidateRuns": [
+      425.72,
+      729.93,
+      359.9,
+      570.08,
+      352.94
+    ],
+    "percent": 11.258624294375918
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "value.head",
+    "baseline": 149.2,
+    "candidate": 244.34,
+    "baselineIqr": 43.390000000000015,
+    "candidateIqr": 92.22999999999999,
+    "baselineRuns": [
+      234.39,
+      173.37,
+      129.98,
+      126.77,
+      149.2
+    ],
+    "candidateRuns": [
+      157.58,
+      249.81,
+      146.31,
+      311.39,
+      244.34
+    ],
+    "percent": 63.76675603217159
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "value.head",
+    "baseline": 207.57,
+    "candidate": 139.5,
+    "baselineIqr": 85.45000000000002,
+    "candidateIqr": 51.39999999999999,
+    "baselineRuns": [
+      207.57,
+      147.32,
+      251.42,
+      130.32,
+      232.77
+    ],
+    "candidateRuns": [
+      116.39,
+      242.59,
+      173.14,
+      139.5,
+      121.74
+    ],
+    "percent": -32.79375632316809
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "value.middle",
+    "baseline": 311.89,
+    "candidate": 475.04,
+    "baselineIqr": 118.74000000000001,
+    "candidateIqr": 94.27000000000004,
+    "baselineRuns": [
+      416.41,
+      297.67,
+      554.62,
+      276.93,
+      311.89
+    ],
+    "candidateRuns": [
+      318.46,
+      475.04,
+      524.2,
+      429.93,
+      710.02
+    ],
+    "percent": 52.31010933341884
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "value.middle",
+    "baseline": 151.23,
+    "candidate": 183.75,
+    "baselineIqr": 35.00999999999999,
+    "candidateIqr": 49.120000000000005,
+    "baselineRuns": [
+      172,
+      176.41,
+      118.66,
+      136.99,
+      151.23
+    ],
+    "candidateRuns": [
+      171.35,
+      277.73,
+      155.03,
+      220.47,
+      183.75
+    ],
+    "percent": 21.503669906764532
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "value.middle",
+    "baseline": 139.09,
+    "candidate": 138.22,
+    "baselineIqr": 21.139999999999986,
+    "candidateIqr": 11.72999999999999,
+    "baselineRuns": [
+      125.97,
+      129.9,
+      151.04,
+      153.23,
+      139.09
+    ],
+    "candidateRuns": [
+      117.47,
+      267.66,
+      138.22,
+      127.06,
+      138.79
+    ],
+    "percent": -0.6254942842763733
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "value.random",
+    "baseline": 266.49,
+    "candidate": 391.79,
+    "baselineIqr": 31.039999999999964,
+    "candidateIqr": 107.58999999999997,
+    "baselineRuns": [
+      348.51,
+      291.2,
+      260.16,
+      216.25,
+      266.49
+    ],
+    "candidateRuns": [
+      255.44,
+      407.64,
+      391.79,
+      300.05,
+      457.64
+    ],
+    "percent": 47.01864985552928
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "value.random",
+    "baseline": 140.61,
+    "candidate": 198.29,
+    "baselineIqr": 29.480000000000018,
+    "candidateIqr": 57.47999999999999,
+    "baselineRuns": [
+      220.6,
+      159.71,
+      97.83,
+      140.61,
+      130.23
+    ],
+    "candidateRuns": [
+      167.19,
+      198.29,
+      133.46,
+      224.67,
+      308
+    ],
+    "percent": 41.021264490434504
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "value.random",
+    "baseline": 307.61,
+    "candidate": 324.09,
+    "baselineIqr": 60.01999999999998,
+    "candidateIqr": 317.86,
+    "baselineRuns": [
+      264.08,
+      330.32,
+      307.61,
+      331.17,
+      270.3
+    ],
+    "candidateRuns": [
+      180.19,
+      498.05,
+      178.38,
+      324.09,
+      569.61
+    ],
+    "percent": 5.357433113357812
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "value.sameIndex",
+    "baseline": 217.78,
+    "candidate": 313.85,
+    "baselineIqr": 47.03999999999999,
+    "candidateIqr": 127.22000000000003,
+    "baselineRuns": [
+      291.98,
+      255.67,
+      217.78,
+      198.11,
+      208.63
+    ],
+    "candidateRuns": [
+      234.64,
+      361.86,
+      313.85,
+      193.88,
+      543.39
+    ],
+    "percent": 44.1133253742309
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "value.sameIndex",
+    "baseline": 142.45,
+    "candidate": 142.46,
+    "baselineIqr": 41.639999999999986,
+    "candidateIqr": 69.38000000000001,
+    "baselineRuns": [
+      102.64,
+      142.45,
+      173.51,
+      131.87,
+      224.38
+    ],
+    "candidateRuns": [
+      186.18,
+      197,
+      112.84,
+      116.8,
+      142.46
+    ],
+    "percent": 0.007020007020019925
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "value.sameIndex",
+    "baseline": 138.38,
+    "candidate": 149.66,
+    "baselineIqr": 73.44,
+    "candidateIqr": 104.07,
+    "baselineRuns": [
+      174.78,
+      173.34,
+      86.41,
+      99.9,
+      138.38
+    ],
+    "candidateRuns": [
+      100.56,
+      204.63,
+      81.07,
+      215.27,
+      149.66
+    ],
+    "percent": 8.15146697499638
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "value.tail",
+    "baseline": 181.11,
+    "candidate": 205.38,
+    "baselineIqr": 9.409999999999997,
+    "candidateIqr": 126.16999999999999,
+    "baselineRuns": [
+      210.34,
+      190.12,
+      180.71,
+      181.11,
+      159.11
+    ],
+    "candidateRuns": [
+      160.83,
+      303.95,
+      205.38,
+      177.78,
+      319.98
+    ],
+    "percent": 13.400695709789613
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "value.tail",
+    "baseline": 188.72,
+    "candidate": 194.68,
+    "baselineIqr": 43.56999999999999,
+    "candidateIqr": 36.94,
+    "baselineRuns": [
+      133.74,
+      211.34,
+      188.72,
+      167.77,
+      248.57
+    ],
+    "candidateRuns": [
+      201.37,
+      402.48,
+      156.56,
+      164.43,
+      194.68
+    ],
+    "percent": 3.158117846545161
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "value.tail",
+    "baseline": 182.8,
+    "candidate": 169,
+    "baselineIqr": 31.590000000000003,
+    "candidateIqr": 10.620000000000005,
+    "baselineRuns": [
+      261.83,
+      201.56,
+      182.8,
+      142.07,
+      169.97
+    ],
+    "candidateRuns": [
+      169,
+      378.26,
+      148.6,
+      176.82,
+      166.2
+    ],
+    "percent": -7.549234135667405
+  },
+  {
+    "suite": "throughput",
+    "n": 100,
+    "op": "values",
+    "baseline": 7113.34,
+    "candidate": 7998.27,
+    "baselineIqr": 351.0700000000006,
+    "candidateIqr": 6167.679397321429,
+    "baselineRuns": [
+      7509.04,
+      7131.06,
+      7113.34,
+      6778.5,
+      6779.99
+    ],
+    "candidateRuns": [
+      7795.56,
+      14144.144144144144,
+      7692.89,
+      7998.27,
+      13963.23939732143
+    ],
+    "percent": 12.4404288280892
+  },
+  {
+    "suite": "throughput",
+    "n": 1000,
+    "op": "values",
+    "baseline": 366004.6875,
+    "candidate": 590976.0416666666,
+    "baselineIqr": 142412.890625,
+    "candidateIqr": 76014.58333333326,
+    "baselineRuns": [
+      483290.234375,
+      366004.6875,
+      340877.34375,
+      307465.1041666667,
+      487112.5
+    ],
+    "candidateRuns": [
+      318826.8229166667,
+      619216.6666666666,
+      543202.0833333334,
+      590976.0416666666,
+      783595.3125
+    ],
+    "percent": 61.466795877215816
+  },
+  {
+    "suite": "throughput",
+    "n": 10000,
+    "op": "values",
+    "baseline": 2523867.1875,
+    "candidate": 2542417.1875,
+    "baselineIqr": 837828.125,
+    "candidateIqr": 1168100,
+    "baselineRuns": [
+      2242932.8125,
+      2523867.1875,
+      1996545.3125,
+      3183659.375,
+      3080760.9375
+    ],
+    "candidateRuns": [
+      2158846.875,
+      3769984.375,
+      3328264.0625,
+      2542417.1875,
+      2160164.0625
+    ],
+    "percent": 0.7349832071938289
+  }
+]

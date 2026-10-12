@@ -1,0 +1,42 @@
+{
+  "baseline": {
+    "combined": {
+      "raw": 117880,
+      "gzip": 39268,
+      "brotli": 32774,
+      "sha256": "fe60aca1f7d5efaa3bb1bab568f229252a1a8517eb0db44e59c28493970a4548"
+    },
+    "wasm": {
+      "raw": 73175,
+      "gzip": 29795,
+      "brotli": 24730,
+      "sha256": "fe483cc7fbe7b928d27afc6418d081b563932b0f5067657011a54de04e9f6a0c"
+    },
+    "javascriptWithoutWasmLiteral": {
+      "raw": 21500,
+      "gzip": 6203,
+      "brotli": 5410,
+      "sha256": "aa043ab2ee9d610364c946c3779de3dc8bfca704a20c36d35807d45263cd544b"
+    }
+  },
+  "candidate": {
+    "combined": {
+      "raw": 117880,
+      "gzip": 39268,
+      "brotli": 32774,
+      "sha256": "fe60aca1f7d5efaa3bb1bab568f229252a1a8517eb0db44e59c28493970a4548"
+    },
+    "wasm": {
+      "raw": 73175,
+      "gzip": 29795,
+      "brotli": 24730,
+      "sha256": "fe483cc7fbe7b928d27afc6418d081b563932b0f5067657011a54de04e9f6a0c"
+    },
+    "javascriptWithoutWasmLiteral": {
+      "raw": 21500,
+      "gzip": 6203,
+      "brotli": 5410,
+      "sha256": "aa043ab2ee9d610364c946c3779de3dc8bfca704a20c36d35807d45263cd544b"
+    }
+  }
+}

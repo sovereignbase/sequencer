@@ -1,0 +1,148 @@
+diff --git a/benchmark/lifecycle/index.ts b/benchmark/lifecycle/index.ts
+index 052a841..1c75aac 100644
+--- a/benchmark/lifecycle/index.ts
++++ b/benchmark/lifecycle/index.ts
+@@ -2,6 +2,7 @@ import { arch, cpus, platform } from 'node:os'
+ import { Projection } from '../../dist/index.js'
+ import { caseColumns } from '../.shared/report.ts'
+ import { measureProcessMemory, measureSpace } from '../.shared/space.ts'
++import { sequenceCounts } from '../.shared/sequence.ts'
+ import type { Gossip, Result } from '../../dist/index.js'
+ import {
+   deriveSeed,
+@@ -302,8 +303,7 @@ const observeReplica = (
+       averageStripLength: ratio(frameCount, stripCount),
+       minimumStripLength: runtime.strips.minimumLength,
+       maximumStripLength: runtime.strips.maximumLength,
+-      retainedDeltaCount:
+-        (checkpointSequence[0].length - (checkpointSequence[0][0] ?? 0)) / 6,
++      retainedDeltaCount: sequenceCounts(checkpointSequence[0]).total,
+     },
+   }
+   const scope = direction === 'up' ? 'scaleUp' : 'scaleDown'
+diff --git a/benchmark/throughput/index.ts b/benchmark/throughput/index.ts
+index 5af1dc3..848b870 100644
+--- a/benchmark/throughput/index.ts
++++ b/benchmark/throughput/index.ts
+@@ -3,6 +3,7 @@ import { arch, cpus, platform } from 'node:os'
+ import { Projection, type Gossip, type Sequence } from '../../dist/index.js'
+ import { deriveSeed, Random, seedFromString } from '../.shared/support.ts'
+ import { measureProcessMemory, measureSpace } from '../.shared/space.ts'
++import { sequenceCounts } from '../.shared/sequence.ts'
+ import type {
+   BenchmarkConfig,
+   BenchmarkReport,
+@@ -224,14 +225,12 @@ async function collectGarbage(): Promise<void> {
+ }
+ function observe(state: Projection<number>): Observation {
+   const sequence = state.sequence()
+-  const words = sequence[0]
+-  let stripCount = 0
+-  for (let at = words[0] ?? 0; at < words.length; at += 6)
+-    if ((words[at + 5] | 0) > 0) ++stripCount
++  const counts = sequenceCounts(sequence[0])
++  const stripCount = counts.positive
+   return {
+     stripCount,
+     frameCount: state.length(),
+-    retainedInsertionCount: (words.length - (words[0] ?? 0)) / 6,
++    retainedInsertionCount: counts.total,
+     ...measureSpace(sequence, stripCount, state.length()),
+     processMemory: measureProcessMemory(),
+   }
+diff --git a/src/c++/bindings.cpp b/src/c++/bindings.cpp
+index 7d9f045..2aa1614 100644
+--- a/src/c++/bindings.cpp
++++ b/src/c++/bindings.cpp
+@@ -1,4 +1,5 @@
+ #include "class.hpp"
++#include "auxiliary/sequenceColumns.hpp"
+ #include <algorithm>
+ #include <bit>
+ #include <limits>
+@@ -100,8 +101,10 @@ struct Reader {
+     std::vector<Acknowledgement> frontiers;
+     if (input.empty())
+       return {std::move(insertions), std::move(frontiers)};
+-    const auto end = word();
+-    if (!end || end > input.size() || (input.size() - end) % 6) {
++    const auto layout = word();
++    const auto end = layout & ~column_sequence;
++    const auto columns = (layout & column_sequence) != 0;
++    if (!end || end > input.size() || (!columns && (input.size() - end) % 6)) {
+       valid = false;
+       return {};
+     }
+@@ -114,20 +117,33 @@ struct Reader {
+       frontiers.emplace_back(input.begin() + position, input.begin() + position + count);
+       position += count;
+     }
+-    insertions.reserve((input.size() - end) / 6);
++    if (columns && !unpack_sequence(input.subspan(end), insertions)) {
++      valid = false;
++      return {};
++    }
++    const auto count = columns ? insertions.size() : (input.size() - end) / 6;
++    if (!columns)
++      insertions.reserve(count);
+     Word offset = 0;
+-    while (position < input.size()) {
+-      const auto data = input.subspan(position, 6);
+-      Coordinates c{data[0], data[1], data[2],
+-                    data[3], data[4], std::bit_cast<std::int32_t>(data[5])};
++    for (Word row = 0; row < count; ++row) {
++      Coordinates c;
++      if (columns)
++        c = insertions[row].insertion.coordinates;
++      else {
++        const auto data = input.subspan(position, 6);
++        c = {data[0], data[1], data[2], data[3], data[4], std::bit_cast<std::int32_t>(data[5])};
++      }
+       if (!c.diff || c.diff == std::numeric_limits<std::int32_t>::min()) {
+         valid = false;
+         return {};
+       }
+       session_ids.insert(c.anchor_session);
+       session_ids.insert(c.session);
+-      insertions.push_back(
+-          Entry::insert({c, c.diff > 0 ? content + Word(insertions.size()) : 0, offset}));
++      auto entry = Entry::insert({c, c.diff > 0 ? content + row : 0, offset});
++      if (columns)
++        insertions[row] = std::move(entry);
++      else
++        insertions.push_back(std::move(entry));
+       if (c.diff > 0)
+         offset += Word(c.diff);
+       position += 6;
+@@ -317,6 +333,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0,
+         break;
+       }
+     }
++    pack_sequence(out.sequence);
+     out.header[3] = address(out.sequence.words.data());
+     out.header[4] = Word(out.sequence.words.size());
+     out.header[5] = address(out.sequence.footage.data());
+diff --git a/src/typescript/runtime/client.ts b/src/typescript/runtime/client.ts
+index 748f114..752668a 100644
+--- a/src/typescript/runtime/client.ts
++++ b/src/typescript/runtime/client.ts
+@@ -170,14 +170,16 @@ class Runtime {
+       if (valid && sequence !== undefined) {
+         const words = sequence[0] as U32List
+         heap.set(words, base)
+-        const start = words[0] ?? 0
++        const layout = words[0] ?? 0,
++          start = layout & 0x7fffffff,
++          columns = layout >= 0x80000000
+         if (
+           start >= 1 &&
+           start <= words.length &&
+-          (words.length - start) % 6 === 0
++          (columns || (words.length - start) % 6 === 0)
+         ) {
+           a1 = contents.length
+-          contents.length += (words.length - start) / 6
++          contents.length += columns ? words[start] : (words.length - start) / 6
+           contents.fill(sequence[1], a1)
+           this.mutable[id]!.length = contents.length
+           this.mutable[id]!.fill(2, a1)

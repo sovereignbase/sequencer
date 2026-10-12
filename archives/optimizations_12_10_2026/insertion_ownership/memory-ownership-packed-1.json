@@ -1,0 +1,14 @@
+{
+  "before": {
+    "heap": 5257720,
+    "wasmCapacity": 2752512
+  },
+  "after": {
+    "heap": 5611752,
+    "wasmCapacity": 2752512
+  },
+  "retainedSnapshotHeap": 354032,
+  "words": 35947,
+  "json": 239216,
+  "v8": 323693
+}

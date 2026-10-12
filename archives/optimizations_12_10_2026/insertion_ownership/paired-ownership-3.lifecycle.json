@@ -1,0 +1,3115 @@
+{
+  "schemaVersion": 3,
+  "generatedAt": "2026-10-12T17:01:18.240Z",
+  "environment": {
+    "node": "24.16.0",
+    "v8": "13.6.233.17-node.49",
+    "platform": "win32",
+    "architecture": "x64",
+    "cpu": "Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz"
+  },
+  "config": {
+    "suite": "lifecycle",
+    "initialStripCount": 100,
+    "burstMilliseconds": 100,
+    "maximumCalls": 10000,
+    "runs": 1,
+    "maximumStripCount": 10000,
+    "checkpoints": [
+      0,
+      1,
+      10,
+      100,
+      1000,
+      10000
+    ],
+    "minimumStripFrameLength": 1,
+    "maximumStripFrameLength": 100,
+    "warmupCycles": 64,
+    "baseSeed": "sequencer-lifecycle-v1",
+    "outputPath": "archives/optimizations_12_10_2026/insertion_ownership/paired-ownership-3.lifecycle.json"
+  },
+  "methodology": {
+    "implementation": "TypeScript Projection class public API",
+    "timer": "process.hrtime.bigint",
+    "stripCount": "Scale is the number of visible logical Strips maintained by the benchmark model. Every mutation targets a complete Strip boundary.",
+    "ingest": "The workload has two peers editing the same document. Every local Gossip is applied by the receiver and every acknowledgement returned by apply is gossiped back to the sender. apply.random times only the measured peer applying the remote replacement Gossip.",
+    "average": "Operation averages are calculated directly from count and total measured nanoseconds; checkpoint averages are never averaged together.",
+    "memory": "Per-Replica retained bytes after restart are estimated as four bytes per Sequence metadata word plus eight bytes per JavaScript Footage array slot. Process RSS is shared and reported at checkpoint scope.",
+    "storage": "Persistent representation size is the byte length of node:v8.serialize over the automatically collected public Sequence."
+  },
+  "runs": [
+    {
+      "run": 0,
+      "seed": "0x7f8e63e1",
+      "initialization": {
+        "A": {
+          "count": 1,
+          "totalNanoseconds": 637200,
+          "averageNanoseconds": 637200,
+          "operationsPerSecond": 1569.3659761456372,
+          "minimumNanoseconds": 637200,
+          "maximumNanoseconds": 637200
+        }
+      },
+      "checkpoints": [
+        {
+          "run": 0,
+          "direction": "up",
+          "stripCount": 1,
+          "frameCount": 8,
+          "processMemory": {
+            "scope": "shared-process-not-attributable-to-one-replica",
+            "rssBytes": 84033536,
+            "heapTotalBytes": 14938112,
+            "heapUsedBytes": 9858768,
+            "externalBytes": 9985056,
+            "arrayBufferBytes": 102216
+          },
+          "replicas": {
+            "A": {
+              "operations": {
+                "apply.random": {
+                  "count": 1,
+                  "totalNanoseconds": 14900,
+                  "averageNanoseconds": 14900,
+                  "operationsPerSecond": 67114.09395973154,
+                  "minimumNanoseconds": 14900,
+                  "maximumNanoseconds": 14900
+                },
+                "insert.head": {
+                  "count": 0,
+                  "totalNanoseconds": 0,
+                  "averageNanoseconds": null,
+                  "operationsPerSecond": null,
+                  "minimumNanoseconds": null,
+                  "maximumNanoseconds": null
+                },
+                "insert.random": {
+                  "count": 1,
+                  "totalNanoseconds": 2500,
+                  "averageNanoseconds": 2500,
+                  "operationsPerSecond": 400000,
+                  "minimumNanoseconds": 2500,
+                  "maximumNanoseconds": 2500
+                },
+                "insert.tail": {
+                  "count": 1,
+                  "totalNanoseconds": 5800,
+                  "averageNanoseconds": 5800,
+                  "operationsPerSecond": 172413.7931034483,
+                  "minimumNanoseconds": 5800,
+                  "maximumNanoseconds": 5800
+                },
+                "remove.head": {
+                  "count": 0,
+                  "totalNanoseconds": 0,
+                  "averageNanoseconds": null,
+                  "operationsPerSecond": null,
+                  "minimumNanoseconds": null,
+                  "maximumNanoseconds": null
+                },
+                "remove.random": {
+                  "count": 1,
+                  "totalNanoseconds": 3900,
+                  "averageNanoseconds": 3900,
+                  "operationsPerSecond": 256410.2564102564,
+                  "minimumNanoseconds": 3900,
+                  "maximumNanoseconds": 3900
+                },
+                "remove.tail": {
+                  "count": 0,
+                  "totalNanoseconds": 0,
+                  "averageNanoseconds": null,
+                  "operationsPerSecond": null,
+                  "minimumNanoseconds": null,
+                  "maximumNanoseconds": null
+                },
+                "replace.head": {
+                  "count": 1,
+                  "totalNanoseconds": 15700,
+                  "averageNanoseconds": 15700,
+                  "operationsPerSecond": 63694.267515923566,
+                  "minimumNanoseconds": 15700,
+                  "maximumNanoseconds": 15700
+                },
+                "replace.random": {
+                  "count": 1,
+                  "totalNanoseconds": 4000,
+                  "averageNanoseconds": 4000,
+                  "operationsPerSecond": 250000,
+                  "minimumNanoseconds": 4000,
+                  "maximumNanoseconds": 4000
+                },
+                "replace.tail": {
+                  "count": 1,
+                  "totalNanoseconds": 2800,
+                  "averageNanoseconds": 2800,
+                  "operationsPerSecond": 357142.85714285716,
+                  "minimumNanoseconds": 2800,
+                  "maximumNanoseconds": 2800
+                },
+                "value.head": {
+                  "count": 1,
+                  "totalNanoseconds": 3400,
+                  "averageNanoseconds": 3400,
+                  "operationsPerSecond": 294117.64705882355,
+                  "minimumNanoseconds": 3400,
+                  "maximumNanoseconds": 3400
+                },
+                "value.random": {
+                  "count": 1,
+                  "totalNanoseconds": 400,
+                  "averageNanoseconds": 400,
+                  "operationsPerSecond": 2500000,
+                  "minimumNanoseconds": 400,
+                  "maximumNanoseconds": 400
+                },
+                "value.tail": {
+                  "count": 1,
+                  "totalNanoseconds": 200,
+                  "averageNanoseconds": 200,
+                  "operationsPerSecond": 5000000,
+                  "minimumNanoseconds": 200,
+                  "maximumNanoseconds": 200
+                }
+              },
+              "management": {
+                "create": {
+                  "count": 1,
+                  "totalNanoseconds": 63400,
+                  "averageNanoseconds": 63400,
+                  "operationsPerSecond": 15772.870662460567,
+                  "minimumNanoseconds": 63400,
+                  "maximumNanoseconds": 63400
+                },
+                "sequence": {
+                  "count": 1,
+                  "totalNanoseconds": 178700,
+                  "averageNanoseconds": 178700,
+                  "operationsPerSecond": 5595.970900951315,
+                  "minimumNanoseconds": 178700,
+                  "maximumNanoseconds": 178700
+                },
+                "values": {
+                  "count": 1,
+                  "totalNanoseconds": 128700,
+                  "averageNanoseconds": 128700,
+                  "operationsPerSecond": 7770.00777000777,
+                  "minimumNanoseconds": 128700,
+                  "maximumNanoseconds": 128700
+                }
+              },
+              "memory": {
+                "bytes": 108,
+                "bytesPerStrip": 108,
+                "bytesPerFrame": 13.5,
+                "measurement": "estimated-sequence-words-plus-js-footage-slots",
+                "sequenceMetadataWordBytes": 44,
+                "javascriptFootageSlotBytes": 64
+              },
+              "storage": {
+                "serialization": "node:v8.serialize",
+                "sequenceBytes": 84,
+                "bytesPerStrip": 84,
+                "bytesPerFrame": 10.5
+              },
+              "strips": {
+                "stripCount": 1,
+                "frameCount": 8,
+                "averageStripLength": 8,
+                "minimumStripLength": 8,
+                "maximumStripLength": 8,
+                "retainedDeltaCount": 1
+              }
+            }
+          }
+        },
+        {
+          "run": 0,
+          "direction": "up",
+          "stripCount": 10,
+          "frameCount": 410,
+          "processMemory": {
+            "scope": "shared-process-not-attributable-to-one-replica",
+            "rssBytes": 75505664,
+            "heapTotalBytes": 14938112,
+            "heapUsedBytes": 10005816,
+            "externalBytes": 9992378,
+            "arrayBufferBytes": 102216
+          },
+          "replicas": {
+            "A": {
+              "operations": {
+                "apply.random": {
+                  "count": 10,
+                  "totalNanoseconds": 77200,
+                  "averageNanoseconds": 7720,
+                  "operationsPerSecond": 129533.67875647669,
+                  "minimumNanoseconds": 6400,
+                  "maximumNanoseconds": 14900
+                },
+                "insert.head": {
+                  "count": 5,
+                  "totalNanoseconds": 24200,
+                  "averageNanoseconds": 4840,
+                  "operationsPerSecond": 206611.57024793388,
+                  "minimumNanoseconds": 1000,
+                  "maximumNanoseconds": 18300
+                },
+                "insert.random": {
+                  "count": 10,
+                  "totalNanoseconds": 15700,
+                  "averageNanoseconds": 1570,
+                  "operationsPerSecond": 636942.6751592357,
+                  "minimumNanoseconds": 1000,
+                  "maximumNanoseconds": 3200
+                },
+                "insert.tail": {
+                  "count": 5,
+                  "totalNanoseconds": 10300,
+                  "averageNanoseconds": 2060,
+                  "operationsPerSecond": 485436.8932038835,
+                  "minimumNanoseconds": 1000,
+                  "maximumNanoseconds": 5800
+                },
+                "remove.head": {
+                  "count": 0,
+                  "totalNanoseconds": 0,
+                  "averageNanoseconds": null,
+                  "operationsPerSecond": null,
+                  "minimumNanoseconds": null,
+                  "maximumNanoseconds": null
+                },
+                "remove.random": {
+                  "count": 10,
+                  "totalNanoseconds": 30800,
+                  "averageNanoseconds": 3080,
+                  "operationsPerSecond": 324675.32467532466,
+                  "minimumNanoseconds": 2600,
+                  "maximumNanoseconds": 3900
+                },
+                "remove.tail": {
+                  "count": 0,
+                  "totalNanoseconds": 0,
+                  "averageNanoseconds": null,
+                  "operationsPerSecond": null,
+                  "minimumNanoseconds": null,
+                  "maximumNanoseconds": null
+                },
+                "replace.head": {
+                  "count": 10,
+                  "totalNanoseconds": 59300,
+                  "averageNanoseconds": 5930,
+                  "operationsPerSecond": 168634.06408094434,
+                  "minimumNanoseconds": 3500,
+                  "maximumNanoseconds": 15700
+                },
+                "replace.random": {
+                  "count": 10,
+                  "totalNanoseconds": 36600,
+                  "averageNanoseconds": 3660,
+                  "operationsPerSecond": 273224.043715847,
+                  "minimumNanoseconds": 3100,
+                  "maximumNanoseconds": 4200
+                },
+                "replace.tail": {
+                  "count": 10,
+                  "totalNanoseconds": 32300,
+                  "averageNanoseconds": 3230,
+                  "operationsPerSecond": 309597.52321981423,
+                  "minimumNanoseconds": 2800,
+                  "maximumNanoseconds": 3600
+                },
+                "value.head": {
+                  "count": 10,
+                  "totalNanoseconds": 8700,
+                  "averageNanoseconds": 870,
+                  "operationsPerSecond": 1149425.287356322,
+                  "minimumNanoseconds": 400,
+                  "maximumNanoseconds": 3400
+                },
+                "value.random": {
+                  "count": 10,
+                  "totalNanoseconds": 3800,
+                  "averageNanoseconds": 380,
+                  "operationsPerSecond": 2631578.947368421,
+                  "minimumNanoseconds": 200,
+                  "maximumNanoseconds": 600
+                },
+                "value.tail": {
+                  "count": 10,
+                  "totalNanoseconds": 3300,
+                  "averageNanoseconds": 330,
+                  "operationsPerSecond": 3030303.0303030303,
+                  "minimumNanoseconds": 200,
+                  "maximumNanoseconds": 900
+                }
+              },
+              "management": {
+                "create": {
+                  "count": 1,
+                  "totalNanoseconds": 34800,
+                  "averageNanoseconds": 34800,
+                  "operationsPerSecond": 28735.632183908045,
+                  "minimumNanoseconds": 34800,
+                  "maximumNanoseconds": 34800
+                },
+                "sequence": {
+                  "count": 1,
+                  "totalNanoseconds": 55400,
+                  "averageNanoseconds": 55400,
+                  "operationsPerSecond": 18050.54151624549,
+                  "minimumNanoseconds": 55400,
+                  "maximumNanoseconds": 55400
+                },
+                "values": {
+                  "count": 1,
+                  "totalNanoseconds": 65100,
+                  "averageNanoseconds": 65100,
+                  "operationsPerSecond": 15360.983102918586,
+                  "minimumNanoseconds": 65100,
+                  "maximumNanoseconds": 65100
+                }
+              },
+              "memory": {
+                "bytes": 3540,
+                "bytesPerStrip": 354,
+                "bytesPerFrame": 8.634146341463415,
+                "measurement": "estimated-sequence-words-plus-js-footage-slots",
+                "sequenceMetadataWordBytes": 260,
+                "javascriptFootageSlotBytes": 3280
+              },
+              "storage": {
+                "serialization": "node:v8.serialize",
+                "sequenceBytes": 1215,
+                "bytesPerStrip": 121.5,
+                "bytesPerFrame": 2.9634146341463414
+              },
+              "strips": {
+                "stripCount": 10,
+                "frameCount": 410,
+                "averageStripLength": 41,
+                "minimumStripLength": 5,
+                "maximumStripLength": 87,
+                "retainedDeltaCount": 10
+              }
+            }
+          }
+        },
+        {
+          "run": 0,
+          "direction": "up",
+          "stripCount": 100,
+          "frameCount": 4859,
+          "processMemory": {
+            "scope": "shared-process-not-attributable-to-one-replica",
+            "rssBytes": 78569472,
+            "heapTotalBytes": 19918848,
+            "heapUsedBytes": 10656232,
+            "externalBytes": 9992378,
+            "arrayBufferBytes": 102216
+          },
+          "replicas": {
+            "A": {
+              "operations": {
+                "apply.random": {
+                  "count": 100,
+                  "totalNanoseconds": 770200,
+                  "averageNanoseconds": 7702,
+                  "operationsPerSecond": 129836.40612827837,
+                  "minimumNanoseconds": 4000,
+                  "maximumNanoseconds": 69200
+                },
+                "insert.head": {
+                  "count": 50,
+                  "totalNanoseconds": 89300,
+                  "averageNanoseconds": 1786,
+                  "operationsPerSecond": 559910.4143337066,
+                  "minimumNanoseconds": 900,
+                  "maximumNanoseconds": 18300
+                },
+                "insert.random": {
+                  "count": 100,
+                  "totalNanoseconds": 165200,
+                  "averageNanoseconds": 1652,
+                  "operationsPerSecond": 605326.8765133172,
+                  "minimumNanoseconds": 900,
+                  "maximumNanoseconds": 5800
+                },
+                "insert.tail": {
+                  "count": 50,
+                  "totalNanoseconds": 79700,
+                  "averageNanoseconds": 1594,
+                  "operationsPerSecond": 627352.5721455457,
+                  "minimumNanoseconds": 900,
+                  "maximumNanoseconds": 7700
+                },
+                "remove.head": {
+                  "count": 0,
+                  "totalNanoseconds": 0,
+                  "averageNanoseconds": null,
+                  "operationsPerSecond": null,
+                  "minimumNanoseconds": null,
+                  "maximumNanoseconds": null
+                },
+                "remove.random": {
+                  "count": 100,
+                  "totalNanoseconds": 322200,
+                  "averageNanoseconds": 3222,
+                  "operationsPerSecond": 310366.23215394164,
+                  "minimumNanoseconds": 1900,
+                  "maximumNanoseconds": 16600
+                },
+                "remove.tail": {
+                  "count": 0,
+                  "totalNanoseconds": 0,
+                  "averageNanoseconds": null,
+                  "operationsPerSecond": null,
+                  "minimumNanoseconds": null,
+                  "maximumNanoseconds": null
+                },
+                "replace.head": {
+                  "count": 100,
+                  "totalNanoseconds": 392600,
+                  "averageNanoseconds": 3926,
+                  "operationsPerSecond": 254712.17524197657,
+                  "minimumNanoseconds": 2400,
+                  "maximumNanoseconds": 33000
+                },
+                "replace.random": {
+                  "count": 100,
+                  "totalNanoseconds": 403200,
+                  "averageNanoseconds": 4032,
+                  "operationsPerSecond": 248015.87301587302,
+                  "minimumNanoseconds": 2400,
+                  "maximumNanoseconds": 43500
+                },
+                "replace.tail": {
+                  "count": 100,
+                  "totalNanoseconds": 376500,
+                  "averageNanoseconds": 3765,
+                  "operationsPerSecond": 265604.2496679947,
+                  "minimumNanoseconds": 1900,
+                  "maximumNanoseconds": 56200
+                },
+                "value.head": {
+                  "count": 100,
+                  "totalNanoseconds": 35700,
+                  "averageNanoseconds": 357,
+                  "operationsPerSecond": 2801120.4481792715,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 3400
+                },
+                "value.random": {
+                  "count": 100,
+                  "totalNanoseconds": 65100,
+                  "averageNanoseconds": 651,
+                  "operationsPerSecond": 1536098.3102918586,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 3000
+                },
+                "value.tail": {
+                  "count": 100,
+                  "totalNanoseconds": 17200,
+                  "averageNanoseconds": 172,
+                  "operationsPerSecond": 5813953.488372093,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 900
+                }
+              },
+              "management": {
+                "create": {
+                  "count": 1,
+                  "totalNanoseconds": 63900,
+                  "averageNanoseconds": 63900,
+                  "operationsPerSecond": 15649.452269170579,
+                  "minimumNanoseconds": 63900,
+                  "maximumNanoseconds": 63900
+                },
+                "sequence": {
+                  "count": 1,
+                  "totalNanoseconds": 152700,
+                  "averageNanoseconds": 152700,
+                  "operationsPerSecond": 6548.788474132286,
+                  "minimumNanoseconds": 152700,
+                  "maximumNanoseconds": 152700
+                },
+                "values": {
+                  "count": 1,
+                  "totalNanoseconds": 183300,
+                  "averageNanoseconds": 183300,
+                  "operationsPerSecond": 5455.537370430988,
+                  "minimumNanoseconds": 183300,
+                  "maximumNanoseconds": 183300
+                }
+              },
+              "memory": {
+                "bytes": 41292,
+                "bytesPerStrip": 412.92,
+                "bytesPerFrame": 8.498044865198601,
+                "measurement": "estimated-sequence-words-plus-js-footage-slots",
+                "sequenceMetadataWordBytes": 2420,
+                "javascriptFootageSlotBytes": 38872
+              },
+              "storage": {
+                "serialization": "node:v8.serialize",
+                "sequenceBytes": 18896,
+                "bytesPerStrip": 188.96,
+                "bytesPerFrame": 3.8888660218151885
+              },
+              "strips": {
+                "stripCount": 100,
+                "frameCount": 4859,
+                "averageStripLength": 48.59,
+                "minimumStripLength": 1,
+                "maximumStripLength": 100,
+                "retainedDeltaCount": 100
+              }
+            }
+          }
+        },
+        {
+          "run": 0,
+          "direction": "up",
+          "stripCount": 1000,
+          "frameCount": 50842,
+          "processMemory": {
+            "scope": "shared-process-not-attributable-to-one-replica",
+            "rssBytes": 100458496,
+            "heapTotalBytes": 34336768,
+            "heapUsedBytes": 15596696,
+            "externalBytes": 14514362,
+            "arrayBufferBytes": 102216
+          },
+          "replicas": {
+            "A": {
+              "operations": {
+                "apply.random": {
+                  "count": 1000,
+                  "totalNanoseconds": 7824500,
+                  "averageNanoseconds": 7824.5,
+                  "operationsPerSecond": 127803.69352674292,
+                  "minimumNanoseconds": 2700,
+                  "maximumNanoseconds": 420700
+                },
+                "insert.head": {
+                  "count": 500,
+                  "totalNanoseconds": 478200,
+                  "averageNanoseconds": 956.4,
+                  "operationsPerSecond": 1045587.6202425763,
+                  "minimumNanoseconds": 400,
+                  "maximumNanoseconds": 18300
+                },
+                "insert.random": {
+                  "count": 1000,
+                  "totalNanoseconds": 2159200,
+                  "averageNanoseconds": 2159.2,
+                  "operationsPerSecond": 463134.4942571323,
+                  "minimumNanoseconds": 500,
+                  "maximumNanoseconds": 310800
+                },
+                "insert.tail": {
+                  "count": 500,
+                  "totalNanoseconds": 371900,
+                  "averageNanoseconds": 743.8,
+                  "operationsPerSecond": 1344447.4321054048,
+                  "minimumNanoseconds": 300,
+                  "maximumNanoseconds": 12900
+                },
+                "remove.head": {
+                  "count": 0,
+                  "totalNanoseconds": 0,
+                  "averageNanoseconds": null,
+                  "operationsPerSecond": null,
+                  "minimumNanoseconds": null,
+                  "maximumNanoseconds": null
+                },
+                "remove.random": {
+                  "count": 1000,
+                  "totalNanoseconds": 3304300,
+                  "averageNanoseconds": 3304.3,
+                  "operationsPerSecond": 302635.95920467266,
+                  "minimumNanoseconds": 1100,
+                  "maximumNanoseconds": 26500
+                },
+                "remove.tail": {
+                  "count": 0,
+                  "totalNanoseconds": 0,
+                  "averageNanoseconds": null,
+                  "operationsPerSecond": null,
+                  "minimumNanoseconds": null,
+                  "maximumNanoseconds": null
+                },
+                "replace.head": {
+                  "count": 1000,
+                  "totalNanoseconds": 2639600,
+                  "averageNanoseconds": 2639.6,
+                  "operationsPerSecond": 378845.27958781633,
+                  "minimumNanoseconds": 1500,
+                  "maximumNanoseconds": 36800
+                },
+                "replace.random": {
+                  "count": 1000,
+                  "totalNanoseconds": 4015700,
+                  "averageNanoseconds": 4015.7,
+                  "operationsPerSecond": 249022.58634858183,
+                  "minimumNanoseconds": 1600,
+                  "maximumNanoseconds": 67300
+                },
+                "replace.tail": {
+                  "count": 1000,
+                  "totalNanoseconds": 3303400,
+                  "averageNanoseconds": 3303.4,
+                  "operationsPerSecond": 302718.4113337773,
+                  "minimumNanoseconds": 1300,
+                  "maximumNanoseconds": 544700
+                },
+                "value.head": {
+                  "count": 1000,
+                  "totalNanoseconds": 296600,
+                  "averageNanoseconds": 296.6,
+                  "operationsPerSecond": 3371544.16722859,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 22100
+                },
+                "value.random": {
+                  "count": 1000,
+                  "totalNanoseconds": 1697500,
+                  "averageNanoseconds": 1697.5,
+                  "operationsPerSecond": 589101.620029455,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 48700
+                },
+                "value.tail": {
+                  "count": 1000,
+                  "totalNanoseconds": 162400,
+                  "averageNanoseconds": 162.4,
+                  "operationsPerSecond": 6157635.467980295,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 3500
+                }
+              },
+              "management": {
+                "create": {
+                  "count": 1,
+                  "totalNanoseconds": 286300,
+                  "averageNanoseconds": 286300,
+                  "operationsPerSecond": 3492.8396786587496,
+                  "minimumNanoseconds": 286300,
+                  "maximumNanoseconds": 286300
+                },
+                "sequence": {
+                  "count": 1,
+                  "totalNanoseconds": 1647500,
+                  "averageNanoseconds": 1647500,
+                  "operationsPerSecond": 606.9802731411229,
+                  "minimumNanoseconds": 1647500,
+                  "maximumNanoseconds": 1647500
+                },
+                "values": {
+                  "count": 1,
+                  "totalNanoseconds": 1983700,
+                  "averageNanoseconds": 1983700,
+                  "operationsPerSecond": 504.10848414578817,
+                  "minimumNanoseconds": 1983700,
+                  "maximumNanoseconds": 1983700
+                }
+              },
+              "memory": {
+                "bytes": 430756,
+                "bytesPerStrip": 430.756,
+                "bytesPerFrame": 8.47244404232721,
+                "measurement": "estimated-sequence-words-plus-js-footage-slots",
+                "sequenceMetadataWordBytes": 24020,
+                "javascriptFootageSlotBytes": 406736
+              },
+              "storage": {
+                "serialization": "node:v8.serialize",
+                "sequenceBytes": 196583,
+                "bytesPerStrip": 196.583,
+                "bytesPerFrame": 3.8665473427481216
+              },
+              "strips": {
+                "stripCount": 1000,
+                "frameCount": 50842,
+                "averageStripLength": 50.842,
+                "minimumStripLength": 1,
+                "maximumStripLength": 100,
+                "retainedDeltaCount": 1000
+              }
+            }
+          }
+        },
+        {
+          "run": 0,
+          "direction": "up",
+          "stripCount": 10000,
+          "frameCount": 501051,
+          "processMemory": {
+            "scope": "shared-process-not-attributable-to-one-replica",
+            "rssBytes": 304877568,
+            "heapTotalBytes": 204013568,
+            "heapUsedBytes": 64599616,
+            "externalBytes": 52590778,
+            "arrayBufferBytes": 102216
+          },
+          "replicas": {
+            "A": {
+              "operations": {
+                "apply.random": {
+                  "count": 10000,
+                  "totalNanoseconds": 232679300,
+                  "averageNanoseconds": 23267.93,
+                  "operationsPerSecond": 42977.609095437365,
+                  "minimumNanoseconds": 2700,
+                  "maximumNanoseconds": 420700
+                },
+                "insert.head": {
+                  "count": 5000,
+                  "totalNanoseconds": 5226400,
+                  "averageNanoseconds": 1045.28,
+                  "operationsPerSecond": 956681.4633399664,
+                  "minimumNanoseconds": 400,
+                  "maximumNanoseconds": 48900
+                },
+                "insert.random": {
+                  "count": 10000,
+                  "totalNanoseconds": 87492000,
+                  "averageNanoseconds": 8749.2,
+                  "operationsPerSecond": 114296.16422072874,
+                  "minimumNanoseconds": 500,
+                  "maximumNanoseconds": 1841400
+                },
+                "insert.tail": {
+                  "count": 5000,
+                  "totalNanoseconds": 4164400,
+                  "averageNanoseconds": 832.88,
+                  "operationsPerSecond": 1200653.155316492,
+                  "minimumNanoseconds": 300,
+                  "maximumNanoseconds": 66500
+                },
+                "remove.head": {
+                  "count": 0,
+                  "totalNanoseconds": 0,
+                  "averageNanoseconds": null,
+                  "operationsPerSecond": null,
+                  "minimumNanoseconds": null,
+                  "maximumNanoseconds": null
+                },
+                "remove.random": {
+                  "count": 10000,
+                  "totalNanoseconds": 123119900,
+                  "averageNanoseconds": 12311.99,
+                  "operationsPerSecond": 81221.63841913451,
+                  "minimumNanoseconds": 1100,
+                  "maximumNanoseconds": 915900
+                },
+                "remove.tail": {
+                  "count": 0,
+                  "totalNanoseconds": 0,
+                  "averageNanoseconds": null,
+                  "operationsPerSecond": null,
+                  "minimumNanoseconds": null,
+                  "maximumNanoseconds": null
+                },
+                "replace.head": {
+                  "count": 10000,
+                  "totalNanoseconds": 26572700,
+                  "averageNanoseconds": 2657.27,
+                  "operationsPerSecond": 376326.07902095007,
+                  "minimumNanoseconds": 1500,
+                  "maximumNanoseconds": 976200
+                },
+                "replace.random": {
+                  "count": 10000,
+                  "totalNanoseconds": 130514000,
+                  "averageNanoseconds": 13051.4,
+                  "operationsPerSecond": 76620.13270606985,
+                  "minimumNanoseconds": 1600,
+                  "maximumNanoseconds": 2066600
+                },
+                "replace.tail": {
+                  "count": 10000,
+                  "totalNanoseconds": 23827000,
+                  "averageNanoseconds": 2382.7,
+                  "operationsPerSecond": 419691.94611155416,
+                  "minimumNanoseconds": 1300,
+                  "maximumNanoseconds": 544700
+                },
+                "value.head": {
+                  "count": 10000,
+                  "totalNanoseconds": 2929100,
+                  "averageNanoseconds": 292.91,
+                  "operationsPerSecond": 3414017.957734457,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 22100
+                },
+                "value.random": {
+                  "count": 10000,
+                  "totalNanoseconds": 101976300,
+                  "averageNanoseconds": 10197.63,
+                  "operationsPerSecond": 98062.00068055029,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 184600
+                },
+                "value.tail": {
+                  "count": 10000,
+                  "totalNanoseconds": 2233700,
+                  "averageNanoseconds": 223.37,
+                  "operationsPerSecond": 4476876.930653176,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 24100
+                }
+              },
+              "management": {
+                "create": {
+                  "count": 1,
+                  "totalNanoseconds": 2723900,
+                  "averageNanoseconds": 2723900,
+                  "operationsPerSecond": 367.12067256507214,
+                  "minimumNanoseconds": 2723900,
+                  "maximumNanoseconds": 2723900
+                },
+                "sequence": {
+                  "count": 1,
+                  "totalNanoseconds": 27109000,
+                  "averageNanoseconds": 27109000,
+                  "operationsPerSecond": 36.888118337083625,
+                  "minimumNanoseconds": 27109000,
+                  "maximumNanoseconds": 27109000
+                },
+                "values": {
+                  "count": 1,
+                  "totalNanoseconds": 8431900,
+                  "averageNanoseconds": 8431900,
+                  "operationsPerSecond": 118.5972319406065,
+                  "minimumNanoseconds": 8431900,
+                  "maximumNanoseconds": 8431900
+                }
+              },
+              "memory": {
+                "bytes": 4248428,
+                "bytesPerStrip": 424.8428,
+                "bytesPerFrame": 8.479033072481643,
+                "measurement": "estimated-sequence-words-plus-js-footage-slots",
+                "sequenceMetadataWordBytes": 240020,
+                "javascriptFootageSlotBytes": 4008408
+              },
+              "storage": {
+                "serialization": "node:v8.serialize",
+                "sequenceBytes": 2510711,
+                "bytesPerStrip": 251.0711,
+                "bytesPerFrame": 5.010889111088492
+              },
+              "strips": {
+                "stripCount": 10000,
+                "frameCount": 501051,
+                "averageStripLength": 50.1051,
+                "minimumStripLength": 1,
+                "maximumStripLength": 100,
+                "retainedDeltaCount": 10000
+              }
+            }
+          }
+        },
+        {
+          "run": 0,
+          "direction": "down",
+          "stripCount": 1000,
+          "frameCount": 49083,
+          "processMemory": {
+            "scope": "shared-process-not-attributable-to-one-replica",
+            "rssBytes": 398516224,
+            "heapTotalBytes": 256151552,
+            "heapUsedBytes": 109765448,
+            "externalBytes": 96106682,
+            "arrayBufferBytes": 102216
+          },
+          "replicas": {
+            "A": {
+              "operations": {
+                "apply.random": {
+                  "count": 19000,
+                  "totalNanoseconds": 618736300,
+                  "averageNanoseconds": 32565.06842105263,
+                  "operationsPerSecond": 30707.75062009454,
+                  "minimumNanoseconds": 2700,
+                  "maximumNanoseconds": 652600
+                },
+                "insert.head": {
+                  "count": 5000,
+                  "totalNanoseconds": 5226400,
+                  "averageNanoseconds": 1045.28,
+                  "operationsPerSecond": 956681.4633399664,
+                  "minimumNanoseconds": 400,
+                  "maximumNanoseconds": 48900
+                },
+                "insert.random": {
+                  "count": 19000,
+                  "totalNanoseconds": 244596000,
+                  "averageNanoseconds": 12873.473684210527,
+                  "operationsPerSecond": 77679.11167803235,
+                  "minimumNanoseconds": 500,
+                  "maximumNanoseconds": 1841400
+                },
+                "insert.tail": {
+                  "count": 5000,
+                  "totalNanoseconds": 4164400,
+                  "averageNanoseconds": 832.88,
+                  "operationsPerSecond": 1200653.155316492,
+                  "minimumNanoseconds": 300,
+                  "maximumNanoseconds": 66500
+                },
+                "remove.head": {
+                  "count": 4500,
+                  "totalNanoseconds": 11901900,
+                  "averageNanoseconds": 2644.866666666667,
+                  "operationsPerSecond": 378090.89305068937,
+                  "minimumNanoseconds": 1600,
+                  "maximumNanoseconds": 50700
+                },
+                "remove.random": {
+                  "count": 19000,
+                  "totalNanoseconds": 315782800,
+                  "averageNanoseconds": 16620.147368421054,
+                  "operationsPerSecond": 60167.93821576096,
+                  "minimumNanoseconds": 1100,
+                  "maximumNanoseconds": 915900
+                },
+                "remove.tail": {
+                  "count": 4500,
+                  "totalNanoseconds": 11594000,
+                  "averageNanoseconds": 2576.4444444444443,
+                  "operationsPerSecond": 388131.7923063654,
+                  "minimumNanoseconds": 1500,
+                  "maximumNanoseconds": 50300
+                },
+                "replace.head": {
+                  "count": 19000,
+                  "totalNanoseconds": 54571600,
+                  "averageNanoseconds": 2872.1894736842105,
+                  "operationsPerSecond": 348166.44555043284,
+                  "minimumNanoseconds": 1500,
+                  "maximumNanoseconds": 976200
+                },
+                "replace.random": {
+                  "count": 19000,
+                  "totalNanoseconds": 334027700,
+                  "averageNanoseconds": 17580.405263157896,
+                  "operationsPerSecond": 56881.51012625599,
+                  "minimumNanoseconds": 1600,
+                  "maximumNanoseconds": 7005000
+                },
+                "replace.tail": {
+                  "count": 19000,
+                  "totalNanoseconds": 54207000,
+                  "averageNanoseconds": 2853,
+                  "operationsPerSecond": 350508.23694356816,
+                  "minimumNanoseconds": 1300,
+                  "maximumNanoseconds": 3008400
+                },
+                "value.head": {
+                  "count": 19000,
+                  "totalNanoseconds": 8069700,
+                  "averageNanoseconds": 424.72105263157897,
+                  "operationsPerSecond": 2354486.536054624,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 22100
+                },
+                "value.random": {
+                  "count": 19000,
+                  "totalNanoseconds": 266743500,
+                  "averageNanoseconds": 14039.131578947368,
+                  "operationsPerSecond": 71229.47700693738,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 351600
+                },
+                "value.tail": {
+                  "count": 19000,
+                  "totalNanoseconds": 6467000,
+                  "averageNanoseconds": 340.36842105263156,
+                  "operationsPerSecond": 2937992.88696459,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 43600
+                }
+              },
+              "management": {
+                "create": {
+                  "count": 1,
+                  "totalNanoseconds": 352100,
+                  "averageNanoseconds": 352100,
+                  "operationsPerSecond": 2840.1022436807725,
+                  "minimumNanoseconds": 352100,
+                  "maximumNanoseconds": 352100
+                },
+                "sequence": {
+                  "count": 1,
+                  "totalNanoseconds": 49955300,
+                  "averageNanoseconds": 49955300,
+                  "operationsPerSecond": 20.01789599902313,
+                  "minimumNanoseconds": 49955300,
+                  "maximumNanoseconds": 49955300
+                },
+                "values": {
+                  "count": 1,
+                  "totalNanoseconds": 2277000,
+                  "averageNanoseconds": 2277000,
+                  "operationsPerSecond": 439.17435221783046,
+                  "minimumNanoseconds": 2277000,
+                  "maximumNanoseconds": 2277000
+                }
+              },
+              "memory": {
+                "bytes": 416684,
+                "bytesPerStrip": 416.684,
+                "bytesPerFrame": 8.489375140068862,
+                "measurement": "estimated-sequence-words-plus-js-footage-slots",
+                "sequenceMetadataWordBytes": 24020,
+                "javascriptFootageSlotBytes": 392664
+              },
+              "storage": {
+                "serialization": "node:v8.serialize",
+                "sequenceBytes": 242299,
+                "bytesPerStrip": 242.299,
+                "bytesPerFrame": 4.936515697899476
+              },
+              "strips": {
+                "stripCount": 1000,
+                "frameCount": 49083,
+                "averageStripLength": 49.083,
+                "minimumStripLength": 1,
+                "maximumStripLength": 100,
+                "retainedDeltaCount": 1000
+              }
+            }
+          }
+        },
+        {
+          "run": 0,
+          "direction": "down",
+          "stripCount": 100,
+          "frameCount": 5271,
+          "processMemory": {
+            "scope": "shared-process-not-attributable-to-one-replica",
+            "rssBytes": 402800640,
+            "heapTotalBytes": 258498560,
+            "heapUsedBytes": 114576976,
+            "externalBytes": 96106682,
+            "arrayBufferBytes": 102216
+          },
+          "replicas": {
+            "A": {
+              "operations": {
+                "apply.random": {
+                  "count": 19900,
+                  "totalNanoseconds": 644802700,
+                  "averageNanoseconds": 32402.145728643216,
+                  "operationsPerSecond": 30862.153647929823,
+                  "minimumNanoseconds": 2700,
+                  "maximumNanoseconds": 832600
+                },
+                "insert.head": {
+                  "count": 5000,
+                  "totalNanoseconds": 5226400,
+                  "averageNanoseconds": 1045.28,
+                  "operationsPerSecond": 956681.4633399664,
+                  "minimumNanoseconds": 400,
+                  "maximumNanoseconds": 48900
+                },
+                "insert.random": {
+                  "count": 19900,
+                  "totalNanoseconds": 254841200,
+                  "averageNanoseconds": 12806.090452261307,
+                  "operationsPerSecond": 78087.84450865872,
+                  "minimumNanoseconds": 500,
+                  "maximumNanoseconds": 1841400
+                },
+                "insert.tail": {
+                  "count": 5000,
+                  "totalNanoseconds": 4164400,
+                  "averageNanoseconds": 832.88,
+                  "operationsPerSecond": 1200653.155316492,
+                  "minimumNanoseconds": 300,
+                  "maximumNanoseconds": 66500
+                },
+                "remove.head": {
+                  "count": 4950,
+                  "totalNanoseconds": 12975000,
+                  "averageNanoseconds": 2621.212121212121,
+                  "operationsPerSecond": 381502.8901734104,
+                  "minimumNanoseconds": 1500,
+                  "maximumNanoseconds": 50700
+                },
+                "remove.random": {
+                  "count": 19900,
+                  "totalNanoseconds": 328731700,
+                  "averageNanoseconds": 16519.180904522615,
+                  "operationsPerSecond": 60535.68913493891,
+                  "minimumNanoseconds": 1100,
+                  "maximumNanoseconds": 915900
+                },
+                "remove.tail": {
+                  "count": 4950,
+                  "totalNanoseconds": 12647900,
+                  "averageNanoseconds": 2555.131313131313,
+                  "operationsPerSecond": 391369.3182267412,
+                  "minimumNanoseconds": 1500,
+                  "maximumNanoseconds": 50300
+                },
+                "replace.head": {
+                  "count": 19900,
+                  "totalNanoseconds": 57559800,
+                  "averageNanoseconds": 2892.452261306533,
+                  "operationsPerSecond": 345727.4000257124,
+                  "minimumNanoseconds": 1500,
+                  "maximumNanoseconds": 976200
+                },
+                "replace.random": {
+                  "count": 19900,
+                  "totalNanoseconds": 347719000,
+                  "averageNanoseconds": 17473.316582914573,
+                  "operationsPerSecond": 57230.119723109754,
+                  "minimumNanoseconds": 1600,
+                  "maximumNanoseconds": 7005000
+                },
+                "replace.tail": {
+                  "count": 19900,
+                  "totalNanoseconds": 56968300,
+                  "averageNanoseconds": 2862.7286432160804,
+                  "operationsPerSecond": 349317.0763389464,
+                  "minimumNanoseconds": 1300,
+                  "maximumNanoseconds": 3008400
+                },
+                "value.head": {
+                  "count": 19900,
+                  "totalNanoseconds": 8459800,
+                  "averageNanoseconds": 425.11557788944725,
+                  "operationsPerSecond": 2352301.4728480577,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 22100
+                },
+                "value.random": {
+                  "count": 19900,
+                  "totalNanoseconds": 277741800,
+                  "averageNanoseconds": 13956.874371859296,
+                  "operationsPerSecond": 71649.2800147475,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 351600
+                },
+                "value.tail": {
+                  "count": 19900,
+                  "totalNanoseconds": 6759900,
+                  "averageNanoseconds": 339.6934673366834,
+                  "operationsPerSecond": 2943830.530037427,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 43600
+                }
+              },
+              "management": {
+                "create": {
+                  "count": 1,
+                  "totalNanoseconds": 93900,
+                  "averageNanoseconds": 93900,
+                  "operationsPerSecond": 10649.627263045793,
+                  "minimumNanoseconds": 93900,
+                  "maximumNanoseconds": 93900
+                },
+                "sequence": {
+                  "count": 1,
+                  "totalNanoseconds": 55925900,
+                  "averageNanoseconds": 55925900,
+                  "operationsPerSecond": 17.880802991100726,
+                  "minimumNanoseconds": 55925900,
+                  "maximumNanoseconds": 55925900
+                },
+                "values": {
+                  "count": 1,
+                  "totalNanoseconds": 351600,
+                  "averageNanoseconds": 351600,
+                  "operationsPerSecond": 2844.141069397042,
+                  "minimumNanoseconds": 351600,
+                  "maximumNanoseconds": 351600
+                }
+              },
+              "memory": {
+                "bytes": 44588,
+                "bytesPerStrip": 445.88,
+                "bytesPerFrame": 8.459115917283247,
+                "measurement": "estimated-sequence-words-plus-js-footage-slots",
+                "sequenceMetadataWordBytes": 2420,
+                "javascriptFootageSlotBytes": 42168
+              },
+              "storage": {
+                "serialization": "node:v8.serialize",
+                "sequenceBytes": 25719,
+                "bytesPerStrip": 257.19,
+                "bytesPerFrame": 4.879339783722254
+              },
+              "strips": {
+                "stripCount": 100,
+                "frameCount": 5271,
+                "averageStripLength": 52.71,
+                "minimumStripLength": 1,
+                "maximumStripLength": 100,
+                "retainedDeltaCount": 100
+              }
+            }
+          }
+        },
+        {
+          "run": 0,
+          "direction": "down",
+          "stripCount": 10,
+          "frameCount": 444,
+          "processMemory": {
+            "scope": "shared-process-not-attributable-to-one-replica",
+            "rssBytes": 403726336,
+            "heapTotalBytes": 259022848,
+            "heapUsedBytes": 115011736,
+            "externalBytes": 96106682,
+            "arrayBufferBytes": 102216
+          },
+          "replicas": {
+            "A": {
+              "operations": {
+                "apply.random": {
+                  "count": 19990,
+                  "totalNanoseconds": 646088800,
+                  "averageNanoseconds": 32320.600300150076,
+                  "operationsPerSecond": 30940.01939052341,
+                  "minimumNanoseconds": 2700,
+                  "maximumNanoseconds": 832600
+                },
+                "insert.head": {
+                  "count": 5000,
+                  "totalNanoseconds": 5226400,
+                  "averageNanoseconds": 1045.28,
+                  "operationsPerSecond": 956681.4633399664,
+                  "minimumNanoseconds": 400,
+                  "maximumNanoseconds": 48900
+                },
+                "insert.random": {
+                  "count": 19990,
+                  "totalNanoseconds": 255353200,
+                  "averageNanoseconds": 12774.047023511755,
+                  "operationsPerSecond": 78283.72622704552,
+                  "minimumNanoseconds": 500,
+                  "maximumNanoseconds": 1841400
+                },
+                "insert.tail": {
+                  "count": 5000,
+                  "totalNanoseconds": 4164400,
+                  "averageNanoseconds": 832.88,
+                  "operationsPerSecond": 1200653.155316492,
+                  "minimumNanoseconds": 300,
+                  "maximumNanoseconds": 66500
+                },
+                "remove.head": {
+                  "count": 4995,
+                  "totalNanoseconds": 13134000,
+                  "averageNanoseconds": 2629.4294294294295,
+                  "operationsPerSecond": 380310.6441297396,
+                  "minimumNanoseconds": 1400,
+                  "maximumNanoseconds": 74400
+                },
+                "remove.random": {
+                  "count": 19990,
+                  "totalNanoseconds": 329357100,
+                  "averageNanoseconds": 16476.093046523263,
+                  "operationsPerSecond": 60694.00052405125,
+                  "minimumNanoseconds": 1100,
+                  "maximumNanoseconds": 915900
+                },
+                "remove.tail": {
+                  "count": 4995,
+                  "totalNanoseconds": 12750700,
+                  "averageNanoseconds": 2552.6926926926926,
+                  "operationsPerSecond": 391743.1984126362,
+                  "minimumNanoseconds": 1500,
+                  "maximumNanoseconds": 50300
+                },
+                "replace.head": {
+                  "count": 19990,
+                  "totalNanoseconds": 57890900,
+                  "averageNanoseconds": 2895.9929964982493,
+                  "operationsPerSecond": 345304.7024661907,
+                  "minimumNanoseconds": 1500,
+                  "maximumNanoseconds": 976200
+                },
+                "replace.random": {
+                  "count": 19990,
+                  "totalNanoseconds": 348345400,
+                  "averageNanoseconds": 17425.982991495748,
+                  "operationsPerSecond": 57385.571906504294,
+                  "minimumNanoseconds": 1600,
+                  "maximumNanoseconds": 7005000
+                },
+                "replace.tail": {
+                  "count": 19990,
+                  "totalNanoseconds": 57210000,
+                  "averageNanoseconds": 2861.930965482741,
+                  "operationsPerSecond": 349414.43803530856,
+                  "minimumNanoseconds": 1300,
+                  "maximumNanoseconds": 3008400
+                },
+                "value.head": {
+                  "count": 19990,
+                  "totalNanoseconds": 8494300,
+                  "averageNanoseconds": 424.92746373186594,
+                  "operationsPerSecond": 2353342.829897696,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 22100
+                },
+                "value.random": {
+                  "count": 19990,
+                  "totalNanoseconds": 278204800,
+                  "averageNanoseconds": 13917.19859929965,
+                  "operationsPerSecond": 71853.54098850918,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 351600
+                },
+                "value.tail": {
+                  "count": 19990,
+                  "totalNanoseconds": 6783600,
+                  "averageNanoseconds": 339.3496748374187,
+                  "operationsPerSecond": 2946812.9017041097,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 43600
+                }
+              },
+              "management": {
+                "create": {
+                  "count": 1,
+                  "totalNanoseconds": 47400,
+                  "averageNanoseconds": 47400,
+                  "operationsPerSecond": 21097.04641350211,
+                  "minimumNanoseconds": 47400,
+                  "maximumNanoseconds": 47400
+                },
+                "sequence": {
+                  "count": 1,
+                  "totalNanoseconds": 62560000,
+                  "averageNanoseconds": 62560000,
+                  "operationsPerSecond": 15.9846547314578,
+                  "minimumNanoseconds": 62560000,
+                  "maximumNanoseconds": 62560000
+                },
+                "values": {
+                  "count": 1,
+                  "totalNanoseconds": 40800,
+                  "averageNanoseconds": 40800,
+                  "operationsPerSecond": 24509.803921568626,
+                  "minimumNanoseconds": 40800,
+                  "maximumNanoseconds": 40800
+                }
+              },
+              "memory": {
+                "bytes": 3812,
+                "bytesPerStrip": 381.2,
+                "bytesPerFrame": 8.585585585585585,
+                "measurement": "estimated-sequence-words-plus-js-footage-slots",
+                "sequenceMetadataWordBytes": 260,
+                "javascriptFootageSlotBytes": 3552
+              },
+              "storage": {
+                "serialization": "node:v8.serialize",
+                "sequenceBytes": 2211,
+                "bytesPerStrip": 221.1,
+                "bytesPerFrame": 4.97972972972973
+              },
+              "strips": {
+                "stripCount": 10,
+                "frameCount": 444,
+                "averageStripLength": 44.4,
+                "minimumStripLength": 3,
+                "maximumStripLength": 94,
+                "retainedDeltaCount": 10
+              }
+            }
+          }
+        },
+        {
+          "run": 0,
+          "direction": "down",
+          "stripCount": 1,
+          "frameCount": 89,
+          "processMemory": {
+            "scope": "shared-process-not-attributable-to-one-replica",
+            "rssBytes": 404017152,
+            "heapTotalBytes": 259284992,
+            "heapUsedBytes": 115081224,
+            "externalBytes": 96106682,
+            "arrayBufferBytes": 102216
+          },
+          "replicas": {
+            "A": {
+              "operations": {
+                "apply.random": {
+                  "count": 19999,
+                  "totalNanoseconds": 648486000,
+                  "averageNanoseconds": 32425.921296064804,
+                  "operationsPerSecond": 30839.524677479545,
+                  "minimumNanoseconds": 2700,
+                  "maximumNanoseconds": 2361100
+                },
+                "insert.head": {
+                  "count": 5000,
+                  "totalNanoseconds": 5226400,
+                  "averageNanoseconds": 1045.28,
+                  "operationsPerSecond": 956681.4633399664,
+                  "minimumNanoseconds": 400,
+                  "maximumNanoseconds": 48900
+                },
+                "insert.random": {
+                  "count": 19999,
+                  "totalNanoseconds": 255363800,
+                  "averageNanoseconds": 12768.82844142207,
+                  "operationsPerSecond": 78315.72055240406,
+                  "minimumNanoseconds": 500,
+                  "maximumNanoseconds": 1841400
+                },
+                "insert.tail": {
+                  "count": 5000,
+                  "totalNanoseconds": 4164400,
+                  "averageNanoseconds": 832.88,
+                  "operationsPerSecond": 1200653.155316492,
+                  "minimumNanoseconds": 300,
+                  "maximumNanoseconds": 66500
+                },
+                "remove.head": {
+                  "count": 5000,
+                  "totalNanoseconds": 13143900,
+                  "averageNanoseconds": 2628.78,
+                  "operationsPerSecond": 380404.5983307846,
+                  "minimumNanoseconds": 1400,
+                  "maximumNanoseconds": 74400
+                },
+                "remove.random": {
+                  "count": 19999,
+                  "totalNanoseconds": 329396700,
+                  "averageNanoseconds": 16470.658532926645,
+                  "operationsPerSecond": 60714.02658253711,
+                  "minimumNanoseconds": 1100,
+                  "maximumNanoseconds": 915900
+                },
+                "remove.tail": {
+                  "count": 4999,
+                  "totalNanoseconds": 12757500,
+                  "averageNanoseconds": 2552.010402080416,
+                  "operationsPerSecond": 391847.9325886733,
+                  "minimumNanoseconds": 1500,
+                  "maximumNanoseconds": 50300
+                },
+                "replace.head": {
+                  "count": 19999,
+                  "totalNanoseconds": 58009300,
+                  "averageNanoseconds": 2900.610030501525,
+                  "operationsPerSecond": 344755.06513610744,
+                  "minimumNanoseconds": 1500,
+                  "maximumNanoseconds": 976200
+                },
+                "replace.random": {
+                  "count": 19999,
+                  "totalNanoseconds": 348373400,
+                  "averageNanoseconds": 17419.54097704885,
+                  "operationsPerSecond": 57406.79397451126,
+                  "minimumNanoseconds": 1600,
+                  "maximumNanoseconds": 7005000
+                },
+                "replace.tail": {
+                  "count": 19999,
+                  "totalNanoseconds": 57234600,
+                  "averageNanoseconds": 2861.8730936546826,
+                  "operationsPerSecond": 349421.5037756881,
+                  "minimumNanoseconds": 1300,
+                  "maximumNanoseconds": 3008400
+                },
+                "value.head": {
+                  "count": 19999,
+                  "totalNanoseconds": 8502200,
+                  "averageNanoseconds": 425.1312565628281,
+                  "operationsPerSecond": 2352214.720895768,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 22100
+                },
+                "value.random": {
+                  "count": 19999,
+                  "totalNanoseconds": 278206800,
+                  "averageNanoseconds": 13911.03555177759,
+                  "operationsPerSecond": 71885.37447682803,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 351600
+                },
+                "value.tail": {
+                  "count": 19999,
+                  "totalNanoseconds": 6785000,
+                  "averageNanoseconds": 339.2669633481674,
+                  "operationsPerSecond": 2947531.3190862196,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 43600
+                }
+              },
+              "management": {
+                "create": {
+                  "count": 1,
+                  "totalNanoseconds": 40600,
+                  "averageNanoseconds": 40600,
+                  "operationsPerSecond": 24630.54187192118,
+                  "minimumNanoseconds": 40600,
+                  "maximumNanoseconds": 40600
+                },
+                "sequence": {
+                  "count": 1,
+                  "totalNanoseconds": 61619800,
+                  "averageNanoseconds": 61619800,
+                  "operationsPerSecond": 16.22854991415097,
+                  "minimumNanoseconds": 61619800,
+                  "maximumNanoseconds": 61619800
+                },
+                "values": {
+                  "count": 1,
+                  "totalNanoseconds": 31800,
+                  "averageNanoseconds": 31800,
+                  "operationsPerSecond": 31446.540880503144,
+                  "minimumNanoseconds": 31800,
+                  "maximumNanoseconds": 31800
+                }
+              },
+              "memory": {
+                "bytes": 756,
+                "bytesPerStrip": 756,
+                "bytesPerFrame": 8.49438202247191,
+                "measurement": "estimated-sequence-words-plus-js-footage-slots",
+                "sequenceMetadataWordBytes": 44,
+                "javascriptFootageSlotBytes": 712
+              },
+              "storage": {
+                "serialization": "node:v8.serialize",
+                "sequenceBytes": 630,
+                "bytesPerStrip": 630,
+                "bytesPerFrame": 7.078651685393258
+              },
+              "strips": {
+                "stripCount": 1,
+                "frameCount": 89,
+                "averageStripLength": 89,
+                "minimumStripLength": 89,
+                "maximumStripLength": 89,
+                "retainedDeltaCount": 1
+              }
+            }
+          }
+        },
+        {
+          "run": 0,
+          "direction": "down",
+          "stripCount": 0,
+          "frameCount": 0,
+          "processMemory": {
+            "scope": "shared-process-not-attributable-to-one-replica",
+            "rssBytes": 402776064,
+            "heapTotalBytes": 259284992,
+            "heapUsedBytes": 114912344,
+            "externalBytes": 96106682,
+            "arrayBufferBytes": 102216
+          },
+          "replicas": {
+            "A": {
+              "operations": {
+                "apply.random": {
+                  "count": 19999,
+                  "totalNanoseconds": 648486000,
+                  "averageNanoseconds": 32425.921296064804,
+                  "operationsPerSecond": 30839.524677479545,
+                  "minimumNanoseconds": 2700,
+                  "maximumNanoseconds": 2361100
+                },
+                "insert.head": {
+                  "count": 5000,
+                  "totalNanoseconds": 5226400,
+                  "averageNanoseconds": 1045.28,
+                  "operationsPerSecond": 956681.4633399664,
+                  "minimumNanoseconds": 400,
+                  "maximumNanoseconds": 48900
+                },
+                "insert.random": {
+                  "count": 20000,
+                  "totalNanoseconds": 255365600,
+                  "averageNanoseconds": 12768.28,
+                  "operationsPerSecond": 78319.08448123005,
+                  "minimumNanoseconds": 500,
+                  "maximumNanoseconds": 1841400
+                },
+                "insert.tail": {
+                  "count": 5000,
+                  "totalNanoseconds": 4164400,
+                  "averageNanoseconds": 832.88,
+                  "operationsPerSecond": 1200653.155316492,
+                  "minimumNanoseconds": 300,
+                  "maximumNanoseconds": 66500
+                },
+                "remove.head": {
+                  "count": 5000,
+                  "totalNanoseconds": 13143900,
+                  "averageNanoseconds": 2628.78,
+                  "operationsPerSecond": 380404.5983307846,
+                  "minimumNanoseconds": 1400,
+                  "maximumNanoseconds": 74400
+                },
+                "remove.random": {
+                  "count": 20000,
+                  "totalNanoseconds": 329400300,
+                  "averageNanoseconds": 16470.015,
+                  "operationsPerSecond": 60716.39886181039,
+                  "minimumNanoseconds": 1100,
+                  "maximumNanoseconds": 915900
+                },
+                "remove.tail": {
+                  "count": 5000,
+                  "totalNanoseconds": 12760200,
+                  "averageNanoseconds": 2552.04,
+                  "operationsPerSecond": 391843.3880346703,
+                  "minimumNanoseconds": 1500,
+                  "maximumNanoseconds": 50300
+                },
+                "replace.head": {
+                  "count": 20000,
+                  "totalNanoseconds": 62466700,
+                  "averageNanoseconds": 3123.335,
+                  "operationsPerSecond": 320170.5868886943,
+                  "minimumNanoseconds": 1500,
+                  "maximumNanoseconds": 4457400
+                },
+                "replace.random": {
+                  "count": 20000,
+                  "totalNanoseconds": 348380700,
+                  "averageNanoseconds": 17419.035,
+                  "operationsPerSecond": 57408.461490547554,
+                  "minimumNanoseconds": 1600,
+                  "maximumNanoseconds": 7005000
+                },
+                "replace.tail": {
+                  "count": 20000,
+                  "totalNanoseconds": 57238600,
+                  "averageNanoseconds": 2861.93,
+                  "operationsPerSecond": 349414.5559115702,
+                  "minimumNanoseconds": 1300,
+                  "maximumNanoseconds": 3008400
+                },
+                "value.head": {
+                  "count": 20000,
+                  "totalNanoseconds": 8623100,
+                  "averageNanoseconds": 431.155,
+                  "operationsPerSecond": 2319351.509317995,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 120900
+                },
+                "value.random": {
+                  "count": 20000,
+                  "totalNanoseconds": 278240600,
+                  "averageNanoseconds": 13912.03,
+                  "operationsPerSecond": 71880.23602594301,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 351600
+                },
+                "value.tail": {
+                  "count": 20000,
+                  "totalNanoseconds": 6804600,
+                  "averageNanoseconds": 340.23,
+                  "operationsPerSecond": 2939188.196220204,
+                  "minimumNanoseconds": 100,
+                  "maximumNanoseconds": 43600
+                }
+              },
+              "management": {
+                "create": {
+                  "count": 1,
+                  "totalNanoseconds": 39000,
+                  "averageNanoseconds": 39000,
+                  "operationsPerSecond": 25641.02564102564,
+                  "minimumNanoseconds": 39000,
+                  "maximumNanoseconds": 39000
+                },
+                "sequence": {
+                  "count": 1,
+                  "totalNanoseconds": 14600,
+                  "averageNanoseconds": 14600,
+                  "operationsPerSecond": 68493.1506849315,
+                  "minimumNanoseconds": 14600,
+                  "maximumNanoseconds": 14600
+                },
+                "values": {
+                  "count": 1,
+                  "totalNanoseconds": 25000,
+                  "averageNanoseconds": 25000,
+                  "operationsPerSecond": 40000,
+                  "minimumNanoseconds": 25000,
+                  "maximumNanoseconds": 25000
+                }
+              },
+              "memory": {
+                "bytes": 20,
+                "bytesPerStrip": null,
+                "bytesPerFrame": null,
+                "measurement": "estimated-sequence-words-plus-js-footage-slots",
+                "sequenceMetadataWordBytes": 20,
+                "javascriptFootageSlotBytes": 0
+              },
+              "storage": {
+                "serialization": "node:v8.serialize",
+                "sequenceBytes": 37,
+                "bytesPerStrip": null,
+                "bytesPerFrame": null
+              },
+              "strips": {
+                "stripCount": 0,
+                "frameCount": 0,
+                "averageStripLength": null,
+                "minimumStripLength": null,
+                "maximumStripLength": null,
+                "retainedDeltaCount": 0
+              }
+            }
+          }
+        }
+      ],
+      "replicas": {
+        "A": {
+          "operations": {
+            "scaleUp": {
+              "apply.random": {
+                "count": 10000,
+                "totalNanoseconds": 232679300,
+                "averageNanoseconds": 23267.93,
+                "operationsPerSecond": 42977.609095437365,
+                "minimumNanoseconds": 2700,
+                "maximumNanoseconds": 420700
+              },
+              "insert.head": {
+                "count": 5000,
+                "totalNanoseconds": 5226400,
+                "averageNanoseconds": 1045.28,
+                "operationsPerSecond": 956681.4633399664,
+                "minimumNanoseconds": 400,
+                "maximumNanoseconds": 48900
+              },
+              "insert.random": {
+                "count": 10000,
+                "totalNanoseconds": 87492000,
+                "averageNanoseconds": 8749.2,
+                "operationsPerSecond": 114296.16422072874,
+                "minimumNanoseconds": 500,
+                "maximumNanoseconds": 1841400
+              },
+              "insert.tail": {
+                "count": 5000,
+                "totalNanoseconds": 4164400,
+                "averageNanoseconds": 832.88,
+                "operationsPerSecond": 1200653.155316492,
+                "minimumNanoseconds": 300,
+                "maximumNanoseconds": 66500
+              },
+              "remove.head": {
+                "count": 0,
+                "totalNanoseconds": 0,
+                "averageNanoseconds": null,
+                "operationsPerSecond": null,
+                "minimumNanoseconds": null,
+                "maximumNanoseconds": null
+              },
+              "remove.random": {
+                "count": 10000,
+                "totalNanoseconds": 123119900,
+                "averageNanoseconds": 12311.99,
+                "operationsPerSecond": 81221.63841913451,
+                "minimumNanoseconds": 1100,
+                "maximumNanoseconds": 915900
+              },
+              "remove.tail": {
+                "count": 0,
+                "totalNanoseconds": 0,
+                "averageNanoseconds": null,
+                "operationsPerSecond": null,
+                "minimumNanoseconds": null,
+                "maximumNanoseconds": null
+              },
+              "replace.head": {
+                "count": 10000,
+                "totalNanoseconds": 26572700,
+                "averageNanoseconds": 2657.27,
+                "operationsPerSecond": 376326.07902095007,
+                "minimumNanoseconds": 1500,
+                "maximumNanoseconds": 976200
+              },
+              "replace.random": {
+                "count": 10000,
+                "totalNanoseconds": 130514000,
+                "averageNanoseconds": 13051.4,
+                "operationsPerSecond": 76620.13270606985,
+                "minimumNanoseconds": 1600,
+                "maximumNanoseconds": 2066600
+              },
+              "replace.tail": {
+                "count": 10000,
+                "totalNanoseconds": 23827000,
+                "averageNanoseconds": 2382.7,
+                "operationsPerSecond": 419691.94611155416,
+                "minimumNanoseconds": 1300,
+                "maximumNanoseconds": 544700
+              },
+              "value.head": {
+                "count": 10000,
+                "totalNanoseconds": 2929100,
+                "averageNanoseconds": 292.91,
+                "operationsPerSecond": 3414017.957734457,
+                "minimumNanoseconds": 100,
+                "maximumNanoseconds": 22100
+              },
+              "value.random": {
+                "count": 10000,
+                "totalNanoseconds": 101976300,
+                "averageNanoseconds": 10197.63,
+                "operationsPerSecond": 98062.00068055029,
+                "minimumNanoseconds": 100,
+                "maximumNanoseconds": 184600
+              },
+              "value.tail": {
+                "count": 10000,
+                "totalNanoseconds": 2233700,
+                "averageNanoseconds": 223.37,
+                "operationsPerSecond": 4476876.930653176,
+                "minimumNanoseconds": 100,
+                "maximumNanoseconds": 24100
+              }
+            },
+            "scaleDown": {
+              "apply.random": {
+                "count": 9999,
+                "totalNanoseconds": 415806700,
+                "averageNanoseconds": 41584.82848284829,
+                "operationsPerSecond": 24047.231562165784,
+                "minimumNanoseconds": 3300,
+                "maximumNanoseconds": 2361100
+              },
+              "insert.head": {
+                "count": 0,
+                "totalNanoseconds": 0,
+                "averageNanoseconds": null,
+                "operationsPerSecond": null,
+                "minimumNanoseconds": null,
+                "maximumNanoseconds": null
+              },
+              "insert.random": {
+                "count": 10000,
+                "totalNanoseconds": 167873600,
+                "averageNanoseconds": 16787.36,
+                "operationsPerSecond": 59568.627824744326,
+                "minimumNanoseconds": 700,
+                "maximumNanoseconds": 344100
+              },
+              "insert.tail": {
+                "count": 0,
+                "totalNanoseconds": 0,
+                "averageNanoseconds": null,
+                "operationsPerSecond": null,
+                "minimumNanoseconds": null,
+                "maximumNanoseconds": null
+              },
+              "remove.head": {
+                "count": 5000,
+                "totalNanoseconds": 13143900,
+                "averageNanoseconds": 2628.78,
+                "operationsPerSecond": 380404.5983307846,
+                "minimumNanoseconds": 1400,
+                "maximumNanoseconds": 74400
+              },
+              "remove.random": {
+                "count": 10000,
+                "totalNanoseconds": 206280400,
+                "averageNanoseconds": 20628.04,
+                "operationsPerSecond": 48477.70316520619,
+                "minimumNanoseconds": 1500,
+                "maximumNanoseconds": 184000
+              },
+              "remove.tail": {
+                "count": 5000,
+                "totalNanoseconds": 12760200,
+                "averageNanoseconds": 2552.04,
+                "operationsPerSecond": 391843.3880346703,
+                "minimumNanoseconds": 1500,
+                "maximumNanoseconds": 50300
+              },
+              "replace.head": {
+                "count": 10000,
+                "totalNanoseconds": 35894000,
+                "averageNanoseconds": 3589.4,
+                "operationsPerSecond": 278598.0943890344,
+                "minimumNanoseconds": 1700,
+                "maximumNanoseconds": 4457400
+              },
+              "replace.random": {
+                "count": 10000,
+                "totalNanoseconds": 217866700,
+                "averageNanoseconds": 21786.67,
+                "operationsPerSecond": 45899.625780351016,
+                "minimumNanoseconds": 1600,
+                "maximumNanoseconds": 7005000
+              },
+              "replace.tail": {
+                "count": 10000,
+                "totalNanoseconds": 33411600,
+                "averageNanoseconds": 3341.16,
+                "operationsPerSecond": 299297.2500568665,
+                "minimumNanoseconds": 1600,
+                "maximumNanoseconds": 3008400
+              },
+              "value.head": {
+                "count": 10000,
+                "totalNanoseconds": 5694000,
+                "averageNanoseconds": 569.4,
+                "operationsPerSecond": 1756234.6329469618,
+                "minimumNanoseconds": 100,
+                "maximumNanoseconds": 120900
+              },
+              "value.random": {
+                "count": 10000,
+                "totalNanoseconds": 176264300,
+                "averageNanoseconds": 17626.43,
+                "operationsPerSecond": 56732.98563577537,
+                "minimumNanoseconds": 100,
+                "maximumNanoseconds": 351600
+              },
+              "value.tail": {
+                "count": 10000,
+                "totalNanoseconds": 4570900,
+                "averageNanoseconds": 457.09,
+                "operationsPerSecond": 2187752.9589358773,
+                "minimumNanoseconds": 100,
+                "maximumNanoseconds": 43600
+              }
+            },
+            "fullLifecycle": {
+              "apply.random": {
+                "count": 19999,
+                "totalNanoseconds": 648486000,
+                "averageNanoseconds": 32425.921296064804,
+                "operationsPerSecond": 30839.524677479545,
+                "minimumNanoseconds": 2700,
+                "maximumNanoseconds": 2361100
+              },
+              "insert.head": {
+                "count": 5000,
+                "totalNanoseconds": 5226400,
+                "averageNanoseconds": 1045.28,
+                "operationsPerSecond": 956681.4633399664,
+                "minimumNanoseconds": 400,
+                "maximumNanoseconds": 48900
+              },
+              "insert.random": {
+                "count": 20000,
+                "totalNanoseconds": 255365600,
+                "averageNanoseconds": 12768.28,
+                "operationsPerSecond": 78319.08448123005,
+                "minimumNanoseconds": 500,
+                "maximumNanoseconds": 1841400
+              },
+              "insert.tail": {
+                "count": 5000,
+                "totalNanoseconds": 4164400,
+                "averageNanoseconds": 832.88,
+                "operationsPerSecond": 1200653.155316492,
+                "minimumNanoseconds": 300,
+                "maximumNanoseconds": 66500
+              },
+              "remove.head": {
+                "count": 5000,
+                "totalNanoseconds": 13143900,
+                "averageNanoseconds": 2628.78,
+                "operationsPerSecond": 380404.5983307846,
+                "minimumNanoseconds": 1400,
+                "maximumNanoseconds": 74400
+              },
+              "remove.random": {
+                "count": 20000,
+                "totalNanoseconds": 329400300,
+                "averageNanoseconds": 16470.015,
+                "operationsPerSecond": 60716.39886181039,
+                "minimumNanoseconds": 1100,
+                "maximumNanoseconds": 915900
+              },
+              "remove.tail": {
+                "count": 5000,
+                "totalNanoseconds": 12760200,
+                "averageNanoseconds": 2552.04,
+                "operationsPerSecond": 391843.3880346703,
+                "minimumNanoseconds": 1500,
+                "maximumNanoseconds": 50300
+              },
+              "replace.head": {
+                "count": 20000,
+                "totalNanoseconds": 62466700,
+                "averageNanoseconds": 3123.335,
+                "operationsPerSecond": 320170.5868886943,
+                "minimumNanoseconds": 1500,
+                "maximumNanoseconds": 4457400
+              },
+              "replace.random": {
+                "count": 20000,
+                "totalNanoseconds": 348380700,
+                "averageNanoseconds": 17419.035,
+                "operationsPerSecond": 57408.461490547554,
+                "minimumNanoseconds": 1600,
+                "maximumNanoseconds": 7005000
+              },
+              "replace.tail": {
+                "count": 20000,
+                "totalNanoseconds": 57238600,
+                "averageNanoseconds": 2861.93,
+                "operationsPerSecond": 349414.5559115702,
+                "minimumNanoseconds": 1300,
+                "maximumNanoseconds": 3008400
+              },
+              "value.head": {
+                "count": 20000,
+                "totalNanoseconds": 8623100,
+                "averageNanoseconds": 431.155,
+                "operationsPerSecond": 2319351.509317995,
+                "minimumNanoseconds": 100,
+                "maximumNanoseconds": 120900
+              },
+              "value.random": {
+                "count": 20000,
+                "totalNanoseconds": 278240600,
+                "averageNanoseconds": 13912.03,
+                "operationsPerSecond": 71880.23602594301,
+                "minimumNanoseconds": 100,
+                "maximumNanoseconds": 351600
+              },
+              "value.tail": {
+                "count": 20000,
+                "totalNanoseconds": 6804600,
+                "averageNanoseconds": 340.23,
+                "operationsPerSecond": 2939188.196220204,
+                "minimumNanoseconds": 100,
+                "maximumNanoseconds": 43600
+              }
+            }
+          },
+          "spaceAverages": {
+            "scaleUp": {
+              "memoryBytesPerFrame": {
+                "observationCount": 5,
+                "totalBytes": 4724124,
+                "totalUnits": 557170,
+                "averageBytesPerUnit": 8.478783854119927
+              },
+              "memoryBytesPerStrip": {
+                "observationCount": 5,
+                "totalBytes": 4724124,
+                "totalUnits": 11111,
+                "averageBytesPerUnit": 425.17541175411753
+              },
+              "storageBytesPerFrame": {
+                "observationCount": 5,
+                "totalBytes": 2727489,
+                "totalUnits": 557170,
+                "averageBytesPerUnit": 4.8952545901609925
+              },
+              "storageBytesPerStrip": {
+                "observationCount": 5,
+                "totalBytes": 2727489,
+                "totalUnits": 11111,
+                "averageBytesPerUnit": 245.47646476464766
+              }
+            },
+            "scaleDown": {
+              "memoryBytesPerFrame": {
+                "observationCount": 4,
+                "totalBytes": 465840,
+                "totalUnits": 54887,
+                "averageBytesPerUnit": 8.487255634303205
+              },
+              "memoryBytesPerStrip": {
+                "observationCount": 4,
+                "totalBytes": 465840,
+                "totalUnits": 1111,
+                "averageBytesPerUnit": 419.2979297929793
+              },
+              "storageBytesPerFrame": {
+                "observationCount": 4,
+                "totalBytes": 270859,
+                "totalUnits": 54887,
+                "averageBytesPerUnit": 4.934847960354911
+              },
+              "storageBytesPerStrip": {
+                "observationCount": 4,
+                "totalBytes": 270859,
+                "totalUnits": 1111,
+                "averageBytesPerUnit": 243.7974797479748
+              }
+            },
+            "fullLifecycle": {
+              "memoryBytesPerFrame": {
+                "observationCount": 9,
+                "totalBytes": 5189964,
+                "totalUnits": 612057,
+                "averageBytesPerUnit": 8.479543571922223
+              },
+              "memoryBytesPerStrip": {
+                "observationCount": 9,
+                "totalBytes": 5189964,
+                "totalUnits": 12222,
+                "averageBytesPerUnit": 424.64113892979873
+              },
+              "storageBytesPerFrame": {
+                "observationCount": 9,
+                "totalBytes": 2998348,
+                "totalUnits": 612057,
+                "averageBytesPerUnit": 4.898805176642044
+              },
+              "storageBytesPerStrip": {
+                "observationCount": 9,
+                "totalBytes": 2998348,
+                "totalUnits": 12222,
+                "averageBytesPerUnit": 245.3238422516773
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "aggregates": {
+    "A": {
+      "scaleUp": {
+        "apply.random": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 232679300,
+          "sampleWeightedAverageNanoseconds": 23267.93,
+          "sampleWeightedOperationsPerSecond": 42977.609095437365,
+          "meanRunAverageNanoseconds": 23267.93,
+          "medianRunAverageNanoseconds": 23267.93,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 23267.93
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 23267.93
+          }
+        },
+        "create": {
+          "runCount": 1,
+          "totalSampleCount": 6,
+          "totalNanoseconds": 3809500,
+          "sampleWeightedAverageNanoseconds": 634916.6666666666,
+          "sampleWeightedOperationsPerSecond": 1575.0098438115238,
+          "meanRunAverageNanoseconds": 634916.6666666666,
+          "medianRunAverageNanoseconds": 634916.6666666666,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 634916.6666666666
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 634916.6666666666
+          }
+        },
+        "insert.head": {
+          "runCount": 1,
+          "totalSampleCount": 5000,
+          "totalNanoseconds": 5226400,
+          "sampleWeightedAverageNanoseconds": 1045.28,
+          "sampleWeightedOperationsPerSecond": 956681.4633399664,
+          "meanRunAverageNanoseconds": 1045.28,
+          "medianRunAverageNanoseconds": 1045.28,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 1045.28
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 1045.28
+          }
+        },
+        "insert.random": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 87492000,
+          "sampleWeightedAverageNanoseconds": 8749.2,
+          "sampleWeightedOperationsPerSecond": 114296.16422072875,
+          "meanRunAverageNanoseconds": 8749.2,
+          "medianRunAverageNanoseconds": 8749.2,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 8749.2
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 8749.2
+          }
+        },
+        "insert.tail": {
+          "runCount": 1,
+          "totalSampleCount": 5000,
+          "totalNanoseconds": 4164400,
+          "sampleWeightedAverageNanoseconds": 832.88,
+          "sampleWeightedOperationsPerSecond": 1200653.155316492,
+          "meanRunAverageNanoseconds": 832.88,
+          "medianRunAverageNanoseconds": 832.88,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 832.88
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 832.88
+          }
+        },
+        "remove.head": {
+          "runCount": 0,
+          "totalSampleCount": 0,
+          "totalNanoseconds": 0,
+          "sampleWeightedAverageNanoseconds": null,
+          "sampleWeightedOperationsPerSecond": null,
+          "meanRunAverageNanoseconds": null,
+          "medianRunAverageNanoseconds": null,
+          "standardDeviationNanoseconds": null,
+          "minimumRun": null,
+          "maximumRun": null
+        },
+        "remove.random": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 123119900,
+          "sampleWeightedAverageNanoseconds": 12311.99,
+          "sampleWeightedOperationsPerSecond": 81221.63841913451,
+          "meanRunAverageNanoseconds": 12311.99,
+          "medianRunAverageNanoseconds": 12311.99,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 12311.99
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 12311.99
+          }
+        },
+        "remove.tail": {
+          "runCount": 0,
+          "totalSampleCount": 0,
+          "totalNanoseconds": 0,
+          "sampleWeightedAverageNanoseconds": null,
+          "sampleWeightedOperationsPerSecond": null,
+          "meanRunAverageNanoseconds": null,
+          "medianRunAverageNanoseconds": null,
+          "standardDeviationNanoseconds": null,
+          "minimumRun": null,
+          "maximumRun": null
+        },
+        "replace.head": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 26572700,
+          "sampleWeightedAverageNanoseconds": 2657.27,
+          "sampleWeightedOperationsPerSecond": 376326.07902095007,
+          "meanRunAverageNanoseconds": 2657.27,
+          "medianRunAverageNanoseconds": 2657.27,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 2657.27
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 2657.27
+          }
+        },
+        "replace.random": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 130514000,
+          "sampleWeightedAverageNanoseconds": 13051.4,
+          "sampleWeightedOperationsPerSecond": 76620.13270606985,
+          "meanRunAverageNanoseconds": 13051.4,
+          "medianRunAverageNanoseconds": 13051.4,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 13051.4
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 13051.4
+          }
+        },
+        "replace.tail": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 23827000,
+          "sampleWeightedAverageNanoseconds": 2382.7,
+          "sampleWeightedOperationsPerSecond": 419691.9461115541,
+          "meanRunAverageNanoseconds": 2382.7,
+          "medianRunAverageNanoseconds": 2382.7,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 2382.7
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 2382.7
+          }
+        },
+        "sequence": {
+          "runCount": 1,
+          "totalSampleCount": 5,
+          "totalNanoseconds": 29143300,
+          "sampleWeightedAverageNanoseconds": 5828660,
+          "sampleWeightedOperationsPerSecond": 171.56602032027945,
+          "meanRunAverageNanoseconds": 5828660,
+          "medianRunAverageNanoseconds": 5828660,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 5828660
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 5828660
+          }
+        },
+        "value.head": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 2929100,
+          "sampleWeightedAverageNanoseconds": 292.91,
+          "sampleWeightedOperationsPerSecond": 3414017.9577344577,
+          "meanRunAverageNanoseconds": 292.91,
+          "medianRunAverageNanoseconds": 292.91,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 292.91
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 292.91
+          }
+        },
+        "value.random": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 101976300,
+          "sampleWeightedAverageNanoseconds": 10197.63,
+          "sampleWeightedOperationsPerSecond": 98062.00068055028,
+          "meanRunAverageNanoseconds": 10197.63,
+          "medianRunAverageNanoseconds": 10197.63,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 10197.63
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 10197.63
+          }
+        },
+        "value.tail": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 2233700,
+          "sampleWeightedAverageNanoseconds": 223.37,
+          "sampleWeightedOperationsPerSecond": 4476876.930653176,
+          "meanRunAverageNanoseconds": 223.37,
+          "medianRunAverageNanoseconds": 223.37,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 223.37
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 223.37
+          }
+        },
+        "values": {
+          "runCount": 1,
+          "totalSampleCount": 5,
+          "totalNanoseconds": 10792700,
+          "sampleWeightedAverageNanoseconds": 2158540,
+          "sampleWeightedOperationsPerSecond": 463.27610329204,
+          "meanRunAverageNanoseconds": 2158540,
+          "medianRunAverageNanoseconds": 2158540,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 2158540
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 2158540
+          }
+        }
+      },
+      "scaleDown": {
+        "apply.random": {
+          "runCount": 1,
+          "totalSampleCount": 9999,
+          "totalNanoseconds": 415806700,
+          "sampleWeightedAverageNanoseconds": 41584.82848284829,
+          "sampleWeightedOperationsPerSecond": 24047.231562165784,
+          "meanRunAverageNanoseconds": 41584.82848284829,
+          "medianRunAverageNanoseconds": 41584.82848284829,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 41584.82848284829
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 41584.82848284829
+          }
+        },
+        "create": {
+          "runCount": 1,
+          "totalSampleCount": 5,
+          "totalNanoseconds": 573000,
+          "sampleWeightedAverageNanoseconds": 114600,
+          "sampleWeightedOperationsPerSecond": 8726.003490401396,
+          "meanRunAverageNanoseconds": 114600,
+          "medianRunAverageNanoseconds": 114600,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 114600
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 114600
+          }
+        },
+        "insert.head": {
+          "runCount": 0,
+          "totalSampleCount": 0,
+          "totalNanoseconds": 0,
+          "sampleWeightedAverageNanoseconds": null,
+          "sampleWeightedOperationsPerSecond": null,
+          "meanRunAverageNanoseconds": null,
+          "medianRunAverageNanoseconds": null,
+          "standardDeviationNanoseconds": null,
+          "minimumRun": null,
+          "maximumRun": null
+        },
+        "insert.random": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 167873600,
+          "sampleWeightedAverageNanoseconds": 16787.36,
+          "sampleWeightedOperationsPerSecond": 59568.62782474433,
+          "meanRunAverageNanoseconds": 16787.36,
+          "medianRunAverageNanoseconds": 16787.36,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 16787.36
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 16787.36
+          }
+        },
+        "insert.tail": {
+          "runCount": 0,
+          "totalSampleCount": 0,
+          "totalNanoseconds": 0,
+          "sampleWeightedAverageNanoseconds": null,
+          "sampleWeightedOperationsPerSecond": null,
+          "meanRunAverageNanoseconds": null,
+          "medianRunAverageNanoseconds": null,
+          "standardDeviationNanoseconds": null,
+          "minimumRun": null,
+          "maximumRun": null
+        },
+        "remove.head": {
+          "runCount": 1,
+          "totalSampleCount": 5000,
+          "totalNanoseconds": 13143900,
+          "sampleWeightedAverageNanoseconds": 2628.78,
+          "sampleWeightedOperationsPerSecond": 380404.59833078465,
+          "meanRunAverageNanoseconds": 2628.78,
+          "medianRunAverageNanoseconds": 2628.78,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 2628.78
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 2628.78
+          }
+        },
+        "remove.random": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 206280400,
+          "sampleWeightedAverageNanoseconds": 20628.04,
+          "sampleWeightedOperationsPerSecond": 48477.70316520619,
+          "meanRunAverageNanoseconds": 20628.04,
+          "medianRunAverageNanoseconds": 20628.04,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 20628.04
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 20628.04
+          }
+        },
+        "remove.tail": {
+          "runCount": 1,
+          "totalSampleCount": 5000,
+          "totalNanoseconds": 12760200,
+          "sampleWeightedAverageNanoseconds": 2552.04,
+          "sampleWeightedOperationsPerSecond": 391843.3880346703,
+          "meanRunAverageNanoseconds": 2552.04,
+          "medianRunAverageNanoseconds": 2552.04,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 2552.04
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 2552.04
+          }
+        },
+        "replace.head": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 35894000,
+          "sampleWeightedAverageNanoseconds": 3589.4,
+          "sampleWeightedOperationsPerSecond": 278598.0943890344,
+          "meanRunAverageNanoseconds": 3589.4,
+          "medianRunAverageNanoseconds": 3589.4,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 3589.4
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 3589.4
+          }
+        },
+        "replace.random": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 217866700,
+          "sampleWeightedAverageNanoseconds": 21786.67,
+          "sampleWeightedOperationsPerSecond": 45899.625780351016,
+          "meanRunAverageNanoseconds": 21786.67,
+          "medianRunAverageNanoseconds": 21786.67,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 21786.67
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 21786.67
+          }
+        },
+        "replace.tail": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 33411600,
+          "sampleWeightedAverageNanoseconds": 3341.16,
+          "sampleWeightedOperationsPerSecond": 299297.2500568665,
+          "meanRunAverageNanoseconds": 3341.16,
+          "medianRunAverageNanoseconds": 3341.16,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 3341.16
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 3341.16
+          }
+        },
+        "sequence": {
+          "runCount": 1,
+          "totalSampleCount": 5,
+          "totalNanoseconds": 230075600,
+          "sampleWeightedAverageNanoseconds": 46015120,
+          "sampleWeightedOperationsPerSecond": 21.73198722506863,
+          "meanRunAverageNanoseconds": 46015120,
+          "medianRunAverageNanoseconds": 46015120,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 46015120
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 46015120
+          }
+        },
+        "value.head": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 5694000,
+          "sampleWeightedAverageNanoseconds": 569.4,
+          "sampleWeightedOperationsPerSecond": 1756234.6329469618,
+          "meanRunAverageNanoseconds": 569.4,
+          "medianRunAverageNanoseconds": 569.4,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 569.4
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 569.4
+          }
+        },
+        "value.random": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 176264300,
+          "sampleWeightedAverageNanoseconds": 17626.43,
+          "sampleWeightedOperationsPerSecond": 56732.98563577537,
+          "meanRunAverageNanoseconds": 17626.43,
+          "medianRunAverageNanoseconds": 17626.43,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 17626.43
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 17626.43
+          }
+        },
+        "value.tail": {
+          "runCount": 1,
+          "totalSampleCount": 10000,
+          "totalNanoseconds": 4570900,
+          "sampleWeightedAverageNanoseconds": 457.09,
+          "sampleWeightedOperationsPerSecond": 2187752.958935877,
+          "meanRunAverageNanoseconds": 457.09,
+          "medianRunAverageNanoseconds": 457.09,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 457.09
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 457.09
+          }
+        },
+        "values": {
+          "runCount": 1,
+          "totalSampleCount": 5,
+          "totalNanoseconds": 2726200,
+          "sampleWeightedAverageNanoseconds": 545240,
+          "sampleWeightedOperationsPerSecond": 1834.0547281930892,
+          "meanRunAverageNanoseconds": 545240,
+          "medianRunAverageNanoseconds": 545240,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 545240
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 545240
+          }
+        }
+      },
+      "fullLifecycle": {
+        "apply.random": {
+          "runCount": 1,
+          "totalSampleCount": 19999,
+          "totalNanoseconds": 648486000,
+          "sampleWeightedAverageNanoseconds": 32425.921296064804,
+          "sampleWeightedOperationsPerSecond": 30839.524677479545,
+          "meanRunAverageNanoseconds": 32425.921296064804,
+          "medianRunAverageNanoseconds": 32425.921296064804,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 32425.921296064804
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 32425.921296064804
+          }
+        },
+        "create": {
+          "runCount": 1,
+          "totalSampleCount": 11,
+          "totalNanoseconds": 4382500,
+          "sampleWeightedAverageNanoseconds": 398409.0909090909,
+          "sampleWeightedOperationsPerSecond": 2509.9828864803194,
+          "meanRunAverageNanoseconds": 398409.0909090909,
+          "medianRunAverageNanoseconds": 398409.0909090909,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 398409.0909090909
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 398409.0909090909
+          }
+        },
+        "insert.head": {
+          "runCount": 1,
+          "totalSampleCount": 5000,
+          "totalNanoseconds": 5226400,
+          "sampleWeightedAverageNanoseconds": 1045.28,
+          "sampleWeightedOperationsPerSecond": 956681.4633399664,
+          "meanRunAverageNanoseconds": 1045.28,
+          "medianRunAverageNanoseconds": 1045.28,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 1045.28
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 1045.28
+          }
+        },
+        "insert.random": {
+          "runCount": 1,
+          "totalSampleCount": 20000,
+          "totalNanoseconds": 255365600,
+          "sampleWeightedAverageNanoseconds": 12768.28,
+          "sampleWeightedOperationsPerSecond": 78319.08448123005,
+          "meanRunAverageNanoseconds": 12768.28,
+          "medianRunAverageNanoseconds": 12768.28,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 12768.28
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 12768.28
+          }
+        },
+        "insert.tail": {
+          "runCount": 1,
+          "totalSampleCount": 5000,
+          "totalNanoseconds": 4164400,
+          "sampleWeightedAverageNanoseconds": 832.88,
+          "sampleWeightedOperationsPerSecond": 1200653.155316492,
+          "meanRunAverageNanoseconds": 832.88,
+          "medianRunAverageNanoseconds": 832.88,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 832.88
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 832.88
+          }
+        },
+        "remove.head": {
+          "runCount": 1,
+          "totalSampleCount": 5000,
+          "totalNanoseconds": 13143900,
+          "sampleWeightedAverageNanoseconds": 2628.78,
+          "sampleWeightedOperationsPerSecond": 380404.59833078465,
+          "meanRunAverageNanoseconds": 2628.78,
+          "medianRunAverageNanoseconds": 2628.78,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 2628.78
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 2628.78
+          }
+        },
+        "remove.random": {
+          "runCount": 1,
+          "totalSampleCount": 20000,
+          "totalNanoseconds": 329400300,
+          "sampleWeightedAverageNanoseconds": 16470.015,
+          "sampleWeightedOperationsPerSecond": 60716.39886181039,
+          "meanRunAverageNanoseconds": 16470.015,
+          "medianRunAverageNanoseconds": 16470.015,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 16470.015
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 16470.015
+          }
+        },
+        "remove.tail": {
+          "runCount": 1,
+          "totalSampleCount": 5000,
+          "totalNanoseconds": 12760200,
+          "sampleWeightedAverageNanoseconds": 2552.04,
+          "sampleWeightedOperationsPerSecond": 391843.3880346703,
+          "meanRunAverageNanoseconds": 2552.04,
+          "medianRunAverageNanoseconds": 2552.04,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 2552.04
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 2552.04
+          }
+        },
+        "replace.head": {
+          "runCount": 1,
+          "totalSampleCount": 20000,
+          "totalNanoseconds": 62466700,
+          "sampleWeightedAverageNanoseconds": 3123.335,
+          "sampleWeightedOperationsPerSecond": 320170.5868886943,
+          "meanRunAverageNanoseconds": 3123.335,
+          "medianRunAverageNanoseconds": 3123.335,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 3123.335
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 3123.335
+          }
+        },
+        "replace.random": {
+          "runCount": 1,
+          "totalSampleCount": 20000,
+          "totalNanoseconds": 348380700,
+          "sampleWeightedAverageNanoseconds": 17419.035,
+          "sampleWeightedOperationsPerSecond": 57408.461490547554,
+          "meanRunAverageNanoseconds": 17419.035,
+          "medianRunAverageNanoseconds": 17419.035,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 17419.035
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 17419.035
+          }
+        },
+        "replace.tail": {
+          "runCount": 1,
+          "totalSampleCount": 20000,
+          "totalNanoseconds": 57238600,
+          "sampleWeightedAverageNanoseconds": 2861.93,
+          "sampleWeightedOperationsPerSecond": 349414.55591157015,
+          "meanRunAverageNanoseconds": 2861.93,
+          "medianRunAverageNanoseconds": 2861.93,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 2861.93
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 2861.93
+          }
+        },
+        "sequence": {
+          "runCount": 1,
+          "totalSampleCount": 10,
+          "totalNanoseconds": 259218900,
+          "sampleWeightedAverageNanoseconds": 25921890,
+          "sampleWeightedOperationsPerSecond": 38.57743397568618,
+          "meanRunAverageNanoseconds": 25921890,
+          "medianRunAverageNanoseconds": 25921890,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 25921890
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 25921890
+          }
+        },
+        "value.head": {
+          "runCount": 1,
+          "totalSampleCount": 20000,
+          "totalNanoseconds": 8623100,
+          "sampleWeightedAverageNanoseconds": 431.155,
+          "sampleWeightedOperationsPerSecond": 2319351.5093179946,
+          "meanRunAverageNanoseconds": 431.155,
+          "medianRunAverageNanoseconds": 431.155,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 431.155
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 431.155
+          }
+        },
+        "value.random": {
+          "runCount": 1,
+          "totalSampleCount": 20000,
+          "totalNanoseconds": 278240600,
+          "sampleWeightedAverageNanoseconds": 13912.03,
+          "sampleWeightedOperationsPerSecond": 71880.23602594301,
+          "meanRunAverageNanoseconds": 13912.03,
+          "medianRunAverageNanoseconds": 13912.03,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 13912.03
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 13912.03
+          }
+        },
+        "value.tail": {
+          "runCount": 1,
+          "totalSampleCount": 20000,
+          "totalNanoseconds": 6804600,
+          "sampleWeightedAverageNanoseconds": 340.23,
+          "sampleWeightedOperationsPerSecond": 2939188.196220204,
+          "meanRunAverageNanoseconds": 340.23,
+          "medianRunAverageNanoseconds": 340.23,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 340.23
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 340.23
+          }
+        },
+        "values": {
+          "runCount": 1,
+          "totalSampleCount": 10,
+          "totalNanoseconds": 13518900,
+          "sampleWeightedAverageNanoseconds": 1351890,
+          "sampleWeightedOperationsPerSecond": 739.7051535258046,
+          "meanRunAverageNanoseconds": 1351890,
+          "medianRunAverageNanoseconds": 1351890,
+          "standardDeviationNanoseconds": 0,
+          "minimumRun": {
+            "run": 0,
+            "averageNanoseconds": 1351890
+          },
+          "maximumRun": {
+            "run": 0,
+            "averageNanoseconds": 1351890
+          }
+        }
+      }
+    }
+  },
+  "spaceAggregates": {
+    "A": {
+      "scaleUp": {
+        "memoryBytesPerFrame": {
+          "observationCount": 5,
+          "totalBytes": 4724124,
+          "totalUnits": 557170,
+          "averageBytesPerUnit": 8.478783854119927
+        },
+        "memoryBytesPerStrip": {
+          "observationCount": 5,
+          "totalBytes": 4724124,
+          "totalUnits": 11111,
+          "averageBytesPerUnit": 425.17541175411753
+        },
+        "storageBytesPerFrame": {
+          "observationCount": 5,
+          "totalBytes": 2727489,
+          "totalUnits": 557170,
+          "averageBytesPerUnit": 4.8952545901609925
+        },
+        "storageBytesPerStrip": {
+          "observationCount": 5,
+          "totalBytes": 2727489,
+          "totalUnits": 11111,
+          "averageBytesPerUnit": 245.47646476464766
+        }
+      },
+      "scaleDown": {
+        "memoryBytesPerFrame": {
+          "observationCount": 4,
+          "totalBytes": 465840,
+          "totalUnits": 54887,
+          "averageBytesPerUnit": 8.487255634303205
+        },
+        "memoryBytesPerStrip": {
+          "observationCount": 4,
+          "totalBytes": 465840,
+          "totalUnits": 1111,
+          "averageBytesPerUnit": 419.2979297929793
+        },
+        "storageBytesPerFrame": {
+          "observationCount": 4,
+          "totalBytes": 270859,
+          "totalUnits": 54887,
+          "averageBytesPerUnit": 4.934847960354911
+        },
+        "storageBytesPerStrip": {
+          "observationCount": 4,
+          "totalBytes": 270859,
+          "totalUnits": 1111,
+          "averageBytesPerUnit": 243.7974797479748
+        }
+      },
+      "fullLifecycle": {
+        "memoryBytesPerFrame": {
+          "observationCount": 9,
+          "totalBytes": 5189964,
+          "totalUnits": 612057,
+          "averageBytesPerUnit": 8.479543571922223
+        },
+        "memoryBytesPerStrip": {
+          "observationCount": 9,
+          "totalBytes": 5189964,
+          "totalUnits": 12222,
+          "averageBytesPerUnit": 424.64113892979873
+        },
+        "storageBytesPerFrame": {
+          "observationCount": 9,
+          "totalBytes": 2998348,
+          "totalUnits": 612057,
+          "averageBytesPerUnit": 4.898805176642044
+        },
+        "storageBytesPerStrip": {
+          "observationCount": 9,
+          "totalBytes": 2998348,
+          "totalUnits": 12222,
+          "averageBytesPerUnit": 245.3238422516773
+        }
+      }
+    }
+  }
+}

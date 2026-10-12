@@ -1,0 +1,133 @@
+diff --git a/src/c++/auxiliary/extendInsertion.cpp b/src/c++/auxiliary/extendInsertion.cpp
+index 9f3cc99..1badac0 100644
+--- a/src/c++/auxiliary/extendInsertion.cpp
++++ b/src/c++/auxiliary/extendInsertion.cpp
+@@ -34,7 +34,7 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
+     for (auto fragment = origin; fragment; fragment = strips.fragment[fragment]) {
+       strips.identity[fragment].coordinates.diff += std::int32_t(count);
+       strips.identity[fragment].content_start = 0;
+-      strips.identity[fragment].content_owned = true;
++      strips.owned[fragment] = true;
+     }
+     return at;
+   }
+@@ -47,8 +47,8 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
+   auto grown = original;
+   grown.coordinates.diff += std::int32_t(count);
+   grown.content_start = 0;
+-  grown.content_owned = true;
+   strips.identity[incoming] = grown;
++  strips.owned[incoming] = true;
+   strips.fragment_start[incoming] = end;
+   strips.fragment_diff[incoming] = std::int32_t(count);
+   strips.offset[incoming] = strips.fragmented[incoming] = true;
+@@ -57,7 +57,7 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
+   for (auto fragment = origin; fragment; fragment = strips.fragment[fragment]) {
+     strips.identity[fragment].coordinates.diff = grown.coordinates.diff;
+     strips.identity[fragment].content_start = 0;
+-    strips.identity[fragment].content_owned = true;
++    strips.owned[fragment] = true;
+     strips.fragmented[fragment] = true;
+   }
+   strips.fragment[last] = incoming;
+diff --git a/src/c++/auxiliary/ownContent.cpp b/src/c++/auxiliary/ownContent.cpp
+index 9391d0f..3f7d811 100644
+--- a/src/c++/auxiliary/ownContent.cpp
++++ b/src/c++/auxiliary/ownContent.cpp
+@@ -3,13 +3,13 @@
+ namespace sequencer {
+ void Projection::own_content(Index fragment) {
+   const auto original = strips.identity[fragment];
+-  if (!original.content || original.content_owned)
++  if (!original.content || strips.owned[fragment])
+     return;
+   const auto root = containment.get(original.coordinates.session, original.coordinates.start);
+   copied.push_back({original.content, original.content_start, Word(original.coordinates.diff)});
+   for (auto i = root; i; i = strips.fragment[i]) {
+     strips.identity[i].content_start = 0;
+-    strips.identity[i].content_owned = true;
++    strips.owned[i] = true;
+   }
+ }
+ } // namespace sequencer
+diff --git a/src/c++/auxiliary/splitStrip.cpp b/src/c++/auxiliary/splitStrip.cpp
+index 98150b4..6d51ec8 100644
+--- a/src/c++/auxiliary/splitStrip.cpp
++++ b/src/c++/auxiliary/splitStrip.cpp
+@@ -20,6 +20,7 @@ Index Projection::split_strip(Index a, Word point, std::int32_t incoming_diff) {
+   if (!right_diff)
+     return old_right;
+   const auto right = allocate(original);
++  strips.owned[right] = strips.owned[a];
+   strips.fragment[right] = old_fragment;
+   strips.fragment_start[right] = point + (incoming_diff < 0 ? magnitude(incoming_diff) : 0);
+   strips.fragment_diff[right] = right_diff;
+diff --git a/src/c++/bindings.cpp b/src/c++/bindings.cpp
+index 7d9f045..412f487 100644
+--- a/src/c++/bindings.cpp
++++ b/src/c++/bindings.cpp
+@@ -313,7 +313,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0,
+             out.sequence.footage[0].count != Word(source.coordinates.diff))
+           break;
+         for (auto i = root; i; i = p.strips.fragment[i])
+-          p.strips.identity[i].content_owned = false;
++          p.strips.owned[i] = false;
+         break;
+       }
+     }
+diff --git a/src/c++/types/type.hpp b/src/c++/types/type.hpp
+index fe30ec8..0122f46 100644
+--- a/src/c++/types/type.hpp
++++ b/src/c++/types/type.hpp
+@@ -31,8 +31,8 @@ struct Insertion {
+   Coordinates coordinates;
+   Word content{};
+   Word content_start{};
+-  bool content_owned{};
+ };
++static_assert(sizeof(Insertion) == 8 * sizeof(Word));
+ using Acknowledgement = std::vector<Word>;
+ struct Entry {
+   bool acknowledgement{};
+@@ -71,7 +71,7 @@ struct Strips {
+   std::int32_t *fragment_diff{};
+   Index *left{}, *right{}, *competitor{}, *fragment{}, *left_jump{}, *right_jump{};
+   Word *left_jump_frames{}, *left_jump_strips{}, *right_jump_frames{}, *right_jump_strips{};
+-  std::uint8_t *fragmented{}, *offset{};
++  std::uint8_t *fragmented{}, *offset{}, *owned{};
+ 
+   Strips() { append({}); }
+   void reserve(Word next) {
+@@ -79,7 +79,7 @@ struct Strips {
+       return;
+     constexpr Word lanes = 12;
+     auto grown = std::make_unique_for_overwrite<std::byte[]>(
+-        (sizeof(Insertion) + lanes * sizeof(Word) + 2) * next);
++        (sizeof(Insertion) + lanes * sizeof(Word) + 3) * next);
+     auto *identities = reinterpret_cast<Insertion *>(grown.get());
+     auto *fields = reinterpret_cast<Word *>(identities + next);
+     auto *bits = reinterpret_cast<std::uint8_t *>(fields + lanes * next);
+@@ -90,6 +90,7 @@ struct Strips {
+         std::memcpy(fields + field * next, old + field * capacity, count * sizeof(Word));
+       std::memcpy(bits, fragmented, count);
+       std::memcpy(bits + next, offset, count);
++      std::memcpy(bits + 2 * next, owned, count);
+     }
+     memory = std::move(grown);
+     capacity = next;
+@@ -108,6 +109,7 @@ struct Strips {
+     right_jump_strips = fields + 11 * next;
+     fragmented = bits;
+     offset = bits + next;
++    owned = bits + 2 * next;
+   }
+   Index append(Insertion insertion) {
+     constexpr Word lanes = 12;
+@@ -120,6 +122,7 @@ struct Strips {
+       std::construct_at(fields + field * capacity + index, Word(0));
+     std::construct_at(fragmented + index, std::uint8_t(0));
+     std::construct_at(offset + index, std::uint8_t(0));
++    std::construct_at(owned + index, std::uint8_t(0));
+     fragment_diff[index] = insertion.coordinates.diff;
+     return index;
+   }

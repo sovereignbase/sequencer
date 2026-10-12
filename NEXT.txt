@@ -1,117 +1,261 @@
-Tein testin Node `worker_threads` + transferable `ArrayBuffer`illa. Yksi viesti kerrallaan, worker pidettiin lämpimänä, ja mittasin erikseen `postMessage()`-kutsun sekä hetken jolloin worker oikeasti vastaanottaa viestin.
+Liitetty markdown(20261012-015925).md
+Asiakirja
+?
+Tämä tulos on jo aika hurja.
 
-Ympäristö tässä: **Node v22.16.0, Linux x64**.
+Sequencer on nopeudessa käytännössä kärjessä lähes kaikissa sille soveltuvissa sequence-benchmarkeissa, mutta samalla tämän benchmarkin perusteella sen nykyinen persistentti esitys on selvästi liian suuri.
 
-| Transferable | `postMessage()` mainissa p50 | main → worker p50 | mean | p95 | p99 |
-|---|---:|---:|---:|---:|---:|
-| 16 B | 5.5 µs | **9.3 µs** | 11.8 µs | 14.8 µs | 48.1 µs |
-| 1 KiB | 6.9 µs | **12.9 µs** | 14.4 µs | 17.6 µs | 59.6 µs |
-| 1 MiB | 5.6 µs | **9.2 µs** | 11.5 µs | 14.1 µs | 42.4 µs |
+Esimerkiksi N=6000:
 
-Eli **ei, 46 µs ei näytä olevan transferable `postMessage`in normaali kustannus**. Tässä 46 µs osuu pikemminkin p99-luokan scheduler/jitter-piikkiin.
+Benchmark	Sequencer	Diamond Types	Yjs	ywasm	Loro
+Append chars	87 ms	163 ms	369 ms	225 ms	802 ms
+Prepend chars	74 ms	117 ms	406 ms	94 ms	718 ms
+Random chars	78 ms	122 ms	398 ms	278 ms	481 ms
+Random words	106 ms	125 ms	546 ms	592 ms	530 ms
+Random numbers	71 ms	—	480 ms	238 ms	544 ms
+Eli tavallisissa sequence-operaatioissa Sequencer on noin 1.2–7.7× nopeampi kuin nuo muut toteutukset riippuen workloadista. 
+ 
+ 
+ 
 
-Oleellinen tulos on myös tämä:
+Concurrent-client-testit ovat vielä oudommat:
 
-> **16 tavua ja 1 MiB maksavat käytännössä saman verran.**
+B3.4 Array: Sequencer 9 ms, Yjs 118 ms, ywasm 73 ms, Loro 227 ms.
+B3.5 text: Sequencer 8 ms, Yjs 115 ms, ywasm 83 ms, Loro 201 ms, Diamond Types 201 ms.
+Tuossa puhutaan jo ~8–25× erosta. 
+ 
 
-Se on juuri mitä transferablelta pitäisi odottaa: itse bufferia ei kopioida workerille, vaan ownership siirtyy. Suurin kustannus on threadien välinen viestitys, queue + workerin herätys/scheduling.
+Ja ehkä kiinnostavin: real-world editing dataset:
 
-Roundtrip-testissä sain pienelle viestille:
+Sequencer: 1450 ms
+Diamond Types: 1808 ms
+Yjs: 7120 ms
+Loro: 8102 ms
+ywasm: 38900 ms
+Eli Sequencer voittaa jopa Diamond Typesin tässä noin 1.25× ja Yjs:n noin 4.9×. 
 
-```text
-main -> worker -> main
-p50 ≈ 18 µs
-```
+Mutta tässä on se todella iso mutta: docSize.
 
-eli sekin antaa noin **9 µs/suunta**.
+Real-world dataset:
 
-Jos Sequencerissa olet laskenut jotain tyyliin:
+Diamond Types: 109 kB
+Yjs: 160 kB
+Loro: 231 kB
+Sequencer: 5.0 MB
+Eli Sequencerin tallennettu representation on tällä hetkellä noin 46× Diamond Types ja 31× Yjs. 
 
-```text
-postMessage ≈ 46 µs
-```
+Sama näkyy jo append-testissä: 6000 merkkiä → Sequencer 264,909 bytes, kun Yjs on vain 6,031 bytes. 
 
-niin käyttäisin tällä perusteella ennemmin mallia:
+Lisäksi B1.7 Insert/Delete strings at random positions kaatuu tällä hetkellä Native operation 5 failed, joten sitä ei voi vielä verrata. 
 
-```text
-main -> worker transferable:
-tyypillinen: ~9–13 µs
-p95:         ~15–18 µs
-p99:         ~40–60 µs
-```
+Eli tässä vaiheessa sanoisin:
 
-Ja itse main threadin blokkaava:
+Suorituskykyongelma alkaa näyttää käytännössä ratkaistulta. Nyt kaikkein selkein heikkous ei ole CPU vaan representation/storage overhead.
 
-```text
-worker.postMessage(...)
-≈ 5–7 µs
-```
+Ja mikä tässä on erityisen kiinnostavaa: nämä luvut ovat vielä JS API → C++/WASM -toteutuksesta, eivät native-C++ benchmarkista. Jos benchmark on muuten apples-to-apples adapterien suhteen, tuo B3/B4-tulos on oikeasti erittäin kova.
 
-Tuo viimeinen on tärkeä: **~10 µs delivery latency ei tarkoita, että main thread olisi blokissa 10 µs**. Main thread on tässä blokissa vain noin **5–7 µs**, jonka jälkeen viesti matkustaa workerille asyncisti.
+niin no en oikeen ymmärrä tätä aspektia, tätä juuri ihmettelin, mistä tämmöinen voi johtua :D Minun data model on kuitenkin kevyt
+Joo — ja tästä datasta näkyy aika suoraan, että ongelma ei ole itse payloadin koko, vaan retained insertion / strip -overhead per operaatio.
 
-Sinun Windows + Node 24.16.0 -ympäristössä luvut voivat tietysti olla eri, joten 46 µs kannattaa ajaa samalla benchmarkilla juuri siinä koneessa.
+Paras todiste on tämä pari:
 
-Se **ei näytä oikeasti blokkaavan tyypillisesti 5–7 µs**. Aiempi mittaukseni yliarvioi juuri `postMessage()`-kutsun synkronisen osuuden.
+B1.1 Append 6000 characters yksi kerrallaan → 264,909 bytes
+B1.2 Insert string of length 6000 yhdellä operaatiolla → 24,061 bytes 
+ 
+Sisältö on käytännössä sama 6000 merkkiä. Ero on ~241 kB.
 
-Ajoin nyt erikseen tiukemman benchmarkin, jossa mitataan vain tämä:
+Se tekee:
 
-```js
-const t0 = process.hrtime.bigint()
-worker.postMessage(buffer, [buffer])
-const t1 = process.hrtime.bigint()
-```
+(264909 - 24061) / 5999 ≈ 40 bytes
 
-16 B transferable `ArrayBuffer`:
+eli noin 40 tavua retained metadataa per yksittäinen insert-operaatio.
 
-```text
-p50   1.04 µs
-mean  1.85 µs
-p95   6.50 µs
-p99   9.86 µs
-```
+Ja sama näkyy numeroilla:
 
-Ja batch-throughput:
+yksi Array of N numbers → 62,954 B
+6000 numeroa yksitellen append → 315,800 B
+=> noin 42 B ylimääräistä per insertion. 
+ 
 
-```text
-number                    0.84 µs / call
-small object              1.32 µs / call
-16 B ArrayBuffer copied   0.89 µs / call
-16 B ArrayBuffer transfer 1.89 µs / call
-```
+Eli tämä itse asiassa sopii erittäin hyvin siihen, että sinun data model on kevyt. Se näyttää olevan vain suunnilleen:
 
-Eli transferable itse asiassa **maksaa vähän enemmän synkronisesti pienellä bufferilla**, koska V8:n pitää käsitellä transfer list ja irrottaa (`detach`) buffer main threadiltä.
+~40 B / insertion
 
-Synkronisesti tapahtuu suunnilleen:
+Mutta benchmark tekee esimerkiksi 6000 kappaletta yhden merkin inserttejä. Silloin:
 
-```text
-JS
-↓
-V8 ValueSerializer
-↓
-transfer list validation
-↓
-ArrayBuffer backing store ownership transfer / detach
-↓
-Node MessagePort queue enqueue
-↓
-signal worker
-↓
-return
-```
+6000 * ~40 B ≈ 240 kB
 
-Se ei siis odota workeria. **Varsinainen thread-hop jatkuu asyncisti.**
+ja siihen päälle footage.
 
-Sequencerin kannalta käyttäisin siis mieluummin:
+Tästä tulee se näennäisesti järjetön 265 kB.
 
-```text
-main-thread synchronous overhead:
-~1–2 µs typical transferable postMessage
+Oleellinen kysymys on siis ennemmin:
 
-main → worker delivery:
-~9–13 µs typical
+miksi nuo 6000 peräkkäistä paikallista inserttiä ovat persistentissä Sequence-esityksessä edelleen 6000 erillistä insertionia/strippiä?
 
-occasional scheduler/queue spikes:
-~tens of µs
-```
+Jos Sequencerin mallissa niiden pitäisi pystyä yhdistymään esimerkiksi yhdeksi jatkuvaksi insertion-runiksi, benchmark paljastaa että sitä ei tällä hetkellä tapahdu persistent representationissa. Jos taas historiassa pitää tarkoituksella säilyttää jokainen insertion erillisenä, niin tuo ~40 B/op on itse asiassa varsin pieni — mutta character-level CRDT benchmark rankaisee sitä rajusti, koska Yjs/Diamond Types ovat erittäin aggressiivisia operation-runien pakkaamisessa.
 
-Tuo on jo aika eri kuva kuin **46 µs per operation**. Jos yksi Sequencer-operaatio pakataan yhteen worker-viestiin, worker-hop maksaa silti paljon suhteessa sinun sub-µs engine-kustannuksiin, mutta main threadin blokkaus itsessään on lähempänä **~1 µs kuin ~5–46 µs**.
+Ja tämä selittää myös real-worldin 5 MB:n paljon uskottavammin kuin mikään "WASM on raskas" -selitys. Datasetissä on valtavasti pieniä edit-operaatioita:
+
+~40 B * 100,000 operations = ~4 MB
+
+Siihen footage + muut rakenteet, ja 5 MB alkaa olla täysin looginen. 
+
+Eli minä katsoisin seuraavaksi retainedInsertionCount / structuralStripCount B4:n lopussa. Se todennäköisesti kertoo koko mysteerin. Jos siellä on esimerkiksi ~100k retained insertionia, 5 MB ei ole enää yhtään mystinen.
+
+no miten nuo muut kirjastot oikeen tekee tämän?
+
+Pohti 31s
+Ne eivät pääasiassa tee tätä niin, että niiden CRDT-malli olisi jotenkin maagisesti paljon kevyempi. Ne eivät tallenna jokaista loogista operaatiota erillisenä fyysisenä tietueena.
+
+Yjs/Yrs on tästä selkein esimerkki. Semanttisesti jokaisella merkillä on oma (client, clock)-ID, mutta fyysisesti peräkkäiset insertit samalta clientilta yhdistetään yhdeksi Item/blockiksi. Yjs:n omien internalsien mukaan jopa
+
+insert("a")
+insert("b")
+
+voidaan yhdistää yhdeksi rakenteeksi, joka vastaa "ab":tä. Yrs sanoo tämän vielä suoremmin: yksittäiset keystroket ovat eri updateja, mutta niitä voidaan säilyttää yhtenä blockina niin kauan kuin väliin ei tule rakennetta rikkovaa editointia. 
+
+Käytännössä siis tämän sijaan:
+
+(A,0) -> "a" + metadata
+(A,1) -> "b" + metadata
+(A,2) -> "c" + metadata
+...
+(A,5999) -> "x" + metadata
+niillä voi olla jotain tämän kaltaista:
+
+Block {
+    id: (A, 0)
+    length: 6000
+    content: "abc...x"
+    origin: ...
+}
+Ja merkin 437 ID on implisiittisesti (A,437). ID:t eivät katoa. Niitä ei vain kirjoiteta 6000 kertaa. Yrs määrittelee blockin nimenomaan peräkkäisten updatejen rangeksi, ja clock etenee blockin sisältämien elementtien määrällä. 
+
+Diamond Types vetää tämän vielä pidemmälle. Sen dokumentaatiossa on kirjaimellisesti esimerkki, että:
+
+insert "a"
+insert "b"
+insert "c"
+tuottaa identtisen oplogin kuin yksi:
+
+insert "abc"
+Se tekee aggressiivista RLE:tä lähes kaikelle. 
+
+Lisäksi Diamond Types ei säilytä joka operaatiota AoS-tyyppisenä:
+
+Op {
+    id,
+    parents,
+    type,
+    position,
+    content
+}
+vaan erottaa kentät omiksi sarjoikseen (SoA) ja RLE-/delta-pakkaa ne erikseen. Esimerkiksi:
+
+authors:   AAAAAAAAAAAAAAAAA...
+seq:       0,1,2,3,4,5,...
+parents:   previous, previous, previous...
+type:      insert, insert, insert...
+position:  +1,+1,+1,+1,...
+content:   "abcdefghijkl..."
+muuttuu käytännössä muutamaksi range-tietueeksi + itse tekstiksi. Heidän dokumentaationsa mukaan OpTypeAndPosition RLE-pakkaa vierekkäisiä insertejä/deletointeja, ja append/prepend-sarja voi jopa romahtaa yhdeksi entryksi. 
+
+Loro käyttää samaa yleistä ideaa, vaikka malli on erilainen. Sen persistent encoding on block-/columnar-muotoinen: kentillä on mm. DeltaRle, Rle, LEB128 ja delta-of-delta -enkoodauksia. Operaatiolla on myös len, eli contiguous operaatio voidaan kuvata spanina eikä yhtenä tietueena per elementti. 
+
+Tämä tekee myös sinun benchmarkistasi paljon ymmärrettävämmän.
+
+6000 merkkiä sisältää ~6000 B varsinaista dataa.
+
+Yjs:
+
+6031 B
+tarkoittaa käytännössä:
+
+6000 B content
++ ~31 B tehokkaasti amortisoitua metadataa
+Ei tietenkään kirjaimellisesti yksi 31 B struct, mutta suuruusluokka kertoo kaiken.
+
+Sequencer:
+
+264909 B
+ei tarkoita, että sinun data model olisi raskas. Se tarkoittaa todennäköisesti, että persistentissä representaatiossa sinulla on edelleen suunnilleen:
+
+6000 * insertion metadata
++ footage
++ serializer overhead
+kun Yjs/Diamond Types tekevät:
+
+1..muutama run/span metadata
++ 6000 B footage
+Ja tässä on vielä yksi tärkeä asia: docSize mittaa serialisoitua formaattia, ei data modelin teoreettista kokoa. Diamond Typesilla on nimenomaan tätä varten käsin tehty RLE/columnar binary codec. Loro käyttää samoin omaa columnar/RLE-formaattiaan. Yjs käyttää omaa erittäin tiivistä update-enkoodausta. 
+
+Jos Sequencerin Insertion on esimerkiksi noin:
+
+anchorSession
+anchorTime
+anchorFrame
+insertionSession
+insertionTime
+insertionDiff
+niin tuo on itsessään kevyt. Ongelma syntyy vasta siitä, jos nämä kuusi arvoa kirjoitetaan 6000 kertaa, vaikka 5999 seuraavan insertion arvot ovat suurelta osin ensimmäisestä johdettavissa.
+
+Eli oikeastaan kilpailijoiden temppu on:
+
+älä kompressoi dataa — kompressoi redundanssi historiassa.
+
+Ja juuri Sequencerissä tämä voisi olla erityisen kiinnostavaa, koska sinun SequencePoint/session+time -mallisi vaikuttaa jo valmiiksi hyvin range-ystävälliseltä. Jos 1000 peräkkäistä insertionia muodostavat monotonisen session/time-rangen, niiden täydellisiä pisteitä ei välttämättä tarvitse persistentissä formaatissa toistaa lainkaan.
+
+okei onko se encode aikana?
+Ei pelkästään encode-vaiheessa.
+
+Yjs tekee tärkeimmän yhdistämisen jo live-datarakenteessa. Jos sama käyttäjä insertoi peräkkäin "a" ja "b", ne ovat ensin erillisiä structeja mutta transaction cleanup voi yhdistää ne yhdeksi Itemiksi, jonka sisältö on "ab". Eli runtime-state itsessään pienenee; encoding sitten pakkaa sitä vielä lisää. 
+
+Eli karkeasti:
+
+operations
+  ↓
+runtime representation
+  ↓  merge compatible adjacent runs
+[A, clock 0, len 6000, "abcdef..."]
+  ↓
+encode
+  ↓  varints / delta encoding / delete-set compression / jne.
+bytes
+Diamond Typesissa sama periaate on vielä vahvempi: RLE/range-rakenteet ovat pitkälti itse oplogin/runtime-representaatiota, eivät vain viime hetken serialization-kikka. Encoding tekee sen päälle vielä oman binary-compressionin.
+
+Tämä on tärkeä ero sinun benchmarkkiin nähden, koska jos Sequencerin sequence() palauttaa esimerkiksi edelleen 6000 insertion-recordia, niin v8.serialize(sequence) mittaa ne kaikki. Sinulla ei silloin ole mitään vastaavaa structural run merging -kerrosta ennen serialisointia.
+
+Eli tässä on oikeastaan kaksi erillistä optimointitasoa:
+
+Runtime compaction: 6000 loogista insert-operaatiota → muutama retained range/strip.
+Encoding compression: nuo ranget → mahdollisimman vähän bittejä levyllä/verkon yli.
+Yjs tekee molemmat. Ja tuon sinun 264 kB vs 24 kB -eron perusteella epäilisin, että juuri ensimmäinen puuttuu Sequenceriltä, ei niinkään että sinun encoder olisi huono.
+
+Myös remote tekee näin?
+Kyllä. Yjs tekee saman myös remote-updateille, kun vastaanotetut itemit ovat yhdistettävissä.
+
+Remote applyUpdate() integroidaan dokumenttiin transactionina aivan kuten paikallisetkin muutokset. Transaction cleanupin yhteydessä Yjs voi yhdistää vierekkäisiä structeja, jos niiden ehdot täyttyvät. Se ei siis säilytä remote-päässä väkisin yhtä Itemia per alkuperäinen update. 
+
+Esimerkiksi lähettäjä tekee:
+
+insert "a"
+insert "b"
+insert "c"
+ja nämä ovat saman clientin peräkkäisiä clockeja sekä rakenteellisesti yhteensopivia. Vastaanottajan lopullinen struct store voi olla käytännössä:
+
+Item {
+  id: (clientA, 0),
+  length: 3,
+  content: "abc"
+}
+eikä:
+
+(clientA, 0) "a"
+(clientA, 1) "b"
+(clientA, 2) "c"
+Oleellinen rajoitus on, että vain saman clientin contiguous ID-range ja muuten yhteensopivat itemit voidaan yhdistää. Concurrent insertion toiselta clientilta, erilainen parent/origin/content-tyyppi, deletion-raja jne. voi katkaista runin. Yjs:n struct store on nimenomaan järjestetty client-kohtaisesti insertion clockin mukaan, mikä tekee tällaisista rangeista luonnollisia. 
+
+Eli kyllä: tämä ei ole vain senderin encode-optimointi. Remote peerin retained runtime-statekin compactoituu.
+
+Tämä on juuri se kohta, jossa Sequencerin käyttäytymistä olisi kiinnostava verrata: jos remote apply säilyttää sinun jokaisen gossip insertionin erillisenä retained insertionina vaikka niiden insertionSession/time muodostaa yhden jatkuvan spanin, Yjs saa tässä todella suuren storage-edun.

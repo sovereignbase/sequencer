@@ -282,6 +282,15 @@ describe('Projection public API', () => {
     })
   })
   describe('sequence', () => {
+    it('reads current caller-owned Footage on every snapshot', () => {
+      const p = new Projection<string>(1)
+      const values = ['a']
+      p.insert(values, 0)
+      const previous = p.sequence()
+      values[0] = 'b'
+      expect(previous[1]).toEqual(['a'])
+      expect(p.sequence()[1]).toEqual(['b'])
+    })
     it('exports an empty Sequence', () => {
       expect(new Projection<string>(1).sequence()).toEqual([[], []])
     })

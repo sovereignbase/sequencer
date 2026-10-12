@@ -95,7 +95,7 @@ struct Reader {
     } else
       return invalid();
   }
-  std::pair<Gossip, std::vector<Acknowledgement>> sequence(Word content) {
+  std::pair<Gossip, std::vector<Acknowledgement>> sequence(Word content, bool owned = false) {
     Gossip insertions;
     std::vector<Acknowledgement> frontiers;
     if (input.empty())
@@ -127,7 +127,7 @@ struct Reader {
       session_ids.insert(c.anchor_session);
       session_ids.insert(c.session);
       insertions.push_back(
-          Entry::insert({c, c.diff > 0 ? content + Word(insertions.size()) : 0, offset}));
+          Entry::insert({c, c.diff > 0 ? content + Word(insertions.size()) : 0, offset, owned}));
       if (c.diff > 0)
         offset += Word(c.diff);
       position += 6;
@@ -184,8 +184,8 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     switch (operation) {
     case 0: {
       Reader r;
-      auto [g, f] = r.sequence(arg1);
-      if (arg2 != 1 || !r.valid) {
+      auto [g, f] = r.sequence(arg1, (arg2 & 2) != 0);
+      if (!(arg2 & 1) || !r.valid) {
         kind = 7;
         out.header[3] = 2;
         break;
@@ -299,13 +299,6 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     out.header[6] = Word(out.gossip.size());
     break;
   case 5:
-    if (!out.sequence.words.empty() && out.sequence.words.size() - out.sequence.words[0] == 6 &&
-        out.sequence.footage.size() == 1) {
-      const auto at = out.sequence.words[0];
-      for (auto i = p.containment.get(out.sequence.words[at + 3], out.sequence.words[at + 4]); i;
-           i = p.strips.fragment[i])
-        p.strips.identity[i].content_owned = false;
-    }
     out.header[3] = address(out.sequence.words.data());
     out.header[4] = Word(out.sequence.words.size());
     out.header[5] = address(out.sequence.footage.data());

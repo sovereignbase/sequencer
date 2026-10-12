@@ -9,6 +9,7 @@ class Runtime {
   > = []
   private readonly free: number[] = []
   private readonly mutable: Array<boolean[] | undefined> = []
+  private readonly snapshots: Array<WeakRef<unknown[]> | undefined> = []
   private readonly finalizer = new FinalizationRegistry<number>((id) =>
     this.release(id)
   )
@@ -19,6 +20,7 @@ class Runtime {
     const id = this.free.pop() ?? this.nextProjection++
     this.content[id] = [undefined]
     this.mutable[id] = []
+    this.snapshots[id] = undefined
     try {
       this.call(Operation.Create, id, actorID, sequence)
     } catch (error) {
@@ -37,6 +39,7 @@ class Runtime {
     module._runtime_dispatch(Operation.Destroy, id, 0, 0, 0, 0, 0)
     this.content[id] = undefined
     this.mutable[id] = undefined
+    this.snapshots[id] = undefined
     this.free.push(id)
   }
   length(id: number): number {
@@ -53,6 +56,7 @@ class Runtime {
   }
   insert<T>(id: number, values: T[], at: number): unknown {
     if (id < 0) throw new Error('Projection has been destroyed')
+    this.snapshots[id] = undefined
     const content = this.content[id]!
     const pointer =
       module._runtime_insert(
@@ -119,6 +123,8 @@ class Runtime {
     end?: unknown
   ): T {
     if (id < 0) throw new Error('Projection has been destroyed')
+    if (operation !== Operation.Sequence && operation !== Operation.Values)
+      this.snapshots[id] = undefined
     const count = this.inputSize(operation, value, at)
     const pointer = count ? module._runtime_reserve(count) : 0
     const heap = module.HEAPU32,
@@ -175,6 +181,11 @@ class Runtime {
           a1 = contents.length
           contents.length += (words.length - start) / 6
           contents.fill(sequence[1], a1)
+          if (operation === Operation.Create && words.length - start === 6 && (words[start + 5] | 0) > 0) {
+            contents[a1] = sequence[1].slice()
+            this.mutable[id]![a1] = true
+            a2 = 3
+          }
         }
       }
     } else if (operation === Operation.Apply) {
@@ -368,14 +379,15 @@ class Runtime {
         break
       }
       case 5: {
-        const span = p1 >>> 2,
-          token = heap[span]
-        const shared =
-          n1 === 1 &&
-          heap[span + 1] === 0 &&
-          content[token]?.length === heap[span + 2]
-        if (shared) mutable[token] = false
-        result = [words(p0, n0), shared ? content[token] : values(p1, n1)]
+        let footage = this.snapshots[id]?.deref()
+        if (!footage) {
+          footage = values(p1, n1)
+          let owned = true
+          for (let at = p1 >>> 2, end = at + n1 * 3; at < end; at += 3)
+            if (content[heap[at]] !== undefined && !mutable[heap[at]]) owned = false
+          if (owned) this.snapshots[id] = new WeakRef(footage)
+        }
+        result = [words(p0, n0), footage]
         break
       }
       case 6:
@@ -410,6 +422,7 @@ class Runtime {
         content[target] = footage
         mutable[target] = true
       }
+      if (footage!.length < offset) footage!.length = offset
       if (source && start === 0 && count === source.length && count <= 4096)
         footage!.push.apply(footage, source as unknown[])
       else for (let i = 0; i < count; ++i) footage!.push(source?.[start + i])

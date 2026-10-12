@@ -21,6 +21,13 @@ const second: Insertion<string> = [
 ]
 
 describe('contiguous insertion extensions', () => {
+  it('preserves missing content slots before appending an extension', () => {
+    const p = new Projection<string>(1)
+    p.apply([[[0, 0, 0, 100, 0, 2], ['a']]])
+    p.apply([[[100, 0, 2, 100, 2, 1], ['b']]])
+    expect(p.values()).toEqual(['a', undefined, 'b'])
+    expect(new Projection<string>(2, p.sequence()).values()).toEqual(p.values())
+  })
   it.each([false, true])(
     'replays an extension after concurrent remote fragmentation with compaction %s',
     (compact) => {

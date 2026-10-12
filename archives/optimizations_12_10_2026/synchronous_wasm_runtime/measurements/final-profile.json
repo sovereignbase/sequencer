@@ -1,0 +1,182 @@
+[
+  {
+    "functionName": "values",
+    "milliseconds": 338.906
+  },
+  {
+    "functionName": "sequencer::Projection::sequence() const",
+    "milliseconds": 112.081
+  },
+  {
+    "functionName": "call",
+    "milliseconds": 94.355
+  },
+  {
+    "functionName": "runtime_dispatch",
+    "milliseconds": 76.068
+  },
+  {
+    "functionName": "(garbage collector)",
+    "milliseconds": 74.814
+  },
+  {
+    "functionName": "sequencer::ContainmentTable::set(sequencer::Coordinates const&, unsigned int)",
+    "milliseconds": 59.804
+  },
+  {
+    "functionName": "sequencer::Projection::find_frame(unsigned int, bool)",
+    "milliseconds": 48.806
+  },
+  {
+    "functionName": "sequencer::Projection::anchor_strip(unsigned int, unsigned int, unsigned int)",
+    "milliseconds": 27.338
+  },
+  {
+    "functionName": "(program)",
+    "milliseconds": 26.353
+  },
+  {
+    "functionName": "result",
+    "milliseconds": 21.416
+  },
+  {
+    "functionName": "sequencer::(anonymous namespace)::Reader::gossip(unsigned int)",
+    "milliseconds": 19.464
+  },
+  {
+    "functionName": "sequencer::Strips::append(sequencer::Insertion)",
+    "milliseconds": 16.973
+  },
+  {
+    "functionName": "(anonymous)",
+    "milliseconds": 16.183
+  },
+  {
+    "functionName": "inputSize",
+    "milliseconds": 15.415
+  },
+  {
+    "functionName": "emscripten_builtin_free",
+    "milliseconds": 14.634
+  },
+  {
+    "functionName": "sequencer::(anonymous namespace)::Reader::entry()",
+    "milliseconds": 12.753
+  },
+  {
+    "functionName": "std::__2::pair<std::__2::__hash_iterator<std::__2::__hash_node<unsigned int, void*>*>, bool> std::__2::__hash_table<unsigned int, std::__2::hash<unsigned int>, std::__2::equal_to<unsigned int>, std::__2::allocator<unsigned int>>::__emplace_unique_key_args<unsigned int, unsigned int const&>(unsigned int const&, unsigned int const&)",
+    "milliseconds": 12.273
+  },
+  {
+    "functionName": "words",
+    "milliseconds": 10.107
+  },
+  {
+    "functionName": "sequencer::Projection::values(unsigned int, unsigned int)",
+    "milliseconds": 8.597
+  },
+  {
+    "functionName": "runtime_value",
+    "milliseconds": 5.254
+  },
+  {
+    "functionName": "evaluate",
+    "milliseconds": 3.383
+  },
+  {
+    "functionName": "std::__2::vector<sequencer::Entry, std::__2::allocator<sequencer::Entry>>::~vector[abi:ne210108]()",
+    "milliseconds": 3.357
+  },
+  {
+    "functionName": "create",
+    "milliseconds": 3.246
+  },
+  {
+    "functionName": "sequencer::Projection::find_containing_fragment(unsigned int, unsigned int)",
+    "milliseconds": 3.21
+  },
+  {
+    "functionName": "js-to-wasm",
+    "milliseconds": 2.462
+  },
+  {
+    "functionName": "bind",
+    "milliseconds": 1.666
+  },
+  {
+    "functionName": "compileSourceTextModule",
+    "milliseconds": 1.66
+  },
+  {
+    "functionName": "(idle)",
+    "milliseconds": 1.639
+  },
+  {
+    "functionName": "Module",
+    "milliseconds": 1.636
+  },
+  {
+    "functionName": "emscripten_builtin_malloc",
+    "milliseconds": 1.636
+  },
+  {
+    "functionName": "compileForInternalLoader",
+    "milliseconds": 1.632
+  },
+  {
+    "functionName": "realpathSync",
+    "milliseconds": 1.616
+  },
+  {
+    "functionName": "createWasm",
+    "milliseconds": 1.59
+  },
+  {
+    "functionName": "sequencer::Strips::reserve(unsigned int)",
+    "milliseconds": 1.586
+  },
+  {
+    "functionName": "open",
+    "milliseconds": 1.576
+  },
+  {
+    "functionName": "internalBinding",
+    "milliseconds": 1.541
+  },
+  {
+    "functionName": "Projection",
+    "milliseconds": 1.357
+  },
+  {
+    "functionName": "_emscripten_resize_heap",
+    "milliseconds": 1.327
+  },
+  {
+    "functionName": "read",
+    "milliseconds": 1.201
+  },
+  {
+    "functionName": "gossip",
+    "milliseconds": 1.116
+  },
+  {
+    "functionName": "runInNewContext",
+    "milliseconds": 1.082
+  },
+  {
+    "functionName": "SideEffectFreeRegExpPrototypeExec",
+    "milliseconds": 1.061
+  },
+  {
+    "functionName": "std::__2::vector<unsigned int, std::__2::allocator<unsigned int>>::__append(unsigned long)",
+    "milliseconds": 1.052
+  },
+  {
+    "functionName": "sequencer::Projection::patch_jumps(int, unsigned int, unsigned int)",
+    "milliseconds": 0.606
+  },
+  {
+    "functionName": "destroy",
+    "milliseconds": 0.136
+  }
+]

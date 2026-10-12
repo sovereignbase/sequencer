@@ -5,6 +5,7 @@
 
 namespace sequencer {
 void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers) {
+  strips.reserve(Word(insertions.size()) + 1);
   for (const auto &a : frontiers)
     frontier.observe(a);
   const auto spacing = Word(std::max(1.0, std::round(std::sqrt(insertions.size()))));

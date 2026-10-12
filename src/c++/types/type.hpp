@@ -71,41 +71,45 @@ struct Strips {
   std::uint8_t *fragmented{}, *offset{};
 
   Strips() { append({}); }
+  void reserve(Word next) {
+    if (next <= capacity)
+      return;
+    constexpr Word lanes = 12;
+    auto grown = std::make_unique_for_overwrite<std::byte[]>(
+        (sizeof(Insertion) + lanes * sizeof(Word) + 2) * next);
+    auto *identities = reinterpret_cast<Insertion *>(grown.get());
+    auto *fields = reinterpret_cast<Word *>(identities + next);
+    auto *bits = reinterpret_cast<std::uint8_t *>(fields + lanes * next);
+    if (count) {
+      std::memcpy(identities, identity, count * sizeof(Insertion));
+      auto *old = reinterpret_cast<Word *>(identity + capacity);
+      for (Word field = 0; field < lanes; ++field)
+        std::memcpy(fields + field * next, old + field * capacity, count * sizeof(Word));
+      std::memcpy(bits, fragmented, count);
+      std::memcpy(bits + next, offset, count);
+    }
+    memory = std::move(grown);
+    capacity = next;
+    identity = identities;
+    fragment_start = fields;
+    fragment_diff = reinterpret_cast<std::int32_t *>(fields + next);
+    left = fields + 2 * next;
+    right = fields + 3 * next;
+    competitor = fields + 4 * next;
+    fragment = fields + 5 * next;
+    left_jump = fields + 6 * next;
+    right_jump = fields + 7 * next;
+    left_jump_frames = fields + 8 * next;
+    left_jump_strips = fields + 9 * next;
+    right_jump_frames = fields + 10 * next;
+    right_jump_strips = fields + 11 * next;
+    fragmented = bits;
+    offset = bits + next;
+  }
   Index append(Insertion insertion) {
     constexpr Word lanes = 12;
-    if (count == capacity) {
-      const Word next = std::max(Word(64), capacity * 2);
-      auto grown = std::make_unique_for_overwrite<std::byte[]>(
-          (sizeof(Insertion) + lanes * sizeof(Word) + 2) * next);
-      auto *identities = reinterpret_cast<Insertion *>(grown.get());
-      auto *fields = reinterpret_cast<Word *>(identities + next);
-      auto *bits = reinterpret_cast<std::uint8_t *>(fields + lanes * next);
-      if (count) {
-        std::memcpy(identities, identity, count * sizeof(Insertion));
-        auto *old = reinterpret_cast<Word *>(identity + capacity);
-        for (Word field = 0; field < lanes; ++field)
-          std::memcpy(fields + field * next, old + field * capacity, count * sizeof(Word));
-        std::memcpy(bits, fragmented, count);
-        std::memcpy(bits + next, offset, count);
-      }
-      memory = std::move(grown);
-      capacity = next;
-      identity = identities;
-      fragment_start = fields;
-      fragment_diff = reinterpret_cast<std::int32_t *>(fields + next);
-      left = fields + 2 * next;
-      right = fields + 3 * next;
-      competitor = fields + 4 * next;
-      fragment = fields + 5 * next;
-      left_jump = fields + 6 * next;
-      right_jump = fields + 7 * next;
-      left_jump_frames = fields + 8 * next;
-      left_jump_strips = fields + 9 * next;
-      right_jump_frames = fields + 10 * next;
-      right_jump_strips = fields + 11 * next;
-      fragmented = bits;
-      offset = bits + next;
-    }
+    if (count == capacity)
+      reserve(std::max(Word(64), capacity * 2));
     const auto index = count++;
     std::construct_at(identity + index, insertion);
     auto *fields = reinterpret_cast<Word *>(identity + capacity);

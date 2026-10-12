@@ -10,7 +10,13 @@ std::pair<Word, Index> Projection::select_anchor(Word position) {
   const auto r = right;
   if (position == gate_position && gate && strips.identity[g].coordinates.diff < 0 && removed &&
       right && (position > 0 || strips.fragment_diff[r] > 0) &&
-      (strips.offset[r] || (strips.fragmented[r] && strips.fragment_diff[r] == 0)) &&
+      (strips.offset[r] || (strips.fragmented[r] && strips.fragment_diff[r] == 0) ||
+       // A whole replacement can precede an older mask. Its free endpoint
+       // stays at this visible boundary even when the original subtree sorts later.
+       (strips.identity[r].coordinates.diff < 0 && strips.identity[removed].coordinates.diff > 0 &&
+        strips.fragment_diff[removed] == 0 && strips.identity[g].coordinates.anchor_diff == 0 &&
+        strips.fragment_start[g] == 0 &&
+        magnitude(strips.fragment_diff[g]) == Word(strips.identity[removed].coordinates.diff))) &&
       strips.identity[removed].coordinates.session ==
           strips.identity[g].coordinates.anchor_session &&
       strips.identity[removed].coordinates.start == strips.identity[g].coordinates.anchor_start &&

@@ -40,7 +40,7 @@ else()
 endif()
 
 if(EMSCRIPTEN)
-  target_compile_options(sequencer_runtime PRIVATE -msimd128 -mbulk-memory -fwasm-exceptions -Wall -Wextra -Wpedantic)
+  target_compile_options(sequencer_runtime PRIVATE -flto -msimd128 -mbulk-memory -fwasm-exceptions -Wall -Wextra -Wpedantic)
   set_target_properties(
     sequencer_wasm
     PROPERTIES
@@ -51,6 +51,7 @@ if(EMSCRIPTEN)
   target_compile_options(
     sequencer_wasm
     PRIVATE
+      -flto
       -msimd128
       -mbulk-memory
       -fwasm-exceptions
@@ -59,6 +60,8 @@ if(EMSCRIPTEN)
   target_link_options(
     sequencer_wasm
     PRIVATE
+      -flto
+      --emit-symbol-map
       -msimd128
       -mbulk-memory
       -fwasm-exceptions

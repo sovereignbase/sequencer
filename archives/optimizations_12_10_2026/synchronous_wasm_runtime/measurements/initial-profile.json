@@ -1,0 +1,174 @@
+[
+  {
+    "functionName": "values",
+    "milliseconds": 1216.293
+  },
+  {
+    "functionName": "call",
+    "milliseconds": 300.885
+  },
+  {
+    "functionName": "(garbage collector)",
+    "milliseconds": 196.993
+  },
+  {
+    "functionName": "result",
+    "milliseconds": 150.997
+  },
+  {
+    "functionName": "bind",
+    "milliseconds": 131.282
+  },
+  {
+    "functionName": "wasm-function[23]",
+    "milliseconds": 91.426
+  },
+  {
+    "functionName": "wasm-function[98]",
+    "milliseconds": 91.221
+  },
+  {
+    "functionName": "wasm-function[91]",
+    "milliseconds": 73.757
+  },
+  {
+    "functionName": "(program)",
+    "milliseconds": 65.77
+  },
+  {
+    "functionName": "wasm-function[11]",
+    "milliseconds": 59.962
+  },
+  {
+    "functionName": "wasm-function[2]",
+    "milliseconds": 54.613
+  },
+  {
+    "functionName": "wasm-function[27]",
+    "milliseconds": 38.025
+  },
+  {
+    "functionName": "wasm-function[71]",
+    "milliseconds": 30.611
+  },
+  {
+    "functionName": "wasm-function[61]",
+    "milliseconds": 27.006
+  },
+  {
+    "functionName": "wasm-function[63]",
+    "milliseconds": 24.605
+  },
+  {
+    "functionName": "wasm-function[20]",
+    "milliseconds": 22.915
+  },
+  {
+    "functionName": "inputSize",
+    "milliseconds": 22.27
+  },
+  {
+    "functionName": "wasm-function[21]",
+    "milliseconds": 21.463
+  },
+  {
+    "functionName": "wasm-function[57]",
+    "milliseconds": 20.841
+  },
+  {
+    "functionName": "wasm-function[52]",
+    "milliseconds": 17.934
+  },
+  {
+    "functionName": "wasm-function[32]",
+    "milliseconds": 10.924
+  },
+  {
+    "functionName": "wasm-function[33]",
+    "milliseconds": 10.615
+  },
+  {
+    "functionName": "(anonymous)",
+    "milliseconds": 8.216
+  },
+  {
+    "functionName": "create",
+    "milliseconds": 6.551
+  },
+  {
+    "functionName": "js-to-wasm",
+    "milliseconds": 4.947
+  },
+  {
+    "functionName": "wasm-function[9]",
+    "milliseconds": 4.622
+  },
+  {
+    "functionName": "js-to-wasm:ii:i",
+    "milliseconds": 3.305
+  },
+  {
+    "functionName": "gossip",
+    "milliseconds": 1.867
+  },
+  {
+    "functionName": "open",
+    "milliseconds": 1.77
+  },
+  {
+    "functionName": "getPackageScopeConfig",
+    "milliseconds": 1.767
+  },
+  {
+    "functionName": "compileSourceTextModule",
+    "milliseconds": 1.761
+  },
+  {
+    "functionName": "requireBuiltin",
+    "milliseconds": 1.697
+  },
+  {
+    "functionName": "Module",
+    "milliseconds": 1.691
+  },
+  {
+    "functionName": "words",
+    "milliseconds": 1.69
+  },
+  {
+    "functionName": "internalBinding",
+    "milliseconds": 1.681
+  },
+  {
+    "functionName": "getRandomValues",
+    "milliseconds": 1.661
+  },
+  {
+    "functionName": "wasm-to-js",
+    "milliseconds": 1.655
+  },
+  {
+    "functionName": "Instance",
+    "milliseconds": 1.624
+  },
+  {
+    "functionName": "#updateContext",
+    "milliseconds": 1.464
+  },
+  {
+    "functionName": "binaryDecode",
+    "milliseconds": 1.463
+  },
+  {
+    "functionName": "(idle)",
+    "milliseconds": 1.326
+  },
+  {
+    "functionName": "createContext",
+    "milliseconds": 1.144
+  },
+  {
+    "functionName": "wasm-function[35]",
+    "milliseconds": 0.215
+  }
+]

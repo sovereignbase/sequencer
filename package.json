@@ -5,16 +5,8 @@
   "version": "0.0.0",
   "description": "A causality-encoding engine written in TypeScript and C++ to build high-performance, conflict-free replicated data types for use on the web.",
   "keywords": [
-    "crdt",
-    "sequence",
-    "replicated",
-    "convergent",
-    "local-first",
-    "distributed-systems",
-    "delta-sync",
-    "gossip",
-    "typescript",
-    "sovereignbase"
+    "collaborative-editing",
+    "crdt"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -41,7 +33,8 @@
     "build:wasm": "node scripts/build-wasm.mjs",
     "docs": "typedoc",
     "docs:c++": "node scripts/build-cpp-docs.mjs",
-    "format": "prettier . --write",
+    "format": "npm run format:ts && npm run format:c++",
+    "format:ts": "prettier . --write",
     "format:c++": "node scripts/format-cpp.mjs",
     "typecheck": "tsc --noEmit --project test/tsconfig.json",
     "typecheck:runtime": "tsc --noEmit --project tsconfig.json",

@@ -1,0 +1,96 @@
+0:emscripten_resize_heap
+1:_setitimer_js
+2:_emscripten_runtime_keepalive_clear
+3:_abort_js
+4:__wasi_proc_exit
+5:emscripten_builtin_free
+6:emscripten_builtin_malloc
+7:std::__throw_bad_alloc()
+8:std::__2::vector<sequencer::Entry, std::__2::allocator<sequencer::Entry>>::__throw_length_error[abi:ne210108]()
+9:std::__throw_bad_array_new_length[abi:ne210108]()
+10:std::__2::vector<sequencer::Entry, std::__2::allocator<sequencer::Entry>>::~vector[abi:ne210108]()
+11:std::__2::__next_prime(unsigned long)
+12:std::__2::vector<std::__2::vector<unsigned int, std::__2::allocator<unsigned int>>, std::__2::allocator<std::__2::vector<unsigned int, std::__2::allocator<unsigned int>>>>::~vector[abi:ne210108]()
+13:sequencer::Strips::append(sequencer::Insertion)
+14:sequencer::Projection::find_frame(unsigned int, bool)
+15:sequencer::FrontierTable::observe(std::__2::vector<unsigned int, std::__2::allocator<unsigned int>> const&)
+16:sbrk
+17:is_equal(std::type_info const*, std::type_info const*, bool)
+18:__cxa_throw
+19:__cxa_allocate_exception
+20:std::terminate()
+21:std::__2::pair<std::__2::__hash_iterator<std::__2::__hash_node<unsigned int, void*>*>, bool> std::__2::__hash_table<unsigned int, std::__2::hash<unsigned int>, std::__2::equal_to<unsigned int>, std::__2::allocator<unsigned int>>::__emplace_unique_key_args<unsigned int, unsigned int const&>(unsigned int const&, unsigned int const&)
+22:sequencer::ContainmentTable::set(sequencer::Coordinates const&, unsigned int)
+23:__cxxabiv1::__aligned_free_with_fallback(void*)
+24:__abort_message
+25:std::__2::unordered_map<unsigned int, unsigned int, std::__2::hash<unsigned int>, std::__2::equal_to<unsigned int>, std::__2::allocator<std::__2::pair<unsigned int const, unsigned int>>>::~unordered_map[abi:ne210108]()
+26:sequencer::(anonymous namespace)::next_session()
+27:sequencer::Result::~Result()
+28:sequencer::Projection::anchor_strip(unsigned int, unsigned int, unsigned int)
+29:__cxxabiv1::__class_type_info::~__class_type_info()
+30:std::runtime_error::runtime_error(char const*)
+31:std::__terminate(void (*)())
+32:std::__2::vector<sequencer::Entry, std::__2::allocator<sequencer::Entry>>::operator=[abi:ne210108](std::__2::vector<sequencer::Entry, std::__2::allocator<sequencer::Entry>>&&)
+33:sequencer::(anonymous namespace)::Reader::entry()
+34:sequencer::Strips::reserve(unsigned int)
+35:sequencer::Projection::~Projection()
+36:sequencer::Entry* std::__2::vector<sequencer::Entry, std::__2::allocator<sequencer::Entry>>::__emplace_back_slow_path<sequencer::Entry>(sequencer::Entry&&)
+37:round
+38:unsigned int const* std::__2::lower_bound[abi:ne210108]<unsigned int const*, unsigned long, std::__2::__less<void, void>>(unsigned int const*, unsigned int const*, unsigned long const&, std::__2::__less<void, void>)
+39:std::runtime_error::~runtime_error()_143
+40:std::runtime_error::~runtime_error()
+41:std::logic_error::~logic_error()_141
+42:std::logic_error::~logic_error()
+43:std::logic_error::what() const
+44:std::exception::~exception()
+45:std::__2::vector<unsigned int, std::__2::allocator<unsigned int>>::__append(unsigned long)
+46:std::__2::vector<sequencer::Span, std::__2::allocator<sequencer::Span>>::push_back[abi:ne210108](sequencer::Span&&)
+47:std::__2::vector<sequencer::Span, std::__2::allocator<sequencer::Span>>::operator=[abi:ne210108](std::__2::vector<sequencer::Span, std::__2::allocator<sequencer::Span>>&&)
+48:std::__2::vector<sequencer::Entry, std::__2::allocator<sequencer::Entry>>::__swap_out_circular_buffer(std::__2::__split_buffer<sequencer::Entry, std::__2::allocator<sequencer::Entry>&>&, sequencer::Entry*)
+49:std::__2::pair<std::__2::__hash_iterator<std::__2::__hash_node<std::__2::__hash_value_type<unsigned int, unsigned int>, void*>*>, bool> std::__2::__hash_table<std::__2::__hash_value_type<unsigned int, unsigned int>, std::__2::__unordered_map_hasher<unsigned int, std::__2::pair<unsigned int const, unsigned int>, std::__2::hash<unsigned int>, std::__2::equal_to<unsigned int>, true>, std::__2::__unordered_map_equal<unsigned int, std::__2::pair<unsigned int const, unsigned int>, std::__2::equal_to<unsigned int>, std::__2::hash<unsigned int>, true>, std::__2::allocator<std::__2::pair<unsigned int const, unsigned int>>>::__emplace_unique_key_args<unsigned int, std::__2::piecewise_construct_t const&, std::__2::tuple<unsigned int const&>, std::__2::tuple<>>(unsigned int const&, std::__2::piecewise_construct_t const&, std::__2::tuple<unsigned int const&>&&, std::__2::tuple<>&&)
+50:std::__2::__libcpp_refstring::~__libcpp_refstring()
+51:std::__2::__libcpp_refstring::__libcpp_refstring(char const*)
+52:std::__2::__exception_guard_exceptions<std::__2::vector<sequencer::Entry, std::__2::allocator<sequencer::Entry>>::__destroy_vector>::~__exception_guard_exceptions[abi:ne210108]()
+53:std::__2::__exception_guard_exceptions<std::__2::_AllocatorDestroyRangeReverse<std::__2::allocator<sequencer::Entry>, sequencer::Entry*>>::~__exception_guard_exceptions[abi:ne210108]()
+54:sequencer::(anonymous namespace)::Reader::gossip(unsigned int)
+55:sequencer::(anonymous namespace)::Reader::frontiers(unsigned int)
+56:sequencer::(anonymous namespace)::Output::expose(std::__2::vector<sequencer::Entry, std::__2::allocator<sequencer::Entry>> const&)
+57:sequencer::Sequence::~Sequence()
+58:sequencer::Projection::values(unsigned int, unsigned int)
+59:sequencer::Projection::subtree_end(unsigned int)
+60:sequencer::Projection::remove(unsigned int, long long)
+61:sequencer::Projection::patch_jumps(int, unsigned int, unsigned int)
+62:sequencer::Projection::insert(unsigned int, unsigned int, unsigned int)
+63:sequencer::Projection::find_containing_fragment(unsigned int, unsigned int)
+64:sequencer::Projection::apply(std::__2::vector<sequencer::Entry, std::__2::allocator<sequencer::Entry>> const&)
+65:sequencer::Entry* std::__2::__uninitialized_allocator_copy_impl[abi:ne210108]<std::__2::allocator<sequencer::Entry>, sequencer::Entry const*, sequencer::Entry const*, sequencer::Entry*>(std::__2::allocator<sequencer::Entry>&, sequencer::Entry const*, sequencer::Entry const*, sequencer::Entry*)
+66:dispose_chunk
+67:abort
+68:__cxxabiv1::__shim_type_info::noop1() const
+69:__cxxabiv1::__class_type_info::process_static_type_above_dst(__cxxabiv1::__dynamic_cast_info*, void const*, void const*, int) const
+70:__cxxabiv1::__class_type_info::process_found_base_class(__cxxabiv1::__dynamic_cast_info*, void*, int) const
+71:__cxxabiv1::__class_type_info::can_catch(__cxxabiv1::__shim_type_info const*, void*&) const
+72:__cxa_decrement_exception_refcount
+73:__cxa_begin_catch
+74:std::bad_array_new_length::what() const
+75:std::bad_alloc::what() const
+76:sequencer::Projection::sequence() const
+77:runtime_value
+78:runtime_seed
+79:runtime_reserve
+80:runtime_length
+81:runtime_dispatch
+82:demangling_unexpected_handler()
+83:demangling_terminate_handler()
+84:action_terminate
+85:action_abort
+86:_emscripten_timeout
+87:__wasm_call_ctors
+88:__trap
+89:__cxxabiv1::exception_cleanup_func(_Unwind_Reason_Code, _Unwind_Exception*)
+90:__cxxabiv1::__si_class_type_info::search_below_dst(__cxxabiv1::__dynamic_cast_info*, void const*, int, bool) const
+91:__cxxabiv1::__si_class_type_info::search_above_dst(__cxxabiv1::__dynamic_cast_info*, void const*, void const*, int, bool) const
+92:__cxxabiv1::__si_class_type_info::has_unambiguous_public_base(__cxxabiv1::__dynamic_cast_info*, void*, int) const
+93:__cxxabiv1::__class_type_info::search_below_dst(__cxxabiv1::__dynamic_cast_info*, void const*, int, bool) const
+94:__cxxabiv1::__class_type_info::search_above_dst(__cxxabiv1::__dynamic_cast_info*, void const*, void const*, int, bool) const
+95:__cxxabiv1::__class_type_info::has_unambiguous_public_base(__cxxabiv1::__dynamic_cast_info*, void*, int) const

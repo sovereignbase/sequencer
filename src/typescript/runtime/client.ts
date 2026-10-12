@@ -13,6 +13,8 @@ class Runtime {
   )
 
   create(owner: object, actorID: number, sequence?: unknown): number {
+    if (this.nextProjection === 0)
+      module._runtime_seed(crypto.getRandomValues(new Uint32Array(1))[0])
     const id = this.free.pop() ?? this.nextProjection++
     this.content[id] = [undefined]
     try {
@@ -277,9 +279,13 @@ class Runtime {
       case 4: {
         const changes: unknown[] = []
         for (let at = p0 >>> 2, end = at + n0 * 4; at < end; at += 4) {
-          const items = values(heap[at + 2], heap[at + 3])
+          const span = heap[at + 2] >>> 2
+          const items =
+            heap[at + 3] === 1 && heap[span + 1] === 0
+              ? (content[heap[span]] ?? new Array<unknown>(heap[span + 2]))
+              : values(heap[at + 2], heap[at + 3])
           changes.push(
-            items.length
+            heap[at + 3]
               ? [heap[at], heap[at + 1], items]
               : [heap[at], heap[at + 1]]
           )

@@ -1,5 +1,29 @@
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
+
+it.each([false, true])(
+  'retains repeated middle replacements before an older mask with compaction %s',
+  (compact) => {
+    const session = 4294967294
+    const state = new Projection<number>(1, [
+      [],
+      [
+        [[0, 0, 0, session, 0, 1], [1]],
+        [[session, 0, 1, session, 2, 79], new Array(79).fill(79)],
+        [[session, 2, 79, session, 82, 1], [1]],
+      ],
+    ])
+    if (!compact) state.apply([[2]])
+    for (let i = 0; i < 8; ++i) state.replace([i], 1, 1)
+    const expected = [1, 7, ...new Array(78).fill(79), 1]
+    expect(state.length()).toBe(81)
+    expect(state.values()).toEqual(expected)
+    const restored = new Projection<number>(3, state.sequence())
+    expect(restored.values()).toEqual(expected)
+    restored.destroy()
+    state.destroy()
+  }
+)
 import type { Insertion } from '../../../../src/typescript/types/type.ts'
 describe('projection equivalence before and after hydration', () => {
   it.each([false, true])(

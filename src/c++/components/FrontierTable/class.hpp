@@ -35,14 +35,15 @@ public:
   void retire(Word actor) {
     retirees.insert(actor);
     membership.erase(actor);
-    std::erase(actors, actor);
+    if (membership.empty())
+      actors.clear();
     for (auto &s : sessions)
       s.claims.erase(actor);
   }
   std::unordered_set<Word> compactable() const {
     std::unordered_set<Word> result;
     for (const auto &s : sessions) {
-      if (s.claims.size() != actors.size())
+      if (s.claims.size() != membership.size())
         continue;
       bool equal = true;
       if (!s.claims.empty()) {
@@ -63,6 +64,8 @@ public:
   std::vector<Acknowledgement> frontiers() const {
     std::vector<Acknowledgement> result;
     for (auto actor : actors) {
+      if (!membership.contains(actor))
+        continue;
       auto &a = result.emplace_back(Acknowledgement{actor});
       for (const auto &s : sessions) {
         auto it = s.claims.find(actor);

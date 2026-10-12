@@ -1,0 +1,98 @@
+[
+  {
+    "size": 100,
+    "operation": "replace.head",
+    "metric": {
+      "count": 10000,
+      "totalNanoseconds": 32596600,
+      "averageNanoseconds": 3259.66,
+      "operationsPerSecond": 306780.46176595107,
+      "minimumNanoseconds": null,
+      "maximumNanoseconds": null
+    }
+  },
+  {
+    "size": 100,
+    "operation": "value.sameIndex",
+    "metric": {
+      "count": 10000,
+      "totalNanoseconds": 1642900,
+      "averageNanoseconds": 164.29,
+      "operationsPerSecond": 6086797.735711243,
+      "minimumNanoseconds": null,
+      "maximumNanoseconds": null
+    }
+  },
+  {
+    "size": 1000,
+    "operation": "value.head",
+    "metric": {
+      "count": 10000,
+      "totalNanoseconds": 1504000,
+      "averageNanoseconds": 150.4,
+      "operationsPerSecond": 6648936.170212766,
+      "minimumNanoseconds": null,
+      "maximumNanoseconds": null
+    }
+  },
+  {
+    "size": 1000,
+    "operation": "value.tail",
+    "metric": {
+      "count": 10000,
+      "totalNanoseconds": 1313600,
+      "averageNanoseconds": 131.36,
+      "operationsPerSecond": 7612667.478684531,
+      "minimumNanoseconds": null,
+      "maximumNanoseconds": null
+    }
+  },
+  {
+    "size": 10000,
+    "operation": "value.middle",
+    "metric": {
+      "count": 10000,
+      "totalNanoseconds": 1978700,
+      "averageNanoseconds": 197.87,
+      "operationsPerSecond": 5053823.21726386,
+      "minimumNanoseconds": null,
+      "maximumNanoseconds": null
+    }
+  },
+  {
+    "size": 10000,
+    "operation": "value.sameIndex",
+    "metric": {
+      "count": 10000,
+      "totalNanoseconds": 603400,
+      "averageNanoseconds": 60.34,
+      "operationsPerSecond": 16572754.391779913,
+      "minimumNanoseconds": null,
+      "maximumNanoseconds": null
+    }
+  },
+  {
+    "size": 10000,
+    "operation": "value.tail",
+    "metric": {
+      "count": 10000,
+      "totalNanoseconds": 790700,
+      "averageNanoseconds": 79.07,
+      "operationsPerSecond": 12647021.626406983,
+      "minimumNanoseconds": null,
+      "maximumNanoseconds": null
+    }
+  },
+  {
+    "size": 10000,
+    "operation": "length",
+    "metric": {
+      "count": 10000,
+      "totalNanoseconds": 1253400,
+      "averageNanoseconds": 125.34,
+      "operationsPerSecond": 7978299.026647518,
+      "minimumNanoseconds": null,
+      "maximumNanoseconds": null
+    }
+  }
+]

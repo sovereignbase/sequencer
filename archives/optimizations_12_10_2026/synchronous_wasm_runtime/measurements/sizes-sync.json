@@ -1,0 +1,62 @@
+{
+  "initial": {
+    "wasm": {
+      "bytes": 69638,
+      "gzip": 28314,
+      "brotli": 23387,
+      "sha256": "9b4f04665a37cf3207f4d38ab33c6ae60fd356538eb491e450da4f7fdca5b541"
+    },
+    "esm": {
+      "bytes": 106549,
+      "gzip": 36004,
+      "brotli": 30057,
+      "sha256": "adaca1c08d4e349964ba32625280bb49145b7f2cc89ef9790d8aeb43d9c63fcc"
+    },
+    "cjs": {
+      "bytes": 106683,
+      "gzip": 36088,
+      "brotli": 30097,
+      "sha256": "845ec0039f47388a9a0a5481d5f9b3566adf72fe1245e9880ff372dd91b84786"
+    }
+  },
+  "beforeLto": {
+    "wasm": {
+      "bytes": 69258,
+      "gzip": 28434,
+      "brotli": 23514,
+      "sha256": "08414c0a806b5ab18a825be661106bcc823ceb87e95ad01239e5a3d9438237a7"
+    },
+    "esm": {
+      "bytes": 106898,
+      "gzip": 36279,
+      "brotli": 30398,
+      "sha256": "1653196133d1bbb9fd1ee02f66bc3357ed3f0d018d4f8d00a0d7a80ded7fdb11"
+    },
+    "cjs": {
+      "bytes": 107032,
+      "gzip": 36364,
+      "brotli": 30405,
+      "sha256": "148025bac57baccc3ea42e1306625ffdfcc2186378f16d9b3628b22fb08fa857"
+    }
+  },
+  "final": {
+    "wasm": {
+      "bytes": 69720,
+      "gzip": 28774,
+      "brotli": 23801,
+      "sha256": "11f8c131f85521f20df2ecd61e40ab0662b67bcae7c846a304d8d4b73b573ae5"
+    },
+    "esm": {
+      "bytes": 109835,
+      "gzip": 37330,
+      "brotli": 31252,
+      "sha256": "398aafd318a3464ae89cc104b7f157f4ab2e4e18f568d5dafb2c0232116e089b"
+    },
+    "cjs": {
+      "bytes": 109969,
+      "gzip": 37414,
+      "brotli": 31303,
+      "sha256": "0bbb97cc7f08820d414a968e7a045ae7c758cfed304588cb55a3ece8796ab4f2"
+    }
+  }
+}

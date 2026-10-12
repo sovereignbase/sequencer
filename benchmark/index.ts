@@ -8,7 +8,7 @@ import type { BenchmarkConfig } from './.shared/types.ts'
 const defaults = {
   suites: ['lifecycle', 'throughput'] as const,
   runs: 3,
-  maximumStripCount: { lifecycle: 10000, throughput: 10000 },
+  maximumStripCount: { lifecycle: 10_000, throughput: 10_000 },
   initialStripCount: 100,
   burstMilliseconds: 100,
   maximumCalls: 10000,
@@ -17,7 +17,7 @@ const defaults = {
   maximumStripFrameLength: 100,
   baseSeed: 'sequencer-lifecycle-v1',
   outputDirectory: 'benchmark/.results',
-  checkpoints: [1, 10, 100, 1000, 10000, 100000, 1000000],
+  checkpoints: [1, 10, 100, 1_000, 10_000, 100_000, 1000_000],
 }
 const usage = [
   'Sequencer TypeScript API benchmarks',

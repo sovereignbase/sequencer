@@ -34,7 +34,10 @@ describe('Projection public API', () => {
   describe('apply', () => {
     it('returns insertion splices using visible positions', () => {
       const projection = new Projection<string>(2)
-      expect(projection.apply(seed()[1])).toEqual([[[0, 0, ['a', 'b', 'c']]]])
+      const incoming = seed()
+      const result = projection.apply(incoming[1])
+      expect(result).toEqual([[[0, 0, ['a', 'b', 'c']]]])
+      expect(result?.[0][0][2]).toBe(incoming[1][0][1])
       expect(projection.values()).toEqual(['a', 'b', 'c'])
     })
     it('returns removal splices with an exclusive end and receipt Gossip', () => {
@@ -274,6 +277,29 @@ describe('Projection public API', () => {
       projection.insert(['a', undefined, 'c'], 0)
       expect(projection.value(1)).toBeUndefined()
       expect(projection.length()).toBe(3)
+    })
+  })
+  describe('destroy', () => {
+    it('releases the instance, rejects further calls synchronously, and permits repeated destruction', () => {
+      const projection = seeded()
+      expect(projection.destroy()).toBeUndefined()
+      expect(() => projection.length()).toThrow('Projection has been destroyed')
+      expect(() => projection.values()).toThrow('Projection has been destroyed')
+      expect(projection.destroy()).toBeUndefined()
+    })
+    it('keeps other instances valid when a native handle is reused', () => {
+      const removed = seeded()
+      const survivor = seeded()
+      removed.destroy()
+      const replacement = new Projection<string>(3)
+      replacement.insert(['X'], 0)
+      expect(survivor.values()).toEqual(['a', 'b', 'c'])
+      expect(replacement.values()).toEqual(['X'])
+      expect(() => removed.insert(['Y'], 0)).toThrow(
+        'Projection has been destroyed'
+      )
+      replacement.destroy()
+      survivor.destroy()
     })
   })
   describe('values', () => {

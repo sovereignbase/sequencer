@@ -44,25 +44,25 @@ i5-10210U. Generated Strip lengths are 1–100 Frames. Each case warms up for
 
 ## Memory efficiency
 
-Additional retained memory for 10,000 insertions containing 500,000 Frames:
+Retained-memory comparison for eight Projections, each containing 6,000
+single-Frame insertions. These are five-run medians from isolated Node processes:
 
-| Construction         |  JS heap | External memory, including WASM |    Total |
-| -------------------- | -------: | ------------------------------: | -------: |
-| First construction   | 5.073 MB |                        1.412 MB | 6.485 MB |
-| After initialization | 4.604 MB |                        1.049 MB | 5.653 MB |
+| Measurement                 | Before extension coalescing |  Current |
+| --------------------------- | --------------------------: | -------: |
+| Additional JS heap after GC |                    2.038 MB | 0.520 MB |
+| Shared WASM memory capacity |                    7.406 MB | 1.049 MB |
 
-Values are medians of three separate process measurements after garbage
-collection, using 50 numeric Frames per insertion. Module import is excluded. The second
-row initializes an empty Projection before measuring. These are additional heap
-and external allocations, not whole-process RSS. WASM starts with 1 MiB of memory
-and grows as needed.
+Module import and a small warm-up are excluded from the heap delta. WASM
+capacity includes the initial 1 MiB allocation. These are not process RSS or
+per-Projection total memory. Measurements and complete before/after results are
+retained in [the optimization report](archives/optimizations/flat_sequence/README.md).
 
 ### Moderate bundle size
 
 | Format   |      Raw | Minified | Minified + gzip |
 | -------- | -------: | -------: | --------------: |
-| ESM      | 109.8 kB |  93.9 kB |         34.6 kB |
-| CommonJS | 110.0 kB |  94.9 kB |         34.8 kB |
+| ESM      | 117.9 kB |  99.7 kB |         36.4 kB |
+| CommonJS | 118.0 kB | 100.6 kB |         36.6 kB |
 
 Both bundles include the WASM module. Minified sizes use Terser with three
 compression passes; source maps and type declarations are excluded. kB and MB
@@ -97,13 +97,13 @@ their removal Gossip, and a snapshot captured before removal:
 
 | Workload                                       | Average bytes per operation or insertion |    JSON | JSON + gzip | gzip reduction |
 | ---------------------------------------------- | ---------------------------------------: | ------: | ----------: | -------------: |
-| 1,000 one-frame insertions                     |                                   44.9 B | 45.9 kB |      5.1 kB |          88.8% |
-| 1,000 one-frame removals                       |                                   65.3 B | 66.3 kB |      7.7 kB |          88.5% |
-| Snapshot containing 1,000 one-frame insertions |                                   43.9 B | 43.9 kB |      5.2 kB |          88.0% |
+| 1,000 one-frame insertions                     |                                   44.8 B | 45.8 kB |      5.1 kB |          88.9% |
+| 1,000 one-frame removals                       |                                   67.8 B | 68.8 kB |      7.7 kB |          88.9% |
+| Snapshot containing 1,000 one-frame insertions |                                    4.0 B |  4.0 kB |      0.1 kB |          98.3% |
 
 Gossip sizes include acknowledgements and content where present. Delta averages
 measure individual Gossip packets; batch totals include their enclosing array.
-Snapshot averages divide the complete Sequence size by its insertion count.
+Snapshot averages divide the complete Sequence size by the 1,000 authored insertions. Consecutive insertions are retained as one insertion.
 Sizes vary with Session IDs and content.
 
 ## Tests

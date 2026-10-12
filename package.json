@@ -50,8 +50,7 @@
     "bench": "npm run build:package && node benchmark/index.ts",
     "bench:lifecycle": "npm run bench -- --suite lifecycle",
     "bench:throughput": "npm run bench -- --suite throughput",
-    "prepare": "husky",
-    "prepublishOnly": "npm run test && npm run bench"
+    "prepare": "husky"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",
@@ -60,9 +59,9 @@
     "@sovereignbase/utils": "^2.3.0",
     "@types/node": "^26.6.5",
     "@types/ws": "^8.18.2",
-    "@vitest/browser-playwright": "^5.0.3",
-    "@vitest/coverage-v8": "^5.0.3",
-    "@vitest/ui": "^5.0.3",
+    "@vitest/browser-playwright": "^5.0.4",
+    "@vitest/coverage-v8": "^5.0.4",
+    "@vitest/ui": "^5.0.4",
     "bun": "^1.4.3",
     "deno": "^2.9.6",
     "edge-runtime": "^4.0.1",
@@ -78,7 +77,7 @@
     "typedoc": "^0.28.20",
     "typescript": "^6.0.3",
     "unrun": "^0.3.1",
-    "vitest": "^5.0.3",
+    "vitest": "^5.0.4",
     "wrangler": "^4.149.0",
     "ws": "^8.22.0"
   },

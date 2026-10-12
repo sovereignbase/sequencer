@@ -4,69 +4,125 @@ Sequencer provides a deterministic total ordering for distributed data. It allow
 
 ## Usage
 
-### Simple typed api
+### Simple typed API
 
 ```ts
-import * as sequencer from '@sovereignbase/sequencer'
+import { Projection } from '@sovereignbase/sequencer'
 
-const sequence = sequencer.__create(/*optional stored snapshot*/)
-const { reel, change } = sequencer.__update(sequence, 0, 'Hello World', 'after')
-console.log(sequencer.__read(sequence, 0)) // "Hello World"
+const projection = new Projection<string>(1)
+const gossip = projection.insert(['Hello World'], 0)
+console.log(projection.value(0)) // "Hello World"
+
+projection.destroy()
 ```
 
 ## Benchmarks
 
 ### Exceptional performance
 
-/// Summary and canonical live link to in detail benchmark readme
+The [benchmark documentation](benchmark/README.md) describes both the dynamic
+lifecycle workload and API throughput bursts. Full results are available for
+[lifecycle](benchmark/.results/lifecycle.md) and
+[throughput](benchmark/.results/throughput.md).
 
-/// Auto inserted benchmark result and environment details.
+Latest throughput results, measured on 12 October 2026. Latencies are in µs per
+public API call, weighted by call count across three runs.
 
-## Memory effiency
+| Operation                           | 100 initial Strips | 1,000 initial Strips | 10,000 initial Strips |
+| ----------------------------------- | -----------------: | -------------------: | --------------------: |
+| `new Projection(actorID, sequence)` |             21.059 |              200.042 |             2,377.293 |
+| `insert`, random position           |              1.069 |                1.507 |                 1.298 |
+| `remove`, middle                    |              1.271 |                1.591 |                 1.867 |
+| `replace`, middle                   |              0.945 |                0.908 |                 2.728 |
+| `sequence()`                        |             17.829 |              237.192 |             2,704.320 |
+| `value`, random position            |              0.192 |                0.238 |                 0.731 |
+| `values()`                          |             27.018 |              390.403 |             4,450.865 |
 
-|heap usage .... what ever is professional/smart
+Environment: Node 24.16.0, V8 13.6.233.17-node.49, Windows x64, Intel Core
+i5-10210U. Generated Strip lengths are 1–100 Frames. Each case warms up for
+64 calls, then measures a burst of approximately 100 ms or at most 10,000 calls.
+
+## Memory efficiency
+
+Additional retained memory for 10,000 insertions containing 500,000 Frames:
+
+| Construction         |  JS heap | External memory, including WASM |    Total |
+| -------------------- | -------: | ------------------------------: | -------: |
+| First construction   | 5.073 MB |                        1.412 MB | 6.485 MB |
+| After initialization | 4.604 MB |                        1.049 MB | 5.653 MB |
+
+Values are medians of three separate process measurements after garbage
+collection, using 50 numeric Frames per insertion. Module import is excluded. The second
+row initializes an empty Projection before measuring. These are additional heap
+and external allocations, not whole-process RSS. WASM starts with 1 MiB of memory
+and grows as needed.
 
 ### Moderate bundle size
 
-| format   |     raw | minified | minified + gzip |
-| -------- | ------: | -------: | --------------: |
-| ESM      | 91.3 kB |  53.8 kB |         19.0 kB |
-| CommonJS | 91.6 kB |  56.3 kB |         19.3 kB |
+| Format   |      Raw | Minified | Minified + gzip |
+| -------- | -------: | -------: | --------------: |
+| ESM      | 109.8 kB |  93.9 kB |         34.6 kB |
+| CommonJS | 110.0 kB |  94.9 kB |         34.8 kB |
+
+Both bundles include the WASM module. Minified sizes use Terser with three
+compression passes; source maps and type declarations are excluded. kB and MB
+use decimal units.
 
 ### Compact data model
 
-Average delta size and average replica/snapshot size
+An insertion contains six uint32 structural words: 24 bytes before transport
+framing or content. Numeric metadata accepts `Uint32Array` and JSON numeric
+arrays. Generic content, called Footage, stays in JavaScript; only numeric
+metadata enters WASM.
 
-| Delta workload                             | average bytes per operation | MessagePack | MessagePack + gzip | gzip reduction |
-| ------------------------------------------ | --------------------------: | ----------: | -----------------: | -------------: |
-| 1,000 one-frame updates                    |                      39.6 B |     39.6 kB |             7.8 kB |          80.2% |
-| 1,000 one-frame masks                      |                      36.0 B |     36.0 kB |             5.1 kB |          85.9% |
-| Snapshot containing 1,000 one-frame strips |                      39.6 B |     39.6 kB |             7.8 kB |          80.2% |
+Measured JSON transport sizes for 1,000 one-Frame insertions containing `'x'`,
+their removal Gossip, and a snapshot captured before removal:
+
+| Workload                                       | Average bytes per operation or insertion |    JSON | JSON + gzip | gzip reduction |
+| ---------------------------------------------- | ---------------------------------------: | ------: | ----------: | -------------: |
+| 1,000 one-frame insertions                     |                                   44.9 B | 45.9 kB |      5.1 kB |          88.8% |
+| 1,000 one-frame removals                       |                                   65.3 B | 66.3 kB |      7.7 kB |          88.5% |
+| Snapshot containing 1,000 one-frame insertions |                                   43.9 B | 43.9 kB |      5.2 kB |          88.0% |
+
+Gossip sizes include acknowledgements and content where present. Delta averages
+measure individual Gossip packets; batch totals include their enclosing array.
+Snapshot averages divide the complete Sequence size by its insertion count.
+Sizes vary with Session IDs and content.
 
 ## Tests
 
 ### Behaviour guaranteed by excessive tests
 
-Every `npm test` run rebuilds the native WebAssembly module and verifies unit
-behaviour, deterministic convergence, generative "stress" scenarios, V8 coverage,
-the supported runtime matrix, desktop browsers, mobile browser emulations, and
-module Web Workers. Every stage has a hard timeout, and all detailed evidence is
-written to the [automated test report](https://sovereignbase.dev/sequencer/tests/).
+`npm test` rebuilds the native WebAssembly module and TypeScript package,
+typechecks tests, runs unit, convergence, integration and generative stress suites
+with V8 coverage, then runs runtime and browser compatibility checks.
+
+The latest verification passed 151 Vitest tests and 88 compatibility checks.
+Convergence tests include 1,024 generated editing histories for each compaction
+mode. See the [test suites](test/README.md) and
+[automated test report](https://sovereignbase.dev/sequencer/tests/).
 
 ### Works everywhere where JavaScript and Wasm works
 
-Runtimes with tested support:
+Runtimes covered by the latest compatibility verification:
 
-- Node.js
+- Node.js, ESM and CommonJS
 - Deno
 - Bun
 - Edge Runtime
 - Cloudflare Workers through workerd
-- Browser Window and Web Worker contexts
-- Chromium, Firefox, and WebKit
-- Mobile Chrome and Mobile Safari device profiles
+- Chromium and WebKit browser windows
+
+Firefox is also in the compatibility matrix; its matching Playwright browser
+binary was unavailable in the latest run.
 
 ### Tested realtime and offline text editing behaviour examples
+
+- [Online and offline editors](test/convergence/delivery/offline_realtime_editing/README.md): six editors converge through delayed, reversed and shuffled delivery, including offline changes arriving during online editing.
+- [Concurrent replacements](test/convergence/delivery/concurrent_replacement_delivery/README.md): independent replacement histories retain the same surviving content across delivery orders.
+- [Restart and redelivery](test/convergence/persistence/restart_redelivery/README.md): stored Sequences preserve visible content through hydration, duplicate delivery and further edits.
+- [Peer-to-peer fanout](test/integration/fanout_peer_to_peer/README.md): independently editing browser peers synchronize through BroadcastChannel.
+- [WebSocket fanout](test/integration/fanout_websocket/README.md): three browser peers converge through a stateless JSON Gossip relay.
 
 ## Credits
 

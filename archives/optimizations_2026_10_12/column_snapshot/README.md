@@ -73,9 +73,9 @@ apply the patch and place those files at `src/c++/auxiliary/sequenceColumns.hpp`
 and `benchmark/.shared/sequence.ts`, respectively, then build normally.
 
 ```powershell
-node --expose-gc benchmark/index.ts --runs 3 --max-strips 10000 --output archives/optimizations_12_10_2026/column_snapshot/candidate.json
-node --expose-gc archives/optimizations_12_10_2026/column_snapshot/measure.mjs dist/index.js candidate-target.json
-node archives/optimizations_12_10_2026/column_snapshot/validate.mjs baseline/index.js dist/index.js validation.json
+node --expose-gc benchmark/index.ts --runs 3 --max-strips 10000 --output archives/optimizations_2026_10_12/column_snapshot/candidate.json
+node --expose-gc archives/optimizations_2026_10_12/column_snapshot/measure.mjs dist/index.js candidate-target.json
+node archives/optimizations_2026_10_12/column_snapshot/validate.mjs baseline/index.js dist/index.js validation.json
 ```
 
 Environment: Node 24.16.0 / V8 13.6.233.17-node.49, Windows x64, Intel

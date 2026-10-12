@@ -86,14 +86,14 @@ Targeted kernel build:
 
 ```powershell
 $compiler = 'C:\Users\jorts\emsdk\upstream\emscripten\em++.bat'
-& $compiler .\archives\optimizations_11_10_2026\hash_table_realm_entry_soa\reproduce\hash_table_benchmark.cpp `
+& $compiler .\archives\optimizations_2026_10_11\hash_table_realm_entry_soa\reproduce\hash_table_benchmark.cpp `
   -O3 -DNDEBUG -std=c++23 -msimd128 `
   -sWASM=1 -sMODULARIZE=1 -sEXPORT_ES6=1 -sENVIRONMENT=node `
   -sSINGLE_FILE=1 -sWASM_ASYNC_COMPILATION=0 `
   -sALLOW_MEMORY_GROWTH=1 -sFILESYSTEM=0 -sDYNAMIC_EXECUTION=0 `
   "-sEXPORTED_FUNCTIONS=['_populate','_initialize_spaced','_insert_middle','_lookup_random_batch','_lookup_hot_batch']" `
-  -o .\archives\optimizations_11_10_2026\hash_table_realm_entry_soa\reproduce\hash_table_benchmark.mjs
-node .\archives\optimizations_11_10_2026\hash_table_realm_entry_soa\reproduce\run_targeted.mjs
+  -o .\archives\optimizations_2026_10_11\hash_table_realm_entry_soa\reproduce\hash_table_benchmark.mjs
+node .\archives\optimizations_2026_10_11\hash_table_realm_entry_soa\reproduce\run_targeted.mjs
 ```
 
 The targeted workload used one Realm with 100,000 one-Frame entries. Every

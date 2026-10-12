@@ -56,9 +56,9 @@ basenames. `memory.mjs` records isolated post-GC snapshot heap and exported WASM
 memory capacity; these are not process RSS or allocator live-byte counts.
 
 ```powershell
-node --import ./archives/optimizations_12_10_2026/sequence_indices/seed.mjs --expose-gc benchmark/index.ts --runs 1 --max-strips 10000 --output paired-candidate-1.json
-node --expose-gc archives/optimizations_12_10_2026/column_snapshot/measure.mjs dist/index.js target.json
-node --expose-gc archives/optimizations_12_10_2026/sequence_indices/memory.mjs dist/index.js memory.json
+node --import ./archives/optimizations_2026_10_12/sequence_indices/seed.mjs --expose-gc benchmark/index.ts --runs 1 --max-strips 10000 --output paired-candidate-1.json
+node --expose-gc archives/optimizations_2026_10_12/column_snapshot/measure.mjs dist/index.js target.json
+node --expose-gc archives/optimizations_2026_10_12/sequence_indices/memory.mjs dist/index.js memory.json
 ```
 
 The CPU profile showed native dispatch accounting

@@ -26,7 +26,7 @@ for (let run = 0; run < 5; run++) {
     process.execPath,
     [
       '--expose-gc',
-      'archives/optimizations_12_10_2026/flat_sequence/retained-memory.mjs',
+      'archives/optimizations_2026_10_12/flat_sequence/retained-memory.mjs',
       'dist/index.js',
     ],
     { encoding: 'utf8' }
@@ -61,7 +61,7 @@ const transport = [inserts, removes, snapshot].map((value, i) => {
 })
 const results = { bundles, memory, transport }
 writeFileSync(
-  'archives/optimizations_12_10_2026/streaming_snapshot/checkpoint-readme-metrics.json',
+  'archives/optimizations_2026_10_12/streaming_snapshot/checkpoint-readme-metrics.json',
   JSON.stringify(results, null, 2) + '\n'
 )
 console.log(JSON.stringify(results, null, 2))

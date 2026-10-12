@@ -18,6 +18,7 @@ are shared with lifecycle. Reports default to `benchmark/.results/throughput.{js
 
 Each burst ends after approximately `--burst-ms` (default 100 ms), at
 `--max-calls` (default 10,000), or when a removal empties the document.
+`remove.sameIndex` stops when its fixed index is no longer valid.
 The clock is checked every 64 calls, so a slow final batch can exceed the
 requested duration. Warmup uses a separate fixture for each case.
 
@@ -26,18 +27,27 @@ Markdown reports. Case names use `method.case`, for example `insert.head`,
 `insert.random`, `insert.tail`, `value.head`, `value.random` and `value.tail`.
 Tables separate the method and case into their own columns.
 
-Cases include head, tail, middle, random and fixed-index insertion; head, tail
-and middle removal and replacement; boundary, middle, fixed and random value lookup;
-`values`, `length`, `sequence`, hydrated and empty construction; fresh and
-duplicate `apply`/`merge`; and retirement of distinct active Actors.
+`insert`, `remove`, `replace`, `value` and bounded `values` each cover the same
+five positions: `head`, `tail`, `sameIndex`, `middle` and `random`.
+`middle` tracks the current midpoint; `sameIndex` keeps the initial midpoint fixed.
+Bounded `values` reads the same number of Frames in every position:
+the smaller of the maximum configured Strip length and initial document length.
+Full-document `values`, `length`, `sequence`, hydrated and empty construction,
+and retirement of distinct active Actors are measured separately.
+
+`apply.insert`, `apply.remove` and `apply.replace` replay fresh causally ordered
+tail operations authored by another Projection outside timing. Removals delete
+one Frame; replacements replace one Frame with one Frame.
+`apply.duplicate`, `apply.duplicateRemove` and `apply.duplicateReplace` repeatedly
+replay an already materialized insertion, removal or replacement, respectively.
 `merge` receives incremental Sequences whose earlier parents are already known.
-Duplicate cases repeatedly receive one already materialized insertion, matching
-the one-insertion batches of the fresh cases. Both merge cases include the same
-actor-only frontier. Duplicate cases measure validation and deduplication.
+`merge.insert` receives fresh insertions and `merge.duplicate` receives one
+already materialized insertion. Both merge cases include the same actor-only
+frontier. Duplicate cases measure validation and deduplication.
 
 The entire API-call loop is timed, including dispatch, target selection and result
-assignment. Preparation, payload generation, snapshots, serialization and logging
-are excluded. Mutations continue on the same fixture during a burst; the report
+assignment. Preparation, payload generation, snapshots, serialization, fixture
+destruction and logging are excluded. Mutations continue on the same fixture during a burst; the report
 shows both its initial and final sizes. Replacements preserve Frame count;
 removals consume one Frame per call. Full-document calls process the complete
 starting document. Constructor results are discarded; reported retained-state

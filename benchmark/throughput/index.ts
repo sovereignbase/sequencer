@@ -10,7 +10,11 @@ import type {
 } from '../.shared/types.ts'
 export const throughputCases = [
   'apply.duplicate',
+  'apply.duplicateRemove',
+  'apply.duplicateReplace',
   'apply.insert',
+  'apply.remove',
+  'apply.replace',
   'create.empty',
   'create.sequence',
   'insert.head',
@@ -23,9 +27,13 @@ export const throughputCases = [
   'merge.insert',
   'remove.head',
   'remove.middle',
+  'remove.random',
+  'remove.sameIndex',
   'remove.tail',
   'replace.head',
   'replace.middle',
+  'replace.random',
+  'replace.sameIndex',
   'replace.tail',
   'retire',
   'sequence',
@@ -35,6 +43,11 @@ export const throughputCases = [
   'value.sameIndex',
   'value.tail',
   'values',
+  'values.head',
+  'values.middle',
+  'values.random',
+  'values.sameIndex',
+  'values.tail',
 ] as const
 export type ThroughputCase = (typeof throughputCases)[number]
 type Observation = ReturnType<typeof measureSpace> & {
@@ -78,7 +91,9 @@ function initialSequence(
     )
     state.insert(new Array<number>(length).fill(index), state.length())
   }
-  return state.sequence()
+  const sequence = state.sequence()
+  state.destroy()
+  return sequence
 }
 /** Each burst starts from independent Footage; masks must not mutate another case's input. */
 function prepare(
@@ -94,7 +109,20 @@ function prepare(
     operation.startsWith('insert.') ||
     operation === 'apply.insert' ||
     operation === 'merge.insert'
-  const replacing = operation.startsWith('replace.')
+  const replacing =
+    operation.startsWith('replace.') ||
+    operation === 'apply.replace' ||
+    operation === 'apply.duplicateReplace'
+  const removing =
+    operation.startsWith('remove.') || operation === 'apply.remove'
+  const limit = removing
+    ? Math.min(
+        config.maximumCalls,
+        state.length() - (operation === 'remove.sameIndex' ? fixedIndex : 0)
+      )
+    : config.maximumCalls
+  const rangeLength = Math.min(config.maximumStripFrameLength, state.length())
+  const fixedRangeStart = Math.floor((state.length() - rangeLength) / 2)
   const payloads =
     inserting || replacing
       ? Array.from({ length: config.maximumCalls }, (_, index) =>
@@ -116,11 +144,29 @@ function prepare(
       )
     : []
   const updates: Array<Gossip<number>> = []
-  if (operation === 'apply.insert' || operation === 'merge.insert') {
+  if (
+    operation === 'apply.insert' ||
+    operation === 'apply.remove' ||
+    operation === 'apply.replace' ||
+    operation === 'apply.duplicateRemove' ||
+    operation === 'apply.duplicateReplace' ||
+    operation === 'merge.insert'
+  ) {
     const sender = new Projection<number>(2, snapshot)
-    for (const payload of payloads) {
-      updates.push(sender.insert(payload, sender.length()))
+    const count = operation.startsWith('apply.duplicate') ? 1 : limit
+    for (let index = 0; index < count; ++index) {
+      const at = sender.length() - 1
+      if (operation === 'apply.remove' || operation === 'apply.duplicateRemove')
+        updates.push(sender.remove(at, at))
+      else if (
+        operation === 'apply.replace' ||
+        operation === 'apply.duplicateReplace'
+      )
+        updates.push(sender.replace(payloads[index], at, at))
+      else updates.push(sender.insert(payloads[index], sender.length()))
     }
+    sender.destroy()
+    if (operation.startsWith('apply.duplicate')) state.apply(updates[0])
   } else if (
     operation === 'apply.duplicate' ||
     operation === 'merge.duplicate'
@@ -128,12 +174,14 @@ function prepare(
     const coordinates = Array.from(snapshot[0].slice(-6))
     updates.push([[coordinates, snapshot[1].slice(-(coordinates[5] | 0))]])
   }
-  const mergeWords = updates.map((gossip) => [
-    3,
-    1,
-    2,
-    ...(gossip[0] as [ReadonlyArray<number>])[0],
-  ])
+  const mergeWords = operation.startsWith('merge.')
+    ? updates.map((gossip) => [
+        3,
+        1,
+        2,
+        ...(gossip[0] as [ReadonlyArray<number>])[0],
+      ])
+    : []
   if (operation === 'retire')
     // Establish distinct active Actors outside the measured retirement calls.
     state.apply(
@@ -144,40 +192,61 @@ function prepare(
       ? 0
       : kind.endsWith('.tail')
         ? state.length() - (insertion ? 0 : 1)
-        : kind.endsWith('.random')
-          ? Math.floor(
-              positions[index] * (state.length() + (insertion ? 1 : 0))
-            )
-          : Math.floor(state.length() / 2)
+        : kind.endsWith('.sameIndex')
+          ? fixedIndex
+          : kind.endsWith('.random')
+            ? kind === 'value.random'
+              ? positions[index]
+              : Math.floor(
+                  positions[index] * (state.length() + (insertion ? 1 : 0))
+                )
+            : Math.floor(state.length() / 2)
   const call = (index: number): unknown => {
     switch (operation) {
       case 'insert.head':
       case 'insert.tail':
       case 'insert.middle':
       case 'insert.random':
-        return state.insert(payloads[index], position(operation, index, true))
       case 'insert.sameIndex':
-        return state.insert(payloads[index], fixedIndex)
+        return state.insert(payloads[index], position(operation, index, true))
       case 'remove.head':
       case 'remove.tail':
-      case 'remove.middle': {
+      case 'remove.middle':
+      case 'remove.random':
+      case 'remove.sameIndex': {
         const at = position(operation, index)
         return state.remove(at, at)
       }
       case 'replace.head':
       case 'replace.tail':
-      case 'replace.middle': {
+      case 'replace.middle':
+      case 'replace.random':
+      case 'replace.sameIndex': {
         const at = position(operation, index)
         return state.replace(payloads[index], at, at)
       }
       case 'value.head':
       case 'value.tail':
       case 'value.middle':
-        return state.value(position(operation, index))
       case 'value.random':
-        return state.value(positions[index])
       case 'value.sameIndex':
-        return state.value(fixedIndex)
+        return state.value(position(operation, index))
+      case 'values.head':
+      case 'values.tail':
+      case 'values.middle':
+      case 'values.random':
+      case 'values.sameIndex': {
+        const lastStart = state.length() - rangeLength
+        const at =
+          operation === 'values.head'
+            ? 0
+            : operation === 'values.tail'
+              ? lastStart
+              : operation === 'values.random'
+                ? Math.floor(positions[index] * (lastStart + 1))
+                : fixedRangeStart
+        return state.values(at, at + rangeLength - 1)
+      }
       case 'values':
         return state.values()
       case 'length':
@@ -193,6 +262,8 @@ function prepare(
         return created
       }
       case 'apply.insert':
+      case 'apply.remove':
+      case 'apply.replace':
         return state.apply(updates[index])
       case 'merge.insert':
         return state.merge([
@@ -200,6 +271,8 @@ function prepare(
           (updates[index][0] as [unknown, unknown])[1],
         ])
       case 'apply.duplicate':
+      case 'apply.duplicateRemove':
+      case 'apply.duplicateReplace':
         return state.apply(updates[0])
       case 'merge.duplicate':
         return state.merge([
@@ -210,7 +283,7 @@ function prepare(
         return state.retire(index + 2)
     }
   }
-  return { state, call, payloads }
+  return { state, call, payloads, limit, inserting, removing, rangeLength }
 }
 async function collectGarbage(): Promise<void> {
   const gc = (
@@ -239,14 +312,10 @@ function observe(state: Projection<number>): Observation {
 /** Time the entire API-call loop; setup, snapshots, serialization and reporting are outside it. */
 function burst(
   work: ReturnType<typeof prepare>,
-  operation: ThroughputCase,
   config: BenchmarkConfig
 ): MetricResult {
   let count = 0
-  const removing = operation.startsWith('remove.')
-  const limit = removing
-    ? Math.min(config.maximumCalls, work.state.length())
-    : config.maximumCalls
+  const limit = work.limit
   const start = process.hrtime.bigint()
   const duration = BigInt(config.burstMilliseconds) * 1000000n
   while (count < limit) {
@@ -291,36 +360,44 @@ export async function runThroughput(
             ...config,
             maximumCalls: Math.min(config.maximumCalls, config.warmupCycles),
           }
-          burst(
-            prepare(operation, initial, new Random(caseSeed), warmup),
-            operation,
-            warmup
-          )
+          const work = prepare(operation, initial, new Random(caseSeed), warmup)
+          burst(work, warmup)
           resultSink = undefined
+          work.state.destroy()
         }
         const work = prepare(operation, initial, new Random(caseSeed), config)
         await collectGarbage()
         const before = observe(work.state)
-        const metric = burst(work, operation, config)
+        const metric = burst(work, config)
         if (
-          (operation === 'apply.insert' || operation === 'merge.insert') &&
+          (operation.startsWith('apply.') || operation.startsWith('merge.')) &&
           resultSink === undefined
         )
           throw new TypeError('Throughput remote input was rejected.')
         const expected =
           before.frameCount +
-          (operation.startsWith('insert.') ||
-          operation === 'apply.insert' ||
-          operation === 'merge.insert'
+          (work.inserting
             ? work.payloads
                 .slice(0, metric.count)
                 .reduce((sum, payload) => sum + payload.length, 0)
-            : operation.startsWith('remove.')
+            : work.removing
               ? -metric.count
               : 0)
         if (work.state.length() !== expected)
           throw new TypeError(
             `Throughput ${operation} changed the expected Frame count.`
+          )
+        if (
+          operation === 'apply.replace' &&
+          work.state.value(before.frameCount - 1) !== metric.count - 1
+        )
+          throw new TypeError('Throughput replacement was not materialized.')
+        if (
+          operation.startsWith('values.') &&
+          (resultSink as number[]).length !== work.rangeLength
+        )
+          throw new TypeError(
+            'Throughput range returned the wrong Frame count.'
           )
         resultSink = undefined
         await collectGarbage()
@@ -332,6 +409,7 @@ export async function runThroughput(
           before,
           after: observe(work.state),
         })
+        work.state.destroy()
       }
       printCheckpoint(
         samples.filter(

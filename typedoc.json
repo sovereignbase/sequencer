@@ -1,12 +1,13 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "entryPoints": ["src/typescript/index.ts"],
+  "entryPoints": ["src/typescript/class.ts"],
   "favicon": "https://sovereignbase.dev/sovereignbase_logo.png",
-  "out": "docs/typescript",
+  "out": "docs",
   "validation": {
     "invalidLink": true,
     "notDocumented": true,
     "notExported": true
   },
-  "treatWarningsAsErrors": true
+  "treatWarningsAsErrors": true,
+  "cleanOutputDir": false
 }

@@ -68,26 +68,26 @@ reads, and materializes all values 100 times. Apply includes structuredClone and
 is not a measurement of native apply alone. Medians in milliseconds:
 
 | Operation | Baseline | Rejected candidate |
-| --- | ---: | ---: |
-| insert | 22.0354 | 6.8339 |
-| apply | 136.1739 | 37.9291 |
-| sequence | 7.8948 | 0.0088 |
-| create | 13.331 | 0.0577 |
-| read | 10.2716 | 0.4287 |
-| values | 72.6722 | 7.3506 |
+| --------- | -------: | -----------------: |
+| insert    |  22.0354 |             6.8339 |
+| apply     | 136.1739 |            37.9291 |
+| sequence  |   7.8948 |             0.0088 |
+| create    |   13.331 |             0.0577 |
+| read      |  10.2716 |             0.4287 |
+| values    |  72.6722 |             7.3506 |
 
 The retained insertion count fell from 6,000 to 1 in this append-only workload.
-Snapshot JSON fell from 240,886–276,883 bytes to 24,035–24,036 bytes.
+Snapshot JSON fell from 240,886ï¿½276,883 bytes to 24,035ï¿½24,036 bytes.
 This supports continuing investigation of the representation, not accepting an
 incorrect implementation.
 
 Bundle bytes (same build/compression):
 
-| Artifact | Baseline | Rejected candidate | Difference |
-| --- | ---: | ---: | ---: |
-| ESM raw | 109835 | 114950 | +5115 (+4.66%) |
-| gzip | 37330 | 38322 | +992 (+2.66%) |
-| Brotli | 31252 | 32034 | +782 (+2.50%) |
+| Artifact | Baseline | Rejected candidate |     Difference |
+| -------- | -------: | -----------------: | -------------: |
+| ESM raw  |   109835 |             114950 | +5115 (+4.66%) |
+| gzip     |    37330 |              38322 |  +992 (+2.66%) |
+| Brotli   |    31252 |              32034 |  +782 (+2.50%) |
 
 No measured heap claim is made. The common append path removes per-operation
 arena nodes, containment inserts, and linked traversal. Its primary improvement

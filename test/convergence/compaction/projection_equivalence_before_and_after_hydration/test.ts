@@ -1,3 +1,4 @@
+/** Acknowledged export compaction must preserve visible content, retained child order and subsequent editing. */
 import { makeSequence, sequenceInsertions } from '../../../.shared/sequence.ts'
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
@@ -17,6 +18,7 @@ it.each([false, true])(
         ]
       )
     )
+    // A membership-only claim from another Actor keeps all masks unacknowledged.
     if (!compact) state.apply([[2]])
     for (let i = 0; i < 8; ++i) state.replace([i], 1, 1)
     const expected = [1, 7, ...new Array(78).fill(79), 1]
@@ -34,6 +36,7 @@ describe('projection equivalence before and after hydration', () => {
     'preserves repeated head replacements and the next edit with compaction %s',
     (compact) => {
       const projection = new Projection<string>(1)
+      // Keep masks in the exported history while exercising the same visible edits.
       if (!compact) projection.apply([[2]])
       projection.insert(['a', 'b'], 0)
       projection.replace(['x', 'y'], 0, 0)
@@ -128,6 +131,7 @@ describe('projection equivalence before and after hydration', () => {
     projection.remove(2, 2)
     projection.remove(0, 0)
     expect(projection.values()).toEqual(['A', 'B', 'tail'])
+    // Export may discard eligible history, but the live Projection and retained child ordering stay unchanged.
     const snapshot = projection.sequence()
     expect(
       sequenceInsertions(snapshot).every(
@@ -166,6 +170,7 @@ describe('projection equivalence before and after hydration', () => {
       )
     )
     expect(projection.values()).toEqual(['X'])
+    // Export may discard eligible history, but the live Projection and retained child ordering stay unchanged.
     const snapshot = projection.sequence()
     expect(
       sequenceInsertions(snapshot).some(
@@ -199,6 +204,7 @@ describe('projection equivalence before and after hydration', () => {
       )
     )
     expect(projection.values()).toEqual(['X', 'd'])
+    // Export may discard eligible history, but the live Projection and retained child ordering stay unchanged.
     const snapshot = projection.sequence()
     expect(
       sequenceInsertions(snapshot).some(

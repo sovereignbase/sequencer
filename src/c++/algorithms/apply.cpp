@@ -1,3 +1,8 @@
+/**
+ * @file
+ * Integrates canonical history while preserving local traversal and consumer Splice
+ * order.
+ */
 #include "../auxiliary/linkJumps.hpp"
 #include "../class.hpp"
 #include <algorithm>
@@ -10,20 +15,26 @@ Result Projection::apply(std::span<const Entry> gossip) {
 }
 void Projection::apply(std::span<const Entry> gossip, Result &result) {
   for (const auto &entry : gossip) {
+    // Acknowledgements affect compaction consensus, not visible or Structural Order.
     if (entry.acknowledgement) {
       frontier.observe(entry.frontier);
       continue;
     }
+    // The first operation needs no queued allocation; released dependencies share
+    // this stack and are pushed in reverse to retain arrival order.
     std::vector<Insertion> queue;
     bool first = true;
     while (first || !queue.empty()) {
       auto insertion = first ? entry.insertion : queue.back();
+      // Remote history ends the local consecutive-edit chain, even for a duplicate.
       last_insert = none;
       if (first)
         first = false;
       else
         queue.pop_back();
       const auto c = insertion.coordinates;
+      // Acknowledgement precedes duplicate and dependency checks; it does not prove
+      // a gap-free received removal Session prefix.
       if (c.diff < 0) {
         if (insertion.content) {
           released.push_back({insertion.content, 0, 0});
@@ -36,11 +47,14 @@ void Projection::apply(std::span<const Entry> gossip, Result &result) {
       const auto extension = c.extension();
       const auto existing = extension ? none : containment.get(c.session, c.start);
       const auto origin = c.birth() ? none : containment.get(c.anchor_session, c.anchor_start);
+      // A snapshot may carry a longer known positive root. Suffix Gossip instead
+      // continues its parent's logical time without a new zero reservation.
       const auto growing = existing && c.diff > 0 &&
                            strips.identity[existing].coordinates.diff > 0 &&
                            c.diff > strips.identity[existing].coordinates.diff;
       if (extension || growing) {
         const auto parent = growing ? existing : origin;
+        // A known parent identity can still lack the required extension prefix.
         if (!parent ||
             (!growing && c.anchor_diff > Word(strips.identity[parent].coordinates.diff))) {
           pending.set(insertion);
@@ -49,6 +63,7 @@ void Projection::apply(std::span<const Entry> gossip, Result &result) {
         const auto known = Word(strips.identity[parent].coordinates.diff);
         const auto end = growing ? Word(c.diff) : c.anchor_diff + Word(c.diff);
         if (end > known && (growing || c.anchor_diff == known)) {
+          // A longer snapshot includes the known prefix; replay only its unknown suffix.
           const auto source_start = growing ? known : known - c.anchor_diff;
           const auto at = extend(parent, end - known, insertion.content,
                                  insertion.content_start + source_start);
@@ -62,13 +77,14 @@ void Projection::apply(std::span<const Entry> gossip, Result &result) {
           released.push_back({insertion.content, 0, 0});
         continue;
       }
+      // Release a duplicate input binding while retaining the canonical root's Footage.
       if (existing) {
         if (insertion.content)
           released.push_back({insertion.content, 0, 0});
         continue;
       }
       // Stage before allocating so repeated out-of-order delivery cannot leak
-      // unlinked arena nodes. A dependent retains numeric metadata only.
+      // unlinked arena nodes. A dependent retains coordinates and an opaque binding token.
       if (!c.birth() &&
           (!origin || (strips.identity[origin].coordinates.diff > 0 &&
                        std::uint64_t(c.anchor_diff) + (c.diff < 0 ? -std::int64_t(c.diff) : 0) >
@@ -89,12 +105,15 @@ void Projection::apply(std::span<const Entry> gossip, Result &result) {
           point = resolved.first;
           anchor = resolved.second;
         }
+        // Restore a visible traversal boundary when local masking left gate hidden.
         if (!frame_count) {
           gate = none;
           gate_position = 0;
         } else if (gate && strips.fragment_diff[gate] <= 0)
           find_frame(std::min(gate_position, frame_count - 1));
         diff = anchor_strip(incoming, anchor, point);
+        // A fragmented mask can consume Frames on both sides of surviving gate
+        // content. Only its consumed prefix before the gate boundary shifts it.
         auto gate_diff = diff;
         if (diff < 0 && strips.fragment[incoming] && gate) {
           auto parent = gate;
@@ -123,10 +142,13 @@ void Projection::apply(std::span<const Entry> gossip, Result &result) {
                                                     strips.fragment_start[mask])));
           }
         }
+        // Resolve the consumer position after linking, retaining gate's content identity.
         start = position_of(incoming, gate_diff);
         if (start <= gate_position)
           gate_position =
               Word(std::max<std::int64_t>(start, std::int64_t(gate_position) + gate_diff));
+        // An emptied left fragment hands the gate and its distances to its surviving right
+        // fragment.
         if (diff > 0 && gate && strips.fragmented[gate] && !strips.fragment_diff[gate]) {
           gate = strips.fragment[gate];
           const auto right = strips.right_jump[incoming];
@@ -145,6 +167,8 @@ void Projection::apply(std::span<const Entry> gossip, Result &result) {
         result.changes.push_back(
             {start, start, Span{insertion.content, insertion.content_start, Word(c.diff)}});
       } else if (diff < 0) {
+        // Separate Splices preserve concurrent content between mask fragments;
+        // each later Splice uses the Projection left by preceding removals.
         auto position = start;
         for (auto mask = incoming; mask; mask = strips.fragment[mask]) {
           if (strips.fragment_diff[mask] < 0)
@@ -155,6 +179,7 @@ void Projection::apply(std::span<const Entry> gossip, Result &result) {
               position += std::max(0, strips.fragment_diff[i]);
         }
       }
+      // Hidden history remains addressable even when no Frames are visible.
       if (!frame_count) {
         gate = none;
         gate_position = 0;
@@ -167,6 +192,7 @@ void Projection::apply(std::span<const Entry> gossip, Result &result) {
         left_jump_to_patch = gate;
         right_jump_to_patch = strips.right_jump[gate];
       }
+      // Materialization makes this canonical identity available to waiting descendants.
       auto released_pending = pending.take(c);
       for (auto it = released_pending.rbegin(); it != released_pending.rend(); ++it)
         queue.push_back(*it);

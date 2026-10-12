@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Initializes the first structural root; later roots must use sibling competition.
+ */
 #include "../class.hpp"
 
 namespace sequencer {

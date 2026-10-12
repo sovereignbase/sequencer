@@ -5,18 +5,22 @@
 #include <unordered_set>
 
 namespace sequencer {
-// Membership lookups are hashed; export follows admission order.
+/** Actor Acknowledgements governing compaction of exported history. */
 class FrontierTable {
   struct Session {
     Word id;
     std::unordered_map<Word, Word> claims;
   };
+  // Hash membership supplies lookup; admission lists retain stable export order.
   std::vector<Word> actors;
   std::unordered_set<Word> membership, retirees;
   std::vector<Session> sessions;
   std::unordered_map<Word, std::size_t> session_index;
 
 public:
+  /** Observes an Actor's reported removal frontiers, admitting active Actors.
+   * @param a Actor ID followed by Session/end pairs; retired Actors are ignored.
+   */
   void observe(const Acknowledgement &a) {
     if (a.empty() || retirees.contains(a[0]))
       return;
@@ -26,12 +30,15 @@ public:
       auto [it, added] = session_index.try_emplace(a[i], sessions.size());
       if (added)
         sessions.push_back({a[i], {}});
-      // Claims record reported receipt, including a lower later report.
+      // Claims record reported frontiers, including a lower later report.
       // Actor/session ID overlap also admits a zero report.
       if (session_index.contains(a[0]) || a[i + 1] > 0)
         sessions[it->second].claims[a[0]] = a[i + 1];
     }
   }
+  /** Removes consensus membership and ignores future claims from this Actor.
+   * @param actor Actor to retire for this table's lifetime; authored history is unaffected.
+   */
   void retire(Word actor) {
     retirees.insert(actor);
     membership.erase(actor);
@@ -40,9 +47,13 @@ public:
     for (auto &s : sessions)
       s.claims.erase(actor);
   }
+  /** Finds acknowledgement consensus across complete active membership.
+   * @return Sessions with equal reported frontiers from every active Actor.
+   */
   std::unordered_set<Word> compactable() const {
     std::unordered_set<Word> result;
     for (const auto &s : sessions) {
+      // Agreement requires complete membership coverage, not merely equal present claims.
       if (s.claims.size() != membership.size())
         continue;
       bool equal = true;
@@ -61,6 +72,9 @@ public:
     }
     return result;
   }
+  /** Exports retained active membership and Acknowledgements.
+   * @return Acknowledgements in Actor and Session admission order.
+   */
   std::vector<Acknowledgement> frontiers() const {
     std::vector<Acknowledgement> result;
     for (auto actor : actors) {

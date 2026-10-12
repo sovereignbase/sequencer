@@ -1,9 +1,14 @@
+/**
+ * @file
+ * Splits runtime materialization while preserving original coordinates and Footage identity.
+ */
 #include "../class.hpp"
 #include "magnitude.hpp"
 #include <algorithm>
 
 namespace sequencer {
 Index Projection::split_strip(Index a, Word point, std::int32_t incoming_diff) {
+  // Masking may clear content slots, so detach externally owned Footage first.
   if (incoming_diff < 0)
     own_content(a);
   // Copy before arena growth: indices survive relocation, C++ references do not.
@@ -13,6 +18,8 @@ Index Projection::split_strip(Index a, Word point, std::int32_t incoming_diff) {
   if (incoming_diff < 0 && original.content)
     released.push_back(
         {original.content, original.content_start + point, magnitude(incoming_diff)});
+  // The consumed prefix disappears from the right fragment's visible effect;
+  // fragment_start still addresses the original Insertion's coordinate space.
   const auto left_diff = (effect < 0 ? -1 : 1) * std::int32_t(point - strips.fragment_start[a]);
   const auto right_diff = effect - left_diff + std::min(0, incoming_diff);
   strips.fragmented[a] = true;
@@ -26,6 +33,7 @@ Index Projection::split_strip(Index a, Word point, std::int32_t incoming_diff) {
   strips.fragmented[right] = strips.offset[right] = true;
   strips.left[right] = a;
   strips.right[right] = old_right;
+  // Fragment links track common identity; structural links also include intervening children.
   strips.fragment[a] = strips.right[a] = right;
   if (old_right)
     strips.left[old_right] = right;

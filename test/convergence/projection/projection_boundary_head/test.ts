@@ -1,3 +1,4 @@
+/** Visible head resolution must agree across local masking, remote application and hydration. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import { expect_converged } from '../../../.helpers/replica.ts'

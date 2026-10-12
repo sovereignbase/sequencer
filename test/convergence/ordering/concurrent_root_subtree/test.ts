@@ -1,3 +1,4 @@
+/** Delivering one complete root subtree first must not interleave it with a later competing subtree. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Gossip, Sequence } from '../../../../src/typescript/types/type.ts'
@@ -6,42 +7,16 @@ describe('concurrent root subtree', () => {
   /**
    * Verifies that a complete concurrent root subtree retains its deterministic
    * position even when that subtree is delivered before the competing root.
-   *
-   * Two replicas begin from the same empty Sequence and independently build
-   * their own root subtrees:
-   *
-   *   primary-5
-   *   primary-3
-   *   primary-2
-   *   primary-root
-   *
-   *   concurrent-4
-   *   concurrent-root
-   *
-   * The two roots are concurrent, while the descendants within each subtree
-   * are causally ordered by their authoring replica.
-   *
-   * The hostile delivery sends the complete concurrent subtree first:
-   *
-   *   concurrent-root
-   *   concurrent-4
-   *
-   * before delivering the competing primary root and its descendants.
-   *
-   * Once both receivers contain the complete operation set, the two root
-   * subtrees must occupy the same deterministic Structural Order regardless of
-   * delivery order. Descendants belonging to one root must remain with that
-   * root rather than becoming interleaved with the competing subtree.
    */
   it('orders a complete concurrent subtree delivered before the other root', () => {
     const primary = new Projection<string>(1)
     const concurrent = new Projection<string>(2)
     const mutations: Array<Gossip<string>> = [
-      primary.insert(['primary-root'], 0), // Establish an independent concurrent root.
-      concurrent.insert(['concurrent-root'], 0), // Extend the primary subtree at its head.
+      primary.insert(['primary-root'], 0), // First virtual-root competitor.
+      concurrent.insert(['concurrent-root'], 0), // Independently authored virtual-root competitor.
       primary.insert(['primary-2'], 0),
-      primary.insert(['primary-3'], 0), // Extend the concurrent subtree at its head.
-      concurrent.insert(['concurrent-4'], 0), // Extend the primary subtree once more.
+      primary.insert(['primary-3'], 0), // Descendant remains with the primary root.
+      concurrent.insert(['concurrent-4'], 0), // Descendant remains with the concurrent root.
       primary.insert(['primary-5'], 0),
     ]
     const empty: Sequence<string> = [[], []]

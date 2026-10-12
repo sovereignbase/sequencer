@@ -2,7 +2,7 @@
 # the only HTML generator in this documentation pipeline.
 
 PROJECT_NAME           = "Sequencer C++ API"
-PROJECT_NUMBER         = 0.0.0
+PROJECT_NUMBER         = 0.0.2
 OUTPUT_DIRECTORY       = .doxygen
 OUTPUT_LANGUAGE        = English
 

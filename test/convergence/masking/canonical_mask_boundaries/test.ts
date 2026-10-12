@@ -1,3 +1,4 @@
+/** Historical mask boundaries must retain offline children, even after overlap or later safe compaction. */
 import { makeSequence, sequenceInsertions } from '../../../.shared/sequence.ts'
 import { expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
@@ -15,6 +16,7 @@ it('retains an offline insertion inside repeated tail replacement history', () =
       ]
     )
   )
+  // Keep the other Actor active so its offline dependency cannot disappear through export compaction.
   receiver.apply([[1]])
   const author = new Projection<number>(
     1,
@@ -77,6 +79,7 @@ it.each([false, true])(
         ]
       )
     )
+    // The child names the fully overlapped mask itself, whose zero-effect identity must remain addressable.
     const updates = [
       [[100, 0, 1, 200, 0, 4294967293]],
       [[100, 0, 1, 300, 0, 4294967293]],

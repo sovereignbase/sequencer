@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Selects stable logical anchors for local visible insertion boundaries.
+ */
 #include "../class.hpp"
 #include "containsAnchor.hpp"
 #include "magnitude.hpp"
@@ -8,6 +12,8 @@ std::pair<Word, Index> Projection::select_anchor(Word position) {
   const auto right = strips.right[gate];
   const auto g = gate;
   const auto r = right;
+  // A removal boundary may retain a replayable mask endpoint even when the
+  // visible successor belongs to a different original fragment or older mask.
   if (position == gate_position && gate && strips.identity[g].coordinates.diff < 0 && removed &&
       right && (position > 0 || strips.fragment_diff[r] > 0) &&
       (strips.offset[r] || (strips.fragmented[r] && strips.fragment_diff[r] == 0) ||
@@ -30,6 +36,7 @@ std::pair<Word, Index> Projection::select_anchor(Word position) {
        contains_anchor(strips.identity[r].coordinates, strips.identity[removed].coordinates,
                        strips.fragment_start[r], strips.fragment_start[r])))
     return {strips.fragment_start[g] - strips.fragment_diff[g], gate};
+  // Appending anchors at the last visible fragment's original logical endpoint.
   if (position == frame_count) {
     left_jump_to_patch = tail;
     right_jump_to_patch = strips.right_jump[tail];

@@ -5,6 +5,7 @@ const row = (cells: Array<string | number>) => '| ' + cells.join(' | ') + ' |'
 const decimal = (value: number | null) =>
   value === null ? '—' : value.toFixed(3)
 
+/** Renders raw bursts and weighted totals without treating process memory as a per-Projection cost. */
 export async function writeThroughputReport(report: ThroughputReport) {
   if (report.config.outputPath === null) return null
   const lines = [

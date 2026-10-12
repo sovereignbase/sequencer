@@ -1,3 +1,4 @@
+/** Every indexed read must agree after each live Gossip exchange despite independent traversal caches. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Gossip } from '../../../../src/typescript/types/type.ts'
@@ -39,31 +40,6 @@ describe('live peer projection-position equivalence through jumps', () => {
    * Verifies projection-position lookup equivalence after a long sequence of
    * inserts, replacements, and removals that repeatedly create positive and
    * negative Strips and fragment the same structural regions.
-   *
-   * Every mutation is delivered immediately, so both peers contain the same
-   * authored operations after each step. Their local gate and jump caches may,
-   * however, differ because each peer reaches the same structure through
-   * different local mutation and remote-apply paths.
-   *
-   * The test therefore checks the semantic invariant that traversal
-   * optimization is completely transparent:
-   *
-   *   same authored state + same Projection position -> same Footage
-   *
-   * regardless of which jumps or local gate happen to be used to reach
-   * that position.
-   *
-   * The workload repeatedly:
-   *
-   * - inserts visible Footage;
-   * - replaces visible ranges, creating both replacement Footage and Masks;
-   * - removes ranges entirely;
-   * - inserts again around previously masked and fragmented boundaries;
-   * - authors replacements from both peers.
-   *
-   * After every Gossip delivery, every Projection position is compared between
-   * the two live peers. The final assertion also fixes the expected visible
-   * Footage after the complete mutation history.
    */
   it('returns the same Footage from every projection position', () => {
     const state = new Projection<number>(1)

@@ -1,3 +1,4 @@
+/** Real browser peers exchange canonical Gossip; delays affect arrival order, never authored anchors. */
 import { afterAll, beforeAll, expect, test } from 'vitest'
 import { browserRuntime, loadProjection } from '../../.helpers/browser.ts'
 let runtime: Awaited<ReturnType<typeof browserRuntime>>
@@ -9,22 +10,6 @@ afterAll(async () => {
 })
 /**
  * Verifies causal staging across three real browser peers.
- *
- * Peer A authors a parent and delivers it only to B. B then authors a child
- * against that parent, but the child reaches C before C has received the parent.
- *
- * C must accept and retain the child without materializing it. When the delayed
- * parent later arrives, the pending child must resolve automatically without
- * child redelivery.
- *
- * Final state:
- *
- *   A: A:parent, B:child
- *   B: A:parent, B:child
- *   C: A:parent, B:child
- *
- * This exercises causal staging through the public browser API rather than the
- * direct Projection implementation.
  */
 test('peer gossip resolves B child at C after delayed A parent', async () => {
   const context = await runtime.browser.newContext()
@@ -120,30 +105,6 @@ test('peer gossip resolves B child at C after delayed A parent', async () => {
  * Verifies convergence between three continuously running browser peers while
  * each editor authors operations on independent timers and receives concurrent
  * Gossip in a different network order.
- *
- * The peers communicate through BroadcastChannel. Every receiver applies a
- * deterministic sender/editor-specific delay, so cross-sender operations are
- * intentionally observed in different orders.
- *
- * The workload has two phases:
- *
- * 1. All three editors independently create concurrent root insertions.
- * 2. Each editor continues with three timed insert/replace/remove operations
- *    against its own live Projection.
- *
- * No local edit waits for a remote packet. The edit intervals are merely longer
- * than the bounded network jitter, allowing ordinary causal continuation while
- * concurrent cross-peer operations still arrive in different orders.
- *
- * After all eight remote updates have reached every peer:
- *
- * - all three visible Projections must be identical;
- * - every remote update must have been accepted;
- * - every local mutation must have been accepted.
- *
- * This exercises live peer convergence through the browser Projection API,
- * real browser event loops, timers, BroadcastChannel delivery, and independent
- * network reordering.
  */
 test('peer browsers converge with independent reordering and editor timers', async () => {
   const context = await runtime.browser.newContext()

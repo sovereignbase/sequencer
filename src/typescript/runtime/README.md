@@ -1,11 +1,11 @@
 # Runtime
 
 Every `Projection` calls one synchronous WASM instance loaded with the package.
-The native runtime owns sequence algorithms, traversal, clocks, containment,
-causal staging, frontiers and compaction. TypeScript retains generic Footage and
+The native runtime owns Structural Order, traversal, Session clocks, containment,
+pending dependencies, removal frontiers and compaction. TypeScript retains generic Footage and
 attaches it to public results without cloning its values.
 
-Local operations trust their caller. `length` and `value` use direct WASM
+Local operations trust their caller. `length`, `value` and `insert` use direct WASM
 exports; other operations expose native coordinates, frontiers and spans through
 pointers and counts. No worker, RPC, Promise or shared memory is involved.
 

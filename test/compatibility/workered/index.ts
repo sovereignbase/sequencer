@@ -6,6 +6,7 @@ const { Miniflare } = createRequire(import.meta.resolve('wrangler'))(
   'miniflare'
 ) as typeof import('miniflare')
 
+/** Executes the neutral suite inside workerd and reads its structured outcomes over local fetch. */
 export async function run(source: string): Promise<Outcome[]> {
   const runtime = new Miniflare({
     workers: [

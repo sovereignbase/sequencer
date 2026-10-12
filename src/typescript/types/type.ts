@@ -1,27 +1,43 @@
-/** Structural words may be typed views or numeric arrays received as JSON. */
+/** Unsigned 32-bit structural words, accepted as a typed view or JSON numeric array. */
 export type U32List = Uint32Array | ReadonlyArray<number>
 
 /**
  * Exactly six words, in the replication order:
  * `[anchorSession, anchorStart, anchorDiff,
  *   insertionSession, insertionStart, insertionDiff]`.
- * Signed coordinates use their 32-bit bit pattern; WASM interprets those lanes
- * as signed.
+ * The anchor triple names a logical point in an existing Insertion; the Session
+ * and start pair identifies the authored Insertion. A positive diff adds Frames;
+ * a negative diff masks original Frames. Signed values use uint32 bit patterns.
  */
 export type InsertionWords = U32List
 
-/** Insertion coordinates plus optional JS-owned content. Only words enter WASM. */
+/**
+ * Canonical replication operation and optional JavaScript-owned Footage.
+ * Positive Insertions may omit Footage; their Frames then read as `undefined`.
+ * Reducing Insertions carry no content into native state.
+ */
 export type Insertion<T> = Readonly<
-  [words: InsertionWords, footage?: ReadonlyArray<T | undefined>]
+  [
+    /** Stable anchor, identity and signed Frame effect. */
+    words: InsertionWords,
+    /** Values of a positive Insertion, in original Frame order. */
+    footage?: ReadonlyArray<T | undefined>,
+  ]
 >
 
-/** `[actorID, sessionID, sessionEnd, ...]`. */
+/**
+ * Describes one Actor's acknowledgement frontier.
+ * `[actorID, sessionID, sessionEnd, ...]` contains removal Session/frontier pairs.
+ * The application is responsible for acknowledging complete received Session prefixes.
+ */
 export type Acknowledgement = U32List
 
+/** Ordered replication batch; delivery may be duplicated or causally reordered. */
 export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>
 
 /**
- * One structural array and one JS-owned content array.
+ * Retained state required to hydrate the same visible Projection.
+ * One structural array and one JavaScript-owned content array.
  * Small snapshots use six-word insertion records after length-prefixed ACKs;
  * `words[0]` locates those records. Large snapshots begin with
  * `[0, frontiersEnd, insertionCount]` and omit predictable coordinate fields.
@@ -30,12 +46,27 @@ export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>
  * `[[], []]` is an empty Sequence. Both numeric arrays and typed views are accepted.
  */
 export type Sequence<T> = Readonly<
-  [words: U32List, footage: ReadonlyArray<T | undefined>]
+  [
+    /** Acknowledgements followed by canonical Insertions in Structural Order. */
+    words: U32List,
+    /** Consecutive positive Insertion spans, including missing Footage slots. */
+    footage: ReadonlyArray<T | undefined>,
+  ]
 >
 
+/** Visible mutation: insertion uses `[at, at, values]`; removal ends exclusively. */
 export type Splice<T> = Readonly<
-  [startAt: number, endWith: number, values?: ReadonlyArray<T | undefined>]
+  [
+    /** First affected position in the Projection after preceding Splices. */
+    startAt: number,
+    /** Exclusive removal boundary; equal to `startAt` for insertion. */
+    endWith: number,
+    /** Inserted Footage; omitted for removal. */
+    values?: ReadonlyArray<T | undefined>,
+  ]
 >
 
+/** Splices applied in order to reproduce the remote operation's visible effect. */
 export type Change<T> = ReadonlyArray<Splice<T>>
+/** Visible changes and optional Gossip returned by `apply()` or `merge()`. */
 export type Result<T> = Readonly<[change: Change<T>, gossip?: Gossip<T>]>

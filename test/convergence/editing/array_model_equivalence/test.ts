@@ -1,6 +1,8 @@
+/** Plain arrays model visible edits and consumer Splices; acknowledgement membership selects both compaction modes. */
 import fc from 'fast-check'
 import { expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
+/** Generates valid edit intent; selectors resolve against the author's current visible length. */
 const operation = fc.record({
   kind: fc.constantFrom('insert', 'remove', 'replace', 'hydrate'),
   author: fc.integer({ min: 0, max: 1 }),
@@ -68,6 +70,7 @@ it.each([false, true])(
         (initialLength, operations) => {
           let peers = [new Projection<string>(1), new Projection<string>(2)]
           let session = 0
+          /** Reestablishes Actor membership after hydration; a silent third Actor blocks compaction. */
           const clocks = () => {
             for (const peer of peers) {
               peer.apply(compact ? [[1], [2]] : [[1], [2], [3]])
@@ -86,6 +89,7 @@ it.each([false, true])(
             peers[1].apply(
               structuredClone(peers[0].insert(expected.slice(), 0))
             )
+          /** Verifies bulk and reverse indexed reads against the independent array model. */
           const check = (peer: Projection<string>) => {
             expect(peer.length()).toBe(expected.length)
             expect(peer.values()).toEqual(expected)
@@ -142,6 +146,7 @@ it.each([false, true])(
               views[op.author] = expected.slice()
               const result = receiver.apply(structuredClone(gossip))!
               expect(result).toBeDefined()
+              // Splice ends are exclusive; this view applies only reported remote mutations.
               for (const [from, to, values] of result[0])
                 views[1 - op.author].splice(from, to - from, ...(values ?? []))
               if (result[1]) author.apply(result[1])
@@ -168,6 +173,7 @@ it.each([false, true])(
           peers.map((peer) => peer.destroy())
         }
       ),
+      // Fixed replay seed covers 1,024 generated histories independently in each compaction mode.
       { seed: 0x51ced, numRuns: 1024 }
     )
   }

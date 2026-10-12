@@ -27,6 +27,7 @@ const metricCount = (metric: ManagementResult): string =>
 const row = (cells: Array<string | number>): string =>
   '| ' + cells.join(' | ') + ' |'
 
+/** Uses unit-weighted footprint ratios rather than averaging checkpoint ratios. */
 const spaceRows = (report: BenchmarkReport, kind: 'memory' | 'storage') =>
   replicas.flatMap((replica) =>
     scopes.map((scope) => {
@@ -54,6 +55,7 @@ const spaceRows = (report: BenchmarkReport, kind: 'memory' | 'storage') =>
     })
   )
 
+/** Renders methodology, individual checkpoints and independent per-run aggregates. */
 const makeMarkdown = (report: BenchmarkReport): string => {
   const lines: Array<string> = [
     '# Sequencer dynamic lifecycle benchmark',
@@ -296,6 +298,7 @@ const makeMarkdown = (report: BenchmarkReport): string => {
   return lines.join('\n')
 }
 
+/** Prints summary timings and space estimates while preserving absent-sample markers. */
 export function printSummary(report: BenchmarkReport): void {
   console.log('\nFull-lifecycle aggregate (µs/op)')
   console.table(
@@ -334,6 +337,7 @@ export function printSummary(report: BenchmarkReport): void {
   )
 }
 
+/** Persists raw lifecycle observations alongside their readable report. */
 export async function writeReports(
   report: BenchmarkReport
 ): Promise<{ jsonPath: string; markdownPath: string } | null> {

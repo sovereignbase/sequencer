@@ -1,3 +1,4 @@
+/** Late concurrent children must survive tail replacement history and restart. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Gossip, Sequence } from '../../../../src/typescript/types/type.ts'
@@ -35,33 +36,17 @@ describe('tail replace remove', () => {
   })
   /**
    * Verifies that a replacement Insert remains paired with its remove when the
-   * replaced Frame sits at the tail of its local branch and reconstruction
-   * occurs before the replace is delivered.
-   *
-   * `primary` first builds a root and then inserts a four-Frame branch before
-   * it. A second actor concurrently creates its own root. `primary` then
-   * replaces the trailing `root` Frame and continues inserting new head
-   * Footage.
-   *
-   * The same mutation history is reconstructed twice:
-   *
-   * - `ordered` applies every mutation continuously;
-   * - `restarted` is recreated from retained Sequence state after the first
-   *   three mutations, before the tail replacement arrives.
-   *
-   * Both paths must converge. In particular, reconstruction must preserve the
-   * structural relationship required for the later replace remove and its
-   * replacement Insert to resolve as one replacement rather than losing,
-   * duplicating, or misplacing the replacement Footage.
+   * replaced Frame sits at the tail of its local branch and reconstruction occurs
+   * before the replace is delivered.
    */
   it('keeps the replacement paired with its remove through restart', () => {
     const primary = new Projection<string>(100)
     const concurrent = new Projection<string>(101)
     const mutations: Array<Gossip<string>> = [
-      primary.insert(['root'], 0), // Insert a local branch before `root`, leaving `root` at its tail.
-      primary.insert(['branch-0', 'branch-1', 'branch-2', 'branch-3'], 0), // Create an independent concurrent root.
-      concurrent.insert(['concurrent'], 0), // Replace the trailing `root` Frame.
-      primary.replace(['replacement'], 4, 4), // Continue extending the head after the replacement.
+      primary.insert(['root'], 0),
+      primary.insert(['branch-0', 'branch-1', 'branch-2', 'branch-3'], 0),
+      concurrent.insert(['concurrent'], 0), // Independent root outside the replacement's targets.
+      primary.replace(['replacement'], 4, 4), // Mask owns only the original tail Frame.
       primary.insert(['head-4'], 0),
       primary.insert(['head-5'], 0),
     ]

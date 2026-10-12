@@ -1,3 +1,4 @@
+/** Immediate two-peer delivery must reproduce each already applied local edit before the next edit is authored. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Gossip } from '../../../../src/typescript/types/type.ts'
@@ -20,37 +21,11 @@ describe('local/remote replacement equivalence', () => {
   /**
    * Verifies immediate convergence between two replicas that share exactly the
    * same Gossip operations.
-   *
-   * Every mutation is first applied locally by its author and the resulting
-   * Gossip update is then delivered immediately to the other replica before the
-   * next mutation is created. After delivery, both replicas therefore contain
-   * the same set of shared insertions and reductions, even though those
-   * operations may have originated from different replica sessions.
-   *
-   * The test asserts convergence after every individual Gossip delivery, not
-   * merely at the end of the workload. This catches cases where applying a
-   * remote representation of an operation produces a different Projection than
-   * the equivalent locally applied operation.
-   *
-   * The workload repeatedly exercises:
-   *
-   * - insertion at alternating head/tail structural positions;
-   * - replacement of an existing Strip with an equal-length Strip;
-   * - removal of an existing Strip;
-   * - insertion at a random structural position;
-   * - replacement authored by the opposite replica;
-   * - reads between mutations, allowing traversal state and cached jumps to be
-   *   exercised before later structural mutations.
-   *
-   * This is specifically an immediate-delivery convergence test. It does not
-   * test concurrent operations created independently before replicas exchange
-   * updates, nor convergence under different Gossip delivery orders.
    */
   it('converges after every immediately delivered Gossip update', () => {
     const state = new Projection<number>(1)
     const peer = new Projection<number>(2)
-    // Keep the two replicas in distinct clock ranges so operations authored by
-    // either side have clearly separate identities throughout the workload.
+    // Fresh native Session clocks distinguish the two authors' canonical identities.
     /**
      * Tracks only the logical Strip boundaries needed to author valid local
      * edits. This is a workload-positioning aid, not a Projection oracle, and
@@ -67,15 +42,8 @@ describe('local/remote replacement equivalence', () => {
     )
     let nextStripId = 1
     /**
-     * Delivers one already locally applied Gossip update to the other replica
-     * and immediately verifies that their visible Projections are identical.
-     *
-     * `author` has already applied `update` by creating the local operation.
-     * `receiver.apply(update)` gives the receiver exactly that same operation;
-     * it does not recreate the mutation under the receiver's identity.
-     *
-     * Any acknowledgement produced by the receiver is sent directly back to
-     * the author before convergence is checked.
+     * Delivers one already locally applied Gossip update to the other replica and
+     * immediately verifies that their visible Projections are identical.
      */
     const gossip = (
       author: Projection<number>,

@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Materializes a positive Insertion suffix under its existing canonical identity.
+ */
 #include "../class.hpp"
 #include "containsAnchor.hpp"
 #include <algorithm>
@@ -9,10 +13,14 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
   auto last = origin;
   while (strips.fragment[last])
     last = strips.fragment[last];
+  // Native state retains one content token. JavaScript appends the new suffix
+  // after public Splices have read it, then releases its temporary source binding.
   appended.push_back({original.content, content, source_start, count, end, original.content_start});
   if (content)
     released.push_back({content, 0, 0});
   const auto next = strips.right[last];
+  // An intact visible endpoint can grow in place. Existing children or interior
+  // fragmentation require replay through the same anchor placement used for normal history.
   if ((last == tail || (!strips.fragmented[origin] &&
                         (!next || !contains_anchor(original.coordinates,
                                                    strips.identity[next].coordinates, 0, end)))) &&
@@ -39,6 +47,8 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
     return at;
   }
 
+  // Resolve with suffix coordinates first, then give the new runtime fragment
+  // the parent's grown canonical coordinates; it is never a separate snapshot root.
   const Coordinates suffix{
       original.coordinates.session, original.coordinates.start,       end,
       original.coordinates.session, original.coordinates.start + end, std::int32_t(count)};
@@ -60,6 +70,7 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
     strips.identity[fragment].content_owned = true;
     strips.fragmented[fragment] = true;
   }
+  // All fragments share the grown original extent and the rebased private Footage array.
   strips.fragment[last] = incoming;
   patch_jumps(std::int32_t(count), structural_count - previous_count, incoming);
   const auto at = position_of(incoming, std::int32_t(count));

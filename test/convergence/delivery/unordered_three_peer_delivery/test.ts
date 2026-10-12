@@ -1,3 +1,4 @@
+/** Repeated three-author histories must converge under reordered delivery; native Session IDs are selected at construction. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Gossip, Sequence } from '../../../../src/typescript/types/type.ts'
@@ -9,6 +10,7 @@ import type { Gossip, Sequence } from '../../../../src/typescript/types/type.ts'
  * only its own local Projection while the mutations are authored, so operations
  * from different replicas are concurrent.
  */
+/** Fixed disconnected edit intents; selectors resolve against each author's own Projection. */
 const operations = [
   ['replace', 714732407, 1247215733, 1],
   ['insert', 1920487907, 35035786, 2],
@@ -26,6 +28,7 @@ const operations = [
  * The Gossip operations themselves are left unchanged; only their delivery
  * order differs from the chronological baseline.
  */
+/** Repeatable packet ordering keys; original ordinal breaks equal-key ties without losing entries. */
 const deliveryKeys = [
   702303704, -1097475808, -180650997, 1330791140, -1039610715, 2111140307,
   1841741144,
@@ -49,12 +52,14 @@ const sessionOrders = [
  * Materializes the complete visible Projection for exact Frame-by-Frame
  * convergence comparison.
  */
+/** Materializes indexed reads so bulk-export shortcuts cannot hide lookup disagreement. */
 const project = (sequence: Projection<string>): Array<string | undefined> =>
   Array.from({ length: sequence.length() }, (_, index) => sequence.value(index))
 /**
  * Creates a fresh receiver from the retained Sequence and applies the supplied
  * Gossip mutations in exactly that order.
  */
+/** Replays the same canonical operation set into a fresh receiver in the requested order. */
 const deliver = (
   retained: Sequence<string>,
   mutations: Array<Gossip<string>>
@@ -65,33 +70,15 @@ const deliver = (
 }
 describe('hostile three-peer delivery', () => {
   /**
-   * Verifies delivery-order convergence for three concurrent editors across
-   * every relative ordering of their increasing and reducing clocks.
-   *
-   * All three replicas begin from the same empty retained Sequence. For each
-   * clock-order combination they independently author the same deterministic
-   * workload of inserts, removes, and replacements.
-   *
-   * The resulting Gossip set is reconstructed twice:
-   *
-   * - `chronological` receives mutations in workload creation order;
-   * - `mixed` receives the exact same mutations in a hostile deterministic
-   *   permutation.
-   *
-   * The six possible increase-clock orders and six possible decrease-clock
-   * orders are tested independently, covering all 36 combinations.
-   *
-   * For every combination, both delivery histories must produce the exact same
-   * visible Projection. Concurrent subtree ordering, replacement competition,
-   * Mask ownership, and surviving Footage must therefore depend only on the
-   * authored operations and their clocks, never on network arrival order.
+   * Verifies delivery-order convergence for three concurrent editors across every
+   * relative ordering of their increasing and reducing clocks.
    */
   it('converges from an empty sequence in chronological and mixed order', () => {
     const retained = new Projection<string>(1).sequence()
     for (const increaseOrder of sessionOrders)
       for (const decreaseOrder of sessionOrders) {
-        // Recreate three independent authors for this exact combination of
-        // increasing and reducing clock order.
+        // Repeat with fresh native Sessions. Loop labels do not assign clock
+        // identities; each repetition compares deliveries of the same operation set.
         const replicas = [
           new Projection<string>(0, retained),
           new Projection<string>(1, retained),

@@ -1,42 +1,13 @@
+/** Virtual-root competitors must converge while keeping each root's descendants contiguous. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Gossip, Sequence } from '../../../../src/typescript/types/type.ts'
 import { deliver, expect_converged } from '../../../.helpers/replica.ts'
 describe('concurrent root ordering', () => {
   /**
-   * Verifies that concurrent root insertions and their causal subtrees are
-   * ordered deterministically and remain structurally contiguous regardless of
-   * Gossip delivery order.
-   *
-   * Four actors begin from an empty Sequence. Each independently creates its
-   * own root insertion and then extends that root on both sides:
-   *
-   *   left <- root -> right
-   *
-   * For each actor:
-   *
-   *   insert(root, 0)
-   *   insert(left, 0)
-   *   insert(right, 2)
-   *
-   * produces the local Projection:
-   *
-   *   left, root, right
-   *
-   * The four root operations are concurrent with one another, while each
-   * actor's left and right insertions are causally attached to its own root.
-   *
-   * When all operations are merged, Sequencer must choose one deterministic
-   * order for the competing roots. Their descendant trees must move with those
-   * roots as complete subtrees rather than becoming interleaved with descendants
-   * belonging to another concurrent root.
-   *
-   * Forward and reverse delivery must therefore reconstruct the same Projection,
-   * and every actor's:
-   *
-   *   left, root, right
-   *
-   * range must remain contiguous in that Projection.
+   * Verifies that concurrent root insertions and their causal subtrees are ordered
+   * deterministically and remain structurally contiguous regardless of Gossip
+   * delivery order.
    */
   it('keeps concurrent root subtrees deterministic and separate', () => {
     const mutations: Array<Gossip<string>> = []

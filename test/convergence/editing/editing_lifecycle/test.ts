@@ -1,3 +1,4 @@
+/** Visible length, bulk Footage and indexed reads must agree after local edits and hydration. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 const expect_projection = <T>(

@@ -2,8 +2,10 @@
 #include "../types/type.hpp"
 
 namespace sequencer {
-// A compact snapshot carries the same coordinates. Predictable fields are
-// implicit; Gossip retains its six-word identity. All packed words fit JS SMIs.
+/** Appends a full uint32 value using only JavaScript small-integer-compatible lanes.
+ * @param words Compact metadata destination.
+ * @param value Exact unsigned coordinate or Acknowledgement word.
+ */
 inline void snapshot_word(std::vector<Word> &words, Word value) {
   if (value < 0x3fffffffu)
     words.push_back(value);
@@ -13,13 +15,20 @@ inline void snapshot_word(std::vector<Word> &words, Word value) {
     words.push_back(value >> 16);
   }
 }
+/** Streaming snapshot metadata writer; compression preserves every canonical coordinate. */
 struct SnapshotWords {
+  /** Destination beginning with the already written Acknowledgement section. */
   std::vector<Word> &words;
+  /** Last compact record, used to predict Session and logical start. */
   Coordinates previous{};
+  /** Actually retained canonical record count, excluding runtime fragments. */
   Word count{};
+  /** Whether the destination has promoted to the compact header and variable records. */
   bool packed;
+  /** Whether live root count makes promotion possible; retained count decides it. */
   bool eligible;
 
+  /** Promotes the bounded plain prefix while preserving ACK values and record order. */
   void promote() {
     auto old = std::move(words);
     words.reserve(old.capacity());
@@ -38,6 +47,9 @@ struct SnapshotWords {
               std::bit_cast<std::int32_t>(old[at + 5])});
   }
 
+  /** Appends one retained canonical record, promoting at the 64th record.
+   * @param c Exact exported coordinates after any acknowledgement-gated compaction.
+   */
   void append(const Coordinates &c) {
     // Only the first 63 records are revisited. Tiny surviving snapshots remain
     // plain even when a large edit history has been compacted away.
@@ -49,6 +61,8 @@ struct SnapshotWords {
       words.insert(words.end(), record.begin(), record.end());
       return;
     }
+    // Control bits indicate explicit fields; the remaining 24 bits inline anchorStart.
+    // Session IDs always use two 16-bit halves, while large scalar lanes use an escape.
     const auto session = c.session != previous.session;
     const auto predicted =
         session
@@ -77,6 +91,7 @@ struct SnapshotWords {
     if (anchor_diff)
       snapshot_word(words, c.anchor_diff);
     if (diff) {
+      // Zigzag preserves the signed Frame effect as an unsigned scalar before escaping.
       const auto signed_diff = std::bit_cast<Word>(c.diff);
       snapshot_word(words, (signed_diff << 1) ^ (c.diff < 0 ? UINT32_MAX : 0));
     }

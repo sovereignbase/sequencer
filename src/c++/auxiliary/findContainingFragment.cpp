@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Finds the current owner of a historical logical boundary through fragments and masks.
+ */
 #include "../class.hpp"
 #include "magnitude.hpp"
 #include <algorithm>
@@ -10,6 +14,8 @@ std::pair<Word, Index> Projection::find_containing_fragment(Index origin, Index 
   while (anchor) {
     const auto fs = strips.fragment_start[anchor];
     const auto fe = fs + magnitude(strips.fragment_diff[anchor]);
+    // Positive anchors include an endpoint; a mask begins on an actual original
+    // Frame and therefore excludes the target fragment's right endpoint.
     if (c.diff < 0 ? c.anchor_diff >= fs && c.anchor_diff < fe : c.anchor_diff <= fe) {
       if (c.diff < 0 && magnitude(c.diff) > fe - c.anchor_diff) {
         strips.fragmented[incoming] = true;
@@ -17,6 +23,8 @@ std::pair<Word, Index> Projection::find_containing_fragment(Index origin, Index 
       }
       return {std::max(c.anchor_diff, fs), anchor};
     }
+    // Competing children can separate parent fragments in Structural Order.
+    // Follow only relationships belonging to this canonical parent.
     auto mask = strips.right[anchor];
     while (mask) {
       const auto m = mask;
@@ -46,8 +54,10 @@ std::pair<Word, Index> Projection::find_containing_fragment(Index origin, Index 
       const auto end = strips.identity[m].coordinates.anchor_diff + strips.fragment_start[m] +
                        magnitude(strips.fragment_diff[m]);
       const auto point = c.anchor_diff - strips.identity[m].coordinates.anchor_diff;
+      // New content may anchor inside removed history without resurrecting its Frames.
       if (c.diff > 0)
         return {point, mask};
+      // Already masked Frames shorten only runtime effect, never authored coordinates.
       const auto consumed =
           std::min(magnitude(strips.fragment_diff[incoming]), end - c.anchor_diff);
       strips.fragment_start[incoming] += consumed;

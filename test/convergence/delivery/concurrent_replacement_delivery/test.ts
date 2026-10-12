@@ -1,17 +1,11 @@
+/** Disconnected replacement histories must converge after chronological and stable keyed delivery. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Gossip, Sequence } from '../../../../src/typescript/types/type.ts'
 /**
  * Deterministic concurrent workload.
- *
- * All replicas begin from the same retained five-Frame Sequence. Operations
- * authored by different replicas are concurrent because Gossip is not exchanged
- * while this workload is being created. Operations authored by the same replica
- * remain causally ordered through that replica's local Projection.
- *
- * The numeric selectors are reduced against the current local Projection to
- * choose the authoring replica and edit position reproducibly.
  */
+/** Fixed disconnected edit intents; selectors resolve against each author's own Projection. */
 const operations = [
   ['insert', 180133792, 1109629188, 4],
   ['replace', 1199022686, 394473361, 1],
@@ -28,6 +22,7 @@ const operations = [
  * They do not affect the authored operations themselves. Sorting Gossip by
  * these keys produces a deterministic permutation of the same operation set.
  */
+/** Repeatable packet ordering keys; original ordinal breaks equal-key ties without losing entries. */
 const deliveryKeys = [
   -1217396083, -7, -19, 20, -2147483641, -779887926, 2147483629, -28,
   -2147483620, -26,
@@ -35,12 +30,14 @@ const deliveryKeys = [
 /**
  * Materializes the visible Projection for exact convergence comparison.
  */
+/** Materializes indexed reads so bulk-export shortcuts cannot hide lookup disagreement. */
 const project = (sequence: Projection<string>): Array<string | undefined> =>
   Array.from({ length: sequence.length() }, (_, index) => sequence.value(index))
 /**
  * Reconstructs a replica from the retained base Sequence and applies the given
  * Gossip updates in exactly the supplied delivery order.
  */
+/** Replays the same canonical operation set into a fresh receiver in the requested order. */
 const deliver = (
   retained: Sequence<string>,
   gossip: Array<Gossip<string>>
@@ -54,22 +51,6 @@ describe('concurrent replacement delivery', () => {
    * Verifies that a mixed delivery order reconstructs the same Projection as
    * chronological delivery for a deterministic workload containing concurrent
    * inserts, replacements, and removal.
-   *
-   * Three replicas begin from the same retained five-Frame base. They then
-   * author operations independently without exchanging Gossip. Consequently,
-   * edits from different replicas may target overlapping historical regions
-   * without having observed one another.
-   *
-   * The resulting Gossip set is reconstructed twice:
-   *
-   * 1. `chronological` receives updates in the order in which the workload
-   *    authored them.
-   * 2. `mixed` receives exactly the same updates in a deterministic shuffled
-   *    order.
-   *
-   * Both receivers must expose the same Projection length and identical Frames.
-   * A failure means replacement, Mask, anchor, or competition resolution still
-   * depends on delivery order rather than solely on the authored operation set.
    */
   it('converges in chronological and deterministic mixed order', () => {
     /**

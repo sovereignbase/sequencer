@@ -1,17 +1,21 @@
 import { sequenceInsertions } from '../../.shared/sequence.ts'
 import { Projection } from '../../../dist/index.js'
 import type { Sequence } from '../../../dist/index.js'
+/** Portable named check result; null error means the public-API expectation passed. */
 export type Outcome = {
   name: string
   error: string | null
 }
+/** Passes retained state through JSON, exercising the ordinary transport representation. */
 function snapshot<T>(projection: Projection<T>): Sequence<T> {
   return JSON.parse(JSON.stringify(projection.sequence()))
 }
+/** Uses value identity, preserving NaN, bigint and generic Footage object semantics. */
 function equal(actual: unknown, expected: unknown): void {
   if (!Object.is(actual, expected))
     throw new Error(`Expected ${String(expected)}, received ${String(actual)}`)
 }
+/** Checks maintained length, bulk Footage, indexed reads and an inclusive inner range together. */
 function check<T>(projection: Projection<T>, expected: T[]): void {
   equal(projection.length(), expected.length)
   const values = projection.values()
@@ -27,7 +31,11 @@ function check<T>(projection: Projection<T>, expected: T[]): void {
       equal(range[index], expected[index + 1])
   }
 }
-/** The same public-API expectations run inside every target runtime. */
+/**
+ * Executes the same public contracts inside every target runtime.
+ * @param Constructor Packaged ESM Projection by default, or the target's imported constructor.
+ * @returns Named outcomes retaining every failure instead of stopping at the first case.
+ */
 export function runSuite(
   Constructor: typeof Projection = Projection
 ): Outcome[] {
@@ -58,6 +66,7 @@ export function runSuite(
     [
       'Footage identity and value types',
       () => {
+        // These values cannot all pass through JSON; Footage must remain JavaScript-owned.
         const values = ['ää😀', 42, false, null, undefined, NaN, 3n]
         const projection = new Constructor<(typeof values)[number]>(1)
         const inserted = projection.insert(values, 0)
@@ -97,6 +106,7 @@ export function runSuite(
             }
           }
           const receiver = new Constructor<string>(2)
+          // Duplicate each delivery, including unresolved dependencies, to test idempotent replay.
           for (const index of indices) {
             equal(receiver.apply([updates[index]]) !== undefined, true)
             receiver.apply([updates[index]])
@@ -147,6 +157,7 @@ export function runSuite(
       () => {
         const projection = new Constructor<string>(1)
         projection.insert(['a', 'b', 'c'], 0)
+        // A silent active Actor blocks history compaction while visible behavior remains identical.
         if (!compact) projection.apply([[2]])
         projection.remove(1, 1)
         projection.insert(['X'], 1)

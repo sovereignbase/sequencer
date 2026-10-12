@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Translates visible removal ranges into masks over original Insertion Frames.
+ */
 #include "../class.hpp"
 #include <algorithm>
 
@@ -6,6 +10,8 @@ Gossip Projection::remove(Word start, std::int64_t end) {
   last_insert = none;
   Gossip output;
   auto remaining = std::int64_t(end) - start + 1;
+  // The next target remains at start as preceding Frames disappear. Each mask
+  // stops at the current original fragment so concurrent Insertions are never implied targets.
   while (remaining > 0) {
     const auto point = find_frame(start);
     const auto anchor = gate;
@@ -29,6 +35,7 @@ Gossip Projection::remove(Word start, std::int64_t end) {
     decrease_clock[1] += count + 1;
     remaining -= count;
   }
+  // The reported frontier is the mask endpoint, excluding the next reserved zero.
   Acknowledgement a{actor, decrease_clock[0], decrease_clock[1] - 1};
   frontier.observe(a);
   output.push_back(Entry::acknowledge(std::move(a)));

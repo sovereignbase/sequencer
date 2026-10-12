@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Authors stable positive Insertions from local visible boundaries.
+ */
 #include "../auxiliary/containsAnchor.hpp"
 #include "../class.hpp"
 
@@ -16,10 +20,13 @@ Insertion Projection::insert(Word count, Word content, Word at) {
     c.anchor_diff = point;
     const auto &parent = strips.identity[anchor].coordinates;
     const auto right = strips.right[anchor];
+    // Only consecutive local edits at an intact same-Session endpoint may omit
+    // the new zero reservation. Existing descendants must keep their attachment order.
     if (count && anchor == last_insert && !strips.fragmented[anchor] &&
         parent.session == c.session && parent.diff > 0 && point == Word(parent.diff) &&
         c.start == parent.start + point + 1 &&
         (!right || !contains_anchor(parent, strips.identity[right].coordinates, 0, point))) {
+      // The suffix starts at the old endpoint itself, identifying extension on replay.
       --c.start;
       extend(anchor, count, content);
       increase_clock[1] += count;
@@ -38,6 +45,7 @@ Insertion Projection::insert(Word count, Word content, Word at) {
     gate = incoming;
     gate_position = at;
   }
+  // A new canonical root reserves its zero boundary plus the authored Frame extent.
   increase_clock[1] += count + 1;
   return {c, content};
 }

@@ -1,0 +1,286 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@sovereignbase/sequencer</title><link rel="icon" href="https://sovereignbase.dev/sovereignbase_logo.png"/><meta name="description" content="Documentation for @sovereignbase/sequencer"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="index.html" class="title">@sovereignbase/sequencer</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<h1>@sovereignbase/sequencer</h1></div>
+<div class="tsd-panel tsd-typography"><h1 id="sequencer" class="tsd-anchor-link">Sequencer<a href="#sequencer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p>Sequencer provides a deterministic total ordering for distributed data. It allows independently operating replicas to make concurrent changes and later converge on the same state without relying on network arrival order or perfectly synchronized clocks.</p>
+<h2 id="usage" class="tsd-anchor-link">Usage<a href="#usage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="simple-typed-api" class="tsd-anchor-link">Simple typed API<a href="#simple-typed-api" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="ts"><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">Projection</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&#39;@sovereignbase/sequencer&#39;</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">projection</span><span class="hl-1"> = </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-6">Projection</span><span class="hl-1">&lt;</span><span class="hl-7">string</span><span class="hl-1">&gt;(</span><span class="hl-8">1</span><span class="hl-1">)</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">gossip</span><span class="hl-1"> = </span><span class="hl-2">projection</span><span class="hl-1">.</span><span class="hl-6">insert</span><span class="hl-1">([</span><span class="hl-3">&#39;Hello World&#39;</span><span class="hl-1">], </span><span class="hl-8">0</span><span class="hl-1">)</span><br/><span class="hl-2">console</span><span class="hl-1">.</span><span class="hl-6">log</span><span class="hl-1">(</span><span class="hl-2">projection</span><span class="hl-1">.</span><span class="hl-6">value</span><span class="hl-1">(</span><span class="hl-8">0</span><span class="hl-1">)) </span><span class="hl-9">// &quot;Hello World&quot;</span><br/><br/><span class="hl-2">projection</span><span class="hl-1">.</span><span class="hl-6">destroy</span><span class="hl-1">()</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="benchmarks" class="tsd-anchor-link">Benchmarks<a href="#benchmarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="exceptional-performance" class="tsd-anchor-link">Exceptional performance<a href="#exceptional-performance" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>The <a href="media/README.md">benchmark documentation</a> describes both the dynamic
+lifecycle workload and API throughput bursts. Full results are available for
+<a href="media/lifecycle.md">lifecycle</a> and
+<a href="media/throughput.md">throughput</a>.</p>
+<p>Current throughput results, measured on 12 October 2026. Latencies are in µs per
+public API call, weighted by call count across three runs.</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th style="text-align:right">100 initial insertions</th>
+<th style="text-align:right">1,000 initial insertions</th>
+<th style="text-align:right">10,000 initial insertions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>new Projection(actorID, sequence)</code></td>
+<td style="text-align:right">2.013</td>
+<td style="text-align:right">1.598</td>
+<td style="text-align:right">1.503</td>
+</tr>
+<tr>
+<td><code>insert</code>, random position</td>
+<td style="text-align:right">1.108</td>
+<td style="text-align:right">1.045</td>
+<td style="text-align:right">1.076</td>
+</tr>
+<tr>
+<td><code>remove</code>, middle</td>
+<td style="text-align:right">1.534</td>
+<td style="text-align:right">1.605</td>
+<td style="text-align:right">1.493</td>
+</tr>
+<tr>
+<td><code>replace</code>, middle</td>
+<td style="text-align:right">1.507</td>
+<td style="text-align:right">1.364</td>
+<td style="text-align:right">1.625</td>
+</tr>
+<tr>
+<td><code>sequence()</code></td>
+<td style="text-align:right">0.288</td>
+<td style="text-align:right">0.320</td>
+<td style="text-align:right">0.331</td>
+</tr>
+<tr>
+<td><code>value</code>, random position</td>
+<td style="text-align:right">0.090</td>
+<td style="text-align:right">0.082</td>
+<td style="text-align:right">0.155</td>
+</tr>
+<tr>
+<td><code>values()</code></td>
+<td style="text-align:right">4.787</td>
+<td style="text-align:right">174.213</td>
+<td style="text-align:right">1252.987</td>
+</tr>
+</tbody>
+</table>
+<p>Environment: Node 24.16.0, V8 13.6.233.17-node.49, Windows x64, Intel Core
+i5-10210U. Generated Strip lengths are 1–100 Frames. Each case warms up for
+2,048 calls, then measures a burst of approximately 100 ms or at most 8,192 calls.</p>
+<h2 id="memory-efficiency" class="tsd-anchor-link">Memory efficiency<a href="#memory-efficiency" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Retained memory for eight Projections, each containing 6,000 consecutive
+single-Frame insertions. These are five-run medians from isolated Node processes:</p>
+<table>
+<thead>
+<tr>
+<th>Measurement</th>
+<th style="text-align:right">Current</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Additional JS heap after GC</td>
+<td style="text-align:right">0.501 MB</td>
+</tr>
+<tr>
+<td>Shared WASM memory capacity</td>
+<td style="text-align:right">1.049 MB</td>
+</tr>
+</tbody>
+</table>
+<p>Module import and a small warm-up are excluded from the heap delta. WASM
+capacity includes the initial 1 MiB allocation. These are not process RSS or
+per-Projection total memory.</p>
+<h3 id="moderate-bundle-size" class="tsd-anchor-link">Moderate bundle size<a href="#moderate-bundle-size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th style="text-align:right">Raw</th>
+<th style="text-align:right">Minified</th>
+<th style="text-align:right">Minified + gzip</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ESM</td>
+<td style="text-align:right">120.9 kB</td>
+<td style="text-align:right">101.6 kB</td>
+<td style="text-align:right">36.8 kB</td>
+</tr>
+<tr>
+<td>CommonJS</td>
+<td style="text-align:right">121.0 kB</td>
+<td style="text-align:right">102.4 kB</td>
+<td style="text-align:right">37.0 kB</td>
+</tr>
+</tbody>
+</table>
+<p>Both bundles include the WASM module. Minified sizes use Terser with three
+compression passes; source maps and type declarations are excluded. kB and MB
+use decimal units.</p>
+<h3 id="compact-data-model" class="tsd-anchor-link">Compact data model<a href="#compact-data-model" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>An insertion contains six uint32 structural words: 24 bytes before transport
+framing or content. Numeric metadata accepts <code>Uint32Array</code> and JSON numeric
+arrays. Generic content, called Footage, stays in JavaScript; only numeric
+metadata enters WASM.</p>
+<p><code>sequence()</code> returns <code>[words, footage]</code>: one numeric array and one content
+array, with no nested insertion or acknowledgement arrays. Small snapshots use
+six-word records after length-prefixed acknowledgements. From 64 retained
+insertions onward, predictable fields are omitted as WASM writes the snapshot;
+<code>[0, frontiersEnd, insertionCount]</code> identifies this compact numeric layout.
+Coordinates, acknowledgements and content order are preserved. The runtime
+reads both layouts; compact snapshots require an updated reader.
+Positive insertion lengths identify successive spans of <code>footage</code>.
+An empty Sequence is <code>[[], []]</code>. Construction and <code>merge()</code> accept numeric
+arrays or <code>Uint32Array</code> metadata; exported numeric arrays can be sent as JSON.</p>
+<pre><code class="ts"><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">retained</span><span class="hl-1"> = </span><span class="hl-2">projection</span><span class="hl-1">.</span><span class="hl-6">sequence</span><span class="hl-1">()</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">restored</span><span class="hl-1"> = </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-6">Projection</span><span class="hl-1">&lt;</span><span class="hl-7">string</span><span class="hl-1">&gt;(</span><span class="hl-8">2</span><span class="hl-1">, </span><span class="hl-2">retained</span><span class="hl-1">)</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Consecutive local insertions extend an intact insertion from the same Session
+without reserving another zero in its logical clock. Gossip contains only the
+new suffix, still using six structural words. A removal or fragmentation ends
+the local extension chain. Retained snapshots remain unchanged by later edits.</p>
+<p>Measured JSON transport sizes for 1,000 one-Frame insertions containing <code>'x'</code>,
+their removal Gossip, and a snapshot captured before removal:</p>
+<table>
+<thead>
+<tr>
+<th>Workload</th>
+<th style="text-align:right">Average bytes per operation or insertion</th>
+<th style="text-align:right">JSON</th>
+<th style="text-align:right">JSON + gzip</th>
+<th style="text-align:right">gzip reduction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1,000 one-frame insertions</td>
+<td style="text-align:right">44.8 B</td>
+<td style="text-align:right">45.8 kB</td>
+<td style="text-align:right">5.1 kB</td>
+<td style="text-align:right">88.9%</td>
+</tr>
+<tr>
+<td>1,000 one-frame removals</td>
+<td style="text-align:right">65.8 B</td>
+<td style="text-align:right">66.8 kB</td>
+<td style="text-align:right">7.5 kB</td>
+<td style="text-align:right">88.8%</td>
+</tr>
+<tr>
+<td>Snapshot containing 1,000 one-frame insertions</td>
+<td style="text-align:right">4.0 B</td>
+<td style="text-align:right">4.0 kB</td>
+<td style="text-align:right">0.1 kB</td>
+<td style="text-align:right">98.3%</td>
+</tr>
+</tbody>
+</table>
+<p>Gossip sizes include acknowledgements and content where present. Delta averages
+measure individual Gossip packets; batch totals include their enclosing array.
+Snapshot averages divide the complete Sequence size by the 1,000 authored insertions. Consecutive insertions are retained as one insertion.
+Sizes vary with Session IDs and content.</p>
+<h2 id="tests" class="tsd-anchor-link">Tests<a href="#tests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="behaviour-guaranteed-by-excessive-tests" class="tsd-anchor-link">Behaviour guaranteed by excessive tests<a href="#behaviour-guaranteed-by-excessive-tests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p><code>npm test</code> rebuilds the native WebAssembly module and TypeScript package,
+typechecks tests, runs unit, convergence, integration and generative stress suites
+with V8 coverage, then runs runtime and browser compatibility checks.</p>
+<p>The latest verification passed 170 Vitest tests and 88 compatibility checks.
+The configured 100% coverage threshold remains unmet (95.66% statements,
+94.94% branches, 100% functions, 97.23% lines).
+Convergence tests include 1,024 generated editing histories for each compaction
+mode. See the <a href="media/README-1.md">test suites</a> and
+<a href="https://sovereignbase.dev/sequencer/tests/">automated test report</a>.</p>
+<h3 id="works-everywhere-where-javascript-and-wasm-works" class="tsd-anchor-link">Works everywhere where JavaScript and Wasm works<a href="#works-everywhere-where-javascript-and-wasm-works" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Runtimes covered by the latest compatibility verification:</p>
+<ul>
+<li>Node.js, ESM and CommonJS</li>
+<li>Deno</li>
+<li>Bun</li>
+<li>Edge Runtime</li>
+<li>Cloudflare Workers through workerd</li>
+<li>Chromium and WebKit browser windows</li>
+</ul>
+<p>Firefox is also in the compatibility matrix; its matching Playwright browser
+binary was unavailable in the latest run.</p>
+<h3 id="tested-realtime-and-offline-text-editing-behaviour-examples" class="tsd-anchor-link">Tested realtime and offline text editing behaviour examples<a href="#tested-realtime-and-offline-text-editing-behaviour-examples" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul>
+<li><a href="media/README-2.md">Online and offline editors</a>: six editors converge through delayed, reversed and shuffled delivery, including offline changes arriving during online editing.</li>
+<li><a href="media/README-3.md">Concurrent replacements</a>: independent replacement histories retain the same surviving content across delivery orders.</li>
+<li><a href="media/README-4.md">Restart and redelivery</a>: stored Sequences preserve visible content through hydration, duplicate delivery and further edits.</li>
+<li><a href="media/README-5.md">Peer-to-peer fanout</a>: independently editing browser peers synchronize through BroadcastChannel.</li>
+<li><a href="media/README-6.md">WebSocket fanout</a>: three browser peers converge through a stateless JSON Gossip relay.</li>
+</ul>
+<h2 id="credits" class="tsd-anchor-link">Credits<a href="#credits" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>None of this could have been done without years of work from many great engineers of many great projects, to mention a few:</p>
+<ul>
+<li>
+<p>AUTOMERGE</p>
+</li>
+<li>
+<p>YJS</p>
+</li>
+<li>
+<p>DIAMOND TYPES</p>
+</li>
+</ul>
+<h2 id="license" class="tsd-anchor-link">License<a href="#license" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Apache-2.0</p>
+</div></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details"><a href="#sequencer"><span>Sequencer</span></a>
+<ul>
+<li><a href="#usage"><span>Usage</span></a></li>
+<li>
+<ul>
+<li><a href="#simple-typed-api"><span>Simple typed <wbr/>API</span></a></li></ul></li>
+<li><a href="#benchmarks"><span>Benchmarks</span></a></li>
+<li>
+<ul>
+<li><a href="#exceptional-performance"><span>Exceptional performance</span></a></li></ul></li>
+<li><a href="#memory-efficiency"><span>Memory efficiency</span></a></li>
+<li>
+<ul>
+<li><a href="#moderate-bundle-size"><span>Moderate bundle size</span></a></li>
+<li><a href="#compact-data-model"><span>Compact data model</span></a></li></ul></li>
+<li><a href="#tests"><span>Tests</span></a></li>
+<li>
+<ul>
+<li><a href="#behaviour-guaranteed-by-excessive-tests"><span>Behaviour guaranteed by excessive tests</span></a></li>
+<li><a href="#works-everywhere-where-javascript-and-wasm-works"><span>Works everywhere where <wbr/>Java<wbr/>Script and <wbr/>Wasm works</span></a></li>
+<li><a href="#tested-realtime-and-offline-text-editing-behaviour-examples"><span>Tested realtime and offline text editing behaviour examples</span></a></li></ul></li>
+<li><a href="#credits"><span>Credits</span></a></li>
+<li><a href="#license"><span>License</span></a></li></ul></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="modules.html">@sovereignbase/sequencer</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>

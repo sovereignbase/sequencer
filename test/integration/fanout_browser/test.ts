@@ -1,3 +1,4 @@
+/** Browser-local replicas must converge from opposite delivery orders using the public bundle. */
 import { afterAll, beforeAll, expect, it } from 'vitest'
 import { browserRuntime, loadProjection } from '../../.helpers/browser.ts'
 let runtime: Awaited<ReturnType<typeof browserRuntime>>
@@ -16,6 +17,7 @@ it('converges after opposite Gossip delivery orders in a browser', async () => {
       const base = new Projection<string>(1)
       await base.insert(['base'], 0)
       const retained = await base.sequence()
+      // Both authors fork the same retained origin before observing the other's edit.
       const left = new Projection<string>(2, retained)
       const right = new Projection<string>(3, retained)
       const leftGossip = await left.insert(['left'], 1)

@@ -1,3 +1,4 @@
+/** Remote edits must maintain valid lookup state without intermediate reads repairing the local gate. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Gossip } from '../../../../src/typescript/types/type.ts'
@@ -18,24 +19,8 @@ const gossip = <T>(
 }
 describe('unobserved live peer lookup', () => {
   /**
-   * Verifies that Projection lookup remains correct after a long live edit
-   * history even when no intermediate Frames have been read.
-   *
-   * Two synchronized peers repeatedly insert, replace, and remove Footage from
-   * the head, middle, and tail. Either peer may author the next replacement, so
-   * both replicas accumulate the same structural history through normal Gossip
-   * and acknowledgement exchange.
-   *
-   * No `value()` call occurs until all mutations have completed. The final
-   * lookup must therefore resolve directly from the resulting Structural Order
-   * rather than depending on traversal state established by earlier reads.
-   *
-   * Both peers must expose:
-   *
-   * - the same `projectionFrameCount`;
-   * - identical Footage at every Projection position;
-   * - the exact final Projection
-   *   `[15, 15, 16, 16, 14, 14, 10, 10]`.
+   * Verifies that Projection lookup remains correct after a long live edit history
+   * even when no intermediate Frames have been read.
    */
   it('resolves every Frame after several edits without intermediate reads', () => {
     const state = new Projection<number>(1)

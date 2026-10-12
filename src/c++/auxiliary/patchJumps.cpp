@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Repairs jump distances after a local insertion or mask changes Structural Order.
+ */
 #include "linkJumps.hpp"
 #include <algorithm>
 
@@ -6,6 +10,8 @@ void Projection::patch_jumps(std::int32_t frame_diff, Word strip_diff, Index inc
   const auto predecessor = strips.left[incoming];
   const auto right_jump = strips.right_jump[predecessor];
   const auto left_frames = Word(std::max(0, strips.fragment_diff[predecessor]));
+  // The old spanning jump now crosses the edit; subtract the predecessor's
+  // visible contribution when its left endpoint moves to the incoming Strip.
   if (right_jump)
     link_jumps(*this, incoming, right_jump,
                strips.right_jump_frames[predecessor] + frame_diff - left_frames,
@@ -16,6 +22,7 @@ void Projection::patch_jumps(std::int32_t frame_diff, Word strip_diff, Index inc
   else
     link_jumps(*this, predecessor, incoming, left_frames, 1);
   const auto boundary = strips.right[incoming];
+  // Keep visible endpoints as explicit jump boundaries after a split or removal.
   if (boundary && (boundary == head || boundary == tail) &&
       strips.right_jump[incoming] != boundary) {
     const auto right = strips.right_jump[incoming];

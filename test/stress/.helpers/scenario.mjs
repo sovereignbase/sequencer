@@ -2,11 +2,13 @@
 import { parentPort, workerData as scenario } from 'node:worker_threads'
 import { Projection } from '../../../dist/index.js'
 let finished = false
+/** Posts one terminal outcome so the parent can release this isolated runtime. */
 const finish = (ok, message) => {
   if (finished) return
   finished = true
   parentPort.postMessage({ ok, message })
 }
+/** Compares visible indexed reads and length, independently of snapshot layout or native caches. */
 const signature = async (state) =>
   JSON.stringify([
     await state.length(),
@@ -19,6 +21,7 @@ const signature = async (state) =>
   ])
 let target_actor = 10000
 let operation_index = -1
+/** Replays whole Gossip batches; optional restart also exercises stale prefix redelivery. */
 const deliver = async (base, mutations, restart_index, label) => {
   let state = new Projection(target_actor++, base)
   for (let index = 0; index < mutations.length; ++index) {
@@ -43,6 +46,7 @@ try {
     )
   }
   const retained = await base.sequence()
+  // Authors stay disconnected: every local edit uses its author's own visible Projection.
   const replicas = Array.from(
     { length: scenario.replica_count },
     (_, index) => new Projection(100 + index, retained)
@@ -88,6 +92,7 @@ try {
   }
   const ordered = await deliver(retained, mutations, undefined, 'ordered')
   const expected = await signature(ordered)
+  // Stable tie-breaking on original ordinal permutes delivery without dropping duplicate-key updates.
   const keyed = mutations
     .map((mutation, index) => [
       mutation,

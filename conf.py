@@ -8,7 +8,7 @@ documentation_directory = Path(__file__).resolve().parent
 project = "Sequencer C++ API"
 author = "Jori Lehtinen"
 copyright = "2026, Jori Lehtinen"
-version = "0.0.0"
+version = "0.0.2"
 release = version
 language = "en"
 
@@ -27,7 +27,8 @@ breathe_domain_by_extension = {
 breathe_default_members = ("members",)
 
 templates_path = []
-exclude_patterns = [".doxygen", ".sphinx"]
+# Temporary checkouts are independent documentation projects, not pages in this reference.
+exclude_patterns = [".doxygen", ".sphinx", "temp/**"]
 
 html_theme = "alabaster"
 html_title = project

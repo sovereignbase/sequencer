@@ -1,3 +1,4 @@
+/** Isolated public-API bursts; fixture generation, serialization and observation are untimed. */
 import { caseColumns } from '../.shared/report.ts'
 import { arch, cpus, platform } from 'node:os'
 import { Projection, type Gossip, type Sequence } from '../../dist/index.js'
@@ -9,6 +10,7 @@ import type {
   BenchmarkReport,
   MetricResult,
 } from '../.shared/types.ts'
+/** Positional reads/writes and distinct fresh or duplicate remote operations. */
 export const throughputCases = [
   'apply.duplicate',
   'apply.duplicateRemove',
@@ -50,13 +52,16 @@ export const throughputCases = [
   'values.sameIndex',
   'values.tail',
 ] as const
+/** Method and fixture variant selecting one independent burst. */
 export type ThroughputCase = (typeof throughputCases)[number]
+/** Exported-state footprint plus shared-process observations, excluding native arena accounting. */
 type Observation = ReturnType<typeof measureSpace> & {
   stripCount: number
   frameCount: number
   retainedInsertionCount: number
   processMemory: ReturnType<typeof measureProcessMemory>
 }
+/** One measured burst with untimed state observations on either side. */
 export type ThroughputSample = {
   run: number
   initialStripCount: number
@@ -65,6 +70,7 @@ export type ThroughputSample = {
   before: Observation
   after: Observation
 }
+/** Reproducible fixture configuration, raw samples and call-weighted timings. */
 export type ThroughputReport = {
   schemaVersion: 2
   suite: 'throughput'
@@ -78,7 +84,9 @@ export type ThroughputReport = {
     metric: MetricResult
   }>
 }
+/** Retains the last API result so measured work remains observable. */
 let resultSink: unknown
+/** Builds workload Strips; consecutive appends may coalesce into fewer native roots. */
 function initialSequence(
   count: number,
   random: Random,
@@ -96,7 +104,7 @@ function initialSequence(
   state.destroy()
   return sequence
 }
-/** Each burst starts from independent Footage; masks must not mutate another case's input. */
+/** Prepares independent Footage and pre-authored remote inputs outside timing. */
 function prepare(
   operation: ThroughputCase,
   initial: Sequence<number>,
@@ -116,6 +124,7 @@ function prepare(
     operation === 'apply.duplicateReplace'
   const removing =
     operation.startsWith('remove.') || operation === 'apply.remove'
+  // Removal consumes the fixture; a fixed midpoint runs out before head or tail does.
   const limit = removing
     ? Math.min(
         config.maximumCalls,
@@ -137,6 +146,7 @@ function prepare(
           ).fill(index)
         )
       : []
+  // Prepare entropy outside timing; mutations map fractions to the live length.
   const positions = operation.endsWith('.random')
     ? Array.from({ length: config.maximumCalls }, () =>
         operation === 'value.random'
@@ -154,6 +164,7 @@ function prepare(
     operation === 'merge.insert'
   ) {
     const sender = new Projection<number>(2, snapshot)
+    // Duplicate cases pre-apply one operation; fresh cases replay distinct causal updates.
     const count = operation.startsWith('apply.duplicate') ? 1 : limit
     for (let index = 0; index < count; ++index) {
       const at = sender.length() - 1
@@ -175,6 +186,7 @@ function prepare(
     const coordinates = sequenceMetadata(snapshot[0]).insertions.at(-1)!
     updates.push([[coordinates, snapshot[1].slice(-(coordinates[5] | 0))]])
   }
+  // Minimal plain snapshot: one Actor-only ACK followed by a six-word operation.
   const mergeWords = operation.startsWith('merge.')
     ? updates.map((gossip) => [
         3,
@@ -188,6 +200,7 @@ function prepare(
     state.apply(
       Array.from({ length: config.maximumCalls }, (_, index) => [index + 2])
     )
+  /** Resolves a positional variant against the current visible length. */
   const position = (kind: string, index: number, insertion = false) =>
     kind.endsWith('.head')
       ? 0
@@ -202,6 +215,7 @@ function prepare(
                   positions[index] * (state.length() + (insertion ? 1 : 0))
                 )
             : Math.floor(state.length() / 2)
+  /** Executes the selected public method using inputs already prepared for this index. */
   const call = (index: number): unknown => {
     switch (operation) {
       case 'insert.head':
@@ -286,6 +300,7 @@ function prepare(
   }
   return { state, call, payloads, limit, inserting, removing, rangeLength }
 }
+/** Collects fixture garbage when --expose-gc is available, outside measured bursts. */
 async function collectGarbage(): Promise<void> {
   const gc = (
     globalThis as typeof globalThis & {
@@ -296,6 +311,7 @@ async function collectGarbage(): Promise<void> {
   await new Promise<void>((resolve) => setImmediate(resolve))
   gc?.()
 }
+/** Measures exported state without charging the API burst for serialization or metadata inspection. */
 function observe(state: Projection<number>): Observation {
   const sequence = state.sequence()
   const words = sequence[0]
@@ -334,6 +350,7 @@ function burst(
     maximumNanoseconds: null,
   }
 }
+/** Runs independent warmed fixtures and pools elapsed time over actual call counts. */
 export async function runThroughput(
   config: BenchmarkConfig
 ): Promise<ThroughputReport> {
@@ -364,6 +381,7 @@ export async function runThroughput(
           resultSink = undefined
           work.state.destroy()
         }
+        // Rebuild measured state after warmup so its mutations cannot change starting scale.
         const work = prepare(operation, initial, new Random(caseSeed), config)
         await collectGarbage()
         const before = observe(work.state)
@@ -373,6 +391,7 @@ export async function runThroughput(
           resultSink === undefined
         )
           throw new TypeError('Throughput remote input was rejected.')
+        // Validate visible effects after timing, distinguishing fresh and duplicate operations.
         const expected =
           before.frameCount +
           (work.inserting
@@ -423,6 +442,7 @@ export async function runThroughput(
       left.initialStripCount - right.initialStripCount ||
       left.run - right.run
   )
+  // Bursts can stop at different counts; pool elapsed time and calls rather than rates.
   const aggregates = throughputCases.flatMap((operation) =>
     config.checkpoints.map((initialStripCount) => {
       const metrics = samples
@@ -479,6 +499,7 @@ export async function runThroughput(
     aggregates,
   }
 }
+/** Separates per-burst timing, representation estimates and shared-process memory. */
 function printCheckpoint(samples: Array<ThroughputSample>): void {
   console.table(
     samples.map(({ operation, metric, before, after }) => ({

@@ -1,3 +1,4 @@
+/** Independent mixed edits must reconstruct one Projection through chronological, reverse and keyed Gossip order. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Gossip, Sequence } from '../../../../src/typescript/types/type.ts'
@@ -9,6 +10,7 @@ import type { Gossip, Sequence } from '../../../../src/typescript/types/type.ts'
  * replica's local Projection. Operations created by different replicas are
  * concurrent because Gossip is not exchanged while the workload is authored.
  */
+/** Fixed disconnected edit intents; selectors resolve against each author's own Projection. */
 const operations = [
   ['replace', 1837749800, 20512115, 1],
   ['replace', 1617521697, 1569299415, 1],
@@ -33,6 +35,7 @@ const operations = [
  * They do not alter any authored operation; they only permute the order in
  * which the same Gossip set is applied to a receiver.
  */
+/** Repeatable packet ordering keys; original ordinal breaks equal-key ties without losing entries. */
 const deliveryKeys = [
   -587545375, -1451642704, 450361033, -1237044316, 746367878,
 ]
@@ -40,12 +43,14 @@ const deliveryKeys = [
  * Materializes the complete visible Projection for exact convergence
  * comparison.
  */
+/** Materializes indexed reads so bulk-export shortcuts cannot hide lookup disagreement. */
 const project = (sequence: Projection<string>): Array<string | undefined> =>
   Array.from({ length: sequence.length() }, (_, index) => sequence.value(index))
 /**
  * Reconstructs one live replica from the retained base Sequence and applies
  * every mutation in exactly the supplied delivery order.
  */
+/** Replays the same canonical operation set into a fresh receiver in the requested order. */
 const deliver = (
   retained: Sequence<string>,
   mutations: Array<Gossip<string>>
@@ -56,24 +61,8 @@ const deliver = (
 }
 describe('unordered replace delivery', () => {
   /**
-   * Verifies that one complete concurrent edit history converges identically
-   * when delivered chronologically, in reverse, or in a deterministic mixed
-   * order.
-   *
-   * Two replicas begin from the same retained four-Frame base and independently
-   * author inserts, removals, and replacements. Several replacements and Masks
-   * may therefore overlap the same historical regions without observing the
-   * other replica's concurrent edits.
-   *
-   * The complete authored Gossip set is then reconstructed three times:
-   *
-   * - `chronological` receives mutations in workload creation order;
-   * - `reverse` receives the exact same mutations in reverse order;
-   * - `mixed` receives the exact same mutations in a deterministic permutation.
-   *
-   * All three receivers must expose exactly the same visible Projection.
-   * Delivery order must not change which original Frames remain masked, which
-   * inserted Frames survive, or how concurrent subtrees are ordered.
+   * Verifies that one complete concurrent edit history converges identically when
+   * delivered chronologically, in reverse, or in a deterministic mixed order.
    */
   it('converges in chronological, reverse, and mixed delivery order', () => {
     // Establish the shared retained origin.

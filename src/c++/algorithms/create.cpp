@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Hydrates canonical history and builds its initial visible traversal index.
+ */
 #include "../auxiliary/linkJumps.hpp"
 #include "../class.hpp"
 #include <algorithm>
@@ -8,6 +12,7 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
   strips.reserve(Word(insertions.size()) + 1);
   for (const auto &a : frontiers)
     frontier.observe(a);
+  // Root count estimates jump spacing; structural fragmentation may create additional nodes.
   const auto spacing = Word(std::max(1.0, std::round(std::sqrt(insertions.size()))));
   std::unordered_map<Index, Index> fragments;
   Index jump_start = none, cursor = none, tail_jump_start = none;
@@ -24,6 +29,8 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
       Word point = 0;
       if (!c.birth()) {
         const auto origin = containment.get(c.anchor_session, c.anchor_start);
+        // Structural Order often visits increasing boundaries of one parent;
+        // reuse its last resolved fragment only when the new boundary lies to its right.
         const auto known = fragments.find(origin);
         const auto fragment =
             strips.fragment[origin] && known != fragments.end() ? known->second : origin;
@@ -40,10 +47,12 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
       anchor_strip(incoming, anchor, point);
     }
     containment.set(c, incoming);
+    // Hydration also records this Actor's Acknowledgement of retained reducing Insertions.
     if (c.diff < 0)
       frontier.observe({actor, c.session, c.start - c.diff});
     if (!cursor)
       jump_start = cursor = structural_head;
+    // The next Insertion may still split the newest node; index only the settled prefix.
     const auto stop = n + 1 < insertions.size() ? incoming : none;
     while (cursor && cursor != stop) {
       const auto diff = strips.fragment_diff[cursor];
@@ -67,6 +76,7 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
   }
   head = visible_head;
   tail = visible_tail;
+  // A final jump past the last visible Frame cannot accelerate visible-position lookup.
   if (tail_jump_start && tail_jump_start != tail && strips.right_jump[tail_jump_start]) {
     strips.left_jump[strips.right_jump[tail_jump_start]] = none;
     strips.right_jump[tail_jump_start] = none;

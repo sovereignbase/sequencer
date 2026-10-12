@@ -1,6 +1,11 @@
 import type { U32List } from '../../dist/index.js'
 
-/** Count retained identities without retaining decoded coordinate arrays. */
+/**
+ * Counts retained roots outside measured API calls, without coordinate-array allocation.
+ * @param words Trusted plain or compact snapshot metadata.
+ * @returns Positive-root count as `stripCount`, and all retained canonical identities.
+ * These counts describe export records, not native arena fragments or visible workload groups.
+ */
 export function sequenceCounts(words: U32List): {
   stripCount: number
   retainedInsertionCount: number
@@ -19,6 +24,7 @@ export function sequenceCounts(words: U32List): {
       ? (words[at++] | (words[at++] << 16)) >>> 0
       : value
   }
+  // Only signed-diff parity matters for positive-root counting; other explicit fields are skipped.
   for (let i = 0; i < words[2]; ++i) {
     const control = words[at++]
     if (control & 1) at += 2
@@ -31,7 +37,12 @@ export function sequenceCounts(words: U32List): {
   return { stripCount, retainedInsertionCount: words[2] }
 }
 
-/** Inspect snapshot metadata outside timed public API calls. */
+/**
+ * Expands trusted snapshot metadata for fixture construction and assertions.
+ * @param words Plain or compact metadata emitted by the public API.
+ * @returns Exact ACK lanes and six-word Insertion records; signed diffs retain uint32 bit patterns.
+ * This inspection helper is not part of runtime application or the timed benchmark path.
+ */
 export function sequenceMetadata(words: U32List): {
   frontiers: number[][]
   insertions: number[][]
@@ -48,6 +59,7 @@ export function sequenceMetadata(words: U32List): {
       ? (words[at++] | (words[at++] << 16)) >>> 0
       : value
   }
+  // Session identities always use two halves, independent of scalar escape rules.
   const session = () => (words[at++] | (words[at++] << 16)) >>> 0
   while (at < end) {
     const count = words[at++]
@@ -75,6 +87,7 @@ export function sequenceMetadata(words: U32List): {
     const anchorStart = control & 8 ? word() : control >>> 6
     const anchorDiff = control & 16 ? word() : 1
     const zigzag = control & 32 ? word() : 2
+    // Restore signed magnitude for next-start prediction, then expose unsigned wire lanes.
     const diff = ((zigzag >>> 1) ^ -(zigzag & 1)) | 0
     insertions.push([
       anchorSession,

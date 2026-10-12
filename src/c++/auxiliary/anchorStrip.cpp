@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Resolves sibling competition, original-Frame masking and causal subtree placement.
+ */
 #include "../class.hpp"
 #include "anchorsOverlap.hpp"
 #include "competitionIsLarger.hpp"
@@ -8,6 +12,7 @@ namespace sequencer {
 std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point, bool continuation) {
   const auto removal_end = strips.identity[incoming].coordinates.anchor_diff -
                            strips.identity[incoming].coordinates.diff;
+  // Keep the authored removal endpoint fixed while runtime fragments consume available Frames.
   std::int32_t total = 0;
   while (true) {
     auto left = anchor;
@@ -15,12 +20,14 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point, 
     auto diff = strips.fragment_diff[incoming];
     if (strips.identity[incoming].coordinates.diff < 0 &&
         strips.identity[anchor].coordinates.diff > 0) {
+      // Overlapping masks consume only the target fragment's surviving suffix.
       const auto available = std::max<std::int64_t>(0, std::int64_t(strips.fragment_start[anchor]) +
                                                            strips.fragment_diff[anchor] - point);
       diff = -std::int32_t(std::min<std::int64_t>(-std::int64_t(diff), available));
       strips.fragmented[incoming] = true;
       strips.fragment_diff[incoming] = diff;
     }
+    // A fully overlapped mask still has identity and descendants; clamp only its placement.
     if (strips.identity[incoming].coordinates.diff < 0 && diff == 0)
       point = std::clamp(point, strips.fragment_start[anchor],
                          strips.fragment_start[anchor] + magnitude(strips.fragment_diff[anchor]));
@@ -31,6 +38,7 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point, 
     } else
       right = structural_head;
     const auto c = strips.identity[incoming].coordinates;
+    // Original-boundary children precede mask children at that same historical point.
     if (c.diff > 0 && anchor && strips.identity[anchor].coordinates.diff < 0 &&
         c.anchor_session == strips.identity[anchor].coordinates.session &&
         c.anchor_start == strips.identity[anchor].coordinates.start && right &&
@@ -45,6 +53,7 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point, 
       left = subtree_end(right);
       right = strips.right[left];
     }
+    // Earlier zero-effect siblings may be skipped; same-point siblings must still compete.
     while (right && strips.fragment_diff[right] == 0 &&
            strips.identity[right].coordinates.anchor_session == c.anchor_session &&
            strips.identity[right].coordinates.anchor_start == c.anchor_start &&
@@ -52,6 +61,8 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point, 
       left = right;
       right = strips.right[right];
     }
+    // An extension remains part of its parent rather than competing as a new
+    // root. Preserve already attached child subtrees before its new suffix.
     if (continuation) {
       const auto &parent = strips.identity[incoming].coordinates;
       while (right && strips.identity[right].coordinates.anchor_session == parent.session &&
@@ -70,6 +81,7 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point, 
         larger = smaller;
         smaller = strips.competitor[smaller];
       }
+      // Sibling links order exact-anchor competitors; structural links skip whole subtrees.
       strips.competitor[incoming] = smaller;
       if (larger) {
         strips.competitor[larger] = incoming;
@@ -94,6 +106,7 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point, 
       if (!tail || !right || left == tail)
         tail = incoming;
     }
+    // Visible endpoints exclude hidden history; jumps crossing newly hidden endpoints are detached.
     while (head && strips.fragment_diff[head] <= 0) {
       if (strips.right_jump[head] && strips.right_jump_frames[head] > 0) {
         strips.left_jump[strips.right_jump[head]] = none;
@@ -116,6 +129,8 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point, 
         anchor && strips.identity[anchor].coordinates.diff > 0 ? strips.fragment[anchor] : none;
     if (c.diff >= 0 || !next || strips.fragment_start[next] >= removal_end)
       return total;
+    // One canonical removal can have several runtime mask fragments. Their
+    // offsets are relative to the removal, while each targets original parent Frames.
     const auto start = strips.fragment_start[next];
     const auto mask = allocate({c, 0});
     strips.offset[mask] = strips.fragmented[mask] = true;

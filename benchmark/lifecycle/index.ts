@@ -1,3 +1,4 @@
+/** Public-API lifecycle with acknowledged two-peer edits, growth and complete scale-down. */
 import { arch, cpus, platform } from 'node:os'
 import { Projection } from '../../dist/index.js'
 import { caseColumns } from '../.shared/report.ts'
@@ -30,6 +31,7 @@ import {
   type ReplicaRunResult,
   type RunResult,
 } from '../.shared/types.ts'
+/** Measured replica, synchronized peer and independent workload-Strip model. */
 type Runtime = {
   name: ReplicaName
   actorId: number
@@ -43,10 +45,13 @@ type Runtime = {
   space: Record<MetricScope, SpaceAccumulator>
 }
 let resultSink: unknown
+/** Creates a fresh runtime Projection; Actor reuse does not reuse authoring Session identities. */
 const createReplica = (actorId: number, data?: unknown): Projection<number> =>
   new Projection<number>(actorId, data)
+/** Keeps empty-scale ratios absent instead of reporting misleading zero bytes per unit. */
 const ratio = (bytes: number, units: number): number | null =>
   units === 0 ? null : bytes / units
+/** Times the public call; model updates, peer fanout and assertions happen afterwards. */
 const timeOperation = <T>(
   runtime: Runtime,
   direction: Direction,
@@ -58,6 +63,7 @@ const timeOperation = <T>(
   resultSink = timed.result
   return timed.result
 }
+/** Creates a workload Strip, A.K.A. one visible group of equal-valued Frames. */
 const createStrip = (
   runtime: Runtime,
   config: BenchmarkConfig
@@ -73,6 +79,7 @@ const createStrip = (
   )
   return { id, length, values: new Array<number>(length).fill(id) }
 }
+/** Preserves group length while changing content identity for divergence checks. */
 const createReplacementStrip = (
   runtime: Runtime,
   length: number
@@ -84,6 +91,7 @@ const createReplacementStrip = (
   const id = runtime.nextStripId++
   return { id, length, values: new Array<number>(length).fill(id) }
 }
+/** Rejects invalid workload Gossip rather than measuring it as a successful no-op. */
 const applyUpdate = (
   receiver: Projection<number>,
   update: Gossip<number>,
@@ -93,6 +101,7 @@ const applyUpdate = (
   if (!result) throw new TypeError(`Sequencer rejected benchmark ${operation}.`)
   return result
 }
+/** Delivers operation and Acknowledgement exchange so acknowledgement-gated compaction stays exercised. */
 const gossip = (
   sender: Projection<number>,
   receiver: Projection<number>,
@@ -103,6 +112,7 @@ const gossip = (
   if (acknowledgements?.length)
     void applyUpdate(sender, acknowledgements, operation + ' acknowledgements')
 }
+/** Converts a workload-group boundary to a visible Frame boundary before timed insertion. */
 const insertAt = (
   runtime: Runtime,
   config: BenchmarkConfig,
@@ -118,6 +128,7 @@ const insertAt = (
   gossip(runtime.state, runtime.peer, mutation, operationName)
   runtime.strips.insert(stripIndex, strip)
 }
+/** Removes one whole workload Strip using inclusive public range bounds. */
 const removeAt = (
   runtime: Runtime,
   config: BenchmarkConfig,
@@ -133,6 +144,7 @@ const removeAt = (
   gossip(runtime.state, runtime.peer, mutation, operationName)
   runtime.strips.remove(stripIndex)
 }
+/** Times one visible read, then verifies that the generated Frame has Footage. */
 const valueAt = (
   runtime: Runtime,
   direction: Direction,
@@ -145,6 +157,7 @@ const valueAt = (
   if (value === undefined)
     throw new TypeError(`${operationName} did not resolve a projected Frame.`)
 }
+/** Replaces a workload Strip without changing its Frame count or the model scale. */
 const replaceAt = (
   runtime: Runtime,
   direction: Direction,
@@ -165,6 +178,7 @@ const replaceAt = (
   gossip(runtime.state, runtime.peer, mutation, operationName)
   runtime.strips.replace(stripIndex, strip)
 }
+/** Times peer-authored replacement application; authoring and Acknowledgement exchange remain untimed. */
 const randomApply = (runtime: Runtime, direction: Direction): void => {
   const stripIndex = runtime.random.integer(runtime.strips.count)
   const frameIndex = runtime.strips.frameOffsetAt(stripIndex)
@@ -187,6 +201,7 @@ const randomApply = (runtime: Runtime, direction: Direction): void => {
     )
   runtime.strips.replace(stripIndex, strip)
 }
+/** Exercises positional reads and mutations without changing net workload scale. */
 const runPrimaryWorkload = (
   runtime: Runtime,
   config: BenchmarkConfig,
@@ -223,6 +238,7 @@ const runPrimaryWorkload = (
     runtime.random.integer(runtime.strips.count + 1)
   )
 }
+/** Adds one workload Strip and exercises local and remote edits on the growing document. */
 const runScaleUpStep = (runtime: Runtime, config: BenchmarkConfig): void => {
   const tail = runtime.strips.count % 2 === 0
   insertAt(
@@ -235,6 +251,7 @@ const runScaleUpStep = (runtime: Runtime, config: BenchmarkConfig): void => {
   runPrimaryWorkload(runtime, config, 'up')
   randomApply(runtime, 'up')
 }
+/** Exercises the document, then removes one workload Strip toward an empty Projection. */
 const runScaleDownStep = (runtime: Runtime, config: BenchmarkConfig): void => {
   runPrimaryWorkload(runtime, config, 'down')
   const head = runtime.strips.count % 2 === 0
@@ -247,6 +264,7 @@ const runScaleDownStep = (runtime: Runtime, config: BenchmarkConfig): void => {
   )
   if (runtime.strips.count > 0) randomApply(runtime, 'down')
 }
+/** Times one checkpoint management call independently of continuous operation totals. */
 const managementMetric = <T>(operation: () => T): [MetricResult, T] => {
   const accumulator = new MetricAccumulator()
   const timed = measure(operation)
@@ -254,6 +272,7 @@ const managementMetric = <T>(operation: () => T): [MetricResult, T] => {
   resultSink = timed.result
   return [accumulator.snapshot(), timed.result]
 }
+/** Verifies convergence before measuring full reads, export, hydration and retained footprint. */
 const observeReplica = (
   runtime: Runtime,
   direction: Direction
@@ -280,6 +299,7 @@ const observeReplica = (
     return projection
   })
   recreated.destroy()
+  // Workload group count is distinct from native Strip fragments or canonical roots.
   const stripCount = runtime.strips.count
   const frameCount = runtime.strips.frameCount
   const { memory, storage } = measureSpace(
@@ -319,6 +339,7 @@ const observeReplica = (
     )
   return checkpoint
 }
+/** Allows optional collections around observations, outside public-call timing. */
 const collectGarbage = async (): Promise<void> => {
   const collect = (
     globalThis as typeof globalThis & {
@@ -329,6 +350,7 @@ const collectGarbage = async (): Promise<void> => {
   await new Promise<void>((resolve) => setImmediate(resolve))
   collect?.()
 }
+/** Captures document estimates and shared-process memory at an exact workload scale. */
 const takeCheckpoint = async (
   run: number,
   direction: Direction,
@@ -348,8 +370,10 @@ const takeCheckpoint = async (
     replicas,
   }
 }
+/** Formats measured latency without turning absent calls into zero-time results. */
 const checkpointMicroseconds = (nanoseconds: number | null): string =>
   nanoseconds === null ? '—' : (nanoseconds / 1000).toFixed(3)
+/** Renders cumulative operation metrics and one checkpoint's management and space samples. */
 const printCheckpoint = (checkpoint: CheckpointResult): void => {
   const replicaNames: Array<ReplicaName> = ['A']
   console.log(
@@ -423,6 +447,7 @@ const printCheckpoint = (checkpoint: CheckpointResult): void => {
     }))
   )
 }
+/** Initializes the two-peer workload, independent model and metric accumulators. */
 const makeRuntime = (
   name: ReplicaName,
   state: Projection<number>,
@@ -445,6 +470,7 @@ const makeRuntime = (
     fullLifecycle: new SpaceAccumulator(),
   },
 })
+/** Captures per-direction and whole-lifecycle totals before native handles are released. */
 const finishRuntime = (runtime: Runtime): ReplicaRunResult => ({
   operations: {
     scaleUp: runtime.metrics.snapshot('scaleUp'),
@@ -457,6 +483,7 @@ const finishRuntime = (runtime: Runtime): ReplicaRunResult => ({
     fullLifecycle: runtime.space.fullLifecycle.snapshot(),
   },
 })
+/** Runs one seeded growth/shrink history and records the requested exact scales. */
 async function runOneLifecycle(
   run: number,
   runSeed: number,
@@ -537,6 +564,7 @@ export async function runLifecycles(
     )
   return results
 }
+/** Pools actual call counts while retaining independent run means and dispersion. */
 export function aggregateRuns(
   runs: Array<RunResult>
 ): BenchmarkReport['aggregates'] {
@@ -602,6 +630,7 @@ export function aggregateRuns(
                     : (ordered[count / 2 - 1].averageNanoseconds +
                         ordered[count / 2].averageNanoseconds) /
                       2
+              // Management is sampled at checkpoints; continuous operations retain all calls.
               const totalSampleCount = samples.reduce(
                 (sum, sample) => sum + sample.metric.count,
                 0
@@ -647,6 +676,7 @@ export function aggregateRuns(
     ])
   ) as BenchmarkReport['aggregates']
 }
+/** Runs warmed lifecycles and records how every timing and footprint metric is interpreted. */
 export async function runBenchmark(
   config: BenchmarkConfig
 ): Promise<BenchmarkReport> {

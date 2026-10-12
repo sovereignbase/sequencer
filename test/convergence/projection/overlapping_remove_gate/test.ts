@@ -1,27 +1,12 @@
+/** Overlapping masks must shift the gate only by newly consumed original Frames. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Gossip } from '../../../../src/typescript/types/type.ts'
 import { deliver, expect_converged } from '../../../.helpers/replica.ts'
 describe('overlapping remove gate', () => {
   /**
-   * Verifies that remote overlapping reducing operations keep the receiver's
-   * gate on surviving content with the correct visible index.
-   *
-   * Three replicas begin from the same retained two-Frame Sequence. They then
-   * independently author overlapping removals, a replacement, and additional
-   * insertions around the same original region.
-   *
-   * The resulting Structural Order contains positive insertions together with
-   * multiple removals covering overlapping historical Frames.
-   *
-   * The complete operation set is reconstructed twice:
-   *
-   * - `ordered` receives the mutations in their authored collection order;
-   * - `unordered` receives exactly the same mutations in a deliberately reordered
-   *   sequence beginning with later removals.
-   *
-   * Both receivers must converge to the same Projection. If a removal consumes
-   * the unordered receiver's gate, it follows neighbouring surviving content.
+   * Verifies that remote overlapping reducing operations keep the receiver's gate
+   * on surviving content with the correct visible index.
    */
   it('keeps the gate index correct across overlapping removals', () => {
     // Establish the retained two-Frame origin shared by all replicas.
@@ -33,12 +18,11 @@ describe('overlapping remove gate', () => {
       (index) => new Projection<string>(100 + index, sequence)
     )
     const mutations: Array<Gossip<string>> = [
-      replicas[2].remove(0, 1), // Concurrently insert through the original middle boundary.
-      replicas[0].insert(['middle-0', 'middle-1'], 1), // Extend replica 2 again from its now-empty visible head.
-      replicas[2].insert(['tail-0', 'tail-1', 'tail-2'], 0), // Concurrently replace the complete original base on replica 1.
-      replicas[1].replace(['replacement-0', 'replacement-1'], 0, 1), // Remove that replacement locally, adding another reducing operation over
-      // the same historical region.
-      replicas[1].remove(0, 1), // Remove one Frame from replica 2's newly inserted Footage.
+      replicas[2].remove(0, 1), // Mask owns the original base Frames.
+      replicas[0].insert(['middle-0', 'middle-1'], 1), // Concurrent content survives that mask.
+      replicas[2].insert(['tail-0', 'tail-1', 'tail-2'], 0),
+      replicas[1].replace(['replacement-0', 'replacement-1'], 0, 1),
+      replicas[1].remove(0, 1), // A later mask owns replacement content, not the earlier base.
       replicas[2].remove(2, 2),
     ]
     // Baseline reconstruction in collection order.

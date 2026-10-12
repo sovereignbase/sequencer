@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import { entry, runProcess } from '../.shared/process.ts'
 
+/** Executes the portable TypeScript suite in the installed Bun binary. */
 export const run = () =>
   runProcess(
     fileURLToPath(

@@ -1,5 +1,5 @@
 /**
- * Process-isolated, replayable generative convergence stress coverage. Every
+ * Worker-isolated, replayable generative convergence stress coverage. Every
  * generated scenario runs in its own Worker so a native infinite loop becomes
  * a bounded test failure instead of blocking the complete test process.
  */
@@ -39,13 +39,13 @@ class StressScenarioError extends Error {
   }
 }
 
-// Resolve positive environment controls without admitting invalid test settings.
+/** Resolves positive replay controls, falling back when the environment omits or invalidates them. */
 function positive_integer(value: string | undefined, fallback: number): number {
   const parsed = Number.parseInt(value ?? '', 10)
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback
 }
 
-// Run one scenario behind a boundary that can interrupt synchronous native code.
+/** Runs one generated history in a Worker that can be terminated even inside synchronous WASM. */
 function run_scenario(
   scenario: StressScenario,
   timeout: number
@@ -59,6 +59,7 @@ function run_scenario(
     )
     let settled = false
 
+    /** Settles once across timeout, message and Worker exit races. */
     const finish = (failure?: StressScenarioError): void => {
       if (settled) return
       settled = true

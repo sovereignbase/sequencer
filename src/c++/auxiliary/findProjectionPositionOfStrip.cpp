@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Finds a linked Strip's visible boundary without resetting the retained local gate.
+ */
 #include "../class.hpp"
 #include "linkJumps.hpp"
 #include <algorithm>
@@ -12,6 +16,8 @@ Word Projection::position_of(Index target, std::int32_t gate_diff) {
   std::optional<Word> known;
   const auto spacing = Word(std::round(std::sqrt(structural_count)));
   bool found_left = !strips.left[left], found_right = !strips.right[right];
+  // Walk outwards until each side reaches an indexed or visible endpoint.
+  // Distances count positive effects only; structural steps also count hidden nodes.
   while (!found_left || !found_right) {
     if (!found_left) {
       left = strips.left[left];
@@ -30,6 +36,7 @@ Word Projection::position_of(Index target, std::int32_t gate_diff) {
       right_frames += std::max(0, strips.fragment_diff[right]);
       right = strips.right[right];
       ++right_distance;
+      // The edit is already linked, but the retained gate position is from before it.
       if (right == gate)
         known = gate_position + gate_diff - right_frames;
       if (right_distance == spacing) {
@@ -40,6 +47,7 @@ Word Projection::position_of(Index target, std::int32_t gate_diff) {
                     strips.left_jump[right] || strips.right_jump[right];
     }
   }
+  // Index the resolved boundary using the work already done; long spans split near sqrt(count).
   if (left != target) {
     if (left_distance >= spacing * 2) {
       link_jumps(*this, left, left_jump, left_frames - left_jumped, left_distance - spacing);
@@ -62,6 +70,7 @@ Word Projection::position_of(Index target, std::int32_t gate_diff) {
     return frame_count - std::max(0, strips.fragment_diff[target]);
   if (known)
     return *known;
+  // Endpoint distances establish absolute visible positions; further search uses jumps.
   while (true) {
     if (left == head)
       return left_frames;

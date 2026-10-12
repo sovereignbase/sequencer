@@ -1,3 +1,4 @@
+/** Delayed branches must preserve their causal relationships while online and offline editing histories interleave. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Gossip, Sequence } from '../../../../src/typescript/types/type.ts'
@@ -7,12 +8,14 @@ import {
   shuffle_mutations,
 } from '../../../.helpers/replica.ts'
 import type { Replica } from '../../../.helpers/replica.ts'
+/** Three causally connected online histories and three branches forked from the same offline origin. */
 type SixEditorMutations = {
   base: Sequence<string>
   base_state: Replica<string>
   online: Array<Gossip<string>>
   offline: [Array<Gossip<string>>, Array<Gossip<string>>, Array<Gossip<string>>]
 }
+/** Retains the local Gossip type; local calls already trust their valid authored arguments. */
 const accepted = <T>(result: Gossip<T>): Gossip<T> => result
 /**
  * Visible Frames expected after all six branches have converged.
@@ -21,6 +24,7 @@ const accepted = <T>(result: Gossip<T>): Gossip<T> => result
  * later removed or replaced, but the surviving Projection must contain exactly
  * these Frames.
  */
+/** Surviving Frame membership; exact branch order is compared between complete receivers. */
 const expected_projection = [
   'document',
   'online-1',
@@ -35,24 +39,8 @@ const expected_projection = [
 ]
 /**
  * Builds six causal editing branches from one retained document.
- *
- * Three online editors continue from one another:
- *
- *   document
- *   -> online-1
- *   -> online-2
- *   -> online-3
- *
- * Three offline editors independently fork from the original retained Sequence
- * and each build their own two-operation branch:
- *
- *   offline-1-1 -> offline-1-2
- *   offline-2-1 -> offline-2-2
- *   offline-3-1 -> offline-3-2
- *
- * No offline branch observes either the online chain or another offline branch
- * while its operations are authored.
  */
+/** Builds online causal continuation plus independent two-edit offline branches. */
 const build_insert_scenario = (): SixEditorMutations => {
   const base_state = new Projection<string>(1)
   accepted(base_state.insert(['document'], 0))
@@ -84,17 +72,10 @@ const build_insert_scenario = (): SixEditorMutations => {
   }
 }
 /**
- * Builds the same six-branch topology while exercising complete edit
- * lifecycles inside the branches.
- *
- * Temporary values are inserted and then removed or replaced before the branch
- * is merged with the others. The final surviving Frames are identical to the
- * pure-insert scenario.
- *
- * This verifies that the deterministic branch ordering is preserved even when
- * each branch contains Masks, replacement Footage, and fragmented history
- * rather than only simple insertions.
+ * Builds the same six-branch topology while exercising complete edit lifecycles
+ * inside the branches.
  */
+/** Adds masking and replacement to each branch without sharing later online state with offline editors. */
 const build_lifecycle_scenario = (): SixEditorMutations => {
   const base_state = new Projection<string>(2)
   accepted(base_state.insert(['document'], 0))
@@ -141,6 +122,7 @@ const build_lifecycle_scenario = (): SixEditorMutations => {
 /**
  * Flattens the complete six-branch operation set into its authored order.
  */
+/** Collects complete histories while preserving each authored batch's internal order. */
 const all_mutations = ({
   online,
   offline,
@@ -152,6 +134,7 @@ const all_mutations = ({
  * their causal parents. Those staged operations are distributed throughout the
  * online chain instead of being delivered only before or after it.
  */
+/** Interleaves reversed offline branches so dependencies can arrive after their children. */
 const offline_during_online = ({
   online,
   offline,
@@ -176,23 +159,14 @@ const offline_during_online = ({
 /**
  * Verifies that every expected surviving Frame is present exactly once.
  */
+/** Checks survivor membership separately from exact receiver-to-receiver ordering. */
 const expect_frames = (state: Replica<string>): void => {
   expect(new Set(state.values())).toEqual(new Set(expected_projection))
 }
 describe('three online and three offline editors', () => {
   /**
-   * Verifies that three offline branches can reconnect while three other
-   * editors are already extending the shared online document.
-   *
-   * The same operation set is reconstructed in three substantially different
-   * delivery patterns:
-   *
-   * - authored order;
-   * - offline branches arriving tail-first during the online session;
-   * - complete reverse delivery.
-   *
-   * All three must reconstruct exactly the same Projection and retain every
-   * surviving Frame from all six causal branches.
+   * Verifies that three offline branches can reconnect while three other editors
+   * are already extending the shared online document.
    */
   it('converges exactly when offline editors arrive during the online session', () => {
     const scenario = build_insert_scenario()
@@ -232,11 +206,6 @@ describe('three online and three offline editors', () => {
   /**
    * Verifies the same six-editor convergence when the branches contain complete
    * insert/remove/replace lifecycles rather than only surviving insertions.
-   *
-   * Temporary content is removed or replaced locally before synchronization.
-   * Once all Gossip has arrived, those Masks and replacement relationships must
-   * resolve identically in authored, interleaved, reverse, and shuffled
-   * delivery orders.
    */
   it('converges mixed insert/remove/replace lifecycles exactly', () => {
     const scenario = build_lifecycle_scenario()

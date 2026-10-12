@@ -5,6 +5,7 @@ import { printSummary, writeReports } from './lifecycle/report.ts'
 import { runThroughput } from './throughput/index.ts'
 import { writeThroughputReport } from './throughput/report.ts'
 import type { BenchmarkConfig } from './.shared/types.ts'
+/** Default scales and measurement bounds, shared by CLI parsing and usage text. */
 const defaults = {
   suites: ['lifecycle', 'throughput'] as const,
   runs: 3,
@@ -41,6 +42,7 @@ const usage = [
   '  --no-output            Run without writing report files',
   '  --help                 Show this help',
 ].join('\n')
+/** Parses explicit integer controls before suite-specific range checks. */
 const readInteger = (name: string, value: string | undefined): number => {
   if (value === undefined) throw new TypeError(name + ' requires a value.')
   const parsed = Number(value)
@@ -48,6 +50,7 @@ const readInteger = (name: string, value: string | undefined): number => {
     throw new TypeError(name + ' must be an integer.')
   return parsed
 }
+/** Resolves suite-specific scales, exact checkpoints and optional report output. */
 export function parseConfig(arguments_: Array<string>): BenchmarkConfig {
   let suite: BenchmarkConfig['suite'] = defaults.suites[0]
   let {
@@ -127,6 +130,7 @@ export function parseConfig(arguments_: Array<string>): BenchmarkConfig {
     throw new RangeError(
       'Strip lengths must satisfy 1 <= minimum <= maximum <= 4294967295.'
     )
+  // Deduplicate the configured upper bound when it is already a standard checkpoint.
   const checkpoints = Array.from(
     new Set([
       suite === 'throughput' ? initialStripCount : 0,
@@ -153,6 +157,7 @@ export function parseConfig(arguments_: Array<string>): BenchmarkConfig {
     outputPath,
   }
 }
+/** Runs requested suites serially so their timing workloads cannot overlap. */
 async function main(): Promise<void> {
   const arguments_ = process.argv.slice(2)
   const configs = arguments_.includes('--suite')

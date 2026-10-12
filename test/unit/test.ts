@@ -1,3 +1,4 @@
+/** Public contracts: wire shape, range conventions, Footage ownership and native-handle lifetime. */
 import {
   makeSequence,
   sequenceInsertions,
@@ -6,6 +7,7 @@ import {
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../src/typescript/class.ts'
 import type { Gossip, Insertion, Sequence } from '../../src/typescript/class.ts'
+/** Stable known coordinates isolate API assertions from fresh native Session identities. */
 const seed = (): Sequence<string> =>
   makeSequence(
     [],
@@ -16,13 +18,16 @@ const seed = (): Sequence<string> =>
       ],
     ]
   )
+/** Hydrates a fresh instance so preceding tests cannot move this fixture's traversal gate. */
 const seeded = () => new Projection<string>(1, seed())
+/** Replays authored Gossip against the same origin to verify its remote visible effect. */
 function expectGossip(gossip: Gossip<string>, expected: string[]): void {
   const receiver = new Projection<string>(2, seed())
   expect(receiver.apply(gossip)).toBeDefined()
   expect(receiver.values()).toEqual(expected)
 }
 describe('Projection public API', () => {
+  // Trusted hydration must retain flat Footage offsets without mutating the supplied snapshot.
   describe('constructor', () => {
     it('creates an empty projection for the supplied actor', () => {
       const projection = new Projection<string>(7)
@@ -70,6 +75,7 @@ describe('Projection public API', () => {
       ).toEqual(p.values())
     })
   })
+  // Remote inputs are validated; returned Splices use exclusive ends and current visible positions.
   describe('apply', () => {
     it('returns insertion splices using visible positions', () => {
       const projection = new Projection<string>(2)
@@ -100,6 +106,7 @@ describe('Projection public API', () => {
         expect(projection.apply(gossip)).toEqual([[]])
       expect(projection.values()).toEqual(['a', 'b', 'c'])
     })
+    // Missing values are live Frames with distinct bindings, not released content-table slots.
     it('keeps omitted Footage isolated through masking, extensions and duplicate batches', () => {
       const p = new Projection<string>(1)
       const roots: Gossip<string> = [
@@ -148,6 +155,7 @@ describe('Projection public API', () => {
       expect(projection.apply(input)).toBeUndefined()
       expect(projection.values()).toEqual(['a', 'b', 'c'])
     })
+    // Batch validation is not transactional: rejection must preserve the already integrated prefix.
     it('retains earlier valid entries when a later entry is invalid', () => {
       const projection = new Projection<string>(1)
       expect(
@@ -156,6 +164,7 @@ describe('Projection public API', () => {
       expect(projection.values()).toEqual(['a', 'b', 'c'])
     })
   })
+  // Local insertion returns canonical Gossip for the edit already materialized by its author.
   describe('insert', () => {
     it.each([
       [0, ['X', 'a', 'b', 'c']],
@@ -181,6 +190,7 @@ describe('Projection public API', () => {
       expect(projection.length()).toBe(1)
     })
   })
+  // Visible Frame count must exclude reducing Insertions and masked original Frames.
   describe('length', () => {
     it('reports the visible size after insertion, removal, and replacement', () => {
       const projection = seeded()
@@ -193,6 +203,7 @@ describe('Projection public API', () => {
       expect(projection.length()).toBe(4)
     })
   })
+  // Snapshot replay must preserve local history and deduplicate already known canonical identities.
   describe('merge', () => {
     it('accepts acknowledgement frontiers in an exported Sequence', () => {
       const source = seeded()
@@ -232,6 +243,7 @@ describe('Projection public API', () => {
       }
     )
   })
+  // Public removal ends inclusively; replay reports its exclusive-end consumer mutation.
   describe('remove', () => {
     it('removes an inclusive range and returns replicable Gossip', () => {
       const projection = seeded()
@@ -254,6 +266,7 @@ describe('Projection public API', () => {
       expect(projection.length()).toBe(0)
     })
   })
+  // Replacement Gossip preserves removal-before-insertion order against the resulting boundary.
   describe('replace', () => {
     it('replaces an inclusive range and returns removal/insertion Gossip', () => {
       const projection = seeded()
@@ -279,6 +292,7 @@ describe('Projection public API', () => {
       expect(projection.values()).toEqual(['X'])
     })
   })
+  // Retirement changes acknowledgement membership, never authored content ownership.
   describe('retire', () => {
     it('excludes a retired actor from compaction requirements and future acknowledgements', () => {
       const projection = seeded()
@@ -302,10 +316,12 @@ describe('Projection public API', () => {
       expect(projection.values()).toEqual(['a', 'c'])
     })
   })
+  // Snapshot isolation, full uint32 coordinates and acknowledgement-gated history retention are separate contracts.
   describe('sequence', () => {
     it.each([false, true])(
       'preserves large coordinates, masks and future replay in compact snapshots with compaction %s',
       (compact) => {
+        // Force Session halves and escaped start coordinates across the JavaScript small-integer range.
         const session = 0xfffffffe
         const first = 0x80000000
         const source = new Projection<number>(
@@ -327,6 +343,7 @@ describe('Projection public API', () => {
             ])
           )
         )
+        // An active Actor with no removal claim blocks compaction while numeric layout still packs.
         if (!compact) source.apply([[3]])
         source.remove(32, 33)
         const snapshot = source.sequence()
@@ -399,6 +416,7 @@ describe('Projection public API', () => {
       expect(author.values()).toEqual(['c'])
     })
   })
+  // Undefined is valid Footage; it must not reduce visible length or confuse binding ownership.
   describe('value', () => {
     it.each([0, 1, 2])('reads visible position %i', (at) => {
       expect(seeded().value(at)).toBe(['a', 'b', 'c'][at])
@@ -410,6 +428,7 @@ describe('Projection public API', () => {
       expect(projection.length()).toBe(3)
     })
   })
+  // Recycled native handles must never reconnect a destroyed wrapper to another instance's history.
   describe('destroy', () => {
     it('releases the instance, rejects further calls synchronously, and permits repeated destruction', () => {
       const projection = seeded()
@@ -433,6 +452,7 @@ describe('Projection public API', () => {
       survivor.destroy()
     })
   })
+  // Inclusive ranges return new arrays while preserving identities of application values.
   describe('values', () => {
     it('returns all values by default and an inclusive range when supplied', () => {
       const projection = seeded()

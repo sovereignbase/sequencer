@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Keeps each exact-anchor competitor together with its entire causal subtree.
+ */
 #include "../class.hpp"
 #include "containsAnchor.hpp"
 #include "linkJumps.hpp"
@@ -30,10 +34,13 @@ Index Projection::subtree_end(Index root) {
   }
   for (auto next = strips.right[previous]; next; next = strips.right[previous]) {
     auto ancestor = previous;
+    // A structural successor belongs when it is an ancestor's fragment or
+    // anchors inside that ancestor. Otherwise ascend until a containing parent remains.
     while (strips.fragment[ancestor] != next &&
            !contains_anchor(strips.identity[ancestor].coordinates,
                             strips.identity[next].coordinates, 0,
                             magnitude(strips.identity[ancestor].coordinates.diff))) {
+      // Leaving the root's ancestry reaches the first following sibling subtree.
       if (ancestors.empty())
         return finish();
       ancestor = ancestors.back();

@@ -10,8 +10,10 @@ declare global {
     Projection: typeof Projection
   }
 }
+/** Browser-scoped test origins permit BroadcastChannel peers to share one origin. */
 const origins = new WeakMap<Browser, string>()
 
+/** Bundles current source and provides a real browser with a disposable local origin. */
 export async function browserRuntime() {
   const built = await build({
     config: false,
@@ -41,11 +43,13 @@ export async function browserRuntime() {
   if (!address || typeof address === 'string')
     throw new Error('Missing browser origin')
   const browser = await chromium.launch()
+  // Browser lifetime owns the origin server, preventing integration fixtures from leaking listeners.
   browser.once('disconnected', () => server.close())
   origins.set(browser, `http://127.0.0.1:${address.port}`)
   return { browser, source: chunk.code }
 }
 
+/** Installs the same public bundle in an independent page; runtime state remains page-local. */
 export async function loadProjection(page: Page, source: string) {
   if (page.url() === 'about:blank') {
     await page.goto(origins.get(page.context().browser()!)!)
@@ -59,6 +63,7 @@ export async function loadProjection(page: Page, source: string) {
         await new Function('url', 'return import(url)')(url)
       ).Projection
     } finally {
+      // The imported module remains available after its temporary source URL is revoked.
       URL.revokeObjectURL(url)
     }
   }, source)

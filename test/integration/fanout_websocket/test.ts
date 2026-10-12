@@ -1,3 +1,4 @@
+/** Browser editors converge over a stateless JSON relay; no central sequence ordering is supplied. */
 import { afterAll, beforeAll, expect, it } from 'vitest'
 import { WebSocket as RelaySocket, WebSocketServer } from 'ws'
 import type { Projection } from '../../../src/typescript/class.ts'
@@ -22,6 +23,7 @@ afterAll(async () => {
 })
 it('converges through stateless WebSocket fanout with independent editor timers', async () => {
   const relay = new WebSocketServer({ host: '127.0.0.1', port: 0 })
+  // The relay forwards packets only; clients resolve canonical history and validate Gossip themselves.
   relay.on('connection', (client) =>
     client.on('message', (message, binary) => {
       for (const peer of relay.clients)
@@ -60,6 +62,7 @@ it('converges through stateless WebSocket fanout with independent editor timers'
                 errors: [] as Array<string>,
               }
               window.fanoutRuntime = local
+              // JSON turns metadata into numeric arrays; runtime tuple validation remains exercised.
               socket.onmessage = async (event) => {
                 try {
                   if (!(await state.apply(JSON.parse(String(event.data)))))

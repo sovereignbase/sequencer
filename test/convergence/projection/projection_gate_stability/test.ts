@@ -1,6 +1,8 @@
+/** Gate content must remain correctly indexed as remote edits split, shift or remove its materialization. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import { expect_converged } from '../../../.helpers/replica.ts'
+/** Checks observable lookup against bulk content without exposing native gate internals. */
 const expectGate = (projection: Projection<string>, position: number) => {
   const value = projection.value(position)
   expect(value).toEqual(projection.values()[position])
@@ -12,6 +14,7 @@ describe('projection gate stability', () => {
     author.insert(['c', 'd'], 2)
     author.insert(['e', 'f'], 4)
     const receiver = new Projection<string>(2, author.sequence())
+    // Position the receiver's gate on content that subsequent remote edits may shift or split.
     receiver.value(2)
     receiver.apply(author.insert(['head'], 0))
     expectGate(receiver, 3)
@@ -41,6 +44,7 @@ describe('projection gate stability', () => {
     author.insert(['a', 'b'], 0)
     author.insert(['c', 'd'], 2)
     const receiver = new Projection<string>(2, author.sequence())
+    // Position the receiver's gate on content that subsequent remote edits may shift or split.
     receiver.value(2)
     receiver.apply(author.insert(['remote'], 2))
     expectGate(receiver, 3)
@@ -53,6 +57,7 @@ describe('projection gate stability', () => {
     author.insert(['c', 'd'], 2)
     author.insert(['e', 'f'], 4)
     const receiver = new Projection<string>(2, author.sequence())
+    // Position the receiver's gate on content that subsequent remote edits may shift or split.
     receiver.value(2)
     receiver.apply(author.remove(2, 3))
     expectGate(receiver, 2)
@@ -99,6 +104,7 @@ describe('projection gate stability', () => {
         branch.insert(['z'], 6),
       ]
       for (const update of children) receiver.apply(update)
+      // Gate lies in surviving child content; only removed original Frames before it shift the index.
       receiver.value(position)
       const removal = author.remove(0, 5)
       receiver.apply(removal)

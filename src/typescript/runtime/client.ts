@@ -2,19 +2,34 @@ import module from '../wasm/index.js'
 import { Operation, type Opcode } from './protocol.js'
 import type { U32List } from '../types/type.js'
 
+/** Owns Projection handles and Footage bindings around one synchronous native runtime. */
 class Runtime {
+  /** High-water handle; released handles are reused before allocating another. */
   private nextProjection = 0
+  /** Per-Projection binding tables; token zero is reserved for absent content. */
   private readonly content: Array<
     Array<ReadonlyArray<unknown> | undefined> | undefined
   > = []
+  /** Released handles available after native history and JavaScript bindings are cleared. */
   private readonly free: number[] = []
-  // 0: mutable caller input; 1: private writable; 2: readonly; 3: packed readonly.
+  // Ownership flags: 0/default is caller-owned or freed; 1 is private writable;
+  // 2 is externally retained; 3 is a dense retained snapshot. A live missing
+  // Footage binding still has a nonzero flag and must not be trimmed as free.
   private readonly mutable: Array<number[] | undefined> = []
+  /** Best-effort collection fallback; explicit destroy supplies deterministic release. */
   private readonly finalizer = new FinalizationRegistry<number>((id) =>
     this.release(id)
   )
 
+  /**
+   * Allocates matching native history and JavaScript bindings.
+   * @param owner Projection whose collection may release the handle.
+   * @param actorID Actor used for Acknowledgements.
+   * @param sequence Optional trusted retained state.
+   * @returns Native handle, registered only after successful hydration.
+   */
   create(owner: object, actorID: number, sequence?: unknown): number {
+    // Seed once per runtime; individual Projections receive fresh native Session clocks.
     if (this.nextProjection === 0)
       module._runtime_seed(crypto.getRandomValues(new Uint32Array(1))[0])
     const id = this.free.pop() ?? this.nextProjection++
@@ -23,16 +38,19 @@ class Runtime {
     try {
       this.call(Operation.Create, id, actorID, sequence)
     } catch (error) {
+      // Failed hydration must release both sides before this handle can be reused.
       this.release(id)
       throw error
     }
     this.finalizer.register(owner, id, owner)
     return id
   }
+  /** Releases a live handle and cancels its owner's collection callback. */
   destroy(owner: object, id: number): void {
     this.finalizer.unregister(owner)
     this.release(id)
   }
+  /** Returns a fully cleared handle to the free list exactly once. */
   private release(id: number): void {
     if (!this.content[id]) return
     module._runtime_dispatch(Operation.Destroy, id, 0, 0, 0, 0, 0)
@@ -40,18 +58,22 @@ class Runtime {
     this.mutable[id] = undefined
     this.free.push(id)
   }
+  /** Reads the native maintained Frame count without constructing a dispatch result. */
   length(id: number): number {
     if (id < 0) throw new Error('Projection has been destroyed')
     return module._runtime_length(id)
   }
+  /** Resolves one visible Frame natively, then reads its JavaScript binding slot. */
   value<T>(id: number, at: number): T | undefined {
     if (id < 0) throw new Error('Projection has been destroyed')
     const pointer = module._runtime_value(id, at) >>> 2
     if (!pointer) return
+    // Native allocation may grow memory; acquire the current view after the call.
     const heap = module.HEAPU32
     return this.content[id]![heap[pointer]]?.[heap[pointer + 1]] as
       T | undefined
   }
+  /** Authors trusted local Frames through the dedicated six-word result path. */
   insert<T>(id: number, values: T[], at: number): unknown {
     if (id < 0) throw new Error('Projection has been destroyed')
     const content = this.content[id]!
@@ -71,11 +93,14 @@ class Runtime {
       heap[pointer + 4],
       heap[pointer + 5],
     ]
+    // A nonzero target means the suffix extends an existing canonical Insertion.
+    // Gossip retains the caller's suffix; only the internal binding is concatenated.
     const token = heap[pointer + 6]
     if (token) {
       const mutable = this.mutable[id]!
       let footage = content[token] as unknown[]
       if (mutable[token] !== 1) {
+        // Preserve caller arrays and retained snapshots before extending private Footage.
         const base = heap[pointer + 8]
         footage = footage.slice(base, base + heap[pointer + 7])
         content[token] = footage
@@ -87,8 +112,10 @@ class Runtime {
     }
     return [[coordinates, values]]
   }
+  /** Validates remote tuple lanes and supplies a descriptor batch to native application. */
   apply<T>(id: number, value: unknown): T {
     if (id < 0) throw new Error('Projection has been destroyed')
+    // An invalid outer shape becomes a rejected descriptor; native prefix handling stays uniform.
     const entries: unknown[] = Array.isArray(value) ? value : [null]
     let words = 1 + entries.length * 4
     for (const entry of entries) {
@@ -98,6 +125,8 @@ class Runtime {
         Array.isArray(data) || data instanceof Uint32Array ? data.length : 0
     }
 
+    // Input consists of an entry count, four-word descriptors, then numeric payloads.
+    // Descriptor payload offsets are relative to this buffer, unlike output byte pointers.
     const pointer = module._runtime_reserve(words)
     const heap = module.HEAPU32,
       base = pointer >>> 2
@@ -119,6 +148,7 @@ class Runtime {
           const word = numbers[i]
           if (
             (!Number.isInteger(word) || word < 0 || word > absent) &&
+            // Sparse JSON-style arrays retain the same present-element validation semantics.
             i in numbers
           ) {
             numeric = false
@@ -148,6 +178,7 @@ class Runtime {
         numbers[5] < 0x80000000
           ? contents.push(entry[1]) - 1
           : 0
+      // Even omitted Footage needs a distinct live binding for masks and later extensions.
       if (heap[descriptor + 3]) mutable[heap[descriptor + 3]] = 2
       if (numeric) {
         if (insertion && count === 6) {
@@ -179,6 +210,7 @@ class Runtime {
     }
     return this.result(Operation.Apply, id, resultPointer) as T
   }
+  /** Sizes general-dispatch numeric storage; local scalar operations need no tuple validation. */
   private inputSize(operation: Opcode, value: unknown, other: unknown): number {
     if (operation === Operation.Replace) return 1
     if (operation === Operation.Create || operation === Operation.Merge) {
@@ -191,6 +223,7 @@ class Runtime {
     return 0
   }
 
+  /** Executes general ABI operations while leaving all Frame resolution to WASM. */
   call<T>(
     operation: Opcode,
     id: number,
@@ -204,6 +237,7 @@ class Runtime {
     const heap = module.HEAPU32,
       base = pointer >>> 2,
       contents = this.content[id]!
+    // UINT32_MAX represents omitted local range bounds, resolved against native length.
     const absent = 0xffffffff
     let a0 = 0,
       a1 = 0,
@@ -228,6 +262,7 @@ class Runtime {
     ) {
       a0 = operation === Operation.Create ? (value as number) : 0
       const sequence = operation === Operation.Create ? at : value
+      // Hydration trusts numeric lanes; merge validates lanes from external retained state.
       const valid =
         (operation === Operation.Create && sequence === undefined) ||
         (Array.isArray(sequence) &&
@@ -259,6 +294,8 @@ class Runtime {
       count
     )
     if (footage !== undefined) {
+      // Native parsing counts only positive roots. Each binds the same flat array
+      // at its own native content_start; JavaScript never walks snapshot coordinates.
       const bindings = module.HEAPU32[(resultPointer >>> 2) + 11]
       contents.length += bindings
       contents.fill(footage, a1)
@@ -267,16 +304,20 @@ class Runtime {
     }
     return this.result(operation, id, resultPointer) as T
   }
+  /** Consumes borrowed native output before another call may overwrite its storage. */
   private result(operation: Opcode, id: number, pointer: number): unknown {
     const heap = module.HEAPU32,
       header = pointer >>> 2,
       content = this.content[id]!
+    // Header: kind, release pointer/count, primary pointer/count, secondary pointer/count,
+    // append pointer/count, copy pointer/count, consumed token or hydration binding count.
     const kind = heap[header],
       p0 = heap[header + 3],
       n0 = heap[header + 4],
       p1 = heap[header + 5],
       n1 = heap[header + 6]
     const mutable = this.mutable[id]!
+    // Native values has no content side effects; a complete single span may return early.
     if (kind === 3 && n0 === 1) {
       const at = p0 >>> 2,
         source = content[heap[at]],
@@ -316,6 +357,7 @@ class Runtime {
       mutable.length = Math.min(mutable.length, content.length)
       return [[]]
     }
+    // Establish private arrays before reading results or clearing masked slots.
     for (
       let at = heap[header + 9] >>> 2, end = at + heap[header + 10] * 3;
       at < end;
@@ -327,6 +369,7 @@ class Runtime {
       content[token] = content[token]?.slice(start, start + count)
       mutable[token] = 1
     }
+    /** Materializes ordered Footage spans, including undefined slots for omitted content. */
     const values = (pointer: number, count: number): unknown[] => {
       const begin = pointer >>> 2,
         end = begin + count * 3
@@ -338,6 +381,8 @@ class Runtime {
           return source.slice(start, start + size)
       }
       if (operation === Operation.Sequence && count > 1) {
+        // Adjacent native spans sharing a source can be copied together, regardless
+        // of which runtime fragments produced them. Snapshot order stays unchanged.
         const parts: unknown[][] = []
         for (let at = begin; at < end;) {
           const source = content[heap[at]],
@@ -365,6 +410,7 @@ class Runtime {
           }
         }
         let result: unknown[] = []
+        // Bound argument count when concatenating many fragmented source arrays.
         for (let at = 0; at < parts.length; at += 4096)
           result = result.concat.apply(result, parts.slice(at, at + 4096))
         return result
@@ -372,6 +418,7 @@ class Runtime {
       let size = 0
       for (let at = begin; at < end; at += 3) size += heap[at + 2]
       const result = new Array<unknown>(size)
+      // Every returned span is positive, so equal total size means one Frame per span.
       if (size === count) {
         for (let at = begin, target = 0; at < end; at += 3)
           result[target++] = content[heap[at]]?.[heap[at + 1]]
@@ -386,12 +433,14 @@ class Runtime {
       }
       return result
     }
+    /** Copies borrowed WASM words into metadata that survives subsequent native calls. */
     const words = (pointer: number, count: number): number[] => {
       const result = new Array<number>(count)
       for (let i = 0, at = pointer >>> 2; i < count; ++i)
         result[i] = heap[at + i]
       return result
     }
+    /** Joins numeric output descriptors with retained JavaScript Footage references. */
     const gossip = (pointer: number, count: number): unknown[] => {
       const entries: unknown[] = []
       for (let at = pointer >>> 2, end = at + count * 4; at < end; at += 4) {
@@ -453,6 +502,8 @@ class Runtime {
         } else metadata = words(p0, n0)
         const span = p1 >>> 2,
           token = heap[span]
+        // A full private or retained span can back multiple snapshots. Native
+        // ownership is revoked at export, so later edits will first detach it.
         const shared =
           n1 === 1 &&
           heap[span + 1] === 0 &&
@@ -478,6 +529,7 @@ class Runtime {
         )
     }
 
+    // Build public Splices first: their suffix bindings are released after appending.
     for (
       let at = heap[header + 7] >>> 2, end = at + heap[header + 8] * 6;
       at < end;
@@ -502,6 +554,7 @@ class Runtime {
         footage!.push.apply(footage, source as unknown[])
       else for (let i = 0; i < count; ++i) footage!.push(source?.[start + i])
     }
+    // Deferred releases run last so returned Gossip and Splices retain their values.
     let trim = false
     for (
       let at = heap[header + 1] >>> 2, end = at + heap[header + 2] * 3;
@@ -539,4 +592,5 @@ class Runtime {
     return result
   }
 }
+/** Shared ABI owner; native Projection histories and binding tables remain independent. */
 export const runtime = new Runtime()

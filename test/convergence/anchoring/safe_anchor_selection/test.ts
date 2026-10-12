@@ -1,3 +1,4 @@
+/** Visible insertion boundaries must resolve to historical endpoints that survive removal, replay and hydration. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type {
@@ -13,6 +14,7 @@ describe('safe local anchor selection', () => {
     (authorSession, editorSession) => {
       const author = new Projection<string>(1)
       const editor = new Projection<string>(2)
+      /** Exchanges canonical operations and Acknowledgements before the next local boundary selection. */
       const deliver = (
         sender: Projection<string>,
         receiver: Projection<string>,
@@ -45,6 +47,7 @@ describe('safe local anchor selection', () => {
   )
   it('uses the preceding mask end at the visible head after leaving the cached gate', () => {
     const projection = new Projection<string>(1)
+    // Keep a silent active Actor so mask boundaries remain available in exported history.
     projection.apply([[2]])
     projection.insert(['a'], 0)
     projection.insert(['b', 'c', 'd', 'e', 'f', 'g'], 0)
@@ -67,6 +70,7 @@ describe('safe local anchor selection', () => {
     const author = new Projection<string>(1)
     const editor = new Projection<string>(2)
     for (const peer of [author, editor]) peer.apply([[1], [2], [3]])
+    /** Exchanges canonical operations and Acknowledgements before the next local boundary selection. */
     const deliver = (
       sender: Projection<string>,
       receiver: Projection<string>,
@@ -105,6 +109,7 @@ describe('safe local anchor selection', () => {
       const author = new Projection<string>(1)
       const editor = new Projection<string>(2)
       const updates: Array<Gossip<string>> = []
+      /** Exchanges canonical operations and Acknowledgements before the next local boundary selection. */
       const deliver = (
         sender: Projection<string>,
         receiver: Projection<string>,
@@ -162,6 +167,7 @@ describe('safe local anchor selection', () => {
   it('uses the fresh mask end before a fully removed whole successor', () => {
     const author = new Projection<string>(1)
     const editor = new Projection<string>(2)
+    /** Exchanges canonical operations and Acknowledgements before the next local boundary selection. */
     const deliver = (
       sender: Projection<string>,
       receiver: Projection<string>,
@@ -200,6 +206,7 @@ describe('safe local anchor selection', () => {
     (authorSession, editorSession) => {
       const author = new Projection<string>(1)
       const editor = new Projection<string>(2)
+      /** Exchanges canonical operations and Acknowledgements before the next local boundary selection. */
       const deliver = (
         sender: Projection<string>,
         receiver: Projection<string>,
@@ -227,6 +234,7 @@ describe('safe local anchor selection', () => {
   it('uses a free mask boundary before a zero-offset fragment of another insertion', () => {
     const author = new Projection<string>(1)
     const editor = new Projection<string>(2)
+    /** Exchanges canonical operations and Acknowledgements before the next local boundary selection. */
     const deliver = (
       sender: Projection<string>,
       receiver: Projection<string>,
@@ -290,6 +298,7 @@ describe('safe local anchor selection', () => {
     (authorSession, editorSession) => {
       const author = new Projection<string>(1)
       const editor = new Projection<string>(2)
+      /** Exchanges canonical operations and Acknowledgements before the next local boundary selection. */
       const deliver = (
         sender: Projection<string>,
         receiver: Projection<string>,

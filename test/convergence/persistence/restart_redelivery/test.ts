@@ -1,3 +1,4 @@
+/** Arrival reordering, hydration and duplicate prefix replay must preserve the same visible Projection. */
 import { describe, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Gossip, Sequence } from '../../../../src/typescript/types/type.ts'
@@ -8,33 +9,8 @@ import {
 } from '../../../.helpers/replica.ts'
 describe('restart and redelivery', () => {
   /**
-   * Verifies that convergence survives hostile delivery order, reconstruction
-   * from a retained Sequence, and later redelivery of already integrated Gossip.
-   *
-   * Five independent actors each create one concurrent root insertion against
-   * an empty Sequence.
-   *
-   * The same operation set is then reconstructed through two paths:
-   *
-   * - `ordered` receives all five mutations in their original collection order;
-   * - `restarted` receives the same mutations in a deterministic shuffled order
-   *   and is recreated partway through delivery from its retained Sequence.
-   *
-   * After reconstruction, every original mutation is deliberately delivered
-   * again. Those stale Gossip packets must be idempotent and must not duplicate
-   * visible Footage or alter deterministic root ordering.
-   *
-   * Finally, a fresh Projection is created directly from the fully integrated
-   * restarted Sequence. Creation may compact or normalize local structural
-   * state, but its visible Projection must remain identical to both live
-   * receivers.
-   *
-   * This therefore checks that:
-   *
-   * - concurrent root ordering is independent of arrival order;
-   * - retained Sequence state is sufficient to survive a restart;
-   * - stale Gossip redelivery is idempotent;
-   * - creating a fresh Projection from retained state preserves the result.
+   * Verifies that convergence survives hostile delivery order, reconstruction from
+   * a retained Sequence, and later redelivery of already integrated Gossip.
    */
   it('converges through hostile delivery, create, and stale redelivery', () => {
     // Begin from an empty retained Sequence.

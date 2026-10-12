@@ -1,3 +1,4 @@
+/** Repeated live replacement and removal must have identical visible effects through local and remote paths. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Gossip } from '../../../../src/typescript/types/type.ts'
@@ -43,32 +44,7 @@ const gossip = (
 describe('live replace then remove', () => {
   /**
    * Verifies that repeated replacement followed by removal produces the same
-   * visible Projection through both the local mutation path and remote apply
-   * path.
-   *
-   * Two live peers exchange every Gossip update immediately. The workload then
-   * repeatedly performs the same structural pattern on increasingly fragmented
-   * content:
-   *
-   *   insert
-   *   replace
-   *   remove
-   *   insert
-   *   remote replace
-   *
-   * Later rounds target head, middle, and tail ranges left behind by previous
-   * replacements and removals. This creates overlapping positive Footage,
-   * reducing Mask Strips, split fragments, and boundaries whose local structure
-   * has accumulated a substantial edit history.
-   *
-   * The peers deliberately use different decrease clocks so reducing operations
-   * have distinct identities while still being integrated into the same shared
-   * history.
-   *
-   * After every individual Gossip delivery, both peers must expose exactly the
-   * same `projectionFrameCount` and the same Footage at every Projection
-   * position. A replacement or subsequent removal must therefore have identical
-   * visible effect whether it was created locally or reconstructed remotely.
+   * visible Projection through both the local mutation path and remote apply path.
    */
   it('keeps the local and remotely applied structures equivalent', () => {
     const primary = new Projection<number>(3)

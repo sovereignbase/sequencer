@@ -1,3 +1,4 @@
+/** Unacknowledged hidden structural suffixes must not become visible-tail lookup endpoints. */
 import { makeSequence, sequenceInsertions } from '../../../.shared/sequence.ts'
 import { expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
@@ -9,6 +10,7 @@ it('retains its visible tail across concurrent removals of the same suffix', () 
       [0, 0, 0, 1000 - index, 0, index === 17 ? 4 : 1],
       index === 17 ? [17, 18, 19, 20] : [index],
     ])
+  // Concurrent masks share one original suffix; repeated removal cannot move visible tail into hidden history.
   for (let index = 0; index < 46; ++index)
     insertions.push([[983, 0, 1, 2000 - index, 0, 4294967293]])
   const projection = new Projection<number>(1, makeSequence([[2]], insertions))
@@ -45,6 +47,7 @@ it.each([17, 28, 31])(
     const source = new Projection<number>(1)
     for (let index = 0; index < 64; ++index)
       source.insert([index], source.length())
+    // Unreported frontiers from an active Actor retains structural masks through hydration.
     source.apply([[2]])
     source.remove(visibleCount)
     const snapshot = source.sequence()

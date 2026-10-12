@@ -1,15 +1,12 @@
+/** Concurrent masks must consume original Frames once across chronological, reverse and keyed delivery. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Gossip, Sequence } from '../../../../src/typescript/types/type.ts'
 /**
  * Deterministic three-replica workload containing overlapping removes,
  * replacements, and insertions against the same retained six-Frame origin.
- *
- * Operations authored by different replicas are concurrent because the
- * replicas do not exchange Gossip while the workload is created. Their removes
- * may therefore overlap the same original Footage without having observed one
- * another.
  */
+/** Fixed disconnected edit intents; selectors resolve against each author's own Projection. */
 const operations = [
   ['remove', 2046280841, 395543388, 3],
   ['insert', 1269260299, 509571653, 2],
@@ -32,6 +29,7 @@ const operations = [
  * The authored Gossip remains unchanged; only the order in which receivers
  * observe the operations differs.
  */
+/** Repeatable packet ordering keys; original ordinal breaks equal-key ties without losing entries. */
 const deliveryKeys = [
   424738099, 173723364, 1960494304, 614813501, 700557849, -1769193726,
   -1179057743, 208131268, 805600223, 1204235890,
@@ -40,12 +38,14 @@ const deliveryKeys = [
  * Materializes the complete visible Projection for exact Frame-by-Frame
  * convergence comparison.
  */
+/** Materializes indexed reads so bulk-export shortcuts cannot hide lookup disagreement. */
 const project = (sequence: Projection<string>): Array<string | undefined> =>
   Array.from({ length: sequence.length() }, (_, index) => sequence.value(index))
 /**
  * Reconstructs a fresh replica from the retained base Sequence and applies the
  * supplied Gossip updates in exactly that delivery order.
  */
+/** Replays the same canonical operation set into a fresh receiver in the requested order. */
 const deliver = (
   retained: Sequence<string>,
   gossip: Array<Gossip<string>>
@@ -58,25 +58,6 @@ describe('overlapping remove ownership', () => {
   /**
    * Verifies that overlapping concurrent removes assign ownership
    * deterministically and independently of Gossip delivery order.
-   *
-   * Three replicas begin from the same retained six-Frame base and independently
-   * author a mixed workload of inserts, removes, and replacements. Because the
-   * replicas do not synchronize while authoring, multiple reducing operations
-   * may target overlapping regions of the same original Footage.
-   *
-   * Each replica is given explicit increasing and decreasing Session clocks so
-   * all competing insertions and removes have stable deterministic identities.
-   *
-   * The complete Gossip set is then reconstructed three ways:
-   *
-   * - `chronological` receives updates in workload creation order;
-   * - `reverse` receives the exact same updates in reverse order;
-   * - `mixed` receives the exact same updates in a deterministic permutation.
-   *
-   * All three receivers must expose the same visible Projection. In particular,
-   * network arrival order must not decide which overlapping remove owns original
-   * Footage, allow removed content to reappear, consume concurrent insertion
-   * Footage, or change the deterministic ordering of surviving subtrees.
    */
   it('converges in chronological, reverse, and mixed delivery order', () => {
     // Establish the shared six-Frame origin.

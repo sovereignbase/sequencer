@@ -1,6 +1,8 @@
+/** Ordered exclusive-end Splices must preserve concurrent survivors between fragments of one canonical mask. */
 import { expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Change } from '../../../../src/typescript/class.ts'
+/** Leaves receiver-only content inside the author's original removal target. */
 const fixture = () => {
   const author = new Projection<string>(1)
   const receiver = new Projection<string>(2)
@@ -13,6 +15,7 @@ const fixture = () => {
   receiver.insert(['Z'], 6)
   return { author, receiver }
 }
+/** Reproduces consumer state using ordered exclusive-end ranges, without consulting native history. */
 const applySplices = (
   view: Array<string | undefined>,
   changes: Change<string>
@@ -25,6 +28,7 @@ it.each(['apply', 'merge'] as const)(
   '%s reports separate removals around surviving concurrent insertions',
   (method) => {
     const { author, receiver } = fixture()
+    // Preserve the consumer's pre-apply view; native values after application cannot validate Splice coordinates alone.
     const view = receiver.values().slice()
     const removal = author.remove()
     const result =

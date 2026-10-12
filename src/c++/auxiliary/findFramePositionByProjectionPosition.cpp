@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Translates visible positions to original Frame coordinates and maintains local jumps.
+ */
 #include "../class.hpp"
 #include "linkJumps.hpp"
 #include "magnitude.hpp"
@@ -12,6 +16,8 @@ Word Projection::find_frame(Word position, bool for_insertion) {
   const auto tail_index = std::int64_t(frame_count) - strips.fragment_diff[tail];
   const auto tail_distance = std::abs(tail_index - index);
   const auto gate_distance = std::abs(cursor_index - index);
+  // Start at the closest known visible reference; structural distance can differ
+  // because masks and zero-effect fragments do not advance Projection positions.
   if (index < gate_distance && index <= tail_distance) {
     cursor = head;
     cursor_index = 0;
@@ -35,6 +41,8 @@ Word Projection::find_frame(Word position, bool for_insertion) {
     }
     const auto length = std::max(0, strips.fragment_diff[cursor]);
     if (cursor_index <= index && index < cursor_index + length) {
+      // A visible fragment start can conceal an earlier stable mask boundary.
+      // Insertion resolution may choose that history; ordinary reads stay on visible content.
       if (for_insertion && !after && index == cursor_index && strips.offset[cursor]) {
         const auto mask = strips.left[cursor];
         const auto m = mask;
@@ -73,6 +81,7 @@ Word Projection::find_frame(Word position, bool for_insertion) {
           continue;
         }
       }
+      // Split the enclosing jump using distances from the walk already completed.
       if (steps > 0) {
         const auto right = strips.right_jump[jump_start];
         const auto frames = Word(cursor_index - jump_index);
@@ -97,6 +106,7 @@ Word Projection::find_frame(Word position, bool for_insertion) {
       gate_position = Word(cursor_index);
       left_jump_to_patch = patch_left;
       right_jump_to_patch = patch_right;
+      // Return original coordinates; content_start maps those coordinates to JavaScript slots.
       return Word(strips.fragment_start[cursor] + index - cursor_index + after);
     }
     if (cursor_index <= index) {
@@ -105,6 +115,7 @@ Word Projection::find_frame(Word position, bool for_insertion) {
       auto jump = strips.right_jump[cursor];
       if (jump && cursor_index >= 0) {
         auto frames = strips.right_jump_frames[cursor], distance = strips.right_jump_strips[cursor];
+        // Coalesce short adjacent jumps while retaining visible head/tail boundaries.
         if (distance < spacing && jump != head && jump != tail) {
           const auto next = strips.right_jump[jump];
           if (next && strips.right_jump_strips[jump] <= spacing - distance) {
@@ -119,6 +130,7 @@ Word Projection::find_frame(Word position, bool for_insertion) {
           patch_left = cursor;
           patch_right = jump;
         }
+        // Jump only when its visible destination cannot overshoot the requested Frame.
         if (destination <= index && distance > 1) {
           cursor = jump;
           cursor_index = destination;

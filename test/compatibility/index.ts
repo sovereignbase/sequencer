@@ -1,3 +1,4 @@
+/** Runs one portable public-contract suite in native processes, isolates and browser pages. */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
@@ -29,6 +30,7 @@ const chunk = built.bundles[0].chunks.find(
 assert(chunk?.type === 'chunk', 'Missing compatibility bundle')
 const source = chunk.code
 
+/** Each launcher owns execution; asynchronous harness scheduling does not change the synchronous API. */
 const runtimes: Array<[string, () => Outcome[] | Promise<Outcome[]>]> = [
   ['node.esm', esm],
   ['node.cjs', cjs],

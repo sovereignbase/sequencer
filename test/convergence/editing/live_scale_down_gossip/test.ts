@@ -1,3 +1,4 @@
+/** Two live peers must retain indexed-read equivalence while a fragmented workload shrinks to empty. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Gossip } from '../../../../src/typescript/types/type.ts'
@@ -136,23 +137,6 @@ describe('live scale-down gossip', () => {
   /**
    * Verifies live Projection equivalence while a heavily edited document is
    * gradually reduced back to an empty Projection.
-   *
-   * The workload first warms up both peers through repeated complete-Strip
-   * inserts, replacements, removals, random lookups, and replacements authored
-   * from the opposite peer. This leaves substantial fragmentation, Masks, and
-   * traversal state behind the visible Projection.
-   *
-   * The scale-down phase then continues editing while repeatedly removing
-   * complete logical Strips from alternating head and tail boundaries until no
-   * visible Strips remain.
-   *
-   * Every mutation is delivered immediately. After every Gossip round, both
-   * live peers must expose the same `projectionFrameCount` and identical
-   * Footage at every Projection position.
-   *
-   * The regression therefore covers the case where old fragmented structure and
-   * signed Mask history remain internally while the visible document contracts
-   * through progressively smaller states all the way to zero.
    */
   it('keeps every projection position converged while shrinking', () => {
     const state = new Projection<number>(3)

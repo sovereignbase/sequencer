@@ -1,11 +1,13 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, extname, resolve } from 'node:path'
 
+/** Separates method identity from its workload variant without altering either. */
 export function caseColumns(operation: string) {
   const [method, variant = '—'] = operation.split('.')
   return { method, case: variant }
 }
 
+/** Writes paired raw JSON and rendered Markdown; a null destination suppresses both. */
 export async function writeReportFiles(
   outputPath: string | null,
   report: unknown,

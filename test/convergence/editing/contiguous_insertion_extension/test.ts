@@ -1,3 +1,4 @@
+/** Same-Session suffix Gossip must replay under one canonical root without losing snapshot or consumer isolation. */
 import { makeSequence, sequenceInsertions } from '../../../.shared/sequence.ts'
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
@@ -11,10 +12,12 @@ const root: Insertion<string> = [
   [0, 0, 0, 100, 0, 2],
   ['a', 'b'],
 ]
+/** Continues the parent's time at its endpoint: no additional zero boundary is reserved. */
 const first: Insertion<string> = [
   [100, 0, 2, 100, 2, 2],
   ['c', 'd'],
 ]
+/** Depends on the first suffix's extent even though it names the original canonical root. */
 const second: Insertion<string> = [
   [100, 0, 4, 100, 4, 2],
   ['e', 'f'],
@@ -37,6 +40,7 @@ describe('contiguous insertion extensions', () => {
         p.apply(compact ? [[1], [2]] : [[1], [2], [3]])
       target.apply(structuredClone(source.insert(['a', 'b', 'c'], 0)))
       const extension = source.insert(['d', 'e'], 3)
+      // Fragment the receiver while the author still sees an intact extension endpoint.
       const deletion = target.remove(1, 1)
       expect(target.apply(structuredClone(extension))?.[0]).toEqual([
         [2, 2, ['d', 'e']],
@@ -74,6 +78,7 @@ describe('contiguous insertion extensions', () => {
     const initialFootage = ['a', 'b']
     const initial = local.insert(initialFootage, 0)
     remote.apply(initial)
+    // Earlier retained content and caller Footage must remain isolated from the next extension.
     const snapshot = local.sequence()
     const incoming = ['c', 'd']
     const extension = local.insert(incoming, 2)
@@ -117,6 +122,7 @@ describe('contiguous insertion extensions', () => {
   it('replays missing suffixes, duplicates, and dependencies in hostile delivery order', () => {
     const p = new Projection<string>(1)
     const child: Insertion<string> = [[100, 0, 5, 200, 0, 1], ['X']]
+    // Deliver later extent and its child first; duplicate waiters must not materialize twice.
     for (const insertion of [second, child, second, root, first, first, root])
       expect(p.apply([structuredClone(insertion)])).toBeDefined()
     expect(p.values()).toEqual(['a', 'b', 'c', 'd', 'e', 'X', 'f'])
@@ -161,6 +167,7 @@ describe('contiguous insertion extensions', () => {
         ],
       ]
     )
+    // Longer retained roots add only their unknown suffix; stale suffix Gossip becomes a no-op.
     expect(p.merge(snapshot)).toEqual([[[2, 2, ['c', 'd', 'e', 'f']]]])
     for (const entry of [first, second, root])
       expect(p.apply([structuredClone(entry)])).toEqual([[]])

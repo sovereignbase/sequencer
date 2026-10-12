@@ -1,3 +1,4 @@
+/** Snapshot-based offline appends must converge with continuing live replacement history before and after acknowledgement consensus. */
 import { makeSequence, sequenceInsertions } from '../../../.shared/sequence.ts'
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'

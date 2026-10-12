@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Exports compactable history while preserving hydrated Projection and future ordering.
+ */
 #include "../auxiliary/magnitude.hpp"
 #include "../auxiliary/snapshotWords.hpp"
 #include "../class.hpp"
@@ -8,9 +12,13 @@
 namespace sequencer {
 Sequence Projection::sequence() const {
   const auto compactable = frontier.compactable();
+  // Original Frame deletion map, converted in place to removed-prefix counts during export.
   struct Removed {
+    // Whole positive Insertion length when every original Frame is compacted.
     Word whole{};
+    // Per-original-Frame marks, later cumulative removed counts.
     std::vector<Word> frames;
+    // Counts compacted Frames before an original exclusive boundary.
     Word before(Word at) const {
       if (!at)
         return 0;
@@ -20,6 +28,8 @@ Sequence Projection::sequence() const {
     }
   };
   std::unordered_map<std::uint64_t, Removed> removed;
+  // Collect actual consumed mask fragments, not authored lengths: overlapping
+  // removals must never delete an original Frame twice from the exported Footage.
   if (!compactable.empty()) {
     for (auto i = structural_head; i; i = strips.right[i]) {
       const auto s = i;
@@ -51,10 +61,12 @@ Sequence Projection::sequence() const {
     return frames ? frames->before(at) : 0;
   };
   Sequence output;
+  // Eligibility is a capacity hint; the writer promotes only at 64 actually retained roots.
   const auto eligible = containment.size() >= 64;
   output.words.reserve(1 + structural_count * (eligible ? 3 : 6));
   output.footage.reserve(std::min(structural_count, containment.size()));
   output.words.push_back(0);
+  // Keep Actor admission even when all of its compactable Session pairs disappear.
   for (const auto &a : frontier.frontiers()) {
     const auto begin = output.words.size();
     output.words.push_back(0);
@@ -89,6 +101,8 @@ Sequence Projection::sequence() const {
     if (first) {
       auto exported = c;
       auto &footage = output.footage;
+      // Compaction can collapse distinct historical points. Re-anchor positive
+      // roots along their resolved retained order rather than recomputing sibling competition.
       if (c.diff > 0 && !compactable.empty()) {
         exported.anchor_session = left == omitted ? 0 : left_session;
         exported.anchor_start = left == omitted ? 0 : left_start;
@@ -98,6 +112,8 @@ Sequence Projection::sequence() const {
             before(removed_frames(c.anchor_session, c.anchor_start), c.anchor_diff);
       }
       if (c.diff > 0 && frames) {
+        // Copy surviving Footage in original order and turn deletion marks into
+        // prefix counts for later anchors and masks targeting this same Insertion.
         Word count = 0;
         for (Word n = 0; n < Word(c.diff); ++n) {
           if (!frames->frames[n]) {
@@ -113,6 +129,7 @@ Sequence Projection::sequence() const {
         }
         exported.diff -= std::int32_t(count);
       } else if (c.diff < 0 && !removed.empty()) {
+        // Retained masks cover only the target Frames left after acknowledged deletion.
         const auto *target = removed_frames(c.anchor_session, c.anchor_start);
         exported.diff +=
             std::int32_t(before(target, c.anchor_diff - c.diff) - before(target, c.anchor_diff));
@@ -135,6 +152,8 @@ Sequence Projection::sequence() const {
           magnitude(c.diff))
         insertion = 0;
     }
+    // A later fragment advances the retained boundary without emitting a second root.
+    // Zero-effect fragments cannot move the boundary past surviving structural children.
     if (insertion != omitted && (first || strips.fragment_diff[s] != 0)) {
       left = insertion;
       left_session = c.session;

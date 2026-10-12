@@ -1,14 +1,10 @@
+/** Local authoring and remote application must resolve the same boundary through replacement fragmentation. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import type { Gossip } from '../../../../src/typescript/types/type.ts'
 /**
- * Delivers one locally authored Gossip update to another replica and returns
- * any acknowledgement immediately to the author.
- *
- * The mutation represented by `delta` has already been applied locally by
- * `author`. Applying the same delta to `receiver` therefore gives both replicas
- * the same shared operation while exercising the remote apply path separately
- * from the local mutation path.
+ * Delivers one locally authored Gossip update to another replica and returns any
+ * acknowledgement immediately to the author.
  */
 const gossip = <T>(
   author: Projection<T>,
@@ -23,38 +19,6 @@ describe('apply equivalence at a fragmented boundary', () => {
    * Verifies that an insertion anchored exactly at a previously fragmented
    * Projection boundary resolves to the same structural position locally and
    * remotely.
-   *
-   * The test first creates and then replaces an initial two-frame insertion:
-   *
-   *   [1, 1]
-   *      ↓ replace
-   *   [2, 2]
-   *
-   * A new insertion is then added at the beginning:
-   *
-   *   [3, 3, 2, 2]
-   *
-   * Although the visible Projection is simple, its Structural Order now
-   * contains edit history from the original insertion and its replacement.
-   * The boundary between `[3, 3]` and `[2, 2]` therefore represents a useful
-   * fragmented-boundary case rather than merely a boundary between two
-   * untouched inserts.
-   *
-   * The final insertion is authored at Projection Frame 2, exactly at that
-   * boundary:
-   *
-   *   [3, 3 | 2, 2]
-   *          ↑
-   *        insert
-   *
-   * The locally authored result must be:
-   *
-   *   [3, 3, 7, 7, 2, 2]
-   *
-   * Applying the resulting Gossip remotely must anchor `[7, 7]` at exactly the
-   * same structural location. This specifically guards against local and remote
-   * paths resolving the same visible boundary through different fragments or
-   * containment history and consequently choosing different anchors.
    */
   it('anchors a boundary insertion identically at its author and receiver', () => {
     const author = new Projection<number>(100)

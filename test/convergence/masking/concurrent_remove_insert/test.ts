@@ -1,3 +1,4 @@
+/** A removal owns original Frames rather than concurrent Footage beside its target. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import {
@@ -7,31 +8,8 @@ import {
 } from '../../../.helpers/replica.ts'
 describe('concurrent remove and insert', () => {
   /**
-   * Verifies that a remove only removes the Insertion it was authored against
-   * and does not consume a concurrent Insertion anchored beside that content.
-   *
-   * Both replicas begin from:
-   *
-   *   a, b, c
-   *
-   * One replica removes `b` while the other concurrently inserts `beside`
-   * immediately after `b`:
-   *
-   *   deleting:  a, [b], c
-   *                  ↓ remove
-   *
-   *   inserting: a, b | c
-   *                    ↑
-   *                 beside
-   *
-   * Because neither operation has observed the other, the insertion is not
-   * part of the remove's origin. The remove must therefore remove only `b` and
-   * retain the concurrent insertion:
-   *
-   *   a, beside, c
-   *
-   * The same operation set is delivered in both possible orders to verify that
-   * remove ownership is independent of delivery order.
+   * Verifies that a remove only removes the Insertion it was authored against and
+   * does not consume a concurrent Insertion anchored beside that content.
    */
   it('keeps the concurrent insertion outside the origin remove', () => {
     const base = create_seed(['a', 'b', 'c'])

@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Synchronous wasm32 ABI: numeric input, borrowed output views and opaque Footage tokens.
+ */
 #include "class.hpp"
 #include <algorithm>
 #include <bit>
@@ -14,11 +18,15 @@
 
 namespace sequencer {
 namespace {
+// Native handles match JavaScript binding-table indices. Reused handles receive new history.
 std::vector<std::unique_ptr<Projection>> projections;
 std::span<const Word> input;
 
+// One retained input buffer and Output serve non-reentrant synchronous calls.
+// Every returned pointer is borrowed until the next operation mutates its storage.
 std::vector<Word> input_buffer;
 Word address(const void *pointer) { return Word(reinterpret_cast<std::uintptr_t>(pointer)); }
+// Output descriptors carry byte pointers; input descriptors carry buffer-relative word offsets.
 struct EntryView {
   Word tag, pointer, count, content;
 };
@@ -26,6 +34,9 @@ struct SpliceView {
   Word start, end, pointer, count;
 };
 struct Output {
+  // [kind, releasePtr, releaseCount, primaryPtr, primaryCount, secondaryPtr,
+  // secondaryCount, appendPtr, appendCount, copyPtr, copyCount, bindings].
+  // The final lane is hydration's positive-root count or apply's highest consumed token.
   std::array<Word, 12> header{};
   Gossip entries;
   Result result;
@@ -35,6 +46,7 @@ struct Output {
   std::vector<ContentAppend> appends;
   std::vector<EntryView> gossip;
   std::vector<SpliceView> splices;
+  // Descriptor pointers refer to source storage; source must outlive JavaScript consumption.
   void expose(const Gossip &source) {
     gossip.clear();
     for (const auto &e : source)
@@ -47,6 +59,7 @@ struct Output {
 static_assert(sizeof(Span) == 12 && sizeof(EntryView) == 16 && sizeof(SpliceView) == 16);
 Output out;
 std::unordered_set<Word> session_ids;
+// Last-seen caching avoids repeated hash inserts in same-Session document runs.
 Word registered_session{}, registered_anchor{};
 void register_sessions(const Coordinates &c) {
   if (c.session != registered_session) {
@@ -59,6 +72,7 @@ void register_sessions(const Coordinates &c) {
   }
 }
 Word random_state = 0x9e3779b9;
+// Zero belongs to the virtual root; imported Session identities cannot seed new local clocks.
 Word next_session() {
   Word id;
   do {
@@ -69,6 +83,8 @@ Word next_session() {
   } while (!id || session_ids.contains(id));
   return id;
 }
+// Bounds-checked numeric reader. Tuple and Frame semantics remain native;
+// JavaScript only validates external value types before uint32 conversion.
 struct Reader {
   std::size_t position{};
   Word bindings{};
@@ -84,6 +100,7 @@ struct Reader {
     }
     return input[position++];
   }
+  // Compact lanes fit V8 small integers; an escape retains the full uint32 bit pattern.
   Word snapshot_word() {
     const auto value = word();
     if (value != 0x3fffffffu)
@@ -99,6 +116,8 @@ struct Reader {
       valid = false;
     return low | (high << 16);
   }
+  // Six control bits mark explicit fields; higher bits inline a 24-bit anchorStart.
+  // Omitted fields are predictions, never new canonical coordinates.
   Coordinates snapshot_coordinates(const Coordinates &previous) {
     const auto control = word();
     if (control > 0x3fffffffu)
@@ -120,6 +139,7 @@ struct Reader {
       c.diff = 1;
     return c;
   }
+  // A rejected descriptor stops application at this entry while preserving its valid prefix.
   Entry entry() {
     const auto tag = word();
     const auto offset = word(), count = word(), content = word();
@@ -148,6 +168,7 @@ struct Reader {
     if (input.empty())
       return {std::move(insertions), std::move(frontiers)};
     auto end = word();
+    // Plain metadata begins with the ACK end offset; zero introduces the compact header.
     const auto packed = end == 0;
     Word records = 0;
     if (packed) {
@@ -182,6 +203,8 @@ struct Reader {
     if (!packed)
       records = Word((input.size() - end) / 6);
     insertions.reserve(records);
+    // Footage is one flat JS array. Only positive roots receive distinct tokens,
+    // and their content_start advances by each original positive Frame extent.
     Word offset = 0;
     Coordinates previous;
     for (Word i = 0; i < records; ++i) {
@@ -214,31 +237,57 @@ struct Reader {
 } // namespace sequencer
 
 extern "C" {
+/** Seeds the local Session generator once per module.
+ * @param seed JavaScript entropy; zero maps to a nonzero generator state.
+ */
 EMSCRIPTEN_KEEPALIVE void runtime_seed(std::uint32_t seed) {
   sequencer::random_state = seed ? seed : 1;
 }
+/** Reserves writable numeric input; memory growth may invalidate the previous heap view.
+ * @param count Required word count, not bytes.
+ * @return Borrowed input buffer for the next dispatch.
+ */
 EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_reserve(std::uint32_t count) {
   using namespace sequencer;
   if (input_buffer.size() < count)
     input_buffer.resize(count);
   return input_buffer.data();
 }
+/** Allocates independent native history in the shared module.
+ * @param id JavaScript-assigned Projection handle.
+ * @param actor Actor used for Acknowledgements.
+ */
 void runtime_create(std::uint32_t id, std::uint32_t actor) {
   using namespace sequencer;
   if (projections.size() <= id)
     projections.resize(std::size_t(id) + 1);
   projections[id] = std::make_unique<Projection>(actor, next_session(), next_session());
 }
+/** Releases the native history at a handle, including its pending dependencies.
+ * @param id Handle to release; absent handles are harmless.
+ */
 void runtime_destroy(std::uint32_t id) {
   if (id < sequencer::projections.size())
     sequencer::projections[id].reset();
 }
 
+/** Executes a general operation and exposes output until the next native call.
+ * @param operation Dispatch opcode shared with the TypeScript protocol.
+ * @param id Live Projection handle, or the handle to create or destroy.
+ * @param arg0 First operation-specific scalar.
+ * @param arg1 Second scalar, including the first content token for snapshot input.
+ * @param arg2 Third scalar, including snapshot shape validity for create and merge.
+ * @param pointer Numeric input buffer; application content never enters this memory.
+ * @param count Input word count.
+ * @return Twelve-word output header with byte pointers and element counts.
+ */
 EMSCRIPTEN_KEEPALIVE std::uint32_t *
 runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, std::uint32_t arg1,
                  std::uint32_t arg2, const std::uint32_t *pointer, std::uint32_t count) {
   using namespace sequencer;
   input = {pointer, count};
+  // Result kinds: 0 rejected, 1 scalar, 2 Gossip, 3 spans, 4 Result,
+  // 5 Sequence, 6 void, 7 local operation error.
   out.header = {6, 0, 0, 0, 0, 0, 0};
   if (operation == 11) {
     runtime_destroy(id);
@@ -266,6 +315,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
         break;
       }
       out.header[11] = r.bindings;
+      // Hydrated identities must not collide with freshly selected authoring clocks.
       for (const auto &e : g) {
         const auto c = e.insertion.coordinates;
         for (auto *clock : {&p.increase_clock, &p.decrease_clock})
@@ -287,6 +337,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
           kind = 0;
           break;
         }
+        // JS can discard bindings allocated for entries after the rejected prefix.
         out.header[11] = std::max(out.header[11], entry.insertion.content);
         p.apply(std::span(&entry, 1), out.result);
       }
@@ -340,6 +391,8 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     kind = operation == 1 || operation == 4 ? 0 : 7;
     out.header[3] = 2;
   }
+  // Swap deferred effects into retained output storage; neither values nor callbacks
+  // cross the native boundary while Structural Order is being modified.
   out.releases.swap(p.released);
   out.appends.swap(p.appended);
   out.copies.swap(p.copied);
@@ -372,6 +425,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     out.header[6] = Word(out.gossip.size());
     break;
   case 5:
+    // Sharing one full root is safe only if every live fragment loses write ownership.
     if (out.sequence.footage.size() == 1 && out.sequence.shared_root) {
       const auto root = out.sequence.shared_root;
       const auto &source = p.strips.identity[root];
@@ -389,9 +443,20 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
   }
   return out.header.data();
 }
+/** Reads maintained visible length through the dedicated scalar path.
+ * @param id Live handle; the JavaScript wrapper excludes destroyed instances.
+ * @return Visible Frame count.
+ */
 EMSCRIPTEN_KEEPALIVE std::uint32_t runtime_length(std::uint32_t id) {
   return sequencer::projections[id]->length();
 }
+/** Authors local positive Frames without general result descriptors.
+ * @param id Live Projection handle.
+ * @param count Positive Frame count supplied by trusted local code.
+ * @param content JavaScript token for the incoming Footage.
+ * @param at Visible insertion boundary.
+ * @return Six coordinate words and an optional append target, endpoint and content origin.
+ */
 EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_insert(std::uint32_t id, std::uint32_t count,
                                                          std::uint32_t content, std::uint32_t at) {
   using namespace sequencer;
@@ -412,6 +477,11 @@ EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_insert(std::uint32_t id, std::
   }
   return result.data();
 }
+/** Resolves one visible Frame without materializing a span vector.
+ * @param id Live Projection handle.
+ * @param at Requested visible position.
+ * @return Borrowed [content token, content slot], or nullptr outside the Projection.
+ */
 EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_value(std::uint32_t id, std::uint32_t at) {
   using namespace sequencer;
   auto &p = *projections[id];

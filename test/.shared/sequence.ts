@@ -5,7 +5,12 @@ import type {
 } from '../../src/typescript/types/type.ts'
 import { sequenceMetadata } from '../../benchmark/.shared/sequence.ts'
 
-/** Author fixture metadata directly in the public snapshot layout. */
+/**
+ * Authors plain snapshot fixtures without invoking runtime export.
+ * @param frontiers Actor claims, including membership-only Acknowledgements.
+ * @param insertions Dependency-compatible canonical coordinates and optional Footage.
+ * @returns Flat metadata and positive Frame spans; signed diffs use uint32 bit patterns.
+ */
 export function makeSequence<T>(
   frontiers: ReadonlyArray<Acknowledgement>,
   insertions: ReadonlyArray<Insertion<T>>
@@ -21,7 +26,7 @@ export function makeSequence<T>(
   return [words, footage]
 }
 
-/** Inspect insertion identities and their corresponding spans in assertions. */
+/** Expands plain or compact export records for assertions; runtime fragments are not serialized roots. */
 export function sequenceInsertions<T>([
   words,
   footage,
@@ -40,6 +45,7 @@ export function sequenceInsertions<T>([
   return result
 }
 
+/** Reads retained Actor claims independently of plain or compact record layout. */
 export function sequenceFrontiers([
   words,
 ]: Sequence<unknown>): Acknowledgement[] {

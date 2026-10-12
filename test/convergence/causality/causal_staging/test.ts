@@ -1,31 +1,12 @@
+/** Missing canonical dependencies stay invisible until their parent extent becomes available. */
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
 import { expect_converged } from '../../../.helpers/replica.ts'
 describe('causal staging', () => {
   /**
-   * Verifies that an operation whose causal parent has not arrived yet is
-   * retained instead of discarded, and becomes visible once that dependency
-   * is later delivered.
-   *
-   * The source authors:
-   *
-   *   parent
-   *   parent, child
-   *
-   * The target receives `child` first. Because its anchor depends on `parent`,
-   * the operation cannot yet be placed into the visible Projection and must be
-   * staged internally:
-   *
-   *   apply(child)
-   *   Projection: []
-   *
-   * When `parent` arrives, the staged child can be resolved against its missing
-   * anchor and both operations become visible in their authored order:
-   *
-   *   apply(parent)
-   *   Projection: [parent, child]
-   *
-   * The target must then converge exactly with the source.
+   * Verifies that an operation whose causal parent has not arrived yet is retained
+   * instead of discarded, and becomes visible once that dependency is later
+   * delivered.
    */
   it('retains a child and resolves it when its missing parent arrives', () => {
     const source = new Projection<string>(21)

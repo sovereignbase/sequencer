@@ -13,7 +13,7 @@ Result Projection::apply(std::span<const Entry> gossip) {
     std::vector<Insertion> queue;
     bool first = true;
     while (first || !queue.empty()) {
-      const auto insertion = first ? entry.insertion : queue.back();
+      auto insertion = first ? entry.insertion : queue.back();
       last_insert = none;
       if (first)
         first = false;
@@ -21,6 +21,10 @@ Result Projection::apply(std::span<const Entry> gossip) {
         queue.pop_back();
       const auto c = insertion.coordinates;
       if (c.diff < 0) {
+        if (insertion.content) {
+          released.push_back({insertion.content, 0, 0});
+          insertion.content = 0;
+        }
         Acknowledgement a{actor, c.session, c.start - c.diff};
         frontier.observe(a);
         result.gossip.push_back(Entry::acknowledge(std::move(a)));

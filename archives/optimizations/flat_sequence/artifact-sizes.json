@@ -1,0 +1,36 @@
+{
+  "baseline": {
+    "combined": {
+      "raw": 109835,
+      "gzip": 37330,
+      "brotli": 31252
+    },
+    "wasm": {
+      "raw": 69720,
+      "gzip": 28774,
+      "brotli": 23801
+    },
+    "javascriptWithoutWasmLiteral": {
+      "raw": 18208,
+      "gzip": 5509,
+      "brotli": 4796
+    }
+  },
+  "current": {
+    "combined": {
+      "raw": 117880,
+      "gzip": 39268,
+      "brotli": 32774
+    },
+    "wasm": {
+      "raw": 73175,
+      "gzip": 29795,
+      "brotli": 24730
+    },
+    "javascriptWithoutWasmLiteral": {
+      "raw": 21500,
+      "gzip": 6203,
+      "brotli": 5410
+    }
+  }
+}

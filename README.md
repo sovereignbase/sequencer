@@ -26,17 +26,17 @@ lifecycle workload and API throughput bursts. Full results are available for
 [throughput](benchmark/.results/throughput.md).
 
 Latest throughput results, measured on 12 October 2026. Latencies are in µs per
-public API call, weighted by call count across three runs.
+public API call, weighted by call count across five runs.
 
-| Operation                           | 100 initial Strips | 1,000 initial Strips | 10,000 initial Strips |
-| ----------------------------------- | -----------------: | -------------------: | --------------------: |
-| `new Projection(actorID, sequence)` |             21.059 |              200.042 |             2,377.293 |
-| `insert`, random position           |              1.069 |                1.507 |                 1.298 |
-| `remove`, middle                    |              1.271 |                1.591 |                 1.867 |
-| `replace`, middle                   |              0.945 |                0.908 |                 2.728 |
-| `sequence()`                        |             17.829 |              237.192 |             2,704.320 |
-| `value`, random position            |              0.192 |                0.238 |                 0.731 |
-| `values()`                          |             27.018 |              390.403 |             4,450.865 |
+| Operation                           | 100 initial insertions | 1,000 initial insertions | 10,000 initial insertions |
+| ----------------------------------- | ---------------------: | -----------------------: | ------------------------: |
+| `new Projection(actorID, sequence)` |                  1.732 |                    1.725 |                     1.648 |
+| `insert`, random position           |                  1.043 |                    1.036 |                     1.081 |
+| `remove`, middle                    |                  1.091 |                    1.269 |                     1.433 |
+| `replace`, middle                   |                  1.145 |                    1.369 |                     1.430 |
+| `sequence()`                        |                  0.353 |                    0.390 |                     0.363 |
+| `value`, random position            |                  0.065 |                    0.053 |                     0.115 |
+| `values()`                          |                  4.352 |                  147.965 |                  1156.844 |
 
 Environment: Node 24.16.0, V8 13.6.233.17-node.49, Windows x64, Intel Core
 i5-10210U. Generated Strip lengths are 1–100 Frames. Each case warms up for
@@ -114,7 +114,7 @@ Sizes vary with Session IDs and content.
 typechecks tests, runs unit, convergence, integration and generative stress suites
 with V8 coverage, then runs runtime and browser compatibility checks.
 
-The latest verification passed 151 Vitest tests and 88 compatibility checks.
+The latest verification passed 167 Vitest tests and 88 compatibility checks.
 Convergence tests include 1,024 generated editing histories for each compaction
 mode. See the [test suites](test/README.md) and
 [automated test report](https://sovereignbase.dev/sequencer/tests/).

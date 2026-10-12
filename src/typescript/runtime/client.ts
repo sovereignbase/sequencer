@@ -8,8 +8,8 @@ class Runtime {
     Array<ReadonlyArray<unknown> | undefined> | undefined
   > = []
   private readonly free: number[] = []
-  private readonly mutable: Array<boolean[] | undefined> = []
-  private readonly snapshots: Array<WeakRef<unknown[]> | undefined> = []
+  // 0: mutable caller input; 1: private writable; 2: readonly; 3: packed readonly.
+  private readonly mutable: Array<number[] | undefined> = []
   private readonly finalizer = new FinalizationRegistry<number>((id) =>
     this.release(id)
   )
@@ -20,7 +20,6 @@ class Runtime {
     const id = this.free.pop() ?? this.nextProjection++
     this.content[id] = [undefined]
     this.mutable[id] = []
-    this.snapshots[id] = undefined
     try {
       this.call(Operation.Create, id, actorID, sequence)
     } catch (error) {
@@ -39,7 +38,6 @@ class Runtime {
     module._runtime_dispatch(Operation.Destroy, id, 0, 0, 0, 0, 0)
     this.content[id] = undefined
     this.mutable[id] = undefined
-    this.snapshots[id] = undefined
     this.free.push(id)
   }
   length(id: number): number {
@@ -56,7 +54,6 @@ class Runtime {
   }
   insert<T>(id: number, values: T[], at: number): unknown {
     if (id < 0) throw new Error('Projection has been destroyed')
-    this.snapshots[id] = undefined
     const content = this.content[id]!
     const pointer =
       module._runtime_insert(
@@ -78,11 +75,11 @@ class Runtime {
     if (token) {
       const mutable = this.mutable[id]!
       let footage = content[token] as unknown[]
-      if (!mutable[token]) {
+      if (mutable[token] !== 1) {
         const base = heap[pointer + 8]
         footage = footage.slice(base, base + heap[pointer + 7])
         content[token] = footage
-        mutable[token] = true
+        mutable[token] = 1
       }
       const end = footage.length
       for (let i = 0; i < values.length; ++i) footage[end + i] = values[i]
@@ -123,15 +120,16 @@ class Runtime {
     end?: unknown
   ): T {
     if (id < 0) throw new Error('Projection has been destroyed')
-    if (operation !== Operation.Sequence && operation !== Operation.Values)
-      this.snapshots[id] = undefined
     const count = this.inputSize(operation, value, at)
     const pointer = count ? module._runtime_reserve(count) : 0
     const heap = module.HEAPU32,
       base = pointer >>> 2,
       contents = this.content[id]!
     const bind = (values: unknown): number => {
-      return contents.push(Array.isArray(values) ? values : undefined) - 1
+      const token =
+        contents.push(Array.isArray(values) ? values : undefined) - 1
+      this.mutable[id]![token] = 2
+      return token
     }
     const absent = 0xffffffff
     let a0 = 0,
@@ -181,11 +179,8 @@ class Runtime {
           a1 = contents.length
           contents.length += (words.length - start) / 6
           contents.fill(sequence[1], a1)
-          if (operation === Operation.Create && words.length - start === 6 && (words[start + 5] | 0) > 0) {
-            contents[a1] = sequence[1].slice()
-            this.mutable[id]![a1] = true
-            a2 = 3
-          }
+          this.mutable[id]!.length = contents.length
+          this.mutable[id]!.fill(2, a1)
         }
       }
     } else if (operation === Operation.Apply) {
@@ -266,7 +261,7 @@ class Runtime {
         start = heap[at + 1],
         count = heap[at + 2]
       content[token] = content[token]?.slice(start, start + count)
-      mutable[token] = true
+      mutable[token] = 1
     }
     const values = (pointer: number, count: number): unknown[] => {
       const begin = pointer >>> 2,
@@ -379,15 +374,18 @@ class Runtime {
         break
       }
       case 5: {
-        let footage = this.snapshots[id]?.deref()
-        if (!footage) {
-          footage = values(p1, n1)
-          let owned = true
-          for (let at = p1 >>> 2, end = at + n1 * 3; at < end; at += 3)
-            if (content[heap[at]] !== undefined && !mutable[heap[at]]) owned = false
-          if (owned) this.snapshots[id] = new WeakRef(footage)
+        const span = p1 >>> 2,
+          token = heap[span]
+        const shared =
+          n1 === 1 &&
+          heap[span + 1] === 0 &&
+          content[token]?.length === heap[span + 2] &&
+          !!mutable[token]
+        if (shared && mutable[token] !== 3) {
+          content[token] = content[token]!.map((value) => value)
+          mutable[token] = 3
         }
-        result = [words(p0, n0), footage]
+        result = [words(p0, n0), shared ? content[token] : values(p1, n1)]
         break
       }
       case 6:
@@ -416,11 +414,11 @@ class Runtime {
         base = heap[at + 5]
       if (content[target] === undefined && source === undefined) continue
       let footage = content[target] as unknown[] | undefined
-      if (!mutable[target]) {
+      if (mutable[target] !== 1) {
         footage =
           footage?.slice(base, base + offset) ?? new Array<unknown>(offset)
         content[target] = footage
-        mutable[target] = true
+        mutable[target] = 1
       }
       if (footage!.length < offset) footage!.length = offset
       if (source && start === 0 && count === source.length && count <= 4096)
@@ -441,9 +439,9 @@ class Runtime {
           mutable.length = Math.min(mutable.length, content.length)
         } else {
           content[token] = undefined
-          mutable[token] = false
+          mutable[token] = 0
         }
-      } else if (mutable[token])
+      } else if (mutable[token] === 1)
         (content[token] as unknown[] | undefined)?.fill(
           undefined,
           start,

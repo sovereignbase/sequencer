@@ -95,7 +95,7 @@ struct Reader {
     } else
       return invalid();
   }
-  std::pair<Gossip, std::vector<Acknowledgement>> sequence(Word content, bool owned = false) {
+  std::pair<Gossip, std::vector<Acknowledgement>> sequence(Word content) {
     Gossip insertions;
     std::vector<Acknowledgement> frontiers;
     if (input.empty())
@@ -127,7 +127,7 @@ struct Reader {
       session_ids.insert(c.anchor_session);
       session_ids.insert(c.session);
       insertions.push_back(
-          Entry::insert({c, c.diff > 0 ? content + Word(insertions.size()) : 0, offset, owned}));
+          Entry::insert({c, c.diff > 0 ? content + Word(insertions.size()) : 0, offset}));
       if (c.diff > 0)
         offset += Word(c.diff);
       position += 6;
@@ -184,8 +184,8 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     switch (operation) {
     case 0: {
       Reader r;
-      auto [g, f] = r.sequence(arg1, (arg2 & 2) != 0);
-      if (!(arg2 & 1) || !r.valid) {
+      auto [g, f] = r.sequence(arg1);
+      if (arg2 != 1 || !r.valid) {
         kind = 7;
         out.header[3] = 2;
         break;
@@ -299,6 +299,24 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     out.header[6] = Word(out.gossip.size());
     break;
   case 5:
+    if (out.sequence.footage.size() == 1) {
+      const auto token = out.sequence.footage[0].content;
+      for (auto at = out.sequence.words.empty() ? 0 : out.sequence.words[0];
+           at < out.sequence.words.size(); at += 6) {
+        if (std::bit_cast<std::int32_t>(out.sequence.words[at + 5]) <= 0)
+          continue;
+        const auto root = p.containment.get(out.sequence.words[at + 3], out.sequence.words[at + 4]);
+        if (p.strips.identity[root].content != token)
+          continue;
+        const auto &source = p.strips.identity[root];
+        if (out.sequence.footage[0].start != source.content_start ||
+            out.sequence.footage[0].count != Word(source.coordinates.diff))
+          break;
+        for (auto i = root; i; i = p.strips.fragment[i])
+          p.strips.identity[i].content_owned = false;
+        break;
+      }
+    }
     out.header[3] = address(out.sequence.words.data());
     out.header[4] = Word(out.sequence.words.size());
     out.header[5] = address(out.sequence.footage.data());

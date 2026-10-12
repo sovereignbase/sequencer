@@ -1,0 +1,393 @@
+{
+  "runs": 5,
+  "space": [
+    {
+      "frames": 503863,
+      "insertions": 10000,
+      "estimatedMemory": 4270904,
+      "storageV8": 3250567
+    },
+    {
+      "frames": 503863,
+      "insertions": 1,
+      "estimatedMemory": 4030932,
+      "storageV8": 1599012
+    }
+  ],
+  "regressions": [
+    {
+      "suite": "lifecycle",
+      "actor": "A",
+      "phase": "scaleUp",
+      "op": "replace.head",
+      "baseline": 1873.28,
+      "candidate": 2301.54,
+      "percent": 22.861504953877688
+    },
+    {
+      "suite": "lifecycle",
+      "actor": "A",
+      "phase": "scaleUp",
+      "op": "sequence",
+      "baseline": 4408680,
+      "candidate": 6101660,
+      "percent": 38.401063356832424
+    },
+    {
+      "suite": "lifecycle",
+      "actor": "A",
+      "phase": "scaleUp",
+      "op": "value.head",
+      "baseline": 243.03,
+      "candidate": 286.74,
+      "percent": 17.98543389704974
+    },
+    {
+      "suite": "lifecycle",
+      "actor": "A",
+      "phase": "scaleDown",
+      "op": "remove.head",
+      "baseline": 1945.66,
+      "candidate": 3836.12,
+      "percent": 97.16291643966571
+    },
+    {
+      "suite": "lifecycle",
+      "actor": "A",
+      "phase": "scaleDown",
+      "op": "remove.tail",
+      "baseline": 1905.9,
+      "candidate": 2441.74,
+      "percent": 28.114801406159806
+    },
+    {
+      "suite": "lifecycle",
+      "actor": "A",
+      "phase": "scaleDown",
+      "op": "replace.head",
+      "baseline": 2945.01,
+      "candidate": 3581.53,
+      "percent": 21.613508952431392
+    },
+    {
+      "suite": "lifecycle",
+      "actor": "A",
+      "phase": "scaleDown",
+      "op": "replace.tail",
+      "baseline": 2899.15,
+      "candidate": 3205.98,
+      "percent": 10.583446872359147
+    },
+    {
+      "suite": "lifecycle",
+      "actor": "A",
+      "phase": "fullLifecycle",
+      "op": "remove.head",
+      "baseline": 1945.66,
+      "candidate": 3836.12,
+      "percent": 97.16291643966571
+    },
+    {
+      "suite": "lifecycle",
+      "actor": "A",
+      "phase": "fullLifecycle",
+      "op": "remove.tail",
+      "baseline": 1905.9,
+      "candidate": 2441.74,
+      "percent": 28.114801406159806
+    },
+    {
+      "suite": "lifecycle",
+      "actor": "A",
+      "phase": "fullLifecycle",
+      "op": "replace.head",
+      "baseline": 2400.34,
+      "candidate": 2941.535,
+      "percent": 22.546597565344896
+    },
+    {
+      "suite": "lifecycle",
+      "actor": "A",
+      "phase": "fullLifecycle",
+      "op": "replace.tail",
+      "baseline": 2567.03,
+      "candidate": 3095.1,
+      "percent": 20.57124381094104
+    },
+    {
+      "suite": "lifecycle",
+      "actor": "A",
+      "phase": "fullLifecycle",
+      "op": "sequence",
+      "baseline": 22668060,
+      "candidate": 25104620,
+      "percent": 10.748868672484546
+    },
+    {
+      "suite": "lifecycle",
+      "actor": "A",
+      "phase": "fullLifecycle",
+      "op": "value.head",
+      "baseline": 346.76,
+      "candidate": 391.08,
+      "percent": 12.781174299227139
+    },
+    {
+      "suite": "throughput",
+      "n": 100,
+      "op": "apply.duplicate",
+      "baseline": 469.4,
+      "candidate": 630.24,
+      "percent": 34.26501917341287
+    },
+    {
+      "suite": "throughput",
+      "n": 1000,
+      "op": "apply.duplicate",
+      "baseline": 475.13,
+      "candidate": 593.1,
+      "percent": 24.828994170016628
+    },
+    {
+      "suite": "throughput",
+      "n": 10000,
+      "op": "apply.duplicate",
+      "baseline": 478.57,
+      "candidate": 662.68,
+      "percent": 38.47086110704807
+    },
+    {
+      "suite": "throughput",
+      "n": 100,
+      "op": "apply.insert",
+      "baseline": 1021.37,
+      "candidate": 1642.1,
+      "percent": 60.774254188002374
+    },
+    {
+      "suite": "throughput",
+      "n": 1000,
+      "op": "apply.insert",
+      "baseline": 1059.31,
+      "candidate": 1483.19,
+      "percent": 40.01472656729381
+    },
+    {
+      "suite": "throughput",
+      "n": 10000,
+      "op": "apply.insert",
+      "baseline": 1255.05,
+      "candidate": 1450.37,
+      "percent": 15.562726584598208
+    },
+    {
+      "suite": "throughput",
+      "n": 100,
+      "op": "insert.tail",
+      "baseline": 384.33,
+      "candidate": 698.86,
+      "percent": 81.83852418494524
+    },
+    {
+      "suite": "throughput",
+      "n": 1000,
+      "op": "insert.tail",
+      "baseline": 406,
+      "candidate": 791.11,
+      "percent": 94.85467980295567
+    },
+    {
+      "suite": "throughput",
+      "n": 10000,
+      "op": "insert.tail",
+      "baseline": 404.6,
+      "candidate": 719.84,
+      "percent": 77.91398912506178
+    },
+    {
+      "suite": "throughput",
+      "n": 100,
+      "op": "merge.duplicate",
+      "baseline": 826.51,
+      "candidate": 1201.94,
+      "percent": 45.423527846003076
+    },
+    {
+      "suite": "throughput",
+      "n": 1000,
+      "op": "merge.duplicate",
+      "baseline": 838.05,
+      "candidate": 1332.09,
+      "percent": 58.951136567030616
+    },
+    {
+      "suite": "throughput",
+      "n": 10000,
+      "op": "merge.duplicate",
+      "baseline": 804.96,
+      "candidate": 1317.94,
+      "percent": 63.727390180878565
+    },
+    {
+      "suite": "throughput",
+      "n": 100,
+      "op": "merge.insert",
+      "baseline": 1406.19,
+      "candidate": 2095.81,
+      "percent": 49.04173689188516
+    },
+    {
+      "suite": "throughput",
+      "n": 1000,
+      "op": "merge.insert",
+      "baseline": 1467.71,
+      "candidate": 1966.33,
+      "percent": 33.972651273071655
+    },
+    {
+      "suite": "throughput",
+      "n": 10000,
+      "op": "merge.insert",
+      "baseline": 1583.53,
+      "candidate": 2024.48,
+      "percent": 27.846014916042016
+    },
+    {
+      "suite": "throughput",
+      "n": 100,
+      "op": "remove.head",
+      "baseline": 577.4068797069001,
+      "candidate": 740.5682055567161,
+      "percent": 28.257599897777276
+    },
+    {
+      "suite": "throughput",
+      "n": 1000,
+      "op": "remove.head",
+      "baseline": 630.52,
+      "candidate": 935.74,
+      "percent": 48.40766351582821
+    },
+    {
+      "suite": "throughput",
+      "n": 10000,
+      "op": "remove.head",
+      "baseline": 601.57,
+      "candidate": 999.25,
+      "percent": 66.1070199644264
+    },
+    {
+      "suite": "throughput",
+      "n": 100,
+      "op": "remove.tail",
+      "baseline": 558.1636648394675,
+      "candidate": 622.435395458105,
+      "percent": 11.514853916032418
+    },
+    {
+      "suite": "throughput",
+      "n": 1000,
+      "op": "remove.tail",
+      "baseline": 578.26,
+      "candidate": 764.01,
+      "percent": 32.122228755231205
+    },
+    {
+      "suite": "throughput",
+      "n": 10000,
+      "op": "remove.tail",
+      "baseline": 605.14,
+      "candidate": 923.23,
+      "percent": 52.56469577287901
+    },
+    {
+      "suite": "throughput",
+      "n": 100,
+      "op": "replace.head",
+      "baseline": 905.32,
+      "candidate": 1139.08,
+      "percent": 25.820704281359053
+    },
+    {
+      "suite": "throughput",
+      "n": 1000,
+      "op": "replace.head",
+      "baseline": 949.36,
+      "candidate": 1272.22,
+      "percent": 34.00817392769866
+    },
+    {
+      "suite": "throughput",
+      "n": 10000,
+      "op": "replace.head",
+      "baseline": 993.13,
+      "candidate": 1291.17,
+      "percent": 30.010169866986214
+    },
+    {
+      "suite": "throughput",
+      "n": 100,
+      "op": "replace.middle",
+      "baseline": 892.65,
+      "candidate": 1138.7,
+      "percent": 27.563994846804473
+    },
+    {
+      "suite": "throughput",
+      "n": 1000,
+      "op": "replace.middle",
+      "baseline": 909.44,
+      "candidate": 1286.91,
+      "percent": 41.5057617874736
+    },
+    {
+      "suite": "throughput",
+      "n": 10000,
+      "op": "replace.middle",
+      "baseline": 958.53,
+      "candidate": 1391.72,
+      "percent": 45.19316036013479
+    },
+    {
+      "suite": "throughput",
+      "n": 100,
+      "op": "replace.tail",
+      "baseline": 875.34,
+      "candidate": 1066.35,
+      "percent": 21.82123517718828
+    },
+    {
+      "suite": "throughput",
+      "n": 1000,
+      "op": "replace.tail",
+      "baseline": 957.71,
+      "candidate": 1335.59,
+      "percent": 39.45662048010357
+    },
+    {
+      "suite": "throughput",
+      "n": 10000,
+      "op": "replace.tail",
+      "baseline": 960.71,
+      "candidate": 1267.16,
+      "percent": 31.89828356111626
+    },
+    {
+      "suite": "throughput",
+      "n": 1000,
+      "op": "retire",
+      "baseline": 147.72,
+      "candidate": 285.19,
+      "percent": 93.06119685892229
+    },
+    {
+      "suite": "throughput",
+      "n": 10000,
+      "op": "retire",
+      "baseline": 151.44,
+      "candidate": 337.86,
+      "percent": 123.09825673534074
+    }
+  ],
+  "scope": "Snapshot layout implemented; complete throughput acceptance remains open."
+}

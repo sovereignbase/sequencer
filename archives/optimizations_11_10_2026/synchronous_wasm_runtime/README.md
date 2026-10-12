@@ -21,14 +21,14 @@ Five alternating process runs of each implementation, identical fixed workload,
 | `sequence()`               |    4,340.247 µs | 1,628.611 µs |   2.66× |
 | `values()`                 |    8,050.117 µs | 4,019.202 µs |   2.00× |
 
-[All 78 rows, medians and IQR](comparison.md), [machine-readable comparison](comparison.json).
+[All 78 rows, medians and IQR](comparison.md).
 These are public API timings including binding and Footage work, not native-only
 kernel timings. Cached reads and incoming single operations do not all win.
 WASM wins 63/78 median rows. For example, at 10,000 Strips, `length()` is
 21.45 ns versus 16.46 ns, `apply.insert` is 1.187 µs versus 0.776 µs, and
 `merge.insert` is 1.526 µs versus 0.913 µs. There is no claim of a universal
 10× speedup. The five matched pairs were repeated after the final startup fix;
-the earlier pairs are also retained under `before-seed-fix-*`.
+earlier pairs are excluded from the final comparison.
 
 Three fresh process measurements per implementation use a trusted snapshot with
 10,000 insertions of 50 Frames. The first construction retains 6,485,192 bytes
@@ -94,9 +94,7 @@ cached read. This diagnostic changes neither the production benchmark nor its
 published results. Before/final median nanoseconds are: head 50.18/46.66, middle
 46.44/44.77, tail 47.46/45.18, length 11.57/11.98. Cached-read losses do not
 persist in the warmed distributions. Length differs by 0.42 ns with overlapping
-distributions; it is not treated as a performance improvement. Both the short
-burst outliers and the longer diagnostic samples are retained, rather than
-silently substituting warmed values in the full benchmark table.
+distributions; it is not treated as a performance improvement. Both the short burst outliers and longer diagnostic findings are recorded here, without substituting warmed values in the full benchmark table.
 
 The original synchronous CPU profile identified Footage output growth, binding,
 constructor work and GC as meaningful costs. This motivates preallocation,
@@ -111,8 +109,7 @@ sampling, not a competing latency benchmark.
 - **88 compatibility tests pass** in Node ESM/CJS, Bun, Deno, Edge Runtime,
   workerd, Chromium and WebKit. Firefox could not launch: the Playwright browser
   installation repeatedly fails with `ENOENT` for its expected executable after
-  download. The failed launch and install logs are retained; Firefox is not
-  counted as tested support in this run.
+  download. Firefox is not counted as tested support in this run.
 - `destroy()` is idempotent, rejects subsequent calls, and recycled native
   handles do not revive old instances or corrupt surviving instances.
 - Runtime and test TypeScript checks pass. Existing API scenarios were converted
@@ -125,8 +122,7 @@ sampling, not a competing latency benchmark.
   values and peer convergence at every checkpoint.
 
 The five-varied-workload audit found a real repeated-middle-replacement failure
-in both implementations on workload index 3. The failure is retained in
-`measurements/final-js-throughput.log`; it was not discarded as a bad timing run.
+in both implementations on workload index 3. The failure is described below; it was not discarded as a bad timing run.
 The reduced history has three initial insertion lengths `[1,79,1]`, a high source
 session and consecutive replacements without an intervening read. A fully
 removed successor followed by an older mask could move the selected anchor
@@ -141,8 +137,7 @@ The matched five-run timing comparison uses the same healthy run-0 workload for
 both implementations. The separate varied five-run audit verifies the corrected
 native runtime; it is not described as a passing five-varied-run TS comparison.
 The external lifecycle additionally completed three workloads, but its timing
-overlapped an independently started 100,000-Strip benchmark process. Those
-timings are retained as diagnostic evidence and excluded from speedup claims.
+overlapped an independently started 100,000-Strip benchmark process. Those timings were diagnostic evidence and are excluded from speedup claims.
 
 ## Generated code, SIMD, ILP and MLP
 
@@ -157,7 +152,7 @@ node temp/performance/sizes-sync.mjs
 ```
 
 The final linked module contains **45 `v128.load`, 83 `v128.store` and 41
-`memory.copy`** instructions. The retained WAT excerpts and symbol map resolve
+`memory.copy`** instructions. Inspected WAT excerpts and the matching symbol map resolved
 the five native hot functions; Binaryen local labels exclude the five imported
 functions, whereas the symbol map and CPU profile use global indices.
 
@@ -192,8 +187,7 @@ functions, whereas the symbol map and CPU profile use global indices.
 
 Native raw size grows 82 B (0.12%); the ESM package grows 3,286 B (3.08%),
 gzip 1,326 B (3.68%). These costs include cross-file inlining and the correctness
-fix. Binary sizes and hashes for before-LTO and final builds are retained in
-`measurements/sizes-sync.json`. The substantial public API and retained memory
+fix. The final module hash and artifact size comparison are recorded here. The substantial public API and retained memory
 improvements justify this measured size cost; there is no additional shared
 memory or worker artifact.
 
@@ -231,7 +225,4 @@ with the identical benchmark source. Its only lifecycle-specific adjustment is
 optional destruction at three cleanup sites outside timers, because the TS
 model is GC-owned. It does not replace or adapt the competing implementation.
 
-Raw full-suite JSON and logs, failed audit logs, memory samples, reproducer,
-measurement scripts, generated-code excerpts and test results are retained in
-`measurements`. Original synchronous timings, all attempted intermediate stages
-and the final paired guard remain available for every row.
+Measurement and reproduction scripts remain in `measurements`. Original timings, intermediate-stage comparisons and the final paired guard remain in the linked Markdown reports. Raw runs and generated dumps have been removed.

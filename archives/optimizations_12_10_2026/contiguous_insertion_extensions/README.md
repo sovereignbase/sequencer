@@ -57,7 +57,7 @@ Node 24.16.0, V8 13.6.233.17-node.49, Windows x64, Intel i5-10210U.
 Emscripten 5.0.7, Release, -O3, LTO, SIMD, bulk memory, synchronous single-file WASM.
 
 Fresh full lifecycle and throughput baseline: 3 runs, strip counts 100/1,000/10,000.
-Both raw JSON files are included. A complete candidate suite comparison was not
+A complete candidate suite comparison was not
 performed after correctness failed; no claim of regression-free performance is
 made. Compression and clock randomness affect serialized byte counts; targeted
 baseline/candidate timing distributions also include cold compilation and warmup.
@@ -77,7 +77,7 @@ is not a measurement of native apply alone. Medians in milliseconds:
 | values    |  72.6722 |             7.3506 |
 
 The retained insertion count fell from 6,000 to 1 in this append-only workload.
-Snapshot JSON fell from 240,886�276,883 bytes to 24,035�24,036 bytes.
+Snapshot JSON fell from 240,886–276,883 bytes to 24,035–24,036 bytes.
 This supports continuing investigation of the representation, not accepting an
 incorrect implementation.
 

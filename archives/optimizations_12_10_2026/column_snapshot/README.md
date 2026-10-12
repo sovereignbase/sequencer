@@ -24,10 +24,7 @@ it must not be described as the external benchmark's editing workload.
 | Random eight-character words |     403,341 B |              267,647 B |      38,810 B |    33,764 B |
 | Two editing actors           |     236,578 B |              166,162 B |      33,030 B |    30,568 B |
 
-These are the JavaScript layout probes in `target-baseline.json`. The runtime
-candidate also interns Session IDs, so its exact sizes differ; see
-`target-column-candidate-1.json` and `target-diff.json`. ACKs and generic content
-remain included throughout.
+These are JavaScript layout probes. The runtime candidate also interns Session IDs, so its exact sizes differ. ACKs and generic content remain included throughout.
 
 Bit-packing is not automatically better: random-character JSON decreased to
 86,710 bytes and V8 serialization to 79,397 bytes, but Brotli increased from
@@ -58,19 +55,15 @@ initial sample, produced these snapshot-export medians:
 | Random words       | 1.789 ms |  2.132 ms | +19.1% |
 | Two editing actors | 1.852 ms |  2.237 ms | +20.8% |
 
-Small cold-call diagnostics also regressed. The complete three-run suite and
-every-row comparison are retained in `baseline.*.json`, `candidate.*.json`, and
-`suite-diff.json`. Targeted regressions alone are sufficient to reject this
+Small cold-call diagnostics also regressed. The complete three-run suite was mixed. Targeted regressions alone are sufficient to reject this
 variant; full-suite improvements do not compensate for them.
 
 The bundle increased from 117,880 to 128,705 bytes; gzip from 39,268 to 43,014.
-WASM increased from 73,175 to 81,298 bytes. `artifact-sizes.json` includes hashes,
-raw, gzip, and Brotli sizes.
+WASM increased from 73,175 to 81,298 bytes.
 
 ## Correctness and reproduction
 
-The unchanged 167 tests passed. `validation.json` additionally records direct
-public-API checks using 6,000 random insertions and 128 retained, unacknowledged
+The unchanged 167 tests passed. Additional direct public-API checks used 6,000 random insertions and 128 retained, unacknowledged
 masks: JSON and Uint32Array hydration, merge, future Gossip replay, and snapshot
 copy-on-write isolation. No production adapter or public helper was added.
 

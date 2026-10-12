@@ -86,14 +86,14 @@ Targeted kernel build:
 
 ```powershell
 $compiler = 'C:\Users\jorts\emsdk\upstream\emscripten\em++.bat'
-& $compiler .\archives\optimizations\hash_table_realm_entry_soa\reproduce\hash_table_benchmark.cpp `
+& $compiler .\archives\optimizations_11_10_2026\hash_table_realm_entry_soa\reproduce\hash_table_benchmark.cpp `
   -O3 -DNDEBUG -std=c++23 -msimd128 `
   -sWASM=1 -sMODULARIZE=1 -sEXPORT_ES6=1 -sENVIRONMENT=node `
   -sSINGLE_FILE=1 -sWASM_ASYNC_COMPILATION=0 `
   -sALLOW_MEMORY_GROWTH=1 -sFILESYSTEM=0 -sDYNAMIC_EXECUTION=0 `
   "-sEXPORTED_FUNCTIONS=['_populate','_initialize_spaced','_insert_middle','_lookup_random_batch','_lookup_hot_batch']" `
-  -o .\archives\optimizations\hash_table_realm_entry_soa\reproduce\hash_table_benchmark.mjs
-node .\archives\optimizations\hash_table_realm_entry_soa\reproduce\run_targeted.mjs
+  -o .\archives\optimizations_11_10_2026\hash_table_realm_entry_soa\reproduce\hash_table_benchmark.mjs
+node .\archives\optimizations_11_10_2026\hash_table_realm_entry_soa\reproduce\run_targeted.mjs
 ```
 
 The targeted workload used one Realm with 100,000 one-Frame entries. Every
@@ -122,8 +122,7 @@ wasm-opt.exe extracted-production-module.wasm `
 ## Targeted results
 
 Values are nanoseconds per operation. Each median and IQR combines all 27
-samples from three processes. Raw samples and process medians are retained in
-[`targeted_comparison.json`](./targeted_comparison.json).
+samples from three processes. The table retains median and IQR values from all three processes.
 
 | Kernel              |  Baseline median (IQR) |  Candidate median (IQR) |  Change |
 | ------------------- | ---------------------: | ----------------------: | ------: |
@@ -156,8 +155,7 @@ showed unacceptable candidate regressions, including 100,000/1 insert (+170%),
 why the decision relies on the controlled targeted distributions as well as the
 complete guard rather than an aggregate average.
 
-Every row, all three raw values, medians, and percentage changes are retained in
-[`full_comparison.json`](./full_comparison.json). No competitor comparison is
+The row counts and decisive regressions are summarized above. No competitor comparison is
 applicable because the current `npm run bench` suite is Sequencer-only.
 
 ## Memory and artifact impact
@@ -227,8 +225,7 @@ The candidate passed:
 - Node.js, Deno, Bun, Edge Runtime, and Cloudflare Workers runtime tests;
 - 15 browser tests across Chromium, Firefox, WebKit, and mobile profiles.
 
-The complete output is retained in
-[`raw/candidate_tests.txt`](./raw/candidate_tests.txt).
+These checks passed before the candidate was reverted.
 
 ## Final interpretation
 
@@ -244,9 +241,6 @@ with separate hot/cold regions or a batched lookup API that creates genuine
 MLP. It must first demonstrate that it avoids the append, middle-insert, fixed
 Realm-memory, and artifact-size regressions measured here.
 
-## Raw material
+## Reproduction
 
-- [`raw/full`](./raw/full): three complete baseline and candidate suite runs.
-- [`raw/targeted`](./raw/targeted): three targeted baseline and candidate runs.
-- [`raw/artifacts`](./raw/artifacts): artifact, package, and Wasm metric output.
-- [`reproduce`](./reproduce): targeted kernel, runner, and comparison scripts.
+[`reproduce`](./reproduce) retains the targeted kernel, runner and comparison scripts. The important timing, memory, artifact and correctness results are recorded above.

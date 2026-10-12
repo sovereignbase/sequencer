@@ -25,14 +25,9 @@ Both variants are completely removed from production.
 Five alternating isolated process pairs collected complete default lifecycle and
 throughput suites with fixed Session entropy (`../sequence_indices/seed.mjs`).
 CLI workload dimensions, workload seed, warmup, compiler, and maximum size were
-the same for each baseline/candidate pair. The final comparison is
-`packed-suite-diff.json`; it contains every row, medians, IQRs, and raw distributions.
-The previous three-lane comparison is also retained in `suite-diff.log` and the
-original `paired-*.json` files.
+the same for each baseline/candidate pair. The decisive regressions and memory/artifact measurements are retained in this report.
 
-The first final-variant pair overlapped validation work. Its reports are preserved
-as `overlap-packed-*` and excluded from acceptance. That entire pair was repeated
-serially after validation finished; the repeated reports are `packed-*-1`.
+The first final-variant pair overlapped validation work and was excluded from acceptance. The entire pair was repeated serially after validation finished.
 
 The guard still did not establish a result without regressions. For example,
 the final variant's lifecycle scale-down random insert median increased from
@@ -45,8 +40,7 @@ Additional three-lane diagnostics fixed the call count at 2,048 and disabled the
 time cutoff using the existing CLI. Adaptive burst call counts otherwise advance
 the module's Session generator differently between later cases. Those diagnostic
 inputs and commands are explicitly different from the default guard; they do not
-replace its results. `fixed-*.json` and `fixed-diff.json` retain all 78 rows. This
-diagnostic also did not resolve the mixed result.
+replace its results. That 78-row diagnostic also did not resolve the mixed result.
 
 Five isolated 6,000-random-insertion processes measured the final variant:
 
@@ -68,13 +62,11 @@ document size: it only changes native memory layout and executable size.
 | WASM raw           |  73,175 B |     73,073 B |
 | WASM gzip          |  29,795 B |     29,605 B |
 
-`artifact-sizes.json` includes Brotli sizes and SHA-256 hashes. JavaScript outside
-the WASM literal is byte-identical, including its raw/gzip/Brotli hashes.
+JavaScript outside the WASM literal was byte-identical.
 
 ## Generated code and correctness
 
-`baseline.wasm` and `candidate.wasm` are the final production-equivalent artifacts.
-`candidate.symbols` is the matching symbol map. Inspect them with:
+Production-equivalent modules were disassembled with matching symbols. Generated binaries and WAT dumps have been removed; their findings remain below. Rebuilt modules can be inspected with:
 
 ```powershell
 C:/Users/jorts/emsdk/upstream/bin/wasm-dis.exe baseline.wasm -o baseline.wat

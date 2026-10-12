@@ -61,14 +61,13 @@ from 404.60 to 719.84 ns, `apply.insert` from 1,255.05 to 1,450.37 ns, and
 `replace.middle` also regressed. Indexed random reads improved from 620.35 to
 104.02 ns, random insertions from 1,359.91 to 1,071.06 ns, and `values` from
 3.630 to 1.130 ms. These results do not establish a universal 2x improvement.
-The complete comparison, including lifecycle rows, is in `suite-diff.json`.
+These favorable and unfavorable results are both retained in this report.
 
 Validation: 167 Vitest tests pass, including retained content offsets, typed
 metadata, JSON snapshots, missing content slots, and mutable input arrays.
 88 compatibility checks pass across the eight available environments. Firefox
 could not run because its Playwright executable is not installed.
 
-The full-suite comparison and final artifact sizes are recorded beside this
-file. All tested variants preserve the same public convergence assertions.
+All tested variants preserve the same public convergence assertions.
 The snapshot-layout change is intentional; old nested snapshots require
 migration outside the runtime.

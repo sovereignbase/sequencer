@@ -75,6 +75,23 @@ framing or content. Numeric metadata accepts `Uint32Array` and JSON numeric
 arrays. Generic content, called Footage, stays in JavaScript; only numeric
 metadata enters WASM.
 
+`sequence()` returns `[words, footage]`: one numeric array and one content
+array, with no nested insertion or acknowledgement arrays. `words[0]` locates
+the first six-word insertion record; preceding acknowledgements are length
+prefixed. Positive insertion lengths identify successive spans of `footage`.
+An empty Sequence is `[[], []]`. Construction and `merge()` accept numeric
+arrays or `Uint32Array` metadata; exported numeric arrays can be sent as JSON.
+
+```ts
+const retained = projection.sequence()
+const restored = new Projection<string>(2, retained)
+```
+
+Consecutive local insertions extend an intact insertion from the same Session
+without reserving another zero in its logical clock. Gossip contains only the
+new suffix, still using six structural words. A removal or fragmentation ends
+the local extension chain. Retained snapshots remain unchanged by later edits.
+
 Measured JSON transport sizes for 1,000 one-Frame insertions containing `'x'`,
 their removal Gossip, and a snapshot captured before removal:
 

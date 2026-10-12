@@ -302,7 +302,8 @@ const observeReplica = (
       averageStripLength: ratio(frameCount, stripCount),
       minimumStripLength: runtime.strips.minimumLength,
       maximumStripLength: runtime.strips.maximumLength,
-      retainedDeltaCount: (checkpointSequence[0].length - (checkpointSequence[0][0] ?? 0)) / 6,
+      retainedDeltaCount:
+        (checkpointSequence[0].length - (checkpointSequence[0][0] ?? 0)) / 6,
     },
   }
   const scope = direction === 'up' ? 'scaleUp' : 'scaleDown'

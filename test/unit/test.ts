@@ -1,13 +1,21 @@
-import { makeSequence, sequenceInsertions, sequenceFrontiers } from '../.shared/sequence.ts'
+import {
+  makeSequence,
+  sequenceInsertions,
+  sequenceFrontiers,
+} from '../.shared/sequence.ts'
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../src/typescript/class.ts'
 import type { Gossip, Sequence } from '../../src/typescript/class.ts'
-const seed = (): Sequence<string> => makeSequence([], [
+const seed = (): Sequence<string> =>
+  makeSequence(
+    [],
     [
-      [0, 0, 0, 100, 0, 3],
-      ['a', 'b', 'c'],
-    ],
-  ])
+      [
+        [0, 0, 0, 100, 0, 3],
+        ['a', 'b', 'c'],
+      ],
+    ]
+  )
 const seeded = () => new Projection<string>(1, seed())
 function expectGossip(gossip: Gossip<string>, expected: string[]): void {
   const receiver = new Projection<string>(2, seed())
@@ -28,13 +36,27 @@ describe('Projection public API', () => {
       expect(projection.length()).toBe(3)
       expect(projection.values()).toEqual(['a', 'b', 'c'])
       const retained = seed()
-      expect(new Projection<string>(8, [new Uint32Array(retained[0]), retained[1]]).values()).toEqual(['a', 'b', 'c'])
+      expect(
+        new Projection<string>(8, [
+          new Uint32Array(retained[0]),
+          retained[1],
+        ]).values()
+      ).toEqual(['a', 'b', 'c'])
     })
     it('keeps a flat snapshot unchanged when an offset insertion is removed and extended', () => {
-      const snapshot = makeSequence<string>([[2]], [
-        [[0, 0, 0, 100, 0, 2], ['a', 'b']],
-        [[100, 0, 2, 200, 0, 2], ['c', 'd']],
-      ])
+      const snapshot = makeSequence<string>(
+        [[2]],
+        [
+          [
+            [0, 0, 0, 100, 0, 2],
+            ['a', 'b'],
+          ],
+          [
+            [100, 0, 2, 200, 0, 2],
+            ['c', 'd'],
+          ],
+        ]
+      )
       const p = new Projection<string>(1, snapshot)
       p.remove(2, 2)
       p.apply([[[200, 0, 2, 200, 2, 1], ['e']]])
@@ -43,7 +65,9 @@ describe('Projection public API', () => {
       const exported = p.sequence()
       expect(exported).toHaveLength(2)
       expect(exported[0].every((word) => typeof word === 'number')).toBe(true)
-      expect(new Projection<string>(3, JSON.parse(JSON.stringify(exported))).values()).toEqual(p.values())
+      expect(
+        new Projection<string>(3, JSON.parse(JSON.stringify(exported))).values()
+      ).toEqual(p.values())
     })
   })
   describe('apply', () => {
@@ -105,7 +129,9 @@ describe('Projection public API', () => {
     })
     it('retains earlier valid entries when a later entry is invalid', () => {
       const projection = new Projection<string>(1)
-      expect(projection.apply([...sequenceInsertions(seed()), null])).toBeUndefined()
+      expect(
+        projection.apply([...sequenceInsertions(seed()), null])
+      ).toBeUndefined()
       expect(projection.values()).toEqual(['a', 'b', 'c'])
     })
   })
@@ -238,13 +264,19 @@ describe('Projection public API', () => {
       projection.apply([[2]])
       projection.remove(1, 1)
       expect(
-        sequenceInsertions(projection.sequence()).some((entry) => (entry[0][5] | 0) < 0)
+        sequenceInsertions(projection.sequence()).some(
+          (entry) => (entry[0][5] | 0) < 0
+        )
       ).toBe(true)
       expect(projection.retire(2)).toBeUndefined()
       projection.apply([[2]])
       const sequence = projection.sequence()
-      expect(sequenceFrontiers(sequence).some((frontier) => frontier[0] === 2)).toBe(false)
-      expect(sequenceInsertions(sequence).every((entry) => (entry[0][5] | 0) > 0)).toBe(true)
+      expect(
+        sequenceFrontiers(sequence).some((frontier) => frontier[0] === 2)
+      ).toBe(false)
+      expect(
+        sequenceInsertions(sequence).every((entry) => (entry[0][5] | 0) > 0)
+      ).toBe(true)
       expect(new Projection<string>(3, sequence).values()).toEqual(['a', 'c'])
       expect(projection.values()).toEqual(['a', 'c'])
     })
@@ -257,7 +289,9 @@ describe('Projection public API', () => {
       const projection = seeded()
       projection.remove(1, 1)
       const sequence = projection.sequence()
-      expect(sequenceInsertions(sequence).every((entry) => (entry[0][5] | 0) > 0)).toBe(true)
+      expect(
+        sequenceInsertions(sequence).every((entry) => (entry[0][5] | 0) > 0)
+      ).toBe(true)
       expect(new Projection<string>(2, sequence).values()).toEqual(['a', 'c'])
       expect(projection.values()).toEqual(['a', 'c'])
       projection.insert(['X'], 1)
@@ -272,14 +306,16 @@ describe('Projection public API', () => {
       author.apply(receipt[1])
       const second = author.remove(0, 0)
       const retained = author.sequence()
-      expect(sequenceInsertions(retained).filter((entry) => (entry[0][5] | 0) < 0)).toHaveLength(
-        2
-      )
+      expect(
+        sequenceInsertions(retained).filter((entry) => (entry[0][5] | 0) < 0)
+      ).toHaveLength(2)
       expect(new Projection<string>(3, retained).values()).toEqual(['c'])
       author.apply(receiver.apply(second)![1])
-      expect(sequenceInsertions(author.sequence()).every((entry) => (entry[0][5] | 0) > 0)).toBe(
-        true
-      )
+      expect(
+        sequenceInsertions(author.sequence()).every(
+          (entry) => (entry[0][5] | 0) > 0
+        )
+      ).toBe(true)
       expect(author.values()).toEqual(['c'])
     })
   })

@@ -11,12 +11,18 @@ describe.each(['ordered', 'reverse', 'shuffled'] as const)(
     it.each([2, 4, 128])(
       'converges across %i replacements before and after hydration',
       (replacements) => {
-        const live = new Projection<number>(2, makeSequence([], [
+        const live = new Projection<number>(
+          2,
+          makeSequence(
+            [],
             [
-              [0, 0, 0, 100, 0, 2],
-              [0, 1],
-            ],
-          ]))
+              [
+                [0, 0, 0, 100, 0, 2],
+                [0, 1],
+              ],
+            ]
+          )
+        )
         // The joining actor has not received the masks, so compaction cannot retire them.
         live.apply([[1]])
         for (let index = 0; index < replacements; ++index)
@@ -71,12 +77,18 @@ describe.each(['ordered', 'reverse', 'shuffled'] as const)(
   }
 )
 it('preserves competing offline tail appends before a later mask-end replacement', () => {
-  const live = new Projection<string>(2, makeSequence([[1], [2], [3]], [
+  const live = new Projection<string>(
+    2,
+    makeSequence(
+      [[1], [2], [3]],
       [
-        [0, 0, 0, 100, 0, 2],
-        ['a', 'old'],
-      ],
-    ]))
+        [
+          [0, 0, 0, 100, 0, 2],
+          ['a', 'old'],
+        ],
+      ]
+    )
+  )
   live.replace(['previous'], 1, 1)
   live.replace(['tail'], 1, 1)
   const snapshot = live.sequence()

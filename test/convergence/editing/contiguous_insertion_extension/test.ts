@@ -47,7 +47,10 @@ describe('contiguous insertion extensions', () => {
   )
 
   it('keeps extending an intact local insertion before an existing tail', () => {
-    const source = new Projection<string>(1, makeSequence([], [[[0, 0, 0, 100, 0, 1], ['tail']]]))
+    const source = new Projection<string>(
+      1,
+      makeSequence([], [[[0, 0, 0, 100, 0, 1], ['tail']]])
+    )
     const target = new Projection<string>(2, source.sequence())
     for (let i = 0; i < 30; ++i)
       target.apply(structuredClone(source.insert([String(i)], i)))
@@ -96,7 +99,9 @@ describe('contiguous insertion extensions', () => {
     const snapshot = p.sequence()
     for (let i = 100; i < 200; ++i) p.insert([i], p.length())
     expect(sequenceInsertions(snapshot)).toHaveLength(1)
-    expect(sequenceInsertions(snapshot)[0][1]).toEqual(Array.from({ length: 100 }, (_, i) => i))
+    expect(sequenceInsertions(snapshot)[0][1]).toEqual(
+      Array.from({ length: 100 }, (_, i) => i)
+    )
     expect(sequenceInsertions(p.sequence())[0][1]).toEqual(
       Array.from({ length: 200 }, (_, i) => i)
     )
@@ -140,12 +145,15 @@ describe('contiguous insertion extensions', () => {
   it('merges a longer insertion into a known prefix and ignores earlier Gossip', () => {
     const p = new Projection<string>(1)
     p.apply([structuredClone(root)])
-    const snapshot: Sequence<string> = makeSequence([], [
+    const snapshot: Sequence<string> = makeSequence(
+      [],
+      [
         [
           [0, 0, 0, 100, 0, 6],
           ['a', 'b', 'c', 'd', 'e', 'f'],
         ],
-      ])
+      ]
+    )
     expect(p.merge(snapshot)).toEqual([[[2, 2, ['c', 'd', 'e', 'f']]]])
     for (const entry of [first, second, root])
       expect(p.apply([structuredClone(entry)])).toEqual([[]])

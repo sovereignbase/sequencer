@@ -97,8 +97,8 @@ Sequence Projection::sequence() const {
                 footage.back().start + footage.back().count == strips.identity[s].content_start + n)
               ++footage.back().count;
             else
-              footage.push_back({strips.identity[s].content,
-                                 strips.identity[s].content_start + n, 1});
+              footage.push_back(
+                  {strips.identity[s].content, strips.identity[s].content_start + n, 1});
           }
           count += frames->frames[n];
           frames->frames[n] = count;
@@ -109,7 +109,8 @@ Sequence Projection::sequence() const {
         exported.diff +=
             std::int32_t(before(target, c.anchor_diff - c.diff) - before(target, c.anchor_diff));
       } else if (c.diff > 0)
-        footage.push_back({strips.identity[s].content, strips.identity[s].content_start, Word(c.diff)});
+        footage.push_back(
+            {strips.identity[s].content, strips.identity[s].content_start, Word(c.diff)});
       if (exported.diff) {
         insertion = Word(output.words.size());
         const auto words = std::bit_cast<std::array<Word, 6>>(exported);

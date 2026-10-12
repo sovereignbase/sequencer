@@ -72,17 +72,6 @@ struct Reader {
     }
     return input[position++];
   }
-  Gossip gossip(Word count) {
-    if (count > input.size() - position) {
-      valid = false;
-      return {};
-    }
-    Gossip entries;
-    entries.reserve(count);
-    for (Word i = 0; i < count && valid; ++i)
-      entries.push_back(entry());
-    return entries;
-  }
   Entry entry() {
     const auto tag = word();
     const auto offset = word(), count = word(), content = word();
@@ -105,22 +94,6 @@ struct Reader {
       return Entry::insert({c, content});
     } else
       return invalid();
-  }
-  std::vector<Acknowledgement> frontiers(Word count) {
-    if (count > input.size() - position) {
-      valid = false;
-      return {};
-    }
-    std::vector<Acknowledgement> entries;
-    for (Word n = 0; n < count && valid; ++n) {
-      auto e = entry();
-      if (!e.acknowledgement) {
-        valid = false;
-        return {};
-      }
-      entries.push_back(std::move(e.frontier));
-    }
-    return entries;
   }
   std::pair<Gossip, std::vector<Acknowledgement>> sequence(Word content) {
     Gossip insertions;
@@ -145,16 +118,16 @@ struct Reader {
     Word offset = 0;
     while (position < input.size()) {
       const auto data = input.subspan(position, 6);
-      Coordinates c{data[0], data[1], data[2], data[3], data[4],
-                    std::bit_cast<std::int32_t>(data[5])};
+      Coordinates c{data[0], data[1], data[2],
+                    data[3], data[4], std::bit_cast<std::int32_t>(data[5])};
       if (!c.diff || c.diff == std::numeric_limits<std::int32_t>::min()) {
         valid = false;
         return {};
       }
       session_ids.insert(c.anchor_session);
       session_ids.insert(c.session);
-      insertions.push_back(Entry::insert(
-          {c, c.diff > 0 ? content + Word(insertions.size()) : 0, offset}));
+      insertions.push_back(
+          Entry::insert({c, c.diff > 0 ? content + Word(insertions.size()) : 0, offset}));
       if (c.diff > 0)
         offset += Word(c.diff);
       position += 6;
@@ -250,14 +223,6 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
         kind = 0;
       break;
     }
-    case 2:
-      out.entries = {Entry::insert(p.insert(arg0, arg1, arg2))};
-      kind = 2;
-      break;
-    case 3:
-      out.header[3] = p.length();
-      kind = 1;
-      break;
     case 4: {
       Reader r;
       auto [g, f] = r.sequence(arg1);
@@ -288,10 +253,6 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     case 8:
       out.sequence = p.sequence();
       kind = 5;
-      break;
-    case 9:
-      out.values = p.values(arg0, arg0);
-      kind = 3;
       break;
     case 10:
       out.values =
@@ -338,12 +299,11 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     out.header[6] = Word(out.gossip.size());
     break;
   case 5:
-    if (!out.sequence.words.empty() &&
-        out.sequence.words.size() - out.sequence.words[0] == 6 &&
+    if (!out.sequence.words.empty() && out.sequence.words.size() - out.sequence.words[0] == 6 &&
         out.sequence.footage.size() == 1) {
       const auto at = out.sequence.words[0];
-      for (auto i = p.containment.get(out.sequence.words[at + 3], out.sequence.words[at + 4]);
-           i; i = p.strips.fragment[i])
+      for (auto i = p.containment.get(out.sequence.words[at + 3], out.sequence.words[at + 4]); i;
+           i = p.strips.fragment[i])
         p.strips.identity[i].content_owned = false;
     }
     out.header[3] = address(out.sequence.words.data());
@@ -357,8 +317,8 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
 EMSCRIPTEN_KEEPALIVE std::uint32_t runtime_length(std::uint32_t id) {
   return sequencer::projections[id]->length();
 }
-EMSCRIPTEN_KEEPALIVE const std::uint32_t *
-runtime_insert(std::uint32_t id, std::uint32_t count, std::uint32_t content, std::uint32_t at) {
+EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_insert(std::uint32_t id, std::uint32_t count,
+                                                         std::uint32_t content, std::uint32_t at) {
   using namespace sequencer;
   auto &p = *projections[id];
   p.appended.clear();

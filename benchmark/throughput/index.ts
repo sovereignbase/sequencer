@@ -121,11 +121,19 @@ function prepare(
     for (const payload of payloads) {
       updates.push(sender.insert(payload, sender.length()))
     }
-  } else if (operation === 'apply.duplicate' || operation === 'merge.duplicate') {
+  } else if (
+    operation === 'apply.duplicate' ||
+    operation === 'merge.duplicate'
+  ) {
     const coordinates = Array.from(snapshot[0].slice(-6))
     updates.push([[coordinates, snapshot[1].slice(-(coordinates[5] | 0))]])
   }
-  const mergeWords = updates.map((gossip) => [3, 1, 2, ...(gossip[0] as [ReadonlyArray<number>])[0]])
+  const mergeWords = updates.map((gossip) => [
+    3,
+    1,
+    2,
+    ...(gossip[0] as [ReadonlyArray<number>])[0],
+  ])
   if (operation === 'retire')
     // Establish distinct active Actors outside the measured retirement calls.
     state.apply(
@@ -187,11 +195,17 @@ function prepare(
       case 'apply.insert':
         return state.apply(updates[index])
       case 'merge.insert':
-        return state.merge([mergeWords[index], (updates[index][0] as [unknown, unknown])[1]])
+        return state.merge([
+          mergeWords[index],
+          (updates[index][0] as [unknown, unknown])[1],
+        ])
       case 'apply.duplicate':
         return state.apply(updates[0])
       case 'merge.duplicate':
-        return state.merge([mergeWords[0], (updates[0][0] as [unknown, unknown])[1]])
+        return state.merge([
+          mergeWords[0],
+          (updates[0][0] as [unknown, unknown])[1],
+        ])
       case 'retire':
         return state.retire(index + 2)
     }

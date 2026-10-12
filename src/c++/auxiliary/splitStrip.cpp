@@ -11,7 +11,8 @@ Index Projection::split_strip(Index a, Word point, std::int32_t incoming_diff) {
   const auto old_fragment = strips.fragment[a], old_right = strips.right[a];
   const auto effect = strips.fragment_diff[a];
   if (incoming_diff < 0 && original.content)
-    released.push_back({original.content, original.content_start + point, magnitude(incoming_diff)});
+    released.push_back(
+        {original.content, original.content_start + point, magnitude(incoming_diff)});
   const auto left_diff = (effect < 0 ? -1 : 1) * std::int32_t(point - strips.fragment_start[a]);
   const auto right_diff = effect - left_diff + std::min(0, incoming_diff);
   strips.fragmented[a] = true;

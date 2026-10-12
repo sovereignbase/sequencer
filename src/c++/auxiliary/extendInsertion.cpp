@@ -9,8 +9,7 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
   auto last = origin;
   while (strips.fragment[last])
     last = strips.fragment[last];
-  appended.push_back(
-      {original.content, content, source_start, count, end, original.content_start});
+  appended.push_back({original.content, content, source_start, count, end, original.content_start});
   if (content)
     released.push_back({content, 0, 0});
   const auto next = strips.right[last];

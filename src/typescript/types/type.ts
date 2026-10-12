@@ -22,8 +22,10 @@ export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>
 
 /**
  * One structural array and one JS-owned content array.
- * `words[0]` is the start of the six-word insertion records. Before that:
- * `[frontiersEnd, acknowledgementLength, ...acknowledgement, ...]`.
+ * Small snapshots use six-word insertion records after length-prefixed ACKs;
+ * `words[0]` locates those records. Large snapshots begin with
+ * `[0, frontiersEnd, insertionCount]` and omit predictable coordinate fields.
+ * Both layouts retain complete coordinates and acknowledgements.
  * Positive insertion diffs consume successive spans of `footage`.
  * `[[], []]` is an empty Sequence. Both numeric arrays and typed views are accepted.
  */

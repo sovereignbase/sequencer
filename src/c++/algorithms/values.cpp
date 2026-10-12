@@ -4,8 +4,13 @@
 namespace sequencer {
 std::vector<Span> Projection::values(Word start, Word end) {
   std::vector<Span> output;
+  values(start, end, output);
+  return output;
+}
+void Projection::values(Word start, Word end, std::vector<Span> &output) {
+  output.clear();
   if (!frame_count || start > end)
-    return output;
+    return;
   auto frame = find_frame(start);
   auto cursor = gate;
   auto remaining = std::int64_t(end) - start + 1;
@@ -25,6 +30,5 @@ std::vector<Span> Projection::values(Word start, Word end) {
                                                std::max(0, effect)));
     cursor = next;
   }
-  return output;
 }
 } // namespace sequencer

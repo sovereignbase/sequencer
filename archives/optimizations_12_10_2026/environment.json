@@ -6,23 +6,12 @@
   "architecture": "x64",
   "compiler": "Emscripten 5.0.7",
   "preset": "wasm-release",
-  "flags": [
-    "-O3",
-    "-flto",
-    "-msimd128",
-    "-mbulk-memory",
-    "-fwasm-exceptions"
-  ],
+  "flags": ["-O3", "-flto", "-msimd128", "-mbulk-memory", "-fwasm-exceptions"],
   "restoredBaselineArtifactMatch": true,
   "validation": {
     "vitestTests": 167,
     "compatibilityChecks": 88,
-    "typechecks": [
-      "runtime",
-      "tests"
-    ],
-    "unavailable": [
-      "firefox"
-    ]
+    "typechecks": ["runtime", "tests"],
+    "unavailable": ["firefox"]
   }
 }

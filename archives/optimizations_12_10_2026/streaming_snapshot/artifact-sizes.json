@@ -1,0 +1,30 @@
+[
+  {
+    "path": "archives/optimizations_12_10_2026/apply_pipeline/baseline/index.js",
+    "bytes": 117880,
+    "gzip": 39268,
+    "brotli": 32774,
+    "sha256": "fe60aca1f7d5efaa3bb1bab568f229252a1a8517eb0db44e59c28493970a4548"
+  },
+  {
+    "path": "dist/index.js",
+    "bytes": 120899,
+    "gzip": 39754,
+    "brotli": 33341,
+    "sha256": "f929c7d2a91bc833d3783a16380784eef2fbcb8824fc37e435228c20a91e6a30"
+  },
+  {
+    "path": "dist/index.cjs",
+    "bytes": 121049,
+    "gzip": 39842,
+    "brotli": 33367,
+    "sha256": "6fffbf564f0dcf59e9a1a94fe3f2bf40befe8f5fca5ca08cf6df3b28497ca30d"
+  },
+  {
+    "path": "src/typescript/wasm/raw/sequencer_wasm.mjs",
+    "bytes": 85698,
+    "gzip": 33979,
+    "brotli": 27986,
+    "sha256": "6a91b769c282146805b70bb0dcc9704171a7ecdee847b2e8fcfb117e0fc0e720"
+  }
+]

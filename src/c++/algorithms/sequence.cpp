@@ -1,4 +1,5 @@
 #include "../auxiliary/magnitude.hpp"
+#include "../auxiliary/snapshotWords.hpp"
 #include "../class.hpp"
 #include <algorithm>
 #include <limits>
@@ -50,22 +51,28 @@ Sequence Projection::sequence() const {
     return frames ? frames->before(at) : 0;
   };
   Sequence output;
-  output.words.reserve(1 + structural_count * 6);
-  output.footage.reserve(structural_count);
+  const auto eligible = containment.size() >= 64;
+  output.words.reserve(1 + structural_count * (eligible ? 3 : 6));
+  output.footage.reserve(std::min(structural_count, containment.size()));
   output.words.push_back(0);
   for (const auto &a : frontier.frontiers()) {
     const auto begin = output.words.size();
-    output.words.insert(output.words.end(), {0, a[0]});
+    output.words.push_back(0);
+    output.words.push_back(a[0]);
+    Word count = 1;
     for (std::size_t i = 1; i + 1 < a.size(); i += 2) {
-      if (!compactable.contains(a[i]))
+      if (!compactable.contains(a[i])) {
         output.words.insert(output.words.end(), {a[i], a[i + 1]});
+        count += 2;
+      }
     }
-    output.words[begin] = Word(output.words.size() - begin - 1);
+    output.words[begin] = count;
   }
   output.words[0] = Word(output.words.size());
+  SnapshotWords writer{output.words, {}, 0, false, eligible};
   constexpr auto omitted = std::numeric_limits<Word>::max();
-  std::unordered_map<std::uint64_t, Word> included;
   Word left = omitted, left_diff = 0;
+  Word left_session = 0, left_start = 0;
   for (auto i = structural_head; i; i = strips.right[i]) {
     const auto s = i;
     const auto &c = strips.identity[s].coordinates;
@@ -74,16 +81,17 @@ Sequence Projection::sequence() const {
     auto *frames = removed_frames(c.session, c.start);
     if (frames && frames->whole)
       continue;
-    const auto key = identity(c.session, c.start);
-    auto found = included.find(key);
-    const auto first = found == included.end();
+    // Positive chains begin with a non-offset node. An overlapping mask may
+    // consume its prefix, so its canonical node must be recognized by identity.
+    const auto first =
+        !strips.offset[s] || (c.diff < 0 && containment.get(c.session, c.start) == s);
     Word insertion = omitted;
     if (first) {
       auto exported = c;
       auto &footage = output.footage;
       if (c.diff > 0 && !compactable.empty()) {
-        exported.anchor_session = left == omitted ? 0 : output.words[left + 3];
-        exported.anchor_start = left == omitted ? 0 : output.words[left + 4];
+        exported.anchor_session = left == omitted ? 0 : left_session;
+        exported.anchor_start = left == omitted ? 0 : left_start;
         exported.anchor_diff = left_diff;
       } else if (c.diff < 0 && !removed.empty()) {
         exported.anchor_diff -=
@@ -108,19 +116,29 @@ Sequence Projection::sequence() const {
         const auto *target = removed_frames(c.anchor_session, c.anchor_start);
         exported.diff +=
             std::int32_t(before(target, c.anchor_diff - c.diff) - before(target, c.anchor_diff));
-      } else if (c.diff > 0)
+      } else if (c.diff > 0) {
+        if (footage.empty())
+          output.shared_root = s;
         footage.push_back(
             {strips.identity[s].content, strips.identity[s].content_start, Word(c.diff)});
+      }
       if (exported.diff) {
         insertion = Word(output.words.size());
-        const auto words = std::bit_cast<std::array<Word, 6>>(exported);
-        output.words.insert(output.words.end(), words.begin(), words.end());
+        writer.append(exported);
       }
-      included.emplace(key, insertion);
-    } else
-      insertion = found->second;
+    } else if (c.diff > 0) {
+      if (!frames || before(frames, Word(c.diff)) < Word(c.diff))
+        insertion = 0;
+    } else {
+      const auto *target = removed_frames(c.anchor_session, c.anchor_start);
+      if (before(target, c.anchor_diff - c.diff) - before(target, c.anchor_diff) <
+          magnitude(c.diff))
+        insertion = 0;
+    }
     if (insertion != omitted && (first || strips.fragment_diff[s] != 0)) {
       left = insertion;
+      left_session = c.session;
+      left_start = c.start;
       left_diff = strips.fragment_start[s] + magnitude(strips.fragment_diff[s]);
       if (!removed.empty() && c.diff > 0)
         left_diff -= before(frames, left_diff);
@@ -130,6 +148,8 @@ Sequence Projection::sequence() const {
       }
     }
   }
+  if (writer.packed)
+    output.words[2] = writer.count;
   if (output.words.size() == 1)
     output.words.clear();
   return output;

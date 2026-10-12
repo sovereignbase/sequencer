@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace sequencer {
@@ -50,7 +51,7 @@ struct ContentAppend {
 };
 struct Splice {
   Word start{}, end{};
-  std::vector<Span> values;
+  std::optional<Span> values;
 };
 struct Result {
   std::vector<Splice> changes;
@@ -59,6 +60,7 @@ struct Result {
 struct Sequence {
   std::vector<Word> words;
   std::vector<Span> footage;
+  Index shared_root{};
 };
 
 // Links are arena indices: growth cannot invalidate links, there are no
@@ -112,7 +114,7 @@ struct Strips {
   Index append(Insertion insertion) {
     constexpr Word lanes = 12;
     if (count == capacity)
-      reserve(std::max(Word(64), capacity * 2));
+      reserve(std::max(Word(8), capacity * 2));
     const auto index = count++;
     std::construct_at(identity + index, insertion);
     auto *fields = reinterpret_cast<Word *>(identity + capacity);

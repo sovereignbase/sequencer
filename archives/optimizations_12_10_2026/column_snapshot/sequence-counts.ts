@@ -2,7 +2,8 @@ import type { U32List } from '../../dist/index.js'
 
 /** Structural counts for either supported snapshot layout, outside timing. */
 export function sequenceCounts(words: U32List) {
-  const layout = words[0] ?? 0, begin = layout & 0x7fffffff
+  const layout = words[0] ?? 0,
+    begin = layout & 0x7fffffff
   let positive = 0
   if (layout < 0x80000000) {
     for (let at = begin; at < words.length; at += 6)
@@ -19,13 +20,16 @@ export function sequenceCounts(words: U32List) {
           positive += words[at + row] > 0 && !(words[at + row] & 1) ? 1 : 0
       at += total
     } else {
-      let row = 0, value = 0
+      let row = 0,
+        value = 0
       if (mode === 3) {
-        value = words[at++]; ++row
+        value = words[at++]
+        ++row
         if (field === 5) positive += value > 0 && !(value & 1) ? 1 : 0
       }
       while (row < total) {
-        const length = words[at++], next = words[at++]
+        const length = words[at++],
+          next = words[at++]
         if (mode === 2) {
           if (field === 5) positive += next > 0 && !(next & 1) ? length : 0
         } else {

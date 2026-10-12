@@ -3,6 +3,7 @@ import type {
   Insertion,
   Sequence,
 } from '../../src/typescript/types/type.ts'
+import { sequenceMetadata } from '../../benchmark/.shared/sequence.ts'
 
 /** Author fixture metadata directly in the public snapshot layout. */
 export function makeSequence<T>(
@@ -27,8 +28,7 @@ export function sequenceInsertions<T>([
 ]: Sequence<T>): Insertion<T>[] {
   const result: Insertion<T>[] = []
   let offset = 0
-  for (let at = words[0] ?? 0; at < words.length; at += 6) {
-    const coordinates = Array.from(words.slice(at, at + 6))
+  for (const coordinates of sequenceMetadata(words).insertions) {
     const count = coordinates[5] | 0
     result.push(
       count > 0
@@ -43,11 +43,5 @@ export function sequenceInsertions<T>([
 export function sequenceFrontiers([
   words,
 ]: Sequence<unknown>): Acknowledgement[] {
-  const frontiers: Acknowledgement[] = []
-  for (let at = 1; at < (words[0] ?? 0);) {
-    const count = words[at++]
-    frontiers.push(words.slice(at, at + count))
-    at += count
-  }
-  return frontiers
+  return sequenceMetadata(words).frontiers
 }

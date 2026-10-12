@@ -3,6 +3,7 @@ import { arch, cpus, platform } from 'node:os'
 import { Projection, type Gossip, type Sequence } from '../../dist/index.js'
 import { deriveSeed, Random, seedFromString } from '../.shared/support.ts'
 import { measureProcessMemory, measureSpace } from '../.shared/space.ts'
+import { sequenceCounts, sequenceMetadata } from '../.shared/sequence.ts'
 import type {
   BenchmarkConfig,
   BenchmarkReport,
@@ -171,7 +172,7 @@ function prepare(
     operation === 'apply.duplicate' ||
     operation === 'merge.duplicate'
   ) {
-    const coordinates = Array.from(snapshot[0].slice(-6))
+    const coordinates = sequenceMetadata(snapshot[0]).insertions.at(-1)!
     updates.push([[coordinates, snapshot[1].slice(-(coordinates[5] | 0))]])
   }
   const mergeWords = operation.startsWith('merge.')
@@ -298,13 +299,11 @@ async function collectGarbage(): Promise<void> {
 function observe(state: Projection<number>): Observation {
   const sequence = state.sequence()
   const words = sequence[0]
-  let stripCount = 0
-  for (let at = words[0] ?? 0; at < words.length; at += 6)
-    if ((words[at + 5] | 0) > 0) ++stripCount
+  const { stripCount, retainedInsertionCount } = sequenceCounts(words)
   return {
     stripCount,
     frameCount: state.length(),
-    retainedInsertionCount: (words.length - (words[0] ?? 0)) / 6,
+    retainedInsertionCount,
     ...measureSpace(sequence, stripCount, state.length()),
     processMemory: measureProcessMemory(),
   }

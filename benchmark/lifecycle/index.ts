@@ -303,7 +303,10 @@ const observeReplica = (
       minimumStripLength: runtime.strips.minimumLength,
       maximumStripLength: runtime.strips.maximumLength,
       retainedDeltaCount:
-        (checkpointSequence[0].length - (checkpointSequence[0][0] ?? 0)) / 6,
+        checkpointSequence[0][0] === 0 && checkpointSequence[0].length >= 3
+          ? checkpointSequence[0][2]
+          : (checkpointSequence[0].length - (checkpointSequence[0][0] ?? 0)) /
+            6,
     },
   }
   const scope = direction === 'up' ? 'scaleUp' : 'scaleDown'

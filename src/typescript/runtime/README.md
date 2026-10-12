@@ -12,7 +12,10 @@ pointers and counts. No worker, RPC, Promise or shared memory is involved.
 Insertion coordinates contain exactly six uint32 words. Typed lists and JSON
 numeric lists are accepted; signed effects use their 32-bit bit pattern. Inputs
 use a reusable native numeric region. Results retain independent coordinate
-arrays, and uncompacted snapshots retain the original Footage arrays.
+arrays. Snapshots retain one independent words array and one content array.
+From 64 retained insertions onward, WASM omits predictable coordinate fields
+during export. Compact words remain JSON-compatible uint32 numbers; the reader
+also accepts the plain six-word snapshot layout. Footage is never packed in WASM.
 
 `npm run build` builds C++/WASM and bundles the synchronous TS package. WASM
 starts with 1 MiB of ordinary memory and grows as needed. `destroy()` releases

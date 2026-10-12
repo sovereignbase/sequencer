@@ -5,6 +5,10 @@
 namespace sequencer {
 Result Projection::apply(std::span<const Entry> gossip) {
   Result result;
+  apply(gossip, result);
+  return result;
+}
+void Projection::apply(std::span<const Entry> gossip, Result &result) {
   for (const auto &entry : gossip) {
     if (entry.acknowledgement) {
       frontier.observe(entry.frontier);
@@ -49,7 +53,8 @@ Result Projection::apply(std::span<const Entry> gossip) {
           const auto at = extend(parent, end - known, insertion.content,
                                  insertion.content_start + source_start);
           result.changes.push_back(
-              {at, at, {{insertion.content, insertion.content_start + source_start, end - known}}});
+              {at, at,
+               Span{insertion.content, insertion.content_start + source_start, end - known}});
           auto released_pending = pending.take(strips.identity[parent].coordinates);
           for (auto it = released_pending.rbegin(); it != released_pending.rend(); ++it)
             queue.push_back(*it);
@@ -138,7 +143,7 @@ Result Projection::apply(std::span<const Entry> gossip) {
         if (start + Word(diff) == frame_count)
           tail = incoming;
         result.changes.push_back(
-            {start, start, {{insertion.content, insertion.content_start, Word(c.diff)}}});
+            {start, start, Span{insertion.content, insertion.content_start, Word(c.diff)}});
       } else if (diff < 0) {
         auto position = start;
         for (auto mask = incoming; mask; mask = strips.fragment[mask]) {
@@ -167,6 +172,5 @@ Result Projection::apply(std::span<const Entry> gossip) {
         queue.push_back(*it);
     }
   }
-  return result;
 }
 } // namespace sequencer

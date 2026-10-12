@@ -87,6 +87,98 @@ class Runtime {
     }
     return [[coordinates, values]]
   }
+  apply<T>(id: number, value: unknown): T {
+    if (id < 0) throw new Error('Projection has been destroyed')
+    const entries: unknown[] = Array.isArray(value) ? value : [null]
+    let words = 1 + entries.length * 4
+    for (const entry of entries) {
+      const data =
+        Array.isArray(entry) && typeof entry[0] !== 'number' ? entry[0] : entry
+      words +=
+        Array.isArray(data) || data instanceof Uint32Array ? data.length : 0
+    }
+
+    const pointer = module._runtime_reserve(words)
+    const heap = module.HEAPU32,
+      base = pointer >>> 2
+    const contents = this.content[id]!,
+      mutable = this.mutable[id]!
+    const firstBinding = contents.length
+    const absent = 0xffffffff
+
+    let descriptor = base + 1
+    let data = descriptor + entries.length * 4
+    heap[base] = entries.length
+    for (const entry of entries) {
+      const insertion = Array.isArray(entry) && typeof entry[0] !== 'number'
+      const numbers = insertion ? entry[0] : entry
+      let numeric = numbers instanceof Uint32Array
+      if (Array.isArray(numbers)) {
+        numeric = true
+        for (let i = 0; i < numbers.length; ++i) {
+          const word = numbers[i]
+          if (
+            (!Number.isInteger(word) || word < 0 || word > absent) &&
+            i in numbers
+          ) {
+            numeric = false
+            break
+          }
+        }
+      }
+      const shape = insertion
+        ? entry.length <= 2 &&
+          entry.length > 0 &&
+          (entry[1] === undefined || Array.isArray(entry[1]))
+        : true
+      const tag = numeric && shape ? (insertion ? 0 : 1) : 2
+      const count =
+        Array.isArray(numbers) || numbers instanceof Uint32Array
+          ? numbers.length
+          : 0
+      heap[descriptor] = tag
+      heap[descriptor + 1] = data - base
+      heap[descriptor + 2] = count
+      // Masks never own content. Rejected coordinates need no JS binding.
+      heap[descriptor + 3] =
+        insertion &&
+        tag === 0 &&
+        count === 6 &&
+        numbers[5] > 0 &&
+        numbers[5] < 0x80000000
+          ? contents.push(entry[1]) - 1
+          : 0
+      if (heap[descriptor + 3]) mutable[heap[descriptor + 3]] = 2
+      if (numeric) {
+        if (insertion && count === 6) {
+          heap[data] = numbers[0]
+          heap[data + 1] = numbers[1]
+          heap[data + 2] = numbers[2]
+          heap[data + 3] = numbers[3]
+          heap[data + 4] = numbers[4]
+          heap[data + 5] = numbers[5]
+        } else heap.set(numbers as U32List, data)
+      }
+      descriptor += 4
+      data += count
+    }
+    const resultPointer = module._runtime_dispatch(
+      Operation.Apply,
+      id,
+      0,
+      0,
+      0,
+      pointer,
+      words
+    )
+    if (module.HEAPU32[resultPointer >>> 2] === 0) {
+      // Entries after a rejected input were never consumed by WASM.
+      const consumed = module.HEAPU32[(resultPointer >>> 2) + 11]
+      contents.length = Math.max(firstBinding, consumed + 1)
+      mutable.length = Math.min(mutable.length, contents.length)
+    }
+    return this.result(Operation.Apply, id, resultPointer) as T
+  }
   private inputSize(operation: Opcode, value: unknown, other: unknown): number {
     if (operation === Operation.Replace) return 1
     if (operation === Operation.Create || operation === Operation.Merge) {
@@ -96,20 +188,7 @@ class Runtime {
         ? sequence[0].length
         : 0
     }
-    if (operation !== Operation.Apply) return 0
-    const groups = [Array.isArray(value) ? value : [null]]
-    let words = 1
-    for (const group of groups)
-      for (const entry of group) {
-        const data =
-          Array.isArray(entry) && typeof entry[0] !== 'number'
-            ? entry[0]
-            : entry
-        words +=
-          4 +
-          (Array.isArray(data) || data instanceof Uint32Array ? data.length : 0)
-      }
-    return words
+    return 0
   }
 
   call<T>(
@@ -125,16 +204,11 @@ class Runtime {
     const heap = module.HEAPU32,
       base = pointer >>> 2,
       contents = this.content[id]!
-    const bind = (values: unknown): number => {
-      const token =
-        contents.push(Array.isArray(values) ? values : undefined) - 1
-      this.mutable[id]![token] = 2
-      return token
-    }
     const absent = 0xffffffff
     let a0 = 0,
       a1 = 0,
       a2 = 0
+    let footage: ReadonlyArray<unknown> | undefined
     if (operation === Operation.Replace) {
       a0 = (value as unknown[]).length
       a1 = contents.push(value as unknown[]) - 1
@@ -170,65 +244,9 @@ class Runtime {
       if (valid && sequence !== undefined) {
         const words = sequence[0] as U32List
         heap.set(words, base)
-        const start = words[0] ?? 0
-        if (
-          start >= 1 &&
-          start <= words.length &&
-          (words.length - start) % 6 === 0
-        ) {
-          a1 = contents.length
-          contents.length += (words.length - start) / 6
-          contents.fill(sequence[1], a1)
-          this.mutable[id]!.length = contents.length
-          this.mutable[id]!.fill(2, a1)
-        }
+        a1 = contents.length
+        footage = sequence[1]
       }
-    } else if (operation === Operation.Apply) {
-      const groups: unknown[][] = [Array.isArray(value) ? value : [null]]
-      const entries = groups[0].length
-      let descriptor = base + 1
-      let data = descriptor + entries * 4
-      heap[base] = entries
-      for (let group = 0; group < groups.length; ++group)
-        for (const entry of groups[group]) {
-          const insertion = Array.isArray(entry) && typeof entry[0] !== 'number'
-          const numbers = insertion ? entry[0] : entry
-          const numeric =
-            numbers instanceof Uint32Array ||
-            (Array.isArray(numbers) &&
-              numbers.every(
-                (word: unknown) =>
-                  Number.isInteger(word) &&
-                  (word as number) >= 0 &&
-                  (word as number) <= absent
-              ))
-          const shape = insertion
-            ? entry.length <= 2 &&
-              entry.length > 0 &&
-              (entry[1] === undefined || Array.isArray(entry[1]))
-            : true
-          const tag = numeric && shape ? (insertion ? 0 : 1) : 2
-          const count =
-            Array.isArray(numbers) || numbers instanceof Uint32Array
-              ? numbers.length
-              : 0
-          heap[descriptor] = tag
-          heap[descriptor + 1] = data - base
-          heap[descriptor + 2] = count
-          heap[descriptor + 3] = insertion ? bind(entry[1]) : 0
-          if (numeric) {
-            if (insertion && count === 6) {
-              heap[data] = numbers[0]
-              heap[data + 1] = numbers[1]
-              heap[data + 2] = numbers[2]
-              heap[data + 3] = numbers[3]
-              heap[data + 4] = numbers[4]
-              heap[data + 5] = numbers[5]
-            } else heap.set(numbers as U32List, data)
-          }
-          descriptor += 4
-          data += count
-        }
     }
 
     const resultPointer = module._runtime_dispatch(
@@ -240,6 +258,13 @@ class Runtime {
       pointer,
       count
     )
+    if (footage !== undefined) {
+      const bindings = module.HEAPU32[(resultPointer >>> 2) + 11]
+      contents.length += bindings
+      contents.fill(footage, a1)
+      this.mutable[id]!.length = contents.length
+      this.mutable[id]!.fill(2, a1)
+    }
     return this.result(operation, id, resultPointer) as T
   }
   private result(operation: Opcode, id: number, pointer: number): unknown {
@@ -252,6 +277,45 @@ class Runtime {
       p1 = heap[header + 5],
       n1 = heap[header + 6]
     const mutable = this.mutable[id]!
+    if (kind === 3 && n0 === 1) {
+      const at = p0 >>> 2,
+        source = content[heap[at]],
+        start = heap[at + 1],
+        size = heap[at + 2]
+      if (source && start + size <= source.length)
+        return source.slice(start, start + size)
+    }
+    if (
+      kind === 6 &&
+      heap[header + 2] === 0 &&
+      heap[header + 8] === 0 &&
+      heap[header + 10] === 0
+    )
+      return
+    if (
+      kind === 4 &&
+      n0 === 0 &&
+      n1 === 0 &&
+      heap[header + 8] === 0 &&
+      heap[header + 10] === 0
+    ) {
+      let at = heap[header + 1] >>> 2
+      const end = at + heap[header + 2] * 3
+      // Empty results discard whole input bindings; no spans are consumed.
+      for (; at < end; at += 3) {
+        const token = heap[at]
+        content[token] = undefined
+        mutable[token] = 0
+      }
+      while (
+        content.length > 1 &&
+        content[content.length - 1] === undefined &&
+        mutable[content.length - 1] === 0
+      )
+        content.pop()
+      mutable.length = Math.min(mutable.length, content.length)
+      return [[]]
+    }
     for (
       let at = heap[header + 9] >>> 2, end = at + heap[header + 10] * 3;
       at < end;
@@ -308,6 +372,11 @@ class Runtime {
       let size = 0
       for (let at = begin; at < end; at += 3) size += heap[at + 2]
       const result = new Array<unknown>(size)
+      if (size === count) {
+        for (let at = begin, target = 0; at < end; at += 3)
+          result[target++] = content[heap[at]]?.[heap[at + 1]]
+        return result
+      }
       let target = 0
       for (let at = pointer >>> 2, end = at + count * 3; at < end; at += 3) {
         const source = content[heap[at]],
@@ -374,6 +443,14 @@ class Runtime {
         break
       }
       case 5: {
+        // A literal allocation site keeps compact words in integer elements
+        // independently of full uint32 Gossip's double-element feedback.
+        let metadata: number[]
+        if (n0 > 0 && heap[p0 >>> 2] === 0) {
+          metadata = [0]
+          metadata.length = n0
+          for (let i = 0, at = p0 >>> 2; i < n0; ++i) metadata[i] = heap[at + i]
+        } else metadata = words(p0, n0)
         const span = p1 >>> 2,
           token = heap[span]
         const shared =
@@ -385,7 +462,7 @@ class Runtime {
           content[token] = content[token]!.map((value) => value)
           mutable[token] = 3
         }
-        result = [words(p0, n0), shared ? content[token] : values(p1, n1)]
+        result = [metadata, shared ? content[token] : values(p1, n1)]
         break
       }
       case 6:
@@ -414,7 +491,7 @@ class Runtime {
         base = heap[at + 5]
       if (content[target] === undefined && source === undefined) continue
       let footage = content[target] as unknown[] | undefined
-      if (mutable[target] !== 1) {
+      if (mutable[target] !== 1 || footage === undefined) {
         footage =
           footage?.slice(base, base + offset) ?? new Array<unknown>(offset)
         content[target] = footage
@@ -425,6 +502,7 @@ class Runtime {
         footage!.push.apply(footage, source as unknown[])
       else for (let i = 0; i < count; ++i) footage!.push(source?.[start + i])
     }
+    let trim = false
     for (
       let at = heap[header + 1] >>> 2, end = at + heap[header + 2] * 3;
       at < end;
@@ -434,6 +512,7 @@ class Runtime {
         start = heap[at + 1],
         count = heap[at + 2]
       if (count === 0) {
+        trim = true
         if (token === content.length - 1) {
           content.pop()
           mutable.length = Math.min(mutable.length, content.length)
@@ -447,6 +526,15 @@ class Runtime {
           start,
           start + count
         )
+    }
+    if (trim) {
+      while (
+        content.length > 1 &&
+        content[content.length - 1] === undefined &&
+        mutable[content.length - 1] === 0
+      )
+        content.pop()
+      mutable.length = Math.min(mutable.length, content.length)
     }
     return result
   }

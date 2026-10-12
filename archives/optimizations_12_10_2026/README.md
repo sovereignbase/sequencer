@@ -4,18 +4,23 @@ Existing records were moved into this directory. New investigations continue her
 Each experiment retains its source, inputs, raw measurements, complete benchmark
 comparisons, correctness checks, and acceptance decision.
 
-| Investigation | Decision | Main finding |
-| --- | --- | --- |
-| [Contiguous insertion extensions](contiguous_insertion_extensions/README.md) | Earlier prototype rejected | Preserve the distinction between intact local extensions and remote replay into fragmented roots. |
-| [Flat Sequence](flat_sequence/README.md) | Existing implementation; performance acceptance remains open | One words array and one Footage array reduce retained metadata and storage. |
-| [Snapshot columns](column_snapshot/README.md) | Rejected | Individual fields can compress even when insertion anchors cannot be combined; export-time repacking adds measurable cost. |
-| [Arena-index visitation](sequence_indices/README.md) | Rejected | Removing per-insertion export hashing speeds large snapshots, but the full-suite guard did not pass. |
-| [Insertion ownership layout](insertion_ownership/README.md) | Rejected | Packing ownership into existing flags saves native arena bytes; performance remains unresolved. |
+The continuing investigations are [the apply pipeline](apply_pipeline/README.md)
+and [streaming snapshots](streaming_snapshot/README.md). Their baseline is the
+published npm 0.0.1 implementation, which already includes extensions and flat
+snapshots. Earlier rejected experiments below retain their original decisions.
 
-The new experiments did not become production runtime changes. The build was
-restored and verified byte-identical to the fresh session baseline. The public
-API remains synchronous, and snapshots remain `[words, footage]` with their
-existing six-word records and length-prefixed acknowledgements.
+| Investigation                                                                | Decision                                                     | Main finding                                                                                                               |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| [Contiguous insertion extensions](contiguous_insertion_extensions/README.md) | Earlier prototype rejected                                   | Preserve the distinction between intact local extensions and remote replay into fragmented roots.                          |
+| [Flat Sequence](flat_sequence/README.md)                                     | Existing implementation; performance acceptance remains open | One words array and one Footage array reduce retained metadata and storage.                                                |
+| [Snapshot columns](column_snapshot/README.md)                                | Rejected                                                     | Individual fields can compress even when insertion anchors cannot be combined; export-time repacking adds measurable cost. |
+| [Arena-index visitation](sequence_indices/README.md)                         | Rejected                                                     | Removing per-insertion export hashing speeds large snapshots, but the full-suite guard did not pass.                       |
+| [Insertion ownership layout](insertion_ownership/README.md)                  | Rejected                                                     | Packing ownership into existing flags saves native arena bytes; performance remains unresolved.                            |
+
+The earlier rejected experiments did not become production runtime changes.
+Their build was restored and verified byte-identical to their session baseline.
+The public API remains synchronous. The later streaming snapshot investigation
+keeps `[words, footage]` and adds compact numeric records alongside the plain layout.
 
 The next storage hypothesis supported by these measurements is to produce
 compressed metadata during the existing snapshot traversal, rather than create

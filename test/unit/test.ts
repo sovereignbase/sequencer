@@ -5,7 +5,7 @@ import {
 } from '../.shared/sequence.ts'
 import { describe, expect, it } from 'vitest'
 import { Projection } from '../../src/typescript/class.ts'
-import type { Gossip, Sequence } from '../../src/typescript/class.ts'
+import type { Gossip, Insertion, Sequence } from '../../src/typescript/class.ts'
 const seed = (): Sequence<string> =>
   makeSequence(
     [],
@@ -99,6 +99,27 @@ describe('Projection public API', () => {
       for (const gossip of [[], [[2]], sequenceInsertions(seed())])
         expect(projection.apply(gossip)).toEqual([[]])
       expect(projection.values()).toEqual(['a', 'b', 'c'])
+    })
+    it('keeps omitted Footage isolated through masking, extensions and duplicate batches', () => {
+      const p = new Projection<string>(1)
+      const roots: Gossip<string> = [
+        [[0, 0, 0, 100, 0, 2]],
+        [[0, 0, 0, 200, 0, 2]],
+      ]
+      p.apply(roots)
+      p.apply([[[200, 0, 0, 300, 0, 0xffffffff]]])
+      p.apply([[[200, 0, 2, 200, 2, 1], ['Y']]])
+      p.apply([[[100, 0, 2, 100, 2, 1], ['X']]])
+      for (let i = 0; i < 32; ++i) expect(p.apply(roots)).toEqual([[]])
+      const values = p.values()
+      expect(values).toHaveLength(5)
+      expect(values.filter((value) => value === undefined)).toHaveLength(3)
+      expect(values.filter((value) => value === 'X')).toHaveLength(1)
+      expect(values.filter((value) => value === 'Y')).toHaveLength(1)
+      const restored = new Projection<string>(2, p.sequence())
+      expect(restored.values()).toEqual(values)
+      restored.destroy()
+      p.destroy()
     })
     it('defers an Insertion until its parent arrives', () => {
       const projection = new Projection<string>(1)
@@ -282,6 +303,56 @@ describe('Projection public API', () => {
     })
   })
   describe('sequence', () => {
+    it.each([false, true])(
+      'preserves large coordinates, masks and future replay in compact snapshots with compaction %s',
+      (compact) => {
+        const session = 0xfffffffe
+        const first = 0x80000000
+        const source = new Projection<number>(
+          0xf0000000,
+          makeSequence(
+            [],
+            Array.from({ length: 128 }, (_, index): Insertion<number> => [
+              index === 0
+                ? [0, 0, 0, session, first, 1]
+                : [
+                    session,
+                    first + (index - 1) * 2,
+                    1,
+                    session,
+                    first + index * 2,
+                    1,
+                  ],
+              [index],
+            ])
+          )
+        )
+        if (!compact) source.apply([[3]])
+        source.remove(32, 33)
+        const snapshot = source.sequence()
+        expect(snapshot[0][0]).toBe(0)
+        expect(snapshot[0].every((word) => word <= 0x3fffffff)).toBe(true)
+        expect(
+          sequenceInsertions(snapshot).some((entry) => (entry[0][5] | 0) < 0)
+        ).toBe(!compact)
+        const retained = structuredClone(snapshot)
+        const future = source.insert([999], 64)
+        expect(snapshot).toEqual(retained)
+        for (const restored of [
+          snapshot,
+          JSON.parse(JSON.stringify(snapshot)),
+          [new Uint32Array(snapshot[0]), snapshot[1]],
+        ]) {
+          const receiver = new Projection<number>(2, restored)
+          expect(receiver.apply(future)).toBeDefined()
+          expect(receiver.values()).toEqual(source.values())
+          expect(receiver.merge(restored)).toBeDefined()
+          expect(receiver.values()).toEqual(source.values())
+          receiver.destroy()
+        }
+        source.destroy()
+      }
+    )
     it('reads current caller-owned Footage on every snapshot', () => {
       const p = new Projection<string>(1)
       const values = ['a']

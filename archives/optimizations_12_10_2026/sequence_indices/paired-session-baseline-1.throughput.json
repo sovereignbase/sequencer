@@ -9,11 +9,7 @@
     "maximumCalls": 10000,
     "runs": 1,
     "maximumStripCount": 10000,
-    "checkpoints": [
-      100,
-      1000,
-      10000
-    ],
+    "checkpoints": [100, 1000, 10000],
     "minimumStripFrameLength": 1,
     "maximumStripFrameLength": 100,
     "warmupCycles": 64,

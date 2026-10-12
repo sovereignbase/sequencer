@@ -16,13 +16,13 @@ replacements for the repository's complete lifecycle and throughput suites.
 The random-removal diagnostic removes the suffix at its selected position;
 it must not be described as the external benchmark's editing workload.
 
-| Scenario | Original JSON | Column experiment JSON | Original gzip | Column gzip |
-| --- | ---: | ---: | ---: | ---: |
-| Append characters | 24,031 B | 24,031 B | 87 B | 87 B |
-| Prepend characters | 228,885 B | 24,103 B | 29,884 B | 120 B |
-| Random characters | 239,216 B | 93,450 B | 31,271 B | 27,925 B |
-| Random eight-character words | 403,341 B | 267,647 B | 38,810 B | 33,764 B |
-| Two editing actors | 236,578 B | 166,162 B | 33,030 B | 30,568 B |
+| Scenario                     | Original JSON | Column experiment JSON | Original gzip | Column gzip |
+| ---------------------------- | ------------: | ---------------------: | ------------: | ----------: |
+| Append characters            |      24,031 B |               24,031 B |          87 B |        87 B |
+| Prepend characters           |     228,885 B |               24,103 B |      29,884 B |       120 B |
+| Random characters            |     239,216 B |               93,450 B |      31,271 B |    27,925 B |
+| Random eight-character words |     403,341 B |              267,647 B |      38,810 B |    33,764 B |
+| Two editing actors           |     236,578 B |              166,162 B |      33,030 B |    30,568 B |
 
 These are the JavaScript layout probes in `target-baseline.json`. The runtime
 candidate also interns Session IDs, so its exact sizes differ; see
@@ -51,12 +51,12 @@ it is an additional pass over already-built snapshot metadata.
 Five alternating process pairs, each collecting five timed samples after an
 initial sample, produced these snapshot-export medians:
 
-| Scenario | Original | Candidate | Change |
-| --- | ---: | ---: | ---: |
-| Prepend | 1.385 ms | 1.564 ms | +12.9% |
-| Random characters | 1.643 ms | 1.566 ms | −4.7% |
-| Random words | 1.789 ms | 2.132 ms | +19.1% |
-| Two editing actors | 1.852 ms | 2.237 ms | +20.8% |
+| Scenario           | Original | Candidate | Change |
+| ------------------ | -------: | --------: | -----: |
+| Prepend            | 1.385 ms |  1.564 ms | +12.9% |
+| Random characters  | 1.643 ms |  1.566 ms |  −4.7% |
+| Random words       | 1.789 ms |  2.132 ms | +19.1% |
+| Two editing actors | 1.852 ms |  2.237 ms | +20.8% |
 
 Small cold-call diagnostics also regressed. The complete three-run suite and
 every-row comparison are retained in `baseline.*.json`, `candidate.*.json`, and

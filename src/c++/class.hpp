@@ -43,9 +43,11 @@ public:
   Gossip remove(Word start, std::int64_t end);
   Gossip replace(Word count, Word content, Word start, std::int64_t end);
   Result apply(std::span<const Entry> gossip);
+  void apply(std::span<const Entry> gossip, Result &result);
   void hydrate(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers);
   Result merge(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers);
   std::vector<Span> values(Word start, Word end);
+  void values(Word start, Word end, std::vector<Span> &output);
   Sequence sequence() const;
 };
 } // namespace sequencer

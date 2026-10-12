@@ -25,8 +25,11 @@ lifecycle workload and API throughput bursts. Full results are available for
 [lifecycle](benchmark/.results/lifecycle.md) and
 [throughput](benchmark/.results/throughput.md).
 
-Latest throughput results, measured on 12 October 2026. Latencies are in µs per
+Published 0.0.1 throughput results, measured on 12 October 2026. Latencies are in µs per
 public API call, weighted by call count across five runs.
+
+The ongoing [runtime optimization measurements](archives/optimizations_12_10_2026/streaming_snapshot/README.md)
+compare compact snapshots and allocation changes against that release.
 
 | Operation                           | 100 initial insertions | 1,000 initial insertions | 10,000 initial insertions |
 | ----------------------------------- | ---------------------: | -----------------------: | ------------------------: |
@@ -59,6 +62,9 @@ retained in [the optimization report](archives/optimizations_12_10_2026/flat_seq
 
 ### Moderate bundle size
 
+The table below records the published 0.0.1 bundles. Current artifact sizes and
+hashes are retained in the [optimization record](archives/optimizations_12_10_2026/streaming_snapshot/artifact-sizes.json).
+
 | Format   |      Raw | Minified | Minified + gzip |
 | -------- | -------: | -------: | --------------: |
 | ESM      | 117.9 kB |  99.7 kB |         36.4 kB |
@@ -76,9 +82,13 @@ arrays. Generic content, called Footage, stays in JavaScript; only numeric
 metadata enters WASM.
 
 `sequence()` returns `[words, footage]`: one numeric array and one content
-array, with no nested insertion or acknowledgement arrays. `words[0]` locates
-the first six-word insertion record; preceding acknowledgements are length
-prefixed. Positive insertion lengths identify successive spans of `footage`.
+array, with no nested insertion or acknowledgement arrays. Small snapshots use
+six-word records after length-prefixed acknowledgements. From 64 retained
+insertions onward, predictable fields are omitted as WASM writes the snapshot;
+`[0, frontiersEnd, insertionCount]` identifies this compact numeric layout.
+Coordinates, acknowledgements and content order are preserved. The runtime
+reads both layouts; compact snapshots require an updated reader.
+Positive insertion lengths identify successive spans of `footage`.
 An empty Sequence is `[[], []]`. Construction and `merge()` accept numeric
 arrays or `Uint32Array` metadata; exported numeric arrays can be sent as JSON.
 
@@ -114,7 +124,7 @@ Sizes vary with Session IDs and content.
 typechecks tests, runs unit, convergence, integration and generative stress suites
 with V8 coverage, then runs runtime and browser compatibility checks.
 
-The latest verification passed 167 Vitest tests and 88 compatibility checks.
+The latest verification passed 170 Vitest tests and 88 compatibility checks.
 Convergence tests include 1,024 generated editing histories for each compaction
 mode. See the [test suites](test/README.md) and
 [automated test report](https://sovereignbase.dev/sequencer/tests/).

@@ -26,7 +26,7 @@ struct SpliceView {
   Word start, end, pointer, count;
 };
 struct Output {
-  std::array<Word, 11> header{};
+  std::array<Word, 12> header{};
   Gossip entries;
   Result result;
   Sequence sequence;
@@ -47,6 +47,17 @@ struct Output {
 static_assert(sizeof(Span) == 12 && sizeof(EntryView) == 16 && sizeof(SpliceView) == 16);
 Output out;
 std::unordered_set<Word> session_ids;
+Word registered_session{}, registered_anchor{};
+void register_sessions(const Coordinates &c) {
+  if (c.session != registered_session) {
+    session_ids.insert(c.session);
+    registered_session = c.session;
+  }
+  if (c.anchor_session != registered_anchor) {
+    session_ids.insert(c.anchor_session);
+    registered_anchor = c.anchor_session;
+  }
+}
 Word random_state = 0x9e3779b9;
 Word next_session() {
   Word id;
@@ -60,6 +71,7 @@ Word next_session() {
 }
 struct Reader {
   std::size_t position{};
+  Word bindings{};
   bool valid = true;
   Entry invalid() {
     valid = false;
@@ -71,6 +83,42 @@ struct Reader {
       return 0;
     }
     return input[position++];
+  }
+  Word snapshot_word() {
+    const auto value = word();
+    if (value != 0x3fffffffu)
+      return value;
+    const auto low = word(), high = word();
+    if ((low | high) > 0xffffu)
+      valid = false;
+    return low | (high << 16);
+  }
+  Word session() {
+    const auto low = word(), high = word();
+    if ((low | high) > 0xffffu)
+      valid = false;
+    return low | (high << 16);
+  }
+  Coordinates snapshot_coordinates(const Coordinates &previous) {
+    const auto control = word();
+    if (control > 0x3fffffffu)
+      valid = false;
+    Coordinates c;
+    c.session = control & 1 ? session() : previous.session;
+    c.anchor_session = control & 2 ? session() : c.session;
+    c.start =
+        control & 4 ? snapshot_word()
+        : c.session != previous.session
+            ? 0
+            : previous.start + (previous.diff < 0 ? Word(-previous.diff) : Word(previous.diff)) + 1;
+    c.anchor_start = control & 8 ? snapshot_word() : control >> 6;
+    c.anchor_diff = control & 16 ? snapshot_word() : 1;
+    if (control & 32) {
+      const auto diff = snapshot_word();
+      c.diff = std::bit_cast<std::int32_t>((diff >> 1) ^ (0u - (diff & 1)));
+    } else
+      c.diff = 1;
+    return c;
   }
   Entry entry() {
     const auto tag = word();
@@ -89,8 +137,7 @@ struct Reader {
                     data[3], data[4], std::bit_cast<std::int32_t>(data[5])};
       if (!c.diff || c.diff == std::numeric_limits<std::int32_t>::min())
         return invalid();
-      session_ids.insert(c.anchor_session);
-      session_ids.insert(c.session);
+      register_sessions(c);
       return Entry::insert({c, content});
     } else
       return invalid();
@@ -100,8 +147,15 @@ struct Reader {
     std::vector<Acknowledgement> frontiers;
     if (input.empty())
       return {std::move(insertions), std::move(frontiers)};
-    const auto end = word();
-    if (!end || end > input.size() || (input.size() - end) % 6) {
+    auto end = word();
+    const auto packed = end == 0;
+    Word records = 0;
+    if (packed) {
+      end = word();
+      records = word();
+    }
+    if (end < position || end > input.size() ||
+        (packed ? records > input.size() - end : (input.size() - end) % 6 != 0)) {
       valid = false;
       return {};
     }
@@ -111,26 +165,47 @@ struct Reader {
         valid = false;
         return {};
       }
-      frontiers.emplace_back(input.begin() + position, input.begin() + position + count);
-      position += count;
+      if (packed) {
+        auto &a = frontiers.emplace_back();
+        a.reserve(count);
+        for (Word i = 0; i < count; ++i)
+          a.push_back(snapshot_word());
+        if (!valid || position > end) {
+          valid = false;
+          return {};
+        }
+      } else {
+        frontiers.emplace_back(input.begin() + position, input.begin() + position + count);
+        position += count;
+      }
     }
-    insertions.reserve((input.size() - end) / 6);
+    if (!packed)
+      records = Word((input.size() - end) / 6);
+    insertions.reserve(records);
     Word offset = 0;
-    while (position < input.size()) {
-      const auto data = input.subspan(position, 6);
-      Coordinates c{data[0], data[1], data[2],
-                    data[3], data[4], std::bit_cast<std::int32_t>(data[5])};
-      if (!c.diff || c.diff == std::numeric_limits<std::int32_t>::min()) {
+    Coordinates previous;
+    for (Word i = 0; i < records; ++i) {
+      Coordinates c;
+      if (packed)
+        c = snapshot_coordinates(previous);
+      else {
+        const auto data = input.subspan(position, 6);
+        c = {data[0], data[1], data[2], data[3], data[4], std::bit_cast<std::int32_t>(data[5])};
+        position += 6;
+      }
+      if (!valid || !c.diff || c.diff == std::numeric_limits<std::int32_t>::min()) {
         valid = false;
         return {};
       }
-      session_ids.insert(c.anchor_session);
-      session_ids.insert(c.session);
-      insertions.push_back(
-          Entry::insert({c, c.diff > 0 ? content + Word(insertions.size()) : 0, offset}));
+      register_sessions(c);
+      insertions.push_back(Entry::insert({c, c.diff > 0 ? content + bindings++ : 0, offset}));
       if (c.diff > 0)
         offset += Word(c.diff);
-      position += 6;
+      previous = c;
+    }
+    if (position != input.size()) {
+      valid = false;
+      return {};
     }
     return {std::move(insertions), std::move(frontiers)};
   }
@@ -190,6 +265,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
         out.header[3] = 2;
         break;
       }
+      out.header[11] = r.bindings;
       for (const auto &e : g) {
         const auto c = e.insertion.coordinates;
         for (auto *clock : {&p.increase_clock, &p.decrease_clock})
@@ -211,13 +287,8 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
           kind = 0;
           break;
         }
-        auto applied = p.apply(std::span(&entry, 1));
-        out.result.changes.insert(out.result.changes.end(),
-                                  std::make_move_iterator(applied.changes.begin()),
-                                  std::make_move_iterator(applied.changes.end()));
-        out.result.gossip.insert(out.result.gossip.end(),
-                                 std::make_move_iterator(applied.gossip.begin()),
-                                 std::make_move_iterator(applied.gossip.end()));
+        out.header[11] = std::max(out.header[11], entry.insertion.content);
+        p.apply(std::span(&entry, 1), out.result);
       }
       if (!r.valid)
         kind = 0;
@@ -230,6 +301,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
         kind = 0;
         break;
       }
+      out.header[11] = r.bindings;
       out.result = p.merge(g, f);
       kind = 4;
       break;
@@ -255,8 +327,8 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
       kind = 5;
       break;
     case 10:
-      out.values =
-          p.values(arg0 == UINT32_MAX ? 0 : arg0, arg1 == UINT32_MAX ? p.length() - 1 : arg1);
+      p.values(arg0 == UINT32_MAX ? 0 : arg0, arg1 == UINT32_MAX ? p.length() - 1 : arg1,
+               out.values);
       kind = 3;
       break;
     default:
@@ -291,7 +363,8 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
   case 4:
     out.splices.clear();
     for (const auto &s : out.result.changes)
-      out.splices.push_back({s.start, s.end, address(s.values.data()), Word(s.values.size())});
+      out.splices.push_back(
+          {s.start, s.end, s.values ? address(&*s.values) : 0, Word(s.values.has_value())});
     out.expose(out.result.gossip);
     out.header[3] = address(out.splices.data());
     out.header[4] = Word(out.splices.size());
@@ -299,23 +372,14 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     out.header[6] = Word(out.gossip.size());
     break;
   case 5:
-    if (out.sequence.footage.size() == 1) {
-      const auto token = out.sequence.footage[0].content;
-      for (auto at = out.sequence.words.empty() ? 0 : out.sequence.words[0];
-           at < out.sequence.words.size(); at += 6) {
-        if (std::bit_cast<std::int32_t>(out.sequence.words[at + 5]) <= 0)
-          continue;
-        const auto root = p.containment.get(out.sequence.words[at + 3], out.sequence.words[at + 4]);
-        if (p.strips.identity[root].content != token)
-          continue;
-        const auto &source = p.strips.identity[root];
-        if (out.sequence.footage[0].start != source.content_start ||
-            out.sequence.footage[0].count != Word(source.coordinates.diff))
-          break;
+    if (out.sequence.footage.size() == 1 && out.sequence.shared_root) {
+      const auto root = out.sequence.shared_root;
+      const auto &source = p.strips.identity[root];
+      const auto span = out.sequence.footage[0];
+      if (span.content == source.content && span.start == source.content_start &&
+          span.count == Word(source.coordinates.diff))
         for (auto i = root; i; i = p.strips.fragment[i])
           p.strips.identity[i].content_owned = false;
-        break;
-      }
     }
     out.header[3] = address(out.sequence.words.data());
     out.header[4] = Word(out.sequence.words.size());

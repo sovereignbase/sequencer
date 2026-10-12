@@ -50,23 +50,23 @@ diagnostic also did not resolve the mixed result.
 
 Five isolated 6,000-random-insertion processes measured the final variant:
 
-| Measurement | Baseline | Packed flags |
-| --- | ---: | ---: |
-| WASM capacity before and after export | 2,883,584 B | 2,752,512 B |
-| Retained snapshot JS heap median after GC | 346,128 B | 346,384 B |
-| Snapshot JSON | 239,216 B | 239,216 B |
-| Snapshot V8 serialization | 323,693 B | 323,693 B |
+| Measurement                               |    Baseline | Packed flags |
+| ----------------------------------------- | ----------: | -----------: |
+| WASM capacity before and after export     | 2,883,584 B |  2,752,512 B |
+| Retained snapshot JS heap median after GC |   346,128 B |    346,384 B |
+| Snapshot JSON                             |   239,216 B |    239,216 B |
+| Snapshot V8 serialization                 |   323,693 B |    323,693 B |
 
 WASM capacity decreased 131,072 bytes (4.55%) in this scenario. This is not an
 allocator live-byte count or process RSS. The experiment does not reduce persistent
 document size: it only changes native memory layout and executable size.
 
-| Artifact | Baseline | Packed flags |
-| --- | ---: | ---: |
-| ESM including WASM | 117,880 B | 117,550 B |
-| ESM gzip | 39,268 B | 39,053 B |
-| WASM raw | 73,175 B | 73,073 B |
-| WASM gzip | 29,795 B | 29,605 B |
+| Artifact           |  Baseline | Packed flags |
+| ------------------ | --------: | -----------: |
+| ESM including WASM | 117,880 B |    117,550 B |
+| ESM gzip           |  39,268 B |     39,053 B |
+| WASM raw           |  73,175 B |     73,073 B |
+| WASM gzip          |  29,795 B |     29,605 B |
 
 `artifact-sizes.json` includes Brotli sizes and SHA-256 hashes. JavaScript outside
 the WASM literal is byte-identical, including its raw/gzip/Brotli hashes.

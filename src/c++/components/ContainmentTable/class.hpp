@@ -17,6 +17,7 @@ class ContainmentTable {
   }
 
 public:
+  Word size() const { return count; }
   Index get(Word session, Word start) const {
     if (slots.empty())
       return none;
@@ -29,7 +30,7 @@ public:
   bool has(const Coordinates &c) const { return get(c.session, c.start) != none; }
   void set(const Coordinates &c, Index strip) {
     if ((count + 1) * 4 > slots.size() * 3) {
-      std::vector<Slot> grown(std::max(std::size_t(64), slots.size() * 2));
+      std::vector<Slot> grown(std::max(std::size_t(8), slots.size() * 2));
       const auto mask = Word(grown.size() - 1);
       for (const auto &slot : slots)
         if (slot.strip) {

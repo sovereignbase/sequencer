@@ -14,7 +14,7 @@ export class Projection<T> {
   }
 
   apply(gossip: unknown): Result<T> | undefined {
-    return runtime.call(Operation.Apply, this.id, gossip)
+    return runtime.apply(this.id, gossip)
   }
 
   insert(values: Array<T>, at: number): Gossip<T> {

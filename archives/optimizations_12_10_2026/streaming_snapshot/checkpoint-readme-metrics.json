@@ -1,0 +1,95 @@
+{
+  "bundles": [
+    {
+      "file": "dist/index.js",
+      "raw": 120899,
+      "minified": 101602,
+      "gzip": 36785
+    },
+    {
+      "file": "dist/index.cjs",
+      "raw": 121049,
+      "minified": 102444,
+      "gzip": 36999
+    }
+  ],
+  "memory": [
+    {
+      "projections": 8,
+      "framesPerProjection": 6000,
+      "heapUsedDelta": 501128,
+      "wasmBefore": 1048576,
+      "wasmAfter": 1048576,
+      "wasmGrowth": 0,
+      "storageV8": 18052,
+      "storageV8Dense": 18052,
+      "storageJSON": 24031,
+      "retainedInsertions": 1
+    },
+    {
+      "projections": 8,
+      "framesPerProjection": 6000,
+      "heapUsedDelta": 501128,
+      "wasmBefore": 1048576,
+      "wasmAfter": 1048576,
+      "wasmGrowth": 0,
+      "storageV8": 18052,
+      "storageV8Dense": 18052,
+      "storageJSON": 24031,
+      "retainedInsertions": 1
+    },
+    {
+      "projections": 8,
+      "framesPerProjection": 6000,
+      "heapUsedDelta": 501128,
+      "wasmBefore": 1048576,
+      "wasmAfter": 1048576,
+      "wasmGrowth": 0,
+      "storageV8": 18052,
+      "storageV8Dense": 18052,
+      "storageJSON": 24031,
+      "retainedInsertions": 1
+    },
+    {
+      "projections": 8,
+      "framesPerProjection": 6000,
+      "heapUsedDelta": 488912,
+      "wasmBefore": 1048576,
+      "wasmAfter": 1048576,
+      "wasmGrowth": 0,
+      "storageV8": 18052,
+      "storageV8Dense": 18052,
+      "storageJSON": 24031,
+      "retainedInsertions": 1
+    },
+    {
+      "projections": 8,
+      "framesPerProjection": 6000,
+      "heapUsedDelta": 488912,
+      "wasmBefore": 1048576,
+      "wasmAfter": 1048576,
+      "wasmGrowth": 0,
+      "storageV8": 18052,
+      "storageV8Dense": 18052,
+      "storageJSON": 24031,
+      "retainedInsertions": 1
+    }
+  ],
+  "transport": [
+    {
+      "json": 45772,
+      "gzip": 5078,
+      "average": 44.771
+    },
+    {
+      "json": 66781,
+      "gzip": 7480,
+      "average": 65.78
+    },
+    {
+      "json": 4031,
+      "gzip": 68,
+      "average": 4.031
+    }
+  ]
+}

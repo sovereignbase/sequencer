@@ -25,50 +25,43 @@ lifecycle workload and API throughput bursts. Full results are available for
 [lifecycle](benchmark/.results/lifecycle.md) and
 [throughput](benchmark/.results/throughput.md).
 
-Published 0.0.1 throughput results, measured on 12 October 2026. Latencies are in µs per
-public API call, weighted by call count across five runs.
-
-The ongoing [runtime optimization measurements](archives/optimizations_12_10_2026/streaming_snapshot/README.md)
-compare compact snapshots and allocation changes against that release.
+Current throughput results, measured on 12 October 2026. Latencies are in µs per
+public API call, weighted by call count across three runs.
 
 | Operation                           | 100 initial insertions | 1,000 initial insertions | 10,000 initial insertions |
 | ----------------------------------- | ---------------------: | -----------------------: | ------------------------: |
-| `new Projection(actorID, sequence)` |                  1.732 |                    1.725 |                     1.648 |
-| `insert`, random position           |                  1.043 |                    1.036 |                     1.081 |
-| `remove`, middle                    |                  1.091 |                    1.269 |                     1.433 |
-| `replace`, middle                   |                  1.145 |                    1.369 |                     1.430 |
-| `sequence()`                        |                  0.353 |                    0.390 |                     0.363 |
-| `value`, random position            |                  0.065 |                    0.053 |                     0.115 |
-| `values()`                          |                  4.352 |                  147.965 |                  1156.844 |
+| `new Projection(actorID, sequence)` |                  2.013 |                    1.598 |                     1.503 |
+| `insert`, random position           |                  1.108 |                    1.045 |                     1.076 |
+| `remove`, middle                    |                  1.534 |                    1.605 |                     1.493 |
+| `replace`, middle                   |                  1.507 |                    1.364 |                     1.625 |
+| `sequence()`                        |                  0.288 |                    0.320 |                     0.331 |
+| `value`, random position            |                  0.090 |                    0.082 |                     0.155 |
+| `values()`                          |                  4.787 |                  174.213 |                  1252.987 |
 
 Environment: Node 24.16.0, V8 13.6.233.17-node.49, Windows x64, Intel Core
 i5-10210U. Generated Strip lengths are 1–100 Frames. Each case warms up for
-64 calls, then measures a burst of approximately 100 ms or at most 10,000 calls.
+2,048 calls, then measures a burst of approximately 100 ms or at most 8,192 calls.
 
 ## Memory efficiency
 
-Retained-memory comparison for eight Projections, each containing 6,000
+Retained memory for eight Projections, each containing 6,000 consecutive
 single-Frame insertions. These are five-run medians from isolated Node processes:
 
-| Measurement                 | Before extension coalescing |  Current |
-| --------------------------- | --------------------------: | -------: |
-| Additional JS heap after GC |                    2.038 MB | 0.520 MB |
-| Shared WASM memory capacity |                    7.406 MB | 1.049 MB |
+| Measurement                 |  Current |
+| --------------------------- | -------: |
+| Additional JS heap after GC | 0.501 MB |
+| Shared WASM memory capacity | 1.049 MB |
 
 Module import and a small warm-up are excluded from the heap delta. WASM
 capacity includes the initial 1 MiB allocation. These are not process RSS or
-per-Projection total memory. Measurements and complete before/after results are
-retained in [the optimization report](archives/optimizations_12_10_2026/flat_sequence/README.md).
+per-Projection total memory.
 
 ### Moderate bundle size
 
-The table below records the published 0.0.1 bundles. Current artifact sizes and
-hashes are retained in the [optimization record](archives/optimizations_12_10_2026/streaming_snapshot/artifact-sizes.json).
-
 | Format   |      Raw | Minified | Minified + gzip |
 | -------- | -------: | -------: | --------------: |
-| ESM      | 117.9 kB |  99.7 kB |         36.4 kB |
-| CommonJS | 118.0 kB | 100.6 kB |         36.6 kB |
+| ESM      | 120.9 kB | 101.6 kB |         36.8 kB |
+| CommonJS | 121.0 kB | 102.4 kB |         37.0 kB |
 
 Both bundles include the WASM module. Minified sizes use Terser with three
 compression passes; source maps and type declarations are excluded. kB and MB
@@ -108,7 +101,7 @@ their removal Gossip, and a snapshot captured before removal:
 | Workload                                       | Average bytes per operation or insertion |    JSON | JSON + gzip | gzip reduction |
 | ---------------------------------------------- | ---------------------------------------: | ------: | ----------: | -------------: |
 | 1,000 one-frame insertions                     |                                   44.8 B | 45.8 kB |      5.1 kB |          88.9% |
-| 1,000 one-frame removals                       |                                   67.8 B | 68.8 kB |      7.7 kB |          88.9% |
+| 1,000 one-frame removals                       |                                   65.8 B | 66.8 kB |      7.5 kB |          88.8% |
 | Snapshot containing 1,000 one-frame insertions |                                    4.0 B |  4.0 kB |      0.1 kB |          98.3% |
 
 Gossip sizes include acknowledgements and content where present. Delta averages
@@ -125,6 +118,8 @@ typechecks tests, runs unit, convergence, integration and generative stress suit
 with V8 coverage, then runs runtime and browser compatibility checks.
 
 The latest verification passed 170 Vitest tests and 88 compatibility checks.
+The configured 100% coverage threshold remains unmet (95.66% statements,
+94.94% branches, 100% functions, 97.23% lines).
 Convergence tests include 1,024 generated editing histories for each compaction
 mode. See the [test suites](test/README.md) and
 [automated test report](https://sovereignbase.dev/sequencer/tests/).

@@ -3,6 +3,7 @@
 
 namespace sequencer {
 Gossip Projection::remove(Word start, std::int64_t end) {
+  last_insert = none;
   Gossip output;
   auto remaining = std::int64_t(end) - start + 1;
   while (remaining > 0) {

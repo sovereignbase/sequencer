@@ -32,11 +32,12 @@ struct InsertionView {
   Word coordinates, pointer, count, content;
 };
 struct Output {
-  std::array<Word, 7> header{};
+  std::array<Word, 9> header{};
   Gossip entries;
   Result result;
   Sequence sequence;
   std::vector<Span> values, releases;
+  std::vector<ContentAppend> appends;
   std::vector<EntryView> gossip;
   std::vector<SpliceView> splices;
   std::vector<ArrayView> frontiers;
@@ -171,6 +172,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
   }
   auto &p = *projections[id];
   p.released.clear();
+  p.appended.clear();
   Word kind = 6;
   try {
     switch (operation) {
@@ -277,9 +279,12 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     out.header[3] = 2;
   }
   out.releases.swap(p.released);
+  out.appends.swap(p.appended);
   out.header[0] = kind;
   out.header[1] = address(out.releases.data());
   out.header[2] = Word(out.releases.size());
+  out.header[7] = address(out.appends.data());
+  out.header[8] = Word(out.appends.size());
   switch (kind) {
   case 2:
     out.expose(out.entries);

@@ -1,0 +1,542 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6ec485d..04cbf42 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -17,6 +17,7 @@ set(SEQUENCER_SOURCES
+   src/c++/algorithms/sequence.cpp
+   src/c++/algorithms/values.cpp
+   src/c++/auxiliary/anchorStrip.cpp
++  src/c++/auxiliary/extendInsertion.cpp
+   src/c++/auxiliary/findContainingFragment.cpp
+   src/c++/auxiliary/findFramePositionByProjectionPosition.cpp
+   src/c++/auxiliary/findProjectionPositionOfStrip.cpp
+diff --git a/src/c++/algorithms/apply.cpp b/src/c++/algorithms/apply.cpp
+index 18bceb2..7f9e750 100644
+--- a/src/c++/algorithms/apply.cpp
++++ b/src/c++/algorithms/apply.cpp
+@@ -20,15 +20,43 @@ Result Projection::apply(const Gossip &gossip) {
+         frontier.observe(a);
+         result.gossip.push_back(Entry::acknowledge(std::move(a)));
+       }
+-      if (containment.has(c)) {
++      const auto existing = containment.get(c.session, c.start);
++      const auto origin = c.birth() ? none : containment.get(c.anchor_session, c.anchor_start);
++      const auto extension = c.extension();
++      const auto growing = existing && c.diff > 0 &&
++                           strips.identity[existing].coordinates.diff > 0 &&
++                           c.diff > strips.identity[existing].coordinates.diff;
++      if (extension || growing) {
++        const auto parent = growing ? existing : origin;
++        if (!parent ||
++            (!growing && c.anchor_diff > Word(strips.identity[parent].coordinates.diff))) {
++          pending.set(insertion);
++          continue;
++        }
++        const auto known = Word(strips.identity[parent].coordinates.diff);
++        const auto end = growing ? Word(c.diff) : c.anchor_diff + Word(c.diff);
++        if (end > known) {
++          const auto source_start = growing ? known : known - c.anchor_diff;
++          const auto at = extend(parent, end - known, insertion.content, source_start);
++          result.changes.push_back({at, at, {{insertion.content, source_start, end - known}}});
++          auto released_pending = pending.take(strips.identity[parent].coordinates);
++          for (auto it = released_pending.rbegin(); it != released_pending.rend(); ++it)
++            queue.push_back(*it);
++        } else if (insertion.content)
++          released.push_back({insertion.content, 0, 0});
++        continue;
++      }
++      if (existing) {
+         if (insertion.content)
+           released.push_back({insertion.content, 0, 0});
+         continue;
+       }
+       // Stage before allocating so repeated out-of-order delivery cannot leak
+       // unlinked arena nodes. A dependent retains numeric metadata only.
+-      const auto origin = c.birth() ? none : containment.get(c.anchor_session, c.anchor_start);
+-      if (!c.birth() && !origin) {
++      if (!c.birth() &&
++          (!origin || (strips.identity[origin].coordinates.diff > 0 &&
++                       std::uint64_t(c.anchor_diff) + (c.diff < 0 ? -std::int64_t(c.diff) : 0) >
++                           Word(strips.identity[origin].coordinates.diff)))) {
+         pending.set(insertion);
+         continue;
+       }
+diff --git a/src/c++/algorithms/insert.cpp b/src/c++/algorithms/insert.cpp
+index ff9c0e6..185afd7 100644
+--- a/src/c++/algorithms/insert.cpp
++++ b/src/c++/algorithms/insert.cpp
+@@ -1,3 +1,4 @@
++#include "../auxiliary/containsAnchor.hpp"
+ #include "../class.hpp"
+ 
+ namespace sequencer {
+@@ -12,6 +13,16 @@ Gossip Projection::insert(Word count, Word content, Word at) {
+     c.anchor_session = strips.identity[anchor].coordinates.session;
+     c.anchor_start = strips.identity[anchor].coordinates.start;
+     c.anchor_diff = point;
++    const auto &parent = strips.identity[anchor].coordinates;
++    const auto right = strips.right[anchor];
++    if (count && parent.session == c.session && parent.diff > 0 && point == Word(parent.diff) &&
++        c.start == parent.start + point + 1 &&
++        (!right || !contains_anchor(parent, strips.identity[right].coordinates, 0, point))) {
++      --c.start;
++      extend(containment.get(parent.session, parent.start), count, content);
++      increase_clock[1] += count;
++      return {Entry::insert({c, content})};
++    }
+     const auto incoming = allocate({c, content});
+     const auto previous_count = structural_count;
+     anchor_strip(incoming, anchor, point);
+diff --git a/src/c++/bindings.cpp b/src/c++/bindings.cpp
+index b8fbeb3..25df7cf 100644
+--- a/src/c++/bindings.cpp
++++ b/src/c++/bindings.cpp
+@@ -32,11 +32,12 @@ struct InsertionView {
+   Word coordinates, pointer, count, content;
+ };
+ struct Output {
+-  std::array<Word, 7> header{};
++  std::array<Word, 9> header{};
+   Gossip entries;
+   Result result;
+   Sequence sequence;
+   std::vector<Span> values, releases;
++  std::vector<ContentAppend> appends;
+   std::vector<EntryView> gossip;
+   std::vector<SpliceView> splices;
+   std::vector<ArrayView> frontiers;
+@@ -171,6 +172,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0,
+   }
+   auto &p = *projections[id];
+   p.released.clear();
++  p.appended.clear();
+   Word kind = 6;
+   try {
+     switch (operation) {
+@@ -277,9 +279,12 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0,
+     out.header[3] = 2;
+   }
+   out.releases.swap(p.released);
++  out.appends.swap(p.appended);
+   out.header[0] = kind;
+   out.header[1] = address(out.releases.data());
+   out.header[2] = Word(out.releases.size());
++  out.header[7] = address(out.appends.data());
++  out.header[8] = Word(out.appends.size());
+   switch (kind) {
+   case 2:
+     out.expose(out.entries);
+diff --git a/src/c++/class.hpp b/src/c++/class.hpp
+index 5670b16..bf5f0d1 100644
+--- a/src/c++/class.hpp
++++ b/src/c++/class.hpp
+@@ -18,6 +18,7 @@ public:
+   PendingTable pending;
+   FrontierTable frontier;
+   std::vector<Span> released;
++  std::vector<ContentAppend> appended;
+ 
+   Projection(Word actor_id, Word increasing_session, Word decreasing_session)
+       : actor(actor_id), increase_clock{increasing_session, 0},
+@@ -34,6 +35,7 @@ public:
+   void patch_jumps(std::int32_t frame_diff, Word strip_diff, Index incoming);
+   std::pair<Word, Index> select_anchor(Word position);
+   Gossip insert(Word count, Word content, Word at);
++  Word extend(Index origin, Word count, Word content, Word source_start = 0);
+   Gossip remove(Word start, std::int64_t end);
+   Gossip replace(Word count, Word content, Word start, std::int64_t end);
+   Result apply(const Gossip &gossip);
+diff --git a/src/c++/types/type.hpp b/src/c++/types/type.hpp
+index e99ee15..d3cc337 100644
+--- a/src/c++/types/type.hpp
++++ b/src/c++/types/type.hpp
+@@ -19,6 +19,9 @@ struct Coordinates {
+   Word anchor_session{}, anchor_start{}, anchor_diff{}, session{}, start{};
+   std::int32_t diff{};
+   bool birth() const { return !(anchor_session | anchor_start | anchor_diff); }
++  bool extension() const {
++    return diff > 0 && session == anchor_session && start == anchor_start + anchor_diff;
++  }
+ };
+ static_assert(sizeof(Coordinates) == 6 * sizeof(Word));
+ inline std::uint64_t identity(Word session, Word start) {
+@@ -40,6 +43,9 @@ using Gossip = std::vector<Entry>;
+ struct Span {
+   Word content{}, start{}, count{};
+ };
++struct ContentAppend {
++  Word target{}, source{}, start{}, count{}, at{};
++};
+ struct Splice {
+   Word start{}, end{};
+   std::vector<Span> values;
+diff --git a/src/typescript/runtime/client.ts b/src/typescript/runtime/client.ts
+index 25fdb63..97ea379 100644
+--- a/src/typescript/runtime/client.ts
++++ b/src/typescript/runtime/client.ts
+@@ -8,6 +8,7 @@ class Runtime {
+     Array<ReadonlyArray<unknown> | undefined> | undefined
+   > = []
+   private readonly free: number[] = []
++  private readonly mutable: Array<boolean[] | undefined> = []
+   private readonly finalizer = new FinalizationRegistry<number>((id) =>
+     this.release(id)
+   )
+@@ -17,6 +18,7 @@ class Runtime {
+       module._runtime_seed(crypto.getRandomValues(new Uint32Array(1))[0])
+     const id = this.free.pop() ?? this.nextProjection++
+     this.content[id] = [undefined]
++    this.mutable[id] = []
+     try {
+       this.call(Operation.Create, id, actorID, sequence)
+     } catch (error) {
+@@ -34,6 +36,7 @@ class Runtime {
+     if (!this.content[id]) return
+     module._runtime_dispatch(Operation.Destroy, id, 0, 0, 0, 0, 0)
+     this.content[id] = undefined
++    this.mutable[id] = undefined
+     this.free.push(id)
+   }
+   length(id: number): number {
+@@ -93,8 +96,7 @@ class Runtime {
+       base = pointer >>> 2,
+       contents = this.content[id]!
+     const bind = (values: unknown): number => {
+-      if (!Array.isArray(values)) return 0
+-      return contents.push(values) - 1
++      return contents.push(Array.isArray(values) ? values : undefined) - 1
+     }
+     const absent = 0xffffffff
+     let a0 = 0,
+@@ -210,22 +212,7 @@ class Runtime {
+       n0 = heap[header + 4],
+       p1 = heap[header + 5],
+       n1 = heap[header + 6]
+-    for (
+-      let at = heap[header + 1] >>> 2, end = at + heap[header + 2] * 3;
+-      at < end;
+-      at += 3
+-    ) {
+-      const token = heap[at],
+-        start = heap[at + 1],
+-        length = heap[at + 2]
+-      if (length === 0) content[token] = undefined
+-      else
+-        (content[token] as unknown[] | undefined)?.fill(
+-          undefined,
+-          start,
+-          start + length
+-        )
+-    }
++    const mutable = this.mutable[id]!
+     const values = (pointer: number, count: number): unknown[] => {
+       const begin = pointer >>> 2,
+         end = begin + count * 3
+@@ -306,6 +293,7 @@ class Runtime {
+               : heap[at + 2]
+                 ? values(heap[at + 1], heap[at + 2])
+                 : undefined
++          if (heap[at + 3]) mutable[heap[at + 3]] = false
+           insertions.push(
+             footage === undefined ? [coordinates] : [coordinates, footage]
+           )
+@@ -326,6 +314,44 @@ class Runtime {
+         )
+     }
+ 
++    for (
++      let at = heap[header + 7] >>> 2, end = at + heap[header + 8] * 5;
++      at < end;
++      at += 5
++    ) {
++      const target = heap[at],
++        source = content[heap[at + 1]],
++        start = heap[at + 2],
++        count = heap[at + 3],
++        offset = heap[at + 4]
++      if (content[target] === undefined && source === undefined) continue
++      let footage = content[target] as unknown[] | undefined
++      if (!mutable[target]) {
++        footage = footage?.slice(0, offset) ?? new Array<unknown>(offset)
++        content[target] = footage
++        mutable[target] = true
++      }
++      footage!.length = offset + count
++      for (let i = 0; i < count; ++i) footage![offset + i] = source?.[start + i]
++    }
++    for (
++      let at = heap[header + 1] >>> 2, end = at + heap[header + 2] * 3;
++      at < end;
++      at += 3
++    ) {
++      const token = heap[at],
++        start = heap[at + 1],
++        count = heap[at + 2]
++      if (count === 0) {
++        content[token] = undefined
++        mutable[token] = false
++      } else
++        (content[token] as unknown[] | undefined)?.fill(
++          undefined,
++          start,
++          start + count
++        )
++    }
+     return result
+   }
+ }
+diff --git a/src/c++/auxiliary/extendInsertion.cpp b/src/c++/auxiliary/extendInsertion.cpp
+new file mode 100644
+--- /dev/null
++++ b/src/c++/auxiliary/extendInsertion.cpp
+@@ -0,0 +1,68 @@
++#include "../class.hpp"
++#include <algorithm>
++
++namespace sequencer {
++Word Projection::extend(Index origin, Word count, Word content, Word source_start) {
++  const auto original = strips.identity[origin];
++  const auto end = Word(original.coordinates.diff);
++  auto last = origin;
++  while (strips.fragment[last])
++    last = strips.fragment[last];
++  appended.push_back({original.content, content, source_start, count, end});
++  if (content)
++    released.push_back({content, 0, 0});
++  if (last == tail && strips.fragment_diff[last] > 0 &&
++      strips.fragment_start[last] + Word(strips.fragment_diff[last]) == end) {
++    const auto at = frame_count;
++    gate = last;
++    gate_position = at - Word(strips.fragment_diff[last]);
++    left_jump_to_patch = last;
++    right_jump_to_patch = strips.right_jump[last];
++    strips.fragment_diff[last] += std::int32_t(count);
++    frame_count += count;
++    const auto right = strips.right_jump[last];
++    if (right) {
++      strips.right_jump_frames[last] += count;
++      strips.left_jump_frames[right] += count;
++    }
++    for (auto fragment = origin; fragment; fragment = strips.fragment[fragment])
++      strips.identity[fragment].coordinates.diff += std::int32_t(count);
++    return at;
++  }
++
++  // Endpoint descendants become interior descendants of the longer insertion.
++  // The continuation follows their entire subtree, independently of session order.
++  const auto left = subtree_end(origin), right = strips.right[left];
++  auto grown = original;
++  grown.coordinates.diff += std::int32_t(count);
++  const auto incoming = allocate(grown);
++  strips.fragment_start[incoming] = end;
++  strips.fragment_diff[incoming] = std::int32_t(count);
++  strips.offset[incoming] = strips.fragmented[incoming] = true;
++  strips.left[incoming] = left;
++  strips.right[incoming] = right;
++  strips.right[left] = incoming;
++  if (right)
++    strips.left[right] = incoming;
++  for (auto fragment = origin; fragment; fragment = strips.fragment[fragment]) {
++    strips.identity[fragment].coordinates.diff = grown.coordinates.diff;
++    strips.fragmented[fragment] = true;
++  }
++  strips.fragment[last] = incoming;
++  ++structural_count;
++  frame_count += count;
++  patch_jumps(std::int32_t(count), 1, incoming);
++  const auto at = position_of(incoming, std::int32_t(count));
++  if (gate && at <= gate_position)
++    gate_position += count;
++  if (at == 0)
++    head = incoming;
++  if (at + count == frame_count)
++    tail = incoming;
++  if (!gate) {
++    gate = head;
++    gate_position = 0;
++  }
++  return at;
++}
++} // namespace sequencer
+diff --git a/test/convergence/editing/contiguous_insertion_extension/test.ts b/test/convergence/editing/contiguous_insertion_extension/test.ts
+new file mode 100644
+--- /dev/null
++++ b/test/convergence/editing/contiguous_insertion_extension/test.ts
+@@ -0,0 +1,166 @@
++import { describe, expect, it } from 'vitest'
++import { Projection } from '../../../../src/typescript/class.ts'
++import type {
++  Gossip,
++  Insertion,
++  Sequence,
++} from '../../../../src/typescript/types/type.ts'
++
++const root: Insertion<string> = [
++  [0, 0, 0, 100, 0, 2],
++  ['a', 'b'],
++]
++const first: Insertion<string> = [
++  [100, 0, 2, 100, 2, 2],
++  ['c', 'd'],
++]
++const second: Insertion<string> = [
++  [100, 0, 4, 100, 4, 2],
++  ['e', 'f'],
++]
++
++describe('contiguous insertion extensions', () => {
++  it('grows one insertion and sends only the new six-word suffix', () => {
++    const local = new Projection<string>(1)
++    const remote = new Projection<string>(2)
++    const initialFootage = ['a', 'b']
++    const initial = local.insert(initialFootage, 0)
++    remote.apply(initial)
++    const snapshot = local.sequence()
++    const incoming = ['c', 'd']
++    const extension = local.insert(incoming, 2)
++    const parent = (initial[0] as Insertion<string>)[0]
++    const words = (extension[0] as Insertion<string>)[0]
++    expect(words).toEqual([
++      parent[3],
++      parent[4],
++      2,
++      parent[3],
++      parent[4] + 2,
++      2,
++    ])
++    expect((extension[0] as Insertion<string>)[1]).toBe(incoming)
++    expect(remote.apply(extension)).toEqual([[[2, 2, incoming]]])
++    expect(local.values()).toEqual(['a', 'b', 'c', 'd'])
++    expect(remote.values()).toEqual(local.values())
++    expect(local.sequence()[1]).toHaveLength(1)
++    expect(local.sequence()[1][0][0][5]).toBe(4)
++    expect(snapshot[1][0][1]).toEqual(['a', 'b'])
++    expect(initialFootage).toEqual(['a', 'b'])
++    expect(new Projection<string>(3, local.sequence()).values()).toEqual(
++      local.values()
++    )
++  })
++
++  it('preserves earlier snapshots after subsequent extensions', () => {
++    const p = new Projection<number>(1)
++    for (let i = 0; i < 100; ++i) p.insert([i], p.length())
++    const snapshot = p.sequence()
++    for (let i = 100; i < 200; ++i) p.insert([i], p.length())
++    expect(snapshot[1]).toHaveLength(1)
++    expect(snapshot[1][0][1]).toEqual(Array.from({ length: 100 }, (_, i) => i))
++    expect(p.sequence()[1][0][1]).toEqual(
++      Array.from({ length: 200 }, (_, i) => i)
++    )
++  })
++
++  it('replays missing suffixes, duplicates, and dependencies in hostile delivery order', () => {
++    const p = new Projection<string>(1)
++    const child: Insertion<string> = [[100, 0, 5, 200, 0, 1], ['X']]
++    for (const insertion of [second, child, second, root, first, first, root])
++      expect(p.apply([structuredClone(insertion)])).toBeDefined()
++    expect(p.values()).toEqual(['a', 'b', 'c', 'd', 'e', 'X', 'f'])
++    expect(new Projection<string>(2, p.sequence()).values()).toEqual(p.values())
++  })
++
++  it.each([50, 150])(
++    'places endpoint children before the continuation for session %i',
++    (session) => {
++      const child: Insertion<string> = [[100, 0, 2, session, 0, 1], ['X']]
++      const orders = [
++        [root, first, child, second],
++        [root, child, first, second],
++        [second, child, first, root],
++      ]
++      for (const entries of orders) {
++        const p = new Projection<string>(1)
++        const visible: Array<string | undefined> = []
++        for (const entry of entries) {
++          const result = p.apply([structuredClone(entry)])!
++          for (const [start, end, values = []] of result[0])
++            visible.splice(start, end - start, ...values)
++          expect(p.values()).toEqual(visible)
++        }
++        expect(p.values()).toEqual(['a', 'b', 'X', 'c', 'd', 'e', 'f'])
++        expect(new Projection<string>(2, p.sequence()).values()).toEqual(
++          p.values()
++        )
++      }
++    }
++  )
++
++  it('merges a longer insertion into a known prefix and ignores earlier Gossip', () => {
++    const p = new Projection<string>(1)
++    p.apply([structuredClone(root)])
++    const snapshot: Sequence<string> = [
++      [],
++      [
++        [
++          [0, 0, 0, 100, 0, 6],
++          ['a', 'b', 'c', 'd', 'e', 'f'],
++        ],
++      ],
++    ]
++    expect(p.merge(snapshot)).toEqual([[[2, 2, ['c', 'd', 'e', 'f']]]])
++    for (const entry of [first, second, root])
++      expect(p.apply([structuredClone(entry)])).toEqual([[]])
++    expect(p.merge(snapshot)).toEqual([[]])
++    expect(p.values()).toEqual(snapshot[1][0][1])
++  })
++
++  it.each([false, true])(
++    'extends a fragmented insertion with compaction %s',
++    (compact) => {
++      const local = new Projection<string>(1)
++      if (!compact) local.apply([[2]])
++      const initial = local.insert(['a', 'b', 'c'], 0)
++      const removal = local.remove(1, 1)
++      const extension = local.insert(['d', 'e'], local.length())
++      expect((extension[0] as Insertion<string>)[0][4]).toBe(
++        (initial[0] as Insertion<string>)[0][4] + 3
++      )
++      const remote = new Projection<string>(2)
++      if (!compact) remote.apply([[1]])
++      for (const gossip of [extension, removal, initial])
++        remote.apply(structuredClone(gossip))
++      expect(remote.values()).toEqual(['a', 'c', 'd', 'e'])
++      expect(local.values()).toEqual(remote.values())
++      for (const p of [local, remote])
++        expect(new Projection<string>(3, p.sequence()).values()).toEqual(
++          p.values()
++        )
++    }
++  )
++
++  it('extends after a concurrently removed endpoint', () => {
++    const p = new Projection<string>(1)
++    p.apply([[2], structuredClone(root)])
++    p.apply([[[100, 0, 0, 200, 0, -2 >>> 0]]])
++    expect(p.length()).toBe(0)
++    expect(p.apply([structuredClone(first)])?.[0]).toEqual([[0, 0, ['c', 'd']]])
++    expect(p.values()).toEqual(['c', 'd'])
++    expect(new Projection<string>(2, p.sequence()).values()).toEqual(p.values())
++  })
++
++  it('preserves insertion splices when a root and its extensions arrive in one batch', () => {
++    const p = new Projection<string>(1)
++    const gossip: Gossip<string> = structuredClone([root, first, second])
++    expect(p.apply(gossip)?.[0]).toEqual([
++      [0, 0, ['a', 'b']],
++      [2, 2, ['c', 'd']],
++      [4, 4, ['e', 'f']],
++    ])
++    expect(p.values()).toEqual(['a', 'b', 'c', 'd', 'e', 'f'])
++    expect(p.sequence()[1]).toHaveLength(1)
++  })
++})
+diff --git a/test/convergence/editing/contiguous_insertion_extension/README.md b/test/convergence/editing/contiguous_insertion_extension/README.md
+new file mode 100644
+--- /dev/null
++++ b/test/convergence/editing/contiguous_insertion_extension/README.md
+@@ -0,0 +1,6 @@
++# Contiguous insertion extensions
++
++Exercises six-word insertion suffixes with no reserved clock gap. Checks local
++and remote growth, out-of-order delivery, duplicate Gossip, prefix merges,
++endpoint concurrency, masks, compacted hydration, and snapshot stability through
++the public Projection API.

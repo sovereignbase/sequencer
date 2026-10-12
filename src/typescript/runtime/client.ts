@@ -8,6 +8,7 @@ class Runtime {
     Array<ReadonlyArray<unknown> | undefined> | undefined
   > = []
   private readonly free: number[] = []
+  private readonly mutable: Array<boolean[] | undefined> = []
   private readonly finalizer = new FinalizationRegistry<number>((id) =>
     this.release(id)
   )
@@ -17,6 +18,7 @@ class Runtime {
       module._runtime_seed(crypto.getRandomValues(new Uint32Array(1))[0])
     const id = this.free.pop() ?? this.nextProjection++
     this.content[id] = [undefined]
+    this.mutable[id] = []
     try {
       this.call(Operation.Create, id, actorID, sequence)
     } catch (error) {
@@ -34,6 +36,7 @@ class Runtime {
     if (!this.content[id]) return
     module._runtime_dispatch(Operation.Destroy, id, 0, 0, 0, 0, 0)
     this.content[id] = undefined
+    this.mutable[id] = undefined
     this.free.push(id)
   }
   length(id: number): number {
@@ -93,8 +96,7 @@ class Runtime {
       base = pointer >>> 2,
       contents = this.content[id]!
     const bind = (values: unknown): number => {
-      if (!Array.isArray(values)) return 0
-      return contents.push(values) - 1
+      return contents.push(Array.isArray(values) ? values : undefined) - 1
     }
     const absent = 0xffffffff
     let a0 = 0,
@@ -210,22 +212,7 @@ class Runtime {
       n0 = heap[header + 4],
       p1 = heap[header + 5],
       n1 = heap[header + 6]
-    for (
-      let at = heap[header + 1] >>> 2, end = at + heap[header + 2] * 3;
-      at < end;
-      at += 3
-    ) {
-      const token = heap[at],
-        start = heap[at + 1],
-        length = heap[at + 2]
-      if (length === 0) content[token] = undefined
-      else
-        (content[token] as unknown[] | undefined)?.fill(
-          undefined,
-          start,
-          start + length
-        )
-    }
+    const mutable = this.mutable[id]!
     const values = (pointer: number, count: number): unknown[] => {
       const begin = pointer >>> 2,
         end = begin + count * 3
@@ -306,6 +293,7 @@ class Runtime {
               : heap[at + 2]
                 ? values(heap[at + 1], heap[at + 2])
                 : undefined
+          if (heap[at + 3]) mutable[heap[at + 3]] = false
           insertions.push(
             footage === undefined ? [coordinates] : [coordinates, footage]
           )
@@ -326,6 +314,44 @@ class Runtime {
         )
     }
 
+    for (
+      let at = heap[header + 7] >>> 2, end = at + heap[header + 8] * 5;
+      at < end;
+      at += 5
+    ) {
+      const target = heap[at],
+        source = content[heap[at + 1]],
+        start = heap[at + 2],
+        count = heap[at + 3],
+        offset = heap[at + 4]
+      if (content[target] === undefined && source === undefined) continue
+      let footage = content[target] as unknown[] | undefined
+      if (!mutable[target]) {
+        footage = footage?.slice(0, offset) ?? new Array<unknown>(offset)
+        content[target] = footage
+        mutable[target] = true
+      }
+      footage!.length = offset + count
+      for (let i = 0; i < count; ++i) footage![offset + i] = source?.[start + i]
+    }
+    for (
+      let at = heap[header + 1] >>> 2, end = at + heap[header + 2] * 3;
+      at < end;
+      at += 3
+    ) {
+      const token = heap[at],
+        start = heap[at + 1],
+        count = heap[at + 2]
+      if (count === 0) {
+        content[token] = undefined
+        mutable[token] = false
+      } else
+        (content[token] as unknown[] | undefined)?.fill(
+          undefined,
+          start,
+          start + count
+        )
+    }
     return result
   }
 }

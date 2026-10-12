@@ -5,7 +5,7 @@
 #include <algorithm>
 
 namespace sequencer {
-std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point) {
+std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point, bool continuation) {
   const auto removal_end = strips.identity[incoming].coordinates.anchor_diff -
                            strips.identity[incoming].coordinates.diff;
   std::int32_t total = 0;
@@ -52,8 +52,17 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point) 
       left = right;
       right = strips.right[right];
     }
-    if (right && anchors_overlap(strips.identity[incoming].coordinates,
-                                 strips.identity[right].coordinates)) {
+    if (continuation) {
+      const auto &parent = strips.identity[incoming].coordinates;
+      while (right && strips.identity[right].coordinates.anchor_session == parent.session &&
+             strips.identity[right].coordinates.anchor_start == parent.start) {
+        left = subtree_end(right);
+        right = strips.right[left];
+      }
+    }
+    if (!continuation && right &&
+        anchors_overlap(strips.identity[incoming].coordinates,
+                        strips.identity[right].coordinates)) {
       Index larger = none;
       auto smaller = right;
       while (smaller && competition_is_larger(strips.identity[incoming].coordinates,

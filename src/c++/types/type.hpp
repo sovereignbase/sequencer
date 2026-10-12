@@ -19,6 +19,9 @@ struct Coordinates {
   Word anchor_session{}, anchor_start{}, anchor_diff{}, session{}, start{};
   std::int32_t diff{};
   bool birth() const { return !(anchor_session | anchor_start | anchor_diff); }
+  bool extension() const {
+    return diff > 0 && session == anchor_session && start == anchor_start + anchor_diff;
+  }
 };
 static_assert(sizeof(Coordinates) == 6 * sizeof(Word));
 inline std::uint64_t identity(Word session, Word start) {
@@ -39,6 +42,9 @@ struct Entry {
 using Gossip = std::vector<Entry>;
 struct Span {
   Word content{}, start{}, count{};
+};
+struct ContentAppend {
+  Word target{}, source{}, start{}, count{}, at{};
 };
 struct Splice {
   Word start{}, end{};

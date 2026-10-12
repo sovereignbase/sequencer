@@ -13,6 +13,7 @@ Result Projection::apply(const Gossip &gossip) {
     std::vector<Insertion> queue{entry.insertion};
     while (!queue.empty()) {
       const auto insertion = queue.back();
+      last_insert = none;
       queue.pop_back();
       const auto c = insertion.coordinates;
       if (c.diff < 0) {
@@ -20,15 +21,43 @@ Result Projection::apply(const Gossip &gossip) {
         frontier.observe(a);
         result.gossip.push_back(Entry::acknowledge(std::move(a)));
       }
-      if (containment.has(c)) {
+      const auto existing = containment.get(c.session, c.start);
+      const auto origin = c.birth() ? none : containment.get(c.anchor_session, c.anchor_start);
+      const auto extension = c.extension();
+      const auto growing = existing && c.diff > 0 &&
+                           strips.identity[existing].coordinates.diff > 0 &&
+                           c.diff > strips.identity[existing].coordinates.diff;
+      if (extension || growing) {
+        const auto parent = growing ? existing : origin;
+        if (!parent ||
+            (!growing && c.anchor_diff > Word(strips.identity[parent].coordinates.diff))) {
+          pending.set(insertion);
+          continue;
+        }
+        const auto known = Word(strips.identity[parent].coordinates.diff);
+        const auto end = growing ? Word(c.diff) : c.anchor_diff + Word(c.diff);
+        if (end > known && (growing || c.anchor_diff == known)) {
+          const auto source_start = growing ? known : known - c.anchor_diff;
+          const auto at = extend(parent, end - known, insertion.content, source_start);
+          result.changes.push_back({at, at, {{insertion.content, source_start, end - known}}});
+          auto released_pending = pending.take(strips.identity[parent].coordinates);
+          for (auto it = released_pending.rbegin(); it != released_pending.rend(); ++it)
+            queue.push_back(*it);
+        } else if (insertion.content)
+          released.push_back({insertion.content, 0, 0});
+        continue;
+      }
+      if (existing) {
         if (insertion.content)
           released.push_back({insertion.content, 0, 0});
         continue;
       }
       // Stage before allocating so repeated out-of-order delivery cannot leak
       // unlinked arena nodes. A dependent retains numeric metadata only.
-      const auto origin = c.birth() ? none : containment.get(c.anchor_session, c.anchor_start);
-      if (!c.birth() && !origin) {
+      if (!c.birth() &&
+          (!origin || (strips.identity[origin].coordinates.diff > 0 &&
+                       std::uint64_t(c.anchor_diff) + (c.diff < 0 ? -std::int64_t(c.diff) : 0) >
+                           Word(strips.identity[origin].coordinates.diff)))) {
         pending.set(insertion);
         continue;
       }

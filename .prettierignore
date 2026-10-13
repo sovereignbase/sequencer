@@ -6,6 +6,8 @@ playwright-report
 *.lock
 CHANGELOG.md
 docs
+benchmark/.results/
+src/typescript/wasm/raw/
 node_modules/
 
 dist/

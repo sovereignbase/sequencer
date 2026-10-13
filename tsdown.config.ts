@@ -29,9 +29,11 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  banner: {
-    js: `${apache_2_banner}\n`,
-  },
+  banner: ({ format }) => ({
+    js:
+      (format === 'cjs' ? '' : '/* @ts-self-types="./index.d.ts" */\n') +
+      `${apache_2_banner}\n`,
+  }),
   outExtensions({ format }) {
     return {
       js: format === 'cjs' ? '.cjs' : '.js',

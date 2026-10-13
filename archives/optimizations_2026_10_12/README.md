@@ -16,8 +16,8 @@ snapshots. Earlier rejected experiments below retain their original decisions.
 | [Snapshot columns](column_snapshot/README.md)                                | Rejected                                                     | Individual fields can compress even when insertion anchors cannot be combined; export-time repacking adds measurable cost. |
 | [Arena-index visitation](sequence_indices/README.md)                         | Rejected                                                     | Removing per-insertion export hashing speeds large snapshots, but the full-suite guard did not pass.                       |
 | [Insertion ownership layout](insertion_ownership/README.md)                  | Rejected                                                     | Packing ownership into existing flags saves native arena bytes; performance remains unresolved.                            |
-| [Apply pipeline](apply_pipeline/README.md) | Retained in the 0.0.2 checkpoint | Reuses native output storage and reclaims duplicate input bindings; targeted regressions remain recorded. |
-| [Streaming snapshots](streaming_snapshot/README.md) | Retained in the 0.0.2 checkpoint | Snapshot JSON falls 28–68% for non-append documents; 157 of 161 warmed API rows improve. |
+| [Apply pipeline](apply_pipeline/README.md)                                   | Retained in the 0.0.2 checkpoint                             | Reuses native output storage and reclaims duplicate input bindings; targeted regressions remain recorded.                  |
+| [Streaming snapshots](streaming_snapshot/README.md)                          | Retained in the 0.0.2 checkpoint                             | Snapshot JSON falls 28–68% for non-append documents; 157 of 161 warmed API rows improve.                                   |
 
 The earlier rejected experiments did not become production runtime changes.
 Their build was restored and verified byte-identical to their session baseline.

@@ -51,7 +51,7 @@ export default define_config({
         'src/typescript/wasm/raw/**',
         'src/typescript/helpers/serializers/**',
       ],
-      reporter: ['text', 'html', 'json-summary'],
+      reporter: ['text', 'html', 'json-summary', 'lcov'],
       reportsDirectory: 'docs/tests/coverage',
       reportOnFailure: true,
     },

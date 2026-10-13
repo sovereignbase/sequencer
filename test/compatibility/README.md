@@ -6,4 +6,4 @@ The suite covers local editing, Footage identity, value types, ordered/shuffled/
 
 JSON transport omits absent optional Footage fields, keeping masks as six-field tuples. Active receivers are registered before removals so compaction follows the acknowledgement model.
 
-Bun and Deno use the installed npm binaries. workerd runs locally through Wrangler's Miniflare dependency. Browsers use Playwright's matching binaries; install them with `npx playwright install` if missing. A missing runtime or browser fails the suite instead of silently skipping its tests.
+Bun uses the executable on PATH, including the one installed by CI. If Bun is absent from PATH, the adapter resolves the npm package's executable from its `bin` metadata. Deno uses its installed npm launcher. workerd runs locally through Wrangler's Miniflare dependency. Browsers use Playwright's matching binaries; install them with `npx playwright install` if missing. A missing runtime or browser fails the suite instead of silently skipping its tests.

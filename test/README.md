@@ -12,7 +12,7 @@ Choose a suite by the behavior being changed. Convergence cases are grouped by t
 
 ## Full verification
 
-`npm test` builds the package and API documentation, typechecks tests, runs every Vitest suite above with 100% source statement/branch/function/line coverage, then runs runtime compatibility.
+`npm test` builds the package, typechecks tests and scripts, runs every Vitest suite above with 100% source statement/branch/function/line coverage thresholds, then runs runtime compatibility even if the coverage thresholds fail. The README's test counts, coverage summary, and runtime statuses update from the resulting reports. Failed checks preserve a nonzero exit status.
 
 ## Convergence contracts
 

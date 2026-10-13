@@ -118,9 +118,8 @@ Sizes vary with Session IDs and content.
 
 ### Behaviour guaranteed by excessive tests
 
-The latest verification passed 170 Vitest tests and 88 compatibility checks.
-The configured 100% coverage threshold remains unmet (95.66% statements,
-94.94% branches, 100% functions, 97.23% lines).
+The latest verification passed 170 Vitest tests and 88 compatibility checks (1 failed).
+The configured 100% coverage threshold remains unmet (95.66% statements, 94.94% branches, 100% functions, 97.23% lines).
 See the [test suites](test/README.md) and
 [automated test report](https://sovereignbase.dev/sequencer/tests/).
 
@@ -128,15 +127,15 @@ See the [test suites](test/README.md) and
 
 Runtimes covered by the latest compatibility verification:
 
-- Node.js, ESM and CommonJS
-- Deno
-- Bun
-- Edge Runtime
-- Cloudflare Workers through workerd
-- Chromium and WebKit browser windows
-
-Firefox is also in the compatibility matrix; its matching Playwright browser
-binary was unavailable in the latest run.
+- Node.js, ESM: passed
+- Node.js, CommonJS: passed
+- Deno: passed
+- Bun: passed
+- Edge Runtime: passed
+- Cloudflare Workers through workerd: passed
+- Chromium browser windows: passed
+- Firefox browser windows: failed (matching Playwright browser binary unavailable)
+- WebKit browser windows: passed
 
 ### Tested realtime and offline text editing behaviour examples
 
@@ -148,7 +147,7 @@ binary was unavailable in the latest run.
 
 ## Credits
 
-None of this could have been done without years of work from many great engineers of many great projects, to mention a few:
+This could not have been made without years of work from many great engineers of many great projects, to mention a few:
 
 - [AUTOMERGE](https://github.com/automerge)
 

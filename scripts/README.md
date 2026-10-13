@@ -13,3 +13,10 @@ Configure the WASM build with `npm run configure:wasm` before its first build.
 It requires an active Emscripten SDK, CMake, and Ninja. Documentation requires
 Doxygen and the Python packages in `requirements.txt`; formatting requires
 clang-format. Each script preserves the invoked tool's failure status.
+
+`npm test` uses [run-tests.ts](run-tests.ts) to run Vitest and compatibility
+verification before updating the README's test and runtime sections. Compatibility
+runs even when coverage thresholds fail. Individual test commands update their
+own results; a run without coverage removes the previous coverage summary.
+[compatibility-report.ts](compatibility-report.ts) records Node's structured
+test counts and each runtime's passed, failed, or skipped state.

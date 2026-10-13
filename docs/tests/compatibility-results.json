@@ -1,0 +1,35 @@
+{
+  "passed": 88,
+  "failed": 1,
+  "skipped": 0,
+  "runtimes": {
+    "node.esm": {
+      "status": "passed"
+    },
+    "node.cjs": {
+      "status": "passed"
+    },
+    "bun": {
+      "status": "passed"
+    },
+    "deno": {
+      "status": "passed"
+    },
+    "edge": {
+      "status": "passed"
+    },
+    "workerd": {
+      "status": "passed"
+    },
+    "chromium": {
+      "status": "passed"
+    },
+    "firefox": {
+      "status": "failed",
+      "reason": "matching Playwright browser binary unavailable"
+    },
+    "webkit": {
+      "status": "passed"
+    }
+  }
+}

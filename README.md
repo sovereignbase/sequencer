@@ -121,8 +121,7 @@ Sizes vary with Session IDs and content.
 The latest verification passed 170 Vitest tests and 88 compatibility checks.
 The configured 100% coverage threshold remains unmet (95.66% statements,
 94.94% branches, 100% functions, 97.23% lines).
-Convergence tests include 1,024 generated editing histories for each compaction
-mode. See the [test suites](test/README.md) and
+See the [test suites](test/README.md) and
 [automated test report](https://sovereignbase.dev/sequencer/tests/).
 
 ### Works everywhere where JavaScript and Wasm works

@@ -3,6 +3,7 @@ import { arch, cpus, platform } from 'node:os'
 import { Projection } from '../../dist/index.js'
 import { caseColumns } from '../.shared/report.ts'
 import { measureProcessMemory, measureSpace } from '../.shared/space.ts'
+import { measureEncodedSequence } from './space.ts'
 import type { Gossip, Result } from '../../dist/index.js'
 import {
   deriveSeed,
@@ -315,7 +316,7 @@ const observeReplica = (
       values: valuesMetric,
     },
     memory,
-    storage,
+    storage: { ...storage, ...measureEncodedSequence(checkpointSequence) },
     strips: {
       stripCount,
       frameCount,
@@ -708,9 +709,9 @@ export async function runBenchmark(
       average:
         'Operation averages are calculated directly from count and total measured nanoseconds; checkpoint averages are never averaged together.',
       memory:
-        'Per-Replica retained bytes after restart are estimated as four bytes per Sequence metadata word plus eight bytes per JavaScript Footage array slot. Process RSS is shared and reported at checkpoint scope.',
+        'Exported Sequence memory is estimated as four bytes per metadata word plus eight bytes per JavaScript Footage slot. Checkpoint process memory includes both peers and fixtures and is collected after optional garbage collection.',
       storage:
-        'Persistent representation size is the byte length of node:v8.serialize over the automatically collected public Sequence.',
+        'Sequence sizes include V8 serialization, JSON, MessagePack, and level-nine gzip of each transport encoding. Numeric metadata is represented as arrays; encoding is outside API timings.',
     },
     runs,
     aggregates: aggregateRuns(runs),

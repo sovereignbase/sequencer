@@ -46,7 +46,7 @@
     "test:convergence": "node scripts/run-tests.ts vitest test/convergence --coverage.enabled=false",
     "test:stress": "node scripts/run-tests.ts vitest test/stress --coverage.enabled=false",
     "test:compatibility": "npm run build:ts && node scripts/run-tests.ts compatibility",
-    "bench": "npm run build:ts && node benchmark/index.ts",
+    "bench": "npm run build:ts && node --expose-gc benchmark/index.ts",
     "bench:lifecycle": "npm run bench -- --suite lifecycle",
     "bench:throughput": "npm run bench -- --suite throughput",
     "prepare": "husky"
@@ -54,6 +54,7 @@
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
+    "@msgpack/msgpack": "^3.1.3",
     "@playwright/test": "^1.64.0",
     "@types/node": "^26.6.5",
     "@types/ws": "^8.18.2",
@@ -68,6 +69,7 @@
     "husky": "^9.1.7",
     "playwright": "^1.64.0",
     "prettier": "^3.9.10",
+    "terser": "^5.51.2",
     "tsdown": "^0.23.1",
     "typedoc": "^0.28.20",
     "typescript": "^6.0.3",

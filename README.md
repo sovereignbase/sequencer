@@ -28,96 +28,73 @@ projection.destroy()
 
 ## Benchmarks
 
-### Exceptional performance
-
-The [benchmark documentation](benchmark/README.md) describes both the dynamic
-lifecycle workload and API throughput bursts. Full results are available for
-[lifecycle](benchmark/.results/lifecycle.md) and
-[throughput](benchmark/.results/throughput.md).
-
-Current throughput results, measured on 12 October 2026. Latencies are in µs per
-public API call, weighted by call count across three runs.
-
-| Operation                           | 100 initial insertions | 1,000 initial insertions | 10,000 initial insertions |
-| ----------------------------------- | ---------------------: | -----------------------: | ------------------------: |
-| `new Projection(actorID, sequence)` |                  2.013 |                    1.598 |                     1.503 |
-| `insert`, random position           |                  1.108 |                    1.045 |                     1.076 |
-| `remove`, middle                    |                  1.534 |                    1.605 |                     1.493 |
-| `replace`, middle                   |                  1.507 |                    1.364 |                     1.625 |
-| `sequence()`                        |                  0.288 |                    0.320 |                     0.331 |
-| `value`, random position            |                  0.090 |                    0.082 |                     0.155 |
-| `values()`                          |                  4.787 |                  174.213 |                  1252.987 |
-
-Environment: Node 24.16.0, V8 13.6.233.17-node.49, Windows x64, Intel Core
-i5-10210U. Generated Strip lengths are 1–100 Frames. Each case warms up for
-2,048 calls, then measures a burst of approximately 100 ms or at most 8,192 calls.
-
-## Memory efficiency
-
-Retained memory for eight Projections, each containing 6,000 consecutive
-single-Frame insertions. These are five-run medians from isolated Node processes:
-
-| Measurement                 |  Current |
-| --------------------------- | -------: |
-| Additional JS heap after GC | 0.501 MB |
-| Shared WASM memory capacity | 1.049 MB |
-
-Module import and a small warm-up are excluded from the heap delta. WASM
-capacity includes the initial 1 MiB allocation. These are not process RSS or
-per-Projection total memory.
-
 ### Moderate bundle size
 
-| Format   |      Raw | Minified | Minified + gzip |
-| -------- | -------: | -------: | --------------: |
-| ESM      | 120.9 kB | 101.6 kB |         36.8 kB |
-| CommonJS | 121.0 kB | 102.4 kB |         37.0 kB |
+| Format   | Raw (KiB) | Minified (KiB) | Minified + gzip (KiB) |
+| -------- | --------: | -------------: | --------------------: |
+| ESM      |    123.24 |          99.79 |                 35.96 |
+| CommonJS |    123.38 |         100.61 |                 36.17 |
 
-Both bundles include the WASM module. Minified sizes use Terser with three
-compression passes; source maps and type declarations are excluded. kB and MB
-use decimal units.
+Both bundles include WASM. Terser uses three compression passes; gzip uses level 9.
 
-### Compact data model
+### Average throughput during editing from 0 to checkpoint
 
-An insertion contains six uint32 structural words: 24 bytes before transport
-framing or content. Numeric metadata accepts `Uint32Array` and JSON numeric
-arrays. Generic content, called Footage, stays in JavaScript; only numeric
-metadata enters WASM.
+Arithmetic means of 3 runs during growth, in ops/s. Checkpoints
+are visible Strip counts; generated Strips contain 1–100 Frames.
 
-`sequence()` returns `[words, footage]`: one numeric array and one content
-array, with no nested insertion or acknowledgement arrays. Small snapshots use
-six-word records after length-prefixed acknowledgements. From 64 retained
-insertions onward, predictable fields are omitted as WASM writes the snapshot;
-`[0, frontiersEnd, insertionCount]` identifies this compact numeric layout.
-Coordinates, acknowledgements and content order are preserved. The runtime
-reads both layouts; compact snapshots require an updated reader.
-Positive insertion lengths identify successive spans of `footage`.
-An empty Sequence is `[[], []]`. Construction and `merge()` accept numeric
-arrays or `Uint32Array` metadata; exported numeric arrays can be sent as JSON.
+| Method / case  |     1,000 |     5,000 |    10,000 |    15,000 |    20,000 |    25,000 |
+| -------------- | --------: | --------: | --------: | --------: | --------: | --------: |
+| apply.random   |   145,900 |    79,387 |    47,925 |    33,976 |    25,896 |    19,884 |
+| insert.head    | 1,052,146 | 1,197,396 | 1,152,874 | 1,128,474 | 1,077,498 | 1,032,497 |
+| insert.random  |   523,818 |   235,233 |   127,276 |    88,122 |    65,638 |    49,502 |
+| insert.tail    | 1,422,144 | 1,504,970 | 1,426,703 | 1,358,933 | 1,311,540 | 1,245,953 |
+| remove.head    |         — |         — |         — |         — |         — |         — |
+| remove.random  |   308,975 |   149,467 |    87,843 |    62,319 |    46,469 |    34,917 |
+| remove.tail    |         — |         — |         — |         — |         — |         — |
+| replace.head   |   431,740 |   413,895 |   407,298 |   362,795 |   362,934 |   338,091 |
+| replace.random |   277,578 |   141,801 |    85,428 |    61,094 |    46,504 |    35,305 |
+| replace.tail   |   428,221 |   469,082 |   447,541 |   434,501 |   360,466 |   348,059 |
+| value.head     | 2,753,892 | 2,961,546 | 2,880,016 | 2,821,845 | 2,825,855 | 2,745,345 |
+| value.random   |   638,771 |   203,903 |   104,236 |    69,467 |    51,141 |    37,704 |
+| value.tail     | 5,396,266 | 4,633,949 | 4,258,285 | 4,024,233 | 3,852,143 | 3,614,923 |
 
-```ts
-const retained = projection.sequence()
-const restored = new Projection<string>(2, retained)
-```
+### API throughput at checkpoint
 
-Consecutive local insertions extend an intact insertion from the same Session
-without reserving another zero in its logical clock. Gossip contains only the
-new suffix, still using six structural words. A removal or fragmentation ends
-the local extension chain. Retained snapshots remain unchanged by later edits.
+Checkpoint calls, in ops/s, averaged across runs.
 
-Measured JSON transport sizes for 1,000 one-Frame insertions containing `'x'`,
-their removal Gossip, and a snapshot captured before removal:
+| Method                            | 1,000 | 5,000 | 10,000 | 15,000 | 20,000 | 25,000 |
+| --------------------------------- | ----: | ----: | -----: | -----: | -----: | -----: |
+| new Projection(actorID, sequence) | 3,260 |   806 |    415 |    272 |    199 |    147 |
+| sequence()                        |   576 |    89 |     38 |     22 |     15 |      9 |
+| values()                          |   712 |   163 |    110 |     81 |     60 |     38 |
 
-| Workload                                       | Average bytes per operation or insertion |    JSON | JSON + gzip | gzip reduction |
-| ---------------------------------------------- | ---------------------------------------: | ------: | ----------: | -------------: |
-| 1,000 one-frame insertions                     |                                   44.8 B | 45.8 kB |      5.1 kB |          88.9% |
-| 1,000 one-frame removals                       |                                   65.8 B | 66.8 kB |      7.5 kB |          88.8% |
-| Snapshot containing 1,000 one-frame insertions |                                    4.0 B |  4.0 kB |      0.1 kB |          98.3% |
+### Sequence disk size at checkpoint
 
-Gossip sizes include acknowledgements and content where present. Delta averages
-measure individual Gossip packets; batch totals include their enclosing array.
-Snapshot averages divide the complete Sequence size by the 1,000 authored insertions. Consecutive insertions are retained as one insertion.
-Sizes vary with Session IDs and content.
+Complete exported Sequences, including Footage and acknowledgements. Sizes are in KiB.
+
+| Encoding           |  1,000 |   5,000 |  10,000 |  15,000 |  20,000 |  25,000 |
+| ------------------ | -----: | ------: | ------: | ------: | ------: | ------: |
+| JSON               | 277.28 | 1622.17 | 3262.71 | 4902.58 | 7043.23 | 9165.29 |
+| JSON + gzip        |  14.59 |   73.81 |  150.31 |  226.79 |  310.97 |  391.41 |
+| MessagePack        | 164.58 |  817.78 | 1637.41 | 3526.01 | 5076.46 | 6477.56 |
+| MessagePack + gzip |  12.38 |   61.60 |  124.87 |  198.51 |  263.46 |  332.76 |
+
+### Memory usage at checkpoint
+
+| Measurement              |     1,000 |     5,000 |    10,000 |    15,000 |    20,000 |    25,000 |
+| ------------------------ | --------: | --------: | --------: | --------: | --------: | --------: |
+| Visible Frames           |    50,871 |   252,214 |   504,871 |   758,280 | 1,010,749 | 1,264,003 |
+| Local edit calls         |     6,000 |    30,000 |    60,000 |    90,000 |   120,000 |   150,000 |
+| Estimated Sequence (KiB) |    418.62 |   2074.46 |   4153.16 |   6237.60 |   8313.67 |  10396.46 |
+| Process heap used (KiB)  |  14309.77 |  35368.21 |  61813.08 |  88103.01 | 114616.55 | 140184.66 |
+| Process RSS (KiB)        | 548537.33 | 578304.00 | 620449.33 | 642669.33 | 656937.33 | 684636.00 |
+
+Sequence memory estimates use four bytes per metadata word and eight per Footage slot.
+Process memory includes both peers and the benchmark fixtures.
+
+Measured on Node 24.16.0, V8 13.6.233.17-node.49,
+win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz.
+Peer synchronization, encoding and garbage collection are outside API timings. [Full lifecycle results](benchmark/.results/lifecycle.md).
 
 ## Tests
 

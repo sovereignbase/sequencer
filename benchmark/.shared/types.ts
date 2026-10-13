@@ -114,12 +114,30 @@ export type StorageResult = {
   bytesPerFrame: number | null
 }
 
+/** Transport sizes of the same Sequence encoded as numeric arrays. */
+export type EncodedSequenceSizes = {
+  jsonBytes: number
+  jsonGzipBytes: number
+  messagePackBytes: number
+  messagePackGzipBytes: number
+}
+
+/** Compiled JavaScript bundle sizes, including the embedded WASM module. */
+export type BundleSizes = Record<
+  'ESM' | 'CommonJS',
+  {
+    rawBytes: number
+    minifiedBytes: number
+    gzipBytes: number
+  }
+>
+
 /** Cumulative operation counters plus one checkpoint's management and document observations. */
 export type ReplicaCheckpoint = {
   operations: OperationMetrics
   management: Record<ManagementName, ManagementResult>
   memory: MemoryResult
-  storage: StorageResult
+  storage: StorageResult & EncodedSequenceSizes
   strips: StripStatistics
 }
 
@@ -197,6 +215,8 @@ export type AggregateMetric = {
 /** Complete lifecycle evidence, including environment, metric interpretation and raw runs. */
 export type BenchmarkReport = {
   schemaVersion: 3
+  /** Measured after the lifecycle finishes, when its reports are written. */
+  bundles?: BundleSizes
   generatedAt: string
   environment: {
     node: string

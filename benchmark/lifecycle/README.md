@@ -4,11 +4,11 @@ This benchmark drives one measured Replica and one continuously synchronized
 peer through a complete dynamic lifecycle:
 
 ```text
-0 → 1 → 10 → 100 → 1,000 → 10,000 → 1,000 → 100 → 10 → 1 → 0
+0 → 1,000 → 5,000 → 10,000 → 15,000 → 20,000 → 25,000 → 20,000 → 15,000 → 10,000 → 5,000 → 1,000 → 0
 ```
 
-The maximum is configurable. Checkpoints are zero, the powers of ten at or
-below the maximum, and the exact maximum. Strip lengths default to 1–100
+The maximum is configurable. Checkpoints use the scales configured in
+`../index.ts`, together with zero and the exact maximum. Strip lengths default to 1–100
 Frames, and all random choices are deterministic from the run seed.
 
 ## Continuous workload
@@ -74,7 +74,9 @@ process RSS. The retained-state estimate is:
 8 bytes × JavaScript Footage slots
 ```
 
-Serialization uses `node:v8.serialize` and is kept outside timed API regions.
+Storage measurements include V8 serialization, JSON, MessagePack, and level-nine
+gzip of JSON and MessagePack. Both transport encodings use numeric arrays.
+Encoding is kept outside timed API regions.
 Checkpoint logging never resets cumulative operation metrics.
 
 The final aggregate includes checkpoint `create`, `sequence`, and `values`
@@ -115,6 +117,17 @@ Memory usage and disk usage are reported in separate tables. Memory estimates
 describe exported state; process RSS and heap include the entire benchmark.
 Disk usage measures serialized Sequence bytes, excluding filesystem metadata.
 
-The default run count is three and the default maximum is 1,000 visible
+The default run count is three and the default maximum is 25,000 visible
 Strips. JSON and Markdown reports are written to
 `benchmark/.results/lifecycle.{json,md}` unless `--no-output` is supplied.
+
+Writing the lifecycle report also updates the README's raw and minified bundle sizes,
+checkpoint throughput, encoded Sequence sizes, and memory tables. Those tables
+use growth checkpoints and arithmetic means of independent run observations.
+Bundle sizes include WASM and use Terser with three compression passes.
+Sizes in the README use KiB (1,024 bytes); the full report retains individual
+runs and both lifecycle directions. `--no-output` leaves the README untouched.
+
+The npm entry point exposes garbage collection for checkpoint memory readings.
+Process memory includes both peers and the benchmark fixtures. The Sequence
+estimate measures exported words and Footage slots.

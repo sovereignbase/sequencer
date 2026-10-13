@@ -1,4 +1,6 @@
 import { caseColumns, writeReportFiles } from '../.shared/report.ts'
+import { measureBundles } from '../.shared/bundle.ts'
+import { updateLifecycleReadme } from './readme.ts'
 import {
   aggregate_names,
   management_names,
@@ -85,6 +87,25 @@ const makeMarkdown = (report: BenchmarkReport): string => {
       ' Frames.',
     '',
     'Latencies use the authoritative sample-weighted arithmetic average. All latency columns are µs/op.',
+    ...(report.bundles
+      ? [
+          '',
+          '## Bundle size',
+          '',
+          'Both bundles include WASM. Terser uses three compression passes; gzip uses level 9.',
+          '',
+          '| Format | Raw KiB | Minified KiB | Minified + gzip KiB |',
+          '| --- | ---: | ---: | ---: |',
+          ...(['ESM', 'CommonJS'] as const).map((format) =>
+            row([
+              format,
+              (report.bundles![format].rawBytes / 1024).toFixed(2),
+              (report.bundles![format].minifiedBytes / 1024).toFixed(2),
+              (report.bundles![format].gzipBytes / 1024).toFixed(2),
+            ])
+          ),
+        ]
+      : []),
     '',
     '## Aggregate operation latency',
     '',
@@ -237,10 +258,10 @@ const makeMarkdown = (report: BenchmarkReport): string => {
     '',
     '## Disk usage',
     '',
-    'Disk bytes are the size of node:v8.serialize(sequence), excluding filesystem metadata; no disk I/O is timed.',
+    'Sequence sizes exclude filesystem metadata. JSON and MessagePack use numeric arrays; gzip uses level 9. Encoding and disk I/O are outside API timings.',
     '',
-    '| Run | direction | Replica | visible Strips | Frames | sequence bytes | disk B/Strip | disk B/Frame |',
-    '| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: |'
+    '| Run | direction | Replica | visible Strips | Frames | V8 bytes | disk B/Strip | disk B/Frame | JSON KiB | JSON + gzip KiB | MessagePack KiB | MessagePack + gzip KiB |',
+    '| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |'
   )
   for (const run of report.runs)
     for (const checkpoint of run.checkpoints)
@@ -256,6 +277,10 @@ const makeMarkdown = (report: BenchmarkReport): string => {
             observed.storage.sequenceBytes,
             decimal(observed.storage.bytesPerStrip),
             decimal(observed.storage.bytesPerFrame),
+            (observed.storage.jsonBytes / 1024).toFixed(2),
+            (observed.storage.jsonGzipBytes / 1024).toFixed(2),
+            (observed.storage.messagePackBytes / 1024).toFixed(2),
+            (observed.storage.messagePackGzipBytes / 1024).toFixed(2),
           ])
         )
       }
@@ -337,14 +362,17 @@ export function printSummary(report: BenchmarkReport): void {
   )
 }
 
-/** Persists raw lifecycle observations alongside their readable report. */
+/** Persists lifecycle observations and refreshes the README's bundle and checkpoint tables. */
 export async function writeReports(
   report: BenchmarkReport
 ): Promise<{ jsonPath: string; markdownPath: string } | null> {
   if (report.config.outputPath === null) return null
-  return writeReportFiles(
+  report.bundles = await measureBundles()
+  const paths = await writeReportFiles(
     report.config.outputPath,
     report,
     makeMarkdown(report)
   )
+  if (paths) await updateLifecycleReadme(report, paths.markdownPath)
+  return paths
 }

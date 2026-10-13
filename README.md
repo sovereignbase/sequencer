@@ -16,6 +16,11 @@ console.log(projection.value(0)) // "Hello World"
 projection.destroy()
 ```
 
+### See documentation
+
+- [Typescript](https://sovereignbase.dev/sequencer/)
+- [C++](https://sovereignbase.dev/sequencer/c++)
+
 ## Benchmarks
 
 ### Exceptional performance
@@ -112,10 +117,6 @@ Sizes vary with Session IDs and content.
 ## Tests
 
 ### Behaviour guaranteed by excessive tests
-
-`npm test` rebuilds the native WebAssembly module and TypeScript package,
-typechecks tests, runs unit, convergence, integration and generative stress suites
-with V8 coverage, then runs runtime and browser compatibility checks.
 
 The latest verification passed 170 Vitest tests and 88 compatibility checks.
 The configured 100% coverage threshold remains unmet (95.66% statements,

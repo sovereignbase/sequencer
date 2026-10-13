@@ -19,12 +19,11 @@ const doxygen_command =
 /**
  * Runs one documentation command synchronously and forwards its output.
  *
- * @param {string} command Executable to run from the repository directory.
- * @param {Array<string>} arguments_ Exact command-line arguments.
- * @returns {void}
- * @throws When the executable cannot be started.
+ * @param command Executable to run from the repository directory.
+ * @param arguments_ Command-line arguments passed directly to the executable.
+ * @throws Error if the executable cannot be started.
  */
-function run(command, arguments_) {
+function run(command: string, arguments_: readonly string[]): void {
   // Execute in the repository so every configured relative path stays stable.
   const result = spawn_sync(command, arguments_, {
     cwd: repository_directory,

@@ -7,7 +7,7 @@ Fast-check generates two to five independent replicas and mixed insert/remove/re
 The Worker imports the built package. For a standalone run:
 
 ```powershell
-npm run build:package
+npm run build:ts
 npm run test:stress
 ```
 

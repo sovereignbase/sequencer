@@ -1,0 +1,15 @@
+# Scripts
+
+Node executes these TypeScript files directly. `npm run typecheck` checks them
+alongside the tests and benchmarks.
+
+| Command              | Script                                 | Purpose                                                                                                                                               |
+| -------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run build:c++`  | [build-wasm.ts](build-wasm.ts)         | Builds the `wasm-release` CMake preset, installs the module and declarations into `src/typescript/wasm/raw`, and restores synchronous initialization. |
+| `npm run docs:c++`   | [build-cpp-docs.ts](build-cpp-docs.ts) | Extracts Doxygen XML and renders the C++ API in `docs/c++` with Breathe and Sphinx. Documentation warnings fail the build.                            |
+| `npm run format:c++` | [format-cpp.ts](format-cpp.ts)         | Formats C++ source files and headers in place using `.clang-format`.                                                                                  |
+
+Configure the WASM build with `npm run configure:wasm` before its first build.
+It requires an active Emscripten SDK, CMake, and Ninja. Documentation requires
+Doxygen and the Python packages in `requirements.txt`; formatting requires
+clang-format. Each script preserves the invoked tool's failure status.

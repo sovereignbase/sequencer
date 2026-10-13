@@ -10,8 +10,13 @@ Sequencer provides a deterministic total ordering for distributed data. It allow
 import { Projection } from '@sovereignbase/sequencer'
 
 const projection = new Projection<string>(1)
-const gossip = projection.insert(['Hello World'], 0)
+
+const gossip0 = projection.insert(['Hello World'], 0)
 console.log(projection.value(0)) // "Hello World"
+const gossip1 = projection.replace(['Hello Dude'], 0, 0)
+console.log(projection.value(0)) // "Hello Dude"
+const gossip2 = projection.remove(0, 0)
+console.log(projection.value(0)) // undefined
 
 projection.destroy()
 ```

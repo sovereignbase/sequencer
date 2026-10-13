@@ -37,10 +37,12 @@ projection.destroy()
 
 Both bundles include WASM. Terser uses three compression passes; gzip uses level 9.
 
-### Average throughput during editing from 0 to checkpoint
+### Average throughput during editing to checkpoint
 
-Arithmetic means of 3 runs during growth, in ops/s. Checkpoints
-are visible Strip counts; generated Strips contain 1–100 Frames.
+Arithmetic means of 3 runs, in ops/s, from each phase's start to checkpoint.
+Checkpoints are visible Strip counts; generated Strips contain 1–100 Frames.
+
+**↑ Scale up (0 → 25,000 Strips)**
 
 | Method / case  |     1,000 |     5,000 |    10,000 |    15,000 |    20,000 |    25,000 |
 | -------------- | --------: | --------: | --------: | --------: | --------: | --------: |
@@ -58,9 +60,29 @@ are visible Strip counts; generated Strips contain 1–100 Frames.
 | value.random   |   638,771 |   203,903 |   104,236 |    69,467 |    51,141 |    37,704 |
 | value.tail     | 5,396,266 | 4,633,949 | 4,258,285 | 4,024,233 | 3,852,143 | 3,614,923 |
 
+**↓ Scale down (25,000 → 0 Strips)**
+
+| Method / case  |    20,000 |    15,000 |    10,000 |     5,000 |     1,000 |         0 |
+| -------------- | --------: | --------: | --------: | --------: | --------: | --------: |
+| apply.random   |    10,396 |    11,190 |    11,706 |    12,237 |    12,733 |    12,950 |
+| insert.head    |         — |         — |         — |         — |         — |         — |
+| insert.random  |    24,380 |    26,601 |    28,011 |    28,899 |    30,046 |    30,648 |
+| insert.tail    |         — |         — |         — |         — |         — |         — |
+| remove.head    |   236,742 |   263,535 |   276,625 |   285,910 |   291,791 |   294,476 |
+| remove.random  |    18,252 |    20,102 |    21,532 |    22,667 |    23,697 |    24,155 |
+| remove.tail    |   298,382 |   272,890 |   285,529 |   294,882 |   300,730 |   303,078 |
+| replace.head   |   278,819 |   259,599 |   266,034 |   261,668 |   253,696 |   232,680 |
+| replace.random |    18,958 |    20,732 |    22,004 |    22,973 |    23,920 |    24,377 |
+| replace.tail   |   277,603 |   274,845 |   277,748 |   259,785 |   261,730 |   262,411 |
+| value.head     | 1,299,875 | 1,369,050 | 1,399,347 | 1,442,090 | 1,490,280 | 1,510,644 |
+| value.random   |    19,979 |    22,286 |    23,917 |    25,426 |    26,701 |    27,274 |
+| value.tail     | 1,413,583 | 1,461,501 | 1,482,908 | 1,536,058 | 1,597,427 | 1,622,952 |
+
 ### API throughput at checkpoint
 
 Checkpoint calls, in ops/s, averaged across runs.
+
+**↑ Scale up (0 → 25,000 Strips)**
 
 | Method                            | 1,000 | 5,000 | 10,000 | 15,000 | 20,000 | 25,000 |
 | --------------------------------- | ----: | ----: | -----: | -----: | -----: | -----: |
@@ -68,33 +90,56 @@ Checkpoint calls, in ops/s, averaged across runs.
 | sequence()                        |   576 |    89 |     38 |     22 |     15 |      9 |
 | values()                          |   712 |   163 |    110 |     81 |     60 |     38 |
 
+**↓ Scale down (25,000 → 0 Strips)**
+
+| Method                            | 20,000 | 15,000 | 10,000 | 5,000 | 1,000 |       0 |
+| --------------------------------- | -----: | -----: | -----: | ----: | ----: | ------: |
+| new Projection(actorID, sequence) |    178 |    242 |    353 |   570 | 2,815 |  31,261 |
+| sequence()                        |      9 |      8 |      6 |     5 |     5 |  67,398 |
+| values()                          |     54 |     62 |     76 |   111 |   256 | 121,361 |
+
 ### Sequence disk size at checkpoint
 
 Complete exported Sequences, including Footage and acknowledgements. Sizes are in KiB.
 
-| Encoding           |  1,000 |   5,000 |  10,000 |  15,000 |  20,000 |  25,000 |
-| ------------------ | -----: | ------: | ------: | ------: | ------: | ------: |
-| JSON               | 277.28 | 1622.17 | 3262.71 | 4902.58 | 7043.23 | 9165.29 |
-| JSON + gzip        |  14.59 |   73.81 |  150.31 |  226.79 |  310.97 |  391.41 |
-| MessagePack        | 164.58 |  817.78 | 1637.41 | 3526.01 | 5076.46 | 6477.56 |
-| MessagePack + gzip |  12.38 |   61.60 |  124.87 |  198.51 |  263.46 |  332.76 |
+**↑ Scale up (0 → 25,000 Strips)**
+
+| Encoding           |  1,000 |    5,000 |   10,000 |   15,000 |   20,000 |   25,000 |
+| ------------------ | -----: | -------: | -------: | -------: | -------: | -------: |
+| JSON               | 277.28 | 1,622.17 | 3,262.71 | 4,902.58 | 7,043.23 | 9,165.29 |
+| JSON + gzip        |  14.59 |    73.81 |   150.31 |   226.79 |   310.97 |   391.41 |
+| MessagePack        | 164.58 |   817.78 | 1,637.41 | 3,526.01 | 5,076.46 | 6,477.56 |
+| MessagePack + gzip |  12.38 |    61.60 |   124.87 |   198.51 |   263.46 |   332.76 |
+
+**↓ Scale down (25,000 → 0 Strips)**
+
+| Encoding           |   20,000 |   15,000 |   10,000 |    5,000 |  1,000 |    0 |
+| ------------------ | -------: | -------: | -------: | -------: | -----: | ---: |
+| JSON               | 7,449.24 | 5,619.69 | 3,771.40 | 1,886.30 | 383.40 | 0.02 |
+| JSON + gzip        |   323.00 |   244.28 |   163.86 |    80.66 |  16.35 | 0.03 |
+| MessagePack        | 5,231.75 | 3,926.13 | 2,625.64 | 1,311.05 | 266.40 | 0.01 |
+| MessagePack + gzip |   274.90 |   207.71 |   137.37 |    67.39 |  13.67 | 0.03 |
 
 ### Memory usage at checkpoint
 
-| Measurement              |     1,000 |     5,000 |    10,000 |    15,000 |    20,000 |    25,000 |
-| ------------------------ | --------: | --------: | --------: | --------: | --------: | --------: |
-| Visible Frames           |    50,871 |   252,214 |   504,871 |   758,280 | 1,010,749 | 1,264,003 |
-| Local edit calls         |     6,000 |    30,000 |    60,000 |    90,000 |   120,000 |   150,000 |
-| Estimated Sequence (KiB) |    418.62 |   2074.46 |   4153.16 |   6237.60 |   8313.67 |  10396.46 |
-| Process heap used (KiB)  |  14309.77 |  35368.21 |  61813.08 |  88103.01 | 114616.55 | 140184.66 |
-| Process RSS (KiB)        | 548537.33 | 578304.00 | 620449.33 | 642669.33 | 656937.33 | 684636.00 |
+Estimated retained Sequence memory, in KiB (1,024 bytes).
 
-Sequence memory estimates use four bytes per metadata word and eight per Footage slot.
-Process memory includes both peers and the benchmark fixtures.
+**↑ Scale up (0 → 25,000 Strips)**
+
+| Measurement            |  1,000 |    5,000 |   10,000 |   15,000 |   20,000 |    25,000 |
+| ---------------------- | -----: | -------: | -------: | -------: | -------: | --------: |
+| Estimated memory (KiB) | 418.62 | 2,074.46 | 4,153.16 | 6,237.60 | 8,313.67 | 10,396.46 |
+
+**↓ Scale down (25,000 → 0 Strips)**
+
+| Measurement            |   20,000 |   15,000 |   10,000 |    5,000 |  1,000 |    0 |
+| ---------------------- | -------: | -------: | -------: | -------: | -----: | ---: |
+| Estimated memory (KiB) | 8,354.76 | 6,242.44 | 4,163.23 | 2,074.77 | 421.52 | 0.02 |
 
 Measured on Node 24.16.0, V8 13.6.233.17-node.49,
 win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz.
-Peer synchronization, encoding and garbage collection are outside API timings. [Full lifecycle results](benchmark/.results/lifecycle.md).
+Peer synchronization, encoding and JS process garbage collection are outside API timings.
+[Full lifecycle results](benchmark/.results/lifecycle.md) · [Throughput results](benchmark/.results/throughput.md).
 
 ## Tests
 

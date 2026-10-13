@@ -19,8 +19,9 @@ Both report calls per second and average latency, with separate memory usage
 and disk usage tables. Run `npm run bench -- --help` for shared options.
 
 Lifecycle report writes also refresh the README's bundle and checkpoint tables.
-Those tables average independent runs at each growth checkpoint and show
-JSON/MessagePack transport sizes with gzip in KiB. `--no-output` preserves the
+Those tables average independent runs at each growth and shrinkage checkpoint
+and show JSON/MessagePack transport sizes with gzip in KiB. Memory estimates
+cover Sequence metadata and Footage slots. `--no-output` preserves the
 existing reports and README.
 
 Default settings are collected at the top of `index.ts`. Command-line options

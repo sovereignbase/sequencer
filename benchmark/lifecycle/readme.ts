@@ -6,6 +6,8 @@ import {
   operation_names,
   type BenchmarkReport,
   type CheckpointResult,
+  type Direction,
+  type OperationName,
 } from '../.shared/types.ts'
 
 /** Arithmetic mean of independent run observations; absent timings remain absent. */
@@ -15,9 +17,14 @@ const mean = (values: Array<number | null>): number | null => {
     ? observed.reduce((sum, value) => sum + value, 0) / observed.length
     : null
 }
-/** Binary storage units shared by bundle, Sequence, and process-memory tables. */
+/** Binary storage units shared by bundle and Sequence tables. */
 const kib = (bytes: number | null): string =>
-  bytes === null ? '—' : (bytes / 1024).toFixed(2)
+  bytes === null
+    ? '—'
+    : (bytes / 1024).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
 const rate = (value: number | null): string =>
   value === null
     ? '—'
@@ -42,27 +49,77 @@ export async function updateLifecycleReadme(
   if (start < 0 || end < 0 || !bundles)
     throw new Error('Missing benchmark section or bundle measurements')
 
-  const scales = report.config.checkpoints.filter((scale) => scale > 0)
-  const checkpoints = scales.map((scale) =>
-    report.runs.map((run) => {
-      const checkpoint = run.checkpoints.find(
-        (value) => value.direction === 'up' && value.stripCount === scale
+  const findCheckpoint = (
+    run: BenchmarkReport['runs'][number],
+    direction: Direction,
+    scale: number
+  ): CheckpointResult => {
+    const checkpoint = run.checkpoints.find(
+      (value) => value.direction === direction && value.stripCount === scale
+    )
+    if (!checkpoint)
+      throw new Error(
+        `Missing ${direction} checkpoint ${scale} in run ${run.run}`
       )
-      if (!checkpoint)
-        throw new Error(`Missing growth checkpoint ${scale} in run ${run.run}`)
-      return checkpoint
-    })
+    return checkpoint
+  }
+  const maximum = report.config.maximumStripCount
+  const growthTotals = new Map(
+    report.runs.map((run) => [run.run, findCheckpoint(run, 'up', maximum)])
   )
+  // Stored counters cover the entire lifecycle; subtract growth for shrink-only rates.
+  const phaseMetric = (point: CheckpointResult, operation: OperationName) => {
+    const current = point.replicas.A.operations[operation]
+    const baseline =
+      point.direction === 'down'
+        ? growthTotals.get(point.run)!.replicas.A.operations[operation]
+        : null
+    const count = current.count - (baseline?.count ?? 0)
+    const nanoseconds =
+      current.totalNanoseconds - (baseline?.totalNanoseconds ?? 0)
+    return {
+      count,
+      operationsPerSecond: count === 0 ? null : (count * 1e9) / nanoseconds,
+    }
+  }
+  const phases = (['up', 'down'] as const).map((direction) => {
+    const scales = report.config.checkpoints.filter((scale) =>
+      direction === 'up' ? scale > 0 : scale < maximum
+    )
+    if (direction === 'down') scales.reverse()
+    return {
+      label:
+        direction === 'up'
+          ? `**↑ Scale up (0 → ${rate(maximum)} Strips)**`
+          : `**↓ Scale down (${rate(maximum)} → 0 Strips)**`,
+      scales,
+      checkpoints: scales.map((scale) =>
+        report.runs.map((run) => findCheckpoint(run, direction, scale))
+      ),
+    }
+  })
   const row = (cells: string[]): string => `| ${cells.join(' | ')} |`
-  const table = (label: string, rows: string[][]): string[] => [
-    row([label, ...scales.map((scale) => scale.toLocaleString('en-US'))]),
-    row(['---', ...scales.map(() => '---:')]),
-    ...rows.map(row),
-  ]
-  const cells = (
+  type Measurement = [
+    label: string,
     select: (checkpoint: CheckpointResult) => number | null,
-    format = rate
-  ): string[] => checkpoints.map((points) => format(mean(points.map(select))))
+    format?: (value: number | null) => string,
+  ]
+  const tables = (label: string, measurements: Measurement[]): string[] =>
+    phases.flatMap((phase) => [
+      phase.label,
+      '',
+      row([label, ...phase.scales.map(rate)]),
+      row(['---', ...phase.scales.map(() => '---:')]),
+      ...measurements.map(([name, select, format = rate]) =>
+        row([
+          name,
+          ...phase.checkpoints.map((points) =>
+            format(mean(points.map(select)))
+          ),
+        ])
+      ),
+      '',
+    ])
   const link = relative(root, markdownPath).replaceAll('\\', '/')
   const lines = [
     '## Benchmarks',
@@ -82,18 +139,16 @@ export async function updateLifecycleReadme(
     '',
     'Both bundles include WASM. Terser uses three compression passes; gzip uses level 9.',
     '',
-    '### Average throughput during editing from 0 to checkpoint',
+    '### Average throughput during editing to checkpoint',
     '',
-    `Arithmetic means of ${report.runs.length} runs during growth, in ops/s. Checkpoints`,
-    `are visible Strip counts; generated Strips contain ${report.config.minimumStripFrameLength}–${report.config.maximumStripFrameLength} Frames.`,
+    `Arithmetic means of ${report.runs.length} runs, in ops/s, from each phase's start to checkpoint.`,
+    `Checkpoints are visible Strip counts; generated Strips contain ${report.config.minimumStripFrameLength}–${report.config.maximumStripFrameLength} Frames.`,
     '',
-    ...table(
+    ...tables(
       'Method / case',
       operation_names.map((operation) => [
         operation,
-        ...cells(
-          (point) => point.replicas.A.operations[operation].operationsPerSecond
-        ),
+        (point) => phaseMetric(point, operation).operationsPerSecond,
       ])
     ),
     '',
@@ -101,15 +156,13 @@ export async function updateLifecycleReadme(
     '',
     'Checkpoint calls, in ops/s, averaged across runs.',
     '',
-    ...table(
+    ...tables(
       'Method',
       management_names.map((operation) => [
         operation === 'create'
           ? 'new Projection(actorID, sequence)'
           : `${operation}()`,
-        ...cells(
-          (point) => point.replicas.A.management[operation].operationsPerSecond
-        ),
+        (point) => point.replicas.A.management[operation].operationsPerSecond,
       ])
     ),
     '',
@@ -117,58 +170,33 @@ export async function updateLifecycleReadme(
     '',
     'Complete exported Sequences, including Footage and acknowledgements. Sizes are in KiB.',
     '',
-    ...table('Encoding', [
-      ['JSON', ...cells((point) => point.replicas.A.storage.jsonBytes, kib)],
-      [
-        'JSON + gzip',
-        ...cells((point) => point.replicas.A.storage.jsonGzipBytes, kib),
-      ],
+    ...tables('Encoding', [
+      ['JSON', (point) => point.replicas.A.storage.jsonBytes, kib],
+      ['JSON + gzip', (point) => point.replicas.A.storage.jsonGzipBytes, kib],
       [
         'MessagePack',
-        ...cells((point) => point.replicas.A.storage.messagePackBytes, kib),
+        (point) => point.replicas.A.storage.messagePackBytes,
+        kib,
       ],
       [
         'MessagePack + gzip',
-        ...cells((point) => point.replicas.A.storage.messagePackGzipBytes, kib),
+        (point) => point.replicas.A.storage.messagePackGzipBytes,
+        kib,
       ],
     ]),
     '',
     '### Memory usage at checkpoint',
     '',
-    ...table('Measurement', [
-      ['Visible Frames', ...cells((point) => point.frameCount)],
-      [
-        'Local edit calls',
-        ...cells((point) =>
-          operation_names
-            .filter((operation) => /^(insert|remove|replace)\./.test(operation))
-            .reduce(
-              (sum, operation) =>
-                sum + point.replicas.A.operations[operation].count,
-              0
-            )
-        ),
-      ],
-      [
-        'Estimated Sequence (KiB)',
-        ...cells((point) => point.replicas.A.memory.bytes, kib),
-      ],
-      [
-        'Process heap used (KiB)',
-        ...cells((point) => point.processMemory.heapUsedBytes, kib),
-      ],
-      [
-        'Process RSS (KiB)',
-        ...cells((point) => point.processMemory.rssBytes, kib),
-      ],
-    ]),
+    'Estimated retained Sequence memory, in KiB (1,024 bytes).',
     '',
-    'Sequence memory estimates use four bytes per metadata word and eight per Footage slot.',
-    'Process memory includes both peers and the benchmark fixtures.',
+    ...tables('Measurement', [
+      ['Estimated memory (KiB)', (point) => point.replicas.A.memory.bytes, kib],
+    ]),
     '',
     `Measured on Node ${report.environment.node}, V8 ${report.environment.v8},`,
     `${report.environment.platform} ${report.environment.architecture}, ${report.environment.cpu}.`,
-    `Peer synchronization, encoding and garbage collection are outside API timings. [Full lifecycle results](${link}).`,
+    'Peer synchronization, encoding and JS process garbage collection are outside API timings.',
+    `[Full lifecycle results](${link}) · [Throughput results](benchmark/.results/throughput.md).`,
     '',
     '',
   ]

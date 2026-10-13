@@ -93,7 +93,7 @@ calculation, and logging are excluded. Latency is calculated as total measured
 nanoseconds divided by call count.
 
 Warmup exercises only the continuous operation paths. It does not run hidden
-checkpoints, Sequences, restarts, serialization, or forced garbage collection.
+checkpoints, Sequences, restarts, serialization, or forced JS process garbage collection.
 
 ## Running
 
@@ -123,11 +123,13 @@ Strips. JSON and Markdown reports are written to
 
 Writing the lifecycle report also updates the README's raw and minified bundle sizes,
 checkpoint throughput, encoded Sequence sizes, and memory tables. Those tables
-use growth checkpoints and arithmetic means of independent run observations.
+use growth and shrinkage checkpoints and arithmetic means of independent run observations.
+Shrinkage rates exclude growth-phase calls and timings.
 Bundle sizes include WASM and use Terser with three compression passes.
-Sizes in the README use KiB (1,024 bytes); the full report retains individual
-runs and both lifecycle directions. `--no-output` leaves the README untouched.
+Sizes in the README use KiB (1,024 bytes). Its memory tables show only the
+total retained Sequence estimate. The full report
+retains individual runs and shared-process memory. `--no-output` leaves the README untouched.
 
-The npm entry point exposes garbage collection for checkpoint memory readings.
+The npm entry point exposes JS process garbage collection for checkpoint memory readings.
 Process memory includes both peers and the benchmark fixtures. The Sequence
 estimate measures exported words and Footage slots.

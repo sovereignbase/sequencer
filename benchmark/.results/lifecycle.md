@@ -782,6 +782,6 @@ Sequence sizes exclude filesystem metadata. JSON and MessagePack use numeric arr
 
 - Scale is the number of visible logical Strips maintained by the benchmark model. Every mutation targets a complete Strip boundary.
 - The workload has two peers editing the same document. Every local Gossip is applied by the receiver and every acknowledgement returned by apply is gossiped back to the sender. apply.random times only the measured peer applying the remote replacement Gossip.
-- Exported Sequence memory is estimated as four bytes per metadata word plus eight bytes per JavaScript Footage slot. Checkpoint process memory includes both peers and fixtures and is collected after optional garbage collection.
+- Exported Sequence memory is estimated as four bytes per metadata word plus eight bytes per JavaScript Footage slot. Checkpoint process memory includes both peers and fixtures and is collected after optional JS process garbage collection.
 - Sequence sizes include V8 serialization, JSON, MessagePack, and level-nine gzip of each transport encoding. Numeric metadata is represented as arrays; encoding is outside API timings.
 - Every checkpoint measures temporary Projection creation without replacing the two active gossip peers.

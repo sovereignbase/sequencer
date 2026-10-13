@@ -540,7 +540,7 @@ export async function warmUp(config: BenchmarkConfig): Promise<void> {
   )
   // Warm only the continuously measured operation paths. Running a hidden
   // lifecycle here also performs checkpoint sequences, restarts,
-  // serialization, and forced garbage collection, which is not warmup work.
+  // serialization, and forced JS process garbage collection, which is not warmup work.
   for (let cycle = 0; cycle < config.warmupCycles; cycle++)
     runScaleUpStep(runtime, config)
   for (let cycle = 0; cycle < config.warmupCycles; cycle++)
@@ -709,7 +709,7 @@ export async function runBenchmark(
       average:
         'Operation averages are calculated directly from count and total measured nanoseconds; checkpoint averages are never averaged together.',
       memory:
-        'Exported Sequence memory is estimated as four bytes per metadata word plus eight bytes per JavaScript Footage slot. Checkpoint process memory includes both peers and fixtures and is collected after optional garbage collection.',
+        'Exported Sequence memory is estimated as four bytes per metadata word plus eight bytes per JavaScript Footage slot. Checkpoint process memory includes both peers and fixtures and is collected after optional JS process garbage collection.',
       storage:
         'Sequence sizes include V8 serialization, JSON, MessagePack, and level-nine gzip of each transport encoding. Numeric metadata is represented as arrays; encoding is outside API timings.',
     },

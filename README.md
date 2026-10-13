@@ -150,11 +150,11 @@ binary was unavailable in the latest run.
 
 None of this could have been done without years of work from many great engineers of many great projects, to mention a few:
 
-- AUTOMERGE
+- [AUTOMERGE](https://github.com/automerge)
 
-- YJS
+- [YJS](https://github.com/yjs)
 
-- DIAMOND TYPES
+- [DIAMOND TYPES](https://github.com/josephg/diamond-types)
 
 ## License
 

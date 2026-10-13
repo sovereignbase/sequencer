@@ -21,6 +21,27 @@ class Runtime {
     this.release(id)
   )
 
+  /** Returns linear-memory bytes plus eight bytes per retained JavaScript array slot. */
+  memory(): { bytes: number; wasmBytes: number; javascriptBytes: number } {
+    const arrays = new Set<ReadonlyArray<unknown>>([
+      this.content,
+      this.mutable,
+      this.free,
+    ])
+    for (let id = 0; id < this.content.length; ++id) {
+      const content = this.content[id]
+      if (!content) continue
+      arrays.add(content)
+      arrays.add(this.mutable[id]!)
+      // Multiple hydrated roots can retain the same flat Footage array.
+      for (const footage of content) if (footage) arrays.add(footage)
+    }
+    let javascriptBytes = 0
+    for (const array of arrays) javascriptBytes += array.length * 8
+    const wasmBytes = module.HEAPU32.buffer.byteLength
+    return { bytes: wasmBytes + javascriptBytes, wasmBytes, javascriptBytes }
+  }
+
   /**
    * Allocates matching native history and JavaScript bindings.
    * @param owner Projection whose collection may release the handle.

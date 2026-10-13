@@ -68,10 +68,10 @@ export async function writeThroughputReport(report: ThroughputReport) {
     '',
     '## Memory usage',
     '',
-    'Estimated bytes describe the exported Sequence representation. Process memory is shared by all fixtures, inputs and temporary results; it is not attributable to one Projection. Use `node --expose-gc benchmark/index.ts --suite throughput` to collect garbage between bursts.',
+    'Each case uses a fresh isolated runtime for one measured instance. Its sender, initial-data generation and temporary constructors use a separate runtime. WASM capacity is included once, together with eight bytes per retained JavaScript array slot. Footage arrays are deduplicated; application object contents and JS engine overhead are excluded.',
     '',
-    '| Method | case | run | initial Strips | visible Strips | initial estimated bytes | final estimated bytes | memory B/Strip | memory B/Frame | initial process RSS | final process RSS | final process heap used |',
-    '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |'
+    '| Method | case | run | initial Strips | initial estimated KiB | final estimated KiB | final WASM KiB | final JS slots KiB |',
+    '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |'
   )
   for (const {
     run,
@@ -85,14 +85,10 @@ export async function writeThroughputReport(report: ThroughputReport) {
         ...Object.values(caseColumns(operation)),
         run + 1,
         initialStripCount,
-        after.stripCount,
-        before.memory.bytes,
-        after.memory.bytes,
-        decimal(after.memory.bytesPerStrip),
-        decimal(after.memory.bytesPerFrame),
-        before.processMemory.rssBytes,
-        after.processMemory.rssBytes,
-        after.processMemory.heapUsedBytes,
+        decimal(before.runtimeMemory.bytes / 1024),
+        decimal(after.runtimeMemory.bytes / 1024),
+        decimal(after.runtimeMemory.wasmBytes / 1024),
+        decimal(after.runtimeMemory.javascriptBytes / 1024),
       ])
     )
   lines.push(
@@ -135,7 +131,7 @@ export async function writeThroughputReport(report: ThroughputReport) {
     '- merge.insert receives fresh causally ordered tail insertions; merge.duplicate repeatedly receives an already materialized insertion. Both merge cases include the same actor-only frontier; earlier parents are already materialized.',
     '- create.sequence hydrates the complete initial Sequence; create.empty constructs an empty Projection. Their temporary results are discarded before memory observation; before/after sizes describe the retained source fixture.',
     '- retire removes distinct active Actors established before timing. length reads the maintained count. values and sequence process the entire document; values.head/tail/middle/sameIndex/random each read min(maximum Strip length, initial Frame count) Frames.',
-    '- Memory estimate: four bytes per Sequence metadata word plus eight bytes per JavaScript Footage slot. Visible Strip counts after a burst count positive insertions in the exported Sequence.',
+    "- Live memory uses one instance's isolated WASM buffer and retained JS array slots. Raw observations also retain the exported Sequence estimate and shared process totals. Visible Strip counts after a burst count positive insertions in the exported Sequence.",
     ''
   )
   return writeReportFiles(report.config.outputPath, report, lines.join('\n'))

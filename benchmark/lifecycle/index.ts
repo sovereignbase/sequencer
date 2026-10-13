@@ -1,6 +1,11 @@
 /** Public-API lifecycle with acknowledged two-peer edits, growth and complete scale-down. */
 import { arch, cpus, platform } from 'node:os'
-import { Projection } from '../../dist/index.js'
+import {
+  Projection,
+  PeerProjection,
+  measureRuntimeMemory,
+  resetRuntime,
+} from '../.shared/runtime.ts'
 import { caseColumns } from '../.shared/report.ts'
 import { measureProcessMemory, measureSpace } from '../.shared/space.ts'
 import { measureEncodedSequence } from './space.ts'
@@ -295,7 +300,10 @@ const observeReplica = (
     runtime.state.sequence()
   )
   const [createMetric, recreated] = managementMetric(() => {
-    const projection = createReplica(runtime.actorId, checkpointSequence)
+    const projection = new PeerProjection<number>(
+      runtime.actorId,
+      checkpointSequence
+    )
     projection.length()
     return projection
   })
@@ -351,7 +359,7 @@ const collectGarbage = async (): Promise<void> => {
   await new Promise<void>((resolve) => setImmediate(resolve))
   collect?.()
 }
-/** Captures document estimates and shared-process memory at an exact workload scale. */
+/** Captures one instance's library memory and document observations at an exact workload scale. */
 const takeCheckpoint = async (
   run: number,
   direction: Direction,
@@ -367,6 +375,7 @@ const takeCheckpoint = async (
     direction,
     stripCount: replicas.A.strips.stripCount,
     frameCount: replicas.A.strips.frameCount,
+    runtimeMemory: measureRuntimeMemory(),
     processMemory: measureProcessMemory(),
     replicas,
   }
@@ -415,7 +424,15 @@ const printCheckpoint = (checkpoint: CheckpointResult): void => {
       )
     )
   )
-  console.log('Memory usage')
+  console.log('Sequencer memory usage')
+  console.table([
+    {
+      'estimated memory KiB': (checkpoint.runtimeMemory.bytes / 1024).toFixed(
+        2
+      ),
+    },
+  ])
+  console.log('Exported Sequence representation')
   console.table(
     replicaNames.map((replica) => {
       const observed = checkpoint.replicas[replica]
@@ -431,8 +448,6 @@ const printCheckpoint = (checkpoint: CheckpointResult): void => {
         'estimated memory bytes': observed.memory.bytes,
         'memory B/Strip': observed.memory.bytesPerStrip?.toFixed(3) ?? '—',
         'memory B/Frame': observed.memory.bytesPerFrame?.toFixed(3) ?? '—',
-        'process RSS bytes': checkpoint.processMemory.rssBytes,
-        'process heap used bytes': checkpoint.processMemory.heapUsedBytes,
       }
     })
   )
@@ -460,7 +475,7 @@ const makeRuntime = (
   actorId,
   peerActorId,
   state,
-  peer: createReplica(peerActorId, state.sequence()),
+  peer: new PeerProjection<number>(peerActorId, state.sequence()),
   strips: new StripIndex(),
   random: new Random(workloadSeed),
   nextStripId: 1,
@@ -554,7 +569,9 @@ export async function runLifecycles(
 ): Promise<Array<RunResult>> {
   const results: Array<RunResult> = []
   const baseSeed = seedFromString(config.baseSeed)
-  for (let run = 0; run < config.runs; run++)
+  for (let run = 0; run < config.runs; run++) {
+    resetRuntime()
+    await warmUp(config)
     results.push(
       await runOneLifecycle(
         run,
@@ -563,6 +580,7 @@ export async function runLifecycles(
         true
       )
     )
+  }
   return results
 }
 /** Pools actual call counts while retaining independent run means and dispersion. */
@@ -686,10 +704,9 @@ export async function runBenchmark(
       config.warmupCycles.toLocaleString('en-US') +
       ' cycles)...'
   )
-  await warmUp(config)
   const runs = await runLifecycles(config)
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     generatedAt: new Date().toISOString(),
     environment: {
       node: process.versions.node,
@@ -709,7 +726,7 @@ export async function runBenchmark(
       average:
         'Operation averages are calculated directly from count and total measured nanoseconds; checkpoint averages are never averaged together.',
       memory:
-        'Exported Sequence memory is estimated as four bytes per metadata word plus eight bytes per JavaScript Footage slot. Checkpoint process memory includes both peers and fixtures and is collected after optional JS process garbage collection.',
+        'One measured Projection runs in an isolated WASM runtime; its peer and temporary hydration measurements use a separate runtime. Each run starts fresh and warms independently. Memory includes the complete WASM linear-memory buffer and eight bytes per retained JavaScript array slot, counting each Footage array once. JS array headers, hidden backing capacity, application value objects, compiled code and JS engine bookkeeping are excluded. Observation occurs outside API timings after optional JS process garbage collection. Exported Sequence estimates and process observations remain separate.',
       storage:
         'Sequence sizes include V8 serialization, JSON, MessagePack, and level-nine gzip of each transport encoding. Numeric metadata is represented as arrays; encoding is outside API timings.',
     },

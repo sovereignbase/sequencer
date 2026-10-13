@@ -105,6 +105,16 @@ export type MemoryResult = {
   javascriptFootageSlotBytes: number
 }
 
+/** One measured instance's isolated WASM allocation and retained JavaScript arrays. */
+export type RuntimeMemoryResult = {
+  scope: 'single-instance-runtime'
+  measurement: 'wasm-linear-memory-plus-js-array-slots'
+  bytes: number
+  wasmBytes: number
+  javascriptBytes: number
+  javascriptSlotBytes: 8
+}
+
 /** Actual V8-serialized Sequence bytes, excluding filesystem metadata and I/O latency. */
 export type StorageResult = {
   serialization: 'node:v8.serialize'
@@ -157,6 +167,7 @@ export type CheckpointResult = {
   direction: Direction
   stripCount: number
   frameCount: number
+  runtimeMemory: RuntimeMemoryResult
   processMemory: ProcessMemoryResult
   replicas: Record<ReplicaName, ReplicaCheckpoint>
 }
@@ -214,7 +225,7 @@ export type AggregateMetric = {
 
 /** Complete lifecycle evidence, including environment, metric interpretation and raw runs. */
 export type BenchmarkReport = {
-  schemaVersion: 3
+  schemaVersion: 4
   /** Measured after the lifecycle finishes, when its reports are written. */
   bundles?: BundleSizes
   generatedAt: string

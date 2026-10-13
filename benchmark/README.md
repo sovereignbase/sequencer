@@ -21,9 +21,15 @@ and disk usage tables. Run `npm run bench -- --help` for shared options.
 Lifecycle report writes also refresh the README's bundle and checkpoint tables.
 Those tables average independent runs at each growth and shrinkage checkpoint
 and show JSON/MessagePack transport sizes with gzip in KiB. Memory estimates
-cover Sequence metadata and Footage slots. `--no-output` preserves the
+cover one instance's isolated WASM memory and retained JS array slots. Peers and
+temporary constructor measurements use a separate runtime. `--no-output` preserves the
 existing reports and README.
 
 Default settings are collected at the top of `index.ts`. Command-line options
 override them. Shared measurement helpers and types live in `.shared`;
 each benchmark keeps its reporting code alongside its workload.
+
+The benchmark builds its public API and memory diagnostics into an in-memory
+bundle. Fresh factories release prior runtime references without accumulating
+WASM instances in Node's module cache. The published package exposes the same
+public API.

@@ -58,10 +58,16 @@ time divided by calls. Aggregates sum times and counts across all runs before
 division; they do not average rates or checkpoint averages. Individual-call
 minimum and maximum latencies are not measured.
 
-Memory usage and disk usage have separate tables. Both suites use the same
-exported-state estimate: four bytes per Sequence metadata word plus eight bytes
-per JavaScript Footage slot. RSS and heap usage describe the shared process,
-including inputs and temporary allocations. They are not per-Projection sizes.
+Memory usage and disk usage have separate tables. Each case starts with a fresh
+isolated runtime for the measured instance, then warms it before the burst.
+Initial-data generation, remote authoring and temporary constructors use a
+separate runtime. Their allocations do not increase the measured footprint.
+
+Library memory is the current WASM buffer length plus eight bytes per retained
+JavaScript array slot. Footage arrays are deduplicated. Native free capacity is
+included; JS array headers, hidden backing capacity, application value objects,
+compiled code and JS engine bookkeeping are excluded. Raw observations also
+retain the exported Sequence estimate and shared process totals.
 To collect garbage between bursts, build first and run with `--expose-gc`:
 
 ```powershell

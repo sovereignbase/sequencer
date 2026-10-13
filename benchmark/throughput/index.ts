@@ -1,7 +1,13 @@
 /** Isolated public-API bursts; fixture generation, serialization and observation are untimed. */
 import { caseColumns } from '../.shared/report.ts'
 import { arch, cpus, platform } from 'node:os'
-import { Projection, type Gossip, type Sequence } from '../../dist/index.js'
+import type { Gossip, Sequence } from '../../dist/index.js'
+import {
+  Projection,
+  PeerProjection,
+  measureRuntimeMemory,
+  resetRuntime,
+} from '../.shared/runtime.ts'
 import { deriveSeed, Random, seedFromString } from '../.shared/support.ts'
 import { measureProcessMemory, measureSpace } from '../.shared/space.ts'
 import { sequenceCounts, sequenceMetadata } from '../.shared/sequence.ts'
@@ -9,6 +15,7 @@ import type {
   BenchmarkConfig,
   BenchmarkReport,
   MetricResult,
+  RuntimeMemoryResult,
 } from '../.shared/types.ts'
 /** Positional reads/writes and distinct fresh or duplicate remote operations. */
 export const throughputCases = [
@@ -54,8 +61,9 @@ export const throughputCases = [
 ] as const
 /** Method and fixture variant selecting one independent burst. */
 export type ThroughputCase = (typeof throughputCases)[number]
-/** Exported-state footprint plus shared-process observations, excluding native arena accounting. */
+/** Isolated library memory, exported representation, and shared-process observations. */
 type Observation = ReturnType<typeof measureSpace> & {
+  runtimeMemory: RuntimeMemoryResult
   stripCount: number
   frameCount: number
   retainedInsertionCount: number
@@ -72,7 +80,7 @@ export type ThroughputSample = {
 }
 /** Reproducible fixture configuration, raw samples and call-weighted timings. */
 export type ThroughputReport = {
-  schemaVersion: 2
+  schemaVersion: 3
   suite: 'throughput'
   generatedAt: string
   environment: BenchmarkReport['environment']
@@ -92,7 +100,7 @@ function initialSequence(
   random: Random,
   config: BenchmarkConfig
 ): Sequence<number> {
-  const state = new Projection<number>(1)
+  const state = new PeerProjection<number>(1)
   for (let index = 0; index < count; ++index) {
     const length = random.inclusive(
       config.minimumStripFrameLength,
@@ -163,7 +171,7 @@ function prepare(
     operation === 'apply.duplicateReplace' ||
     operation === 'merge.insert'
   ) {
-    const sender = new Projection<number>(2, snapshot)
+    const sender = new PeerProjection<number>(2, snapshot)
     // Duplicate cases pre-apply one operation; fresh cases replay distinct causal updates.
     const count = operation.startsWith('apply.duplicate') ? 1 : limit
     for (let index = 0; index < count; ++index) {
@@ -269,11 +277,11 @@ function prepare(
       case 'sequence':
         return state.sequence()
       case 'create.sequence': {
-        const created = new Projection<number>(1, snapshot)
+        const created = new PeerProjection<number>(1, snapshot)
         return created
       }
       case 'create.empty': {
-        const created = new Projection<number>(1)
+        const created = new PeerProjection<number>(1)
         return created
       }
       case 'apply.insert':
@@ -321,6 +329,7 @@ function observe(state: Projection<number>): Observation {
     frameCount: state.length(),
     retainedInsertionCount,
     ...measureSpace(sequence, stripCount, state.length()),
+    runtimeMemory: measureRuntimeMemory(),
     processMemory: measureProcessMemory(),
   }
 }
@@ -367,6 +376,7 @@ export async function runThroughput(
         `\nRun ${run + 1} | throughput | ${size.toLocaleString('en-US')} initial Strips`
       )
       for (const operation of throughputCases) {
+        resetRuntime()
         const caseSeed = deriveSeed(
           seed,
           `run:${run}:size:${size}:${operation}`
@@ -484,7 +494,7 @@ export async function runThroughput(
     }))
   )
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     suite: 'throughput',
     generatedAt: new Date().toISOString(),
     config,
@@ -518,11 +528,8 @@ function printCheckpoint(samples: Array<ThroughputSample>): void {
     samples.map(({ operation, before, after }) => ({
       ...caseColumns(operation),
       'visible Strips': after.stripCount,
-      'initial estimated bytes': before.memory.bytes,
-      'final estimated bytes': after.memory.bytes,
-      'memory B/Frame': after.memory.bytesPerFrame?.toFixed(3) ?? '—',
-      'process RSS bytes': after.processMemory.rssBytes,
-      'process heap used bytes': after.processMemory.heapUsedBytes,
+      'initial Sequencer KiB': (before.runtimeMemory.bytes / 1024).toFixed(2),
+      'final Sequencer KiB': (after.runtimeMemory.bytes / 1024).toFixed(2),
     }))
   )
   console.log('Disk usage (serialized Sequence)')

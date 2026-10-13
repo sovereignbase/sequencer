@@ -149,7 +149,8 @@ const makeMarkdown = (report: BenchmarkReport): string => {
   for (const kind of ['memory', 'storage'] as const) {
     lines.push(
       '',
-      '## Aggregate ' + (kind === 'memory' ? 'memory usage' : 'disk usage'),
+      '## Aggregate ' +
+        (kind === 'memory' ? 'exported Sequence estimate' : 'disk usage'),
       '',
       'Nonempty checkpoint observations across all runs. Bytes per unit use total bytes divided by total units.',
       '',
@@ -228,7 +229,30 @@ const makeMarkdown = (report: BenchmarkReport): string => {
     '',
     '## Memory usage',
     '',
-    'Estimated bytes describe the exported Sequence representation. Process memory is shared by both peers, benchmark fixtures and temporary results.',
+    'One instance in an isolated runtime. Its peer and temporary hydration measurements are excluded. WASM bytes include unused native capacity; JavaScript uses eight bytes per retained array slot, counting each Footage array once.',
+    '',
+    '| Run | direction | visible Strips | estimated KiB | WASM KiB | JS slots KiB |',
+    '| ---: | --- | ---: | ---: | ---: | ---: |'
+  )
+  for (const run of report.runs)
+    for (const checkpoint of run.checkpoints) {
+      const memory = checkpoint.runtimeMemory
+      lines.push(
+        row([
+          String(run.run),
+          checkpoint.direction,
+          String(checkpoint.stripCount),
+          decimal(memory.bytes / 1024),
+          decimal(memory.wasmBytes / 1024),
+          decimal(memory.javascriptBytes / 1024),
+        ])
+      )
+    }
+  lines.push(
+    '',
+    '## Exported Sequence representation',
+    '',
+    'The representation estimate describes exported metadata and Footage slots, independently of the live runtime.',
     '',
     '| Run | direction | Replica | visible Strips | retained insertions | Frames | estimated memory bytes | memory B/Strip | memory B/Frame | process RSS | process heap used |',
     '| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |'
@@ -348,7 +372,7 @@ export function printSummary(report: BenchmarkReport): void {
       })
     )
   )
-  console.log('Full-lifecycle memory usage (estimated Sequence memory)')
+  console.log('Full-lifecycle exported Sequence estimate')
   console.table(
     spaceRows(report, 'memory').filter(
       (space) => space.scope === 'fullLifecycle'

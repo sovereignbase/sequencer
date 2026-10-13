@@ -108,7 +108,13 @@ export async function updateLifecycleReadme(
     phases.flatMap((phase) => [
       phase.label,
       '',
-      row([label, ...phase.scales.map(rate)]),
+      row([
+        label,
+        ...phase.scales.map(
+          (scale, index) =>
+            `${rate(scale)} Strips<br>${rate(mean(phase.checkpoints[index].map((point) => point.frameCount)))} Frames`
+        ),
+      ]),
       row(['---', ...phase.scales.map(() => '---:')]),
       ...measurements.map(([name, select, format = rate]) =>
         row([
@@ -142,7 +148,7 @@ export async function updateLifecycleReadme(
     '### Average throughput during editing to checkpoint',
     '',
     `Arithmetic means of ${report.runs.length} runs, in ops/s, from each phase's start to checkpoint.`,
-    `Checkpoints are visible Strip counts; generated Strips contain ${report.config.minimumStripFrameLength}–${report.config.maximumStripFrameLength} Frames.`,
+    `Strips contain ${report.config.minimumStripFrameLength}–${report.config.maximumStripFrameLength} Frames (visible entries). Headers show Strip counts and mean Frame counts.`,
     '',
     ...tables(
       'Method / case',
@@ -187,10 +193,10 @@ export async function updateLifecycleReadme(
     '',
     '### Memory usage at checkpoint',
     '',
-    'Estimated retained Sequence memory, in KiB (1,024 bytes).',
+    'One instance: WASM memory plus retained JS array slots, in KiB (1,024 bytes).',
     '',
     ...tables('Measurement', [
-      ['Estimated memory (KiB)', (point) => point.replicas.A.memory.bytes, kib],
+      ['Estimated memory (KiB)', (point) => point.runtimeMemory.bytes, kib],
     ]),
     '',
     `Measured on Node ${report.environment.node}, V8 ${report.environment.v8},`,

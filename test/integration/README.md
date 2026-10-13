@@ -12,3 +12,6 @@ These tests exercise browser delivery, transports, and native runtime lifetime. 
 | [Runtime lifetime](runtime_lifetime/README.md)       | Native initialization failures and collector cleanup preserve independent Projection ownership.     | [test.ts](runtime_lifetime/test.ts)    |
 
 Run `npm run test:integration`, or select a scenario with `npx vitest run test/integration/fanout_websocket --coverage.enabled=false`.
+
+[Runtime memory](runtime_memory/README.md) verifies shared Footage accounting,
+binding release and WASM memory growth.

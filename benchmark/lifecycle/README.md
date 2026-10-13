@@ -65,8 +65,22 @@ no separate recovery or acknowledgement phase: acknowledgements travel as
 part of the ordinary two-way gossip after every update.
 
 The report includes visible Strip and Frame counts, retained Sequence insertion
-count, serialized Sequence size, an estimated retained-state size, and shared
-process RSS. The retained-state estimate is:
+count, serialized Sequence size, and one instance's estimated library memory.
+The measured Projection and its peer have separate WASM runtimes. Temporary
+checkpoint constructor measurements also use the peer runtime, so their
+allocations do not increase the measured instance's footprint.
+
+Each complete run starts with fresh runtimes and its own warmup. The library
+estimate uses the current WASM buffer length plus eight bytes per retained
+JavaScript array slot. Shared Footage arrays are counted once. The complete
+WASM allocation includes unused native capacity and remains allocated after
+`destroy()`; it does not shrink with the visible document.
+
+JS array headers, hidden backing capacity, application value objects, compiled
+code and JS engine bookkeeping are outside the estimate. Benchmark inputs and
+exported snapshots are counted only when retained by the measured runtime.
+
+The raw report also preserves a separate exported Sequence estimate:
 
 ```text
 4 bytes × Sequence frontier and insertion metadata words
@@ -113,8 +127,9 @@ Useful options are documented by:
 npm run bench -- --help
 ```
 
-Memory usage and disk usage are reported in separate tables. Memory estimates
-describe exported state; process RSS and heap include the entire benchmark.
+Memory usage and disk usage are reported in separate tables. Library memory
+describes the measured instance's isolated runtime; process RSS and heap in the
+raw report include the entire benchmark.
 Disk usage measures serialized Sequence bytes, excluding filesystem metadata.
 
 The default run count is three and the default maximum is 25,000 visible
@@ -125,11 +140,12 @@ Writing the lifecycle report also updates the README's raw and minified bundle s
 checkpoint throughput, encoded Sequence sizes, and memory tables. Those tables
 use growth and shrinkage checkpoints and arithmetic means of independent run observations.
 Shrinkage rates exclude growth-phase calls and timings.
+Checkpoint headers show Strip counts and the mean visible Frame count across runs.
 Bundle sizes include WASM and use Terser with three compression passes.
 Sizes in the README use KiB (1,024 bytes). Its memory tables show only the
-total retained Sequence estimate. The full report
-retains individual runs and shared-process memory. `--no-output` leaves the README untouched.
+isolated instance's library estimate. The full report retains individual runs
+and distinguishes runtime memory from the exported Sequence representation.
+`--no-output` leaves the README untouched.
 
 The npm entry point exposes JS process garbage collection for checkpoint memory readings.
-Process memory includes both peers and the benchmark fixtures. The Sequence
-estimate measures exported words and Footage slots.
+Memory observations and runtime initialization are outside API timings.

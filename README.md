@@ -1,6 +1,6 @@
 # Sequencer
 
-Sequencer provides a deterministic total ordering for distributed data. It allows independently operating replicas to make concurrent changes and later converge on the same state without relying on network arrival order or perfectly synchronized clocks.
+Sequencer provides a deterministic total ordering for distributed data. It allows independently operating actors to make concurrent changes and eventually converge on the same state without relying on network arrival order or perfectly synchronized clocks.
 
 ## Usage
 

@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.0.0 (2026-10-13)
+
+
+### Features
+
+* extremely fast typescript implementation of a list crdt ([d2e750c](https://github.com/sovereignbase/sequencer/commit/d2e750c988c0c4c0d617be909b8b8154d8ba9508))
+* version 1.0.0 release ([52c2210](https://github.com/sovereignbase/sequencer/commit/52c221071e7cb45bf56efd551940a6216ca6e9ba))
+* version 1.0.0 release ([700bf73](https://github.com/sovereignbase/sequencer/commit/700bf7319060a63d41ea4e3ec5ce677d4a98895b))
+
+
+### Bug Fixes
+
+* preserve packed footage after hydration ([6559f72](https://github.com/sovereignbase/sequencer/commit/6559f720351ff5a6b1e49ec91693d11e1ca77adc))
+
+
+### Performance Improvements
+
+* better create speed ([1ed5015](https://github.com/sovereignbase/sequencer/commit/1ed501555825c589a28728d63dd130aac7847eb7))
+* better reocver speed ([92b5069](https://github.com/sovereignbase/sequencer/commit/92b50691fcea142e1bc96a311664588bd80ce18f))
+* fuse wasm frame resolution ([f2fb935](https://github.com/sovereignbase/sequencer/commit/f2fb9354f560a2a4fd285a907c3bdeddd090379f))
+* fuse wasm frame resolution ([57b9b81](https://github.com/sovereignbase/sequencer/commit/57b9b81d666d19005a464525b63d751acbac6990))
+* gate in middle ([3970336](https://github.com/sovereignbase/sequencer/commit/39703360ac9cd57d3202e3524fe59a00a5258635))
+
 ## [1.4.0](https://github.com/sovereignbase/convergent-replicated-list/compare/v1.3.7...v1.4.0) (2026-06-09)
 
 

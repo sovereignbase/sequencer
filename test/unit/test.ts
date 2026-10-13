@@ -100,6 +100,46 @@ describe('Projection public API', () => {
       expect(projection.length()).toBe(2)
       expect(projection.value(0)).toBeUndefined()
     })
+    it('preserves missing Footage through extensions, partial removal and snapshot replay', () => {
+      const projection = new Projection<string>(1)
+      projection.apply([
+        [[0, 0, 0, 100, 0, 3], ['a']],
+        [[100, 0, 3, 200, 0, 2]],
+        [
+          [200, 0, 2, 300, 0, 2],
+          ['x', 'y'],
+        ],
+      ])
+      expect(projection.values(0, 2)).toEqual(['a', undefined, undefined])
+      expect(projection.values()).toEqual([
+        'a',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'x',
+        'y',
+      ])
+      projection.apply([[[200, 0, 2, 200, 2, 1]]])
+      expect(projection.length()).toBe(8)
+      projection.remove(3, 3)
+      const expected = [
+        'a',
+        undefined,
+        undefined,
+        undefined,
+        'x',
+        'y',
+        undefined,
+      ]
+      expect(projection.values()).toEqual(expected)
+      const snapshot = projection.sequence()
+      expect(snapshot[1]).toHaveLength(expected.length)
+      const restored = new Projection<string>(2, snapshot)
+      expect(restored.values()).toEqual(expected)
+      restored.destroy()
+      projection.destroy()
+    })
     it('accepts empty batches, acknowledgements, and duplicate Insertions without visible changes', () => {
       const projection = seeded()
       for (const gossip of [[], [[2]], sequenceInsertions(seed())])
@@ -418,6 +458,13 @@ describe('Projection public API', () => {
   })
   // Undefined is valid Footage; it must not reduce visible length or confuse binding ownership.
   describe('value', () => {
+    it('returns undefined when no visible Frame exists at the requested position', () => {
+      const projection = new Projection<string>(1)
+      expect(projection.value(0)).toBeUndefined()
+      projection.insert(['a'], 0)
+      expect(projection.value(projection.length())).toBeUndefined()
+      projection.destroy()
+    })
     it.each([0, 1, 2])('reads visible position %i', (at) => {
       expect(seeded().value(at)).toBe(['a', 'b', 'c'][at])
     })
@@ -434,6 +481,10 @@ describe('Projection public API', () => {
       const projection = seeded()
       expect(projection.destroy()).toBeUndefined()
       expect(() => projection.length()).toThrow('Projection has been destroyed')
+      expect(() => projection.value(0)).toThrow('Projection has been destroyed')
+      expect(() => projection.apply([])).toThrow(
+        'Projection has been destroyed'
+      )
       expect(() => projection.values()).toThrow('Projection has been destroyed')
       expect(projection.destroy()).toBeUndefined()
     })

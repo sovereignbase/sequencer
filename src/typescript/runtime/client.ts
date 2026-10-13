@@ -459,9 +459,6 @@ class Runtime {
     switch (kind) {
       case 0:
         break
-      case 1:
-        result = p0
-        break
       case 2:
         result = gossip(p0, n0)
         break
@@ -517,9 +514,6 @@ class Runtime {
         break
       }
       case 6:
-        if (operation === Operation.Destroy) {
-          this.content[id] = undefined
-        }
         break
       case 7:
         throw new Error(

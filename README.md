@@ -145,8 +145,8 @@ Peer synchronization, encoding and JS process garbage collection are outside API
 
 ### Behaviour guaranteed by excessive tests
 
-The latest verification passed 170 Vitest tests and 88 compatibility checks (1 failed).
-The configured 100% coverage threshold remains unmet (95.66% statements, 94.94% branches, 100% functions, 97.23% lines).
+The latest verification passed 175 Vitest tests and 88 compatibility checks (1 failed).
+The configured 100% coverage threshold is met (100% statements, 100% branches, 100% functions, 100% lines).
 See the [test suites](test/README.md) and
 [automated test report](https://sovereignbase.dev/sequencer/tests/).
 

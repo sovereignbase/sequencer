@@ -1,9 +1,9 @@
-/** Runs verification and refreshes the README even when test or coverage checks fail. */
+/** Runs verification and refreshes README and HTML results even when checks fail. */
 import { spawnSync } from 'node:child_process'
 import { mkdirSync, rmSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { paths, update_readme } from './.shared/test-report.ts'
+import { paths, update_reports } from './.shared/test-report.ts'
 
 /** Repository directory used by both runners and their report destinations. */
 const root = fileURLToPath(new URL('../', import.meta.url))
@@ -15,6 +15,7 @@ mkdirSync(dirname(paths.vitest), { recursive: true })
 // Remove only reports being regenerated so disabled coverage cannot reuse old totals.
 if (suite !== 'compatibility') {
   rmSync(paths.vitest, { force: true })
+  rmSync(paths.vitestHtml, { force: true })
   rmSync(paths.coverage, { force: true })
 }
 if (suite !== 'vitest') rmSync(paths.compatibility, { force: true })
@@ -49,6 +50,6 @@ try {
       'test/compatibility/index.ts',
     ])
 } finally {
-  update_readme()
+  update_reports()
 }
 process.exitCode = status

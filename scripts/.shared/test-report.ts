@@ -1,6 +1,8 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import vitest_config from '../../vitest.config.ts'
+import { render_report } from './test-report-page.ts'
 
 /** Passed, failed, or unexecuted verification. */
 export type Status = 'passed' | 'failed' | 'skipped'
@@ -29,6 +31,7 @@ interface VitestReport {
   numFailedTests: number
   numPendingTests: number
   numTodoTests: number
+  success?: boolean
 }
 
 /** Coverage metrics in the order used by the README. */
@@ -50,6 +53,13 @@ const runtimes = [
 
 /** Stable report locations shared by npm entry points and the Node reporter. */
 export const paths = {
+  html: fileURLToPath(new URL('../../docs/tests/index.html', import.meta.url)),
+  vitestHtml: fileURLToPath(
+    new URL('../../docs/tests/vitest/index.html', import.meta.url)
+  ),
+  coverageHtml: fileURLToPath(
+    new URL('../../docs/tests/coverage/index.html', import.meta.url)
+  ),
   readme: fileURLToPath(new URL('../../README.md', import.meta.url)),
   vitest: fileURLToPath(
     new URL('../../docs/tests/vitest-results.json', import.meta.url)
@@ -116,8 +126,8 @@ function replace_section(
   )
 }
 
-/** Updates only the test counts, coverage summary, and compatibility runtime list. */
-export function update_readme(): void {
+/** Refreshes the README and HTML overview from the same runner results. */
+export function update_reports(): void {
   const vitest = read_report<VitestReport>(paths.vitest)
   const compatibility = read_report<CompatibilityReport>(paths.compatibility)
   const coverage = read_report<{ total: Coverage }>(paths.coverage)?.total
@@ -169,4 +179,45 @@ export function update_readme(): void {
     runtime_text
   )
   if (updated !== original) writeFileSync(paths.readme, updated)
+
+  const html = render_report({
+    vitest: vitest
+      ? { ...vitest_counts, success: vitest.success !== false }
+      : undefined,
+    compatibility: compatibility ? compatibility_counts : undefined,
+    coverage: coverage
+      ? {
+          metrics: Object.fromEntries(
+            metrics.map((metric) => [metric, coverage[metric].pct])
+          ),
+          met: !!met,
+        }
+      : undefined,
+    runtimes: runtimes.map(([name, label]) => ({
+      name: label,
+      ...compatibility?.runtimes[name],
+      status: compatibility?.runtimes[name]?.status ?? 'skipped',
+    })),
+    links: [
+      ...(vitest && existsSync(paths.vitestHtml)
+        ? [{ label: 'Vitest report', href: './vitest/index.html' }]
+        : []),
+      ...(coverage && existsSync(paths.coverageHtml)
+        ? [{ label: 'V8 coverage', href: './coverage/index.html' }]
+        : []),
+      ...(vitest
+        ? [{ label: 'Vitest results JSON', href: './vitest-results.json' }]
+        : []),
+      ...(compatibility
+        ? [
+            {
+              label: 'Compatibility results JSON',
+              href: './compatibility-results.json',
+            },
+          ]
+        : []),
+    ],
+  })
+  mkdirSync(dirname(paths.html), { recursive: true })
+  writeFileSync(paths.html, html)
 }

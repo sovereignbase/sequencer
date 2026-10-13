@@ -32,9 +32,12 @@ export default define_config({
     environment: 'node',
     fileParallelism: false,
     testTimeout: 30_000,
-    reporters: ['default', 'html', 'json'],
+    reporters: [
+      'default',
+      ['html', { outputDir: 'docs/tests/vitest' }],
+      'json',
+    ],
     outputFile: {
-      html: 'docs/tests/vitest/index.html',
       json: 'docs/tests/vitest-results.json',
     },
     coverage: {

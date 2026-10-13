@@ -20,8 +20,15 @@ both without writing files. The Husky pre-commit hook formats the repository;
 the commit-msg hook enforces Conventional Commits through commitlint.
 
 `npm test` uses [run-tests.ts](run-tests.ts) to run Vitest and compatibility
-verification before updating the README's test and runtime sections. Compatibility
+verification before updating the README's test and runtime sections and
+`docs/tests/index.html`. The HTML overview uses the same JSON results and links
+to the Vitest report in `docs/tests/vitest` and coverage in `docs/tests/coverage`.
+Compatibility
 runs even when coverage thresholds fail. Individual test commands update their
 own results; a run without coverage removes the previous coverage summary.
 [compatibility-report.ts](compatibility-report.ts) records Node's structured
 test counts and each runtime's passed, failed, or skipped state.
+
+The overview template is [.shared/test-report.html](.shared/test-report.html).
+Missing suites appear as unexecuted; runs without coverage do not display old
+coverage values. Reports refresh even when verification fails.

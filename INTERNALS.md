@@ -1,44 +1,50 @@
-## Sequencer is a replicated sequence engine.
+# How Sequencer works
 
-Applications interact with it like an ordinary indexed sequence:
+Sequencer gives applications an ordinary indexed sequence while internally maintaining a stable distributed history.
+
+An application sees something simple:
 
 ```text
-insert(values, position)
-remove(start, end)
-replace(values, start, end)
-value(position)
-values(start, end)
+A B C D
 ```
 
-Internally, however, Sequencer does not replicate those positions.
-
-Projection positions such as `0`, `5`, or `27` only describe the sequence as one replica sees it at that moment. Concurrent edits can change those positions independently on different replicas.
-
-Instead, every local edit is translated into a stable relationship with existing history.
-
-That relationship can then be delivered in any order and resolved independently by every replica into the same sequence.
-
-The central idea is:
+and edits it using positions:
 
 ```text
-Projection position
+insert at 2
+remove 1..3
+replace 4..6
+```
+
+Those positions are useful locally, but they cannot be replicated directly.
+
+Two replicas may edit concurrently. By the time an operation reaches another replica, content may have been inserted or removed before the original position. Position `5` on one replica may therefore refer to something completely different on another.
+
+Sequencer solves this by translating every local edit from a temporary visible position into a stable relationship with existing history.
+
+The basic model is:
+
+```text
+visible Projection
         ↓
-stable logical anchor
+historical logical point
         ↓
 canonical Insertion
         ↓
-Structural Order
+deterministic Structural Order
         ↓
-Projection
+visible Projection
 ```
 
-## Projection and Sequence
+Replicas do not need to agree on temporary positions, network arrival order, runtime fragmentation, or local indexes.
 
-Sequencer maintains two different views of the same data.
+They only need to eventually receive the same canonical history.
 
-### Projection
+---
 
-The **Projection** is the visible sequence applications interact with.
+## Projection is the visible sequence
+
+The **Projection** is what the application sees.
 
 For example:
 
@@ -46,376 +52,443 @@ For example:
 A B C D
 ```
 
-has four visible Frames and Projection positions:
+contains four visible values, called **Frames**:
 
 ```text
-0 1 2 3
+A   B   C   D
+0   1   2   3
 ```
 
-Insertion boundaries exist around those Frames:
+Applications read and edit these visible positions.
+
+Insertion positions are boundaries between Frames:
 
 ```text
 | A | B | C | D |
 0   1   2   3   4
 ```
 
-Applications use these visible positions.
+This distinction is important.
 
-They do not need to know anything about Structural Order, fragmentation, removal masks, or historical anchors.
+A Frame position identifies visible content.
 
-### Sequence
+A boundary identifies a place where new history can be attached.
 
-The **Sequence** describes the structural history required to reconstruct the Projection.
+Projection positions are deliberately temporary. They describe the current visible result, not the permanent identity of anything inside it.
 
-It contains canonical Insertions rather than mutable array positions.
+---
 
-Every insertion initially grows Structural Order, including removals.
+## History must use stable coordinates
 
-History remains present for as long as it is needed to preserve:
-
-- deterministic ordering;
-- causal relationships;
-- removal semantics;
-- offline delivery;
-- duplicate delivery;
-- restart and hydration.
-
-Once removal history is known to be safe to discard, `sequence()` can compact it from the exported state.
-
-## Insertions
-
-Everything replicated by Sequencer is represented as an **Insertion**.
-
-An Insertion is:
+Suppose two replicas begin with:
 
 ```text
-[
-  anchorSession,
-  anchorStart,
-  anchorDiff,
-  insertionSession,
-  insertionStart,
-  insertionDiff,
-  footage?
-]
+A B
 ```
 
-It contains two separate pieces of information:
+Replica 1 inserts:
 
 ```text
-where this Insertion belongs
+X
+```
+
+between them:
+
+```text
+A X B
+```
+
+At the same time, Replica 2 inserts:
+
+```text
+Y
+```
+
+at the same visible position:
+
+```text
+A Y B
+```
+
+Both operations were authored at position `1`.
+
+If Sequencer replicated only:
+
+```text
+insert X at 1
+insert Y at 1
+```
+
+the final result could depend on which packet happened to arrive first.
+
+Instead, both edits are translated into a relationship with the same historical boundary between `A` and `B`.
+
+That boundary remains meaningful even after the visible sequence changes.
+
+Sequencer can then deterministically order the two competing Insertions.
+
+---
+
+# Canonical Insertions
+
+The fundamental replicated unit in Sequencer is an **Insertion**.
+
+Conceptually, every Insertion contains:
+
+```text
+where it belongs
 +
-what this Insertion contributes
+what history it introduces
 ```
 
-### Insertion identity
-
-An Insertion is identified by:
+Its canonical coordinates are:
 
 ```text
-(insertionSession, insertionStart)
+anchorSession
+anchorStart
+anchorDiff
+
+insertionSession
+insertionStart
+insertionDiff
 ```
 
-`insertionSession` identifies one sequencing Session.
+These six values describe two independent things.
 
-`insertionStart` identifies the Insertion within that Session's logical time space.
-
-The identity never changes.
-
-### Anchor
-
-The position of the Insertion is described by:
+The anchor:
 
 ```text
 (anchorSession, anchorStart, anchorDiff)
 ```
 
-`anchorSession` and `anchorStart` identify another original Insertion.
+describes where the Insertion belongs.
 
-`anchorDiff` identifies a logical point inside that Insertion.
-
-This anchor also never changes.
-
-### Insertion effect
-
-`insertionDiff` is the signed original Frame length.
-
-A positive value adds Frames:
+The identity:
 
 ```text
-insertionDiff = 3
+(insertionSession, insertionStart)
 ```
 
-A negative value removes Frames from an existing positive Insertion:
+describes which Insertion it is.
+
+The effect:
 
 ```text
-insertionDiff = -3
+insertionDiff
 ```
 
-Positive Insertions may carry `footage`, containing the inserted values.
+describes how many original Frames it contributes.
 
-## Frames and logical anchor points
+A positive Insertion introduces Frames.
 
-A useful distinction is:
+A negative Insertion represents removal.
 
-- **Frame position** identifies a value.
-- **Logical anchor point** identifies a boundary between values.
+---
 
-An N-Frame Insertion contains N Frames:
+## Insertion identity never depends on location
+
+A canonical Insertion is identified by:
+
+```text
+(insertionSession, insertionStart)
+```
+
+Its identity does not include its anchor.
+
+This means:
+
+```text
+identity
+```
+
+and:
+
+```text
+position in history
+```
+
+are separate concepts.
+
+That separation is useful for several reasons.
+
+The same operation can be recognized after retransmission.
+
+Fragments of one Insertion still belong to the same canonical identity.
+
+An Insertion can be found independently from whichever Strip currently represents its anchor.
+
+And duplicate delivery does not create duplicate visible content.
+
+---
+
+# Logical time
+
+Every sequencing Session owns its own logical coordinate space.
+
+A newly authored Insertion receives a start position inside that Session.
+
+For example:
+
+```text
+Session 12
+
+Insertion A starts at 0
+Insertion B starts at 6
+Insertion C starts at 11
+```
+
+These are not wall-clock timestamps.
+
+They are logical coordinates used only to identify history.
+
+A canonical Insertion normally reserves both:
+
+```text
+its Frame extent
++
+a following logical boundary
+```
+
+before the next independent Insertion in the same Session.
+
+That following boundary gives later history a stable point to reference.
+
+---
+
+## Frames and logical points are different
+
+Consider an Insertion containing:
 
 ```text
 A B C
 ```
 
-with Frame positions:
+It contains three Frames:
 
 ```text
 0 1 2
 ```
 
-but N + 1 logical anchor points:
+but four logical boundary points:
 
 ```text
 | A | B | C |
 0   1   2   3
 ```
 
-This distinction is fundamental.
+An anchor refers to one of these logical points.
 
-Insertions are anchored to logical points, not to mutable Projection indexes.
-
-For an original Insertion:
+For example:
 
 ```text
-insertionStart = S
+anchorDiff = 2
 ```
 
-the logical anchor described by:
+means:
 
 ```text
-anchorDiff = d
+A B | C
 ```
 
-means the stable point:
+inside that specific historical Insertion.
+
+It does **not** mean:
 
 ```text
-S + d
+Projection position 2
 ```
 
-within that original Insertion's logical coordinate space.
+That distinction is one of the most important ideas in Sequencer.
 
-## From a local position to a stable anchor
+Visible positions move.
 
-Suppose the visible Projection is:
+Historical logical points do not.
+
+---
+
+# From a local edit to canonical history
+
+Suppose the current Projection is:
 
 ```text
 Hello world
 ```
 
-and the application asks to insert:
+and the application inserts:
 
 ```text
-"big "
+big
 ```
 
-at the visible boundary:
+here:
 
 ```text
 Hello | world
 ```
 
-Sequencer resolves that Projection boundary to the original Insertion containing the surrounding Frames.
+The application supplies only the visible boundary.
+
+Sequencer resolves that boundary to the historical Insertion that owns it.
 
 It then records the edit relative to that original Insertion:
 
 ```text
-(anchorSession, anchorStart, anchorDiff)
+specific historical Insertion
++
+specific logical point inside it
 ```
 
-The transmitted operation therefore does not mean:
+The operation therefore means:
 
 ```text
-insert at Projection position 6
+insert here in history
 ```
 
-It means:
+rather than:
 
 ```text
-insert at this specific logical point of this specific historical Insertion
+insert at visible index 6
 ```
 
-That relationship remains meaningful even if another replica currently has a different Projection.
+Another replica may have more visible content before that point.
 
-## Canonical coordinates survive fragmentation
+The numeric Projection position may differ.
 
-Runtime editing can split one Insertion into several pieces.
+The historical relationship does not.
 
-For example, an original Insertion:
+---
+
+# Structural Order
+
+Canonical history must eventually form one deterministic order.
+
+Sequencer calls this **Structural Order**.
+
+Structural Order contains everything required to explain the visible sequence, including history that may no longer itself be visible.
+
+It may contain:
 
 ```text
-A B C D
+positive Insertions
+removal history
+fragments
+concurrent siblings
+causal descendants
+hidden historical boundaries
 ```
 
-may later be represented structurally as:
-
-```text
-A B
-...
-C D
-```
-
-These pieces are called **Strips**.
-
-They are not new Insertions.
-
-Both fragments still have the same canonical:
-
-```text
-anchorSession
-anchorStart
-anchorDiff
-insertionSession
-insertionStart
-insertionDiff
-```
-
-Runtime metadata describes which part of the original Insertion each Strip currently represents.
+The Projection is derived from this structure.
 
 Conceptually:
 
 ```text
-original Insertion
-
-| A | B | C | D |
-0   1   2   3   4
-
-         ↓ fragmentation
-
-| A | B |       | C | D |
-0   1   2       2   3   4
-```
-
-The coordinate system does not change.
-
-This is why an operation authored before fragmentation can still be resolved correctly afterwards.
-
-## Structural Order
-
-All materialized Strips exist in one deterministic **Structural Order**.
-
-Structural Order contains more information than the visible Projection.
-
-It may contain:
-
-- visible positive Strips;
-- fragments of original Insertions;
-- removal masks;
-- causal descendants;
-- history that is no longer visible but still required for convergence.
-
-The Projection is derived from this structure by counting only surviving positive Frame effects.
-
-So:
-
-```text
 Structural Order
-    ↓
-visible positive Frames
-    ↓
+        ↓
+surviving positive Frames
+        ↓
 Projection
 ```
 
-The two orders are related, but they are not the same thing.
+Structural Order is therefore richer than the visible sequence.
 
-## Concurrent insertions
-
-Two Insertions are competitors when they use exactly the same canonical anchor:
+The Projection answers:
 
 ```text
-(anchorSession, anchorStart, anchorDiff)
+what is visible now?
 ```
 
-Their order must not depend on network arrival order.
+Structural Order answers:
 
-Sequencer therefore defines a deterministic ordering.
+```text
+what historical relationships produced that result?
+```
 
-From the anchor outward:
+---
 
-1. positive Insertions precede reducing Insertions;
-2. within the same sign, greater `insertionSession` comes first;
-3. within the same Session, greater `insertionStart` comes first.
+# Concurrent Insertions
 
-Duplicate identities are removed before ordering matters.
+Two Insertions directly compete when they use exactly the same canonical anchor.
 
-For example, if two replicas independently insert at the same point:
+For example, both of these may attach to:
 
 ```text
 A | B
 ```
 
-both replicas eventually place those Insertions in the same order regardless of whether delivery was:
+independently:
 
 ```text
-X then Y
+X
+Y
 ```
 
-or:
+The order between them cannot depend on which replica received which packet first.
+
+Sequencer therefore defines a deterministic competitor ordering.
+
+Closer to the shared anchor:
+
+1. positive Insertions come before reducing Insertions;
+2. within the same sign, larger Session identifiers come first;
+3. within the same Session, larger start coordinates come first.
+
+Every replica can calculate this from the canonical history alone.
+
+So one replica may receive:
 
 ```text
-Y then X
+X
+Y
 ```
 
-## Causal subtrees
-
-A competitor is not treated as an isolated node.
-
-Insertions authored relative to it form its **causal subtree**.
-
-Suppose two replicas independently start from an empty Sequence.
-
-Replica A creates:
+while another receives:
 
 ```text
-Project notes.
+Y
+X
 ```
 
-and later inserts several headings relative to that document.
+but both eventually construct the same Structural Order.
 
-Replica B independently creates:
+---
+
+# Causal subtrees stay together
+
+A concurrent competitor may later receive children of its own.
+
+Those children form its **causal subtree**.
+
+Consider two replicas that independently create root content:
 
 ```text
-Shopping list.
+Document A
 ```
 
-and later edits that document.
-
-The two root Insertions compete at the virtual root:
+and:
 
 ```text
-(0, 0, 0)
+Document B
 ```
 
-Sequencer deterministically orders the two roots.
+Before synchronizing, both continue editing their own document.
 
-But their descendants stay with their roots.
+The two roots compete at the same virtual root anchor.
 
-The result is conceptually:
+Sequencer deterministically decides which root comes first.
+
+But the descendants of each root must remain with that root.
+
+The final Structural Order may be:
 
 ```text
-[root A subtree]
-[root B subtree]
+[Document A and its descendants]
+
+[Document B and its descendants]
 ```
 
-or:
+or the reverse.
 
-```text
-[root B subtree]
-[root A subtree]
-```
-
-depending on deterministic competitor ordering.
-
-It must never become:
+It must not become:
 
 ```text
 part of A
@@ -424,67 +497,53 @@ rest of A
 rest of B
 ```
 
-For this reason Structural Order places each competitor together with its entire causal subtree.
+Competitor ordering therefore works on causal subtrees, not merely isolated nodes.
 
-## Missing dependencies
+This is what lets independently developed branches of history remain coherent when they meet.
 
-Network delivery does not need to follow causal order.
+---
 
-For example, an author may create:
+# History can arrive in any causal order
 
-```text
-Hello
-```
+Distributed delivery may be reordered.
 
-and then:
-
-```text
-Hello world
-```
-
-The second operation is anchored to the first.
-
-Another replica may receive:
-
-```text
-" world"
-```
-
-before:
-
-```text
-"Hello"
-```
-
-The relationship cannot yet be resolved because its canonical parent does not exist locally.
-
-Sequencer therefore keeps the operation pending.
-
-It remains invisible:
-
-```text
-(empty)
-```
-
-When the parent arrives:
+Suppose one replica first creates:
 
 ```text
 Hello
 ```
 
-the pending dependency is automatically released:
+and later extends it into:
 
 ```text
 Hello world
 ```
 
-No retransmission is required.
+Another replica may receive the history for:
 
-This preserves causal relationships without requiring causal packet delivery.
+```text
+ world
+```
 
-## Author-time relationships
+before it receives the history containing:
 
-The same rule extends beyond simple parent-before-child delivery.
+```text
+Hello
+```
+
+The child relationship is perfectly valid, but its parent does not yet exist locally.
+
+Sequencer keeps that history unresolved until the required canonical parent becomes available.
+
+When the missing parent later arrives, the relationship becomes resolvable.
+
+No retransmission or special causal network ordering is required.
+
+The same principle applies when the parent exists but has not yet grown far enough to contain the logical point referenced by the incoming history.
+
+---
+
+# Author-time relationships survive receiver-time differences
 
 Consider an author producing:
 
@@ -497,9 +556,7 @@ Now, Well, actually Hello world
 Okay, Now, Well, actually Hello world
 ```
 
-Another replica might receive those Insertions in a different order.
-
-For example:
+Another replica might receive the individual pieces in a very different order:
 
 ```text
 world
@@ -510,49 +567,214 @@ Well
 Okay
 ```
 
-The operation containing `actually` still describes its relationship to the historical Insertion it followed when authored.
+The operations do not depend on the receiver seeing the same intermediate Projection that the author saw.
 
-It does not depend on the receiver's current Projection index.
+Each operation describes where it belonged relative to existing canonical history at author time.
 
-Once the missing causal structure becomes available, the intended relationship can be reconstructed:
+Once all necessary relationships are available, they reconstruct:
 
 ```text
 Okay, Now, Well, actually Hello world
 ```
 
-Sequencer therefore preserves **author-time relationships**, rather than author-time numeric indexes.
+Sequencer therefore preserves:
 
-## Removal is masking
+```text
+author-time relationships
+```
 
-Sequencer does not represent removal by deleting an Insertion from Structural Order.
+rather than:
 
-A removal is itself a reducing Insertion:
+```text
+author-time numeric indexes
+```
+
+---
+
+# Canonical history and runtime fragmentation
+
+A canonical Insertion is a logical piece of history.
+
+It does not need to remain one physical runtime object forever.
+
+Suppose one Insertion originally contains:
+
+```text
+A B C D
+```
+
+Later edits may require the runtime to split it:
+
+```text
+[A B] [C D]
+```
+
+These pieces are called **Strips**.
+
+The important point is that they are not new canonical Insertions.
+
+Both still belong to the same original history:
+
+```text
+same anchor
+same insertion identity
+same original coordinate space
+```
+
+They merely represent different portions of it at runtime.
+
+Conceptually:
+
+```text
+canonical Insertion
+
+| A | B | C | D |
+0   1   2   3   4
+
+         ↓
+
+runtime materialization
+
+[A B]       [C D]
+```
+
+The logical points remain:
+
+```text
+0 1 2 3 4
+```
+
+even if the current physical representation is split around point `2`.
+
+This allows old operations to continue referring to historical locations after arbitrary later fragmentation.
+
+---
+
+# Canonical coordinates survive fragmentation
+
+This separation between canonical identity and runtime representation is essential.
+
+A replica may represent one Insertion as:
+
+```text
+[A B C D]
+```
+
+while another currently represents the same canonical Insertion as:
+
+```text
+[A] [B C] [D]
+```
+
+The two replicas still agree on:
+
+```text
+which Insertion it is
+```
+
+and:
+
+```text
+which original logical point an anchor refers to
+```
+
+They do not need identical runtime layouts.
+
+The receiver resolves canonical coordinates through whatever fragmentation exists locally.
+
+Runtime fragmentation is therefore invisible to replication.
+
+---
+
+# Consecutive editing can extend history
+
+Without any coalescing, typing:
+
+```text
+H
+He
+Hel
+Hell
+Hello
+```
+
+could create one canonical Insertion for every character.
+
+That would preserve correctness, but history would grow unnecessarily quickly.
+
+Sequencer can instead extend a recent positive Insertion when the new edit is a genuine continuation of that same history.
+
+Conceptually:
+
+```text
+H
+↓
+He
+↓
+Hel
+↓
+Hell
+↓
+Hello
+```
+
+may remain one growing canonical Insertion.
+
+The key requirement is that extending it must not change previously established structural relationships.
+
+If history has already attached to the old endpoint in a way that requires that boundary to remain distinct, a new independent Insertion is created instead.
+
+If the canonical Insertion has fragmented at runtime, a valid extension can still become another fragment of the same grown canonical identity.
+
+Extension is therefore a history-growth optimization that preserves the same underlying model.
+
+---
+
+# Removal is not deletion of history
+
+Removing visible content does not immediately erase its original Insertion.
+
+Instead, removal is represented as new history.
+
+A removal is a reducing Insertion:
 
 ```text
 insertionDiff < 0
 ```
 
-It targets Frames belonging to a specific positive Insertion.
+which targets original Frames belonging to a positive Insertion.
 
-For example:
+This is best understood as **masking**.
 
-```text
-The old house
-```
-
-A removal of:
+Suppose the original content is:
 
 ```text
-old
+A B C D
 ```
 
-describes the corresponding Frames of the original positive Insertion.
+and `B C` are removed.
 
-The removal is therefore a **mask over original Frames**.
+The historical positive Insertion still exists.
 
-This distinction is important under concurrency.
+A reducing Insertion records:
 
-Suppose two replicas begin with:
+```text
+mask original Frames B and C
+```
+
+The Projection then contains:
+
+```text
+A D
+```
+
+but Structural Order still knows what happened.
+
+---
+
+# Why removal must target original Frames
+
+Consider two replicas starting with:
 
 ```text
 The old house
@@ -564,563 +786,745 @@ Replica A removes:
 old
 ```
 
-producing:
-
-```text
-The house
-```
-
 while Replica B concurrently inserts:
 
 ```text
 small
 ```
 
-after `old `:
+after it:
 
 ```text
 The old small house
 ```
 
-Replica A never observed `small `.
+Replica A never observed:
 
-Its removal therefore targets only the original Frames representing:
+```text
+small
+```
+
+Its removal should therefore not remove that concurrent content.
+
+Because removal targets original Frames rather than a mutable visible interval, it masks only:
 
 ```text
 old
 ```
 
-After synchronization the result is:
+After synchronization the result becomes:
 
 ```text
 The small house
 ```
 
-The concurrent insertion survives regardless of delivery order.
+regardless of delivery order.
 
-## Removals can fragment
+This is one of the core consequences of using historical coordinates rather than Projection indexes.
 
-A removal may span content that has already been structurally fragmented.
+---
 
-One canonical reducing Insertion can therefore materialize as multiple runtime mask Strips.
+# A visible removal may cross several histories
 
-Conceptually:
+What looks like one contiguous visible range may internally contain Frames from several canonical Insertions.
+
+For example:
 
 ```text
-original target
-
-A B C D E F
-
-runtime fragments
-
-A B | C D | E F
-
-remove B..E
-
-A [mask]
-    [mask]
-        [mask] F
+Hello world
 ```
 
-These runtime mask fragments are still one canonical removal.
+might structurally contain:
 
-Their canonical identity and original target coordinates remain unchanged.
+```text
+[Hello]
+[ ]
+[world]
+```
 
-## Overlapping removals
+from three different historical Insertions.
 
-Concurrent removals may target overlapping Frames of the same original Insertion.
+Removing:
 
-For example, replicas may independently remove:
+```text
+lo wo
+```
+
+therefore cannot be represented as one blind operation against a Projection range.
+
+Sequencer expresses the removal against the actual original Insertions whose Frames are being consumed.
+
+Each reducing Insertion targets only Frames belonging to its own historical parent.
+
+This prevents removals from accidentally claiming content they never observed.
+
+---
+
+# Removal can also fragment
+
+A single canonical removal may encounter an original Insertion that has already fragmented.
+
+Suppose original history contains:
+
+```text
+A B C D E F
+```
+
+but the current runtime representation is:
+
+```text
+[A B] [C D] [E F]
+```
+
+A removal of:
+
+```text
+B C D E
+```
+
+may need to materialize across several runtime regions.
+
+Those pieces are still one canonical removal.
+
+They do not become independent replicated operations merely because the runtime needed several Strips to express their effect.
+
+Again:
+
+```text
+canonical history
+```
+
+and:
+
+```text
+runtime representation
+```
+
+remain separate.
+
+---
+
+# Overlapping removals
+
+Concurrent replicas may independently remove overlapping Frames.
+
+For example, from:
+
+```text
+the brown fox jumps
+```
+
+one replica removes:
 
 ```text
 brown fox
 ```
 
+while another removes:
+
 ```text
 fox jumps
 ```
 
-and:
+Both removals refer to original Frames.
+
+The Frames belonging to:
 
 ```text
-brown fox jumps
+fox
 ```
 
-from the same original text.
+were targeted twice.
 
-A Frame that has already been consumed by one materialized mask must not reduce the Projection again.
+They must still disappear only once from the Projection.
 
-Sequencer resolves overlapping masks against the surviving original Frames.
+A reducing Insertion therefore retains its canonical authored meaning while its current runtime effect is resolved against Frames that remain available to consume.
 
-The canonical removals remain in Structural Order, while each mask's runtime effect represents only Frames that are still available for it to consume.
-
-This ensures that:
-
-- the same original Frame is not removed twice;
-- deleted content cannot reappear because of delivery order;
-- concurrent inserted Footage is unaffected unless explicitly targeted by a causal removal.
-
-## Replacement
-
-Replacement is not a separate structural primitive.
-
-It is:
+This guarantees:
 
 ```text
-remove
-then
-insert
+one original Frame cannot reduce the Projection twice
 ```
 
-For example:
+Delivery order cannot cause repeated subtraction or make deleted content reappear.
+
+---
+
+# Replacement is composition
+
+Replacement does not require its own structural concept.
+
+Replacing:
 
 ```text
 Draft
 ```
 
-becomes:
+with:
 
 ```text
 Final
 ```
 
-through:
+is simply:
 
 ```text
-remove "Draft"
-insert "Final"
+remove Draft
+insert Final
 ```
 
-The replacement insertion is sequenced against the Projection produced by the removal.
+The important part is the relationship between those two operations.
 
-The same order is preserved when both operations are pending behind a missing dependency.
+The new content is anchored against the history that exists after the removal relationship has been established.
 
-So remote application cannot accidentally perform:
+This keeps replacement semantics consistent with ordinary insertion and removal instead of introducing another independent ordering model.
+
+---
+
+# Visible content and historical content are deliberately different
+
+After enough editing, Structural Order may contain much more history than the Projection shows.
+
+For example:
 
 ```text
-insert
-then
-remove
+Structural Order
+
+[A B C]
+[mask B]
+[X]
+[mask C]
+[Y]
 ```
 
-and delete the replacement.
-
-## Applying remote Gossip
-
-Local edits return **Gossip** containing canonical Insertions and, when necessary, acknowledgements.
-
-Remote `apply()` performs the same structural resolution used locally.
-
-For every incoming Insertion it:
-
-1. validates the serialized shape;
-2. acknowledges reducing Insertions;
-3. ignores an already materialized identity;
-4. waits if its canonical dependency is missing;
-5. resolves its canonical anchor into the current runtime fragments;
-6. inserts it into deterministic Structural Order;
-7. releases any operations that were waiting for it;
-8. reports the resulting visible Projection changes.
-
-Application is therefore:
+could produce a Projection such as:
 
 ```text
-canonical operation
-        ↓
-current materialization of its historical anchor
-        ↓
-deterministic Structural Order
-        ↓
-visible Projection change
+A X Y
 ```
 
-The canonical operation itself is never rewritten during this process.
+The hidden history is not accidental garbage.
 
-## Idempotence
-
-Insertion identity is independent from its anchor.
-
-A canonical Insertion is identified by:
+It may still be required to understand:
 
 ```text
-(insertionSession, insertionStart)
+future delayed operations
+historical anchor points
+concurrent relationships
+removal ownership
+ordering of descendants
 ```
 
-Once that identity has been materialized, receiving it again does not apply its visible effect again.
+Sequencer therefore cannot simply delete every hidden node as soon as it stops being visible.
 
-This makes operation retransmission idempotent.
+---
 
-Reducing Insertions may still cause acknowledgement Gossip to be returned when redelivered, because acknowledging receipt is separate from applying the removal effect.
+# Replication transports canonical history
 
-## Sessions
+Replicas exchange canonical Insertions and acknowledgement information.
 
-Each live Projection creates two independent sequencing Sessions:
+The transport itself is not part of the sequencing model.
+
+History may be delivered:
 
 ```text
-increase Session
-decrease Session
+immediately
+later
+out of order
+more than once
+through a central server
+peer to peer
+after being persisted
 ```
 
-The increase Session authors positive Insertions.
+None of these should affect the eventual ordering.
 
-The decrease Session authors reducing Insertions.
+The important property is that the same canonical history eventually reaches the replicas that need it.
 
-Each Session maintains its own logical time.
+---
 
-An Insertion reserves its original Frame range plus a following logical boundary before the next Insertion in that Session.
+# Duplicate delivery is harmless
 
-Session identifiers are independent from Actor identifiers.
+Because canonical Insertions have stable identities, receiving the same history multiple times does not duplicate its visible effect.
 
-Two replicas belonging to the same Actor can therefore author independent Sessions without identity collisions.
+This allows replication systems to favor reliability over exactly-once transport.
 
-## Actors and acknowledgements
+A sender can retransmit uncertain history.
 
-Actors are used for removal acknowledgement and compaction.
+A relay can replay stored history.
 
-When a replica receives a reducing Insertion, it reports the logical frontier it has observed for that removal Session:
+A reconnecting replica can receive data it already has.
+
+Sequencer recognizes the canonical identity and keeps the resulting history idempotent.
+
+---
+
+# Actors and Sessions have different roles
+
+A **Session** identifies authored sequencing history.
+
+An **Actor** participates in acknowledgement of removal history.
+
+These concepts are intentionally separate.
+
+One Actor may have several independent Sessions.
+
+Different replicas belonging to the same logical Actor can therefore create history without sharing one mutable sequencing clock.
+
+Session identities answer:
 
 ```text
-[
-  actorID,
-  sessionID,
-  sessionEnd
-]
+who authored this canonical history stream?
 ```
 
-One acknowledgement may contain multiple Session/frontier pairs:
+Actor identities answer:
 
 ```text
-[
-  actorID,
-  sessionA,
-  endA,
-  sessionB,
-  endB
-]
+whose acknowledgement is required before old removal history can be forgotten?
 ```
 
-The application is responsible for treating these frontiers as claims about complete received removal Session prefixes.
+---
 
-Sequencer records the latest known frontiers for active Actors.
+# Why acknowledgements are needed
 
-## Compaction
+Suppose Replica A removes some content.
 
-Removal history cannot immediately disappear.
+Replica B is currently offline.
 
-An offline replica may still depend on:
+Replica B may still contain unsent history anchored to the content that A removed.
 
-- a removed Frame;
-- a historical anchor point;
-- a mask;
-- a child attached to content that is no longer visible.
+If A permanently discarded every trace of that historical content immediately, B's delayed operation could later refer to a point that no longer exists anywhere in A's retained state.
 
-Compaction is therefore acknowledgement-gated.
+Sequencer therefore separates:
 
-A removal Session becomes eligible when every known active Actor reports the same Session frontier.
+```text
+content is no longer visible
+```
 
-At that point `sequence()` may omit the acknowledged removal history from the exported Sequence.
+from:
 
-Compaction can:
+```text
+history is safe to forget
+```
 
-- remove acknowledged masks;
-- remove Footage Frames already represented as deleted;
-- shrink partially removed positive Insertions;
-- adjust retained mask coordinates;
-- re-anchor surviving Insertions around omitted history.
+Those are not the same event.
 
-The important invariant is:
+---
+
+# Removal frontiers
+
+Actors acknowledge received prefixes of removal Sessions.
+
+Conceptually an acknowledgement says:
+
+```text
+Actor A has observed this removal Session
+through logical point N
+```
+
+A frontier summarizes a whole contiguous prefix rather than listing every individual removal.
+
+This keeps acknowledgement state small while still allowing Sequencer to determine which removal history is globally known among the active Actors.
+
+---
+
+# Compaction
+
+Once all active Actors agree on a removal frontier, the acknowledged removal history becomes eligible for compaction.
+
+Compaction does not simply delete mask nodes.
+
+It constructs an equivalent retained history in which obsolete removed Frames and the historical machinery surrounding them can be omitted.
+
+This may involve:
+
+```text
+removing acknowledged masks
+removing Footage that can no longer reappear
+shortening positive Insertions
+adjusting surviving mask coordinates
+collapsing obsolete logical regions
+re-anchoring surviving history
+```
+
+The required invariant is simple:
 
 ```text
 Projection before compaction
 ==
-Projection after hydration of compacted Sequence
+Projection reconstructed from compacted history
 ```
 
-The live Projection is not rewritten by `sequence()`.
+But preserving that invariant under future editing is the harder part.
 
-Compaction only changes the serialized representation being exported.
+The compacted history must not only look the same now.
 
-## Collapsed historical points
+It must also preserve the ordering relationships that remain relevant later.
 
-Compaction can remove historical Frames that previously separated logical anchor points.
+---
 
-For example, children originally attached to:
+# Compaction can collapse historical space
+
+Consider surviving children originally attached to two different logical points:
 
 ```text
 point 1
-```
-
-and:
-
-```text
+   ↓
+removed historical region
+   ↓
 point 2
 ```
 
-may remain after the Frames between those points have been compacted away.
+After the region between them becomes safe to forget, both historical points may collapse onto the same retained boundary.
 
-The serialized Sequence must preserve their already resolved ordering even if those historical coordinates collapse onto the same retained boundary.
+At that point the original geometric distinction no longer exists.
 
-This allows compacted state to continue accepting new edits without resurrecting discarded history.
+But the children may already have a resolved order.
 
-## Actor retirement
+Compaction must preserve that order.
 
-An Actor can be retired from future compaction requirements:
+Sequencer can therefore re-anchor surviving positive history according to its already resolved retained Structural Order.
 
-```text
-projection.retire(actorID)
-```
-
-Retirement:
-
-- removes that Actor from acknowledgement consensus;
-- removes its stored frontier claims;
-- ignores later acknowledgements from that Actor for the lifetime of the current Projection.
-
-It does not remove Insertions authored by that Actor.
-
-Actor retirement is deliberately an application-level decision.
-
-The application is responsible for propagating that decision to the replicas that must agree on future compaction.
-
-## Sequence export
-
-`sequence()` returns:
+In other words, once obsolete history is discarded:
 
 ```text
-[
-  frontiers,
-  insertions
-]
+resolved order
 ```
 
-The Insertions are sufficient to reconstruct the retained Structural Order and derive the same Projection.
-
-Without eligible compaction, canonical coordinates are retained directly.
-
-When acknowledged removal history is compacted, the exported coordinates describe the equivalent compacted structure instead.
-
-Runtime fragmentation itself is not serialized as independent Insertions.
-
-One canonical Insertion is emitted once even if it currently exists as several Strips.
-
-## Hydration
-
-A Projection can be created from a trusted Sequence:
+can become more important than:
 
 ```text
-new Projection(actorID, sequence)
+the exact historical path that originally produced it
 ```
 
-Hydration rebuilds Structural Order from the serialized Insertions.
+This is what lets retained state become smaller without reopening old ordering decisions.
 
-The serialized order is dependency-compatible, so parents are available before retained children need them.
+---
 
-Hydration also rebuilds the runtime traversal structure while preserving canonical insertion coordinates.
+# Compaction does not rewrite live history
 
-After hydration, fresh increase and decrease Sessions are created so newly authored operations cannot collide with identities already present in the snapshot.
+Compaction operates on retained state.
 
-## Projection changes
+A live Projection does not need to restructure itself every time a snapshot is produced.
 
-Remote `apply()` and `merge()` return visible changes as splice-like tuples.
-
-Insertion:
+Instead:
 
 ```text
-[start, start, values]
+live Structural Order
+        ↓
+derive equivalent compacted history
+        ↓
+persist / transfer snapshot
 ```
 
-Removal:
+A later Projection can hydrate from that compacted history and produce the same visible state and compatible future ordering.
+
+This keeps persistence optimization separate from the current editing runtime.
+
+---
+
+# Actor retirement
+
+A permanently gone Actor would otherwise block removal compaction forever.
+
+Sequencer therefore allows an Actor to be retired from future acknowledgement consensus.
+
+Retirement means:
 
 ```text
-[start, end]
+this Actor is no longer expected to acknowledge future compaction
 ```
 
-where the removal end is exclusive.
-
-A single canonical removal may produce several visible removal splices when surviving concurrent content separates its runtime mask fragments.
-
-For example, Structural Order may effectively contain:
+It does not mean:
 
 ```text
-removed original Frames
-concurrent surviving insertion
-removed original Frames
+delete history authored by this Actor
 ```
 
-The concurrent insertion must stay visible.
+Those are unrelated concepts.
 
-The consumer therefore receives separate removal ranges rather than one splice that would incorrectly remove the surviving content between them.
+Retirement is an application-level decision because Sequencer cannot know whether a disconnected replica is temporarily offline or permanently abandoned.
 
-## Structural Order and Projection position
+---
 
-Applications use Projection positions, but Sequencer must frequently translate between:
+# Persistence retains history, not runtime state
+
+A persisted Sequence contains the history needed to reconstruct the Projection.
+
+It does not need to persist every runtime optimization.
+
+For example, persistence needs the equivalent of:
+
+```text
+canonical Insertions
+retained acknowledgement state
+positive Footage
+```
+
+It does not need to preserve things such as:
+
+```text
+current fragmentation layout
+temporary traversal indexes
+recent lookup positions
+allocation addresses
+```
+
+Those can be reconstructed.
+
+The persistence boundary therefore follows the same conceptual separation as replication:
+
+```text
+stable history is durable
+runtime materialization is disposable
+```
+
+---
+
+# Hydration reconstructs an equivalent Projection
+
+When retained history is loaded again, Sequencer reconstructs the structural relationships encoded by that history and derives the visible Projection.
+
+The important requirement is not that the new runtime representation be byte-for-byte identical to the previous one.
+
+It only needs to reconstruct the same meaningful state:
+
+```text
+same visible content
+same retained canonical relationships
+same deterministic future ordering
+```
+
+Runtime Strip boundaries or indexes may differ.
+
+They are not part of the distributed identity of the sequence.
+
+---
+
+# The same history can have different runtime shapes
+
+This is a useful general principle.
+
+Replica A might internally represent some history as:
+
+```text
+[A B C] [D E]
+```
+
+Replica B might represent the same canonical history as:
+
+```text
+[A] [B C] [D] [E]
+```
+
+A hydrated replica may create yet another local representation.
+
+As long as all of them agree on:
+
+```text
+canonical identities
+canonical anchors
+original Frame coordinates
+deterministic Structural Order
+```
+
+they represent the same Sequence.
+
+Convergence is therefore defined over logical history and Projection, not over internal memory layout.
+
+---
+
+# Three coordinate spaces
+
+Many apparent complexities in Sequencer become much simpler when three different coordinate spaces are kept separate.
+
+## Projection positions
+
+These are the indexes applications use:
+
+```text
+0, 1, 2, 3, ...
+```
+
+They describe the visible sequence right now.
+
+They are temporary.
+
+---
+
+## Canonical logical coordinates
+
+These identify Frames and boundaries inside original Insertions.
+
+They survive:
+
+```text
+concurrent edits
+fragmentation
+removal
+reordered delivery
+restart
+```
+
+These are the coordinates replication cares about.
+
+---
+
+## Runtime structural positions
+
+A live implementation also has some local way to identify materialized pieces of Structural Order.
+
+Those positions are purely runtime state.
+
+Different replicas do not need to share them.
+
+---
+
+So:
 
 ```text
 Projection position
-↔
-Structural Strip
-↔
-original Frame coordinate
+!=
+canonical logical coordinate
+!=
+runtime structural position
 ```
 
-A positive Strip contributes visible Frames.
+Keeping those concepts separate is the easiest way to reason about Sequencer.
 
-A reducing or zero-effect Strip contributes no Projection length, while remaining part of Structural Order.
+---
 
-Therefore walking one structural step does not necessarily move one visible position.
+# The model in one example
 
-## Head, tail, and gate
+Start with an empty Projection.
 
-The runtime keeps three useful Projection references.
-
-### Head
-
-`head` is the Strip containing the first visible Frame.
-
-### Tail
-
-`tail` is the Strip containing the last visible Frame.
-
-### Gate
-
-`gate` is a retained local traversal position.
-
-It stores:
+Replica A inserts:
 
 ```text
-gate
-gatePosition
+Hello
 ```
 
-where `gatePosition` is the Projection position of the gate Strip's first visible Frame or relevant boundary.
+This creates positive canonical history.
 
-Reads and edits move the gate.
+Replica B later receives that history.
 
-Remote edits attempt to retain it on the same surviving content and adjust its visible position rather than restarting every lookup from the beginning.
-
-These references are runtime optimizations.
-
-They do not participate in canonical ordering or replication semantics.
-
-## Jumps
-
-Structural Order also maintains bidirectional traversal jumps.
-
-A jump records both:
+Both now derive:
 
 ```text
-visible Frame distance
-structural Strip distance
+Hello
 ```
 
-between two Strip endpoints.
-
-The target spacing is approximately:
+Replica A inserts:
 
 ```text
-sqrt(structuralStripCount)
+ world
 ```
 
-This bounds typical structural traversal without maintaining a heavyweight global index.
+at the end.
 
-Traversal opportunistically:
+If eligible, the existing positive history may simply extend.
 
-- creates jumps;
-- combines short neighbouring jumps;
-- splits large gaps;
-- patches the jump spanning a local edit.
-
-Hydration prebuilds jumps over the retained Sequence.
-
-Like `head`, `tail`, and `gate`, jumps are purely runtime indexing structures.
-
-They can differ between replicas without affecting convergence.
-
-## Footage identity
-
-Fragments of the same positive Insertion share the original Footage array.
-
-Fragmentation does not copy or reallocate Footage.
-
-A fragment only records which logical interval of that original Footage it currently represents.
-
-Reads therefore resolve:
+Meanwhile Replica B inserts:
 
 ```text
-Projection position
-↓
-Strip
-↓
-original Frame position
-↓
-Footage[index]
+beautiful
 ```
 
-rather than copying visible values into independent fragment arrays.
+at the same historical boundary.
 
-Removed Frame slots may be cleared while the original array identity and coordinate space remain available to the runtime until compaction.
+Now the replicas contain concurrent history.
 
-## The convergence model
+They may receive each other's edits in opposite orders.
 
-The complete model can be summarized as:
+Because both operations describe stable historical relationships, Sequencer deterministically resolves them.
 
-### 1. Users edit a Projection
+Suppose the resulting Projection is:
 
 ```text
-insert / remove / replace at visible indexes
+Hello beautiful world
 ```
 
-### 2. Local indexes are translated into historical relationships
+Replica A removes:
 
 ```text
-(anchorSession, anchorStart, anchorDiff)
+beautiful
 ```
 
-### 3. The authored operation receives its own immutable identity
+while Replica B concurrently inserts:
 
 ```text
-(insertionSession, insertionStart)
+wide
 ```
 
-### 4. Operations are replicated
+inside nearby content.
 
-They may arrive:
+The removal masks only Frames actually observed by its author.
 
-- late;
-- duplicated;
-- out of order;
-- after their original target has been fragmented;
-- after their target has been masked;
-- before their parent exists locally.
+It cannot accidentally consume the concurrent insertion.
 
-### 5. Every replica resolves the same canonical relationships
+Later, all active Actors acknowledge the relevant removal history.
 
-Missing dependencies wait.
+The removed Frames and their masks become eligible for compaction.
 
-Historical anchors resolve through current fragments and masks.
+A persisted snapshot can then omit the obsolete historical region while retaining the already resolved order of everything that survived.
 
-Same-anchor competitors use deterministic ordering.
+A newly hydrated replica reconstructs:
 
-Each competitor keeps its complete causal subtree.
+```text
+Hello wide world
+```
 
-### 6. Reductions mask only their original targets
+and continues editing from equivalent history.
 
-Concurrent Footage is preserved.
+That lifecycle contains almost the entire Sequencer model:
 
-Overlapping removals consume each original Frame at most once.
+```text
+visible positions
+→ canonical anchors
+→ deterministic history
+→ concurrency
+→ fragmentation
+→ masking
+→ acknowledgement
+→ compaction
+→ equivalent reconstruction
+```
 
-### 7. Structural Order converges
+---
 
-Arrival order is no longer relevant once the same valid operation set has been integrated.
+# The central idea
 
-### 8. Projection is derived from Structural Order
+Sequencer works because temporary visible positions are never treated as permanent distributed identities.
 
-Only surviving positive Frame effects are visible.
+Every edit is translated into stable historical relationships.
 
-### 9. Acknowledged history may eventually be compacted
+Those relationships can survive:
 
-Exported state becomes smaller while preserving the same hydrated Projection and future ordering.
+```text
+concurrent editing
+different packet orders
+duplicate delivery
+offline replicas
+fragmentation
+removal
+restart
+compaction
+```
 
-The important consequence is:
+The overall transformation is:
 
-> Sequencer does not synchronize array indexes. It synchronizes stable relationships between immutable historical Insertions and derives array indexes from the resulting shared order.
+```text
+local Projection position
+        ↓
+canonical historical relationship
+        ↓
+deterministic Structural Order
+        ↓
+local Projection
+```
+
+Every replica may have a different temporary view while history is still arriving.
+
+Once they know the same canonical history, they can independently derive the same result.
+
+That is the core of Sequencer.

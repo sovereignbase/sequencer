@@ -10,7 +10,15 @@ Insertion Projection::insert(Word count, Word content, Word at) {
   Coordinates c{0, 0, 0, increase_clock[0], increase_clock[1], std::int32_t(count)};
   if (frame_count == 0) {
     const auto incoming = allocate({c, content});
-    insert_first(incoming);
+    if (!structural_count)
+      insert_first(incoming);
+    else {
+      // Empty visible content can still have anchors held by disconnected peers.
+      anchor_strip(incoming, none, 0);
+      position_of(incoming);
+      gate = incoming;
+      gate_position = 0;
+    }
     containment.set(c, incoming);
     last_insert = incoming;
   } else {

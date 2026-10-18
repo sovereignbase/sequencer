@@ -1,175 +1,48 @@
-# Three online and three offline editors
+# Concurrent replacement delivery
 
-Every editor starts from the same retained document:
-
-```text
-Project notes.
-```
-
-## Online causal chain
-
-Three online editors hand the latest Sequence forward:
+Three replicas begin from the same text:
 
 ```text
-Editor 1:
-Project notes.
-The draft is ready.
-
-Editor 2:
-Project notes.
-The draft is ready.
-Review begins tomorrow.
-
-Editor 3:
-Project notes.
-The draft is ready.
-Review begins tomorrow.
-Publication follows Friday.
+I like green tea today
 ```
 
-This forms one causal subtree:
+They edit it independently without exchanging Gossip.
+
+Actor 0:
 
 ```text
-The draft is ready.
-Review begins tomorrow.
-Publication follows Friday.
+I like green tea today
+I like hot green tea today
+We like hot green tea today
+They prefer iced black tea today
 ```
 
-## Independent offline chains
-
-Three other editors retain the original document and work independently without seeing the online changes or each other's edits:
+Actor 1:
 
 ```text
-Editor 4:
-Project notes.
-Add the budget section.
-Verify the final numbers.
-
-Editor 5:
-Project notes.
-Include the customer feedback.
-Summarize the responses.
-
-Editor 6:
-Project notes.
-Update the technical appendix.
-Check the diagrams.
+I like green tea today
+Well, actually, I think I like green tea today
+Well, actually, I think I prefer green tea today
+Well, I think I prefer green tea today
+Well, I think I prefer black tea today
 ```
 
-When all edits are synchronized, the four concurrent branches are ordered deterministically while every causal subtree remains contiguous.
+Actor 2:
+
+```text
+I like green tea today
+I enjoy green tea today
+```
+
+After all Gossip has been delivered, all delivery orders must expose exactly the same Projection: removed or masked text is absent, every insertion that was not removed remains present, and concurrent surviving insertions remain separated into their deterministically ordered subtrees.
 
 For example:
 
 ```text
-Project notes.
-
-The draft is ready.
-Review begins tomorrow.
-Publication follows Friday.
-
-Add the budget section.
-Verify the final numbers.
-
-Include the customer feedback.
-Summarize the responses.
-
-Update the technical appendix.
-Check the diagrams.
+[They prefer iced black]
+[Well, I think I prefer black]
+[I enjoy]
+tea today
 ```
 
-An arrival order must never interleave independent branches like:
-
-```text
-Add the budget section.
-Include the customer feedback.
-Verify the final numbers.
-```
-
-## Offline data arriving during online editing
-
-Offline edits may arrive while the online chain is still progressing, including children arriving before their causal parents:
-
-```text
-The draft is ready.
-
-Verify the final numbers.
-Add the budget section.
-
-Review begins tomorrow.
-
-Summarize the responses.
-Include the customer feedback.
-
-Publication follows Friday.
-```
-
-The unresolved children remain pending until their parents arrive. Once every operation is available, the Projection must still resolve to the same document shown above.
-
-The suite also checks chronological delivery, complete reverse delivery, and 10,000 deterministic shuffled arrival orders.
-
-## Mixed lifecycle
-
-The same six-editor topology is repeated with inserts, removals, and replacements.
-
-For example:
-
-```text
-Online branch:
-
-The draft is ready.
-Temporary note.
-↓ remove "Temporary note."
-
-Old review date.
-↓ replace with
-Review begins tomorrow.
-
-
-Offline branch 1:
-
-Add the budget section.
-Temporary estimate.
-↓ remove "Temporary estimate."
-
-Verify the final numbers.
-
-
-Offline branch 2:
-
-Include the customer feedback.
-Old summary.
-↓ replace with
-Summarize the responses.
-
-
-Offline branch 3:
-
-Update the technical appendix.
-Temporary diagram note.
-↓ remove "Temporary diagram note."
-
-Old instruction.
-↓ replace with
-Check the diagrams.
-```
-
-Removed text must remain absent and replacement Footage must remain present. After synchronization, the final Projection is still:
-
-```text
-Project notes.
-
-The draft is ready.
-Review begins tomorrow.
-Publication follows Friday.
-
-Add the budget section.
-Verify the final numbers.
-
-Include the customer feedback.
-Summarize the responses.
-
-Update the technical appendix.
-Check the diagrams.
-```
-
-Chronological, reverse, mid-session, and 64 additional deterministic mixed-lifecycle delivery orders must all reconstruct that same Projection.
+Here the bracketed ranges represent concurrent surviving subtrees. Their inserted text remains present, while original text masked by the concurrent edits does not reappear.

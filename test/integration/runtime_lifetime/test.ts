@@ -18,12 +18,14 @@ class Collector {
 }
 
 let Projection: typeof import('../../../src/typescript/class.ts').Projection
+let SequencerError: typeof import('../../../src/typescript/class.ts').SequencerError
 let module: typeof import('../../../src/typescript/wasm/index.ts').default
 
 beforeAll(async () => {
   vi.stubGlobal('FinalizationRegistry', Collector)
   vi.resetModules()
-  ;({ Projection } = await import('../../../src/typescript/class.ts'))
+  ;({ Projection, SequencerError } =
+    await import('../../../src/typescript/class.ts'))
   ;({ default: module } = await import('../../../src/typescript/wasm/index.ts'))
 })
 afterAll(() => {
@@ -33,9 +35,17 @@ afterAll(() => {
 
 describe('runtime lifetime', () => {
   it.each([
-    ['missing native handle', 'Projection has been destroyed'],
-    ['rejected native initialization', 'Native operation 0 failed'],
-  ] as const)('releases bindings after %s', (failure, message) => {
+    [
+      'missing native handle',
+      'PROJECTION_DESTROYED',
+      'Projection has been destroyed.',
+    ],
+    [
+      'rejected native initialization',
+      'NATIVE_OPERATION_FAILED',
+      'Projection initialization failed.',
+    ],
+  ] as const)('releases bindings after %s', (failure, code, message) => {
     const collector = Collector.instance
     const owners = collector.owners.size
     const dispatch = module._runtime_dispatch
@@ -48,7 +58,13 @@ describe('runtime lifetime', () => {
           : dispatch(0, id, actor, 0, 0, 0, 0)
       )
     try {
-      expect(() => new Projection<string>(1)).toThrow(message)
+      expect(() => new Projection<string>(1)).toThrowError(
+        expect.objectContaining({
+          name: 'SequencerError',
+          code,
+          message: `{@sovereignbase/sequencer} ${message}`,
+        })
+      )
       expect(collector.owners.size).toBe(owners)
       const recovered = new Projection<string>(2)
       try {
@@ -61,6 +77,38 @@ describe('runtime lifetime', () => {
       expect(collector.owners.size).toBe(owners)
     } finally {
       fault.mockRestore()
+    }
+  })
+
+  it('identifies a failed operation without changing the live Projection', () => {
+    const projection = new Projection<string>(1)
+    projection.insert(['a', 'b', 'c'], 0)
+    const dispatch = module._runtime_dispatch
+    // An unsupported native opcode returns an operation failure without editing history.
+    const fault = vi
+      .spyOn(module, '_runtime_dispatch')
+      .mockImplementationOnce((_operation, id) =>
+        dispatch(12, id, 0, 0, 0, 0, 0)
+      )
+    try {
+      let failure: unknown
+      try {
+        projection.remove(1, 1)
+      } catch (error) {
+        failure = error
+      }
+      expect(failure).toBeInstanceOf(SequencerError)
+      expect(failure).toMatchObject({
+        code: 'NATIVE_OPERATION_FAILED',
+        message:
+          '{@sovereignbase/sequencer} Projection.remove() failed in the native runtime.',
+      })
+      expect(projection.values()).toEqual(['a', 'b', 'c'])
+      projection.remove(1, 1)
+      expect(projection.values()).toEqual(['a', 'c'])
+    } finally {
+      fault.mockRestore()
+      projection.destroy()
     }
   })
 

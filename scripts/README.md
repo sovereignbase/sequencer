@@ -15,6 +15,9 @@ It requires an active Emscripten SDK, CMake, and Ninja. Documentation requires
 Doxygen and the Python packages in `requirements.txt`; formatting requires
 clang-format. Each script preserves the invoked tool's failure status.
 
+The C++ documentation build uses the version in `package.json` for both Doxygen
+and Sphinx.
+
 `npm run format` applies Prettier and clang-format. `npm run format:check` checks
 both without writing files. The Husky pre-commit hook formats the repository;
 the commit-msg hook enforces Conventional Commits through commitlint.

@@ -1,37 +1,175 @@
-# Test suites
+# Three online and three offline editors
 
-Choose a suite by the behavior being changed. Convergence cases are grouped by their primary contract; each group links to scenarios that also exercise that contract elsewhere.
+Every editor starts from the same retained document:
 
-| Suite                                    | Scope                                                                                         | Run from the repository root                |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| [Unit](unit/README.md)                   | Consumer-facing public API, wire results, validation, and Footage identity.                   | `npm run test:unit`                         |
-| [Convergence](convergence/README.md)     | Editing semantics, canonical anchors, causality, ordering, masks, traversal, and persistence. | `npm run test:convergence`                  |
-| [Integration](integration/README.md)     | Browser execution, peer-to-peer fanout, and WebSocket delivery.                               | `npm run test:integration`                  |
-| [Stress](stress/README.md)               | Replayable generated concurrent editing histories.                                            | `npm run test:stress` after a package build |
-| [Compatibility](compatibility/README.md) | One shared public-API suite across runtimes and browsers.                                     | `npm run test:compatibility`                |
+```text
+Project notes.
+```
 
-## Full verification
+## Online causal chain
 
-`npm test` builds the package and API documentation, typechecks tests, runs every Vitest suite above with 100% source statement/branch/function/line coverage, then runs runtime compatibility.
+Three online editors hand the latest Sequence forward:
 
-## Convergence contracts
+```text
+Editor 1:
+Project notes.
+The draft is ready.
 
-| Contract                                         | Fundamental expectation                                                                        |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| [Anchoring](convergence/anchoring/README.md)     | Canonical anchors retain their original coordinate space; local boundaries reproduce remotely. |
-| [Causality](convergence/causality/README.md)     | Dependants remain invisible until their canonical parent can be resolved.                      |
-| [Compaction](convergence/compaction/README.md)   | Acknowledged removal history can be omitted while retained visible content stays equivalent.   |
-| [Delivery](convergence/delivery/README.md)       | The same valid operation set resolves to the same visible content across delivery orders.      |
-| [Editing](convergence/editing/README.md)         | Local insert/remove/replace results match intended edits and remotely applied Gossip.          |
-| [Masking](convergence/masking/README.md)         | Removals affect their original targets once and preserve concurrent insertions.                |
-| [Ordering](convergence/ordering/README.md)       | Same-anchor competitors have deterministic order and keep complete causal subtrees.            |
-| [Persistence](convergence/persistence/README.md) | Sequence export, hydration, restart, and retained-identity redelivery preserve visible order.  |
-| [Projection](convergence/projection/README.md)   | Head, tail, gates, and jumps resolve the correct visible Frames.                               |
+Editor 2:
+Project notes.
+The draft is ready.
+Review begins tomorrow.
 
-## Test conventions
+Editor 3:
+Project notes.
+The draft is ready.
+Review begins tomorrow.
+Publication follows Friday.
+```
 
-Local positions stay within the documented valid ranges. Constructor Sequences are trusted input; runtime validation expectations belong to `apply` and `merge`. ACKs used for compaction represent complete received removal Session prefixes.
+This forms one causal subtree:
 
-Unit tests exercise public methods and wire types. Convergence regressions may inspect runtime metadata or assign deterministic Session identifiers to make an invariant reproducible. Different delivery orders reuse the same canonical operations.
+```text
+The draft is ready.
+Review begins tomorrow.
+Publication follows Friday.
+```
 
-Shared fixtures and transport setup live in [.helpers](.helpers/README.md). Scenario descriptions stay beside their tests as `README.md` and `test.ts`. Add a regression under its primary contract and link related contracts from the group index.
+## Independent offline chains
+
+Three other editors retain the original document and work independently without seeing the online changes or each other's edits:
+
+```text
+Editor 4:
+Project notes.
+Add the budget section.
+Verify the final numbers.
+
+Editor 5:
+Project notes.
+Include the customer feedback.
+Summarize the responses.
+
+Editor 6:
+Project notes.
+Update the technical appendix.
+Check the diagrams.
+```
+
+When all edits are synchronized, the four concurrent branches are ordered deterministically while every causal subtree remains contiguous.
+
+For example:
+
+```text
+Project notes.
+
+The draft is ready.
+Review begins tomorrow.
+Publication follows Friday.
+
+Add the budget section.
+Verify the final numbers.
+
+Include the customer feedback.
+Summarize the responses.
+
+Update the technical appendix.
+Check the diagrams.
+```
+
+An arrival order must never interleave independent branches like:
+
+```text
+Add the budget section.
+Include the customer feedback.
+Verify the final numbers.
+```
+
+## Offline data arriving during online editing
+
+Offline edits may arrive while the online chain is still progressing, including children arriving before their causal parents:
+
+```text
+The draft is ready.
+
+Verify the final numbers.
+Add the budget section.
+
+Review begins tomorrow.
+
+Summarize the responses.
+Include the customer feedback.
+
+Publication follows Friday.
+```
+
+The unresolved children remain pending until their parents arrive. Once every operation is available, the Projection must still resolve to the same document shown above.
+
+The suite also checks chronological delivery, complete reverse delivery, and 10,000 deterministic shuffled arrival orders.
+
+## Mixed lifecycle
+
+The same six-editor topology is repeated with inserts, removals, and replacements.
+
+For example:
+
+```text
+Online branch:
+
+The draft is ready.
+Temporary note.
+↓ remove "Temporary note."
+
+Old review date.
+↓ replace with
+Review begins tomorrow.
+
+
+Offline branch 1:
+
+Add the budget section.
+Temporary estimate.
+↓ remove "Temporary estimate."
+
+Verify the final numbers.
+
+
+Offline branch 2:
+
+Include the customer feedback.
+Old summary.
+↓ replace with
+Summarize the responses.
+
+
+Offline branch 3:
+
+Update the technical appendix.
+Temporary diagram note.
+↓ remove "Temporary diagram note."
+
+Old instruction.
+↓ replace with
+Check the diagrams.
+```
+
+Removed text must remain absent and replacement Footage must remain present. After synchronization, the final Projection is still:
+
+```text
+Project notes.
+
+The draft is ready.
+Review begins tomorrow.
+Publication follows Friday.
+
+Add the budget section.
+Verify the final numbers.
+
+Include the customer feedback.
+Summarize the responses.
+
+Update the technical appendix.
+Check the diagrams.
+```
+
+Chronological, reverse, mid-session, and 64 additional deterministic mixed-lifecycle delivery orders must all reconstruct that same Projection.

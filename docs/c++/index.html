@@ -9,7 +9,7 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=f6a572b4" />
-    <script src="_static/documentation_options.js?v=f7f30125"></script>
+    <script src="_static/documentation_options.js?v=a12e3537"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -73,10 +73,28 @@
             
   <section id="sequencer-c-api">
 <h1>Sequencer C++ API<a class="headerlink" href="#sequencer-c-api" title="Link to this heading">¶</a></h1>
-<p>The native Projector integrates coordinated Strips into retained Sequence order
-and materializes their visible Projection. This reference is generated from the
-Doxygen documentation maintained beside every implementation unit in
-<code class="docutils literal notranslate"><span class="pre">src/c++</span></code> and uses the concepts defined by <code class="docutils literal notranslate"><span class="pre">src/VOCAB.md</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">sequencer::Projection</span></code> maintains Structural Order and resolves its visible
+Frames. The native runtime owns anchoring, fragmentation, traversal, Session
+clocks, pending Insertions, Acknowledgements and snapshot compaction.</p>
+<p>The synchronous WebAssembly instance is shared by the
+<a class="reference external" href="../index.html">TypeScript API</a>. Each Projection retains independent history.
+JavaScript owns Footage; native spans refer to its binding tokens and array
+offsets. Application values never enter WebAssembly memory.</p>
+<section id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">class.hpp</span></code> defines Projection state and operations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">algorithms/</span></code> implements editing, replication, reads and snapshot export.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">auxiliary/</span></code> implements anchor resolution, fragmentation and traversal.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">components/</span></code> contains the containment, pending and frontier tables.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">types/type.hpp</span></code> defines coordinates, Strips, spans and results.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bindings.cpp</span></code> exposes numeric inputs and borrowed output views to TypeScript.</p></li>
+</ul>
+<p>The API reference below is generated from the declarations and documentation
+in <code class="docutils literal notranslate"><span class="pre">src/c++</span></code>. Strip indices, original Frame coordinates and visible Projection
+positions are distinct; each parameter documents the coordinate space it uses.
+See <a class="reference external" href="../documents/INTERNALS.html">How Sequencer works</a> for the sequence model.</p>
+</section>
 <section id="api-reference">
 <h2>API reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h2>
 <dl class="cpp class">

@@ -8,225 +8,623 @@
 <div class="col-content">
 <div class="tsd-page-title">
 <h1>@sovereignbase/sequencer</h1></div>
-<div class="tsd-panel tsd-typography"><h1 id="sequencer" class="tsd-anchor-link">Sequencer<a href="#sequencer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
-<p>Sequencer provides a deterministic total ordering for distributed data. It allows independently operating replicas to make concurrent changes and later converge on the same state without relying on network arrival order or perfectly synchronized clocks.</p>
+<div class="tsd-panel tsd-typography"><p><a href="https://www.npmjs.com/package/@sovereignbase/sequencer"><img src="https://img.shields.io/npm/v/@sovereignbase/sequencer" alt="npm version"></a>
+<a href="https://jsr.io/@sovereignbase/sequencer"><img src="https://jsr.io/badges/@sovereignbase/sequencer" alt="JSR"></a>
+<a href="https://github.com/sovereignbase/sequencer/actions/workflows/ci.yaml"><img src="https://github.com/sovereignbase/sequencer/actions/workflows/ci.yaml/badge.svg?branch=master" alt="CI"></a>
+<a href="https://codecov.io/gh/sovereignbase/sequencer"><img src="https://codecov.io/gh/sovereignbase/sequencer/branch/master/graph/badge.svg" alt="codecov"></a>
+<a href="https://github.com/sovereignbase/sequencer/blob/master/LICENSE"><img src="https://img.shields.io/npm/l/@sovereignbase/sequencer" alt="license"></a></p>
+<h1 id="sequencer" class="tsd-anchor-link">Sequencer<a href="#sequencer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p>Sequencer provides a deterministic total ordering for distributed data. It allows independently operating actors to make concurrent changes and eventually converge on the same state without relying on network arrival order or perfectly synchronized clocks.</p>
 <h2 id="usage" class="tsd-anchor-link">Usage<a href="#usage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <h3 id="simple-typed-api" class="tsd-anchor-link">Simple typed API<a href="#simple-typed-api" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<pre><code class="ts"><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">Projection</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&#39;@sovereignbase/sequencer&#39;</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">projection</span><span class="hl-1"> = </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-6">Projection</span><span class="hl-1">&lt;</span><span class="hl-7">string</span><span class="hl-1">&gt;(</span><span class="hl-8">1</span><span class="hl-1">)</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">gossip</span><span class="hl-1"> = </span><span class="hl-2">projection</span><span class="hl-1">.</span><span class="hl-6">insert</span><span class="hl-1">([</span><span class="hl-3">&#39;Hello World&#39;</span><span class="hl-1">], </span><span class="hl-8">0</span><span class="hl-1">)</span><br/><span class="hl-2">console</span><span class="hl-1">.</span><span class="hl-6">log</span><span class="hl-1">(</span><span class="hl-2">projection</span><span class="hl-1">.</span><span class="hl-6">value</span><span class="hl-1">(</span><span class="hl-8">0</span><span class="hl-1">)) </span><span class="hl-9">// &quot;Hello World&quot;</span><br/><br/><span class="hl-2">projection</span><span class="hl-1">.</span><span class="hl-6">destroy</span><span class="hl-1">()</span>
+<pre><code class="ts"><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">Projection</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&#39;@sovereignbase/sequencer&#39;</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">projection</span><span class="hl-1"> = </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-6">Projection</span><span class="hl-1">&lt;</span><span class="hl-7">string</span><span class="hl-1">&gt;(</span><span class="hl-8">1</span><span class="hl-1">)</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">gossip0</span><span class="hl-1"> = </span><span class="hl-2">projection</span><span class="hl-1">.</span><span class="hl-6">insert</span><span class="hl-1">([</span><span class="hl-3">&#39;Hello World&#39;</span><span class="hl-1">], </span><span class="hl-8">0</span><span class="hl-1">)</span><br/><span class="hl-2">console</span><span class="hl-1">.</span><span class="hl-6">log</span><span class="hl-1">(</span><span class="hl-2">projection</span><span class="hl-1">.</span><span class="hl-6">value</span><span class="hl-1">(</span><span class="hl-8">0</span><span class="hl-1">)) </span><span class="hl-9">// &quot;Hello World&quot;</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">gossip1</span><span class="hl-1"> = </span><span class="hl-2">projection</span><span class="hl-1">.</span><span class="hl-6">replace</span><span class="hl-1">([</span><span class="hl-3">&#39;Hello Dude&#39;</span><span class="hl-1">], </span><span class="hl-8">0</span><span class="hl-1">, </span><span class="hl-8">0</span><span class="hl-1">)</span><br/><span class="hl-2">console</span><span class="hl-1">.</span><span class="hl-6">log</span><span class="hl-1">(</span><span class="hl-2">projection</span><span class="hl-1">.</span><span class="hl-6">value</span><span class="hl-1">(</span><span class="hl-8">0</span><span class="hl-1">)) </span><span class="hl-9">// &quot;Hello Dude&quot;</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">gossip2</span><span class="hl-1"> = </span><span class="hl-2">projection</span><span class="hl-1">.</span><span class="hl-6">remove</span><span class="hl-1">(</span><span class="hl-8">0</span><span class="hl-1">, </span><span class="hl-8">0</span><span class="hl-1">)</span><br/><span class="hl-2">console</span><span class="hl-1">.</span><span class="hl-6">log</span><span class="hl-1">(</span><span class="hl-2">projection</span><span class="hl-1">.</span><span class="hl-6">value</span><span class="hl-1">(</span><span class="hl-8">0</span><span class="hl-1">)) </span><span class="hl-9">// undefined</span><br/><br/><span class="hl-2">projection</span><span class="hl-1">.</span><span class="hl-6">destroy</span><span class="hl-1">()</span>
 </code><button type="button">Copy</button></pre>
 
+<h3 id="see-documentation" class="tsd-anchor-link">See documentation<a href="#see-documentation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul>
+<li><a href="documents/INTERNALS.html">How sequencer works?</a></li>
+<li><a href="https://sovereignbase.dev/sequencer/">Typescript</a></li>
+<li><a href="https://sovereignbase.dev/sequencer/c++">C++</a></li>
+</ul>
+<h3 id="errors" class="tsd-anchor-link">Errors<a href="#errors" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Library-reported failures throw <code>SequencerError</code>, with a stable <code>SequencerErrorCode</code>
+and a message prefixed with <code>{@sovereignbase/sequencer}</code>. Both are exported from
+the package. The constructor accepts standard <code>ErrorOptions</code>, including <code>cause</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PROJECTION_DESTROYED</code></td>
+<td>An operation was called after the Projection was destroyed.</td>
+</tr>
+<tr>
+<td><code>NATIVE_OPERATION_FAILED</code></td>
+<td>The native runtime reported an initialization or operation failure.</td>
+</tr>
+</tbody>
+</table>
+<p>Invalid Gossip or Sequence input to <code>apply()</code> or <code>merge()</code> returns <code>undefined</code>.
+Platform errors retain their original types.</p>
 <h2 id="benchmarks" class="tsd-anchor-link">Benchmarks<a href="#benchmarks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<h3 id="exceptional-performance" class="tsd-anchor-link">Exceptional performance<a href="#exceptional-performance" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<p>The <a href="media/README.md">benchmark documentation</a> describes both the dynamic
-lifecycle workload and API throughput bursts. Full results are available for
-<a href="media/lifecycle.md">lifecycle</a> and
-<a href="media/throughput.md">throughput</a>.</p>
-<p>Current throughput results, measured on 12 October 2026. Latencies are in µs per
-public API call, weighted by call count across three runs.</p>
-<table>
-<thead>
-<tr>
-<th>Operation</th>
-<th style="text-align:right">100 initial insertions</th>
-<th style="text-align:right">1,000 initial insertions</th>
-<th style="text-align:right">10,000 initial insertions</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>new Projection(actorID, sequence)</code></td>
-<td style="text-align:right">2.013</td>
-<td style="text-align:right">1.598</td>
-<td style="text-align:right">1.503</td>
-</tr>
-<tr>
-<td><code>insert</code>, random position</td>
-<td style="text-align:right">1.108</td>
-<td style="text-align:right">1.045</td>
-<td style="text-align:right">1.076</td>
-</tr>
-<tr>
-<td><code>remove</code>, middle</td>
-<td style="text-align:right">1.534</td>
-<td style="text-align:right">1.605</td>
-<td style="text-align:right">1.493</td>
-</tr>
-<tr>
-<td><code>replace</code>, middle</td>
-<td style="text-align:right">1.507</td>
-<td style="text-align:right">1.364</td>
-<td style="text-align:right">1.625</td>
-</tr>
-<tr>
-<td><code>sequence()</code></td>
-<td style="text-align:right">0.288</td>
-<td style="text-align:right">0.320</td>
-<td style="text-align:right">0.331</td>
-</tr>
-<tr>
-<td><code>value</code>, random position</td>
-<td style="text-align:right">0.090</td>
-<td style="text-align:right">0.082</td>
-<td style="text-align:right">0.155</td>
-</tr>
-<tr>
-<td><code>values()</code></td>
-<td style="text-align:right">4.787</td>
-<td style="text-align:right">174.213</td>
-<td style="text-align:right">1252.987</td>
-</tr>
-</tbody>
-</table>
-<p>Environment: Node 24.16.0, V8 13.6.233.17-node.49, Windows x64, Intel Core
-i5-10210U. Generated Strip lengths are 1–100 Frames. Each case warms up for
-2,048 calls, then measures a burst of approximately 100 ms or at most 8,192 calls.</p>
-<h2 id="memory-efficiency" class="tsd-anchor-link">Memory efficiency<a href="#memory-efficiency" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<p>Retained memory for eight Projections, each containing 6,000 consecutive
-single-Frame insertions. These are five-run medians from isolated Node processes:</p>
-<table>
-<thead>
-<tr>
-<th>Measurement</th>
-<th style="text-align:right">Current</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Additional JS heap after GC</td>
-<td style="text-align:right">0.501 MB</td>
-</tr>
-<tr>
-<td>Shared WASM memory capacity</td>
-<td style="text-align:right">1.049 MB</td>
-</tr>
-</tbody>
-</table>
-<p>Module import and a small warm-up are excluded from the heap delta. WASM
-capacity includes the initial 1 MiB allocation. These are not process RSS or
-per-Projection total memory.</p>
 <h3 id="moderate-bundle-size" class="tsd-anchor-link">Moderate bundle size<a href="#moderate-bundle-size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <table>
 <thead>
 <tr>
 <th>Format</th>
-<th style="text-align:right">Raw</th>
-<th style="text-align:right">Minified</th>
-<th style="text-align:right">Minified + gzip</th>
+<th style="text-align:right">Raw (KiB)</th>
+<th style="text-align:right">Minified (KiB)</th>
+<th style="text-align:right">Minified + gzip (KiB)</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>ESM</td>
-<td style="text-align:right">120.9 kB</td>
-<td style="text-align:right">101.6 kB</td>
-<td style="text-align:right">36.8 kB</td>
+<td style="text-align:right">125.98</td>
+<td style="text-align:right">100.80</td>
+<td style="text-align:right">36.45</td>
 </tr>
 <tr>
 <td>CommonJS</td>
-<td style="text-align:right">121.0 kB</td>
-<td style="text-align:right">102.4 kB</td>
-<td style="text-align:right">37.0 kB</td>
+<td style="text-align:right">126.12</td>
+<td style="text-align:right">101.49</td>
+<td style="text-align:right">36.53</td>
 </tr>
 </tbody>
 </table>
-<p>Both bundles include the WASM module. Minified sizes use Terser with three
-compression passes; source maps and type declarations are excluded. kB and MB
-use decimal units.</p>
-<h3 id="compact-data-model" class="tsd-anchor-link">Compact data model<a href="#compact-data-model" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<p>An insertion contains six uint32 structural words: 24 bytes before transport
-framing or content. Numeric metadata accepts <code>Uint32Array</code> and JSON numeric
-arrays. Generic content, called Footage, stays in JavaScript; only numeric
-metadata enters WASM.</p>
-<p><code>sequence()</code> returns <code>[words, footage]</code>: one numeric array and one content
-array, with no nested insertion or acknowledgement arrays. Small snapshots use
-six-word records after length-prefixed acknowledgements. From 64 retained
-insertions onward, predictable fields are omitted as WASM writes the snapshot;
-<code>[0, frontiersEnd, insertionCount]</code> identifies this compact numeric layout.
-Coordinates, acknowledgements and content order are preserved. The runtime
-reads both layouts; compact snapshots require an updated reader.
-Positive insertion lengths identify successive spans of <code>footage</code>.
-An empty Sequence is <code>[[], []]</code>. Construction and <code>merge()</code> accept numeric
-arrays or <code>Uint32Array</code> metadata; exported numeric arrays can be sent as JSON.</p>
-<pre><code class="ts"><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">retained</span><span class="hl-1"> = </span><span class="hl-2">projection</span><span class="hl-1">.</span><span class="hl-6">sequence</span><span class="hl-1">()</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">restored</span><span class="hl-1"> = </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-6">Projection</span><span class="hl-1">&lt;</span><span class="hl-7">string</span><span class="hl-1">&gt;(</span><span class="hl-8">2</span><span class="hl-1">, </span><span class="hl-2">retained</span><span class="hl-1">)</span>
-</code><button type="button">Copy</button></pre>
-
-<p>Consecutive local insertions extend an intact insertion from the same Session
-without reserving another zero in its logical clock. Gossip contains only the
-new suffix, still using six structural words. A removal or fragmentation ends
-the local extension chain. Retained snapshots remain unchanged by later edits.</p>
-<p>Measured JSON transport sizes for 1,000 one-Frame insertions containing <code>'x'</code>,
-their removal Gossip, and a snapshot captured before removal:</p>
+<p>Both bundles include WASM. Terser uses three compression passes; gzip uses level 9.</p>
+<h3 id="average-throughput-during-editing-to-checkpoint" class="tsd-anchor-link">Average throughput during editing to checkpoint<a href="#average-throughput-during-editing-to-checkpoint" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Arithmetic means of 3 runs, in ops/s, from each phase's start to checkpoint.
+Strips contain 1–100 Frames (visible entries). Headers show Strip counts and mean Frame counts.</p>
+<p><strong>↑ Scale up (0 → 25,000 Strips)</strong></p>
 <table>
 <thead>
 <tr>
-<th>Workload</th>
-<th style="text-align:right">Average bytes per operation or insertion</th>
-<th style="text-align:right">JSON</th>
-<th style="text-align:right">JSON + gzip</th>
-<th style="text-align:right">gzip reduction</th>
+<th>Method / case</th>
+<th style="text-align:right">1,000 Strips<br>50,871 Frames</th>
+<th style="text-align:right">5,000 Strips<br>252,214 Frames</th>
+<th style="text-align:right">10,000 Strips<br>504,871 Frames</th>
+<th style="text-align:right">15,000 Strips<br>758,280 Frames</th>
+<th style="text-align:right">20,000 Strips<br>1,010,749 Frames</th>
+<th style="text-align:right">25,000 Strips<br>1,264,003 Frames</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>1,000 one-frame insertions</td>
-<td style="text-align:right">44.8 B</td>
-<td style="text-align:right">45.8 kB</td>
-<td style="text-align:right">5.1 kB</td>
-<td style="text-align:right">88.9%</td>
+<td>apply.random</td>
+<td style="text-align:right">146,512</td>
+<td style="text-align:right">50,162</td>
+<td style="text-align:right">35,425</td>
+<td style="text-align:right">25,372</td>
+<td style="text-align:right">17,992</td>
+<td style="text-align:right">13,401</td>
 </tr>
 <tr>
-<td>1,000 one-frame removals</td>
-<td style="text-align:right">65.8 B</td>
-<td style="text-align:right">66.8 kB</td>
-<td style="text-align:right">7.5 kB</td>
-<td style="text-align:right">88.8%</td>
+<td>insert.head</td>
+<td style="text-align:right">1,103,240</td>
+<td style="text-align:right">627,952</td>
+<td style="text-align:right">723,841</td>
+<td style="text-align:right">741,193</td>
+<td style="text-align:right">692,500</td>
+<td style="text-align:right">629,581</td>
 </tr>
 <tr>
-<td>Snapshot containing 1,000 one-frame insertions</td>
-<td style="text-align:right">4.0 B</td>
-<td style="text-align:right">4.0 kB</td>
-<td style="text-align:right">0.1 kB</td>
-<td style="text-align:right">98.3%</td>
+<td>insert.random</td>
+<td style="text-align:right">423,106</td>
+<td style="text-align:right">138,442</td>
+<td style="text-align:right">91,906</td>
+<td style="text-align:right">64,213</td>
+<td style="text-align:right">44,063</td>
+<td style="text-align:right">33,092</td>
+</tr>
+<tr>
+<td>insert.tail</td>
+<td style="text-align:right">1,247,342</td>
+<td style="text-align:right">779,594</td>
+<td style="text-align:right">895,027</td>
+<td style="text-align:right">892,070</td>
+<td style="text-align:right">830,660</td>
+<td style="text-align:right">765,706</td>
+</tr>
+<tr>
+<td>remove.head</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+</tr>
+<tr>
+<td>remove.random</td>
+<td style="text-align:right">258,681</td>
+<td style="text-align:right">95,210</td>
+<td style="text-align:right">65,861</td>
+<td style="text-align:right">46,668</td>
+<td style="text-align:right">31,655</td>
+<td style="text-align:right">23,556</td>
+</tr>
+<tr>
+<td>remove.tail</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+</tr>
+<tr>
+<td>replace.head</td>
+<td style="text-align:right">380,869</td>
+<td style="text-align:right">309,212</td>
+<td style="text-align:right">303,788</td>
+<td style="text-align:right">291,544</td>
+<td style="text-align:right">270,032</td>
+<td style="text-align:right">245,792</td>
+</tr>
+<tr>
+<td>replace.random</td>
+<td style="text-align:right">253,774</td>
+<td style="text-align:right">94,640</td>
+<td style="text-align:right">63,352</td>
+<td style="text-align:right">45,272</td>
+<td style="text-align:right">31,633</td>
+<td style="text-align:right">23,736</td>
+</tr>
+<tr>
+<td>replace.tail</td>
+<td style="text-align:right">392,296</td>
+<td style="text-align:right">315,718</td>
+<td style="text-align:right">313,645</td>
+<td style="text-align:right">310,052</td>
+<td style="text-align:right">268,791</td>
+<td style="text-align:right">247,351</td>
+</tr>
+<tr>
+<td>value.head</td>
+<td style="text-align:right">2,283,059</td>
+<td style="text-align:right">2,095,440</td>
+<td style="text-align:right">1,999,974</td>
+<td style="text-align:right">2,016,602</td>
+<td style="text-align:right">1,907,994</td>
+<td style="text-align:right">1,721,581</td>
+</tr>
+<tr>
+<td>value.random</td>
+<td style="text-align:right">569,971</td>
+<td style="text-align:right">133,693</td>
+<td style="text-align:right">78,867</td>
+<td style="text-align:right">51,725</td>
+<td style="text-align:right">34,540</td>
+<td style="text-align:right">25,316</td>
+</tr>
+<tr>
+<td>value.tail</td>
+<td style="text-align:right">4,749,438</td>
+<td style="text-align:right">3,636,984</td>
+<td style="text-align:right">3,461,656</td>
+<td style="text-align:right">3,227,876</td>
+<td style="text-align:right">2,914,996</td>
+<td style="text-align:right">2,408,625</td>
 </tr>
 </tbody>
 </table>
-<p>Gossip sizes include acknowledgements and content where present. Delta averages
-measure individual Gossip packets; batch totals include their enclosing array.
-Snapshot averages divide the complete Sequence size by the 1,000 authored insertions. Consecutive insertions are retained as one insertion.
-Sizes vary with Session IDs and content.</p>
+<p><strong>↓ Scale down (25,000 → 0 Strips)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method / case</th>
+<th style="text-align:right">20,000 Strips<br>1,012,742 Frames</th>
+<th style="text-align:right">15,000 Strips<br>755,860 Frames</th>
+<th style="text-align:right">10,000 Strips<br>504,103 Frames</th>
+<th style="text-align:right">5,000 Strips<br>251,203 Frames</th>
+<th style="text-align:right">1,000 Strips<br>51,057 Frames</th>
+<th style="text-align:right">0 Strips<br>0 Frames</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>apply.random</td>
+<td style="text-align:right">7,268</td>
+<td style="text-align:right">7,592</td>
+<td style="text-align:right">8,263</td>
+<td style="text-align:right">8,783</td>
+<td style="text-align:right">9,083</td>
+<td style="text-align:right">9,219</td>
+</tr>
+<tr>
+<td>insert.head</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+</tr>
+<tr>
+<td>insert.random</td>
+<td style="text-align:right">17,296</td>
+<td style="text-align:right">18,458</td>
+<td style="text-align:right">20,290</td>
+<td style="text-align:right">21,279</td>
+<td style="text-align:right">22,052</td>
+<td style="text-align:right">22,459</td>
+</tr>
+<tr>
+<td>insert.tail</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+<td style="text-align:right">—</td>
+</tr>
+<tr>
+<td>remove.head</td>
+<td style="text-align:right">157,981</td>
+<td style="text-align:right">165,917</td>
+<td style="text-align:right">180,514</td>
+<td style="text-align:right">178,894</td>
+<td style="text-align:right">181,826</td>
+<td style="text-align:right">183,709</td>
+</tr>
+<tr>
+<td>remove.random</td>
+<td style="text-align:right">13,036</td>
+<td style="text-align:right">13,992</td>
+<td style="text-align:right">15,527</td>
+<td style="text-align:right">16,535</td>
+<td style="text-align:right">17,163</td>
+<td style="text-align:right">17,459</td>
+</tr>
+<tr>
+<td>remove.tail</td>
+<td style="text-align:right">192,199</td>
+<td style="text-align:right">192,220</td>
+<td style="text-align:right">203,528</td>
+<td style="text-align:right">209,615</td>
+<td style="text-align:right">209,694</td>
+<td style="text-align:right">210,394</td>
+</tr>
+<tr>
+<td>replace.head</td>
+<td style="text-align:right">176,953</td>
+<td style="text-align:right">178,240</td>
+<td style="text-align:right">186,921</td>
+<td style="text-align:right">185,389</td>
+<td style="text-align:right">181,259</td>
+<td style="text-align:right">161,071</td>
+</tr>
+<tr>
+<td>replace.random</td>
+<td style="text-align:right">13,038</td>
+<td style="text-align:right">14,084</td>
+<td style="text-align:right">15,647</td>
+<td style="text-align:right">16,708</td>
+<td style="text-align:right">17,397</td>
+<td style="text-align:right">17,697</td>
+</tr>
+<tr>
+<td>replace.tail</td>
+<td style="text-align:right">190,938</td>
+<td style="text-align:right">184,284</td>
+<td style="text-align:right">193,773</td>
+<td style="text-align:right">187,715</td>
+<td style="text-align:right">182,304</td>
+<td style="text-align:right">182,496</td>
+</tr>
+<tr>
+<td>value.head</td>
+<td style="text-align:right">794,128</td>
+<td style="text-align:right">838,606</td>
+<td style="text-align:right">885,880</td>
+<td style="text-align:right">922,502</td>
+<td style="text-align:right">940,112</td>
+<td style="text-align:right">948,944</td>
+</tr>
+<tr>
+<td>value.random</td>
+<td style="text-align:right">13,677</td>
+<td style="text-align:right">14,768</td>
+<td style="text-align:right">16,600</td>
+<td style="text-align:right">18,037</td>
+<td style="text-align:right">18,894</td>
+<td style="text-align:right">19,271</td>
+</tr>
+<tr>
+<td>value.tail</td>
+<td style="text-align:right">1,070,897</td>
+<td style="text-align:right">1,038,948</td>
+<td style="text-align:right">1,093,604</td>
+<td style="text-align:right">1,140,368</td>
+<td style="text-align:right">1,178,006</td>
+<td style="text-align:right">1,192,164</td>
+</tr>
+</tbody>
+</table>
+<h3 id="api-throughput-at-checkpoint" class="tsd-anchor-link">API throughput at checkpoint<a href="#api-throughput-at-checkpoint" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Checkpoint calls, in ops/s, averaged across runs.</p>
+<p><strong>↑ Scale up (0 → 25,000 Strips)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th style="text-align:right">1,000 Strips<br>50,871 Frames</th>
+<th style="text-align:right">5,000 Strips<br>252,214 Frames</th>
+<th style="text-align:right">10,000 Strips<br>504,871 Frames</th>
+<th style="text-align:right">15,000 Strips<br>758,280 Frames</th>
+<th style="text-align:right">20,000 Strips<br>1,010,749 Frames</th>
+<th style="text-align:right">25,000 Strips<br>1,264,003 Frames</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>new Projection(actorID, sequence)</td>
+<td style="text-align:right">2,513</td>
+<td style="text-align:right">795</td>
+<td style="text-align:right">408</td>
+<td style="text-align:right">215</td>
+<td style="text-align:right">154</td>
+<td style="text-align:right">107</td>
+</tr>
+<tr>
+<td>sequence()</td>
+<td style="text-align:right">375</td>
+<td style="text-align:right">66</td>
+<td style="text-align:right">33</td>
+<td style="text-align:right">18</td>
+<td style="text-align:right">11</td>
+<td style="text-align:right">6</td>
+</tr>
+<tr>
+<td>values()</td>
+<td style="text-align:right">480</td>
+<td style="text-align:right">163</td>
+<td style="text-align:right">108</td>
+<td style="text-align:right">70</td>
+<td style="text-align:right">49</td>
+<td style="text-align:right">32</td>
+</tr>
+</tbody>
+</table>
+<p><strong>↓ Scale down (25,000 → 0 Strips)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th style="text-align:right">20,000 Strips<br>1,012,742 Frames</th>
+<th style="text-align:right">15,000 Strips<br>755,860 Frames</th>
+<th style="text-align:right">10,000 Strips<br>504,103 Frames</th>
+<th style="text-align:right">5,000 Strips<br>251,203 Frames</th>
+<th style="text-align:right">1,000 Strips<br>51,057 Frames</th>
+<th style="text-align:right">0 Strips<br>0 Frames</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>new Projection(actorID, sequence)</td>
+<td style="text-align:right">116</td>
+<td style="text-align:right">212</td>
+<td style="text-align:right">273</td>
+<td style="text-align:right">586</td>
+<td style="text-align:right">1,881</td>
+<td style="text-align:right">16,098</td>
+</tr>
+<tr>
+<td>sequence()</td>
+<td style="text-align:right">7</td>
+<td style="text-align:right">6</td>
+<td style="text-align:right">5</td>
+<td style="text-align:right">4</td>
+<td style="text-align:right">4</td>
+<td style="text-align:right">38,383</td>
+</tr>
+<tr>
+<td>values()</td>
+<td style="text-align:right">44</td>
+<td style="text-align:right">51</td>
+<td style="text-align:right">58</td>
+<td style="text-align:right">62</td>
+<td style="text-align:right">199</td>
+<td style="text-align:right">68,912</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sequence-disk-size-at-checkpoint" class="tsd-anchor-link">Sequence disk size at checkpoint<a href="#sequence-disk-size-at-checkpoint" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Complete exported Sequences, including Footage and acknowledgements. Sizes are in KiB.</p>
+<p><strong>↑ Scale up (0 → 25,000 Strips)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Encoding</th>
+<th style="text-align:right">1,000 Strips<br>50,871 Frames</th>
+<th style="text-align:right">5,000 Strips<br>252,214 Frames</th>
+<th style="text-align:right">10,000 Strips<br>504,871 Frames</th>
+<th style="text-align:right">15,000 Strips<br>758,280 Frames</th>
+<th style="text-align:right">20,000 Strips<br>1,010,749 Frames</th>
+<th style="text-align:right">25,000 Strips<br>1,264,003 Frames</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JSON</td>
+<td style="text-align:right">277.17</td>
+<td style="text-align:right">1,621.65</td>
+<td style="text-align:right">3,261.72</td>
+<td style="text-align:right">4,901.02</td>
+<td style="text-align:right">7,041.25</td>
+<td style="text-align:right">9,162.75</td>
+</tr>
+<tr>
+<td>JSON + gzip</td>
+<td style="text-align:right">14.59</td>
+<td style="text-align:right">73.84</td>
+<td style="text-align:right">150.38</td>
+<td style="text-align:right">226.94</td>
+<td style="text-align:right">311.22</td>
+<td style="text-align:right">391.69</td>
+</tr>
+<tr>
+<td>MessagePack</td>
+<td style="text-align:right">164.81</td>
+<td style="text-align:right">818.88</td>
+<td style="text-align:right">1,639.69</td>
+<td style="text-align:right">3,529.41</td>
+<td style="text-align:right">5,081.04</td>
+<td style="text-align:right">6,483.22</td>
+</tr>
+<tr>
+<td>MessagePack + gzip</td>
+<td style="text-align:right">12.38</td>
+<td style="text-align:right">61.62</td>
+<td style="text-align:right">124.91</td>
+<td style="text-align:right">198.59</td>
+<td style="text-align:right">263.54</td>
+<td style="text-align:right">332.77</td>
+</tr>
+</tbody>
+</table>
+<p><strong>↓ Scale down (25,000 → 0 Strips)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Encoding</th>
+<th style="text-align:right">20,000 Strips<br>1,012,742 Frames</th>
+<th style="text-align:right">15,000 Strips<br>755,860 Frames</th>
+<th style="text-align:right">10,000 Strips<br>504,103 Frames</th>
+<th style="text-align:right">5,000 Strips<br>251,203 Frames</th>
+<th style="text-align:right">1,000 Strips<br>51,057 Frames</th>
+<th style="text-align:right">0 Strips<br>0 Frames</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JSON</td>
+<td style="text-align:right">7,446.44</td>
+<td style="text-align:right">5,617.36</td>
+<td style="text-align:right">3,769.76</td>
+<td style="text-align:right">1,885.51</td>
+<td style="text-align:right">383.23</td>
+<td style="text-align:right">0.02</td>
+</tr>
+<tr>
+<td>JSON + gzip</td>
+<td style="text-align:right">323.23</td>
+<td style="text-align:right">244.45</td>
+<td style="text-align:right">163.91</td>
+<td style="text-align:right">80.61</td>
+<td style="text-align:right">16.33</td>
+<td style="text-align:right">0.03</td>
+</tr>
+<tr>
+<td>MessagePack</td>
+<td style="text-align:right">5,237.17</td>
+<td style="text-align:right">3,930.33</td>
+<td style="text-align:right">2,628.38</td>
+<td style="text-align:right">1,312.43</td>
+<td style="text-align:right">266.67</td>
+<td style="text-align:right">0.01</td>
+</tr>
+<tr>
+<td>MessagePack + gzip</td>
+<td style="text-align:right">274.96</td>
+<td style="text-align:right">207.78</td>
+<td style="text-align:right">137.38</td>
+<td style="text-align:right">67.41</td>
+<td style="text-align:right">13.67</td>
+<td style="text-align:right">0.03</td>
+</tr>
+</tbody>
+</table>
+<h3 id="memory-usage-at-checkpoint" class="tsd-anchor-link">Memory usage at checkpoint<a href="#memory-usage-at-checkpoint" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>One instance: WASM memory plus retained JS array slots, in KiB (1,024 bytes).</p>
+<p><strong>↑ Scale up (0 → 25,000 Strips)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Measurement</th>
+<th style="text-align:right">1,000 Strips<br>50,871 Frames</th>
+<th style="text-align:right">5,000 Strips<br>252,214 Frames</th>
+<th style="text-align:right">10,000 Strips<br>504,871 Frames</th>
+<th style="text-align:right">15,000 Strips<br>758,280 Frames</th>
+<th style="text-align:right">20,000 Strips<br>1,010,749 Frames</th>
+<th style="text-align:right">25,000 Strips<br>1,264,003 Frames</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Estimated memory (KiB)</td>
+<td style="text-align:right">5,343.67</td>
+<td style="text-align:right">25,100.58</td>
+<td style="text-align:right">50,470.89</td>
+<td style="text-align:right">82,701.27</td>
+<td style="text-align:right">98,036.35</td>
+<td style="text-align:right">153,462.93</td>
+</tr>
+</tbody>
+</table>
+<p><strong>↓ Scale down (25,000 → 0 Strips)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Measurement</th>
+<th style="text-align:right">20,000 Strips<br>1,012,742 Frames</th>
+<th style="text-align:right">15,000 Strips<br>755,860 Frames</th>
+<th style="text-align:right">10,000 Strips<br>504,103 Frames</th>
+<th style="text-align:right">5,000 Strips<br>251,203 Frames</th>
+<th style="text-align:right">1,000 Strips<br>51,057 Frames</th>
+<th style="text-align:right">0 Strips<br>0 Frames</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Estimated memory (KiB)</td>
+<td style="text-align:right">163,746.93</td>
+<td style="text-align:right">174,034.00</td>
+<td style="text-align:right">202,660.72</td>
+<td style="text-align:right">293,941.85</td>
+<td style="text-align:right">302,158.29</td>
+<td style="text-align:right">304,203.30</td>
+</tr>
+</tbody>
+</table>
+<p>Measured on Node 24.16.0, V8 13.6.233.17-node.49,
+win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz.
+Peer synchronization, encoding and JS process garbage collection are outside API timings.
+<a href="media/lifecycle.md">Full lifecycle results</a> · <a href="media/throughput.md">Throughput results</a>.</p>
 <h2 id="tests" class="tsd-anchor-link">Tests<a href="#tests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <h3 id="behaviour-guaranteed-by-excessive-tests" class="tsd-anchor-link">Behaviour guaranteed by excessive tests<a href="#behaviour-guaranteed-by-excessive-tests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<p><code>npm test</code> rebuilds the native WebAssembly module and TypeScript package,
-typechecks tests, runs unit, convergence, integration and generative stress suites
-with V8 coverage, then runs runtime and browser compatibility checks.</p>
-<p>The latest verification passed 170 Vitest tests and 88 compatibility checks.
-The configured 100% coverage threshold remains unmet (95.66% statements,
-94.94% branches, 100% functions, 97.23% lines).
-Convergence tests include 1,024 generated editing histories for each compaction
-mode. See the <a href="media/README-1.md">test suites</a> and
+<p>The latest verification passed 184 Vitest tests and 96 compatibility checks (1 failed).
+The configured 100% coverage threshold is met (100% statements, 100% branches, 100% functions, 100% lines).
+See the <a href="media/README.md">test suites</a> and
 <a href="https://sovereignbase.dev/sequencer/tests/">automated test report</a>.</p>
 <h3 id="works-everywhere-where-javascript-and-wasm-works" class="tsd-anchor-link">Works everywhere where JavaScript and Wasm works<a href="#works-everywhere-where-javascript-and-wasm-works" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>Runtimes covered by the latest compatibility verification:</p>
 <ul>
-<li>Node.js, ESM and CommonJS</li>
-<li>Deno</li>
-<li>Bun</li>
-<li>Edge Runtime</li>
-<li>Cloudflare Workers through workerd</li>
-<li>Chromium and WebKit browser windows</li>
+<li>Node.js, ESM: passed</li>
+<li>Node.js, CommonJS: passed</li>
+<li>Deno: passed</li>
+<li>Bun: passed</li>
+<li>Edge Runtime: passed</li>
+<li>Cloudflare Workers through workerd: passed</li>
+<li>Chromium browser windows: passed</li>
+<li>Firefox browser windows: failed (matching Playwright browser binary unavailable)</li>
+<li>WebKit browser windows: passed</li>
 </ul>
-<p>Firefox is also in the compatibility matrix; its matching Playwright browser
-binary was unavailable in the latest run.</p>
 <h3 id="tested-realtime-and-offline-text-editing-behaviour-examples" class="tsd-anchor-link">Tested realtime and offline text editing behaviour examples<a href="#tested-realtime-and-offline-text-editing-behaviour-examples" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul>
-<li><a href="media/README-2.md">Online and offline editors</a>: six editors converge through delayed, reversed and shuffled delivery, including offline changes arriving during online editing.</li>
-<li><a href="media/README-3.md">Concurrent replacements</a>: independent replacement histories retain the same surviving content across delivery orders.</li>
-<li><a href="media/README-4.md">Restart and redelivery</a>: stored Sequences preserve visible content through hydration, duplicate delivery and further edits.</li>
-<li><a href="media/README-5.md">Peer-to-peer fanout</a>: independently editing browser peers synchronize through BroadcastChannel.</li>
-<li><a href="media/README-6.md">WebSocket fanout</a>: three browser peers converge through a stateless JSON Gossip relay.</li>
+<li><a href="media/README-1.md">Online and offline editors</a>: six editors converge through delayed, reversed and shuffled delivery, including offline changes arriving during online editing.</li>
+<li><a href="media/README-2.md">Concurrent replacements</a>: independent replacement histories retain the same surviving content across delivery orders.</li>
+<li><a href="media/README-3.md">Restart and redelivery</a>: stored Sequences preserve visible content through hydration, duplicate delivery and further edits.</li>
+<li><a href="media/README-4.md">Peer-to-peer fanout</a>: independently editing browser peers synchronize through BroadcastChannel.</li>
+<li><a href="media/README-5.md">WebSocket fanout</a>: three browser peers converge through a stateless JSON Gossip relay.</li>
 </ul>
 <h2 id="credits" class="tsd-anchor-link">Credits<a href="#credits" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<p>None of this could have been done without years of work from many great engineers of many great projects, to mention a few:</p>
+<p>This could not have been made without years of work from many great engineers of many great projects, to mention a few:</p>
 <ul>
 <li>
 <p><a href="https://github.com/automerge">AUTOMERGE</a></p>
@@ -260,16 +658,17 @@ binary was unavailable in the latest run.</p>
 <li><a href="#usage"><span>Usage</span></a></li>
 <li>
 <ul>
-<li><a href="#simple-typed-api"><span>Simple typed <wbr/>API</span></a></li></ul></li>
+<li><a href="#simple-typed-api"><span>Simple typed <wbr/>API</span></a></li>
+<li><a href="#see-documentation"><span>See documentation</span></a></li>
+<li><a href="#errors"><span>Errors</span></a></li></ul></li>
 <li><a href="#benchmarks"><span>Benchmarks</span></a></li>
 <li>
 <ul>
-<li><a href="#exceptional-performance"><span>Exceptional performance</span></a></li></ul></li>
-<li><a href="#memory-efficiency"><span>Memory efficiency</span></a></li>
-<li>
-<ul>
 <li><a href="#moderate-bundle-size"><span>Moderate bundle size</span></a></li>
-<li><a href="#compact-data-model"><span>Compact data model</span></a></li></ul></li>
+<li><a href="#average-throughput-during-editing-to-checkpoint"><span>Average throughput during editing to checkpoint</span></a></li>
+<li><a href="#api-throughput-at-checkpoint"><span>API throughput at checkpoint</span></a></li>
+<li><a href="#sequence-disk-size-at-checkpoint"><span>Sequence disk size at checkpoint</span></a></li>
+<li><a href="#memory-usage-at-checkpoint"><span>Memory usage at checkpoint</span></a></li></ul></li>
 <li><a href="#tests"><span>Tests</span></a></li>
 <li>
 <ul>

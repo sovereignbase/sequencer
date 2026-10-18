@@ -1,78 +1,104 @@
-# Restart and stale redelivery
+# Peer to peer fanout
 
-The shared document initially contains no text:
+Run with `npm run test:integration`.
+
+Three browser pages communicate directly through a same-origin `BroadcastChannel`. There is no central Gossip relay or persisted server state; every page is both an editor and a peer.
+
+## Causal pending across three peers
+
+The first regression follows an explicit three-peer route.
+
+A begins by writing:
 
 ```text
+Hello
+```
+
+A sends that edit only to B. B then continues the text:
+
+```text
+Hello world
+```
+
+but B's ` world` edit reaches C before C has ever received `Hello`:
+
+```text
+A writes "Hello"
+
+A --"Hello"--> B
+
+B writes " world" after "Hello"
+
+B --" world"--> C      # "Hello" is still missing at C
+
+A --"Hello"--> C       # unlocks the retained " world"
+
+B --" world"--> A
+```
+
+When C first receives ` world`, it accepts the edit but cannot materialize it:
+
+```text
+C:
+
 (empty)
 ```
 
-Five independent editors then create one concurrent root insertion each:
+After the delayed parent arrives, C resolves the retained child automatically:
 
 ```text
-Actor 41:
+Hello world
+```
+
+The child is never redelivered and no Sequence is exchanged. All three peers must end with exactly:
+
+```text
+Hello world
+```
+
+## Independent realtime editing
+
+The second regression begins with three independent root edits:
+
+```text
+Editor 0:
 Project notes.
 
-Actor 42:
+Editor 1:
 Shopping list.
 
-Actor 43:
+Editor 2:
 Travel plans.
-
-Actor 44:
-Meeting summary.
-
-Actor 45:
-Release checklist.
 ```
 
-None of these edits observes any of the others, so all five are competing roots from the same empty origin.
+Each receiver applies a different artificial network delay, so those concurrent roots may arrive in different orders. They have no causal dependencies and therefore require no pending state.
 
-One receiver gets the Gossip in its original collection order. Another receives the exact same operations in a seeded hostile shuffle and is recreated from its retained `Sequence` halfway through delivery:
-
-```text
-shuffled Gossip
-↓
-some mutations integrated
-↓
-create(sequence(receiver))
-↓
-remaining mutations integrated
-```
-
-After the restarted receiver has integrated the complete operation set, every original Gossip packet is delivered to it again:
+The editors then continue independently on their own timers with inserts, replacements, and removals. For example:
 
 ```text
-Project notes.        # stale redelivery
-Shopping list.        # stale redelivery
-Travel plans.         # stale redelivery
-Meeting summary.      # stale redelivery
-Release checklist.    # stale redelivery
-```
-
-Those packets must be idempotent. None may duplicate its text or alter the deterministic ordering of the concurrent roots.
-
-For example, the final Projection may be:
-
-```text
-Release checklist.
-
-Meeting summary.
-
-Travel plans.
-
-Shopping list.
-
 Project notes.
+↓ insert
+Project notes.
+Review tomorrow.
+
+Shopping list.
+↓ replace
+Shopping list updated.
+
+Travel plans.
+↓ remove
+Plans.
 ```
 
-The exact root order is determined by Sequencer competition rules, not network arrival order. The important invariant is:
+Editors do not wait for peer delivery or acknowledgements before making their next local edit. The artificial receive jitter remains shorter than the edit interval, preserving normal per-editor causal progression while allowing concurrent edits from different peers to arrive in different orders.
+
+After synchronization, every peer must report:
 
 ```text
-ordered Projection
-  ==
-restarted Projection
-  ==
-create(sequence(restarted)) Projection
+8 received peer Gossip updates
+0 rejected peer Gossip updates
+0 rejected local edits
+identical final visible Projection
 ```
 
-Restarting from retained Sequence state, redelivering stale Gossip, and create-time compaction must all preserve the exact same visible document.
+The timer-driven scenario verifies the normal no-pending realtime path, while the explicit A → B → C route verifies automatic causal staging and resolution when network delivery reverses a parent-child dependency.

@@ -1,0 +1,632 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>INTERNALS | @sovereignbase/sequencer</title><link rel="icon" href="https://sovereignbase.dev/sovereignbase_logo.png"/><meta name="description" content="Documentation for @sovereignbase/sequencer"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">@sovereignbase/sequencer</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb" aria-label="Breadcrumb">
+<li><a href="" aria-current="page">INTERNALS</a></li></ul></div>
+<div class="tsd-panel tsd-typography"><h1 id="how-sequencer-works" class="tsd-anchor-link">How sequencer works<a href="#how-sequencer-works" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p>Sequencer keeps an ordered sequence synchronized between replicas.</p>
+<p>Applications see a normal indexed sequence:</p>
+<pre><code class="text">A B C D
+</code><button type="button">Copy</button></pre>
+
+<p>with positions:</p>
+<pre><code class="text">0 1 2 3
+</code><button type="button">Copy</button></pre>
+
+<p>Internally Sequencer cannot use those positions to describe replicated edits.</p>
+<p>If another Frame is inserted before <code>B</code>:</p>
+<pre><code class="text">A X B C D
+</code><button type="button">Copy</button></pre>
+
+<p><code>B</code> moves from position <code>1</code> to position <code>2</code>.</p>
+<p>Instead, when an edit is made, Sequencer finds the existing history around that position and records the edit relative to it.</p>
+<h2 id="projection-and-structural-order" class="tsd-anchor-link">Projection and Structural Order<a href="#projection-and-structural-order" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>The <strong>Projection</strong> is the sequence the application currently sees.</p>
+<p>For example:</p>
+<pre><code class="text">A B C D
+</code><button type="button">Copy</button></pre>
+
+<p>has four visible Frames:</p>
+<pre><code class="text">A   B   C   D
+0   1   2   3
+</code><button type="button">Copy</button></pre>
+
+<p>Insertion positions are boundaries between Frames:</p>
+<pre><code class="text">| A | B | C | D |
+0   1   2   3   4
+</code><button type="button">Copy</button></pre>
+
+<p>Behind the Projection is <strong>Structural Order</strong>.</p>
+<p>Structural Order contains the Insertions that produced the sequence, including history that may no longer be visible.</p>
+<p>A simple sequence might start as:</p>
+<pre><code class="text">Structural Order
+
+[A B C D]
+
+Projection
+
+A B C D
+</code><button type="button">Copy</button></pre>
+
+<p>After <code>B C</code> are removed, the Projection becomes:</p>
+<pre><code class="text">A D
+</code><button type="button">Copy</button></pre>
+
+<p>but Structural Order still contains the original positive Insertion and the history describing the removal.</p>
+<p>More history can later attach to those original coordinates, so hidden history may remain useful long after its Frames disappear from the Projection.</p>
+<h2 id="insertions" class="tsd-anchor-link">Insertions<a href="#insertions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>History is made of <strong>Insertions</strong>.</p>
+<p>An Insertion has six coordinates:</p>
+<pre><code class="text">anchorSession
+anchorStart
+anchorDiff
+
+insertionSession
+insertionStart
+insertionDiff
+</code><button type="button">Copy</button></pre>
+
+<p>The first three describe where the Insertion belongs:</p>
+<pre><code class="text">(anchorSession, anchorStart, anchorDiff)
+</code><button type="button">Copy</button></pre>
+
+<p>The next two identify the Insertion:</p>
+<pre><code class="text">(insertionSession, insertionStart)
+</code><button type="button">Copy</button></pre>
+
+<p>and <code>insertionDiff</code> describes its original Frame length and whether it adds or removes Frames.</p>
+<p>A positive Insertion adds Frames:</p>
+<pre><code class="text">insertionDiff = 4
+</code><button type="button">Copy</button></pre>
+
+<p>A reducing Insertion masks Frames:</p>
+<pre><code class="text">insertionDiff = -4
+</code><button type="button">Copy</button></pre>
+
+<p>Positive Insertions can also carry <strong>Footage</strong>, which contains the actual values.</p>
+<p>Sequencer orders the Insertion. Footage is what eventually appears in the Projection.</p>
+<h2 id="frames-and-logical-points" class="tsd-anchor-link">Frames and logical points<a href="#frames-and-logical-points" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Suppose one Insertion contains:</p>
+<pre><code class="text">A B C
+</code><button type="button">Copy</button></pre>
+
+<p>It has three Frames:</p>
+<pre><code class="text">A   B   C
+0   1   2
+</code><button type="button">Copy</button></pre>
+
+<p>and four logical points:</p>
+<pre><code class="text">| A | B | C |
+0   1   2   3
+</code><button type="button">Copy</button></pre>
+
+<p>An anchor points to one of these boundaries.</p>
+<p>For example:</p>
+<pre><code class="text">anchorDiff = 2
+</code><button type="button">Copy</button></pre>
+
+<p>refers to:</p>
+<pre><code class="text">A B | C
+</code><button type="button">Copy</button></pre>
+
+<p>inside that original Insertion.</p>
+<p>If later edits move <code>C</code> somewhere else in the Projection, this point is still point <code>2</code> of the same original Insertion.</p>
+<h2 id="anchoring-an-edit" class="tsd-anchor-link">Anchoring an edit<a href="#anchoring-an-edit" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Suppose the Projection contains:</p>
+<pre><code class="text">Hello world
+</code><button type="button">Copy</button></pre>
+
+<p>and <code>big </code> is inserted here:</p>
+<pre><code class="text">Hello | world
+</code><button type="button">Copy</button></pre>
+
+<p>Sequencer first finds which original Insertion owns that boundary.</p>
+<p>If the boundary is point <code>6</code> of an Insertion identified by:</p>
+<pre><code class="text">(session 4, start 20)
+</code><button type="button">Copy</button></pre>
+
+<p>the new Insertion can anchor to:</p>
+<pre><code class="text">anchorSession = 4
+anchorStart   = 20
+anchorDiff    = 6
+</code><button type="button">Copy</button></pre>
+
+<p>Another replica might currently see:</p>
+<pre><code class="text">Well, Hello world
+</code><button type="button">Copy</button></pre>
+
+<p>The same anchor still refers to the point after <code>Hello </code> in the original Insertion.</p>
+<p>The Projection position is different, but the relationship is the same.</p>
+<h2 id="insertion-identity" class="tsd-anchor-link">Insertion identity<a href="#insertion-identity" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>An Insertion is identified by:</p>
+<pre><code class="text">(insertionSession, insertionStart)
+</code><button type="button">Copy</button></pre>
+
+<p>The anchor is not part of its identity.</p>
+<p>If the same Insertion arrives twice, both copies have the same identity.</p>
+<p>Sequencer can keep the first and ignore the duplicate instead of inserting the same content twice.</p>
+<p>Fragments of an Insertion also keep this identity. Splitting an Insertion at runtime does not create new replicated history.</p>
+<h2 id="sessions" class="tsd-anchor-link">Sessions<a href="#sessions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Insertions are authored inside <strong>Sessions</strong>.</p>
+<p>A Session has its own logical time.</p>
+<p>Suppose a Session creates a three-Frame Insertion starting at <code>0</code>.</p>
+<p>Its Frame coordinates occupy:</p>
+<pre><code class="text">0 1 2
+</code><button type="button">Copy</button></pre>
+
+<p>and its endpoint is:</p>
+<pre><code class="text">3
+</code><button type="button">Copy</button></pre>
+
+<p>A new independent Insertion normally starts after another reserved logical point:</p>
+<pre><code class="text">0 1 2 | 3
+          ↑
+       boundary
+
+next start = 4
+</code><button type="button">Copy</button></pre>
+
+<p>The gap gives the previous Insertion its own endpoint without making that endpoint the identity of the next independent Insertion.</p>
+<p>Positive and reducing history use separate Sessions.</p>
+<p>Session identifiers are also separate from Actor identifiers. Two replicas belonging to the same Actor can author their own Sessions without sharing one sequencing clock.</p>
+<h2 id="structural-order" class="tsd-anchor-link">Structural Order<a href="#structural-order" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Every materialized Insertion is placed into one Structural Order.</p>
+<p>Suppose the original history is:</p>
+<pre><code class="text">A B
+</code><button type="button">Copy</button></pre>
+
+<p>and a new Insertion anchors between them:</p>
+<pre><code class="text">A | B
+</code><button type="button">Copy</button></pre>
+
+<p>Structural Order can now represent:</p>
+<pre><code class="text">A X B
+</code><button type="button">Copy</button></pre>
+
+<p>If another replica concurrently inserts <code>Y</code> at the same anchor, both new Insertions describe the same historical point:</p>
+<pre><code class="text">A | B
+  X
+  Y
+</code><button type="button">Copy</button></pre>
+
+<p>They must get the same order on every replica even when they arrive in different orders.</p>
+<p>Sequencer orders competing Insertions from the anchor outward by:</p>
+<ol>
+<li>positive Insertions before reducing Insertions;</li>
+<li>greater Session first;</li>
+<li>within the same Session, greater start first.</li>
+</ol>
+<p>So receiving:</p>
+<pre><code class="text">X
+Y
+</code><button type="button">Copy</button></pre>
+
+<p>or:</p>
+<pre><code class="text">Y
+X
+</code><button type="button">Copy</button></pre>
+
+<p>produces the same Structural Order once both are known.</p>
+<h2 id="causal-subtrees" class="tsd-anchor-link">Causal subtrees<a href="#causal-subtrees" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>An Insertion can have more history attached to it.</p>
+<p>Suppose two replicas start from an empty sequence.</p>
+<p>One creates:</p>
+<pre><code class="text">Project notes
+</code><button type="button">Copy</button></pre>
+
+<p>and continues editing it.</p>
+<p>The other independently creates:</p>
+<pre><code class="text">Shopping list
+</code><button type="button">Copy</button></pre>
+
+<p>and continues editing that.</p>
+<p>The two initial Insertions compete at the root.</p>
+<p>Their later edits are descendants of those roots:</p>
+<pre><code class="text">Project notes
+├─ child
+└─ child
+
+Shopping list
+├─ child
+└─ child
+</code><button type="button">Copy</button></pre>
+
+<p>When the roots are ordered, their descendants stay with them:</p>
+<pre><code class="text">[Project notes subtree]
+[Shopping list subtree]
+</code><button type="button">Copy</button></pre>
+
+<p>rather than becoming interleaved:</p>
+<pre><code class="text">part of Project notes
+part of Shopping list
+rest of Project notes
+rest of Shopping list
+</code><button type="button">Copy</button></pre>
+
+<p>When a competitor is inserted into Structural Order, its place is determined relative to the complete subtree of the competitors already there.</p>
+<h2 id="history-can-arrive-before-its-parent" class="tsd-anchor-link">History can arrive before its parent<a href="#history-can-arrive-before-its-parent" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Suppose one replica creates:</p>
+<pre><code class="text">Hello
+</code><button type="button">Copy</button></pre>
+
+<p>and then inserts:</p>
+<pre><code class="text"> world
+</code><button type="button">Copy</button></pre>
+
+<p>after it.</p>
+<p>The second Insertion anchors to the first.</p>
+<p>Another replica may receive:</p>
+<pre><code class="text"> world
+</code><button type="button">Copy</button></pre>
+
+<p>before:</p>
+<pre><code class="text">Hello
+</code><button type="button">Copy</button></pre>
+
+<p>There is not yet anything local that can resolve the anchor.</p>
+<p>The Insertion waits.</p>
+<p>When <code>Hello</code> arrives, its identity becomes available and the waiting Insertion can be placed:</p>
+<pre><code class="text">Hello world
+</code><button type="button">Copy</button></pre>
+
+<p>The same thing can happen when the parent exists but has not yet grown far enough to contain the referenced logical point.</p>
+<p>The relationship itself does not change while it waits.</p>
+<h2 id="author-time-relationships" class="tsd-anchor-link">Author-time relationships<a href="#author-time-relationships" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>This allows edits to describe the sequence as it existed when they were authored without requiring another replica to pass through the same intermediate states.</p>
+<p>For example, one replica may produce:</p>
+<pre><code class="text">world
+Hello world
+Well, Hello world
+Well, actually Hello world
+Now, Well, actually Hello world
+Okay, Now, Well, actually Hello world
+</code><button type="button">Copy</button></pre>
+
+<p>Another replica might receive the Insertions in this order:</p>
+<pre><code class="text">world
+Hello
+actually
+Now
+Well
+Okay
+</code><button type="button">Copy</button></pre>
+
+<p><code>actually</code> is still attached to the historical Insertion it followed when it was authored.</p>
+<p>Once the required history has arrived, the relationships can be resolved into:</p>
+<pre><code class="text">Okay, Now, Well, actually Hello world
+</code><button type="button">Copy</button></pre>
+
+<h2 id="strips" class="tsd-anchor-link">Strips<a href="#strips" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>An Insertion does not always stay in one piece inside a running Projection.</p>
+<p>Suppose an original Insertion contains:</p>
+<pre><code class="text">A B C D
+</code><button type="button">Copy</button></pre>
+
+<p>An edit at the middle may split its runtime representation into:</p>
+<pre><code class="text">[A B] [C D]
+</code><button type="button">Copy</button></pre>
+
+<p>These pieces are <strong>Strips</strong>.</p>
+<p>Both Strips still belong to the same original Insertion.</p>
+<p>The original coordinate space is still:</p>
+<pre><code class="text">| A | B | C | D |
+0   1   2   3   4
+</code><button type="button">Copy</button></pre>
+
+<p>The left Strip represents one part of that space and the right Strip represents another.</p>
+<p>An operation authored earlier against point <code>3</code> can still find point <code>3</code> even though the original Insertion is no longer represented by one Strip.</p>
+<p>Different replicas can also have different fragmentation.</p>
+<p>One might currently have:</p>
+<pre><code class="text">[A B C D]
+</code><button type="button">Copy</button></pre>
+
+<p>while another has:</p>
+<pre><code class="text">[A] [B C] [D]
+</code><button type="button">Copy</button></pre>
+
+<p>They still agree on the original Insertion and its coordinates.</p>
+<h2 id="extending-an-insertion" class="tsd-anchor-link">Extending an Insertion<a href="#extending-an-insertion" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Consecutive editing often continues the Insertion that was just created.</p>
+<p>Typing:</p>
+<pre><code class="text">H
+He
+Hel
+Hell
+Hello
+</code><button type="button">Copy</button></pre>
+
+<p>does not need five unrelated canonical Insertions.</p>
+<p>When the new content is a clean continuation of the latest local positive Insertion, its original extent can grow:</p>
+<pre><code class="text">H
+↓
+He
+↓
+Hel
+↓
+Hell
+↓
+Hello
+</code><button type="button">Copy</button></pre>
+
+<p>The continuation starts at the old endpoint of the same Session, so another replica can recognize it as an extension of the existing Insertion.</p>
+<p>This is only done while the old endpoint can safely grow.</p>
+<p>If other history already depends on that endpoint in a way that would change its ordering, the new content becomes a normal separate Insertion instead.</p>
+<p>An Insertion can also be extended after it has fragmented. The new suffix may need its own Strip, but it still belongs to the same canonical Insertion.</p>
+<h2 id="removal" class="tsd-anchor-link">Removal<a href="#removal" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Removal is represented by reducing Insertions.</p>
+<p>Suppose one positive Insertion contains:</p>
+<pre><code class="text">A B C D
+</code><button type="button">Copy</button></pre>
+
+<p>and <code>B C</code> are removed.</p>
+<p>The removal anchors to the original positive Insertion and covers those original Frames:</p>
+<pre><code class="text">original
+
+A B C D
+  └─┬─┘
+  removed
+</code><button type="button">Copy</button></pre>
+
+<p>The Projection becomes:</p>
+<pre><code class="text">A D
+</code><button type="button">Copy</button></pre>
+
+<p>The original coordinates still exist in Structural Order.</p>
+<p>This becomes especially useful when insertion and removal happen concurrently.</p>
+<p>Suppose both replicas start with:</p>
+<pre><code class="text">The old house
+</code><button type="button">Copy</button></pre>
+
+<p>Replica A removes:</p>
+<pre><code class="text">old
+</code><button type="button">Copy</button></pre>
+
+<p>and sees:</p>
+<pre><code class="text">The house
+</code><button type="button">Copy</button></pre>
+
+<p>At the same time Replica B inserts:</p>
+<pre><code class="text">small
+</code><button type="button">Copy</button></pre>
+
+<p>after <code>old </code>:</p>
+<pre><code class="text">The old small house
+</code><button type="button">Copy</button></pre>
+
+<p>The removal authored by A refers to the original Frames of <code>old </code>.</p>
+<p>It never referred to <code>small </code> because those Frames did not exist in A's history.</p>
+<p>After synchronization:</p>
+<pre><code class="text">The small house
+</code><button type="button">Copy</button></pre>
+
+<p>The concurrent insertion survives.</p>
+<h2 id="a-removal-can-cross-several-insertions" class="tsd-anchor-link">A removal can cross several Insertions<a href="#a-removal-can-cross-several-insertions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>A visible range can contain Frames from several original Insertions.</p>
+<p>For example, the Projection:</p>
+<pre><code class="text">Hello world
+</code><button type="button">Copy</button></pre>
+
+<p>might have been built from:</p>
+<pre><code class="text">[Hello] [ ] [world]
+</code><button type="button">Copy</button></pre>
+
+<p>Removing:</p>
+<pre><code class="text">lo wo
+</code><button type="button">Copy</button></pre>
+
+<p>crosses all three.</p>
+<p>Sequencer describes the removal against the original Frames of each Insertion it crosses.</p>
+<p>The visible edit is one range, but its historical description can contain several reducing Insertions.</p>
+<h2 id="removal-fragments" class="tsd-anchor-link">Removal fragments<a href="#removal-fragments" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>A reducing Insertion can also become fragmented.</p>
+<p>Suppose an original positive Insertion contains:</p>
+<pre><code class="text">A B C D E F
+</code><button type="button">Copy</button></pre>
+
+<p>and its current structural representation has already become:</p>
+<pre><code class="text">[A B] [C D] [E F]
+</code><button type="button">Copy</button></pre>
+
+<p>A removal covering:</p>
+<pre><code class="text">B C D E
+</code><button type="button">Copy</button></pre>
+
+<p>may need mask fragments at several places in Structural Order.</p>
+<p>Those mask Strips still belong to one canonical reducing Insertion.</p>
+<p>Its identity and original target coordinates do not change.</p>
+<h2 id="overlapping-removals" class="tsd-anchor-link">Overlapping removals<a href="#overlapping-removals" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Two replicas can remove some of the same original Frames.</p>
+<p>Starting from:</p>
+<pre><code class="text">the brown fox jumps
+</code><button type="button">Copy</button></pre>
+
+<p>one replica might remove:</p>
+<pre><code class="text">brown fox
+</code><button type="button">Copy</button></pre>
+
+<p>while another removes:</p>
+<pre><code class="text">fox jumps
+</code><button type="button">Copy</button></pre>
+
+<p>Both target the original Frames of <code>fox</code>.</p>
+<p>When the second removal is integrated, those Frames may already be masked.</p>
+<p>They cannot reduce the Projection again.</p>
+<p>The reducing Insertion still describes the range it originally targeted, while its runtime effect is limited to original Frames that remain available for it to consume.</p>
+<p>This lets overlapping removals arrive in either order without changing the result.</p>
+<h2 id="replacement" class="tsd-anchor-link">Replacement<a href="#replacement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Replacement is a removal followed by a positive Insertion.</p>
+<p>Changing:</p>
+<pre><code class="text">Draft
+</code><button type="button">Copy</button></pre>
+
+<p>to:</p>
+<pre><code class="text">Final
+</code><button type="button">Copy</button></pre>
+
+<p>first masks the Frames of:</p>
+<pre><code class="text">Draft
+</code><button type="button">Copy</button></pre>
+
+<p>and then anchors:</p>
+<pre><code class="text">Final
+</code><button type="button">Copy</button></pre>
+
+<p>into the resulting history.</p>
+<p>Both parts use the same insertion and removal rules as every other edit.</p>
+<h2 id="actors-and-acknowledgements" class="tsd-anchor-link">Actors and acknowledgements<a href="#actors-and-acknowledgements" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Removal history cannot always be discarded when it disappears from the Projection.</p>
+<p>Suppose one replica removes some Frames while another replica is offline.</p>
+<p>The offline replica may still have unsent history anchored to those Frames.</p>
+<p>The removed Frames must remain addressable until that old history no longer needs to be supported.</p>
+<p>Actors report how far they have observed each reducing Session.</p>
+<p>For example:</p>
+<pre><code class="text">Actor 3
+
+removal Session 17
+observed through logical time 42
+</code><button type="button">Copy</button></pre>
+
+<p>The reported point is a <strong>frontier</strong>.</p>
+<p>A single frontier summarizes a received prefix of a Session rather than acknowledging every reducing Insertion separately.</p>
+<h2 id="compaction" class="tsd-anchor-link">Compaction<a href="#compaction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>When all active Actors agree on the same frontier for a reducing Session, the acknowledged part can be removed from future retained Sequences.</p>
+<p>Suppose history contains:</p>
+<pre><code class="text">positive Frames
+removal mask
+surviving descendants
+</code><button type="button">Copy</button></pre>
+
+<p>and every active Actor has seen the removal.</p>
+<p>A new retained Sequence no longer needs to preserve all of the machinery that represented that deletion.</p>
+<p>Compaction can remove the acknowledged masks and remove deleted Frames from retained Footage.</p>
+<p>If only part of a positive Insertion was deleted:</p>
+<pre><code class="text">A B C D
+</code><button type="button">Copy</button></pre>
+
+<p>with:</p>
+<pre><code class="text">B C
+</code><button type="button">Copy</button></pre>
+
+<p>gone, the retained positive history can shrink to the surviving content:</p>
+<pre><code class="text">A D
+</code><button type="button">Copy</button></pre>
+
+<p>Anchors and remaining removals that referred to the old coordinates are adjusted to the smaller retained coordinate space.</p>
+<p>The running Projection does not need to be rewritten when this happens. Compaction produces another retained description of the same history.</p>
+<h2 id="collapsed-historical-points" class="tsd-anchor-link">Collapsed historical points<a href="#collapsed-historical-points" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Compaction can make two old logical points collapse onto the same retained point.</p>
+<p>Imagine:</p>
+<pre><code class="text">A | removed Frames | B
+</code><button type="button">Copy</button></pre>
+
+<p>with surviving descendants attached on both sides of the removed region.</p>
+<p>Before compaction those descendants were separated by different historical coordinates.</p>
+<p>After the deleted Frames disappear from retained history, that space no longer exists.</p>
+<p>Their order has already been resolved in Structural Order, so the compacted history keeps that order when it re-anchors the survivors around the remaining boundary.</p>
+<p>The discarded history is no longer needed to make the same ordering decision again.</p>
+<h2 id="actor-retirement" class="tsd-anchor-link">Actor retirement<a href="#actor-retirement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>An Actor that will never return would otherwise remain part of acknowledgement consensus forever.</p>
+<p>Retiring an Actor removes it from future compaction requirements.</p>
+<p>It does not remove Insertions authored by that Actor.</p>
+<p>It only changes which Actors must agree before old removal history can be discarded.</p>
+<p>Whether an Actor is permanently gone is something the surrounding application has to decide.</p>
+<h2 id="sequence" class="tsd-anchor-link">Sequence<a href="#sequence" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>A retained <strong>Sequence</strong> stores enough history to reconstruct the Projection later.</p>
+<p>It contains canonical Insertion history, acknowledgement frontiers and the Footage belonging to surviving positive history.</p>
+<p>Runtime fragmentation is not persisted as separate Insertions.</p>
+<p>If one canonical Insertion currently exists as:</p>
+<pre><code class="text">[A] [B C] [D]
+</code><button type="button">Copy</button></pre>
+
+<p>the retained history still describes the one original Insertion:</p>
+<pre><code class="text">A B C D
+</code><button type="button">Copy</button></pre>
+
+<p>along with the other canonical history that caused its current result.</p>
+<p>The next runtime can fragment it again as needed.</p>
+<h2 id="hydration" class="tsd-anchor-link">Hydration<a href="#hydration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Loading a Sequence rebuilds Structural Order and derives the Projection from it.</p>
+<p>A hydrated runtime does not need to reproduce the exact Strip layout of the runtime that saved the Sequence.</p>
+<p>For example, the old runtime may have ended with:</p>
+<pre><code class="text">[A] [B C] [D]
+</code><button type="button">Copy</button></pre>
+
+<p>while the new one initially materializes:</p>
+<pre><code class="text">[A B C D]
+</code><button type="button">Copy</button></pre>
+
+<p>If later history needs a boundary inside it, it can split again.</p>
+<p>Both represent the same canonical Insertion.</p>
+<p>The visible sequence and the relationships available to future edits remain the same.</p>
+<h2 id="projection-and-history-keep-changing-at-different-rates" class="tsd-anchor-link">Projection and history keep changing at different rates<a href="#projection-and-history-keep-changing-at-different-rates" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>A Projection can change dramatically while very little canonical history is added.</p>
+<p>A long contiguous typing session may extend one positive Insertion.</p>
+<p>A removal can hide many Frames while leaving the positive Insertion itself in history.</p>
+<p>Compaction can later make retained history smaller without changing the Projection at all.</p>
+<p>So these are separate views of the same sequence:</p>
+<pre><code class="text">Projection
+</code><button type="button">Copy</button></pre>
+
+<p>is the content visible now.</p>
+<pre><code class="text">Structural Order
+</code><button type="button">Copy</button></pre>
+
+<p>is the history currently needed to resolve ordering and removals.</p>
+<pre><code class="text">Sequence
+</code><button type="button">Copy</button></pre>
+
+<p>is the retained form of that history, with acknowledged obsolete history compacted away when possible.</p>
+<p>An edit starts from the Projection, becomes a relationship in Structural Order, and can eventually survive in a much smaller retained Sequence after the history around it is no longer needed.</p>
+</div></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details"><a href="#how-sequencer-works"><span>How sequencer works</span></a>
+<ul>
+<li><a href="#projection-and-structural-order"><span>Projection and <wbr/>Structural <wbr/>Order</span></a></li>
+<li><a href="#insertions"><span>Insertions</span></a></li>
+<li><a href="#frames-and-logical-points"><span>Frames and logical points</span></a></li>
+<li><a href="#anchoring-an-edit"><span>Anchoring an edit</span></a></li>
+<li><a href="#insertion-identity"><span>Insertion identity</span></a></li>
+<li><a href="#sessions"><span>Sessions</span></a></li>
+<li><a href="#structural-order"><span>Structural <wbr/>Order</span></a></li>
+<li><a href="#causal-subtrees"><span>Causal subtrees</span></a></li>
+<li><a href="#history-can-arrive-before-its-parent"><span>History can arrive before its parent</span></a></li>
+<li><a href="#author-time-relationships"><span>Author-<wbr/>time relationships</span></a></li>
+<li><a href="#strips"><span>Strips</span></a></li>
+<li><a href="#extending-an-insertion"><span>Extending an <wbr/>Insertion</span></a></li>
+<li><a href="#removal"><span>Removal</span></a></li>
+<li><a href="#a-removal-can-cross-several-insertions"><span>A removal can cross several <wbr/>Insertions</span></a></li>
+<li><a href="#removal-fragments"><span>Removal fragments</span></a></li>
+<li><a href="#overlapping-removals"><span>Overlapping removals</span></a></li>
+<li><a href="#replacement"><span>Replacement</span></a></li>
+<li><a href="#actors-and-acknowledgements"><span>Actors and acknowledgements</span></a></li>
+<li><a href="#compaction"><span>Compaction</span></a></li>
+<li><a href="#collapsed-historical-points"><span>Collapsed historical points</span></a></li>
+<li><a href="#actor-retirement"><span>Actor retirement</span></a></li>
+<li><a href="#sequence"><span>Sequence</span></a></li>
+<li><a href="#hydration"><span>Hydration</span></a></li>
+<li><a href="#projection-and-history-keep-changing-at-different-rates"><span>Projection and history keep changing at different rates</span></a></li></ul></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="../modules.html">@sovereignbase/sequencer</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>

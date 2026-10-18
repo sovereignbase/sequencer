@@ -2,10 +2,16 @@
 
 import { spawnSync as spawn_sync } from 'node:child_process'
 import { existsSync as exists_sync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
 import { fileURLToPath as file_url_to_path } from 'node:url'
 
 /** Absolute repository directory used as the working directory of both tools. */
 const repository_directory = file_url_to_path(new URL('..', import.meta.url))
+
+/** Published package version shared by the Doxygen and Sphinx references. */
+const { version } = JSON.parse(
+  await readFile(new URL('../package.json', import.meta.url), 'utf8')
+) as { version: string }
 
 /** Conventional Windows installation path used when Doxygen is not on PATH. */
 const windows_doxygen = 'C:\\Program Files\\doxygen\\bin\\doxygen.exe'
@@ -28,6 +34,7 @@ function run(command: string, arguments_: readonly string[]): void {
   const result = spawn_sync(command, arguments_, {
     cwd: repository_directory,
     stdio: 'inherit',
+    env: { ...process.env, SEQUENCER_DOCS_VERSION: version },
   })
 
   // Preserve launch failures and each tool's original nonzero exit status.

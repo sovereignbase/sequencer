@@ -1,5 +1,6 @@
 """Sphinx configuration for the generated Sequencer C++ API reference."""
 
+import json
 from pathlib import Path
 
 
@@ -8,7 +9,9 @@ documentation_directory = Path(__file__).resolve().parent
 project = "Sequencer C++ API"
 author = "Jori Lehtinen"
 copyright = "2026, Jori Lehtinen"
-version = "0.0.2"
+version = json.loads(
+    (documentation_directory / "package.json").read_text(encoding="utf-8")
+)["version"]
 release = version
 language = "en"
 

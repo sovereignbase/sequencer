@@ -1,4 +1,5 @@
 import module from '../wasm/index.js'
+import { SequencerError } from '../errors/class.js'
 import { Operation, type Opcode } from './protocol.js'
 import type { U32List } from '../types/type.js'
 
@@ -81,12 +82,20 @@ class Runtime {
   }
   /** Reads the native maintained Frame count without constructing a dispatch result. */
   length(id: number): number {
-    if (id < 0) throw new Error('Projection has been destroyed')
+    if (id < 0)
+      throw new SequencerError(
+        'PROJECTION_DESTROYED',
+        'Projection has been destroyed.'
+      )
     return module._runtime_length(id)
   }
   /** Resolves one visible Frame natively, then reads its JavaScript binding slot. */
   value<T>(id: number, at: number): T | undefined {
-    if (id < 0) throw new Error('Projection has been destroyed')
+    if (id < 0)
+      throw new SequencerError(
+        'PROJECTION_DESTROYED',
+        'Projection has been destroyed.'
+      )
     const pointer = module._runtime_value(id, at) >>> 2
     if (!pointer) return
     // Native allocation may grow memory; acquire the current view after the call.
@@ -96,7 +105,11 @@ class Runtime {
   }
   /** Authors trusted local Frames through the dedicated six-word result path. */
   insert<T>(id: number, values: T[], at: number): unknown {
-    if (id < 0) throw new Error('Projection has been destroyed')
+    if (id < 0)
+      throw new SequencerError(
+        'PROJECTION_DESTROYED',
+        'Projection has been destroyed.'
+      )
     const content = this.content[id]!
     const pointer =
       module._runtime_insert(
@@ -135,7 +148,11 @@ class Runtime {
   }
   /** Validates remote tuple lanes and supplies a descriptor batch to native application. */
   apply<T>(id: number, value: unknown): T {
-    if (id < 0) throw new Error('Projection has been destroyed')
+    if (id < 0)
+      throw new SequencerError(
+        'PROJECTION_DESTROYED',
+        'Projection has been destroyed.'
+      )
     // An invalid outer shape becomes a rejected descriptor; native prefix handling stays uniform.
     const entries: unknown[] = Array.isArray(value) ? value : [null]
     let words = 1 + entries.length * 4
@@ -252,7 +269,11 @@ class Runtime {
     at?: unknown,
     end?: unknown
   ): T {
-    if (id < 0) throw new Error('Projection has been destroyed')
+    if (id < 0)
+      throw new SequencerError(
+        'PROJECTION_DESTROYED',
+        'Projection has been destroyed.'
+      )
     const count = this.inputSize(operation, value, at)
     const pointer = count ? module._runtime_reserve(count) : 0
     const heap = module.HEAPU32,
@@ -505,8 +526,10 @@ class Runtime {
               : [heap[at], heap[at + 1]]
           )
         }
-        const receipts = gossip(p1, n1)
-        result = receipts.length ? [changes, receipts] : [changes]
+        const acknowledgements = gossip(p1, n1)
+        result = acknowledgements.length
+          ? [changes, acknowledgements]
+          : [changes]
         break
       }
       case 5: {
@@ -536,12 +559,23 @@ class Runtime {
       }
       case 6:
         break
-      case 7:
-        throw new Error(
-          p0 === 1
-            ? 'Projection has been destroyed'
-            : `Native operation ${operation} failed`
+      case 7: {
+        if (p0 === 1)
+          throw new SequencerError(
+            'PROJECTION_DESTROYED',
+            'Projection has been destroyed.'
+          )
+        // Resolve the public method name only on failure; successful calls do no extra work.
+        const name = Object.entries(Operation).find(
+          ([, opcode]) => opcode === operation
+        )![0]
+        throw new SequencerError(
+          'NATIVE_OPERATION_FAILED',
+          operation === Operation.Create
+            ? 'Projection initialization failed.'
+            : `Projection.${name.toLowerCase()}() failed in the native runtime.`
         )
+      }
     }
 
     // Build public Splices first: their suffix bindings are released after appending.

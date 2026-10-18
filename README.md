@@ -2,7 +2,7 @@
 [![JSR](https://jsr.io/badges/@sovereignbase/sequencer)](https://jsr.io/@sovereignbase/sequencer)
 [![CI](https://github.com/sovereignbase/sequencer/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/sovereignbase/sequencer/actions/workflows/ci.yaml)
 [![codecov](https://codecov.io/gh/sovereignbase/sequencer/branch/master/graph/badge.svg)](https://codecov.io/gh/sovereignbase/sequencer)
-[![license](https://img.shields.io/npm/l/@sovereignbase/sequencer)](LICENSE)
+[![license](https://img.shields.io/npm/l/@sovereignbase/sequencer)](https://github.com/sovereignbase/sequencer/blob/master/LICENSE)
 
 # Sequencer
 
@@ -29,9 +29,23 @@ projection.destroy()
 
 ### See documentation
 
-- [How sequencer works?](/INTERNALS.md)
+- [How sequencer works?](INTERNALS.md)
 - [Typescript](https://sovereignbase.dev/sequencer/)
 - [C++](https://sovereignbase.dev/sequencer/c++)
+
+### Errors
+
+Library-reported failures throw `SequencerError`, with a stable `SequencerErrorCode`
+and a message prefixed with `{@sovereignbase/sequencer}`. Both are exported from
+the package. The constructor accepts standard `ErrorOptions`, including `cause`.
+
+| Code                      | Meaning                                                             |
+| ------------------------- | ------------------------------------------------------------------- |
+| `PROJECTION_DESTROYED`    | An operation was called after the Projection was destroyed.         |
+| `NATIVE_OPERATION_FAILED` | The native runtime reported an initialization or operation failure. |
+
+Invalid Gossip or Sequence input to `apply()` or `merge()` returns `undefined`.
+Platform errors retain their original types.
 
 ## Benchmarks
 
@@ -39,8 +53,8 @@ projection.destroy()
 
 | Format   | Raw (KiB) | Minified (KiB) | Minified + gzip (KiB) |
 | -------- | --------: | -------------: | --------------------: |
-| ESM      |    123.83 |         100.04 |                 36.07 |
-| CommonJS |    123.94 |         100.86 |                 36.28 |
+| ESM      |    125.98 |         100.80 |                 36.45 |
+| CommonJS |    126.12 |         101.49 |                 36.53 |
 
 Both bundles include WASM. Terser uses three compression passes; gzip uses level 9.
 
@@ -152,7 +166,7 @@ Peer synchronization, encoding and JS process garbage collection are outside API
 
 ### Behaviour guaranteed by excessive tests
 
-The latest verification passed 178 Vitest tests and 88 compatibility checks (1 failed).
+The latest verification passed 184 Vitest tests and 96 compatibility checks (1 failed).
 The configured 100% coverage threshold is met (100% statements, 100% branches, 100% functions, 100% lines).
 See the [test suites](test/README.md) and
 [automated test report](https://sovereignbase.dev/sequencer/tests/).

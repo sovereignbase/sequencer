@@ -1,48 +1,78 @@
-# Concurrent replacement delivery
+# Restart and stale redelivery
 
-Three replicas begin from the same text:
-
-```text
-I like green tea today
-```
-
-They edit it independently without exchanging Gossip.
-
-Actor 0:
+The shared document initially contains no text:
 
 ```text
-I like green tea today
-I like hot green tea today
-We like hot green tea today
-They prefer iced black tea today
+(empty)
 ```
 
-Actor 1:
+Five independent editors then create one concurrent root insertion each:
 
 ```text
-I like green tea today
-Well, actually, I think I like green tea today
-Well, actually, I think I prefer green tea today
-Well, I think I prefer green tea today
-Well, I think I prefer black tea today
+Actor 41:
+Project notes.
+
+Actor 42:
+Shopping list.
+
+Actor 43:
+Travel plans.
+
+Actor 44:
+Meeting summary.
+
+Actor 45:
+Release checklist.
 ```
 
-Actor 2:
+None of these edits observes any of the others, so all five are competing roots from the same empty origin.
+
+One receiver gets the Gossip in its original collection order. Another receives the exact same operations in a seeded hostile shuffle and is recreated from its retained `Sequence` halfway through delivery:
 
 ```text
-I like green tea today
-I enjoy green tea today
+shuffled Gossip
+↓
+some mutations integrated
+↓
+create(sequence(receiver))
+↓
+remaining mutations integrated
 ```
 
-After all Gossip has been delivered, all delivery orders must expose exactly the same Projection: removed or masked text is absent, every insertion that was not removed remains present, and concurrent surviving insertions remain separated into their deterministically ordered subtrees.
-
-For example:
+After the restarted receiver has integrated the complete operation set, every original Gossip packet is delivered to it again:
 
 ```text
-[They prefer iced black]
-[Well, I think I prefer black]
-[I enjoy]
-tea today
+Project notes.        # stale redelivery
+Shopping list.        # stale redelivery
+Travel plans.         # stale redelivery
+Meeting summary.      # stale redelivery
+Release checklist.    # stale redelivery
 ```
 
-Here the bracketed ranges represent concurrent surviving subtrees. Their inserted text remains present, while original text masked by the concurrent edits does not reappear.
+Those packets must be idempotent. None may duplicate its text or alter the deterministic ordering of the concurrent roots.
+
+For example, the final Projection may be:
+
+```text
+Release checklist.
+
+Meeting summary.
+
+Travel plans.
+
+Shopping list.
+
+Project notes.
+```
+
+The exact root order is determined by Sequencer competition rules, not network arrival order. The important invariant is:
+
+```text
+ordered Projection
+  ==
+restarted Projection
+  ==
+create(sequence(restarted)) Projection
+```
+
+Restarting from retained Sequence state, redelivering stale Gossip, and create-time compaction must all preserve the exact same visible document.

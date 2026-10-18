@@ -1,6 +1,8 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": ["src/typescript/class.ts"],
+  "projectDocuments": ["INTERNALS.md"],
+  "alwaysCreateEntryPointModule": false,
   "favicon": "https://sovereignbase.dev/sovereignbase_logo.png",
   "out": "docs",
   "validation": {

@@ -21,3 +21,10 @@ also accepts the plain six-word snapshot layout. Footage is never packed in WASM
 starts with 1 MiB of ordinary memory and grows as needed. `destroy()` releases
 native state and retained content; subsequent calls throw, and repeated
 destruction is safe. Finalization releases unreachable instances.
+
+Library-reported failures use the exported `SequencerError`:
+`PROJECTION_DESTROYED` identifies a released instance and
+`NATIVE_OPERATION_FAILED` identifies a failure reported by native dispatch.
+Operation-failure messages name the public method. Invalid remote input still
+returns `undefined`; platform errors retain their original types. Error creation
+and method-name lookup run only on failure.

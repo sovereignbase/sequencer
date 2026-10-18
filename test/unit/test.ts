@@ -5,7 +5,7 @@ import {
   sequenceFrontiers,
 } from '../.shared/sequence.ts'
 import { describe, expect, it } from 'vitest'
-import { Projection } from '../../src/typescript/class.ts'
+import { Projection, SequencerError } from '../../src/typescript/class.ts'
 import type { Gossip, Insertion, Sequence } from '../../src/typescript/class.ts'
 /** Stable known coordinates isolate API assertions from fresh native Session identities. */
 const seed = (): Sequence<string> =>
@@ -27,6 +27,28 @@ function expectGossip(gossip: Gossip<string>, expected: string[]): void {
   expect(receiver.values()).toEqual(expected)
 }
 describe('Projection public API', () => {
+  describe('SequencerError', () => {
+    it('exposes an Error with a stable code and a package-prefixed default message', () => {
+      const error = new SequencerError('PROJECTION_DESTROYED')
+      expect(error).toBeInstanceOf(Error)
+      expect(error).toMatchObject({
+        name: 'SequencerError',
+        code: 'PROJECTION_DESTROYED',
+        message: '{@sovereignbase/sequencer} PROJECTION_DESTROYED',
+      })
+    })
+    it('preserves custom detail and the original cause', () => {
+      const cause = new Error('Underlying failure')
+      const error = new SequencerError(
+        'NATIVE_OPERATION_FAILED',
+        'Operation failed.',
+        { cause }
+      )
+      expect(error).toBeInstanceOf(SequencerError)
+      expect(error.message).toBe('{@sovereignbase/sequencer} Operation failed.')
+      expect(error.cause).toBe(cause)
+    })
+  })
   // Trusted hydration must retain flat Footage offsets without mutating the supplied snapshot.
   describe('constructor', () => {
     it('creates an empty projection for the supplied actor', () => {
@@ -480,12 +502,28 @@ describe('Projection public API', () => {
     it('releases the instance, rejects further calls synchronously, and permits repeated destruction', () => {
       const projection = seeded()
       expect(projection.destroy()).toBeUndefined()
-      expect(() => projection.length()).toThrow('Projection has been destroyed')
-      expect(() => projection.value(0)).toThrow('Projection has been destroyed')
-      expect(() => projection.apply([])).toThrow(
-        'Projection has been destroyed'
-      )
-      expect(() => projection.values()).toThrow('Projection has been destroyed')
+      for (const call of [
+        () => projection.length(),
+        () => projection.value(0),
+        () => projection.values(),
+        () => projection.insert(['x'], 0),
+        () => projection.remove(),
+        () => projection.replace(['x']),
+        () => projection.apply([]),
+        () => projection.merge(seed()),
+        () => projection.sequence(),
+        () => projection.retire(2),
+      ]) {
+        expect(call).toThrow(SequencerError)
+        expect(call).toThrowError(
+          expect.objectContaining({
+            name: 'SequencerError',
+            code: 'PROJECTION_DESTROYED',
+            message:
+              '{@sovereignbase/sequencer} Projection has been destroyed.',
+          })
+        )
+      }
       expect(projection.destroy()).toBeUndefined()
     })
     it('keeps other instances valid when a native handle is reused', () => {

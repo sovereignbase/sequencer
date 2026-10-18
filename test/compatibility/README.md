@@ -4,6 +4,10 @@ Run `npm run test:compatibility` to build the package and execute the same publi
 
 The suite covers local editing, Footage identity, value types, ordered/shuffled/reverse delivery, duplicate apply/merge, concurrent insertion ordering, compaction, repeated JSON snapshot/hydration, and indexed traversal after hydration. Runtime adapters only load and execute this shared suite; expectations live in `.shared/suite.ts`.
 
+Every runtime also verifies the exported `SequencerError`, its code, message and
+`cause`, and the error raised after destruction. Node verifies class identity
+against the exports of each package format separately.
+
 JSON transport omits absent optional Footage fields, keeping masks as six-field tuples. Active receivers are registered before removals so compaction follows the acknowledgement model.
 
 Bun uses the executable on PATH, including the one installed by CI. If Bun is absent from PATH, the adapter resolves the npm package's executable from its `bin` metadata. Deno uses its installed npm launcher. workerd runs locally through Wrangler's Miniflare dependency. Browsers use Playwright's matching binaries; install them with `npx playwright install` if missing. A missing runtime or browser fails the suite instead of silently skipping its tests.

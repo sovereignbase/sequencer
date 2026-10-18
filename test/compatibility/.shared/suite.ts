@@ -1,5 +1,5 @@
 import { sequenceInsertions } from '../../.shared/sequence.ts'
-import { Projection } from '../../../dist/index.js'
+import { Projection, SequencerError } from '../../../dist/index.js'
 import type { Sequence } from '../../../dist/index.js'
 /** Portable named check result; null error means the public-API expectation passed. */
 export type Outcome = {
@@ -34,12 +34,51 @@ function check<T>(projection: Projection<T>, expected: T[]): void {
 /**
  * Executes the same public contracts inside every target runtime.
  * @param Constructor Packaged ESM Projection by default, or the target's imported constructor.
+ * @param ErrorConstructor Error class exported by the same package format as Constructor.
  * @returns Named outcomes retaining every failure instead of stopping at the first case.
  */
 export function runSuite(
-  Constructor: typeof Projection = Projection
+  Constructor: typeof Projection = Projection,
+  ErrorConstructor: typeof SequencerError = SequencerError
 ): Outcome[] {
   const cases: Array<[string, () => void]> = [
+    [
+      'structured errors and destruction',
+      () => {
+        const cause = new Error('Underlying failure')
+        const error = new ErrorConstructor(
+          'NATIVE_OPERATION_FAILED',
+          'Operation failed.',
+          { cause }
+        )
+        equal(error instanceof Error, true)
+        equal(error.name, 'SequencerError')
+        equal(error.code, 'NATIVE_OPERATION_FAILED')
+        equal(error.message, '{@sovereignbase/sequencer} Operation failed.')
+        equal(error.cause, cause)
+        equal(
+          new ErrorConstructor('PROJECTION_DESTROYED').message,
+          '{@sovereignbase/sequencer} PROJECTION_DESTROYED'
+        )
+        const projection = new Constructor<number>(1)
+        projection.insert([1], 0)
+        projection.destroy()
+        projection.destroy()
+        let failure: unknown
+        try {
+          projection.length()
+        } catch (error) {
+          failure = error
+        }
+        equal(failure instanceof ErrorConstructor, true)
+        const destroyed = failure as SequencerError
+        equal(destroyed.code, 'PROJECTION_DESTROYED')
+        equal(
+          destroyed.message,
+          '{@sovereignbase/sequencer} Projection has been destroyed.'
+        )
+      },
+    ],
     [
       'local editing lifecycle',
       () => {

@@ -28,4 +28,5 @@ include remaining regressions.
 - [Editing scenarios](misc/EDITING_SCENARIOS.md)
 - [Earlier optimization results](misc/NEXT_OPTIMIZATION_RESULTS.md)
 - [Shuffled Gossip and a tombstoned predecessor](misc/convergence/shuffled-gossip-tombstoned-predecessor.md)
+- [Empty local views and delayed Gossip](misc/convergence/local-empty-reordered-gossip.md)
 - [Rust experiment](misc/rust-experiment/README.md)

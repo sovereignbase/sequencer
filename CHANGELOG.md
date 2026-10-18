@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/sovereignbase/sequencer/compare/v1.0.0...v1.0.1) (2026-10-18)
+
+
+### Bug Fixes
+
+* preserve history after local emptying ([25216d0](https://github.com/sovereignbase/sequencer/commit/25216d087e5714ac6d96e31412ae7cdc5f3d8438))
+* preserve history after local emptying ([b623630](https://github.com/sovereignbase/sequencer/commit/b623630859044e2fdb8034f09a4d2bd2833d14ea)), closes [#2](https://github.com/sovereignbase/sequencer/issues/2)
+
 ## 1.0.0 (2026-10-13)
 
 

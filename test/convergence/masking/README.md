@@ -10,5 +10,6 @@ A removal targets Frames of its canonical positive insertion. Concurrent inserte
 | [concurrent_remove_insert](concurrent_remove_insert/README.md)         | A removal does not consume a concurrently authored insertion.                                         | [test.ts](concurrent_remove_insert/test.ts)     |
 | [fragmented_consumer_splices](fragmented_consumer_splices/README.md)   | Returned removal and replacement splices preserve concurrent content between mask fragments.          | [test.ts](fragmented_consumer_splices/test.ts)  |
 | [overlapping_remove_ownership](overlapping_remove_ownership/README.md) | Overlapping removals consume original Frames once while retaining concurrent Footage.                 | [test.ts](overlapping_remove_ownership/test.ts) |
+| [same_batch_footage_rebasing](same_batch_footage_rebasing/README.md)   | Ordered Splices retain original Footage offsets before same-batch copy-on-write.                      | [test.ts](same_batch_footage_rebasing/test.ts)  |
 
 Mask continuation across original fragments also affects [gate traversal](../projection/overlapping_remove_gate/README.md). ACK-gated removal from snapshots is covered by [compaction](../compaction/README.md).

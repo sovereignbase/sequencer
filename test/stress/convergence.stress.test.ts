@@ -9,6 +9,7 @@ import { describe, it } from 'vitest'
 
 // Generate mixed concurrent mutations and an independent hostile delivery order.
 const scenario_arbitrary = fc.record({
+  native_seed: fc.integer({ min: 1, max: 0xffff_ffff }),
   replica_count: fc.integer({ min: 2, max: 5 }),
   base_frame_count: fc.integer({ min: 0, max: 6 }),
   operations: fc.array(

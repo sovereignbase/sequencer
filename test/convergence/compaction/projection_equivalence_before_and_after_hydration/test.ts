@@ -46,7 +46,8 @@ describe('projection equivalence before and after hydration', () => {
         sequenceInsertions(snapshot).some(
           (entry) => ((entry[0] as ReadonlyArray<number>)[5] | 0) < 0
         )
-      ).toBe(!compact)
+      ).toBe(true)
+      if (compact) expect(snapshot[1]).toEqual(['b', 'z'])
       const hydrated = new Projection<string>(1, snapshot)
       hydrated.insert(['head'], 0)
       expect(hydrated.values()).toEqual(['head', 'z', 'b'])
@@ -94,7 +95,7 @@ describe('projection equivalence before and after hydration', () => {
               (removal[0] as Insertion<string>)[0][3] &&
             ((entry[0] as ReadonlyArray<number>)[5] | 0) < 0
         )
-      ).toBe(!compact)
+      ).toBe(true)
       if (compact)
         expect(
           sequenceInsertions(snapshot).some(
@@ -102,7 +103,7 @@ describe('projection equivalence before and after hydration', () => {
               (entry[0] as ReadonlyArray<number>)[3] ===
               (branch[0] as Insertion<string>)[0][3]
           )
-        ).toBe(false)
+        ).toBe(true)
       expect(local.values()).toEqual(before)
       const hydrated = new Projection<string>(5, snapshot)
       expect(hydrated.values()).toEqual(before)
@@ -133,11 +134,8 @@ describe('projection equivalence before and after hydration', () => {
     expect(projection.values()).toEqual(['A', 'B', 'tail'])
     // Export may discard eligible history, but the live Projection and retained child ordering stay unchanged.
     const snapshot = projection.sequence()
-    expect(
-      sequenceInsertions(snapshot).every(
-        (entry) => ((entry[0] as ReadonlyArray<number>)[5] | 0) > 0
-      )
-    ).toBe(true)
+    expect(snapshot[1]).toHaveLength(3)
+    expect(sequenceInsertions(snapshot)[0][0][5]).toBe(4)
     expect(sequenceInsertions(snapshot)[0][1]).toEqual(['tail'])
     const hydrated = new Projection<string>(1, snapshot)
     expect(hydrated.values()).toEqual(['A', 'B', 'tail'])
@@ -176,7 +174,7 @@ describe('projection equivalence before and after hydration', () => {
       sequenceInsertions(snapshot).some(
         (entry) => (entry[0] as ReadonlyArray<number>)[3] === 300
       )
-    ).toBe(false)
+    ).toBe(true)
     expect(
       sequenceInsertions(snapshot).some(
         (entry) => (entry[0] as ReadonlyArray<number>)[3] === 200
@@ -210,12 +208,12 @@ describe('projection equivalence before and after hydration', () => {
       sequenceInsertions(snapshot).some(
         (entry) => (entry[0] as ReadonlyArray<number>)[3] === 200
       )
-    ).toBe(false)
+    ).toBe(true)
     expect(
       sequenceInsertions(snapshot).find(
         (entry) => (entry[0] as ReadonlyArray<number>)[3] === 300
       )?.[0][5]
-    ).toBe(-1 >>> 0)
+    ).toBe(-2 >>> 0)
     expect(sequenceInsertions(snapshot)[0][1]).toEqual([undefined, 'd'])
     const hydrated = new Projection<string>(1, snapshot)
     expect(hydrated.values()).toEqual(['X', 'd'])

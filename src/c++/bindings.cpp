@@ -118,8 +118,7 @@ struct Reader {
   }
   // Six control bits mark explicit fields; higher bits inline a 24-bit anchorStart.
   // Omitted fields are predictions, never new canonical coordinates.
-  Coordinates snapshot_coordinates(const Coordinates &previous) {
-    const auto control = word();
+  Coordinates snapshot_coordinates(const Coordinates &previous, Word control) {
     if (control > 0x3fffffffu)
       valid = false;
     Coordinates c;
@@ -162,7 +161,8 @@ struct Reader {
     } else
       return invalid();
   }
-  std::pair<Gossip, std::vector<Acknowledgement>> sequence(Word content) {
+  std::pair<Gossip, std::vector<Acknowledgement>> sequence(Word content,
+                                                           std::vector<ContentRanges> &ranges) {
     Gossip insertions;
     std::vector<Acknowledgement> frontiers;
     if (input.empty())
@@ -175,8 +175,11 @@ struct Reader {
       end = word();
       records = word();
     }
+    const auto sparse = packed && records == 0x3ffffffeu;
+    if (sparse)
+      records = word();
     if (end < position || end > input.size() ||
-        (packed ? records > input.size() - end : (input.size() - end) % 6 != 0)) {
+        (packed ? (!sparse && records > input.size() - end) : (input.size() - end) % 6 != 0)) {
       valid = false;
       return {};
     }
@@ -203,28 +206,99 @@ struct Reader {
     if (!packed)
       records = Word((input.size() - end) / 6);
     insertions.reserve(records);
-    // Footage is one flat JS array. Only positive roots receive distinct tokens,
-    // and their content_start advances by each original positive Frame extent.
+    // Runs retain canonical records and original order; only their predictable
+    // coordinate strides and identical Footage layouts are shared.
+    struct Pattern {
+      Coordinates coordinates;
+      std::array<Word, 6> stride{};
+      std::vector<FrameRange> frames;
+      Word length{};
+      bool omitted{};
+    };
+    std::array<Pattern, 2> patterns;
+    const auto layout = [&](Pattern &pattern) {
+      const auto c = pattern.coordinates;
+      pattern.frames.clear();
+      pattern.omitted = false;
+      pattern.length = c.diff > 0 ? Word(c.diff) : 0;
+      if (!sparse || c.diff < 0)
+        return;
+      const auto count = snapshot_word();
+      if (!count)
+        return;
+      if (count - 1 > (input.size() - position) / 2) {
+        valid = false;
+        return;
+      }
+      pattern.omitted = true;
+      pattern.length = 0;
+      Word end = 0;
+      for (Word n = 1; n < count; ++n) {
+        const auto gap = snapshot_word(), size = snapshot_word();
+        if (!size || std::uint64_t(end) + gap + size > Word(c.diff))
+          valid = false;
+        pattern.frames.push_back({end + gap, size});
+        end += gap + size;
+        pattern.length += size;
+      }
+    };
     Word offset = 0;
     Coordinates previous;
-    for (Word i = 0; i < records; ++i) {
-      Coordinates c;
-      if (packed)
-        c = snapshot_coordinates(previous);
-      else {
-        const auto data = input.subspan(position, 6);
-        c = {data[0], data[1], data[2], data[3], data[4], std::bit_cast<std::int32_t>(data[5])};
-        position += 6;
-      }
-      if (!valid || !c.diff || c.diff == std::numeric_limits<std::int32_t>::min()) {
+    for (Word i = 0; i < records;) {
+      const auto control = packed ? word() : 0;
+      const auto run = sparse && control == 0x3ffffffeu;
+      const auto width = run ? snapshot_word() : 1;
+      const auto repeats = run ? snapshot_word() : 1;
+      if (!width || width > patterns.size() || !repeats || (run && repeats < 3) ||
+          std::uint64_t(width) * repeats > records - i) {
         valid = false;
         return {};
       }
-      register_sessions(c);
-      insertions.push_back(Entry::insert({c, c.diff > 0 ? content + bindings++ : 0, offset}));
-      if (c.diff > 0)
-        offset += Word(c.diff);
-      previous = c;
+      if (!packed) {
+        const auto data = input.subspan(position, 6);
+        patterns[0].coordinates = {data[0], data[1], data[2],
+                                   data[3], data[4], std::bit_cast<std::int32_t>(data[5])};
+        patterns[0].stride = {};
+        position += 6;
+      }
+      for (Word lane = 0; lane < width; ++lane) {
+        auto &pattern = patterns[lane];
+        if (packed)
+          pattern.coordinates = snapshot_coordinates(previous, run ? word() : control);
+        if (run) {
+          for (auto &value : pattern.stride)
+            value = snapshot_word();
+          if (pattern.stride[3] || pattern.stride[5] || !pattern.stride[4])
+            valid = false;
+        } else
+          pattern.stride = {};
+        const auto c = pattern.coordinates;
+        if (!valid || !c.diff || c.diff == std::numeric_limits<std::int32_t>::min()) {
+          valid = false;
+          return {};
+        }
+        layout(pattern);
+        previous = c;
+      }
+      if (!valid)
+        return {};
+      for (Word repeat = 0; repeat < repeats; ++repeat)
+        for (Word lane = 0; lane < width; ++lane, ++i) {
+          const auto &pattern = patterns[lane];
+          auto words = std::bit_cast<std::array<Word, 6>>(pattern.coordinates);
+          for (Word field = 0; field < 6; ++field)
+            words[field] += repeat * pattern.stride[field];
+          const auto c = std::bit_cast<Coordinates>(words);
+          register_sessions(c);
+          Insertion insertion{c, c.diff > 0 ? content + bindings++ : 0, offset};
+          insertion.content_length = pattern.length;
+          if (pattern.omitted) {
+            ranges.push_back({c.session, c.start, offset, pattern.frames});
+          }
+          insertions.push_back(Entry::insert(insertion));
+          offset += pattern.length;
+          previous = c;
+        }
     }
     if (position != input.size()) {
       valid = false;
@@ -308,7 +382,8 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     switch (operation) {
     case 0: {
       Reader r;
-      auto [g, f] = r.sequence(arg1);
+      std::vector<ContentRanges> ranges;
+      auto [g, f] = r.sequence(arg1, ranges);
       if (arg2 != 1 || !r.valid) {
         kind = 7;
         out.header[3] = 2;
@@ -322,7 +397,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
           if ((*clock)[0] == c.session || (*clock)[0] == c.anchor_session)
             (*clock)[0] = next_session();
       }
-      p.hydrate(g, f);
+      p.hydrate(g, f, ranges);
       break;
     }
     case 1: {
@@ -347,13 +422,14 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     }
     case 4: {
       Reader r;
-      auto [g, f] = r.sequence(arg1);
+      std::vector<ContentRanges> ranges;
+      auto [g, f] = r.sequence(arg1, ranges);
       if (arg2 != 1 || !r.valid) {
         kind = 0;
         break;
       }
       out.header[11] = r.bindings;
-      out.result = p.merge(g, f);
+      out.result = p.merge(g, f, ranges);
       kind = 4;
       break;
     }
@@ -431,7 +507,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
       const auto &source = p.strips.identity[root];
       const auto span = out.sequence.footage[0];
       if (span.content == source.content && span.start == source.content_start &&
-          span.count == Word(source.coordinates.diff))
+          span.count == source.content_length)
         for (auto i = root; i; i = p.strips.fragment[i])
           p.strips.identity[i].content_owned = false;
     }

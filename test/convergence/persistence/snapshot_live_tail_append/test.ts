@@ -64,10 +64,9 @@ describe.each(['ordered', 'reverse', 'shuffled'] as const)(
         live.apply(hydrated.apply(updates.at(-1)!)![1]!)
         for (const peer of [live, hydrated]) {
           const compacted = peer.sequence()
+          expect(compacted[1]).toHaveLength(expected.length)
           expect(
-            sequenceInsertions(compacted).every(
-              (entry) => ((entry[0] as ReadonlyArray<number>)[5] | 0) > 0
-            )
+            sequenceInsertions(compacted).some((entry) => (entry[0][5] | 0) < 0)
           ).toBe(true)
           expect(
             new Projection<number>(4, structuredClone(compacted)).values()

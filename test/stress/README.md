@@ -2,7 +2,7 @@
 
 [All suites](../README.md) · [Test](convergence.stress.test.ts)
 
-Fast-check generates two to five independent replicas and mixed insert/remove/replace histories. The Worker compares chronological delivery with an independently shuffled order, checking visible length and every indexed Frame. Each scenario has an interruptible execution boundary and a replayable seed.
+Fast-check generates two to five independent replicas, mixed insert/remove/replace histories and the native random seed that determines Session ordering. The Worker compares chronological delivery with an independently shuffled order, checking visible length and every indexed Frame. Each scenario has an interruptible execution boundary; replay preserves both edits and Session ordering.
 
 The Worker imports the built package. For a standalone run:
 

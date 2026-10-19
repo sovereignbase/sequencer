@@ -38,18 +38,17 @@ export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>
 /**
  * Retained state required to hydrate the same visible Projection.
  * One structural array and one JavaScript-owned content array.
- * Small snapshots use six-word insertion records after length-prefixed ACKs;
- * `words[0]` locates those records. Large snapshots begin with
- * `[0, frontiersEnd, insertionCount]` and omit predictable coordinate fields.
- * Both layouts retain complete coordinates and acknowledgements.
- * Positive insertion diffs consume successive spans of `footage`.
+ * Metadata retains canonical coordinates and acknowledgements. Packing omits
+ * predictable fields; acknowledged removals omit Footage slots while retaining
+ * the original logical boundaries needed by subsequent Gossip.
+ * Use `Projection` to read either plain or packed metadata.
  * `[[], []]` is an empty Sequence. Both numeric arrays and typed views are accepted.
  */
 export type Sequence<T> = Readonly<
   [
     /** Acknowledgements followed by canonical Insertions in Structural Order. */
     words: U32List,
-    /** Consecutive positive Insertion spans, including missing Footage slots. */
+    /** Packed positive Frame spans; unacknowledged masked slots may be undefined. */
     footage: ReadonlyArray<T | undefined>,
   ]
 >

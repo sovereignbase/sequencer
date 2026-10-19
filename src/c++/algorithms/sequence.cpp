@@ -1,173 +1,146 @@
 /**
  * @file
- * Exports compactable history while preserving hydrated Projection and future ordering.
+ * Compacts acknowledged Footage while retaining canonical replication coordinates.
  */
 #include "../auxiliary/magnitude.hpp"
+#include "../auxiliary/snapshotRuns.hpp"
 #include "../auxiliary/snapshotWords.hpp"
 #include "../class.hpp"
 #include <algorithm>
-#include <limits>
-#include <unordered_map>
 
 namespace sequencer {
 Sequence Projection::sequence() const {
   const auto compactable = frontier.compactable();
-  // Original Frame deletion map, converted in place to removed-prefix counts during export.
-  struct Removed {
-    // Whole positive Insertion length when every original Frame is compacted.
-    Word whole{};
-    // Per-original-Frame marks, later cumulative removed counts.
-    std::vector<Word> frames;
-    // Counts compacted Frames before an original exclusive boundary.
-    Word before(Word at) const {
-      if (!at)
-        return 0;
-      if (whole)
-        return std::min(at, whole);
-      return frames.empty() ? 0 : frames[std::min<std::size_t>(at, frames.size()) - 1];
-    }
-  };
-  std::unordered_map<std::uint64_t, Removed> removed;
-  // Collect actual consumed mask fragments, not authored lengths: overlapping
-  // removals must never delete an original Frame twice from the exported Footage.
-  if (!compactable.empty()) {
-    for (auto i = structural_head; i; i = strips.right[i]) {
-      const auto s = i;
-      const auto &c = strips.identity[s].coordinates;
-      const auto diff = strips.fragment_diff[s];
-      if (diff >= 0 || !compactable.contains(c.session))
-        continue;
-      const auto start = c.anchor_diff + strips.fragment_start[s];
-      auto [it, added] = removed.try_emplace(identity(c.anchor_session, c.anchor_start));
-      auto &frames = it->second;
-      if (added) {
-        const auto parent = containment.get(c.anchor_session, c.anchor_start);
-        const auto count = Word(strips.identity[parent].coordinates.diff);
-        if (!start && magnitude(diff) == count)
-          frames.whole = count;
-        else
-          frames.frames.resize(count);
-      }
-      if (!frames.whole)
-        std::fill(frames.frames.begin() + start, frames.frames.begin() + start + magnitude(diff),
-                  1);
-    }
-  }
-  const auto removed_frames = [&](Word session, Word start) -> Removed * {
-    const auto it = removed.find(identity(session, start));
-    return it == removed.end() ? nullptr : &it->second;
-  };
-  const auto before = [](const Removed *frames, Word at) {
-    return frames ? frames->before(at) : 0;
-  };
-  Sequence output;
-  // Eligibility is a capacity hint; the writer promotes only at 64 actually retained roots.
-  const auto eligible = containment.size() >= 64;
-  output.words.reserve(1 + structural_count * (eligible ? 3 : 6));
-  output.footage.reserve(std::min(structural_count, containment.size()));
-  output.words.push_back(0);
-  // Keep Actor admission even when all of its compactable Session pairs disappear.
-  for (const auto &a : frontier.frontiers()) {
-    const auto begin = output.words.size();
+  if (compactable.empty() && content_ranges.empty()) {
+    Sequence output;
+    const auto eligible = containment.size() >= 64;
+    output.words.reserve(1 + structural_count * (eligible ? 3 : 6));
+    output.footage.reserve(std::min(structural_count, containment.size()));
     output.words.push_back(0);
-    output.words.push_back(a[0]);
-    Word count = 1;
-    for (std::size_t i = 1; i + 1 < a.size(); i += 2) {
-      if (!compactable.contains(a[i])) {
-        output.words.insert(output.words.end(), {a[i], a[i + 1]});
-        count += 2;
+    for (const auto &a : frontier.frontiers()) {
+      output.words.push_back(Word(a.size()));
+      output.words.insert(output.words.end(), a.begin(), a.end());
+    }
+    output.words[0] = Word(output.words.size());
+    SnapshotWords writer{output.words, {}, 0, false, eligible};
+    for (auto i = structural_head; i; i = strips.right[i]) {
+      const auto insertion = strips.identity[i];
+      const auto c = insertion.coordinates;
+      if (strips.offset[i] && (c.diff > 0 || containment.get(c.session, c.start) != i))
+        continue;
+      writer.append(c);
+      if (c.diff > 0) {
+        if (output.footage.empty())
+          output.shared_root = i;
+        output.footage.push_back({insertion.content, insertion.content_start, Word(c.diff)});
       }
     }
-    output.words[begin] = count;
+    if (writer.packed)
+      output.words[2] = writer.count;
+    if (output.words.size() == 1)
+      output.words.clear();
+    return output;
   }
-  output.words[0] = Word(output.words.size());
-  SnapshotWords writer{output.words, {}, 0, false, eligible};
-  constexpr auto omitted = std::numeric_limits<Word>::max();
-  Word left = omitted, left_diff = 0;
-  Word left_session = 0, left_start = 0;
+  std::unordered_map<std::uint64_t, std::vector<FrameRange>> removed;
+  std::vector<Index> roots;
+  roots.reserve(containment.size());
   for (auto i = structural_head; i; i = strips.right[i]) {
-    const auto s = i;
-    const auto &c = strips.identity[s].coordinates;
-    if (c.diff < 0 && compactable.contains(c.session))
+    const auto c = strips.identity[i].coordinates;
+    if (strips.offset[i] && (c.diff > 0 || containment.get(c.session, c.start) != i))
       continue;
-    auto *frames = removed_frames(c.session, c.start);
-    if (frames && frames->whole)
-      continue;
-    // Positive chains begin with a non-offset node. An overlapping mask may
-    // consume its prefix, so its canonical node must be recognized by identity.
-    const auto first =
-        !strips.offset[s] || (c.diff < 0 && containment.get(c.session, c.start) == s);
-    Word insertion = omitted;
-    if (first) {
-      auto exported = c;
-      auto &footage = output.footage;
-      // Compaction can collapse distinct historical points. Re-anchor positive
-      // roots along their resolved retained order rather than recomputing sibling competition.
-      if (c.diff > 0 && !compactable.empty()) {
-        exported.anchor_session = left == omitted ? 0 : left_session;
-        exported.anchor_start = left == omitted ? 0 : left_start;
-        exported.anchor_diff = left_diff;
-      } else if (c.diff < 0 && !removed.empty()) {
-        exported.anchor_diff -=
-            before(removed_frames(c.anchor_session, c.anchor_start), c.anchor_diff);
-      }
-      if (c.diff > 0 && frames) {
-        // Copy surviving Footage in original order and turn deletion marks into
-        // prefix counts for later anchors and masks targeting this same Insertion.
-        Word count = 0;
-        for (Word n = 0; n < Word(c.diff); ++n) {
-          if (!frames->frames[n]) {
-            if (!footage.empty() && footage.back().content == strips.identity[s].content &&
-                footage.back().start + footage.back().count == strips.identity[s].content_start + n)
-              ++footage.back().count;
-            else
-              footage.push_back(
-                  {strips.identity[s].content, strips.identity[s].content_start + n, 1});
-          }
-          count += frames->frames[n];
-          frames->frames[n] = count;
-        }
-        exported.diff -= std::int32_t(count);
-      } else if (c.diff < 0 && !removed.empty()) {
-        // Retained masks cover only the target Frames left after acknowledged deletion.
-        const auto *target = removed_frames(c.anchor_session, c.anchor_start);
-        exported.diff +=
-            std::int32_t(before(target, c.anchor_diff - c.diff) - before(target, c.anchor_diff));
-      } else if (c.diff > 0) {
-        if (footage.empty())
-          output.shared_root = s;
-        footage.push_back(
-            {strips.identity[s].content, strips.identity[s].content_start, Word(c.diff)});
-      }
-      if (exported.diff) {
-        insertion = Word(output.words.size());
-        writer.append(exported);
-      }
-    } else if (c.diff > 0) {
-      if (!frames || before(frames, Word(c.diff)) < Word(c.diff))
-        insertion = 0;
-    } else {
-      const auto *target = removed_frames(c.anchor_session, c.anchor_start);
-      if (before(target, c.anchor_diff - c.diff) - before(target, c.anchor_diff) <
-          magnitude(c.diff))
-        insertion = 0;
-    }
-    // A later fragment advances the retained boundary without emitting a second root.
-    // Zero-effect fragments cannot move the boundary past surviving structural children.
-    if (insertion != omitted && (first || strips.fragment_diff[s] != 0)) {
-      left = insertion;
-      left_session = c.session;
-      left_start = c.start;
-      left_diff = strips.fragment_start[s] + magnitude(strips.fragment_diff[s]);
-      if (!removed.empty() && c.diff > 0)
-        left_diff -= before(frames, left_diff);
-      else if (!removed.empty()) {
-        const auto *target = removed_frames(c.anchor_session, c.anchor_start);
-        left_diff -= before(target, c.anchor_diff + left_diff) - before(target, c.anchor_diff);
-      }
+    roots.push_back(i);
+    const auto ack = compactable.find(c.session);
+    if (c.diff < 0 && ack != compactable.end() &&
+        std::uint64_t(c.start) + magnitude(c.diff) <= ack->second)
+      removed[identity(c.anchor_session, c.anchor_start)].push_back(
+          {c.anchor_diff, magnitude(c.diff)});
+  }
+  const auto sparse = !removed.empty() || !content_ranges.empty();
+  Sequence output;
+  output.words.reserve(4 + roots.size() * 4);
+  output.footage.reserve(roots.size());
+  if (sparse)
+    output.words = {0, 0, 0x3ffffffeu, Word(roots.size())};
+  else
+    output.words.push_back(0);
+  for (const auto &a : frontier.frontiers()) {
+    output.words.push_back(Word(a.size()));
+    for (const auto word : a) {
+      if (sparse)
+        snapshot_word(output.words, word);
+      else
+        output.words.push_back(word);
     }
   }
-  if (writer.packed)
+  output.words[sparse ? 1 : 0] = Word(output.words.size());
+  SnapshotWords writer{output.words, {}, 0, sparse, !sparse && roots.size() >= 64};
+  SnapshotRuns runs(writer);
+  for (const auto root : roots) {
+    const auto insertion = strips.identity[root];
+    const auto c = insertion.coordinates;
+    if (c.diff < 0) {
+      if (sparse)
+        runs.append(c);
+      else
+        writer.append(c);
+      continue;
+    }
+    if (output.footage.empty())
+      output.shared_root = root;
+    if (!sparse) {
+      writer.append(c);
+      output.footage.push_back({insertion.content, insertion.content_start, Word(c.diff)});
+      continue;
+    }
+    const auto key = identity(c.session, c.start);
+    const auto layout = content_ranges.find(key);
+    const auto masks = removed.find(key);
+    std::vector<FrameRange> retained;
+    if (layout == content_ranges.end())
+      retained.push_back({0, Word(c.diff)});
+    else
+      retained = layout->second;
+    if (masks != removed.end()) {
+      auto &intervals = masks->second;
+      std::sort(intervals.begin(), intervals.end(),
+                [](auto a, auto b) { return a.start < b.start; });
+      std::vector<FrameRange> kept;
+      std::size_t mask = 0;
+      for (const auto range : retained) {
+        auto at = range.start;
+        const auto end = at + range.count;
+        while (mask < intervals.size() && intervals[mask].start + intervals[mask].count <= at)
+          ++mask;
+        for (auto n = mask; n < intervals.size() && intervals[n].start < end; ++n) {
+          if (intervals[n].start > at)
+            kept.push_back({at, intervals[n].start - at});
+          at = std::max(at, std::min(end, intervals[n].start + intervals[n].count));
+        }
+        if (at < end)
+          kept.push_back({at, end - at});
+      }
+      retained = std::move(kept);
+    }
+    std::size_t source_range = 0;
+    Word physical = 0;
+    for (const auto range : retained) {
+      auto start = range.start;
+      if (layout != content_ranges.end()) {
+        const auto &source = layout->second;
+        while (source_range < source.size() &&
+               source[source_range].start + source[source_range].count <= start) {
+          physical += source[source_range].count;
+          ++source_range;
+        }
+        start = physical + start - source[source_range].start;
+      }
+      output.footage.push_back({insertion.content, insertion.content_start + start, range.count});
+    }
+    runs.append(c, std::move(retained));
+  }
+  if (sparse)
+    runs.finish();
+  if (writer.packed && !sparse)
     output.words[2] = writer.count;
   if (output.words.size() == 1)
     output.words.clear();

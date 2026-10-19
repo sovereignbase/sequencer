@@ -7,10 +7,22 @@
 #include <algorithm>
 
 namespace sequencer {
-std::pair<Word, Index> Projection::find_containing_fragment(Index origin, Index incoming) {
-  auto anchor = origin;
-  const auto c = strips.identity[incoming].coordinates;
+std::pair<Word, Index> Projection::find_containing_fragment(Index origin, const Coordinates &c,
+                                                            Index incoming) {
   const auto parent = strips.identity[origin].coordinates;
+  // Masks retain their authored coordinate space even when overlap consumes
+  // their runtime effect. Resolve children against the original target interval.
+  if (parent.diff < 0 && c.diff > 0) {
+    // Equal canonical and materialized intervals need no coordinate projection.
+    if (!strips.fragment_start[origin] && strips.fragment_diff[origin] == parent.diff &&
+        c.anchor_diff <= magnitude(parent.diff))
+      return {c.anchor_diff, origin};
+    auto projected = c;
+    projected.anchor_diff += parent.anchor_diff;
+    return find_containing_fragment(containment.get(parent.anchor_session, parent.anchor_start),
+                                    projected, incoming);
+  }
+  auto anchor = origin;
   while (anchor) {
     const auto fs = strips.fragment_start[anchor];
     const auto fe = fs + magnitude(strips.fragment_diff[anchor]);
@@ -29,15 +41,22 @@ std::pair<Word, Index> Projection::find_containing_fragment(Index origin, Index 
     while (mask) {
       const auto m = mask;
       if (strips.identity[m].coordinates.anchor_session != parent.session ||
-          strips.identity[m].coordinates.anchor_start != parent.start)
-        break;
+          strips.identity[m].coordinates.anchor_start != parent.start) {
+        // A parent's next fragment resumes its own coordinate space. Children
+        // of earlier masks may intervene and must be passed as complete subtrees.
+        if (strips.identity[m].coordinates.session == parent.session &&
+            strips.identity[m].coordinates.start == parent.start)
+          break;
+        mask = strips.right[subtree_end(m)];
+        continue;
+      }
       const auto end = strips.identity[m].coordinates.anchor_diff + strips.fragment_start[m] +
                        magnitude(strips.fragment_diff[m]);
       if (!(strips.fragment_diff[m] == 0 || strips.identity[m].coordinates.diff > 0 ||
             (c.diff < 0 ? c.anchor_diff >= end : c.anchor_diff > end)))
         break;
       if (strips.identity[m].coordinates.diff > 0)
-        mask = strips.competitor[m];
+        mask = strips.competitor[m] ? strips.competitor[m] : strips.right[subtree_end(m)];
       else if (strips.fragment[m] &&
                (c.diff < 0 ? c.anchor_diff >= strips.identity[m].coordinates.anchor_diff +
                                                   strips.fragment_start[strips.fragment[m]]
@@ -45,7 +64,7 @@ std::pair<Word, Index> Projection::find_containing_fragment(Index origin, Index 
                                                  strips.fragment_start[strips.fragment[m]]))
         mask = strips.fragment[m];
       else
-        mask = strips.competitor[m] ? strips.competitor[m] : strips.right[m];
+        mask = strips.competitor[m] ? strips.competitor[m] : strips.right[subtree_end(m)];
     }
     if (mask && strips.identity[mask].coordinates.diff < 0 &&
         strips.identity[mask].coordinates.anchor_session == parent.session &&
@@ -70,14 +89,18 @@ std::pair<Word, Index> Projection::find_containing_fragment(Index origin, Index 
       while (right &&
              advanced >= strips.fragment_start[right] + magnitude(strips.fragment_diff[right]))
         right = strips.fragment[right];
-      if (!right) {
-        strips.fragment_start[incoming] = magnitude(c.diff);
-        strips.fragment_diff[incoming] = 0;
-        return {point + consumed, mask};
-      }
-      const auto resolved = std::max(advanced, strips.fragment_start[right]);
+      const auto resolved = right ? std::max(advanced, strips.fragment_start[right])
+                                  : c.anchor_diff + magnitude(c.diff);
       strips.fragment_start[incoming] = std::min(magnitude(c.diff), resolved - c.anchor_diff);
       strips.fragment_diff[incoming] = c.diff + std::int32_t(strips.fragment_start[incoming]);
+      if (!strips.fragment_diff[incoming]) {
+        // Overlap cannot move a retained mask beyond its authored endpoint.
+        // Resolve that boundary through the same original-coordinate lookup.
+        auto boundary = c;
+        boundary.anchor_diff += magnitude(c.diff);
+        boundary.diff = 1;
+        return find_containing_fragment(origin, boundary);
+      }
       return {resolved, right};
     }
     anchor = strips.fragment[anchor];

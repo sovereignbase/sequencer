@@ -7,15 +7,29 @@
 #include <algorithm>
 
 namespace sequencer {
-Word Projection::extend(Index origin, Word count, Word content, Word source_start) {
+Word Projection::extend(Index origin, Word count, Word content, Word source_start,
+                        Word physical_count) {
   const auto original = strips.identity[origin];
   const auto end = Word(original.coordinates.diff);
+  const auto physical_end = original.content_length;
+  const auto packed = physical_count != UINT32_MAX;
+  if (!packed)
+    physical_count = count;
+  if (!packed && physical_end != end) {
+    auto &ranges =
+        content_ranges[identity(original.coordinates.session, original.coordinates.start)];
+    if (!ranges.empty() && ranges.back().start + ranges.back().count == end)
+      ranges.back().count += count;
+    else
+      ranges.push_back({end, count});
+  }
   auto last = origin;
   while (strips.fragment[last])
     last = strips.fragment[last];
   // Native state retains one content token. JavaScript appends the new suffix
   // after public Splices have read it, then releases its temporary source binding.
-  appended.push_back({original.content, content, source_start, count, end, original.content_start});
+  appended.push_back({original.content, content, source_start, physical_count, physical_end,
+                      original.content_start});
   if (content)
     released.push_back({content, 0, 0});
   const auto next = strips.right[last];
@@ -41,38 +55,47 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
     }
     for (auto fragment = origin; fragment; fragment = strips.fragment[fragment]) {
       strips.identity[fragment].coordinates.diff += std::int32_t(count);
-      strips.identity[fragment].content_start = 0;
+      strips.identity[fragment].content_start -= original.content_start;
+      strips.identity[fragment].content_length += physical_count;
       strips.identity[fragment].content_owned = true;
     }
     return at;
   }
 
-  // Resolve with suffix coordinates first, then give the new runtime fragment
-  // the parent's grown canonical coordinates; it is never a separate snapshot root.
-  const Coordinates suffix{
-      original.coordinates.session, original.coordinates.start,       end,
-      original.coordinates.session, original.coordinates.start + end, std::int32_t(count)};
-  const auto incoming = allocate({suffix, original.content});
-  const auto [point, anchor] = find_containing_fragment(origin, incoming);
+  // A suffix follows every existing descendant at the old endpoint. It extends
+  // the same canonical root and never participates in sibling competition.
+  const auto left = subtree_end(origin);
+  const auto right = strips.right[left];
   auto grown = original;
   grown.coordinates.diff += std::int32_t(count);
-  grown.content_start = 0;
+  grown.content_start = physical_end - end;
+  grown.content_length += physical_count;
   grown.content_owned = true;
-  strips.identity[incoming] = grown;
+  const auto incoming = allocate(grown);
   strips.fragment_start[incoming] = end;
   strips.fragment_diff[incoming] = std::int32_t(count);
   strips.offset[incoming] = strips.fragmented[incoming] = true;
-  const auto previous_count = structural_count;
-  anchor_strip(incoming, anchor, point, true);
+  strips.left[incoming] = left;
+  strips.right[incoming] = right;
+  strips.right[left] = incoming;
+  if (right)
+    strips.left[right] = incoming;
+  if (!head || right == head)
+    head = incoming;
+  if (!tail || !right || left == tail)
+    tail = incoming;
+  ++structural_count;
+  frame_count += count;
   for (auto fragment = origin; fragment; fragment = strips.fragment[fragment]) {
     strips.identity[fragment].coordinates.diff = grown.coordinates.diff;
-    strips.identity[fragment].content_start = 0;
+    strips.identity[fragment].content_start -= original.content_start;
+    strips.identity[fragment].content_length = grown.content_length;
     strips.identity[fragment].content_owned = true;
     strips.fragmented[fragment] = true;
   }
   // All fragments share the grown original extent and the rebased private Footage array.
   strips.fragment[last] = incoming;
-  patch_jumps(std::int32_t(count), structural_count - previous_count, incoming);
+  patch_jumps(std::int32_t(count), 1, incoming);
   const auto at = position_of(incoming, std::int32_t(count));
   if (gate && at <= gate_position)
     gate_position += count;

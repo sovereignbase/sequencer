@@ -33,10 +33,14 @@ export function sequenceInsertions<T>([
 ]: Sequence<T>): Insertion<T>[] {
   const result: Insertion<T>[] = []
   let offset = 0
-  for (const coordinates of sequenceMetadata(words).insertions) {
-    const count = coordinates[5] | 0
+  const metadata = sequenceMetadata(words)
+  for (const [index, coordinates] of metadata.insertions.entries()) {
+    const count = metadata.ranges[index].reduce(
+      (sum, [, length]) => sum + length,
+      0
+    )
     result.push(
-      count > 0
+      (coordinates[5] | 0) > 0
         ? [coordinates, footage.slice(offset, offset + count)]
         : [coordinates]
     )

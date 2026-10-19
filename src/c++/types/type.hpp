@@ -54,8 +54,24 @@ struct Insertion {
   Word content{};
   /** Origin of this Insertion's original Frame coordinates in the bound Footage. */
   Word content_start{};
+  /** Physical Footage extent; compacted original coordinates may contain omitted intervals. */
+  Word content_length : 31 = coordinates.diff > 0 ? Word(coordinates.diff) : 0;
   /** Whether Footage is privately writable; false requests copy-on-write before masking. */
-  bool content_owned{};
+  Word content_owned : 1 {};
+};
+static_assert(sizeof(Insertion) == 9 * sizeof(Word));
+/** Half-open original Frame interval retained in a compacted Footage binding. */
+struct FrameRange {
+  Word start{} /**< First original Frame coordinate. */,
+      count{} /**< Retained contiguous Frame count. */;
+};
+/** Packed Footage layout of one canonical positive Insertion. */
+struct ContentRanges {
+  Word session{} /**< Positive Insertion's authoring Session. */,
+      start{} /**< Positive Insertion's canonical start. */,
+      base{} /**< First packed slot in the JavaScript Footage binding. */;
+  /** Retained original intervals in increasing coordinate order. */
+  std::vector<FrameRange> frames;
 };
 /** Actor ID followed by removal Session/frontier pairs. */
 using Acknowledgement = std::vector<Word>;
@@ -91,7 +107,7 @@ struct ContentAppend {
   Word target{} /**< Existing Insertion's content binding. */,
       source{} /**< Incoming suffix binding. */, start{} /**< First suffix slot in source. */,
       count{} /**< Suffix Frame count. */,
-      at{} /**< Original target Frame length before extension. */,
+      at{} /**< Physical target Footage length before extension. */,
       base{} /**< Target Insertion's content-array origin before copy-on-write. */;
 };
 /** Consumer-visible mutation; the removal end is exclusive. */

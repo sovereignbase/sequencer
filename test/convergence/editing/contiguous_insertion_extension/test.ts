@@ -24,6 +24,48 @@ const second: Insertion<string> = [
 ]
 
 describe('contiguous insertion extensions', () => {
+  it.each(['ordered', 'reverse'] as const)(
+    'retains a mask-end child before a suffix with %s delivery',
+    (delivery) => {
+      const base = new Projection<string>(1)
+      base.insert(['a', 'b'], 0)
+      const snapshot = base.sequence()
+      const author = new Projection<string>(2, snapshot)
+      const receiver = new Projection<string>(3, snapshot)
+      try {
+        for (const peer of [author, receiver]) peer.apply([[1], [2], [3]])
+        const updates = [
+          author.insert(['x', 'y', 'z'], 2),
+          author.insert(['u', 'v'], 5),
+          author.remove(2, 3),
+          author.replace(['X'], 2, 2),
+        ]
+        const expected = ['a', 'b', 'X', 'u', 'v']
+        expect(author.values()).toEqual(expected)
+        const view: Array<string | undefined> = receiver.values()
+        for (const update of delivery === 'reverse'
+          ? updates.reverse()
+          : updates) {
+          const result = receiver.apply(structuredClone(update))
+          expect(result).toBeDefined()
+          for (const [from, to, values] of result![0])
+            view.splice(from, to - from, ...(values ?? []))
+          expect(view).toEqual(receiver.values())
+        }
+        expect(view).toEqual(expected)
+        const hydrated = new Projection<string>(4, receiver.sequence())
+        try {
+          expect(hydrated.values()).toEqual(expected)
+        } finally {
+          hydrated.destroy()
+        }
+      } finally {
+        receiver.destroy()
+        author.destroy()
+        base.destroy()
+      }
+    }
+  )
   it('preserves missing content slots before appending an extension', () => {
     const p = new Projection<string>(1)
     p.apply([[[0, 0, 0, 100, 0, 2], ['a']]])
@@ -45,8 +87,8 @@ describe('contiguous insertion extensions', () => {
       expect(target.apply(structuredClone(extension))?.[0]).toEqual([
         [2, 2, ['d', 'e']],
       ])
-      const receipt = source.apply(structuredClone(deletion))!
-      if (receipt[1]) target.apply(receipt[1])
+      const acknowledged = source.apply(structuredClone(deletion))!
+      if (acknowledged[1]) target.apply(acknowledged[1])
       for (const p of [source, target]) {
         expect(p.values()).toEqual(['a', 'c', 'd', 'e'])
         expect(

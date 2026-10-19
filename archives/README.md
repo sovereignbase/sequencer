@@ -29,4 +29,5 @@ include remaining regressions.
 - [Earlier optimization results](misc/NEXT_OPTIMIZATION_RESULTS.md)
 - [Shuffled Gossip and a tombstoned predecessor](misc/convergence/shuffled-gossip-tombstoned-predecessor.md)
 - [Empty local views and delayed Gossip](misc/convergence/local-empty-reordered-gossip.md)
+- [Replicated editing contracts and unresolved compaction cost](misc/convergence/replicated-editing-contracts.md)
 - [Rust experiment](misc/rust-experiment/README.md)

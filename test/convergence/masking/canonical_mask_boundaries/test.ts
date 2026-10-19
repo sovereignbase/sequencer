@@ -2,7 +2,82 @@
 import { makeSequence, sequenceInsertions } from '../../../.shared/sequence.ts'
 import { expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
-import type { Insertion, Sequence } from '../../../../src/typescript/class.ts'
+import type {
+  Gossip,
+  Insertion,
+  Sequence,
+} from '../../../../src/typescript/class.ts'
+
+/** Enumerates delivery orders without changing the operations or their identities. */
+function* permutations<T>(entries: readonly T[]): Generator<T[]> {
+  if (!entries.length) {
+    yield []
+    return
+  }
+  for (let i = 0; i < entries.length; ++i)
+    for (const rest of permutations(entries.filter((_, at) => at !== i)))
+      yield [entries[i], ...rest]
+}
+
+it.each(
+  ['adjacent ranges', 'one endpoint'].flatMap((name) =>
+    [false, true].map((reverse) => ({ name, reverse }))
+  )
+)(
+  'orders boundary children for $name in every delivery order (reverse Sessions: $reverse)',
+  ({ name, reverse }) => {
+    const session = (id: number) => (reverse ? 1000 - id : id)
+    const frames =
+      name === 'one endpoint' ? ['a', 'b', 'c', 'd'] : ['a', 'b', 'c']
+    const updates: Gossip<string>[] =
+      name === 'one endpoint'
+        ? [
+            [[[session(100), 0, 1, session(200), 0, -3 >>> 0]]],
+            [[[session(100), 0, 2, session(300), 0, -2 >>> 0]]],
+            [[[session(100), 0, 4, session(400), 0, 1], ['Z']]],
+            [[[session(200), 0, 3, session(500), 0, 1], ['X']]],
+            [[[session(300), 0, 2, session(600), 0, 1], ['Y']]],
+          ]
+        : [
+            [[[session(100), 0, 1, session(200), 0, 0xffff_ffff]]],
+            [[[session(100), 0, 2, session(300), 0, 0xffff_ffff]]],
+            [[[session(100), 0, 2, session(400), 0, 1], ['Y']]],
+            [[[session(200), 0, 1, session(500), 0, 1], ['X']]],
+            [[[session(100), 0, 3, session(600), 0, 1], ['Z']]],
+            [[[session(100), 0, 1, session(700), 0, 0xffff_ffff]]],
+          ]
+    for (const order of permutations(updates)) {
+      const receiver = new Projection<string>(
+        2,
+        makeSequence(
+          [[1], [2]],
+          [[[0, 0, 0, session(100), 0, frames.length], frames]]
+        )
+      )
+      try {
+        const view: Array<string | undefined> = receiver.values()
+        for (const update of order) {
+          const result = receiver.apply(structuredClone(update))
+          expect(result).toBeDefined()
+          for (const [from, to, values] of result![0])
+            view.splice(from, to - from, ...(values ?? []))
+          expect(view).toEqual(receiver.values())
+        }
+        expect(receiver.values()).toEqual(
+          name === 'one endpoint' ? ['a', 'Z', 'X', 'Y'] : ['a', 'Y', 'X', 'Z']
+        )
+        const hydrated = new Projection<string>(3, receiver.sequence())
+        try {
+          expect(hydrated.values()).toEqual(view)
+        } finally {
+          hydrated.destroy()
+        }
+      } finally {
+        receiver.destroy()
+      }
+    }
+  }
+)
 it('retains an offline insertion inside repeated tail replacement history', () => {
   const receiver = new Projection<number>(
     2,
@@ -112,7 +187,7 @@ it('keeps a gate in another root subtree across a fragmented remote removal', ()
   receiver.apply(author.remove(1, 2))
   expect(receiver.values()).toEqual(['B', 'X'])
 })
-it('omits a retained mask whose entire range is represented by compacted removal', () => {
+it('omits fully removed Footage while retaining overlapping canonical masks', () => {
   const projection = new Projection<string>(
     1,
     makeSequence(
@@ -132,13 +207,14 @@ it('omits a retained mask whose entire range is represented by compacted removal
   )
   expect(projection.values()).toEqual([])
   const snapshot = projection.sequence()
-  expect(sequenceInsertions(snapshot)).toEqual([])
+  expect(snapshot[1]).toEqual([])
+  expect(sequenceInsertions(snapshot)).toHaveLength(3)
   expect(new Projection<string>(3, snapshot).values()).toEqual([])
 })
 it('compacts separate removals that together consume an entire original Footage', () => {
   const projection = new Projection<string>(1)
   projection.insert(['a', 'b', 'c'], 0)
   for (let index = 0; index < 3; ++index) projection.remove(0, 0)
-  expect(sequenceInsertions(projection.sequence())).toEqual([])
+  expect(projection.sequence()[1]).toEqual([])
   expect(projection.values()).toEqual([])
 })

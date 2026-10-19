@@ -206,8 +206,9 @@ export function runSuite(
           sequenceInsertions(retained).some(
             (entry) => ((entry[0] as ReadonlyArray<number>)[5] | 0) < 0
           ),
-          !compact
+          true
         )
+        equal(retained[1].length, compact ? 3 : 4)
         let hydrated = new Constructor<string>(1, retained)
         for (let cycle = 0; cycle < 3; ++cycle) {
           check(hydrated, ['a', 'X', 'c'])

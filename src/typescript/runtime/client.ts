@@ -399,18 +399,6 @@ class Runtime {
       mutable.length = Math.min(mutable.length, content.length)
       return [[]]
     }
-    // Establish private arrays before reading results or clearing masked slots.
-    for (
-      let at = heap[header + 9] >>> 2, end = at + heap[header + 10] * 3;
-      at < end;
-      at += 3
-    ) {
-      const token = heap[at],
-        start = heap[at + 1],
-        count = heap[at + 2]
-      content[token] = content[token]?.slice(start, start + count)
-      mutable[token] = 1
-    }
     /** Materializes ordered Footage spans, including undefined slots for omitted content. */
     const values = (pointer: number, count: number): unknown[] => {
       const begin = pointer >>> 2,
@@ -512,19 +500,18 @@ class Runtime {
       case 4: {
         const changes: unknown[] = []
         for (let at = p0 >>> 2, end = at + n0 * 4; at < end; at += 4) {
+          if (heap[at + 3] === 0) {
+            changes.push([heap[at], heap[at + 1]])
+            continue
+          }
           const span = heap[at + 2] >>> 2
           const items =
-            heap[at + 3] === 1 &&
             heap[span + 1] === 0 &&
             (content[heap[span]] === undefined ||
               content[heap[span]]?.length === heap[span + 2])
               ? (content[heap[span]] ?? new Array<unknown>(heap[span + 2]))
               : values(heap[at + 2], heap[at + 3])
-          changes.push(
-            heap[at + 3]
-              ? [heap[at], heap[at + 1], items]
-              : [heap[at], heap[at + 1]]
-          )
+          changes.push([heap[at], heap[at + 1], items])
         }
         const acknowledgements = gossip(p1, n1)
         result = acknowledgements.length
@@ -578,7 +565,19 @@ class Runtime {
       }
     }
 
-    // Build public Splices first: their suffix bindings are released after appending.
+    // Splices retain the input spans' original offsets. Rebase private bindings only
+    // after those spans have been read, before applying appends and masked-slot releases.
+    for (
+      let at = heap[header + 9] >>> 2, end = at + heap[header + 10] * 3;
+      at < end;
+      at += 3
+    ) {
+      const token = heap[at],
+        start = heap[at + 1],
+        count = heap[at + 2]
+      content[token] = content[token]?.slice(start, start + count)
+      mutable[token] = 1
+    }
     for (
       let at = heap[header + 7] >>> 2, end = at + heap[header + 8] * 6;
       at < end;

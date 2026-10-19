@@ -48,10 +48,10 @@ public:
       s.claims.erase(actor);
   }
   /** Finds acknowledgement consensus across complete active membership.
-   * @return Sessions with equal reported frontiers from every active Actor.
+   * @return Session endpoints agreed by every active Actor.
    */
-  std::unordered_set<Word> compactable() const {
-    std::unordered_set<Word> result;
+  std::unordered_map<Word, Word> compactable() const {
+    std::unordered_map<Word, Word> result;
     for (const auto &s : sessions) {
       // Agreement requires complete membership coverage, not merely equal present claims.
       if (s.claims.size() != membership.size())
@@ -67,8 +67,8 @@ public:
           }
         }
       }
-      if (equal)
-        result.insert(s.id);
+      if (equal && !s.claims.empty())
+        result.emplace(s.id, s.claims.begin()->second);
     }
     return result;
   }

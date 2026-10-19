@@ -107,7 +107,7 @@ describe('Projection public API', () => {
       expect(result?.[0][0][2]).toBe(incoming[0][1])
       expect(projection.values()).toEqual(['a', 'b', 'c'])
     })
-    it('returns removal splices with an exclusive end and receipt Gossip', () => {
+    it('returns removal splices with an exclusive end and acknowledgement Gossip', () => {
       const projection = seeded()
       expect(projection.apply([[[100, 0, 1, 200, 0, 4294967295]]])).toEqual([
         [[1, 2]],
@@ -371,8 +371,9 @@ describe('Projection public API', () => {
       expect(
         sequenceFrontiers(sequence).some((frontier) => frontier[0] === 2)
       ).toBe(false)
+      expect(sequence[1]).toEqual(['a', 'c'])
       expect(
-        sequenceInsertions(sequence).every((entry) => (entry[0][5] | 0) > 0)
+        sequenceInsertions(sequence).some((entry) => (entry[0][5] | 0) < 0)
       ).toBe(true)
       expect(new Projection<string>(3, sequence).values()).toEqual(['a', 'c'])
       expect(projection.values()).toEqual(['a', 'c'])
@@ -413,7 +414,8 @@ describe('Projection public API', () => {
         expect(snapshot[0].every((word) => word <= 0x3fffffff)).toBe(true)
         expect(
           sequenceInsertions(snapshot).some((entry) => (entry[0][5] | 0) < 0)
-        ).toBe(!compact)
+        ).toBe(true)
+        expect(snapshot[1]).toHaveLength(compact ? 126 : 128)
         const retained = structuredClone(snapshot)
         const future = source.insert([999], 64)
         expect(snapshot).toEqual(retained)
@@ -448,9 +450,8 @@ describe('Projection public API', () => {
       const projection = seeded()
       projection.remove(1, 1)
       const sequence = projection.sequence()
-      expect(
-        sequenceInsertions(sequence).every((entry) => (entry[0][5] | 0) > 0)
-      ).toBe(true)
+      expect(sequence[1]).toEqual(['a', 'c'])
+      expect(sequenceInsertions(sequence)[0][0][5]).toBe(3)
       expect(new Projection<string>(2, sequence).values()).toEqual(['a', 'c'])
       expect(projection.values()).toEqual(['a', 'c'])
       projection.insert(['X'], 1)
@@ -461,8 +462,8 @@ describe('Projection public API', () => {
       const receiver = new Projection<string>(2, seed())
       author.apply([[receiver.actorID]])
       const first = author.remove(0, 0)
-      const receipt = receiver.apply(first)!
-      author.apply(receipt[1])
+      const acknowledged = receiver.apply(first)!
+      author.apply(acknowledged[1])
       const second = author.remove(0, 0)
       const retained = author.sequence()
       expect(
@@ -470,11 +471,7 @@ describe('Projection public API', () => {
       ).toHaveLength(2)
       expect(new Projection<string>(3, retained).values()).toEqual(['c'])
       author.apply(receiver.apply(second)![1])
-      expect(
-        sequenceInsertions(author.sequence()).every(
-          (entry) => (entry[0][5] | 0) > 0
-        )
-      ).toBe(true)
+      expect(author.sequence()[1]).toEqual(['c'])
       expect(author.values()).toEqual(['c'])
     })
   })

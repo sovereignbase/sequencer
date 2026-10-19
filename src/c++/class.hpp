@@ -39,6 +39,8 @@ public:
   std::vector<ContentAppend> appended;
   /** Deferred copy-on-write slices protecting caller arrays and retained snapshots. */
   std::vector<Span> copied;
+  /** Original intervals still represented in physically compacted Footage bindings. */
+  std::unordered_map<std::uint64_t, std::vector<FrameRange>> content_ranges;
 
   /** Initializes empty history with independently supplied Session identities.
    * @param actor_id Acknowledging Actor.
@@ -75,18 +77,21 @@ public:
   Index subtree_end(Index root);
   /** Resolves a historical anchor through fragments and already consumed Frames.
    * @param origin Canonical parent root, or a known fragment from which to continue.
-   * @param incoming Incoming Strip whose mask effect may be shortened by overlap.
+   * @param coordinates Canonical anchor and authored effect; positive queries resolve boundaries.
+   * @param incoming Strip whose negative effect may be shortened by overlap; none for boundary
+   * queries.
    * @return Resolved logical boundary and its current owning Strip.
    */
-  std::pair<Word, Index> find_containing_fragment(Index origin, Index incoming);
+  std::pair<Word, Index> find_containing_fragment(Index origin, const Coordinates &coordinates,
+                                                  Index incoming = none);
   /** Places a Strip in deterministic Structural Order and materializes mask continuations.
    * @param incoming Unlinked Strip to place.
    * @param anchor Current owner of the logical boundary; none for the virtual root.
    * @param point Boundary relative to the owning Insertion or mask.
-   * @param continuation Whether this is an existing positive Insertion's extension fragment.
+   * @param index_fragments Whether to maintain jumps while linking secondary mask fragments.
    * @return Actual signed visible effect across all materialized fragments.
    */
-  std::int32_t anchor_strip(Index incoming, Index anchor, Word point, bool continuation = false);
+  std::int32_t anchor_strip(Index incoming, Index anchor, Word point, bool index_fragments = true);
   /** Resolves a visible position and retains the owning Strip as gate.
    * @param position Visible Frame position, or insertion boundary when requested.
    * @param for_insertion Whether logical boundaries may resolve through hidden history.
@@ -122,9 +127,11 @@ public:
    * @param count Number of newly visible Frames.
    * @param content Binding carrying the incoming suffix.
    * @param source_start Offset of that suffix in its source Footage.
+   * @param physical_count Packed suffix length, or UINT32_MAX for its complete logical extent.
    * @return Visible start of the added suffix.
    */
-  Word extend(Index origin, Word count, Word content, Word source_start = 0);
+  Word extend(Index origin, Word count, Word content, Word source_start = 0,
+              Word physical_count = UINT32_MAX);
   /** Requests private Footage before clearing externally owned content slots.
    * @param fragment Any fragment of the positive canonical Insertion.
    */
@@ -151,19 +158,34 @@ public:
   /** Integrates operations into retained output storage without clearing existing results.
    * @param gossip Already read native entries.
    * @param result Output to append to, allowing one Result across an entire ABI batch.
+   * @param ranges Packed source intervals used only when merging a compacted snapshot.
    */
-  void apply(std::span<const Entry> gossip, Result &result);
+  void apply(std::span<const Entry> gossip, Result &result,
+             const std::unordered_map<std::uint64_t, ContentRanges> *ranges = nullptr);
   /** Reconstructs trusted exported history and prebuilds traversal jumps.
-   * @param insertions Canonical Insertions in dependency-compatible Structural Order.
+   * @param insertions Canonical Insertions in exported Structural Order.
    * @param frontiers Retained Actor Acknowledgements.
+   * @param ranges Original Frame intervals represented in packed Footage.
    */
-  void hydrate(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers);
+  void hydrate(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers,
+               const std::vector<ContentRanges> &ranges = {});
+  /** Restores physical Footage offsets after canonical masks have been materialized.
+   * @param ranges Retained original intervals and their physical binding origins.
+   * @param external Whether to revoke private ownership throughout hydrated history.
+   */
+  void restore_content(const std::vector<ContentRanges> &ranges, bool external = true);
+  /** Releases masked physical slots while preserving externally owned Footage.
+   * @param root Canonical positive Insertion whose physical gaps are cleared.
+   */
+  void clear_content(Index root);
   /** Integrates snapshot history and then observes its retained Acknowledgements.
    * @param insertions Canonical snapshot Insertions.
    * @param frontiers Snapshot Acknowledgements.
+   * @param ranges Original Frame intervals represented in packed Footage.
    * @return Visible Splices and Gossip containing Acknowledgements for newly integrated history.
    */
-  Result merge(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers);
+  Result merge(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers,
+               const std::vector<ContentRanges> &ranges = {});
   /** Resolves an inclusive visible range to JavaScript Footage spans.
    * @param start First included Projection position.
    * @param end Last included position.

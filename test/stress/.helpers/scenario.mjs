@@ -35,7 +35,18 @@ const deliver = async (base, mutations, restart_index, label) => {
   return state
 }
 try {
-  const base = new Projection(1)
+  // Include native Session ordering in the replayable generated scenario.
+  const getRandomValues = crypto.getRandomValues
+  let base
+  try {
+    crypto.getRandomValues = (array) => {
+      array[0] = scenario.native_seed
+      return array
+    }
+    base = new Projection(1)
+  } finally {
+    crypto.getRandomValues = getRandomValues
+  }
   if (scenario.base_frame_count > 0) {
     await base.insert(
       Array.from(

@@ -8,6 +8,12 @@
 namespace sequencer {
 void Projection::patch_jumps(std::int32_t frame_diff, Word strip_diff, Index incoming) {
   const auto predecessor = strips.left[incoming];
+  // Competition can place the edit beyond the anchor's indexed endpoint.
+  // Resolve that gap directly instead of leaving its old spanning jump unchanged.
+  if (!strips.left_jump[predecessor] && !strips.right_jump[predecessor]) {
+    position_of(incoming, frame_diff);
+    return;
+  }
   const auto right_jump = strips.right_jump[predecessor];
   const auto left_frames = Word(std::max(0, strips.fragment_diff[predecessor]));
   // The old spanning jump now crosses the edit; subtract the predecessor's

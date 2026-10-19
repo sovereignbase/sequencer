@@ -12,9 +12,10 @@ void Projection::own_content(Index fragment) {
   const auto root = containment.get(original.coordinates.session, original.coordinates.start);
   // Copy the full original extent once, not each visible fragment independently.
   // JavaScript performs the slice before clearing any requested mask slots.
-  copied.push_back({original.content, original.content_start, Word(original.coordinates.diff)});
+  const auto base = strips.identity[root].content_start;
+  copied.push_back({original.content, base, strips.identity[root].content_length});
   for (auto i = root; i; i = strips.fragment[i]) {
-    strips.identity[i].content_start = 0;
+    strips.identity[i].content_start -= base;
     strips.identity[i].content_owned = true;
   }
 }

@@ -746,7 +746,7 @@ A single frontier summarizes a received prefix of a Session rather than acknowle
 
 ## Compaction
 
-When all active Actors agree on the same frontier for a reducing Session, the acknowledged part can be removed from future retained Sequences.
+When all active Actors agree on the same frontier for a reducing Session, the acknowledged deleted Footage can be omitted from future retained Sequences.
 
 Suppose history contains:
 
@@ -758,9 +758,9 @@ surviving descendants
 
 and every active Actor has seen the removal.
 
-A new retained Sequence no longer needs to preserve all of the machinery that represented that deletion.
+A retained Sequence keeps the canonical positive Insertions and masks. Their identities and original coordinates remain available to later history from live or disconnected replicas.
 
-Compaction can remove the acknowledged masks and remove deleted Frames from retained Footage.
+Compaction removes acknowledged deleted Frames from retained Footage. It does not allocate empty slots for them in the hydrated Footage.
 
 If only part of a positive Insertion was deleted:
 
@@ -774,19 +774,21 @@ with:
 B C
 ```
 
-gone, the retained positive history can shrink to the surviving content:
+gone, the retained Footage contains only:
 
 ```text
 A D
 ```
 
-Anchors and remaining removals that referred to the old coordinates are adjusted to the smaller retained coordinate space.
+The positive Insertion still has its original length of four. The snapshot records which original intervals belong to the two stored values.
+
+An anchor at the original endpoint four still means after `D`, both in a running replica and in a replica restored from the snapshot.
 
 The running Projection does not need to be rewritten when this happens. Compaction produces another retained description of the same history.
 
-## Collapsed historical points
+## Historical points after compaction
 
-Compaction can make two old logical points collapse onto the same retained point.
+Different logical points can have the same visible position after removal.
 
 Imagine:
 
@@ -798,11 +800,11 @@ with surviving descendants attached on both sides of the removed region.
 
 Before compaction those descendants were separated by different historical coordinates.
 
-After the deleted Frames disappear from retained history, that space no longer exists.
+After the deleted Footage is omitted, the historical coordinates still distinguish those attachment points.
 
-Their order has already been resolved in Structural Order, so the compacted history keeps that order when it re-anchors the survivors around the remaining boundary.
+Hydration applies the same canonical history and ordering rules. It does not re-anchor the surviving children or renumber their parents.
 
-The discarded history is no longer needed to make the same ordering decision again.
+Acknowledging a removal does not imply that every replica has loaded the same snapshot. Keeping one coordinate space allows their subsequent Gossip to remain interoperable.
 
 ## Actor retirement
 
@@ -812,7 +814,7 @@ Retiring an Actor removes it from future compaction requirements.
 
 It does not remove Insertions authored by that Actor.
 
-It only changes which Actors must agree before old removal history can be discarded.
+It only changes which Actors must agree before deleted Footage can be omitted.
 
 Whether an Actor is permanently gone is something the surrounding application has to decide.
 
@@ -892,6 +894,6 @@ is the history currently needed to resolve ordering and removals.
 Sequence
 ```
 
-is the retained form of that history, with acknowledged obsolete history compacted away when possible.
+is the retained form of that history, with acknowledged deleted Footage omitted when possible.
 
-An edit starts from the Projection, becomes a relationship in Structural Order, and can eventually survive in a much smaller retained Sequence after the history around it is no longer needed.
+An edit starts from the Projection, becomes a relationship in Structural Order, and remains addressable in retained Sequences after acknowledged deleted Footage is omitted.

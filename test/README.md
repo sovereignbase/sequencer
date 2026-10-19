@@ -16,17 +16,17 @@ Choose a suite by the behavior being changed. Convergence cases are grouped by t
 
 ## Convergence contracts
 
-| Contract                                         | Fundamental expectation                                                                        |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| [Anchoring](convergence/anchoring/README.md)     | Canonical anchors retain their original coordinate space; local boundaries reproduce remotely. |
-| [Causality](convergence/causality/README.md)     | Dependants remain invisible until their canonical parent can be resolved.                      |
-| [Compaction](convergence/compaction/README.md)   | Acknowledged removal history can be omitted while retained visible content stays equivalent.   |
-| [Delivery](convergence/delivery/README.md)       | The same valid operation set resolves to the same visible content across delivery orders.      |
-| [Editing](convergence/editing/README.md)         | Local insert/remove/replace results match intended edits and remotely applied Gossip.          |
-| [Masking](convergence/masking/README.md)         | Removals affect their original targets once and preserve concurrent insertions.                |
-| [Ordering](convergence/ordering/README.md)       | Same-anchor competitors have deterministic order and keep complete causal subtrees.            |
-| [Persistence](convergence/persistence/README.md) | Sequence export, hydration, restart, and retained-identity redelivery preserve visible order.  |
-| [Projection](convergence/projection/README.md)   | Head, tail, gates, and jumps resolve the correct visible Frames.                               |
+| Contract                                         | Fundamental expectation                                                                                |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| [Anchoring](convergence/anchoring/README.md)     | Canonical anchors retain their original coordinate space; local boundaries reproduce remotely.         |
+| [Causality](convergence/causality/README.md)     | Dependants remain invisible until their canonical parent can be resolved.                              |
+| [Compaction](convergence/compaction/README.md)   | Acknowledged deleted Footage is omitted while canonical anchors and visible content remain equivalent. |
+| [Delivery](convergence/delivery/README.md)       | The same valid operation set resolves to the same visible content across delivery orders.              |
+| [Editing](convergence/editing/README.md)         | Local insert/remove/replace results match intended edits and remotely applied Gossip.                  |
+| [Masking](convergence/masking/README.md)         | Removals affect their original targets once and preserve concurrent insertions.                        |
+| [Ordering](convergence/ordering/README.md)       | Same-anchor competitors have deterministic order and keep complete causal subtrees.                    |
+| [Persistence](convergence/persistence/README.md) | Sequence export, hydration, restart, and retained-identity redelivery preserve visible order.          |
+| [Projection](convergence/projection/README.md)   | Head, tail, gates, and jumps resolve the correct visible Frames.                                       |
 
 ## Test conventions
 

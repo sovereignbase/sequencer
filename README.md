@@ -30,7 +30,7 @@ projection.destroy()
 ### See documentation
 
 - [How sequencer works?](INTERNALS.md)
-- [Typescript](https://sovereignbase.dev/sequencer/)
+- [Typescript](https://sovereignbase.dev/sequencer/classes/Projection.html)
 - [C++](https://sovereignbase.dev/sequencer/c++)
 
 ### Errors

@@ -752,9 +752,9 @@ The application must exchange pending history before treating an acknowledgement
 
 When all active Actors agree on the same frontier for a reducing Session, the acknowledged part can be removed from future retained Sequences.
 
-This is whole-Session eligibility: every active Actor must report the same complete Session frontier. A missing claim or a different endpoint blocks that Session. Taking the minimum of unequal frontiers is not this compaction rule.
+This is whole-Session eligibility: every active Actor must report the same complete Session frontier. A missing claim or a different endpoint blocks that Session.
 
-Eligible masks must disappear from the exported Sequence. Wholly removed positive Insertions and deleted Footage disappear as well. Claims for compacted Sessions are dropped; Actor membership is retained.
+Eligible masks must disappear from the exported Sequence. Wholly removed positive Insertions and deleted Footage disappear as well. Acknowledgments of compacted Sessions are dropped, Actor membership is retained.
 
 Suppose history contains:
 
@@ -794,7 +794,7 @@ The running Projection does not need to be rewritten when this happens. Compacti
 
 The exported Sequence is a retained checkpoint. Its shorter Insertions and translated anchors can use different coordinates from the live graph before export. Continued editors must use compatible retained state; a compacted checkpoint does not preserve a permanent mapping to discarded history.
 
-An offline Actor's unacknowledged history blocks compaction only if that Actor was registered. A test that omits its membership, allows compaction, then demands that its discarded anchors still work is outside this contract. Tests must not retain masks to satisfy that demand.
+An offline Actor's unacknowledged history blocks compaction only if that Actor was registered.
 
 ## Collapsed historical points
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/sovereignbase/sequencer/compare/v1.1.0...v1.1.1) (2026-10-20)
+
+
+### Bug Fixes
+
+* catch unexpected errors for traceability ([f44798e](https://github.com/sovereignbase/sequencer/commit/f44798e0e6f7b7bc11348ff4a55c81fdc156db29))
+
 ## [1.1.0](https://github.com/sovereignbase/sequencer/compare/v1.0.2...v1.1.0) (2026-10-20)
 
 

@@ -1,6 +1,6 @@
 {
-  "passed": 96,
-  "failed": 1,
+  "passed": 108,
+  "failed": 0,
   "skipped": 0,
   "runtimes": {
     "node.esm": {
@@ -25,8 +25,7 @@
       "status": "passed"
     },
     "firefox": {
-      "status": "failed",
-      "reason": "matching Playwright browser binary unavailable"
+      "status": "passed"
     },
     "webkit": {
       "status": "passed"

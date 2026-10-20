@@ -39,7 +39,7 @@ export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>
 
 /**
  * Retained state required to hydrate the same visible Projection.
- * One structural array and one JavaScript-owned content array.
+ * One structural array and JavaScript-owned Footage.
  * Small snapshots use six-word insertion records after length-prefixed ACKs;
  * `words[0]` locates those records. Large snapshots begin with
  * `[0, frontiersEnd, insertionCount]` and omit predictable coordinate fields.
@@ -47,14 +47,17 @@ export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>
  * Eligible masks, deleted Footage and compacted Session claims are omitted;
  * Actor membership remains. Compaction may translate retained coordinates.
  * Positive insertion diffs consume successive spans of `footage`.
+ * String-encoded Footage preserves Insertion order, not visible text order.
+ * It uses one UTF-16 code unit per Frame. Missing slots use
+ * NUL (`\u0000`); hydration splits the string with `split('')`.
  * `[[], []]` is an empty Sequence. Both numeric arrays and typed views are accepted.
  */
-export type Sequence<T> = Readonly<
+export type Sequence<T, StringEncoded extends boolean = false> = Readonly<
   [
     /** Acknowledgements followed by canonical Insertions in Structural Order. */
     words: U32List,
     /** Consecutive positive Insertion spans, including missing Footage slots. */
-    footage: ReadonlyArray<T | undefined>,
+    footage: StringEncoded extends true ? string : ReadonlyArray<T | undefined>,
   ]
 >
 

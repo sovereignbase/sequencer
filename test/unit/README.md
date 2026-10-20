@@ -9,3 +9,6 @@ package-prefixed messages, standard `cause`, and rejection by every operational
 method after destruction. Repeated `destroy()` calls remain safe.
 
 Convergence, integration, stress, and runtime compatibility remain separate suites.
+
+[String-encoded Sequences](string_encoded_sequence/README.md) cover optional
+string Footage, automatic hydration and concatenation errors.

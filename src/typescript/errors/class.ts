@@ -1,6 +1,6 @@
 /** Semantic error codes reported by the Sequencer public API. */
 export type SequencerErrorCode =
-  'PROJECTION_DESTROYED' | 'NATIVE_OPERATION_FAILED'
+  'PROJECTION_DESTROYED' | 'NATIVE_OPERATION_FAILED' | 'STRING_ENCODING_FAILED'
 
 /** Error reported by Sequencer with a stable code and package-prefixed message. */
 export class SequencerError extends Error {

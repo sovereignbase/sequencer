@@ -220,6 +220,35 @@ export function runSuite(
       },
     ]),
     [
+      'string snapshot Footage, hydration and merge',
+      () => {
+        const source = new Constructor<string>(1)
+        const text = 'a😀b\0é'
+        source.insert(text.split(''), 0)
+        const encoded = source.sequence(true)
+        equal(encoded[1], text)
+        const restored = new Constructor<string>(
+          2,
+          JSON.parse(JSON.stringify(encoded))
+        )
+        const receiver = new Constructor<string>(3)
+        try {
+          check(restored, text.split(''))
+          const view: Array<string | undefined> = []
+          for (const [from, to, footage] of receiver.merge(encoded)![0])
+            view.splice(from, to - from, ...(footage ?? []))
+          equal(view.join(''), text)
+          check(receiver, text.split(''))
+          restored.insert(['!'], restored.length())
+          check(restored, (text + '!').split(''))
+        } finally {
+          source.destroy()
+          restored.destroy()
+          receiver.destroy()
+        }
+      },
+    ],
+    [
       'indexed reads across hydrated jumps',
       () => {
         const source = new Constructor<number>(1)

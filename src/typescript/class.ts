@@ -11,7 +11,7 @@ export class Projection<T> {
    * Prepares to sequence a projection, optionally hydrating from a trusted sequence stored by the application.
    *
    * @param actorID Actor identifier used in acknowledgements.
-   * @param trustedSequence Optional trusted Sequence in Structural Order, stored by the application.
+   * @param trustedSequence Optional trusted Sequence in Structural Order; string Footage is split into UTF-16 code units.
    * @throws {@link SequencerError} if native initialization fails.
    */
   constructor(
@@ -120,11 +120,15 @@ export class Projection<T> {
    * permit masks and deleted Footage to be omitted from the retained checkpoint.
    * Compaction may translate retained anchors without rewriting this instance.
    *
+   * @param stringEncode Whether to concatenate Footage into a string; each text Frame must be one UTF-16 code unit. Defaults to `false`.
    * @returns A Sequence with acknowledged removals compacted in the exported state.
    * @throws {@link SequencerError} if destroyed or the native runtime reports an operation failure.
+   * @throws {@link SequencerError} with code `STRING_ENCODING_FAILED` if Footage concatenation fails.
    */
-  sequence(): Sequence<T> {
-    return runtime.call(Operation.Sequence, this.id)
+  sequence<StringEncoded extends boolean = false>(
+    stringEncode?: StringEncoded
+  ): Sequence<T, StringEncoded> {
+    return runtime.sequence(this.id, stringEncode)
   }
 
   /**

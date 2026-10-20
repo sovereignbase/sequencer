@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/sovereignbase/sequencer/compare/v1.0.2...v1.1.0) (2026-10-20)
+
+
+### Features
+
+* add optional string-encoded snapshot Footage ([be3c2fa](https://github.com/sovereignbase/sequencer/commit/be3c2faf42f3815a40e67a3548520d03b4ab511f))
+* add optional string-encoded snapshots ([2a8be4d](https://github.com/sovereignbase/sequencer/commit/2a8be4db83119adecf2afaa453f21133e5e3df5f)), closes [#10](https://github.com/sovereignbase/sequencer/issues/10)
+
 ## [1.0.2](https://github.com/sovereignbase/sequencer/compare/v1.0.1...v1.0.2) (2026-10-20)
 
 

@@ -21,10 +21,14 @@ export class Projection<T> {
   ) {
     try {
       this.id = runtime.create(this, actorID, trustedSequence)
-    } catch (err) {
-      throw err instanceof SequencerError
-        ? err
-        : new SequencerError('UNKOWN_ERROR', 'constructor', { cause: err })
+    } catch (cause) {
+      throw cause instanceof SequencerError
+        ? cause
+        : new SequencerError(
+            'UNKNOWN_ERROR',
+            'Projection.constructor() failed.',
+            { cause }
+          )
     }
   }
 
@@ -37,7 +41,15 @@ export class Projection<T> {
    * @throws {@link SequencerError} with code `PROJECTION_DESTROYED` after destruction.
    */
   apply(gossip: unknown): Result<T> | undefined {
-    return runtime.apply(this.id, gossip)
+    try {
+      return runtime.apply(this.id, gossip)
+    } catch (cause) {
+      throw cause instanceof SequencerError
+        ? cause
+        : new SequencerError('UNKNOWN_ERROR', 'Projection.apply() failed.', {
+            cause,
+          })
+    }
   }
 
   /**
@@ -49,7 +61,15 @@ export class Projection<T> {
    * @throws {@link SequencerError} with code `PROJECTION_DESTROYED` after destruction.
    */
   insert(values: Array<T>, at: number): Gossip<T> {
-    return runtime.insert(this.id, values, at) as Gossip<T>
+    try {
+      return runtime.insert(this.id, values, at) as Gossip<T>
+    } catch (cause) {
+      throw cause instanceof SequencerError
+        ? cause
+        : new SequencerError('UNKNOWN_ERROR', 'Projection.insert() failed.', {
+            cause,
+          })
+    }
   }
 
   /**
@@ -59,7 +79,15 @@ export class Projection<T> {
    * @throws {@link SequencerError} with code `PROJECTION_DESTROYED` after destruction.
    */
   length(): number {
-    return runtime.length(this.id)
+    try {
+      return runtime.length(this.id)
+    } catch (cause) {
+      throw cause instanceof SequencerError
+        ? cause
+        : new SequencerError('UNKNOWN_ERROR', 'Projection.length() failed.', {
+            cause,
+          })
+    }
   }
 
   /**
@@ -71,7 +99,15 @@ export class Projection<T> {
    * @throws {@link SequencerError} with code `PROJECTION_DESTROYED` after destruction.
    */
   merge(sequence: unknown): Result<T> | undefined {
-    return runtime.call(Operation.Merge, this.id, sequence)
+    try {
+      return runtime.call(Operation.Merge, this.id, sequence)
+    } catch (cause) {
+      throw cause instanceof SequencerError
+        ? cause
+        : new SequencerError('UNKNOWN_ERROR', 'Projection.merge() failed.', {
+            cause,
+          })
+    }
   }
 
   /**
@@ -83,7 +119,15 @@ export class Projection<T> {
    * @throws {@link SequencerError} if destroyed or the native runtime reports an operation failure.
    */
   remove(startAt?: number, endWith?: number): Gossip<T> {
-    return runtime.call(Operation.Remove, this.id, startAt, endWith)
+    try {
+      return runtime.call(Operation.Remove, this.id, startAt, endWith)
+    } catch (cause) {
+      throw cause instanceof SequencerError
+        ? cause
+        : new SequencerError('UNKNOWN_ERROR', 'Projection.remove() failed.', {
+            cause,
+          })
+    }
   }
 
   /**
@@ -96,13 +140,21 @@ export class Projection<T> {
    * @throws {@link SequencerError} if destroyed or the native runtime reports an operation failure.
    */
   replace(withValues: Array<T>, startAt?: number, endWith?: number): Gossip<T> {
-    return runtime.call(
-      Operation.Replace,
-      this.id,
-      withValues,
-      startAt,
-      endWith
-    )
+    try {
+      return runtime.call(
+        Operation.Replace,
+        this.id,
+        withValues,
+        startAt,
+        endWith
+      )
+    } catch (cause) {
+      throw cause instanceof SequencerError
+        ? cause
+        : new SequencerError('UNKNOWN_ERROR', 'Projection.replace() failed.', {
+            cause,
+          })
+    }
   }
 
   /**
@@ -116,7 +168,15 @@ export class Projection<T> {
    * @throws {@link SequencerError} if destroyed or the native runtime reports an operation failure.
    */
   retire(actorID: number): void {
-    return runtime.call(Operation.Retire, this.id, actorID)
+    try {
+      return runtime.call(Operation.Retire, this.id, actorID)
+    } catch (cause) {
+      throw cause instanceof SequencerError
+        ? cause
+        : new SequencerError('UNKNOWN_ERROR', 'Projection.retire() failed.', {
+            cause,
+          })
+    }
   }
 
   /**
@@ -135,7 +195,15 @@ export class Projection<T> {
   sequence<StringEncoded extends boolean = false>(
     stringEncode?: StringEncoded
   ): Sequence<T, StringEncoded> {
-    return runtime.sequence(this.id, stringEncode)
+    try {
+      return runtime.sequence(this.id, stringEncode)
+    } catch (cause) {
+      throw cause instanceof SequencerError
+        ? cause
+        : new SequencerError('UNKNOWN_ERROR', 'Projection.sequence() failed.', {
+            cause,
+          })
+    }
   }
 
   /**
@@ -146,7 +214,15 @@ export class Projection<T> {
    * @throws {@link SequencerError} with code `PROJECTION_DESTROYED` after destruction.
    */
   value(at: number): T | undefined {
-    return runtime.value(this.id, at)
+    try {
+      return runtime.value(this.id, at)
+    } catch (cause) {
+      throw cause instanceof SequencerError
+        ? cause
+        : new SequencerError('UNKNOWN_ERROR', 'Projection.value() failed.', {
+            cause,
+          })
+    }
   }
 
   /**
@@ -158,14 +234,30 @@ export class Projection<T> {
    * @throws {@link SequencerError} if destroyed or the native runtime reports an operation failure.
    */
   values(startAt?: number, endWith?: number): Array<T> {
-    return runtime.call(Operation.Values, this.id, startAt, endWith)
+    try {
+      return runtime.call(Operation.Values, this.id, startAt, endWith)
+    } catch (cause) {
+      throw cause instanceof SequencerError
+        ? cause
+        : new SequencerError('UNKNOWN_ERROR', 'Projection.values() failed.', {
+            cause,
+          })
+    }
   }
 
   /** Destroys the Projection. Repeated calls have no effect. */
   destroy(): void {
-    if (this.id < 0) return
-    runtime.destroy(this, this.id)
-    this.id = -1
+    try {
+      if (this.id < 0) return
+      runtime.destroy(this, this.id)
+      this.id = -1
+    } catch (cause) {
+      throw cause instanceof SequencerError
+        ? cause
+        : new SequencerError('UNKNOWN_ERROR', 'Projection.destroy() failed.', {
+            cause,
+          })
+    }
   }
 }
 

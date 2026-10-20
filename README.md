@@ -58,11 +58,12 @@ projectionB.destroy()
 
 ### Errors
 
-| Code                      | Meaning                                                             |
-| ------------------------- | ------------------------------------------------------------------- |
-| `PROJECTION_DESTROYED`    | An operation was called after the Projection was destroyed.         |
-| `NATIVE_OPERATION_FAILED` | The native runtime reported an initialization or operation failure. |
-| `STRING_ENCODING_FAILED`  | Snapshot Footage concatenation failed.                              |
+| Code                      | Meaning                                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------------------------- |
+| `PROJECTION_DESTROYED`    | An operation was called after the Projection was destroyed.                                        |
+| `NATIVE_OPERATION_FAILED` | The native runtime reported an initialization or operation failure.                                |
+| `STRING_ENCODING_FAILED`  | Snapshot Footage concatenation failed.                                                             |
+| `UNKNOWN_ERROR`           | An unexpected error; the message names the Projection call and `cause` retains the original error. |
 
 Invalid input to `apply()` or `merge()` returns `undefined` instead of throwing.
 
@@ -185,7 +186,7 @@ Peer synchronization, encoding and JS process garbage collection are outside API
 
 ### Behaviour guaranteed by excessive tests
 
-The latest verification passed 221 Vitest tests and 117 compatibility checks.
+The latest verification passed 249 Vitest tests and 104 compatibility checks (1 failed).
 The configured 100% coverage threshold is met (100% statements, 100% branches, 100% functions, 100% lines).
 See the [test suites](test/README.md) and
 [automated test report](https://sovereignbase.dev/sequencer/tests/).
@@ -201,7 +202,7 @@ Runtimes covered by the latest compatibility verification:
 - Edge Runtime: passed
 - Cloudflare Workers through workerd: passed
 - Chromium browser windows: passed
-- Firefox browser windows: passed
+- Firefox browser windows: failed (matching Playwright browser binary unavailable)
 - WebKit browser windows: passed
 
 ### Tested realtime and offline text editing behaviour examples

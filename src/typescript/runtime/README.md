@@ -32,5 +32,6 @@ Library-reported failures use the exported `SequencerError`:
 `NATIVE_OPERATION_FAILED` identifies a failure reported by native dispatch.
 `STRING_ENCODING_FAILED` identifies a failed Footage concatenation and preserves
 its original `cause`. Operation-failure messages name the public method. Invalid remote input still
-returns `undefined`; platform errors retain their original types. Error creation
+returns `undefined`. Unexpected errors use `UNKNOWN_ERROR`, name the public call
+and retain the original error as `cause`. Existing Sequencer errors pass through unchanged. Error creation
 and method-name lookup run only on failure.

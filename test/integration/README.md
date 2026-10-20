@@ -15,3 +15,6 @@ Run `npm run test:integration`, or select a scenario with `npx vitest run test/i
 
 [Runtime memory](runtime_memory/README.md) verifies shared Footage accounting,
 binding release and WASM memory growth.
+
+[Runtime errors](runtime_errors/README.md) verify call context, original causes
+and unchanged Sequencer errors.

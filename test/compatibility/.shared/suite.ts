@@ -77,6 +77,30 @@ export function runSuite(
           destroyed.message,
           '{@sovereignbase/sequencer} Projection has been destroyed.'
         )
+        const active = new Constructor<number>(1)
+        const input = new Proxy([1], {
+          get(target, property, receiver) {
+            if (property === 'length') throw cause
+            return Reflect.get(target, property, receiver)
+          },
+        })
+        try {
+          try {
+            active.insert(input, 0)
+          } catch (error) {
+            failure = error
+          }
+          equal(failure instanceof ErrorConstructor, true)
+          const unexpected = failure as SequencerError
+          equal(unexpected.code, 'UNKNOWN_ERROR')
+          equal(
+            unexpected.message,
+            '{@sovereignbase/sequencer} Projection.insert() failed.'
+          )
+          equal(unexpected.cause, cause)
+        } finally {
+          active.destroy()
+        }
       },
     ],
     [

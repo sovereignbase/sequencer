@@ -1,6 +1,6 @@
 /** Semantic error codes reported by the Sequencer public API. */
 export type SequencerErrorCode =
-  | 'UNKOWN_ERROR'
+  | 'UNKNOWN_ERROR'
   | 'PROJECTION_DESTROYED'
   | 'NATIVE_OPERATION_FAILED'
   | 'STRING_ENCODING_FAILED'

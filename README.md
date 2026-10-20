@@ -58,12 +58,12 @@ projectionB.destroy()
 
 ### Errors
 
-| Code                      | Meaning                                                                                            |
-| ------------------------- | -------------------------------------------------------------------------------------------------- |
-| `PROJECTION_DESTROYED`    | An operation was called after the Projection was destroyed.                                        |
-| `NATIVE_OPERATION_FAILED` | The native runtime reported an initialization or operation failure.                                |
-| `STRING_ENCODING_FAILED`  | Snapshot Footage concatenation failed.                                                             |
-| `UNKNOWN_ERROR`           | An unexpected error; the message names the Projection call and `cause` retains the original error. |
+| Code                      | Meaning                                                             |
+| ------------------------- | ------------------------------------------------------------------- |
+| `PROJECTION_DESTROYED`    | An operation was called after the Projection was destroyed.         |
+| `NATIVE_OPERATION_FAILED` | The native runtime reported an initialization or operation failure. |
+| `STRING_ENCODING_FAILED`  | Snapshot Footage concatenation failed.                              |
+| `UNKNOWN_ERROR`           | All other errors.                                                   |
 
 Invalid input to `apply()` or `merge()` returns `undefined` instead of throwing.
 

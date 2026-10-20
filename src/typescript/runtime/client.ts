@@ -103,6 +103,20 @@ class Runtime {
     return this.content[id]![heap[pointer]]?.[heap[pointer + 1]] as
       T | undefined
   }
+  /** Exports native spans directly, with optional string Footage assembled in JavaScript. */
+  sequence<T>(id: number, stringEncode?: boolean): T {
+    if (id < 0)
+      throw new SequencerError(
+        'PROJECTION_DESTROYED',
+        'Projection has been destroyed.'
+      )
+    return this.result(
+      Operation.Sequence,
+      id,
+      module._runtime_dispatch(Operation.Sequence, id, 0, 0, 0, 0, 0),
+      stringEncode
+    ) as T
+  }
   /** Authors trusted local Frames through the dedicated six-word result path. */
   insert<T>(id: number, values: T[], at: number): unknown {
     if (id < 0)
@@ -263,7 +277,12 @@ class Runtime {
 
   /** Executes general ABI operations while leaving all Frame resolution to WASM. */
   call<T>(
-    operation: Opcode,
+    operation: Exclude<
+      Opcode,
+      | typeof Operation.Apply
+      | typeof Operation.Sequence
+      | typeof Operation.Destroy
+    >,
     id: number,
     value?: unknown,
     at?: unknown,
@@ -298,10 +317,7 @@ class Runtime {
       a1 = (at as number | undefined) ?? absent
     } else if (operation === Operation.Retire) {
       a0 = value as number
-    } else if (
-      operation === Operation.Create ||
-      operation === Operation.Merge
-    ) {
+    } else {
       a0 = operation === Operation.Create ? (value as number) : 0
       const sequence = operation === Operation.Create ? at : value
       // Hydration trusts numeric lanes; merge validates lanes from external retained state.
@@ -310,7 +326,7 @@ class Runtime {
         (Array.isArray(sequence) &&
           sequence.length === 2 &&
           (Array.isArray(sequence[0]) || sequence[0] instanceof Uint32Array) &&
-          Array.isArray(sequence[1]) &&
+          (Array.isArray(sequence[1]) || typeof sequence[1] === 'string') &&
           (operation === Operation.Create ||
             sequence[0] instanceof Uint32Array ||
             sequence[0].every(
@@ -322,7 +338,8 @@ class Runtime {
         const words = sequence[0] as U32List
         heap.set(words, base)
         a1 = contents.length
-        footage = sequence[1]
+        footage =
+          typeof sequence[1] === 'string' ? sequence[1].split('') : sequence[1]
       }
     }
 
@@ -347,7 +364,12 @@ class Runtime {
     return this.result(operation, id, resultPointer) as T
   }
   /** Consumes borrowed native output before another call may overwrite its storage. */
-  private result(operation: Opcode, id: number, pointer: number): unknown {
+  private result(
+    operation: Opcode,
+    id: number,
+    pointer: number,
+    stringEncode?: boolean
+  ): unknown {
     const heap = module.HEAPU32,
       header = pointer >>> 2,
       content = this.content[id]!
@@ -528,6 +550,30 @@ class Runtime {
           metadata.length = n0
           for (let i = 0, at = p0 >>> 2; i < n0; ++i) metadata[i] = heap[at + i]
         } else metadata = words(p0, n0)
+        if (stringEncode) {
+          let text = ''
+          try {
+            // Consume native spans directly; no intermediate Footage array is needed.
+            for (let at = p1 >>> 2, end = at + n1 * 3; at < end; at += 3) {
+              const source = content[heap[at]],
+                start = heap[at + 1],
+                count = heap[at + 2]
+              for (let i = 0; i < count; ++i) {
+                const value = source?.[start + i]
+                // Retained missing slots still occupy one original Frame coordinate.
+                text += value === undefined ? '\0' : (value as string)
+              }
+            }
+          } catch (cause) {
+            throw new SequencerError(
+              'STRING_ENCODING_FAILED',
+              'Sequence Footage could not be encoded as a string.',
+              { cause }
+            )
+          }
+          result = [metadata, text]
+          break
+        }
         const span = p1 >>> 2,
           token = heap[span]
         // A full private or retained span can back multiple snapshots. Native

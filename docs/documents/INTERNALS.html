@@ -498,8 +498,8 @@ observed through logical time 42
 <p>The application must exchange pending history before treating an acknowledgement as a complete Session frontier. The library reports receipt of reducing Insertions; it does not prove that missing earlier operations have arrived.</p>
 <h2 id="compaction" class="tsd-anchor-link">Compaction<a href="#compaction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>When all active Actors agree on the same frontier for a reducing Session, the acknowledged part can be removed from future retained Sequences.</p>
-<p>This is whole-Session eligibility: every active Actor must report the same complete Session frontier. A missing claim or a different endpoint blocks that Session. Taking the minimum of unequal frontiers is not this compaction rule.</p>
-<p>Eligible masks must disappear from the exported Sequence. Wholly removed positive Insertions and deleted Footage disappear as well. Claims for compacted Sessions are dropped; Actor membership is retained.</p>
+<p>This is whole-Session eligibility: every active Actor must report the same complete Session frontier. A missing claim or a different endpoint blocks that Session.</p>
+<p>Eligible masks must disappear from the exported Sequence. Wholly removed positive Insertions and deleted Footage disappear as well. Acknowledgments of compacted Sessions are dropped, Actor membership is retained.</p>
 <p>Suppose history contains:</p>
 <pre><code class="text">positive Frames
 removal mask
@@ -524,7 +524,7 @@ surviving descendants
 <p>Anchors and remaining removals that referred to the old coordinates are adjusted to the smaller retained coordinate space.</p>
 <p>The running Projection does not need to be rewritten when this happens. Compaction produces another retained description of the same history.</p>
 <p>The exported Sequence is a retained checkpoint. Its shorter Insertions and translated anchors can use different coordinates from the live graph before export. Continued editors must use compatible retained state; a compacted checkpoint does not preserve a permanent mapping to discarded history.</p>
-<p>An offline Actor's unacknowledged history blocks compaction only if that Actor was registered. A test that omits its membership, allows compaction, then demands that its discarded anchors still work is outside this contract. Tests must not retain masks to satisfy that demand.</p>
+<p>An offline Actor's unacknowledged history blocks compaction only if that Actor was registered.</p>
 <h2 id="collapsed-historical-points" class="tsd-anchor-link">Collapsed historical points<a href="#collapsed-historical-points" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>Compaction can make two old logical points collapse onto the same retained point.</p>
 <p>Imagine:</p>

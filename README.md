@@ -27,6 +27,10 @@ console.log(projection.value(0)) // undefined
 projection.destroy()
 ```
 
+For text stored as UTF-16 code units, `projection.sequence(true)` returns string
+Footage. Construction and merge accept either form; `sequence()` keeps array
+Footage. See [Projection.sequence](https://sovereignbase.dev/sequencer/classes/Projection.html#sequence).
+
 ### See documentation
 
 - [How sequencer works?](INTERNALS.md)
@@ -39,10 +43,11 @@ Library-reported failures throw `SequencerError`, with a stable `SequencerErrorC
 and a message prefixed with `{@sovereignbase/sequencer}`. Both are exported from
 the package. The constructor accepts standard `ErrorOptions`, including `cause`.
 
-| Code                      | Meaning                                                             |
-| ------------------------- | ------------------------------------------------------------------- |
-| `PROJECTION_DESTROYED`    | An operation was called after the Projection was destroyed.         |
-| `NATIVE_OPERATION_FAILED` | The native runtime reported an initialization or operation failure. |
+| Code                      | Meaning                                                                      |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| `PROJECTION_DESTROYED`    | An operation was called after the Projection was destroyed.                  |
+| `NATIVE_OPERATION_FAILED` | The native runtime reported an initialization or operation failure.          |
+| `STRING_ENCODING_FAILED`  | Snapshot Footage concatenation failed; `cause` preserves the original error. |
 
 Invalid Gossip or Sequence input to `apply()` or `merge()` returns `undefined`.
 Platform errors retain their original types.
@@ -166,7 +171,7 @@ Peer synchronization, encoding and JS process garbage collection are outside API
 
 ### Behaviour guaranteed by excessive tests
 
-The latest verification passed 212 Vitest tests and 108 compatibility checks.
+The latest verification passed 221 Vitest tests and 104 compatibility checks (1 failed).
 The configured 100% coverage threshold is met (100% statements, 100% branches, 100% functions, 100% lines).
 See the [test suites](test/README.md) and
 [automated test report](https://sovereignbase.dev/sequencer/tests/).
@@ -182,7 +187,7 @@ Runtimes covered by the latest compatibility verification:
 - Edge Runtime: passed
 - Cloudflare Workers through workerd: passed
 - Chromium browser windows: passed
-- Firefox browser windows: passed
+- Firefox browser windows: failed (matching Playwright browser binary unavailable)
 - WebKit browser windows: passed
 
 ### Tested realtime and offline text editing behaviour examples

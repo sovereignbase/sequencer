@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2](https://github.com/sovereignbase/sequencer/compare/v1.0.1...v1.0.2) (2026-10-20)
+
+
+### Bug Fixes
+
+* preserve replicated editing contracts ([84f20c3](https://github.com/sovereignbase/sequencer/commit/84f20c3012a229dd7de8850197a1c3d62e2912ee))
+* restore acknowledged compaction and improve traversal ([da19a99](https://github.com/sovereignbase/sequencer/commit/da19a99de1bdd66b198bae129e8ccaac297ecf78)), closes [#5](https://github.com/sovereignbase/sequencer/issues/5) [#6](https://github.com/sovereignbase/sequencer/issues/6)
+
 ## [1.0.1](https://github.com/sovereignbase/sequencer/compare/v1.0.0...v1.0.1) (2026-10-18)
 
 

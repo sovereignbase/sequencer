@@ -24,7 +24,7 @@ export class Projection<T> {
     } catch (err) {
       throw err instanceof SequencerError
         ? err
-        : new SequencerError('UNKOWN_ERROR', undefined, { cause: err })
+        : new SequencerError('UNKOWN_ERROR', 'constructor', { cause: err })
     }
   }
 

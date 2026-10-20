@@ -1,0 +1,1 @@
+Varmistetaan, "tracebility" eli kirjaston koodin virheet tulee kirjaston scopeen eli mikä kutsu aiheutti tässä kirjastossa tuntemattoman virheen ja sitten se syy eli se alkuperäinen virhe joka ei ole varsinaisesti seuqencer virhe vaan esim platform virhe, ja älä yli dokumentoi kiitos

@@ -21,6 +21,8 @@ public:
   Word structural_count{} /**< Linked Strip count, including fragments and masks. */,
       frame_count{} /**< Visible positive Frame count. */,
       gate_position{} /**< Visible position at the gate Strip's first Frame or boundary. */;
+  /** Rounded jump spacing and the largest Strip count for which it remains valid. */
+  std::array<Word, 2> jump_spacing{1, 2};
   Index left_jump_to_patch{} /**< Left endpoint of the jump spanning the next local edit. */,
       right_jump_to_patch{} /**< Right endpoint of that same jump. */;
   /** Last locally authored positive root eligible for an intact extension. */
@@ -57,6 +59,17 @@ public:
    * @return Maintained visible Frame count.
    */
   Word length() const { return frame_count; }
+  /** Reuses square-root spacing until Structural Order crosses its next rounding boundary.
+   * @return At least one Strip per target jump interval.
+   */
+  Word traversal_spacing() {
+    if (structural_count > jump_spacing[1]) {
+      const auto spacing = Word(std::max(1.0, std::round(std::sqrt(structural_count))));
+      jump_spacing = {spacing, Word(std::min<std::uint64_t>(UINT32_MAX, std::uint64_t(spacing) *
+                                                                            (spacing + 1)))};
+    }
+    return jump_spacing[0];
+  }
   /** Initializes structural and visible endpoints for the first root.
    * @param i Unlinked root Strip in an empty Structural Order.
    */
@@ -75,18 +88,21 @@ public:
   Index subtree_end(Index root);
   /** Resolves a historical anchor through fragments and already consumed Frames.
    * @param origin Canonical parent root, or a known fragment from which to continue.
-   * @param incoming Incoming Strip whose mask effect may be shortened by overlap.
+   * @param coordinates Canonical anchor and authored effect; positive queries resolve boundaries.
+   * @param incoming Strip whose negative effect may be shortened by overlap; none for boundary
+   * queries.
    * @return Resolved logical boundary and its current owning Strip.
    */
-  std::pair<Word, Index> find_containing_fragment(Index origin, Index incoming);
+  std::pair<Word, Index> find_containing_fragment(Index origin, const Coordinates &coordinates,
+                                                  Index incoming = none);
   /** Places a Strip in deterministic Structural Order and materializes mask continuations.
    * @param incoming Unlinked Strip to place.
    * @param anchor Current owner of the logical boundary; none for the virtual root.
    * @param point Boundary relative to the owning Insertion or mask.
-   * @param continuation Whether this is an existing positive Insertion's extension fragment.
+   * @param index_fragments Whether to maintain jumps while linking secondary mask fragments.
    * @return Actual signed visible effect across all materialized fragments.
    */
-  std::int32_t anchor_strip(Index incoming, Index anchor, Word point, bool continuation = false);
+  std::int32_t anchor_strip(Index incoming, Index anchor, Word point, bool index_fragments = true);
   /** Resolves a visible position and retains the owning Strip as gate.
    * @param position Visible Frame position, or insertion boundary when requested.
    * @param for_insertion Whether logical boundaries may resolve through hidden history.
@@ -96,9 +112,10 @@ public:
   /** Locates a newly linked Strip relative to the retained local gate.
    * @param strip Strip whose visible start is required.
    * @param gate_diff Effect already applied before the retained gate boundary.
-   * @return Visible Projection position of the Strip's boundary.
+   * @param locate Whether to resolve an absolute position after repairing local jumps.
+   * @return Visible Projection position, or zero when only repairing jumps.
    */
-  Word position_of(Index strip, std::int32_t gate_diff = 0);
+  Word position_of(Index strip, std::int32_t gate_diff = 0, bool locate = true);
   /** Updates and, when necessary, splits the jump spanning a local edit.
    * @param frame_diff Signed change to visible distance.
    * @param strip_diff Added structural Strip count.
@@ -154,7 +171,7 @@ public:
    */
   void apply(std::span<const Entry> gossip, Result &result);
   /** Reconstructs trusted exported history and prebuilds traversal jumps.
-   * @param insertions Canonical Insertions in dependency-compatible Structural Order.
+   * @param insertions Canonical Insertions in exported Structural Order.
    * @param frontiers Retained Actor Acknowledgements.
    */
   void hydrate(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers);

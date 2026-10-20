@@ -35,3 +35,10 @@ test counts and each runtime's passed, failed, or skipped state.
 The overview template is [.shared/test-report.html](.shared/test-report.html).
 Missing suites appear as unexecuted; runs without coverage do not display old
 coverage values. Reports refresh even when verification fails.
+
+CI runs `npm test` and both benchmark suites through `npm run bench`. Each run
+uploads the generated README, test reports and benchmark reports as an artifact,
+including failed verification results. Pushes to `master` commit the README,
+tracked test reports and `benchmark/.results` so its full-result links use the
+same measurements as the tables. Pull request runs expose the generated files
+through the artifact.

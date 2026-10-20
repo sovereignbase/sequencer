@@ -9,7 +9,7 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=f6a572b4" />
-    <script src="_static/documentation_options.js?v=a12e3537"></script>
+    <script src="_static/documentation_options.js?v=c5e1e573"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -80,6 +80,11 @@ clocks, pending Insertions, Acknowledgements and snapshot compaction.</p>
 <a class="reference external" href="../index.html">TypeScript API</a>. Each Projection retains independent history.
 JavaScript owns Footage; native spans refer to its binding tokens and array
 offsets. Application values never enter WebAssembly memory.</p>
+<p>Register all active Actors before removals. Equal complete frontiers from every
+active Actor permit whole-Session compaction: exported Sequences omit eligible
+masks, deleted Footage and compacted Session claims, while retaining membership.
+Compaction may translate retained anchors; discarded coordinates are not retained
+for unregistered offline history.</p>
 <section id="implementation">
 <h2>Implementation<a class="headerlink" href="#implementation" title="Link to this heading">¶</a></h2>
 <ul class="simple">
@@ -132,6 +137,17 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Whether that canonical <a class="reference internal" href="#structsequencer_1_1Insertion"><span class="std std-ref">Insertion</span></a> has a root. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer16ContainmentTable7reserveE4Word">
+<span id="_CPPv3N9sequencer16ContainmentTable7reserveE4Word"></span><span id="_CPPv2N9sequencer16ContainmentTable7reserveE4Word"></span><span id="sequencer::ContainmentTable::reserve__Word"></span><span class="target" id="classsequencer_1_1ContainmentTable_1aeecfc1605fe464b53d63fe11f26c8ba3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">reserve</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">capacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer16ContainmentTable7reserveE4Word" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Reserves identity slots before hydrating a known record count. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>capacity</strong> – Required identity capacity, excluding fragments. </p>
 </dd>
 </dl>
 </dd></dl>
@@ -394,13 +410,13 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <span id="_CPPv3N9sequencer13FrontierTableE"></span><span id="_CPPv2N9sequencer13FrontierTableE"></span><span id="sequencer::FrontierTable"></span><span class="target" id="classsequencer_1_1FrontierTable"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FrontierTable</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer13FrontierTableE" title="Link to this definition">¶</a><br /></dt>
 <dd><div class="docutils container">
 <em>#include &lt;class.hpp&gt;</em></div>
-<p>Actor Acknowledgements governing compaction of exported history. </p>
+<p>Actor membership and equal complete Session frontiers governing whole-Session compaction. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4NK9sequencer13FrontierTable11compactableEv">
 <span id="_CPPv3NK9sequencer13FrontierTable11compactableEv"></span><span id="_CPPv2NK9sequencer13FrontierTable11compactableEv"></span><span id="sequencer::FrontierTable::compactableC"></span><span class="target" id="classsequencer_1_1FrontierTable_1a85c4fc632e063f6ec6243e963fb6845f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">unordered_set</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">compactable</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9sequencer13FrontierTable11compactableEv" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Finds acknowledgement consensus across complete active membership. </p>
+<dd><p>Finds whole-Session consensus across complete active membership. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Sessions with equal reported frontiers from every active Actor. </p>
@@ -604,7 +620,7 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection12anchor_stripE5Index5Index4Wordb">
-<span id="_CPPv3N9sequencer10Projection12anchor_stripE5Index5Index4Wordb"></span><span id="_CPPv2N9sequencer10Projection12anchor_stripE5Index5Index4Wordb"></span><span id="sequencer::Projection::anchor_strip__Index.Index.Word.b"></span><span class="target" id="classsequencer_1_1Projection_1aa50cb8b2a1860971658f7bc326b57045"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">int32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">anchor_strip</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">incoming</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">anchor</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">point</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">continuation</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection12anchor_stripE5Index5Index4Wordb" title="Link to this definition">¶</a><br /></dt>
+<span id="_CPPv3N9sequencer10Projection12anchor_stripE5Index5Index4Wordb"></span><span id="_CPPv2N9sequencer10Projection12anchor_stripE5Index5Index4Wordb"></span><span id="sequencer::Projection::anchor_strip__Index.Index.Word.b"></span><span class="target" id="classsequencer_1_1Projection_1a8878ea52094608ac1351d9476c112d46"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">int32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">anchor_strip</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">incoming</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">anchor</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">point</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">index_fragments</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection12anchor_stripE5Index5Index4Wordb" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Places a Strip in deterministic Structural Order and materializes mask continuations. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -612,7 +628,7 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <li><p><strong>incoming</strong> – Unlinked Strip to place. </p></li>
 <li><p><strong>anchor</strong> – Current owner of the logical boundary; none for the virtual root. </p></li>
 <li><p><strong>point</strong> – Boundary relative to the owning <a class="reference internal" href="#structsequencer_1_1Insertion"><span class="std std-ref">Insertion</span></a> or mask. </p></li>
-<li><p><strong>continuation</strong> – Whether this is an existing positive <a class="reference internal" href="#structsequencer_1_1Insertion"><span class="std std-ref">Insertion</span></a>’s extension fragment. </p></li>
+<li><p><strong>index_fragments</strong> – Whether to maintain jumps while linking secondary mask fragments. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -669,14 +685,15 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection24find_containing_fragmentE5Index5Index">
-<span id="_CPPv3N9sequencer10Projection24find_containing_fragmentE5Index5Index"></span><span id="_CPPv2N9sequencer10Projection24find_containing_fragmentE5Index5Index"></span><span id="sequencer::Projection::find_containing_fragment__Index.Index"></span><span class="target" id="classsequencer_1_1Projection_1a948a4b834396e61e8d38b6e39eeb4d73"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">find_containing_fragment</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">origin</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">incoming</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection24find_containing_fragmentE5Index5Index" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection24find_containing_fragmentE5IndexRK11Coordinates5Index">
+<span id="_CPPv3N9sequencer10Projection24find_containing_fragmentE5IndexRK11Coordinates5Index"></span><span id="_CPPv2N9sequencer10Projection24find_containing_fragmentE5IndexRK11Coordinates5Index"></span><span id="sequencer::Projection::find_containing_fragment__Index.CoordinatesCR.Index"></span><span class="target" id="classsequencer_1_1Projection_1a40e61270cad8edd1ea4589cdad38fa9d"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">find_containing_fragment</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">origin</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer11CoordinatesE" title="sequencer::Coordinates"><span class="n"><span class="pre">Coordinates</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">coordinates</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">incoming</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer4noneE" title="sequencer::none"><span class="n"><span class="pre">none</span></span></a><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection24find_containing_fragmentE5IndexRK11Coordinates5Index" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolves a historical anchor through fragments and already consumed Frames. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>origin</strong> – Canonical parent root, or a known fragment from which to continue. </p></li>
-<li><p><strong>incoming</strong> – Incoming Strip whose mask effect may be shortened by overlap. </p></li>
+<li><p><strong>coordinates</strong> – Canonical anchor and authored effect; positive queries resolve boundaries. </p></li>
+<li><p><strong>incoming</strong> – Strip whose negative effect may be shortened by overlap; none for boundary queries. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -709,7 +726,7 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>insertions</strong> – Canonical Insertions in dependency-compatible Structural Order. </p></li>
+<li><p><strong>insertions</strong> – Canonical Insertions in exported Structural Order. </p></li>
 <li><p><strong>frontiers</strong> – Retained Actor Acknowledgements. </p></li>
 </ul>
 </dd>
@@ -800,18 +817,19 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection11position_ofE5IndexNSt7int32_tE">
-<span id="_CPPv3N9sequencer10Projection11position_ofE5IndexNSt7int32_tE"></span><span id="_CPPv2N9sequencer10Projection11position_ofE5IndexNSt7int32_tE"></span><span id="sequencer::Projection::position_of__Index.std::int32_t"></span><span class="target" id="classsequencer_1_1Projection_1aa85679ca5313d094e34df08435b9f368"></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">position_of</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">strip</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">int32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">gate_diff</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection11position_ofE5IndexNSt7int32_tE" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection11position_ofE5IndexNSt7int32_tEb">
+<span id="_CPPv3N9sequencer10Projection11position_ofE5IndexNSt7int32_tEb"></span><span id="_CPPv2N9sequencer10Projection11position_ofE5IndexNSt7int32_tEb"></span><span id="sequencer::Projection::position_of__Index.std::int32_t.b"></span><span class="target" id="classsequencer_1_1Projection_1a8adfab9eb61e4ef51e4aab677b089c06"></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">position_of</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">strip</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">int32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">gate_diff</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">locate</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection11position_ofE5IndexNSt7int32_tEb" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Locates a newly linked Strip relative to the retained local gate. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>strip</strong> – Strip whose visible start is required. </p></li>
 <li><p><strong>gate_diff</strong> – Effect already applied before the retained gate boundary. </p></li>
+<li><p><strong>locate</strong> – Whether to resolve an absolute position after repairing local jumps. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Visible <a class="reference internal" href="#classsequencer_1_1Projection"><span class="std std-ref">Projection</span></a> position of the Strip’s boundary. </p>
+<dd class="field-even"><p>Visible <a class="reference internal" href="#classsequencer_1_1Projection"><span class="std std-ref">Projection</span></a> position, or zero when only repairing jumps. </p>
 </dd>
 </dl>
 </dd></dl>
@@ -925,6 +943,17 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 </dd></dl>
 
 <dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection17traversal_spacingEv">
+<span id="_CPPv3N9sequencer10Projection17traversal_spacingEv"></span><span id="_CPPv2N9sequencer10Projection17traversal_spacingEv"></span><span id="sequencer::Projection::traversal_spacing"></span><span class="target" id="classsequencer_1_1Projection_1abb4d0dc0b54162b593b498abe637c94b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">traversal_spacing</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection17traversal_spacingEv" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Reuses square-root spacing until Structural Order crosses its next rounding boundary. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>At least one Strip per target jump interval. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection6valuesE4Word4Word">
 <span id="_CPPv3N9sequencer10Projection6valuesE4Word4Word"></span><span id="_CPPv2N9sequencer10Projection6valuesE4Word4Word"></span><span id="sequencer::Projection::values__Word.Word"></span><span class="target" id="classsequencer_1_1Projection_1aca10758f170a17fb962ded6aece990b7"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4SpanE" title="sequencer::Span"><span class="n"><span class="pre">Span</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">values</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">start</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">end</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection6valuesE4Word4Word" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Resolves an inclusive visible range to JavaScript Footage spans. </p>
@@ -1022,6 +1051,12 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection14increase_clockE">
 <span id="_CPPv3N9sequencer10Projection14increase_clockE"></span><span id="_CPPv2N9sequencer10Projection14increase_clockE"></span><span id="sequencer::Projection::increase_clock__std::array:Word.2:"></span><span class="target" id="classsequencer_1_1Projection_1a0b86dd00a47f72e384f698c8c0df30f7"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">increase_clock</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer10Projection14increase_clockE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Independent positive and reducing clocks, each stored as [Session, next time]. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection12jump_spacingE">
+<span id="_CPPv3N9sequencer10Projection12jump_spacingE"></span><span id="_CPPv2N9sequencer10Projection12jump_spacingE"></span><span id="sequencer::Projection::jump_spacing__std::array:Word.2:"></span><span class="target" id="classsequencer_1_1Projection_1a8488edcdb46d2f02b11e32350c79a727"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">jump_spacing</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer10Projection12jump_spacingE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rounded jump spacing and the largest Strip count for which it remains valid. </p>
 </dd></dl>
 
 <dl class="cpp var">

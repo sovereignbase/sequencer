@@ -15,7 +15,7 @@ Insertion Projection::insert(Word count, Word content, Word at) {
     else {
       // Empty visible content can still have anchors held by disconnected peers.
       anchor_strip(incoming, none, 0);
-      position_of(incoming);
+      position_of(incoming, 0, false);
       gate = incoming;
       gate_position = 0;
     }

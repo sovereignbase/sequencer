@@ -21,6 +21,26 @@ class ContainmentTable {
   }
 
 public:
+  /** Reserves identity slots before hydrating a known record count.
+   * @param capacity Required identity capacity, excluding fragments.
+   */
+  void reserve(Word capacity) {
+    if (std::size_t(capacity) * 4 <= slots.size() * 3)
+      return;
+    auto size = std::max(std::size_t(8), slots.size());
+    while (std::size_t(capacity) * 4 > size * 3)
+      size *= 2;
+    std::vector<Slot> grown(size);
+    const auto mask = Word(grown.size() - 1);
+    for (const auto &slot : slots)
+      if (slot.strip) {
+        auto at = hash(slot.session, slot.start) & mask;
+        while (grown[at].strip)
+          at = (at + 1) & mask;
+        grown[at] = slot;
+      }
+    slots = std::move(grown);
+  }
   /** Counts materialized canonical identities.
    * @return Root count, excluding fragments and pending operations.
    */
@@ -50,19 +70,8 @@ public:
    */
   void set(const Coordinates &c, Index strip) {
     // Retain an empty probe slot by growing before the table exceeds 75% occupancy.
-    if ((count + 1) * 4 > slots.size() * 3) {
-      std::vector<Slot> grown(std::max(std::size_t(8), slots.size() * 2));
-      const auto mask = Word(grown.size() - 1);
-      // Capacity changes the probe mask, so old slot positions cannot be reused directly.
-      for (const auto &slot : slots)
-        if (slot.strip) {
-          auto at = hash(slot.session, slot.start) & mask;
-          while (grown[at].strip)
-            at = (at + 1) & mask;
-          grown[at] = slot;
-        }
-      slots = std::move(grown);
-    }
+    if ((count + 1) * 4 > slots.size() * 3)
+      reserve(count + 1);
     const auto mask = Word(slots.size() - 1);
     auto at = hash(c.session, c.start) & mask;
     while (slots[at].strip && (slots[at].session != c.session || slots[at].start != c.start))

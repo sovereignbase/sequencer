@@ -69,14 +69,13 @@ it.each([false, true])(
         fc.array(operation, { minLength: 1, maxLength: 100, size: 'medium' }),
         (initialLength, operations) => {
           let peers = [new Projection<string>(1), new Projection<string>(2)]
-          let session = 0
           /** Reestablishes Actor membership after hydration; a silent third Actor blocks compaction. */
-          const clocks = () => {
+          const registerActors = () => {
             for (const peer of peers) {
               peer.apply(compact ? [[1], [2]] : [[1], [2], [3]])
             }
           }
-          clocks()
+          registerActors()
           const expected = Array.from(
             { length: initialLength },
             (_, i) => `initial:${i}`
@@ -107,7 +106,7 @@ it.each([false, true])(
                 peer.destroy()
                 return new Projection<string>(peer.actorID, sequence)
               })
-              clocks()
+              registerActors()
             } else {
               const author = peers[op.author]
               const receiver = peers[1 - op.author]

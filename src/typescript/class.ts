@@ -115,6 +115,11 @@ export class Projection<T> {
   /**
    * Sequences state into a compact serializable format.
    *
+   * @remarks
+   * Register active Actors before removal. Equal complete Session frontiers
+   * permit masks and deleted Footage to be omitted from the retained checkpoint.
+   * Compaction may translate retained anchors without rewriting this instance.
+   *
    * @returns A Sequence with acknowledged removals compacted in the exported state.
    * @throws {@link SequencerError} if destroyed or the native runtime reports an operation failure.
    */

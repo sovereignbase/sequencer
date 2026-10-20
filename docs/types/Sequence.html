@@ -16,7 +16,9 @@ One structural array and one JavaScript-owned content array.
 Small snapshots use six-word insertion records after length-prefixed ACKs;
 <code>words[0]</code> locates those records. Large snapshots begin with
 <code>[0, frontiersEnd, insertionCount]</code> and omit predictable coordinate fields.
-Both layouts retain complete coordinates and acknowledgements.
+Both layouts encode the retained coordinates and acknowledgements.
+Eligible masks, deleted Footage and compacted Session claims are omitted;
+Actor membership remains. Compaction may translate retained coordinates.
 Positive insertion diffs consume successive spans of <code>footage</code>.
 <code>[[], []]</code> is an empty Sequence. Both numeric arrays and typed views are accepted.</p>
 </div>
@@ -25,7 +27,7 @@ Positive insertion diffs consume successive spans of <code>footage</code>.
 <ul class="tsd-type-parameter-list">
 <li><span id="t"><span class="tsd-kind-type-parameter">T</span></span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/44ed0c526887a77d0a82004d8377bbb349dc9f67/src/typescript/types/type.ts#L48">src/typescript/types/type.ts:48</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/86e697f84c206ea0e1d44d7c37c6e0f3298ed2f6/src/typescript/types/type.ts#L52">src/typescript/types/type.ts:52</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

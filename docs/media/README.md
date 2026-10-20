@@ -20,7 +20,7 @@ Choose a suite by the behavior being changed. Convergence cases are grouped by t
 | ------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
 | [Anchoring](convergence/anchoring/README.md)     | Canonical anchors retain their original coordinate space; local boundaries reproduce remotely. |
 | [Causality](convergence/causality/README.md)     | Dependants remain invisible until their canonical parent can be resolved.                      |
-| [Compaction](convergence/compaction/README.md)   | Acknowledged removal history can be omitted while retained visible content stays equivalent.   |
+| [Compaction](convergence/compaction/README.md)   | Eligible masks and deleted Footage disappear; hydration preserves visible order.               |
 | [Delivery](convergence/delivery/README.md)       | The same valid operation set resolves to the same visible content across delivery orders.      |
 | [Editing](convergence/editing/README.md)         | Local insert/remove/replace results match intended edits and remotely applied Gossip.          |
 | [Masking](convergence/masking/README.md)         | Removals affect their original targets once and preserve concurrent insertions.                |
@@ -30,7 +30,9 @@ Choose a suite by the behavior being changed. Convergence cases are grouped by t
 
 ## Test conventions
 
-Local positions stay within the documented valid ranges. Constructor Sequences are trusted input; runtime validation expectations belong to `apply` and `merge`. ACKs used for compaction represent complete received removal Session prefixes.
+Local positions stay within the documented valid ranges. Constructor Sequences are trusted input; runtime validation expectations belong to `apply` and `merge`.
+
+Register every active Actor before removals, including Actors whose history is delayed. Compaction ACKs must report the same complete removal Session frontier for all active Actors. Missing or unequal claims retain masks; unanimous complete claims remove eligible masks, deleted Footage and compacted Session claims. Preserve Actor membership. Do not fabricate an older local ACK to compact a prefix, require unregistered offline anchors to survive compaction, or change mask-absence assertions into mask-retention assertions. See [the model contract](../INTERNALS.md#actors-and-acknowledgements).
 
 Unit tests exercise public methods and wire types. Convergence regressions may inspect runtime metadata or assign deterministic Session identifiers to make an invariant reproducible. Different delivery orders reuse the same canonical operations.
 

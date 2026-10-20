@@ -30,8 +30,13 @@ projection.destroy()
 ### See documentation
 
 - [How sequencer works?](INTERNALS.md)
-- [Typescript](https://sovereignbase.dev/sequencer/)
+- [Typescript](https://sovereignbase.dev/sequencer/classes/Projection.html)
 - [C++](https://sovereignbase.dev/sequencer/c++)
+
+Register active Actors, including offline Actors, before removals. When every
+active Actor acknowledges the same complete removal Session frontier,
+`sequence()` omits its masks and deleted Footage. Actor membership remains.
+See the [compaction contract](INTERNALS.md#compaction).
 
 ### Errors
 
@@ -166,7 +171,7 @@ Peer synchronization, encoding and JS process garbage collection are outside API
 
 ### Behaviour guaranteed by excessive tests
 
-The latest verification passed 184 Vitest tests and 96 compatibility checks (1 failed).
+The latest verification passed 212 Vitest tests and 96 compatibility checks (1 failed).
 The configured 100% coverage threshold is met (100% statements, 100% branches, 100% functions, 100% lines).
 See the [test suites](test/README.md) and
 [automated test report](https://sovereignbase.dev/sequencer/tests/).

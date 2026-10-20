@@ -208,6 +208,7 @@ export function runSuite(
           ),
           !compact
         )
+        equal(retained[1].length, compact ? 3 : 4)
         let hydrated = new Constructor<string>(1, retained)
         for (let cycle = 0; cycle < 3; ++cycle) {
           check(hydrated, ['a', 'X', 'c'])

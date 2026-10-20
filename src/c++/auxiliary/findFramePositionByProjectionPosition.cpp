@@ -9,6 +9,18 @@
 
 namespace sequencer {
 Word Projection::find_frame(Word position, bool for_insertion) {
+  // A hit within the visible gate needs no walk. Insertion at its first Frame
+  // still resolves hidden boundaries through the ordinary traversal below.
+  if (gate && position >= gate_position && (!for_insertion || position != gate_position) &&
+      strips.fragment_diff[gate] > 0 &&
+      position - gate_position < Word(strips.fragment_diff[gate])) {
+    if (strips.right_jump[gate]) {
+      left_jump_to_patch = gate;
+      right_jump_to_patch = strips.right_jump[gate];
+    } else if (gate == right_jump_to_patch)
+      left_jump_to_patch = right_jump_to_patch = none;
+    return strips.fragment_start[gate] + position - gate_position;
+  }
   std::int64_t index = position, cursor_index = gate_position;
   auto cursor = gate;
   Word after = 0;
@@ -29,7 +41,7 @@ Word Projection::find_frame(Word position, bool for_insertion) {
     patch_left = strips.left_jump[cursor];
     patch_right = cursor;
   }
-  const auto spacing = Word(std::round(std::sqrt(structural_count)));
+  const auto spacing = traversal_spacing();
   auto jump_start = cursor;
   auto jump_index = cursor_index;
   std::int32_t steps = 0;
@@ -59,7 +71,21 @@ Word Projection::find_frame(Word position, bool for_insertion) {
             strips.identity[strips.left[m]].coordinates.start ==
                 strips.identity[m].coordinates.anchor_start &&
             !strips.offset[strips.left[m]];
-        if ((original_zero || strips.fragment_start[c] == 0 ||
+        const bool adjoining_mask =
+            mask &&
+            strips.identity[m].coordinates.anchor_session ==
+                strips.identity[c].coordinates.session &&
+            strips.identity[m].coordinates.anchor_start == strips.identity[c].coordinates.start &&
+            strips.identity[m].coordinates.anchor_diff + strips.fragment_start[m] +
+                    magnitude(strips.fragment_diff[m]) ==
+                strips.fragment_start[c] &&
+            strips.left[m] &&
+            (strips.fragment_diff[strips.left[m]] == 0 ||
+             strips.identity[strips.left[m]].coordinates.session !=
+                 strips.identity[c].coordinates.session ||
+             strips.identity[strips.left[m]].coordinates.start !=
+                 strips.identity[c].coordinates.start);
+        if ((original_zero || adjoining_mask || strips.fragment_start[c] == 0 ||
              (index == 0 && (strips.identity[m].coordinates.anchor_session !=
                                  strips.identity[c].coordinates.session ||
                              strips.identity[m].coordinates.anchor_start !=

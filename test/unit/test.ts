@@ -107,7 +107,7 @@ describe('Projection public API', () => {
       expect(result?.[0][0][2]).toBe(incoming[0][1])
       expect(projection.values()).toEqual(['a', 'b', 'c'])
     })
-    it('returns removal splices with an exclusive end and receipt Gossip', () => {
+    it('returns removal splices with an exclusive end and acknowledgement Gossip', () => {
       const projection = seeded()
       expect(projection.apply([[[100, 0, 1, 200, 0, 4294967295]]])).toEqual([
         [[1, 2]],
@@ -461,8 +461,8 @@ describe('Projection public API', () => {
       const receiver = new Projection<string>(2, seed())
       author.apply([[receiver.actorID]])
       const first = author.remove(0, 0)
-      const receipt = receiver.apply(first)!
-      author.apply(receipt[1])
+      const acknowledged = receiver.apply(first)!
+      author.apply(acknowledged[1])
       const second = author.remove(0, 0)
       const retained = author.sequence()
       expect(

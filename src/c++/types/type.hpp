@@ -197,7 +197,7 @@ struct Strips {
   Index append(Insertion insertion) {
     constexpr Word lanes = 12;
     if (count == capacity)
-      reserve(std::max(Word(8), capacity * 2));
+      reserve(std::max(Word(4), capacity * 2));
     const auto index = count++;
     std::construct_at(identity + index, insertion);
     auto *fields = reinterpret_cast<Word *>(identity + capacity);

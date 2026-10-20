@@ -9,12 +9,35 @@
 #include <algorithm>
 
 namespace sequencer {
-std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point, bool continuation) {
+std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point,
+                                      bool index_fragments) {
+  const auto coordinates = strips.identity[incoming].coordinates;
+  auto parent = anchor;
+  if (coordinates.diff > 0 && anchor) {
+    if (coordinates.anchor_session != strips.identity[anchor].coordinates.session ||
+        coordinates.anchor_start != strips.identity[anchor].coordinates.start)
+      parent = containment.get(coordinates.anchor_session, coordinates.anchor_start);
+    if (parent && strips.identity[parent].coordinates.diff < 0 &&
+        (anchor != parent || point != coordinates.anchor_diff ||
+         strips.fragment_start[parent] != 0 ||
+         strips.fragment_diff[parent] != strips.identity[parent].coordinates.diff)) {
+      const auto resolved = find_containing_fragment(parent, coordinates);
+      point = resolved.first;
+      anchor = resolved.second;
+    }
+  }
   const auto removal_end = strips.identity[incoming].coordinates.anchor_diff -
                            strips.identity[incoming].coordinates.diff;
   // Keep the authored removal endpoint fixed while runtime fragments consume available Frames.
   std::int32_t total = 0;
+  const auto first = incoming;
   while (true) {
+    // A continuation can alter a different jump span from the first mask.
+    // Make its parent an endpoint before consuming that fragment's Frames.
+    if (index_fragments && incoming != first && !strips.left_jump[anchor] &&
+        !strips.right_jump[anchor])
+      position_of(anchor, 0, false);
+    const auto previous_count = structural_count;
     auto left = anchor;
     Index right = none;
     auto diff = strips.fragment_diff[incoming];
@@ -38,20 +61,44 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point, 
     } else
       right = structural_head;
     const auto c = strips.identity[incoming].coordinates;
-    // Original-boundary children precede mask children at that same historical point.
-    if (c.diff > 0 && anchor && strips.identity[anchor].coordinates.diff < 0 &&
-        c.anchor_session == strips.identity[anchor].coordinates.session &&
-        c.anchor_start == strips.identity[anchor].coordinates.start && right &&
-        strips.identity[right].coordinates.anchor_session ==
-            strips.identity[anchor].coordinates.anchor_session &&
-        strips.identity[right].coordinates.anchor_start ==
-            strips.identity[anchor].coordinates.anchor_start &&
-        strips.identity[right].coordinates.anchor_diff ==
-            strips.identity[anchor].coordinates.anchor_diff + c.anchor_diff) {
-      while (strips.competitor[right])
-        right = strips.competitor[right];
-      left = subtree_end(right);
-      right = strips.right[left];
+    // Zero-effect masks retain identity but cannot hide boundary competitors.
+    while (c.diff > 0 && right && strips.identity[right].coordinates.diff < 0 &&
+           strips.fragment_diff[right] == 0) {
+      left = right;
+      right = strips.right[right];
+    }
+    // At one original boundary, direct children precede mask children. Distinct
+    // mask parents retain canonical anchor order, then Session/start competition.
+    if (c.diff > 0 && parent && strips.identity[parent].coordinates.diff < 0) {
+      const auto p = strips.identity[parent].coordinates;
+      const auto boundary = p.anchor_diff + c.anchor_diff;
+      while (right && strips.identity[right].coordinates.diff > 0) {
+        const auto r = strips.identity[right].coordinates;
+        if (r.session == p.anchor_session && r.start == p.anchor_start)
+          break;
+        bool before = r.anchor_session == p.anchor_session && r.anchor_start == p.anchor_start &&
+                      r.anchor_diff == boundary;
+        if (!before) {
+          const auto other = containment.get(r.anchor_session, r.anchor_start);
+          if (!other || other == parent)
+            break;
+          const auto q = strips.identity[other].coordinates;
+          if (q.diff >= 0 || q.anchor_session != p.anchor_session ||
+              q.anchor_start != p.anchor_start || q.anchor_diff + r.anchor_diff != boundary)
+            break;
+          before = q.anchor_diff < p.anchor_diff ||
+                   (q.anchor_diff == p.anchor_diff && competition_is_larger(p, q));
+        }
+        if (!before)
+          break;
+        left = subtree_end(right);
+        right = strips.right[left];
+        while (right && strips.identity[right].coordinates.diff < 0 &&
+               strips.fragment_diff[right] == 0) {
+          left = right;
+          right = strips.right[right];
+        }
+      }
     }
     // Earlier zero-effect siblings may be skipped; same-point siblings must still compete.
     while (right && strips.fragment_diff[right] == 0 &&
@@ -61,17 +108,7 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point, 
       left = right;
       right = strips.right[right];
     }
-    // An extension remains part of its parent rather than competing as a new
-    // root. Preserve already attached child subtrees before its new suffix.
-    if (continuation) {
-      const auto &parent = strips.identity[incoming].coordinates;
-      while (right && strips.identity[right].coordinates.anchor_session == parent.session &&
-             strips.identity[right].coordinates.anchor_start == parent.start) {
-        left = subtree_end(right);
-        right = strips.right[left];
-      }
-    }
-    if (!continuation && right &&
+    if (right && right != strips.fragment[anchor] &&
         anchors_overlap(strips.identity[incoming].coordinates,
                         strips.identity[right].coordinates)) {
       Index larger = none;
@@ -124,6 +161,8 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point, 
     }
     ++structural_count;
     frame_count += diff;
+    if (index_fragments && incoming != first)
+      patch_jumps(diff, structural_count - previous_count, incoming);
     total += diff;
     const auto next =
         anchor && strips.identity[anchor].coordinates.diff > 0 ? strips.fragment[anchor] : none;

@@ -34,15 +34,34 @@ Index Projection::subtree_end(Index root) {
   }
   for (auto next = strips.right[previous]; next; next = strips.right[previous]) {
     auto ancestor = previous;
-    // A structural successor belongs when it is an ancestor's fragment or
-    // anchors inside that ancestor. Otherwise ascend until a containing parent remains.
-    while (strips.fragment[ancestor] != next &&
-           !contains_anchor(strips.identity[ancestor].coordinates,
-                            strips.identity[next].coordinates, 0,
-                            magnitude(strips.identity[ancestor].coordinates.diff))) {
-      // Leaving the root's ancestry reaches the first following sibling subtree.
-      if (ancestors.empty())
-        return finish();
+    // Every fragment retains its canonical identity. Intervening masks can
+    // separate nonadjacent fragments without ending their parent's subtree.
+    while (
+        (strips.identity[ancestor].coordinates.session !=
+             strips.identity[next].coordinates.session ||
+         strips.identity[ancestor].coordinates.start != strips.identity[next].coordinates.start) &&
+        !contains_anchor(strips.identity[ancestor].coordinates, strips.identity[next].coordinates,
+                         0, magnitude(strips.identity[ancestor].coordinates.diff))) {
+      if (ancestors.empty()) {
+        // Overlapping masks can give a child a different materialized owner.
+        // The stack is only a traversal cache; canonical ancestry decides membership.
+        const auto r = strips.identity[root].coordinates;
+        const auto n = strips.identity[next].coordinates;
+        if (n.anchor_session == r.anchor_session && n.anchor_start == r.anchor_start)
+          return finish();
+        auto parent = containment.get(n.anchor_session, n.anchor_start);
+        while (parent && (strips.identity[parent].coordinates.session != r.session ||
+                          strips.identity[parent].coordinates.start != r.start)) {
+          const auto c = strips.identity[parent].coordinates;
+          if (c.session == r.anchor_session && c.start == r.anchor_start)
+            return finish();
+          parent = containment.get(c.anchor_session, c.anchor_start);
+        }
+        if (!parent)
+          return finish();
+        ancestor = root;
+        break;
+      }
       ancestor = ancestors.back();
       ancestors.pop_back();
     }

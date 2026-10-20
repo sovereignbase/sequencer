@@ -744,9 +744,17 @@ The reported point is a **frontier**.
 
 A single frontier summarizes a received prefix of a Session rather than acknowledging every reducing Insertion separately.
 
+Every active Actor, including an offline Actor, must be registered before removals. An Actor-only acknowledgement such as `[3]` establishes that membership. Constructing another Projection does not register its Actor in the other replicas.
+
+The application must exchange pending history before treating an acknowledgement as a complete Session frontier. The library reports receipt of reducing Insertions; it does not prove that missing earlier operations have arrived.
+
 ## Compaction
 
 When all active Actors agree on the same frontier for a reducing Session, the acknowledged part can be removed from future retained Sequences.
+
+This is whole-Session eligibility: every active Actor must report the same complete Session frontier. A missing claim or a different endpoint blocks that Session. Taking the minimum of unequal frontiers is not this compaction rule.
+
+Eligible masks must disappear from the exported Sequence. Wholly removed positive Insertions and deleted Footage disappear as well. Claims for compacted Sessions are dropped; Actor membership is retained.
 
 Suppose history contains:
 
@@ -783,6 +791,10 @@ A D
 Anchors and remaining removals that referred to the old coordinates are adjusted to the smaller retained coordinate space.
 
 The running Projection does not need to be rewritten when this happens. Compaction produces another retained description of the same history.
+
+The exported Sequence is a retained checkpoint. Its shorter Insertions and translated anchors can use different coordinates from the live graph before export. Continued editors must use compatible retained state; a compacted checkpoint does not preserve a permanent mapping to discarded history.
+
+An offline Actor's unacknowledged history blocks compaction only if that Actor was registered. A test that omits its membership, allows compaction, then demands that its discarded anchors still work is outside this contract. Tests must not retain masks to satisfy that demand.
 
 ## Collapsed historical points
 

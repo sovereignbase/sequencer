@@ -101,7 +101,7 @@ void Projection::apply(std::span<const Entry> gossip, Result &result) {
         Word point = 0;
         Index anchor = none;
         if (!c.birth()) {
-          const auto resolved = find_containing_fragment(origin, incoming);
+          const auto resolved = find_containing_fragment(origin, c, incoming);
           point = resolved.first;
           anchor = resolved.second;
         }

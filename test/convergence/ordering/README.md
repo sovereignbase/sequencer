@@ -4,9 +4,10 @@
 
 Competition is defined by identical canonical anchor triples. Positive insertions precede reducing insertions; within each sign group, larger Session identifiers and then larger insertion starts come first. Each sibling retains its complete causal subtree, including fragments.
 
-| Scenario                                                       | Expectation                                                                   | Test                                        |
-| -------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------- |
-| [concurrent_root_ordering](concurrent_root_ordering/README.md) | Concurrent roots sort deterministically without interleaving their documents. | [test.ts](concurrent_root_ordering/test.ts) |
-| [concurrent_root_subtree](concurrent_root_subtree/README.md)   | Fragmented roots retain complete sibling subtrees under hostile delivery.     | [test.ts](concurrent_root_subtree/test.ts)  |
+| Scenario                                                       | Expectation                                                                                                 | Test                                        |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| [concurrent_root_ordering](concurrent_root_ordering/README.md) | Concurrent roots sort deterministically without interleaving their documents.                               | [test.ts](concurrent_root_ordering/test.ts) |
+| [concurrent_root_subtree](concurrent_root_subtree/README.md)   | Fragmented roots retain complete sibling subtrees under hostile delivery.                                   | [test.ts](concurrent_root_subtree/test.ts)  |
+| [root_subtree_redelivery](root_subtree_redelivery/README.md)   | Reverse and duplicate delivery retains complete causal subtrees through local edits and snapshot hydration. | [test.ts](root_subtree_redelivery/test.ts)  |
 
 The same ordering must survive [Sequence export](../persistence/concurrent_root_sequence/README.md), [restart](../persistence/concurrent_root_restart/README.md), and [delivery permutations](../delivery/README.md).

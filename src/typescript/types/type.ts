@@ -28,11 +28,13 @@ export type Insertion<T> = Readonly<
 /**
  * Describes one Actor's acknowledgement frontier.
  * `[actorID, sessionID, sessionEnd, ...]` contains removal Session/frontier pairs.
- * The application is responsible for acknowledging complete received Session prefixes.
+ * Actor-only tuples establish membership before removals, including offline Actors.
+ * Compaction requires equal complete Session frontiers from every active Actor.
+ * The application must deliver pending history before claiming that frontier.
  */
 export type Acknowledgement = U32List
 
-/** Ordered replication batch; delivery may be duplicated or causally reordered. */
+/** Replication batch within retained history; delivery may be duplicated or causally reordered. */
 export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>
 
 /**
@@ -41,7 +43,9 @@ export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>
  * Small snapshots use six-word insertion records after length-prefixed ACKs;
  * `words[0]` locates those records. Large snapshots begin with
  * `[0, frontiersEnd, insertionCount]` and omit predictable coordinate fields.
- * Both layouts retain complete coordinates and acknowledgements.
+ * Both layouts encode the retained coordinates and acknowledgements.
+ * Eligible masks, deleted Footage and compacted Session claims are omitted;
+ * Actor membership remains. Compaction may translate retained coordinates.
  * Positive insertion diffs consume successive spans of `footage`.
  * `[[], []]` is an empty Sequence. Both numeric arrays and typed views are accepted.
  */

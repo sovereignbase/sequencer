@@ -8,13 +8,13 @@
 #include <optional>
 
 namespace sequencer {
-Word Projection::position_of(Index target, std::int32_t gate_diff) {
+Word Projection::position_of(Index target, std::int32_t gate_diff, bool locate) {
   auto left = target, right = target;
   Word left_frames = 0, right_frames = 0, left_distance = 0, right_distance = 0;
   Index left_jump = none, right_jump = none;
   Word left_jumped = 0, right_jumped = 0;
   std::optional<Word> known;
-  const auto spacing = Word(std::round(std::sqrt(structural_count)));
+  const auto spacing = traversal_spacing();
   bool found_left = !strips.left[left], found_right = !strips.right[right];
   // Walk outwards until each side reaches an indexed or visible endpoint.
   // Distances count positive effects only; structural steps also count hidden nodes.
@@ -64,6 +64,9 @@ Word Projection::position_of(Index target, std::int32_t gate_diff) {
   }
   left_jump_to_patch = target;
   right_jump_to_patch = strips.right_jump[target];
+  // Index maintenance callers do not consume an absolute visible position.
+  if (!locate)
+    return 0;
   if (right == head && target != head)
     return 0;
   if (left == tail && target != tail)

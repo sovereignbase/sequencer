@@ -5,7 +5,7 @@
 #include <unordered_set>
 
 namespace sequencer {
-/** Actor Acknowledgements governing compaction of exported history. */
+/** Actor membership and equal complete Session frontiers governing whole-Session compaction. */
 class FrontierTable {
   struct Session {
     Word id;
@@ -47,7 +47,7 @@ public:
     for (auto &s : sessions)
       s.claims.erase(actor);
   }
-  /** Finds acknowledgement consensus across complete active membership.
+  /** Finds whole-Session consensus across complete active membership.
    * @return Sessions with equal reported frontiers from every active Actor.
    */
   std::unordered_set<Word> compactable() const {

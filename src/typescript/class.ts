@@ -1,6 +1,7 @@
 import type { Gossip, Result, Sequence } from './types/type.js'
 import { runtime } from './runtime/client.js'
 import { Operation } from './runtime/protocol.js'
+import { SequencerError } from './errors/class.js'
 
 /** Visible Projection of a replicated Sequence. */
 export class Projection<T> {
@@ -18,7 +19,13 @@ export class Projection<T> {
     public readonly actorID: number,
     trustedSequence?: unknown
   ) {
-    this.id = runtime.create(this, actorID, trustedSequence)
+    try {
+      this.id = runtime.create(this, actorID, trustedSequence)
+    } catch (err) {
+      throw err instanceof SequencerError
+        ? err
+        : new SequencerError('UNKOWN_ERROR', undefined, { cause: err })
+    }
   }
 
   /**

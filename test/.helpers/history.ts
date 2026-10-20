@@ -68,6 +68,8 @@ export function check_history(
   const models: Frame[][] = peers.map(() => initial.slice())
   const views: Frame[][] = peers.map(() => initial.slice())
   const packets: { id: number; delta: Gossip<string> }[] = []
+  let replayCheckpoint = snapshot
+  let replayStart = 0
   let context = ''
 
   /** A read may move the gate, but cannot change the visible Frame mapping. */
@@ -188,10 +190,23 @@ export function check_history(
           expect(peer.value(i), `${context}: index ${i}`).toBe(model[i])
       if (config.hydrate && id % 11 === 0) {
         context = `restart at step ${id}, Actor ${author + 1}`
-        const restored = new Constructor<string>(
-          author + 1,
-          structuredClone(peer.sequence())
-        )
+        const checkpoint = structuredClone(peer.sequence())
+        if (config.compact && config.mode === 'live') {
+          replayCheckpoint = checkpoint
+          replayStart = packets.length
+          // Complete consensus permits coordinate translation. Continued
+          // editors restart from the same retained checkpoint, as one session.
+          for (let receiver = 0; receiver < peers.length; ++receiver) {
+            const restored = new Constructor<string>(receiver + 1, checkpoint)
+            owned.push(restored)
+            inspect(restored, models[receiver])
+            peers[receiver].destroy()
+            peers[receiver] = restored
+            restored.apply(membership)
+          }
+          continue
+        }
+        const restored = new Constructor<string>(author + 1, checkpoint)
         owned.push(restored)
         inspect(restored, model)
         peer.destroy()
@@ -210,10 +225,14 @@ export function check_history(
           state: structuredClone(peer.sequence()),
         })
     }
-    const baseline = new Constructor<string>(900, structuredClone(snapshot))
+    const baseline = new Constructor<string>(
+      900,
+      structuredClone(replayCheckpoint)
+    )
     owned.push(baseline)
     baseline.apply(membership)
-    for (const packet of packets) baseline.apply(structuredClone(packet.delta))
+    for (const packet of packets.slice(replayStart))
+      baseline.apply(structuredClone(packet.delta))
     context = 'chronological replay'
     const expected = inspect(baseline)
     if (config.mode !== 'live') {

@@ -10,6 +10,12 @@ The synchronous WebAssembly instance is shared by the
 JavaScript owns Footage; native spans refer to its binding tokens and array
 offsets. Application values never enter WebAssembly memory.
 
+Register all active Actors before removals. Equal complete frontiers from every
+active Actor permit whole-Session compaction: exported Sequences omit eligible
+masks, deleted Footage and compacted Session claims, while retaining membership.
+Compaction may translate retained anchors; discarded coordinates are not retained
+for unregistered offline history.
+
 Implementation
 --------------
 

@@ -33,6 +33,11 @@ projection.destroy()
 - [Typescript](https://sovereignbase.dev/sequencer/classes/Projection.html)
 - [C++](https://sovereignbase.dev/sequencer/c++)
 
+Register active Actors, including offline Actors, before removals. When every
+active Actor acknowledges the same complete removal Session frontier,
+`sequence()` omits its masks and deleted Footage. Actor membership remains.
+See the [compaction contract](INTERNALS.md#compaction).
+
 ### Errors
 
 Library-reported failures throw `SequencerError`, with a stable `SequencerErrorCode`

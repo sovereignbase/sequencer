@@ -371,9 +371,8 @@ describe('Projection public API', () => {
       expect(
         sequenceFrontiers(sequence).some((frontier) => frontier[0] === 2)
       ).toBe(false)
-      expect(sequence[1]).toEqual(['a', 'c'])
       expect(
-        sequenceInsertions(sequence).some((entry) => (entry[0][5] | 0) < 0)
+        sequenceInsertions(sequence).every((entry) => (entry[0][5] | 0) > 0)
       ).toBe(true)
       expect(new Projection<string>(3, sequence).values()).toEqual(['a', 'c'])
       expect(projection.values()).toEqual(['a', 'c'])
@@ -414,8 +413,7 @@ describe('Projection public API', () => {
         expect(snapshot[0].every((word) => word <= 0x3fffffff)).toBe(true)
         expect(
           sequenceInsertions(snapshot).some((entry) => (entry[0][5] | 0) < 0)
-        ).toBe(true)
-        expect(snapshot[1]).toHaveLength(compact ? 126 : 128)
+        ).toBe(!compact)
         const retained = structuredClone(snapshot)
         const future = source.insert([999], 64)
         expect(snapshot).toEqual(retained)
@@ -450,8 +448,9 @@ describe('Projection public API', () => {
       const projection = seeded()
       projection.remove(1, 1)
       const sequence = projection.sequence()
-      expect(sequence[1]).toEqual(['a', 'c'])
-      expect(sequenceInsertions(sequence)[0][0][5]).toBe(3)
+      expect(
+        sequenceInsertions(sequence).every((entry) => (entry[0][5] | 0) > 0)
+      ).toBe(true)
       expect(new Projection<string>(2, sequence).values()).toEqual(['a', 'c'])
       expect(projection.values()).toEqual(['a', 'c'])
       projection.insert(['X'], 1)
@@ -471,7 +470,11 @@ describe('Projection public API', () => {
       ).toHaveLength(2)
       expect(new Projection<string>(3, retained).values()).toEqual(['c'])
       author.apply(receiver.apply(second)![1])
-      expect(author.sequence()[1]).toEqual(['c'])
+      expect(
+        sequenceInsertions(author.sequence()).every(
+          (entry) => (entry[0][5] | 0) > 0
+        )
+      ).toBe(true)
       expect(author.values()).toEqual(['c'])
     })
   })

@@ -47,6 +47,10 @@ try {
   } finally {
     crypto.getRandomValues = getRandomValues
   }
+  // Disconnected authors remain active members before any removal can compact.
+  await base.apply(
+    Array.from({ length: scenario.replica_count }, (_, index) => [100 + index])
+  )
   if (scenario.base_frame_count > 0) {
     await base.insert(
       Array.from(

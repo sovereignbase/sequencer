@@ -11,7 +11,7 @@ void Projection::patch_jumps(std::int32_t frame_diff, Word strip_diff, Index inc
   // Competition can place the edit beyond the anchor's indexed endpoint.
   // Resolve that gap directly instead of leaving its old spanning jump unchanged.
   if (!strips.left_jump[predecessor] && !strips.right_jump[predecessor]) {
-    position_of(incoming, frame_diff);
+    position_of(incoming, frame_diff, false);
     return;
   }
   const auto right_jump = strips.right_jump[predecessor];

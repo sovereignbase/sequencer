@@ -494,8 +494,12 @@ observed through logical time 42
 
 <p>The reported point is a <strong>frontier</strong>.</p>
 <p>A single frontier summarizes a received prefix of a Session rather than acknowledging every reducing Insertion separately.</p>
+<p>Every active Actor, including an offline Actor, must be registered before removals. An Actor-only acknowledgement such as <code>[3]</code> establishes that membership. Constructing another Projection does not register its Actor in the other replicas.</p>
+<p>The application must exchange pending history before treating an acknowledgement as a complete Session frontier. The library reports receipt of reducing Insertions; it does not prove that missing earlier operations have arrived.</p>
 <h2 id="compaction" class="tsd-anchor-link">Compaction<a href="#compaction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<p>When all active Actors agree on the same frontier for a reducing Session, the acknowledged deleted Footage can be omitted from future retained Sequences.</p>
+<p>When all active Actors agree on the same frontier for a reducing Session, the acknowledged part can be removed from future retained Sequences.</p>
+<p>This is whole-Session eligibility: every active Actor must report the same complete Session frontier. A missing claim or a different endpoint blocks that Session. Taking the minimum of unequal frontiers is not this compaction rule.</p>
+<p>Eligible masks must disappear from the exported Sequence. Wholly removed positive Insertions and deleted Footage disappear as well. Claims for compacted Sessions are dropped; Actor membership is retained.</p>
 <p>Suppose history contains:</p>
 <pre><code class="text">positive Frames
 removal mask
@@ -503,8 +507,8 @@ surviving descendants
 </code><button type="button">Copy</button></pre>
 
 <p>and every active Actor has seen the removal.</p>
-<p>A retained Sequence keeps the canonical positive Insertions and masks. Their identities and original coordinates remain available to later history from live or disconnected replicas.</p>
-<p>Compaction removes acknowledged deleted Frames from retained Footage. It does not allocate empty slots for them in the hydrated Footage.</p>
+<p>A new retained Sequence no longer needs to preserve all of the machinery that represented that deletion.</p>
+<p>Compaction can remove the acknowledged masks and remove deleted Frames from retained Footage.</p>
 <p>If only part of a positive Insertion was deleted:</p>
 <pre><code class="text">A B C D
 </code><button type="button">Copy</button></pre>
@@ -513,29 +517,30 @@ surviving descendants
 <pre><code class="text">B C
 </code><button type="button">Copy</button></pre>
 
-<p>gone, the retained Footage contains only:</p>
+<p>gone, the retained positive history can shrink to the surviving content:</p>
 <pre><code class="text">A D
 </code><button type="button">Copy</button></pre>
 
-<p>The positive Insertion still has its original length of four. The snapshot records which original intervals belong to the two stored values.</p>
-<p>An anchor at the original endpoint four still means after <code>D</code>, both in a running replica and in a replica restored from the snapshot.</p>
+<p>Anchors and remaining removals that referred to the old coordinates are adjusted to the smaller retained coordinate space.</p>
 <p>The running Projection does not need to be rewritten when this happens. Compaction produces another retained description of the same history.</p>
-<h2 id="historical-points-after-compaction" class="tsd-anchor-link">Historical points after compaction<a href="#historical-points-after-compaction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<p>Different logical points can have the same visible position after removal.</p>
+<p>The exported Sequence is a retained checkpoint. Its shorter Insertions and translated anchors can use different coordinates from the live graph before export. Continued editors must use compatible retained state; a compacted checkpoint does not preserve a permanent mapping to discarded history.</p>
+<p>An offline Actor's unacknowledged history blocks compaction only if that Actor was registered. A test that omits its membership, allows compaction, then demands that its discarded anchors still work is outside this contract. Tests must not retain masks to satisfy that demand.</p>
+<h2 id="collapsed-historical-points" class="tsd-anchor-link">Collapsed historical points<a href="#collapsed-historical-points" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Compaction can make two old logical points collapse onto the same retained point.</p>
 <p>Imagine:</p>
 <pre><code class="text">A | removed Frames | B
 </code><button type="button">Copy</button></pre>
 
 <p>with surviving descendants attached on both sides of the removed region.</p>
 <p>Before compaction those descendants were separated by different historical coordinates.</p>
-<p>After the deleted Footage is omitted, the historical coordinates still distinguish those attachment points.</p>
-<p>Hydration applies the same canonical history and ordering rules. It does not re-anchor the surviving children or renumber their parents.</p>
-<p>Acknowledging a removal does not imply that every replica has loaded the same snapshot. Keeping one coordinate space allows their subsequent Gossip to remain interoperable.</p>
+<p>After the deleted Frames disappear from retained history, that space no longer exists.</p>
+<p>Their order has already been resolved in Structural Order, so the compacted history keeps that order when it re-anchors the survivors around the remaining boundary.</p>
+<p>The discarded history is no longer needed to make the same ordering decision again.</p>
 <h2 id="actor-retirement" class="tsd-anchor-link">Actor retirement<a href="#actor-retirement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>An Actor that will never return would otherwise remain part of acknowledgement consensus forever.</p>
 <p>Retiring an Actor removes it from future compaction requirements.</p>
 <p>It does not remove Insertions authored by that Actor.</p>
-<p>It only changes which Actors must agree before deleted Footage can be omitted.</p>
+<p>It only changes which Actors must agree before old removal history can be discarded.</p>
 <p>Whether an Actor is permanently gone is something the surrounding application has to decide.</p>
 <h2 id="sequence" class="tsd-anchor-link">Sequence<a href="#sequence" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>A retained <strong>Sequence</strong> stores enough history to reconstruct the Projection later.</p>
@@ -582,8 +587,8 @@ surviving descendants
 <pre><code class="text">Sequence
 </code><button type="button">Copy</button></pre>
 
-<p>is the retained form of that history, with acknowledged deleted Footage omitted when possible.</p>
-<p>An edit starts from the Projection, becomes a relationship in Structural Order, and remains addressable in retained Sequences after acknowledged deleted Footage is omitted.</p>
+<p>is the retained form of that history, with acknowledged obsolete history compacted away when possible.</p>
+<p>An edit starts from the Projection, becomes a relationship in Structural Order, and can eventually survive in a much smaller retained Sequence after the history around it is no longer needed.</p>
 </div></div>
 <div class="col-sidebar">
 <div class="page-menu">
@@ -620,7 +625,7 @@ surviving descendants
 <li><a href="#replacement"><span>Replacement</span></a></li>
 <li><a href="#actors-and-acknowledgements"><span>Actors and acknowledgements</span></a></li>
 <li><a href="#compaction"><span>Compaction</span></a></li>
-<li><a href="#historical-points-after-compaction"><span>Historical points after compaction</span></a></li>
+<li><a href="#collapsed-historical-points"><span>Collapsed historical points</span></a></li>
 <li><a href="#actor-retirement"><span>Actor retirement</span></a></li>
 <li><a href="#sequence"><span>Sequence</span></a></li>
 <li><a href="#hydration"><span>Hydration</span></a></li>

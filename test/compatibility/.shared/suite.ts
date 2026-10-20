@@ -206,7 +206,7 @@ export function runSuite(
           sequenceInsertions(retained).some(
             (entry) => ((entry[0] as ReadonlyArray<number>)[5] | 0) < 0
           ),
-          true
+          !compact
         )
         equal(retained[1].length, compact ? 3 : 4)
         let hydrated = new Constructor<string>(1, retained)

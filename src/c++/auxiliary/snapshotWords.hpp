@@ -48,11 +48,11 @@ struct SnapshotWords {
   }
 
   /** Appends one retained canonical record, promoting at the 64th record.
-   * @param c Canonical coordinates, unchanged by Footage compaction.
+   * @param c Exact exported coordinates after any acknowledgement-gated compaction.
    */
   void append(const Coordinates &c) {
     // Only the first 63 records are revisited. Tiny surviving snapshots remain
-    // plain when their canonical record count stays below the packing threshold.
+    // plain even when a large edit history has been compacted away.
     if (eligible && !packed && count == 63)
       promote();
     ++count;

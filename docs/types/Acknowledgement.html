@@ -13,10 +13,12 @@
 <div class="tsd-signature"><span class="tsd-kind-type-alias">Acknowledgement</span><span class="tsd-signature-symbol">:</span> <a href="U32List.html" class="tsd-signature-type tsd-kind-type-alias">U32List</a></div>
 <div class="tsd-comment tsd-typography"><p>Describes one Actor's acknowledgement frontier.
 <code>[actorID, sessionID, sessionEnd, ...]</code> contains removal Session/frontier pairs.
-The application is responsible for acknowledging complete received Session prefixes.</p>
+Actor-only tuples establish membership before removals, including offline Actors.
+Compaction requires equal complete Session frontiers from every active Actor.
+The application must deliver pending history before claiming that frontier.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/248718183adcd975e716641ffb252266ec0e0188/src/typescript/types/type.ts#L33">src/typescript/types/type.ts:33</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/86e697f84c206ea0e1d44d7c37c6e0f3298ed2f6/src/typescript/types/type.ts#L35">src/typescript/types/type.ts:35</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

@@ -8,16 +8,23 @@
 #include <unordered_map>
 
 namespace sequencer {
-void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers,
-                         const std::vector<ContentRanges> &ranges) {
-  strips.reserve(Word(insertions.size()) + 1);
+void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers) {
   for (const auto &a : frontiers)
     frontier.observe(a);
+  if (insertions.empty())
+    return;
+  const auto &first = insertions.front().insertion;
+  if (insertions.size() == 1 && first.coordinates.birth() && first.coordinates.diff > 0) {
+    // One positive root has no dependencies, fragments or jumps to reconstruct.
+    const auto root = allocate(first);
+    insert_first(root);
+    containment.set(first.coordinates, root);
+    return;
+  }
+  strips.reserve(Word(insertions.size()) + 1);
+  containment.reserve(Word(insertions.size()));
   std::unordered_map<Index, Index> fragments;
   std::vector<Insertion> ready;
-  const auto masked = std::any_of(insertions.begin(), insertions.end(), [](const auto &entry) {
-    return entry.insertion.coordinates.diff < 0;
-  });
   for (std::size_t n = 0; n < insertions.size() || !ready.empty();) {
     const auto queued = !ready.empty();
     const auto insertion = queued ? ready.back() : insertions[n++].insertion;
@@ -31,14 +38,19 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
       pending.set(insertion);
       continue;
     }
-    auto retained = insertion;
-    // Exported Footage already contains masked slots or omits them. Hydration
-    // reconstructs geometry without mutating that externally owned array.
-    retained.content_owned = masked;
-    const auto incoming = allocate(retained);
+    const auto incoming = allocate(insertion);
     if (c.birth() && !structural_count)
       insert_first(incoming);
-    else {
+    else if (c.diff > 0 && origin && !strips.right[origin] && strips.fragment_diff[origin] > 0 &&
+             c.anchor_diff == strips.fragment_start[origin] + Word(strips.fragment_diff[origin])) {
+      // An unoccupied positive endpoint has no siblings to compare or Frames to
+      // split. The completed traversal index is built once after hydration.
+      strips.left[incoming] = origin;
+      strips.right[origin] = incoming;
+      tail = incoming;
+      ++structural_count;
+      frame_count += Word(c.diff);
+    } else {
       Index anchor = none;
       Word point = 0;
       if (!c.birth()) {
@@ -68,21 +80,9 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
       ready.insert(ready.end(), released.rbegin(), released.rend());
     }
   }
-  if (masked || !ranges.empty()) {
-    released.clear();
-    copied.clear();
-    restore_content(ranges);
-    for (const auto &entry : insertions)
-      if (entry.insertion.coordinates.diff > 0) {
-        const auto c = entry.insertion.coordinates;
-        const auto root = containment.get(c.session, c.start);
-        if (root)
-          clear_content(root);
-      }
-  }
   // Later masks can still split an earlier prefix. Index only the completed
   // Structural Order so endpoints and distances describe the final fragments.
-  const auto spacing = Word(std::max(1.0, std::round(std::sqrt(structural_count))));
+  const auto spacing = traversal_spacing();
   Index jump_start = structural_head, tail_jump_start = none;
   Index visible_head = none, visible_tail = none;
   Word jump_frames = 0, jump_strips = 0;

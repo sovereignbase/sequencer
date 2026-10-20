@@ -19,7 +19,6 @@ set(SEQUENCER_SOURCES
   src/c++/auxiliary/anchorStrip.cpp
   src/c++/auxiliary/extendInsertion.cpp
   src/c++/auxiliary/ownContent.cpp
-  src/c++/auxiliary/restoreContent.cpp
   src/c++/auxiliary/findContainingFragment.cpp
   src/c++/auxiliary/findFramePositionByProjectionPosition.cpp
   src/c++/auxiliary/findProjectionPositionOfStrip.cpp

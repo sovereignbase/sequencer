@@ -28,27 +28,32 @@ export type Insertion<T> = Readonly<
 /**
  * Describes one Actor's acknowledgement frontier.
  * `[actorID, sessionID, sessionEnd, ...]` contains removal Session/frontier pairs.
- * The application is responsible for acknowledging complete received Session prefixes.
+ * Actor-only tuples establish membership before removals, including offline Actors.
+ * Compaction requires equal complete Session frontiers from every active Actor.
+ * The application must deliver pending history before claiming that frontier.
  */
 export type Acknowledgement = U32List
 
-/** Ordered replication batch; delivery may be duplicated or causally reordered. */
+/** Replication batch within retained history; delivery may be duplicated or causally reordered. */
 export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>
 
 /**
  * Retained state required to hydrate the same visible Projection.
  * One structural array and one JavaScript-owned content array.
- * Metadata retains canonical coordinates and acknowledgements. Packing omits
- * predictable fields; acknowledged removals omit Footage slots while retaining
- * the original logical boundaries needed by subsequent Gossip.
- * Use `Projection` to read either plain or packed metadata.
+ * Small snapshots use six-word insertion records after length-prefixed ACKs;
+ * `words[0]` locates those records. Large snapshots begin with
+ * `[0, frontiersEnd, insertionCount]` and omit predictable coordinate fields.
+ * Both layouts encode the retained coordinates and acknowledgements.
+ * Eligible masks, deleted Footage and compacted Session claims are omitted;
+ * Actor membership remains. Compaction may translate retained coordinates.
+ * Positive insertion diffs consume successive spans of `footage`.
  * `[[], []]` is an empty Sequence. Both numeric arrays and typed views are accepted.
  */
 export type Sequence<T> = Readonly<
   [
     /** Acknowledgements followed by canonical Insertions in Structural Order. */
     words: U32List,
-    /** Packed positive Frame spans; unacknowledged masked slots may be undefined. */
+    /** Consecutive positive Insertion spans, including missing Footage slots. */
     footage: ReadonlyArray<T | undefined>,
   ]
 >

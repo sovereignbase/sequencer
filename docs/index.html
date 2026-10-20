@@ -23,9 +23,13 @@
 <h3 id="see-documentation" class="tsd-anchor-link">See documentation<a href="#see-documentation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul>
 <li><a href="documents/INTERNALS.html">How sequencer works?</a></li>
-<li><a href="https://sovereignbase.dev/sequencer/">Typescript</a></li>
+<li><a href="https://sovereignbase.dev/sequencer/classes/Projection.html">Typescript</a></li>
 <li><a href="https://sovereignbase.dev/sequencer/c++">C++</a></li>
 </ul>
+<p>Register active Actors, including offline Actors, before removals. When every
+active Actor acknowledges the same complete removal Session frontier,
+<code>sequence()</code> omits its masks and deleted Footage. Actor membership remains.
+See the <a href="documents/INTERNALS.html#compaction">compaction contract</a>.</p>
 <h3 id="errors" class="tsd-anchor-link">Errors<a href="#errors" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>Library-reported failures throw <code>SequencerError</code>, with a stable <code>SequencerErrorCode</code>
 and a message prefixed with <code>{@sovereignbase/sequencer}</code>. Both are exported from

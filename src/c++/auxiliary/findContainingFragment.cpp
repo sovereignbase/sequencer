@@ -23,6 +23,15 @@ std::pair<Word, Index> Projection::find_containing_fragment(Index origin, const 
                                     projected, incoming);
   }
   auto anchor = origin;
+  // Fragment starts are ordered in the parent's original Frame space. Earlier
+  // child subtrees cannot own a boundary beyond the next fragment's start.
+  // A positive query at that exact start still checks the preceding mask endpoint.
+  if (parent.diff > 0)
+    for (auto next = strips.fragment[anchor];
+         next && (c.diff < 0 ? c.anchor_diff >= strips.fragment_start[next]
+                             : c.anchor_diff > strips.fragment_start[next]);
+         next = strips.fragment[anchor])
+      anchor = next;
   while (anchor) {
     const auto fs = strips.fragment_start[anchor];
     const auto fe = fs + magnitude(strips.fragment_diff[anchor]);

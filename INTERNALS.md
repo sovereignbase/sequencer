@@ -744,9 +744,17 @@ The reported point is a **frontier**.
 
 A single frontier summarizes a received prefix of a Session rather than acknowledging every reducing Insertion separately.
 
+Every active Actor, including an offline Actor, must be registered before removals. An Actor-only acknowledgement such as `[3]` establishes that membership. Constructing another Projection does not register its Actor in the other replicas.
+
+The application must exchange pending history before treating an acknowledgement as a complete Session frontier. The library reports receipt of reducing Insertions; it does not prove that missing earlier operations have arrived.
+
 ## Compaction
 
-When all active Actors agree on the same frontier for a reducing Session, the acknowledged deleted Footage can be omitted from future retained Sequences.
+When all active Actors agree on the same frontier for a reducing Session, the acknowledged part can be removed from future retained Sequences.
+
+This is whole-Session eligibility: every active Actor must report the same complete Session frontier. A missing claim or a different endpoint blocks that Session. Taking the minimum of unequal frontiers is not this compaction rule.
+
+Eligible masks must disappear from the exported Sequence. Wholly removed positive Insertions and deleted Footage disappear as well. Claims for compacted Sessions are dropped; Actor membership is retained.
 
 Suppose history contains:
 
@@ -758,9 +766,9 @@ surviving descendants
 
 and every active Actor has seen the removal.
 
-A retained Sequence keeps the canonical positive Insertions and masks. Their identities and original coordinates remain available to later history from live or disconnected replicas.
+A new retained Sequence no longer needs to preserve all of the machinery that represented that deletion.
 
-Compaction removes acknowledged deleted Frames from retained Footage. It does not allocate empty slots for them in the hydrated Footage.
+Compaction can remove the acknowledged masks and remove deleted Frames from retained Footage.
 
 If only part of a positive Insertion was deleted:
 
@@ -774,21 +782,23 @@ with:
 B C
 ```
 
-gone, the retained Footage contains only:
+gone, the retained positive history can shrink to the surviving content:
 
 ```text
 A D
 ```
 
-The positive Insertion still has its original length of four. The snapshot records which original intervals belong to the two stored values.
-
-An anchor at the original endpoint four still means after `D`, both in a running replica and in a replica restored from the snapshot.
+Anchors and remaining removals that referred to the old coordinates are adjusted to the smaller retained coordinate space.
 
 The running Projection does not need to be rewritten when this happens. Compaction produces another retained description of the same history.
 
-## Historical points after compaction
+The exported Sequence is a retained checkpoint. Its shorter Insertions and translated anchors can use different coordinates from the live graph before export. Continued editors must use compatible retained state; a compacted checkpoint does not preserve a permanent mapping to discarded history.
 
-Different logical points can have the same visible position after removal.
+An offline Actor's unacknowledged history blocks compaction only if that Actor was registered. A test that omits its membership, allows compaction, then demands that its discarded anchors still work is outside this contract. Tests must not retain masks to satisfy that demand.
+
+## Collapsed historical points
+
+Compaction can make two old logical points collapse onto the same retained point.
 
 Imagine:
 
@@ -800,11 +810,11 @@ with surviving descendants attached on both sides of the removed region.
 
 Before compaction those descendants were separated by different historical coordinates.
 
-After the deleted Footage is omitted, the historical coordinates still distinguish those attachment points.
+After the deleted Frames disappear from retained history, that space no longer exists.
 
-Hydration applies the same canonical history and ordering rules. It does not re-anchor the surviving children or renumber their parents.
+Their order has already been resolved in Structural Order, so the compacted history keeps that order when it re-anchors the survivors around the remaining boundary.
 
-Acknowledging a removal does not imply that every replica has loaded the same snapshot. Keeping one coordinate space allows their subsequent Gossip to remain interoperable.
+The discarded history is no longer needed to make the same ordering decision again.
 
 ## Actor retirement
 
@@ -814,7 +824,7 @@ Retiring an Actor removes it from future compaction requirements.
 
 It does not remove Insertions authored by that Actor.
 
-It only changes which Actors must agree before deleted Footage can be omitted.
+It only changes which Actors must agree before old removal history can be discarded.
 
 Whether an Actor is permanently gone is something the surrounding application has to decide.
 
@@ -894,6 +904,6 @@ is the history currently needed to resolve ordering and removals.
 Sequence
 ```
 
-is the retained form of that history, with acknowledged deleted Footage omitted when possible.
+is the retained form of that history, with acknowledged obsolete history compacted away when possible.
 
-An edit starts from the Projection, becomes a relationship in Structural Order, and remains addressable in retained Sequences after acknowledged deleted Footage is omitted.
+An edit starts from the Projection, becomes a relationship in Structural Order, and can eventually survive in a much smaller retained Sequence after the history around it is no longer needed.

@@ -13,8 +13,7 @@ Result Projection::apply(std::span<const Entry> gossip) {
   apply(gossip, result);
   return result;
 }
-void Projection::apply(std::span<const Entry> gossip, Result &result,
-                       const std::unordered_map<std::uint64_t, ContentRanges> *ranges) {
+void Projection::apply(std::span<const Entry> gossip, Result &result) {
   for (const auto &entry : gossip) {
     // Acknowledgements affect compaction consensus, not visible or Structural Order.
     if (entry.acknowledgement) {
@@ -65,28 +64,9 @@ void Projection::apply(std::span<const Entry> gossip, Result &result,
         const auto end = growing ? Word(c.diff) : c.anchor_diff + Word(c.diff);
         if (end > known && (growing || c.anchor_diff == known)) {
           // A longer snapshot includes the known prefix; replay only its unknown suffix.
-          auto source_start = growing ? known : known - c.anchor_diff;
-          auto physical_count = end - known;
-          const auto packed = growing && ranges && insertion.content_length != Word(c.diff);
-          if (packed) {
-            const auto &source = ranges->at(identity(c.session, c.start)).frames;
-            auto &target = content_ranges[identity(c.session, c.start)];
-            if (target.empty() && strips.identity[parent].content_length == known)
-              target.push_back({0, known});
-            source_start = physical_count = 0;
-            for (const auto range : source) {
-              const auto prefix =
-                  std::min(range.count, known > range.start ? known - range.start : 0);
-              source_start += prefix;
-              if (prefix < range.count) {
-                target.push_back({range.start + prefix, range.count - prefix});
-                physical_count += range.count - prefix;
-              }
-            }
-          }
-          const auto at =
-              extend(parent, end - known, insertion.content, insertion.content_start + source_start,
-                     packed ? physical_count : UINT32_MAX);
+          const auto source_start = growing ? known : known - c.anchor_diff;
+          const auto at = extend(parent, end - known, insertion.content,
+                                 insertion.content_start + source_start);
           result.changes.push_back(
               {at, at,
                Span{insertion.content, insertion.content_start + source_start, end - known}});

@@ -1,4 +1,4 @@
-/** Historical mask boundaries must retain offline children, even after overlap or later safe compaction. */
+/** Overlap preserves unacknowledged anchors; compaction preserves their delivered children. */
 import { makeSequence, sequenceInsertions } from '../../../.shared/sequence.ts'
 import { expect, it } from 'vitest'
 import { Projection } from '../../../../src/typescript/class.ts'
@@ -187,7 +187,7 @@ it('keeps a gate in another root subtree across a fragmented remote removal', ()
   receiver.apply(author.remove(1, 2))
   expect(receiver.values()).toEqual(['B', 'X'])
 })
-it('omits fully removed Footage while retaining overlapping canonical masks', () => {
+it('omits a retained mask whose entire range is represented by compacted removal', () => {
   const projection = new Projection<string>(
     1,
     makeSequence(
@@ -207,14 +207,13 @@ it('omits fully removed Footage while retaining overlapping canonical masks', ()
   )
   expect(projection.values()).toEqual([])
   const snapshot = projection.sequence()
-  expect(snapshot[1]).toEqual([])
-  expect(sequenceInsertions(snapshot)).toHaveLength(3)
+  expect(sequenceInsertions(snapshot)).toEqual([])
   expect(new Projection<string>(3, snapshot).values()).toEqual([])
 })
 it('compacts separate removals that together consume an entire original Footage', () => {
   const projection = new Projection<string>(1)
   projection.insert(['a', 'b', 'c'], 0)
   for (let index = 0; index < 3; ++index) projection.remove(0, 0)
-  expect(projection.sequence()[1]).toEqual([])
+  expect(sequenceInsertions(projection.sequence())).toEqual([])
   expect(projection.values()).toEqual([])
 })

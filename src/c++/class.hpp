@@ -21,6 +21,8 @@ public:
   Word structural_count{} /**< Linked Strip count, including fragments and masks. */,
       frame_count{} /**< Visible positive Frame count. */,
       gate_position{} /**< Visible position at the gate Strip's first Frame or boundary. */;
+  /** Rounded jump spacing and the largest Strip count for which it remains valid. */
+  std::array<Word, 2> jump_spacing{1, 2};
   Index left_jump_to_patch{} /**< Left endpoint of the jump spanning the next local edit. */,
       right_jump_to_patch{} /**< Right endpoint of that same jump. */;
   /** Last locally authored positive root eligible for an intact extension. */
@@ -39,8 +41,6 @@ public:
   std::vector<ContentAppend> appended;
   /** Deferred copy-on-write slices protecting caller arrays and retained snapshots. */
   std::vector<Span> copied;
-  /** Original intervals still represented in physically compacted Footage bindings. */
-  std::unordered_map<std::uint64_t, std::vector<FrameRange>> content_ranges;
 
   /** Initializes empty history with independently supplied Session identities.
    * @param actor_id Acknowledging Actor.
@@ -59,6 +59,17 @@ public:
    * @return Maintained visible Frame count.
    */
   Word length() const { return frame_count; }
+  /** Reuses square-root spacing until Structural Order crosses its next rounding boundary.
+   * @return At least one Strip per target jump interval.
+   */
+  Word traversal_spacing() {
+    if (structural_count > jump_spacing[1]) {
+      const auto spacing = Word(std::max(1.0, std::round(std::sqrt(structural_count))));
+      jump_spacing = {spacing, Word(std::min<std::uint64_t>(UINT32_MAX, std::uint64_t(spacing) *
+                                                                            (spacing + 1)))};
+    }
+    return jump_spacing[0];
+  }
   /** Initializes structural and visible endpoints for the first root.
    * @param i Unlinked root Strip in an empty Structural Order.
    */
@@ -101,9 +112,10 @@ public:
   /** Locates a newly linked Strip relative to the retained local gate.
    * @param strip Strip whose visible start is required.
    * @param gate_diff Effect already applied before the retained gate boundary.
-   * @return Visible Projection position of the Strip's boundary.
+   * @param locate Whether to resolve an absolute position after repairing local jumps.
+   * @return Visible Projection position, or zero when only repairing jumps.
    */
-  Word position_of(Index strip, std::int32_t gate_diff = 0);
+  Word position_of(Index strip, std::int32_t gate_diff = 0, bool locate = true);
   /** Updates and, when necessary, splits the jump spanning a local edit.
    * @param frame_diff Signed change to visible distance.
    * @param strip_diff Added structural Strip count.
@@ -127,11 +139,9 @@ public:
    * @param count Number of newly visible Frames.
    * @param content Binding carrying the incoming suffix.
    * @param source_start Offset of that suffix in its source Footage.
-   * @param physical_count Packed suffix length, or UINT32_MAX for its complete logical extent.
    * @return Visible start of the added suffix.
    */
-  Word extend(Index origin, Word count, Word content, Word source_start = 0,
-              Word physical_count = UINT32_MAX);
+  Word extend(Index origin, Word count, Word content, Word source_start = 0);
   /** Requests private Footage before clearing externally owned content slots.
    * @param fragment Any fragment of the positive canonical Insertion.
    */
@@ -158,34 +168,19 @@ public:
   /** Integrates operations into retained output storage without clearing existing results.
    * @param gossip Already read native entries.
    * @param result Output to append to, allowing one Result across an entire ABI batch.
-   * @param ranges Packed source intervals used only when merging a compacted snapshot.
    */
-  void apply(std::span<const Entry> gossip, Result &result,
-             const std::unordered_map<std::uint64_t, ContentRanges> *ranges = nullptr);
+  void apply(std::span<const Entry> gossip, Result &result);
   /** Reconstructs trusted exported history and prebuilds traversal jumps.
    * @param insertions Canonical Insertions in exported Structural Order.
    * @param frontiers Retained Actor Acknowledgements.
-   * @param ranges Original Frame intervals represented in packed Footage.
    */
-  void hydrate(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers,
-               const std::vector<ContentRanges> &ranges = {});
-  /** Restores physical Footage offsets after canonical masks have been materialized.
-   * @param ranges Retained original intervals and their physical binding origins.
-   * @param external Whether to revoke private ownership throughout hydrated history.
-   */
-  void restore_content(const std::vector<ContentRanges> &ranges, bool external = true);
-  /** Releases masked physical slots while preserving externally owned Footage.
-   * @param root Canonical positive Insertion whose physical gaps are cleared.
-   */
-  void clear_content(Index root);
+  void hydrate(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers);
   /** Integrates snapshot history and then observes its retained Acknowledgements.
    * @param insertions Canonical snapshot Insertions.
    * @param frontiers Snapshot Acknowledgements.
-   * @param ranges Original Frame intervals represented in packed Footage.
    * @return Visible Splices and Gossip containing Acknowledgements for newly integrated history.
    */
-  Result merge(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers,
-               const std::vector<ContentRanges> &ranges = {});
+  Result merge(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers);
   /** Resolves an inclusive visible range to JavaScript Footage spans.
    * @param start First included Projection position.
    * @param end Last included position.

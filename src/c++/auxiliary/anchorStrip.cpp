@@ -36,7 +36,7 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point,
     // Make its parent an endpoint before consuming that fragment's Frames.
     if (index_fragments && incoming != first && !strips.left_jump[anchor] &&
         !strips.right_jump[anchor])
-      position_of(anchor);
+      position_of(anchor, 0, false);
     const auto previous_count = structural_count;
     auto left = anchor;
     Index right = none;

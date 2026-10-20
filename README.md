@@ -6,7 +6,7 @@
 
 # Sequencer
 
-Sequencer provides a deterministic total ordering for distributed data. It allows independently operating actors to make concurrent changes and eventually converge on the same state without relying on network arrival order or perfectly synchronized clocks.
+Sequencer provides a total order guarantee for distributed editing. It allows independently operating actors to make concurrent edits and eventually converge on the same state without relying on network arrival order or perfectly synchronized clocks.
 
 ## Usage
 
@@ -15,21 +15,40 @@ Sequencer provides a deterministic total ordering for distributed data. It allow
 ```ts
 import { Projection } from '@sovereignbase/sequencer'
 
-const projection = new Projection<string>(1)
+const projectionA = new Projection<string>(1)
 
-const gossip0 = projection.insert(['Hello World'], 0)
-console.log(projection.value(0)) // "Hello World"
-const gossip1 = projection.replace(['Hello Dude'], 0, 0)
-console.log(projection.value(0)) // "Hello Dude"
-const gossip2 = projection.remove(0, 0)
-console.log(projection.value(0)) // undefined
+const projectionB = new Projection<string>(2)
 
-projection.destroy()
+const insertDelta = projectionA.insert(['Hello World'], 0)
+console.log(projectionA.value(0)) // "Hello World"
+
+projectionB.apply(insertDelta)
+console.log(projectionB.value(0)) // "Hello World"
+
+const replaceDelta = projectionA.replace(['Hello Dude'], 0, 0)
+console.log(projectionA.value(0)) // "Hello Dude"
+
+const replaceAcknowledgement = projectionB.apply(replaceDelta)
+console.log(projectionB.value(0)) // "Hello Dude"
+
+projectionA.apply(replaceAcknowledgement)
+
+const removeDelta = projectionA.remove(0, 0)
+console.log(projectionA.value(0)) // undefined
+
+const removeAcknowledgement = projectionB.apply(removeDelta)
+console.log(projectionB.value(0)) // undefined
+
+projectionA.apply(removeAcknowledgement)
+
+const serializable = projectionA.sequence()
+
+const acknowledgements = projectionB.merge(serializable)
+projectionA.apply(acknowledgements)
+
+projectionA.destroy()
+projectionB.destroy()
 ```
-
-For text stored as UTF-16 code units, `projection.sequence(true)` returns string
-Footage. Construction and merge accept either form; `sequence()` keeps array
-Footage. See [Projection.sequence](https://sovereignbase.dev/sequencer/classes/Projection.html#sequence).
 
 ### See documentation
 
@@ -39,18 +58,13 @@ Footage. See [Projection.sequence](https://sovereignbase.dev/sequencer/classes/P
 
 ### Errors
 
-Library-reported failures throw `SequencerError`, with a stable `SequencerErrorCode`
-and a message prefixed with `{@sovereignbase/sequencer}`. Both are exported from
-the package. The constructor accepts standard `ErrorOptions`, including `cause`.
+| Code                      | Meaning                                                             |
+| ------------------------- | ------------------------------------------------------------------- |
+| `PROJECTION_DESTROYED`    | An operation was called after the Projection was destroyed.         |
+| `NATIVE_OPERATION_FAILED` | The native runtime reported an initialization or operation failure. |
+| `STRING_ENCODING_FAILED`  | Snapshot Footage concatenation failed.                              |
 
-| Code                      | Meaning                                                                      |
-| ------------------------- | ---------------------------------------------------------------------------- |
-| `PROJECTION_DESTROYED`    | An operation was called after the Projection was destroyed.                  |
-| `NATIVE_OPERATION_FAILED` | The native runtime reported an initialization or operation failure.          |
-| `STRING_ENCODING_FAILED`  | Snapshot Footage concatenation failed; `cause` preserves the original error. |
-
-Invalid Gossip or Sequence input to `apply()` or `merge()` returns `undefined`.
-Platform errors retain their original types.
+Invalid input to `apply()` or `merge()` returns `undefined` instead of throwing.
 
 ## Benchmarks
 

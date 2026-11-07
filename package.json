@@ -92,6 +92,7 @@
   "allowScripts": {
     "workerd@1.20261104.1": true,
     "bun@1.4.4": true,
-    "deno@2.9.6": true
+    "deno@2.9.6": true,
+    "esbuild@0.28.2": true
   }
 }

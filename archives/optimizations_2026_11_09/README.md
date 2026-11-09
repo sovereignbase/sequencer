@@ -13,6 +13,9 @@ isolated runtime, matching the existing benchmark setup.
 
 Terser: three passes. Gzip: level 9. Both bundles include WASM.
 
+[Inline WASM gzip experiment](wasm_gzip.md): bundle-size measurements; packaging
+decision deferred.
+
 ## Verification
 
 271 Vitest tests passed; TypeScript statement, branch, function and line coverage

@@ -9,8 +9,14 @@ Gossip Projection::replace(Word count, Word content, Word start, std::int64_t en
   auto output = remove(start, end);
   // Anchor replacement content against the Projection already produced by removal.
   if (count) {
-    output.push_back(Entry::insert(insert(count, content, start)));
-  }
+    if (tuple && count > 1) {
+      auto additions = insert_batch(count, content, start);
+      output.insert(output.end(), std::make_move_iterator(additions.begin()),
+                    std::make_move_iterator(additions.end()));
+    } else
+      output.push_back(Entry::insert(insert(count, content, start)));
+  } else if (tuple)
+    released.push_back({content, 0, 0});
   return output;
 }
 } // namespace sequencer

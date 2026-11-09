@@ -4,6 +4,8 @@ export const Operation = {
   Create: 0,
   /** Integrate validated Gossip entries, preserving a valid prefix on rejection. */
   Apply: 1,
+  /** Consume tuple insertion descriptors returned by the dedicated native export. */
+  Insert: 2,
   /** Integrate snapshot Insertions and reported removal frontiers. */
   Merge: 4,
   /** Author masks over an inclusive Projection range. */

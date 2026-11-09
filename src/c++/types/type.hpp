@@ -148,7 +148,10 @@ struct Strips {
       *offset{} /**< Whether this Strip represents an offset fragment or consumed mask prefix. */;
 
   /** Initializes slot zero so absent links may safely read zero-valued lanes. */
-  Strips() { append({}); }
+  explicit Strips(bool initialize = true) {
+    if (initialize)
+      append({});
+  }
   /** Grows every lane together, preserving initialized slots and stable indices.
    * @param next Required arena capacity; existing capacity is retained when sufficient.
    */

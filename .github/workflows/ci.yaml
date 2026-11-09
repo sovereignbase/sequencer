@@ -109,6 +109,7 @@ jobs:
       - run: npm run configure:wasm
       - run: npm test
       - run: npm run bench
+      - run: npm run bench:tuple
 
       - name: Format generated README
         if: always()

@@ -18,7 +18,9 @@ Tests are grouped by the primary semantic contract they exercise. Each group ind
 
 ## Running a subset
 
-`npm run test:convergence` runs all nine groups. Use Vitest's path filter for a group or a scenario:
+`npm run test:convergence` also covers [tuple convergence](tuple/README.md): stable
+indices, competing versions, observed removal and acknowledged checkpoints.
+Use Vitest's path filter for a group or a scenario:
 
 ```powershell
 npx vitest run test/convergence/anchoring --coverage.enabled=false

@@ -2,6 +2,7 @@
 #include "components/ContainmentTable/class.hpp"
 #include "components/FrontierTable/class.hpp"
 #include "components/PendingTable/class.hpp"
+#include "components/Tuple/class.hpp"
 #include <cmath>
 #include <span>
 #include <stdexcept>
@@ -19,7 +20,7 @@ public:
       tail{} /**< Strip owning the last visible Frame. */,
       gate{} /**< Retained local lookup Strip, possibly a hidden insertion boundary. */;
   Word structural_count{} /**< Linked Strip count, including fragments and masks. */,
-      frame_count{} /**< Visible positive Frame count. */,
+      frame_count{} /**< Visible Frame count; tuple extent includes empty registers. */,
       gate_position{} /**< Visible position at the gate Strip's first Frame or boundary. */;
   /** Rounded jump spacing and the largest Strip count for which it remains valid. */
   std::array<Word, 2> jump_spacing{1, 2};
@@ -41,15 +42,25 @@ public:
   std::vector<ContentAppend> appended;
   /** Deferred copy-on-write slices protecting caller arrays and retained snapshots. */
   std::vector<Span> copied;
+  /** Present only for stable-index register semantics. */
+  std::unique_ptr<Tuple> tuple;
 
   /** Initializes empty history with independently supplied Session identities.
    * @param actor_id Acknowledging Actor.
    * @param increasing_session Session for locally authored positive Insertions.
    * @param decreasing_session Session for locally authored reducing Insertions.
+   * @param tuple_enabled Whether indices identify stable registers.
+   * @param tuple_capacity Fixed register count, or UINT32_MAX for dynamic growth.
    */
-  Projection(Word actor_id, Word increasing_session, Word decreasing_session)
-      : actor(actor_id), increase_clock{increasing_session, 0},
-        decrease_clock{decreasing_session, 0} {}
+  Projection(Word actor_id, Word increasing_session, Word decreasing_session,
+             bool tuple_enabled = false, Word tuple_capacity = UINT32_MAX)
+      : actor(actor_id), strips(!tuple_enabled), increase_clock{increasing_session, 0},
+        decrease_clock{decreasing_session, 0} {
+    if (tuple_enabled) {
+      tuple = std::make_unique<Tuple>(tuple_capacity);
+      frame_count = tuple_capacity == UINT32_MAX ? 0 : tuple_capacity;
+    }
+  }
   /** Allocates an unlinked Strip; linking, counts and containment are separate.
    * @param i Canonical coordinates and JavaScript binding reference.
    * @return Stable arena index.
@@ -128,12 +139,14 @@ public:
    */
   std::pair<Word, Index> select_anchor(Word position);
   /** Authors positive Frames, extending only an eligible local Insertion.
-   * @param count Positive Footage length.
+   * @param count Positive Footage length; tuple mode accepts one Frame per Insertion.
    * @param content JavaScript binding token; native code never reads the values.
    * @param at Visible insertion boundary.
    * @return Canonical Gossip operation, including only the suffix for an extension.
    */
   Insertion insert(Word count, Word content, Word at);
+  /** Authors one Insertion per stable tuple index, or one contiguous sequence Insertion. */
+  Gossip insert_batch(Word count, Word content, Word at);
   /** Appends a contiguous logical suffix while respecting remote fragmentation.
    * @param origin Existing positive canonical root.
    * @param count Number of newly visible Frames.

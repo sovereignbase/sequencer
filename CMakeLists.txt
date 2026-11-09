@@ -8,6 +8,7 @@ project(
 )
 
 set(SEQUENCER_SOURCES
+  src/c++/components/Tuple/class.cpp
   src/c++/algorithms/apply.cpp
   src/c++/algorithms/create.cpp
   src/c++/algorithms/insert.cpp

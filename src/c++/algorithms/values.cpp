@@ -13,6 +13,20 @@ std::vector<Span> Projection::values(Word start, Word end) {
 }
 void Projection::values(Word start, Word end, std::vector<Span> &output) {
   output.clear();
+  if (tuple) {
+    if (!frame_count || start >= frame_count || start > end)
+      return;
+    end = std::min(end, frame_count - 1);
+    for (Word at = start; at <= end; ++at) {
+      const auto span = tuple->value(at);
+      if (!output.empty() && output.back().content == span.content &&
+          (!span.content || output.back().start + output.back().count == span.start))
+        ++output.back().count;
+      else
+        output.push_back(span);
+    }
+    return;
+  }
   if (!frame_count || start > end)
     return;
   auto frame = find_frame(start);

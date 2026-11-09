@@ -1,7 +1,7 @@
 import module from '../wasm/index.js'
 import { SequencerError } from '../errors/class.js'
 import { Operation, type Opcode } from './protocol.js'
-import type { U32List } from '../types/type.js'
+import type { TupleParams, U32List } from '../types/type.js'
 
 /** Owns Projection handles and Footage bindings around one synchronous native runtime. */
 class Runtime {
@@ -50,7 +50,12 @@ class Runtime {
    * @param sequence Optional trusted retained state.
    * @returns Native handle, registered only after successful hydration.
    */
-  create(owner: object, actorID: number, sequence?: unknown): number {
+  create(
+    owner: object,
+    actorID: number,
+    sequence?: unknown,
+    tupleParams?: TupleParams
+  ): number {
     // Seed once per runtime; individual Projections receive fresh native Session clocks.
     if (this.nextProjection === 0)
       module._runtime_seed(crypto.getRandomValues(new Uint32Array(1))[0])
@@ -58,7 +63,7 @@ class Runtime {
     this.content[id] = [undefined]
     this.mutable[id] = []
     try {
-      this.call(Operation.Create, id, actorID, sequence)
+      this.call(Operation.Create, id, actorID, sequence, tupleParams)
     } catch (error) {
       // Failed hydration must release both sides before this handle can be reused.
       this.release(id)
@@ -133,6 +138,9 @@ class Runtime {
         at
       ) >>> 2
     const heap = module.HEAPU32
+    // Tuple batches contain one canonical Insertion per stable index.
+    if (heap[pointer + 6] === 0xffffffff)
+      return this.result(Operation.Insert, id, heap[pointer + 7])
     const coordinates = [
       heap[pointer],
       heap[pointer + 1],
@@ -280,6 +288,7 @@ class Runtime {
     operation: Exclude<
       Opcode,
       | typeof Operation.Apply
+      | typeof Operation.Insert
       | typeof Operation.Sequence
       | typeof Operation.Destroy
     >,
@@ -293,7 +302,9 @@ class Runtime {
         'PROJECTION_DESTROYED',
         'Projection has been destroyed.'
       )
-    const count = this.inputSize(operation, value, at)
+    const configuration =
+      operation === Operation.Create && end !== undefined ? 2 : 0
+    const count = this.inputSize(operation, value, at) + configuration
     const pointer = count ? module._runtime_reserve(count) : 0
     const heap = module.HEAPU32,
       base = pointer >>> 2,
@@ -334,9 +345,15 @@ class Runtime {
                 Number.isInteger(word) && word >= 0 && word <= absent
             )))
       a2 = valid ? 1 : 0
+      if (configuration) {
+        const tuple = end as TupleParams
+        heap[base] = tuple.enabled ? 1 : 0
+        heap[base + 1] = tuple.maxLength ?? absent
+        a2 |= 2
+      }
       if (valid && sequence !== undefined) {
         const words = sequence[0] as U32List
-        heap.set(words, base)
+        heap.set(words, base + configuration)
         a1 = contents.length
         footage =
           typeof sequence[1] === 'string' ? sequence[1].split('') : sequence[1]
@@ -496,10 +513,15 @@ class Runtime {
     const gossip = (pointer: number, count: number): unknown[] => {
       const entries: unknown[] = []
       for (let at = pointer >>> 2, end = at + count * 4; at < end; at += 4) {
-        const coordinates = words(heap[at + 1], heap[at + 2])
+        const tuple = heap[at] === 2
+        const coordinates = words(heap[at + 1], tuple ? 6 : heap[at + 2])
         if (heap[at] === 1) entries.push(coordinates)
         else {
-          const footage = content[heap[at + 3]]
+          const source = content[heap[at + 3]]
+          const footage =
+            tuple && source && source.length !== 1
+              ? source.slice(heap[at + 2], heap[at + 2] + 1)
+              : source
           entries.push(
             footage === undefined ? [coordinates] : [coordinates, footage]
           )

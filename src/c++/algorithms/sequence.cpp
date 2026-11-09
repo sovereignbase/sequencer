@@ -28,9 +28,16 @@ Sequence Projection::sequence() const {
     }
   };
   std::unordered_map<std::uint64_t, Removed> removed;
+  if (tuple && !compactable.empty()) {
+    for (const auto &version : tuple->versions) {
+      const auto &c = version.coordinates;
+      if (c.diff < 0 && compactable.contains(c.session))
+        removed[identity(c.anchor_session, c.anchor_start)].whole = 1;
+    }
+  }
   // Collect actual consumed mask fragments, not authored lengths: overlapping
   // removals must never delete an original Frame twice from the exported Footage.
-  if (!compactable.empty()) {
+  if (!tuple && !compactable.empty()) {
     for (auto i = structural_head; i; i = strips.right[i]) {
       const auto s = i;
       const auto &c = strips.identity[s].coordinates;
@@ -63,8 +70,9 @@ Sequence Projection::sequence() const {
   Sequence output;
   // Eligibility is a capacity hint; the writer promotes only at 64 actually retained roots.
   const auto eligible = containment.size() >= 64;
-  output.words.reserve(1 + structural_count * (eligible ? 3 : 6));
-  output.footage.reserve(std::min(structural_count, containment.size()));
+  const auto count = tuple ? Word(tuple->versions.size() - 1) : structural_count;
+  output.words.reserve(1 + count * (eligible ? 3 : 6));
+  output.footage.reserve(std::min(count, containment.size()));
   output.words.push_back(0);
   // Keep Actor admission even when all of its compactable Session pairs disappear.
   for (const auto &a : frontier.frontiers()) {
@@ -83,6 +91,18 @@ Sequence Projection::sequence() const {
   output.words[0] = Word(output.words.size());
   SnapshotWords writer{output.words, {}, 0, false, eligible};
   constexpr auto omitted = std::numeric_limits<Word>::max();
+  if (tuple) {
+    for (Index index = 1; index < tuple->versions.size(); ++index) {
+      const auto &insertion = tuple->versions[index];
+      const auto &c = insertion.coordinates;
+      if (removed.contains(c.diff > 0 ? identity(c.session, c.start)
+                                      : identity(c.anchor_session, c.anchor_start)))
+        continue;
+      if (c.diff > 0)
+        output.footage.push_back({insertion.content, insertion.content_start, 1});
+      writer.append(c);
+    }
+  }
   Word left = omitted, left_diff = 0;
   Word left_session = 0, left_start = 0;
   for (auto i = structural_head; i; i = strips.right[i]) {
@@ -169,7 +189,9 @@ Sequence Projection::sequence() const {
   }
   if (writer.packed)
     output.words[2] = writer.count;
-  if (output.words.size() == 1)
+  if (tuple)
+    output.words.insert(output.words.begin(), {UINT32_MAX, 1, tuple->capacity, frame_count});
+  else if (output.words.size() == 1)
     output.words.clear();
   return output;
 }

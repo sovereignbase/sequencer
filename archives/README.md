@@ -8,6 +8,8 @@ the relevant reports.
 
 ## Optimization rounds
 
+[9 November 2026: tuple support, bundle size and API comparisons](optimizations_2026_11_09/README.md).
+
 | Round             | Reports                                                                                                                                                                                                                                                                                                                              |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 20 October 2026   | [String snapshot Footage, export and hydration](optimizations_2026_10_20/string_snapshot/README.md)                                                                                                                                                                                                                                  |

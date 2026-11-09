@@ -8,6 +8,7 @@ export type U32List = Uint32Array | ReadonlyArray<number>
  * The anchor triple names a logical point in an existing Insertion; the Session
  * and start pair identifies the authored Insertion. A positive diff adds Frames;
  * a negative diff masks original Frames. Signed values use uint32 bit patterns.
+ * In tuple mode, `anchorDiff` is the stable index and diff is `1` or `-1`.
  */
 export type InsertionWords = U32List
 
@@ -51,6 +52,8 @@ export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>
  * It uses one UTF-16 code unit per Frame. Missing slots use
  * NUL (`\u0000`); hydration splits the string with `split('')`.
  * `[[], []]` is an empty Sequence. Both numeric arrays and typed views are accepted.
+ * Tuple metadata prefixes the payload with `[0xffffffff, 1, maxLength, length]`;
+ * `maxLength = 0xffffffff` denotes dynamic growth. Tuple indices are never translated.
  */
 export type Sequence<T, StringEncoded extends boolean = false> = Readonly<
   [
@@ -61,7 +64,11 @@ export type Sequence<T, StringEncoded extends boolean = false> = Readonly<
   ]
 >
 
-/** Visible mutation: insertion uses `[at, at, values]`; removal ends exclusively. */
+/**
+ * Visible mutation: insertion uses `[at, at, values]`; removal ends exclusively.
+ * Tuple changes assign one stable index using `[index, index + 1, [value]]`;
+ * an empty register supplies `undefined`, without shifting other indices.
+ */
 export type Splice<T> = Readonly<
   [
     /** First affected position in the Projection after preceding Splices. */
@@ -77,3 +84,11 @@ export type Splice<T> = Readonly<
 export type Change<T> = ReadonlyArray<Splice<T>>
 /** Visible changes and optional Gossip returned by `apply()` or `merge()`. */
 export type Result<T> = Readonly<[change: Change<T>, gossip?: Gossip<T>]>
+
+/** Stable-index register configuration; omitting maxLength permits dynamic growth. */
+export type TupleParams = {
+  /** Whether indices remain fixed when values are inserted or removed. */
+  enabled: boolean | 0 | 1
+  /** Fixed number of registers, indices must be in `0..maxLength - 1`. */
+  maxLength?: number
+}

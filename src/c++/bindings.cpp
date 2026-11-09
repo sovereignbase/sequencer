@@ -47,13 +47,14 @@ struct Output {
   std::vector<EntryView> gossip;
   std::vector<SpliceView> splices;
   // Descriptor pointers refer to source storage; source must outlive JavaScript consumption.
-  void expose(const Gossip &source) {
+  void expose(const Gossip &source, bool tuple = false) {
     gossip.clear();
     for (const auto &e : source)
-      gossip.push_back(
-          e.acknowledgement
-              ? EntryView{1, address(e.frontier.data()), Word(e.frontier.size()), 0}
-              : EntryView{0, address(&e.insertion.coordinates), 6, e.insertion.content});
+      gossip.push_back(e.acknowledgement
+                           ? EntryView{1, address(e.frontier.data()), Word(e.frontier.size()), 0}
+                           : EntryView{tuple ? 2u : 0u, address(&e.insertion.coordinates),
+                                       tuple ? e.insertion.content_start : 6u,
+                                       e.insertion.content});
   }
 };
 static_assert(sizeof(Span) == 12 && sizeof(EntryView) == 16 && sizeof(SpliceView) == 16);
@@ -89,6 +90,8 @@ struct Reader {
   std::size_t position{};
   Word bindings{};
   bool valid = true;
+  bool tuple = false;
+  Word capacity = UINT32_MAX, extent = 0;
   Entry invalid() {
     valid = false;
     return {};
@@ -167,6 +170,20 @@ struct Reader {
     std::vector<Acknowledgement> frontiers;
     if (input.empty())
       return {std::move(insertions), std::move(frontiers)};
+    if (input[0] == UINT32_MAX) {
+      tuple = true;
+      if (input.size() < 5 || input[1] != 1) {
+        valid = false;
+        return {};
+      }
+      capacity = input[2];
+      extent = input[3];
+      if (capacity != UINT32_MAX && extent != capacity) {
+        valid = false;
+        return {};
+      }
+      input = input.subspan(4);
+    }
     auto end = word();
     // Plain metadata begins with the ACK end offset; zero introduces the compact header.
     const auto packed = end == 0;
@@ -220,6 +237,11 @@ struct Reader {
         valid = false;
         return {};
       }
+      if (tuple && ((c.diff > 0 && c.anchor_diff >= extent) || (c.diff != 1 && c.diff != -1) ||
+                    (c.diff > 0 && (c.anchor_session | c.anchor_start)))) {
+        valid = false;
+        return {};
+      }
       register_sessions(c);
       insertions.push_back(Entry::insert({c, c.diff > 0 ? content + bindings++ : 0, offset}));
       if (c.diff > 0)
@@ -256,12 +278,15 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_reserve(std::uint32_t count) {
 /** Allocates independent native history in the shared module.
  * @param id JavaScript-assigned Projection handle.
  * @param actor Actor used for Acknowledgements.
+ * @param tuple Whether indices identify stable registers.
+ * @param capacity Fixed register count, or UINT32_MAX for dynamic growth.
  */
-void runtime_create(std::uint32_t id, std::uint32_t actor) {
+void runtime_create(std::uint32_t id, std::uint32_t actor, bool tuple, std::uint32_t capacity) {
   using namespace sequencer;
   if (projections.size() <= id)
     projections.resize(std::size_t(id) + 1);
-  projections[id] = std::make_unique<Projection>(actor, next_session(), next_session());
+  projections[id] =
+      std::make_unique<Projection>(actor, next_session(), next_session(), tuple, capacity);
 }
 /** Releases the native history at a handle, including its pending dependencies.
  * @param id Handle to release; absent handles are harmless.
@@ -293,8 +318,20 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     runtime_destroy(id);
     return out.header.data();
   }
-  if (operation == 0)
-    runtime_create(id, arg0);
+  bool configured = false, tuple_enabled = false;
+  Word tuple_capacity = UINT32_MAX;
+  if (operation == 0) {
+    if (arg2 & 2) {
+      configured = true;
+      tuple_enabled = input[0] != 0;
+      tuple_capacity = input[1];
+      input = input.subspan(2);
+    } else if (input.size() >= 4 && input[0] == UINT32_MAX) {
+      tuple_enabled = true;
+      tuple_capacity = input[2];
+    }
+    runtime_create(id, arg0, tuple_enabled, tuple_capacity);
+  }
   if (id >= projections.size() || !projections[id]) {
     out.header = {7, 0, 0, 1, 0, 0, 0};
     return out.header.data();
@@ -309,7 +346,10 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     case 0: {
       Reader r;
       auto [g, f] = r.sequence(arg1);
-      if (arg2 != 1 || !r.valid) {
+      if (!(arg2 & 1) || !r.valid ||
+          (configured && ((r.tuple && (!tuple_enabled || r.capacity != tuple_capacity)) ||
+                          (!r.tuple && !g.empty() && tuple_enabled))) ||
+          (!configured && r.tuple != bool(p.tuple))) {
         kind = 7;
         out.header[3] = 2;
         break;
@@ -322,6 +362,8 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
           if ((*clock)[0] == c.session || (*clock)[0] == c.anchor_session)
             (*clock)[0] = next_session();
       }
+      if (p.tuple && r.tuple)
+        p.frame_count = r.extent;
       p.hydrate(g, f);
       break;
     }
@@ -337,6 +379,11 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
           kind = 0;
           break;
         }
+        if (p.tuple && !entry.acknowledgement &&
+            !p.tuple->valid(entry.insertion.coordinates, p.containment)) {
+          kind = 0;
+          break;
+        }
         // JS can discard bindings allocated for entries after the rejected prefix.
         out.header[11] = std::max(out.header[11], entry.insertion.content);
         p.apply(std::span(&entry, 1), out.result);
@@ -348,12 +395,24 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     case 4: {
       Reader r;
       auto [g, f] = r.sequence(arg1);
-      if (arg2 != 1 || !r.valid) {
+      if (arg2 != 1 || !r.valid || r.tuple != bool(p.tuple) ||
+          (r.tuple && r.capacity != p.tuple->capacity)) {
         kind = 0;
         break;
       }
+      if (p.tuple) {
+        for (const auto &entry : g)
+          if (!p.tuple->valid(entry.insertion.coordinates, p.containment))
+            r.valid = false;
+        if (!r.valid) {
+          kind = 0;
+          break;
+        }
+      }
       out.header[11] = r.bindings;
       out.result = p.merge(g, f);
+      if (p.tuple)
+        p.frame_count = std::max(p.frame_count, r.extent);
       kind = 4;
       break;
     }
@@ -405,7 +464,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
   out.header[10] = Word(out.copies.size());
   switch (kind) {
   case 2:
-    out.expose(out.entries);
+    out.expose(out.entries, bool(p.tuple));
     out.header[3] = address(out.gossip.data());
     out.header[4] = Word(out.gossip.size());
     break;
@@ -418,7 +477,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     for (const auto &s : out.result.changes)
       out.splices.push_back(
           {s.start, s.end, s.values ? address(&*s.values) : 0, Word(s.values.has_value())});
-    out.expose(out.result.gossip);
+    out.expose(out.result.gossip, bool(p.tuple));
     out.header[3] = address(out.splices.data());
     out.header[4] = Word(out.splices.size());
     out.header[5] = address(out.gossip.data());
@@ -464,6 +523,15 @@ EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_insert(std::uint32_t id, std::
   p.appended.clear();
   p.released.clear();
   p.copied.clear();
+  if (p.tuple && count > 1) {
+    out.entries = p.insert_batch(count, content, at);
+    out.expose(out.entries, true);
+    out.header = {2, 0, 0, address(out.gossip.data()), Word(out.gossip.size())};
+    static std::array<Word, 9> tuple_result;
+    tuple_result[6] = UINT32_MAX;
+    tuple_result[7] = address(out.header.data());
+    return tuple_result.data();
+  }
   const auto insertion = p.insert(count, content, at);
   static std::array<Word, 9> result;
   const auto coordinates = std::bit_cast<std::array<Word, 6>>(insertion.coordinates);
@@ -487,6 +555,11 @@ EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_value(std::uint32_t id, std::u
   auto &p = *projections[id];
   if (at >= p.length())
     return nullptr;
+  if (p.tuple) {
+    static Span tuple_value;
+    tuple_value = p.tuple->value(at);
+    return &tuple_value.content;
+  }
   const auto frame = p.find_frame(at);
   static std::array<Word, 2> value;
   value = {p.strips.identity[p.gate].content, p.strips.identity[p.gate].content_start + frame};

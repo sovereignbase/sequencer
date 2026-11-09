@@ -10,6 +10,7 @@ export function sequenceCounts(words: U32List): {
   stripCount: number
   retainedInsertionCount: number
 } {
+  if (words[0] === 0xffffffff) return sequenceCounts(words.slice(4))
   let stripCount = 0
   if (words.length === 0) return { stripCount, retainedInsertionCount: 0 }
   if (words[0] !== 0) {
@@ -47,6 +48,7 @@ export function sequenceMetadata(words: U32List): {
   frontiers: number[][]
   insertions: number[][]
 } {
+  if (words[0] === 0xffffffff) return sequenceMetadata(words.slice(4))
   const frontiers: number[][] = [],
     insertions: number[][] = []
   if (words.length === 0) return { frontiers, insertions }

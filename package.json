@@ -53,6 +53,7 @@
     "bench": "npm run build:ts && node --expose-gc benchmark/index.ts",
     "bench:lifecycle": "npm run bench -- --suite lifecycle",
     "bench:throughput": "npm run bench -- --suite throughput",
+    "bench:tuple": "npm run build:ts && node --expose-gc benchmark/tuple/index.ts",
     "prepare": "husky"
   },
   "devDependencies": {

@@ -9,6 +9,7 @@ uint32 words, with signed Frame effects interpreted in C++.
 - `components/ContainmentTable/` indexes canonical Insertion identities.
 - `components/PendingTable/` retains Insertions awaiting their parent identity or extent.
 - `components/FrontierTable/` tracks Acknowledgements and retired Actors.
+- `components/Tuple/` stores stable indices and active competing versions without Strip links.
 - `types/type.hpp` defines coordinates, strips, spans and operation results.
 - `bindings.cpp` exposes scalar calls and contiguous numeric result buffers.
 
@@ -17,3 +18,6 @@ JavaScript reads borrowed numeric result views and retains generic Footage.
 Native spans address opaque Footage tokens and array offsets. Structural Strip
 indices, original Frame coordinates and visible Projection positions are distinct.
 Fragments retain their canonical identity; only their runtime materialization changes.
+
+Tuple placement runs through the same Projection algorithms and ACK tables.
+Its `anchor_diff` is a stable index; each positive Insertion owns one Frame.

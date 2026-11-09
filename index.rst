@@ -22,7 +22,7 @@ Implementation
 * ``class.hpp`` defines Projection state and operations.
 * ``algorithms/`` implements editing, replication, reads and snapshot export.
 * ``auxiliary/`` implements anchor resolution, fragmentation and traversal.
-* ``components/`` contains the containment, pending and frontier tables.
+* ``components/`` contains containment, pending and frontier tables, and stable-index tuple storage.
 * ``types/type.hpp`` defines coordinates, Strips, spans and results.
 * ``bindings.cpp`` exposes numeric inputs and borrowed output views to TypeScript.
 

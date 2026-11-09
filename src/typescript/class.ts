@@ -1,4 +1,4 @@
-import type { Gossip, Result, Sequence } from './types/type.js'
+import type { Gossip, Result, Sequence, TupleParams } from './types/type.js'
 import { runtime } from './runtime/client.js'
 import { Operation } from './runtime/protocol.js'
 import { SequencerError } from './errors/class.js'
@@ -13,14 +13,16 @@ export class Projection<T> {
    *
    * @param actorID Actor identifier used in acknowledgements.
    * @param trustedSequence Optional trusted Sequence in Structural Order; string Footage is split into UTF-16 code units.
+   * @param tupleParams Enables stable indices, optionally bounded by a fixed length. Tuple Sequences retain this configuration.
    * @throws {@link SequencerError} if native initialization fails.
    */
   constructor(
     public readonly actorID: number,
-    trustedSequence?: unknown
+    trustedSequence?: unknown,
+    tupleParams?: TupleParams
   ) {
     try {
-      this.id = runtime.create(this, actorID, trustedSequence)
+      this.id = runtime.create(this, actorID, trustedSequence, tupleParams)
     } catch (cause) {
       throw cause instanceof SequencerError
         ? cause
@@ -56,7 +58,7 @@ export class Projection<T> {
    * Inserts values at a Projection position.
    *
    * @param values Nonempty array of values to insert.
-   * @param at Insertion position in `0..length()`, inclusive.
+   * @param at Insertion position in `0..length()`, inclusive. In tuple mode, the first stable index to write; each value creates a competing version.
    * @returns Gossip describing the insertion.
    * @throws {@link SequencerError} with code `PROJECTION_DESTROYED` after destruction.
    */
@@ -75,7 +77,7 @@ export class Projection<T> {
   /**
    * Returns the length, A.K.A. amount of entries of this projection.
    *
-   * @returns Current Projection length.
+   * @returns Current Projection length. Tuples retain their fixed length or highest written boundary, including empty registers.
    * @throws {@link SequencerError} with code `PROJECTION_DESTROYED` after destruction.
    */
   length(): number {
@@ -115,7 +117,7 @@ export class Projection<T> {
    *
    * @param startAt First position to remove; defaults to 0.
    * @param endWith Last position to remove; defaults to `length() - 1`.
-   * @returns Reducing Insertions and their acknowledgement as Gossip.
+   * @returns Reducing Insertions and their acknowledgement as Gossip. Tuple removal targets all known active versions without shifting indices.
    * @throws {@link SequencerError} if destroyed or the native runtime reports an operation failure.
    */
   remove(startAt?: number, endWith?: number): Gossip<T> {
@@ -136,7 +138,7 @@ export class Projection<T> {
    * @param withValues Replacement values; an empty array only removes the range.
    * @param startAt First position to replace; defaults to 0.
    * @param endWith Last position to replace; defaults to `length() - 1`.
-   * @returns Removal and insertion Gossip, in that order.
+   * @returns Removal and insertion Gossip, in that order. Tuple replacement removes known versions and writes consecutive stable indices.
    * @throws {@link SequencerError} if destroyed or the native runtime reports an operation failure.
    */
   replace(withValues: Array<T>, startAt?: number, endWith?: number): Gossip<T> {

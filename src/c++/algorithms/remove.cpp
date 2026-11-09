@@ -12,7 +12,25 @@ Gossip Projection::remove(Word start, std::int64_t end) {
   auto remaining = std::int64_t(end) - start + 1;
   // The next target remains at start as preceding Frames disappear. Each mask
   // stops at the current original fragment so concurrent Insertions are never implied targets.
-  while (remaining > 0) {
+  if (tuple && end >= start) {
+    for (const auto at : tuple->occupied(start, Word(end))) {
+      auto index = tuple->slot(at).head;
+      tuple->slot(at).winner = none;
+      while (index) {
+        const auto next = tuple->versions[index].next;
+        const auto target = tuple->versions[index].coordinates;
+        Insertion mask{
+            {target.session, target.start, at, decrease_clock[0], decrease_clock[1], -1}};
+        decrease_clock[1] += 2;
+        const auto incoming = tuple->add(mask);
+        containment.set(mask.coordinates, incoming);
+        tuple->erase(index, released, copied);
+        output.push_back(Entry::insert(mask));
+        index = next;
+      }
+    }
+  }
+  while (!tuple && remaining > 0) {
     const auto point = find_frame(start);
     const auto anchor = gate;
     const auto count =
@@ -37,6 +55,8 @@ Gossip Projection::remove(Word start, std::int64_t end) {
   }
   // The reported frontier is the mask endpoint, excluding the next reserved zero.
   Acknowledgement a{actor, decrease_clock[0], decrease_clock[1] - 1};
+  if (tuple && !decrease_clock[1])
+    a.resize(1);
   frontier.observe(a);
   output.push_back(Entry::acknowledge(std::move(a)));
   return output;

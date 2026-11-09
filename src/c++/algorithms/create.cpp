@@ -13,6 +13,15 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
     frontier.observe(a);
   if (insertions.empty())
     return;
+  if (tuple) {
+    tuple->versions.reserve(tuple->versions.size() + insertions.size());
+    containment.reserve(Word(insertions.size()));
+    apply(insertions);
+    // Keep retained claims after Acknowledgements emitted during reconstruction.
+    for (const auto &a : frontiers)
+      frontier.observe(a);
+    return;
+  }
   const auto &first = insertions.front().insertion;
   if (insertions.size() == 1 && first.coordinates.birth() && first.coordinates.diff > 0) {
     // One positive root has no dependencies, fragments or jumps to reconstruct.

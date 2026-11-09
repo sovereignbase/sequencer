@@ -6,9 +6,31 @@
 #include "../class.hpp"
 
 namespace sequencer {
+Gossip Projection::insert_batch(Word count, Word content, Word at) {
+  if (!tuple || count == 1)
+    return {Entry::insert(insert(count, content, at))};
+  Gossip output;
+  output.reserve(count);
+  if (count > 1)
+    tuple->share(content, count);
+  frame_count = std::max(frame_count, at + count);
+  for (Word offset = 0; offset < count; ++offset) {
+    Insertion insertion{
+        {0, 0, at + offset, increase_clock[0], increase_clock[1], 1}, content, offset};
+    increase_clock[1] += 2;
+    const auto index = tuple->add(insertion, count > 1);
+    containment.set(insertion.coordinates, index);
+    output.push_back(Entry::insert(insertion));
+  }
+  return output;
+}
 Insertion Projection::insert(Word count, Word content, Word at) {
   Coordinates c{0, 0, 0, increase_clock[0], increase_clock[1], std::int32_t(count)};
-  if (frame_count == 0) {
+  if (tuple) {
+    c.anchor_diff = at;
+    containment.set(c, tuple->add({c, content}));
+    frame_count = std::max(frame_count, at + 1);
+  } else if (frame_count == 0) {
     const auto incoming = allocate({c, content});
     if (!structural_count)
       insert_first(incoming);

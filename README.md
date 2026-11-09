@@ -50,6 +50,20 @@ projectionA.destroy()
 projectionB.destroy()
 ```
 
+### Tuple mode
+
+Each index represents an independent slot. Adding or removing values
+never shifts other values. Empty slots return `undefined`.
+
+Omit `maxLength` to allow dynamic growth.
+
+```ts
+const tuple = new Projection<string>(1, undefined, { enabled: 1, maxLength: 4 })
+tuple.insert(['hello'], 2)
+tuple.replace(['world'], 2, 2)
+tuple.remove(2, 2)
+```
+
 ### See documentation
 
 - [How sequencer works?](INTERNALS.md)
@@ -73,8 +87,8 @@ Invalid input to `apply()` or `merge()` returns `undefined` instead of throwing.
 
 | Format   | Raw (KiB) | Minified (KiB) | Minified + gzip (KiB) |
 | -------- | --------: | -------------: | --------------------: |
-| ESM      |    137.99 |         110.79 |                 39.32 |
-| CommonJS |    138.13 |         111.81 |                 39.39 |
+| ESM      |    158.39 |         128.97 |                 45.93 |
+| CommonJS |    158.53 |         130.01 |                 46.02 |
 
 Both bundles include WASM. Terser uses three compression passes; gzip uses level 9.
 
@@ -186,7 +200,7 @@ Peer synchronization, encoding and JS process garbage collection are outside API
 
 ### Behaviour guaranteed by excessive tests
 
-The latest verification passed 249 Vitest tests and 117 compatibility checks.
+The latest verification passed 271 Vitest tests and 104 compatibility checks (1 failed).
 The configured 100% coverage threshold is met (100% statements, 100% branches, 100% functions, 100% lines).
 See the [test suites](test/README.md) and
 [automated test report](https://sovereignbase.dev/sequencer/tests/).
@@ -202,7 +216,7 @@ Runtimes covered by the latest compatibility verification:
 - Edge Runtime: passed
 - Cloudflare Workers through workerd: passed
 - Chromium browser windows: passed
-- Firefox browser windows: passed
+- Firefox browser windows: failed (matching Playwright browser binary unavailable)
 - WebKit browser windows: passed
 
 ### Tested realtime and offline text editing behaviour examples

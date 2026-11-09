@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/sovereignbase/sequencer/compare/v1.1.1...v1.2.0) (2026-11-09)
+
+
+### Features
+
+* add tuple mode ([9c207a6](https://github.com/sovereignbase/sequencer/commit/9c207a61c9742b493e7bee43fa997000cc9f95b5))
+
+
+### Performance Improvements
+
+* improve map delete method performance ([4897b55](https://github.com/sovereignbase/sequencer/commit/4897b55dbd365297868a7b2e5fbbfdc4b1f846dc))
+
 ## [1.1.1](https://github.com/sovereignbase/sequencer/compare/v1.1.0...v1.1.1) (2026-10-20)
 
 

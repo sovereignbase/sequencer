@@ -196,6 +196,48 @@ linux x64, AMD EPYC 7763 64-Core Processor.
 Peer synchronization, encoding and JS process garbage collection are outside API timings.
 [Full lifecycle results](benchmark/.results/lifecycle.md) · [Throughput results](benchmark/.results/throughput.md).
 
+### Tuple mode
+
+Arithmetic means of 3 runs. Ordinary Projection versus a static tuple with maxLength. Both contain the same values; replacements preserve the field count.
+
+#### Throughput (ops/s)
+
+| Indices | Method / case   | Projection | Static tuple | Tuple / Projection |
+| ------: | --------------- | ---------: | -----------: | -----------------: |
+|       2 | create.sequence |    610,508 |      615,668 |              1.01× |
+|       2 | replace.random  |    720,958 |    1,164,376 |              1.62× |
+|       2 | apply.replace   |    515,962 |      605,798 |              1.17× |
+|       2 | value.random    | 24,510,210 |   40,139,289 |              1.64× |
+|       4 | create.sequence |    454,900 |      531,467 |              1.17× |
+|       4 | replace.random  |    793,964 |    1,210,918 |              1.53× |
+|       4 | apply.replace   |    388,809 |      743,998 |              1.91× |
+|       4 | value.random    | 22,004,311 |   46,967,121 |              2.13× |
+|       8 | create.sequence |    309,994 |      340,727 |              1.10× |
+|       8 | replace.random  |    796,184 |    1,231,548 |              1.55× |
+|       8 | apply.replace   |    339,953 |      795,186 |              2.34× |
+|       8 | value.random    | 17,333,775 |   45,519,557 |              2.63× |
+|     100 | create.sequence |     56,642 |       94,815 |              1.67× |
+|     100 | replace.random  |    636,461 |    1,139,951 |              1.79× |
+|     100 | apply.replace   |    278,665 |      728,127 |              2.61× |
+|     100 | value.random    |  8,465,221 |   42,916,778 |              5.07× |
+
+#### Space (KiB)
+
+| Indices | Mode         | Estimated allocated memory | MessagePack | MessagePack + gzip |
+| ------: | ------------ | -------------------------: | ----------: | -----------------: |
+|       2 | Projection   |                       0.98 |        0.03 |               0.04 |
+|       2 | Static tuple |                       0.90 |        0.04 |               0.05 |
+|       4 | Projection   |                       1.57 |        0.06 |               0.05 |
+|       4 | Static tuple |                       1.09 |        0.06 |               0.07 |
+|       8 | Projection   |                       2.52 |        0.12 |               0.08 |
+|       8 | Static tuple |                       1.55 |        0.10 |               0.09 |
+|     100 | Projection   |                      23.78 |        0.67 |               0.57 |
+|     100 | Static tuple |                      12.23 |        0.51 |               0.35 |
+
+Measured on Node 24.16.0, V8 13.6.233.17-node.49, win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz. Fixtures are hydrated compacted snapshots after one replacement per field. Each case warms up for ≥25 ms and measures ≥50 ms of API time; mutation bursts restart after 4,096 replacements. Peer authoring, encoding, result checks, destruction and explicit JS process garbage collection are outside API timings. Memory estimates are the increase in live native allocator bytes plus retained JS array slots for one instance, including exercised runtime buffers. Unused WASM capacity, JS object headers and referenced payload objects are excluded.
+
+[Full tuple results](benchmark/.results/tuple.md).
+
 ## Tests
 
 ### Behaviour guaranteed by excessive tests

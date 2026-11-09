@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import { relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { tupleReadmeSection } from '../tuple/readme.ts'
 import {
   management_names,
   operation_names,
@@ -42,6 +43,7 @@ export async function updateLifecycleReadme(
   const root = fileURLToPath(new URL('../../', import.meta.url))
   const readmePath = new URL('../../README.md', import.meta.url)
   const original = await readFile(readmePath, 'utf8')
+  const tuple = tupleReadmeSection(original)
   const bundles = report.bundles
   const newline = original.includes('\r\n') ? '\r\n' : '\n'
   const start = original.indexOf(`## Benchmarks${newline}`)
@@ -204,6 +206,7 @@ export async function updateLifecycleReadme(
     'Peer synchronization, encoding and JS process garbage collection are outside API timings.',
     `[Full lifecycle results](${link}) · [Throughput results](benchmark/.results/throughput.md).`,
     '',
+    tuple,
     '',
   ]
   // Format only the generated section so manual README content remains untouched.

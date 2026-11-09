@@ -4,7 +4,7 @@
   mutation, immediate gossip and shrinkage.
 - [Throughput](throughput/README.md) measures repeated API calls in independent
   bursts at starting sizes of 100, 1,000 and 10,000 Strips.
-- [Tuple](tuple/README.md) compares fixed and dynamic registers with ordinary sequences;
+- [Tuple](tuple/README.md) compares small static tuples with ordinary Projections;
   run it separately with `npm run bench:tuple`.
 
 ```powershell

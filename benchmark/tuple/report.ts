@@ -1,25 +1,39 @@
 import type { Report } from './index.ts'
 
-/** Arithmetic means of independent runs; memory covers one isolated library instance. */
-export function render(report: Report): string {
+/** Means of independent runs, comparing the same populated field count. */
+export function render(report: Report, summary = false): string {
   const mean = (values: number[]) =>
     values.reduce((sum, value) => sum + value, 0) / values.length
-  const modes = [...new Set(report.samples.map((sample) => sample.mode))]
-  const lines = [
-    '# Tuple benchmarks',
-    '',
-    `Arithmetic means of ${report.runs} runs. Fixed and dynamic tuple modes use stable indices; ordinary sequences shift indices. Fixtures contain one Frame per scattered Insertion.`,
-    '',
-    '## Throughput (ops/s)',
-    '',
-    `| Indices | Method / case | ${modes.join(' | ')} |`,
-    `| ---: | --- | ${modes.map(() => '---:').join(' | ')} |`,
+  const modes = ['projection', 'tuple'] as const
+  const sizes = [...new Set(report.samples.map((sample) => sample.size))].sort(
+    (a, b) => a - b
+  )
+  const operations = [
+    ...new Set(report.samples.map((sample) => sample.operation)),
   ]
-  for (const size of new Set(report.samples.map((sample) => sample.size))) {
-    for (const operation of new Set(
-      report.samples.map((sample) => sample.operation)
-    )) {
-      const cells = modes.map((mode) =>
+  const lines = [
+    summary ? '### Tuple mode' : '# Tuple benchmarks',
+    '',
+    `Arithmetic means of ${report.runs} runs. Ordinary Projection versus a static tuple with maxLength. Both contain the same values; replacements preserve the field count.`,
+    '',
+    summary ? '#### Throughput (ops/s)' : '## Throughput (ops/s)',
+    '',
+    '| Indices | Method / case | Projection | Static tuple | Tuple / Projection |',
+    '| ---: | --- | ---: | ---: | ---: |',
+  ]
+  for (const size of sizes) {
+    for (const operation of operations) {
+      if (
+        summary &&
+        ![
+          'create.sequence',
+          'replace.random',
+          'apply.replace',
+          'value.random',
+        ].includes(operation)
+      )
+        continue
+      const rates = modes.map((mode) =>
         mean(
           report.samples
             .filter(
@@ -29,37 +43,34 @@ export function render(report: Report): string {
                 sample.operation === operation
             )
             .map((sample) => (sample.calls * 1000) / sample.milliseconds)
-        ).toLocaleString('en-US', { maximumFractionDigits: 0 })
+        )
       )
       lines.push(
-        `| ${size.toLocaleString('en-US')} | ${operation} | ${cells.join(' | ')} |`
+        `| ${size} | ${operation} | ${rates.map((rate) => rate.toLocaleString('en-US', { maximumFractionDigits: 0 })).join(' | ')} | ${(rates[1] / rates[0]).toFixed(2)}× |`
       )
     }
   }
   lines.push(
     '',
-    '## Space (KiB)',
+    summary ? '#### Space (KiB)' : '## Space (KiB)',
     '',
-    '| Indices | Mode | Estimated library memory | MessagePack | MessagePack + gzip |',
+    '| Indices | Mode | Estimated allocated memory | MessagePack | MessagePack + gzip |',
     '| ---: | --- | ---: | ---: | ---: |'
   )
-  for (const size of new Set(report.space.map((sample) => sample.size))) {
+  for (const size of sizes) {
     for (const mode of modes) {
       const samples = report.space.filter(
         (sample) => sample.size === size && sample.mode === mode
       )
-      const memory = samples.flatMap((sample) =>
-        sample.runtimeBytes === null ? [] : [sample.runtimeBytes]
-      )
       const kib = (values: number[]) => (mean(values) / 1024).toFixed(2)
       lines.push(
-        `| ${size.toLocaleString('en-US')} | ${mode} | ${memory.length ? kib(memory) : '—'} | ${kib(samples.map((sample) => sample.msgpackBytes))} | ${kib(samples.map((sample) => sample.gzipBytes))} |`
+        `| ${size} | ${mode === 'tuple' ? 'Static tuple' : 'Projection'} | ${kib(samples.map((sample) => sample.allocatedBytes))} | ${kib(samples.map((sample) => sample.msgpackBytes))} | ${kib(samples.map((sample) => sample.gzipBytes))} |`
       )
     }
   }
   lines.push(
     '',
-    `Measured on ${report.environment}. Peer authoring, encoding, validation, destruction and explicit JS process garbage collection are outside API timings. Constructor results are destroyed after each burst. Memory estimates include one instance's isolated WASM linear memory and retained JS array slots; referenced payload objects are excluded.`,
+    `Measured on ${report.environment}. Fixtures are hydrated compacted snapshots after one replacement per field. Each case warms up for ≥25 ms and measures ≥50 ms of API time; mutation bursts restart after 4,096 replacements. Peer authoring, encoding, result checks, destruction and explicit JS process garbage collection are outside API timings. Memory estimates are the increase in live native allocator bytes plus retained JS array slots for one instance, including exercised runtime buffers. Unused WASM capacity, JS object headers and referenced payload objects are excluded.`,
     ''
   )
   return lines.join('\n')

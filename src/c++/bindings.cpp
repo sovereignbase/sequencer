@@ -12,6 +12,7 @@
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
+#include <malloc.h>
 #else
 #define EMSCRIPTEN_KEEPALIVE
 #endif
@@ -259,6 +260,10 @@ struct Reader {
 } // namespace sequencer
 
 extern "C" {
+#ifdef __EMSCRIPTEN__
+/** Returns live allocator bytes, excluding unused linear-memory capacity. */
+EMSCRIPTEN_KEEPALIVE std::uint32_t runtime_allocated() { return mallinfo().uordblks; }
+#endif
 /** Seeds the local Session generator once per module.
  * @param seed JavaScript entropy; zero maps to a nonzero generator state.
  */

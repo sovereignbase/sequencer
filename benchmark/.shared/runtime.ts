@@ -7,6 +7,7 @@ import type { RuntimeMemoryResult } from './types.ts'
 type Library = {
   Projection: typeof PublicProjection
   measureRuntimeMemory: () => RuntimeMemoryResult
+  measureAllocatedMemory: () => number
 }
 
 const built = await build({
@@ -38,6 +39,8 @@ export type Projection<T> = PublicProjection<T>
 export let PeerProjection: typeof PublicProjection
 /** Samples the measured instance's runtime, excluding its peer. */
 export let measureRuntimeMemory: () => RuntimeMemoryResult
+/** Live allocation estimate used to distinguish small instances from the shared memory floor. */
+export let measureAllocatedMemory: () => number
 
 /** Starts an independent measurement without retaining earlier native high-water capacity. */
 export function resetRuntime(): void {
@@ -46,5 +49,6 @@ export function resetRuntime(): void {
   Projection = primary.Projection
   PeerProjection = peer.Projection
   measureRuntimeMemory = primary.measureRuntimeMemory
+  measureAllocatedMemory = primary.measureAllocatedMemory
 }
 resetRuntime()

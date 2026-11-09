@@ -3,6 +3,7 @@ declare namespace RuntimeExports {
     let HEAPU32: Uint32Array;
 }
 interface WasmModule {
+  _runtime_allocated(): number;
   _runtime_seed(_0: number): void;
   _runtime_reserve(_0: number): number;
   _runtime_dispatch(_0: number, _1: number, _2: number, _3: number, _4: number, _5: number, _6: number): number;

@@ -105,11 +105,12 @@ export type MemoryResult = {
   javascriptFootageSlotBytes: number
 }
 
-/** One measured instance's isolated WASM allocation and retained JavaScript arrays. */
+/** One measured instance's live native allocation and retained JavaScript arrays. */
 export type RuntimeMemoryResult = {
   scope: 'single-instance-runtime'
-  measurement: 'wasm-linear-memory-plus-js-array-slots'
+  measurement: 'wasm-live-allocation-plus-js-array-slots'
   bytes: number
+  /** Live native allocator bytes, including shared runtime buffers. */
   wasmBytes: number
   javascriptBytes: number
   javascriptSlotBytes: 8
@@ -225,7 +226,7 @@ export type AggregateMetric = {
 
 /** Complete lifecycle evidence, including environment, metric interpretation and raw runs. */
 export type BenchmarkReport = {
-  schemaVersion: 4
+  schemaVersion: 5
   /** Measured after the lifecycle finishes, when its reports are written. */
   bundles?: BundleSizes
   generatedAt: string

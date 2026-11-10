@@ -229,7 +229,7 @@ const makeMarkdown = (report: BenchmarkReport): string => {
     '',
     '## Memory usage',
     '',
-    'One instance in an isolated runtime. Its peer and temporary hydration measurements are excluded. WASM bytes include unused native capacity; JavaScript uses eight bytes per retained array slot, counting each Footage array once.',
+    'One instance after both peers restart from the same compacted checkpoint. Its peer is excluded. WASM bytes are live native allocations, excluding unused WASM capacity; JavaScript uses eight bytes per retained array slot, counting each Footage array once.',
     '',
     '| Run | direction | visible Strips | estimated KiB | WASM KiB | JS slots KiB |',
     '| ---: | --- | ---: | ---: | ---: | ---: |'
@@ -341,7 +341,7 @@ const makeMarkdown = (report: BenchmarkReport): string => {
     '- ' + report.methodology.ingest,
     '- ' + report.methodology.memory,
     '- ' + report.methodology.storage,
-    '- Every checkpoint measures temporary Projection creation without replacing the two active gossip peers.',
+    '- Every checkpoint destroys both old peers and replaces them from the same compacted Sequence. Memory is sampled after recreation; subsequent editing uses the new peers.',
     ''
   )
   return lines.join('\n')

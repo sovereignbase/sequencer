@@ -18,6 +18,9 @@
 #endif
 
 namespace sequencer {
+// All Projection handles use one non-reentrant ABI and consume these before returning to JS.
+std::vector<Span> released, copied;
+std::vector<ContentAppend> appended;
 namespace {
 // Native handles match JavaScript binding-table indices. Reused handles receive new history.
 std::vector<std::unique_ptr<Projection>> projections;
@@ -42,9 +45,7 @@ struct Output {
   Gossip entries;
   Result result;
   Sequence sequence;
-  std::vector<Span> values, releases;
-  std::vector<Span> copies;
-  std::vector<ContentAppend> appends;
+  std::vector<Span> values;
   std::vector<EntryView> gossip;
   std::vector<SpliceView> splices;
   // Descriptor pointers refer to source storage; source must outlive JavaScript consumption.
@@ -342,9 +343,9 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     return out.header.data();
   }
   auto &p = *projections[id];
-  p.released.clear();
-  p.appended.clear();
-  p.copied.clear();
+  released.clear();
+  appended.clear();
+  copied.clear();
   Word kind = 6;
   try {
     switch (operation) {
@@ -455,18 +456,13 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     kind = operation == 1 || operation == 4 ? 0 : 7;
     out.header[3] = 2;
   }
-  // Swap deferred effects into retained output storage; neither values nor callbacks
-  // cross the native boundary while Structural Order is being modified.
-  out.releases.swap(p.released);
-  out.appends.swap(p.appended);
-  out.copies.swap(p.copied);
   out.header[0] = kind;
-  out.header[1] = address(out.releases.data());
-  out.header[2] = Word(out.releases.size());
-  out.header[7] = address(out.appends.data());
-  out.header[8] = Word(out.appends.size());
-  out.header[9] = address(out.copies.data());
-  out.header[10] = Word(out.copies.size());
+  out.header[1] = address(released.data());
+  out.header[2] = Word(released.size());
+  out.header[7] = address(appended.data());
+  out.header[8] = Word(appended.size());
+  out.header[9] = address(copied.data());
+  out.header[10] = Word(copied.size());
   switch (kind) {
   case 2:
     out.expose(out.entries, bool(p.tuple));
@@ -525,9 +521,9 @@ EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_insert(std::uint32_t id, std::
                                                          std::uint32_t content, std::uint32_t at) {
   using namespace sequencer;
   auto &p = *projections[id];
-  p.appended.clear();
-  p.released.clear();
-  p.copied.clear();
+  appended.clear();
+  released.clear();
+  copied.clear();
   if (p.tuple && count > 1) {
     out.entries = p.insert_batch(count, content, at);
     out.expose(out.entries, true);
@@ -542,8 +538,8 @@ EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_insert(std::uint32_t id, std::
   const auto coordinates = std::bit_cast<std::array<Word, 6>>(insertion.coordinates);
   std::copy(coordinates.begin(), coordinates.end(), result.begin());
   result[6] = 0;
-  if (!p.appended.empty()) {
-    const auto &append = p.appended.back();
+  if (!appended.empty()) {
+    const auto &append = appended.back();
     result[6] = append.target;
     result[7] = append.at;
     result[8] = append.base;

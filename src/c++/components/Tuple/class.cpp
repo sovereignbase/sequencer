@@ -26,11 +26,11 @@ const Tuple::Slot *Tuple::find_slot(Word at) const {
 void Tuple::share(Word content, Word count) {
   auto index = binding_index.get(content, 0);
   if (!index) {
-    index = Word(bindings.size());
+    index = Word(bindings.size()) + 1;
     bindings.push_back({});
     binding_index.set({0, 0, 0, content, 0, 0}, index);
   }
-  bindings[index] = {count, count, false};
+  bindings[index - 1] = {count, count, false};
 }
 Index Tuple::winner(Word at) const {
   const auto *entry = find_slot(at);
@@ -92,7 +92,7 @@ void Tuple::erase(Index target, std::vector<Span> &released, std::vector<Span> &
     version.content = 0;
     return;
   }
-  auto &binding = bindings[binding_index.get(token, 0)];
+  auto &binding = bindings[binding_index.get(token, 0) - 1];
   if (--binding.references == 0) {
     released.push_back({token, 0, 0});
   } else {

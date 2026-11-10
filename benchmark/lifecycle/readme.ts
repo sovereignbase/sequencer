@@ -195,7 +195,7 @@ export async function updateLifecycleReadme(
     '',
     '### Memory usage at checkpoint',
     '',
-    'One instance: WASM memory plus retained JS array slots, in KiB (1,024 bytes).',
+    'One instance after checkpoint compaction and recreation: live native allocation plus retained JS array slots, in KiB (1,024 bytes). Unused WASM capacity is excluded.',
     '',
     ...tables('Measurement', [
       ['Estimated memory (KiB)', (point) => point.runtimeMemory.bytes, kib],

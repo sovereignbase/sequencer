@@ -36,12 +36,6 @@ public:
   PendingTable pending;
   /** Actor membership and Acknowledgements used only by export compaction. */
   FrontierTable frontier;
-  /** Deferred Footage releases; count zero releases the entire binding. */
-  std::vector<Span> released;
-  /** Deferred suffix appends joining content under an existing Insertion binding. */
-  std::vector<ContentAppend> appended;
-  /** Deferred copy-on-write slices protecting caller arrays and retained snapshots. */
-  std::vector<Span> copied;
   /** Present only for stable-index register semantics. */
   std::unique_ptr<Tuple> tuple;
 
@@ -54,7 +48,7 @@ public:
    */
   Projection(Word actor_id, Word increasing_session, Word decreasing_session,
              bool tuple_enabled = false, Word tuple_capacity = UINT32_MAX)
-      : actor(actor_id), strips(!tuple_enabled), increase_clock{increasing_session, 0},
+      : actor(actor_id), increase_clock{increasing_session, 0},
         decrease_clock{decreasing_session, 0} {
     if (tuple_enabled) {
       tuple = std::make_unique<Tuple>(tuple_capacity);

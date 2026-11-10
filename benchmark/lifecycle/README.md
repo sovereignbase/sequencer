@@ -59,22 +59,23 @@ sequence
 values
 ```
 
-Sequence construction is measured with a temporary Projection; the two active
-peers continue their uninterrupted gossip session across checkpoints. There is
-no separate recovery or acknowledgement phase: acknowledgements travel as
-part of the ordinary two-way gossip after every update.
+The measured Projection exports one compacted Sequence. Both peers are then
+destroyed and recreated from that same Sequence, with the original Actor IDs.
+The measured constructor creates the next active Projection. Both restored
+views are checked against the pre-checkpoint values before editing continues.
+Acknowledgements travel as part of the ordinary two-way gossip after every update.
 
 The report includes visible Strip and Frame counts, retained Sequence insertion
 count, serialized Sequence size, and one instance's estimated library memory.
-The measured Projection and its peer have separate WASM runtimes. Temporary
-checkpoint constructor measurements also use the peer runtime, so their
-allocations do not increase the measured instance's footprint.
+The measured Projection and its peer have separate WASM runtimes. Memory is
+sampled after checkpoint recreation, so discarded history does not contribute
+to the active Projection's retained allocation.
 
 Each complete run starts with fresh runtimes and its own warmup. The library
-estimate uses the current WASM buffer length plus eight bytes per retained
-JavaScript array slot. Shared Footage arrays are counted once. The complete
-WASM allocation includes unused native capacity and remains allocated after
-`destroy()`; it does not shrink with the visible document.
+estimate uses live native allocator bytes plus eight bytes per retained
+JavaScript array slot. Shared Footage arrays are counted once. Exercised runtime
+buffers are included; unused WASM capacity is excluded. The shared WASM instance
+remains in use across checkpoints, as it does in the library.
 
 JS array headers, hidden backing capacity, application value objects, compiled
 code and JS engine bookkeeping are outside the estimate. Benchmark inputs and

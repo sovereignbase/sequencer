@@ -31,7 +31,7 @@ public:
   ContainmentTable page_index, binding_index;
   std::vector<Page> pages;
   std::vector<Version> versions{{}};
-  std::vector<Binding> bindings{{}};
+  std::vector<Binding> bindings;
   /** Registers shared local Footage without a separate hash-table implementation. */
   void share(Word content, Word count);
   /** Finds or allocates the addressed register. */

@@ -8,6 +8,8 @@ the relevant reports.
 
 ## Optimization rounds
 
+[10 November 2026: Projection allocation, tuple initialization and shared Footage output](optimizations_2026_11_10/README.md).
+
 [9 November 2026: tuple support, bundle size and API comparisons](optimizations_2026_11_09/README.md).
 
 | Round             | Reports                                                                                                                                                                                                                                                                                                                              |

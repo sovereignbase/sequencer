@@ -278,7 +278,7 @@ const managementMetric = <T>(operation: () => T): [MetricResult, T] => {
   resultSink = timed.result
   return [accumulator.snapshot(), timed.result]
 }
-/** Verifies convergence before measuring full reads, export, hydration and retained footprint. */
+/** Verifies convergence and restarts both peers from one compacted checkpoint. */
 const observeReplica = (
   runtime: Runtime,
   direction: Direction
@@ -295,19 +295,35 @@ const observeReplica = (
       throw new TypeError(
         `Replica ${runtime.name} peers diverged at projection position ${index}.`
       )
-  const [valuesMetric] = managementMetric(() => runtime.state.values())
+  const [valuesMetric, expected] = managementMetric(() =>
+    runtime.state.values()
+  )
   const [sequenceResult, checkpointSequence] = managementMetric(() =>
     runtime.state.sequence()
   )
+  runtime.state.destroy()
+  runtime.peer.destroy()
   const [createMetric, recreated] = managementMetric(() => {
-    const projection = new PeerProjection<number>(
-      runtime.actorId,
-      checkpointSequence
-    )
+    const projection = createReplica(runtime.actorId, checkpointSequence)
     projection.length()
     return projection
   })
-  recreated.destroy()
+  runtime.state = recreated
+  runtime.peer = new PeerProjection<number>(
+    runtime.peerActorId,
+    checkpointSequence
+  )
+  if (
+    runtime.state.length() !== publicFrameCount ||
+    runtime.peer.length() !== publicFrameCount
+  )
+    throw new TypeError('Checkpoint hydration changed the Frame count.')
+  for (let index = 0; index < publicFrameCount; ++index)
+    if (
+      runtime.state.value(index) !== expected[index] ||
+      runtime.peer.value(index) !== expected[index]
+    )
+      throw new TypeError('Checkpoint hydration changed the projected values.')
   // Workload group count is distinct from native Strip fragments or canonical roots.
   const stripCount = runtime.strips.count
   const frameCount = runtime.strips.frameCount
@@ -706,7 +722,7 @@ export async function runBenchmark(
   )
   const runs = await runLifecycles(config)
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     generatedAt: new Date().toISOString(),
     environment: {
       node: process.versions.node,
@@ -726,7 +742,7 @@ export async function runBenchmark(
       average:
         'Operation averages are calculated directly from count and total measured nanoseconds; checkpoint averages are never averaged together.',
       memory:
-        'One measured Projection runs in an isolated WASM runtime; its peer and temporary hydration measurements use a separate runtime. Each run starts fresh and warms independently. Memory includes the complete WASM linear-memory buffer and eight bytes per retained JavaScript array slot, counting each Footage array once. JS array headers, hidden backing capacity, application value objects, compiled code and JS engine bookkeeping are excluded. Observation occurs outside API timings after optional JS process garbage collection. Exported Sequence estimates and process observations remain separate.',
+        "At each checkpoint the measured Projection exports one compacted Sequence, both peers are destroyed, and both resume from that same Sequence. Memory is sampled after hydration in the measured peer's isolated runtime, excluding its peer. Each run starts fresh and warms independently. Memory includes live native allocator bytes and eight bytes per retained JavaScript array slot, counting each Footage array once. Unused WASM capacity, JS array headers, hidden backing capacity, application value objects, compiled code and JS engine bookkeeping are excluded. Observation occurs outside API timings after optional JS process garbage collection. Exported Sequence estimates and process observations remain separate.",
       storage:
         'Sequence sizes include V8 serialization, JSON, MessagePack, and level-nine gzip of each transport encoding. Numeric metadata is represented as arrays; encoding is outside API timings.',
     },

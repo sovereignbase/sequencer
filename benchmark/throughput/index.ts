@@ -80,7 +80,7 @@ export type ThroughputSample = {
 }
 /** Reproducible fixture configuration, raw samples and call-weighted timings. */
 export type ThroughputReport = {
-  schemaVersion: 3
+  schemaVersion: 4
   suite: 'throughput'
   generatedAt: string
   environment: BenchmarkReport['environment']
@@ -494,7 +494,7 @@ export async function runThroughput(
     }))
   )
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     suite: 'throughput',
     generatedAt: new Date().toISOString(),
     config,

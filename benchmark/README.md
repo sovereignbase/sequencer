@@ -23,9 +23,11 @@ and disk usage tables. Run `npm run bench -- --help` for shared options.
 Lifecycle report writes also refresh the README's bundle and checkpoint tables.
 Those tables average independent runs at each growth and shrinkage checkpoint
 and show JSON/MessagePack transport sizes with gzip in KiB. Memory estimates
-cover one instance's isolated WASM memory and retained JS array slots. Peers and
-temporary constructor measurements use a separate runtime. `--no-output` preserves the
-existing reports and README.
+cover one instance's live native allocation and retained JS array slots, excluding
+unused WASM capacity. At lifecycle checkpoints both peers are destroyed and
+recreated from the same compacted Sequence before measuring memory and continuing
+edits. The peer uses a separate runtime. `--no-output` preserves existing reports
+and README.
 
 Default settings are collected at the top of `index.ts`. Command-line options
 override them. Shared measurement helpers and types live in `.shared`;

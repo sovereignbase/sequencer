@@ -2,6 +2,9 @@
 
 Run `npx vitest run test/integration/runtime_lifetime --coverage.enabled=false`.
 
+Interleaved sequence and tuple edits must keep Footage and retained snapshots
+independent, including extensions, replacements, removals and hydration.
+
 Failed native initialization must release the JavaScript bindings and leave the
 next Projection usable. These cases inject real native error results at the ABI
 boundary and exercise recovery through the public constructor.

@@ -94,6 +94,9 @@ struct ContentAppend {
       at{} /**< Original target Frame length before extension. */,
       base{} /**< Target Insertion's content-array origin before copy-on-write. */;
 };
+/** Deferred Footage changes for the current synchronous ABI call. */
+extern std::vector<Span> released, copied;
+extern std::vector<ContentAppend> appended;
 /** Consumer-visible mutation; the removal end is exclusive. */
 struct Splice {
   Word start{} /**< First affected Projection position. */,
@@ -147,11 +150,6 @@ struct Strips {
   std::uint8_t *fragmented{} /**< Whether materialization has diverged from one intact Strip. */,
       *offset{} /**< Whether this Strip represents an offset fragment or consumed mask prefix. */;
 
-  /** Initializes slot zero so absent links may safely read zero-valued lanes. */
-  explicit Strips(bool initialize = true) {
-    if (initialize)
-      append({});
-  }
   /** Grows every lane together, preserving initialized slots and stable indices.
    * @param next Required arena capacity; existing capacity is retained when sufficient.
    */
@@ -192,6 +190,9 @@ struct Strips {
     right_jump_strips = fields + 11 * next;
     fragmented = bits;
     offset = bits + next;
+    // Slot zero is needed only once history exists; empty Projections own no arena.
+    if (!count)
+      append({});
   }
   /** Adds an unlinked Strip initialized with its original signed Frame effect.
    * @param insertion Canonical Insertion and binding reference.
@@ -200,7 +201,7 @@ struct Strips {
   Index append(Insertion insertion) {
     constexpr Word lanes = 12;
     if (count == capacity)
-      reserve(std::max(Word(4), capacity * 2));
+      reserve(std::max(Word(2), capacity * 2));
     const auto index = count++;
     std::construct_at(identity + index, insertion);
     auto *fields = reinterpret_cast<Word *>(identity + capacity);

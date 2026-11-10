@@ -63,9 +63,9 @@ isolated runtime for the measured instance, then warms it before the burst.
 Initial-data generation, remote authoring and temporary constructors use a
 separate runtime. Their allocations do not increase the measured footprint.
 
-Library memory is the current WASM buffer length plus eight bytes per retained
-JavaScript array slot. Footage arrays are deduplicated. Native free capacity is
-included; JS array headers, hidden backing capacity, application value objects,
+Library memory is live native allocator bytes plus eight bytes per retained
+JavaScript array slot. Footage arrays are deduplicated. Unused WASM capacity,
+JS array headers, hidden backing capacity, application value objects,
 compiled code and JS engine bookkeeping are excluded. Raw observations also
 retain the exported Sequence estimate and shared process totals.
 To collect garbage between bursts, build first and run with `--expose-gc`:

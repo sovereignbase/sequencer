@@ -34,6 +34,40 @@ afterAll(() => {
 })
 
 describe('runtime lifetime', () => {
+  it('keeps Footage independent across interleaved sequence and tuple edits', () => {
+    const sequence = new Projection<string>(1)
+    const tuple = new Projection<string>(2, undefined, {
+      enabled: 1,
+      maxLength: 3,
+    })
+    try {
+      sequence.insert(['a', 'b'], 0)
+      tuple.insert(['x', 'y', 'z'], 0)
+      const sequenceSnapshot = sequence.sequence()
+      const tupleSnapshot = tuple.sequence()
+      sequence.insert(['c'], 2)
+      tuple.replace(['Y'], 1, 1)
+      sequence.remove(1, 1)
+      tuple.insert(['Q'], 0)
+      expect(sequence.values()).toEqual(['a', 'c'])
+      expect(tuple.values()).toEqual(['Q', 'Y', 'z'])
+      expect(sequenceSnapshot[1]).toEqual(['a', 'b'])
+      expect(tupleSnapshot[1]).toEqual(['x', 'y', 'z'])
+      const restored = new Projection<string>(3, sequence.sequence())
+      try {
+        tuple.remove(2, 2)
+        expect(restored.values()).toEqual(['a', 'c'])
+        expect(sequence.values()).toEqual(['a', 'c'])
+        expect(tuple.values()).toEqual(['Q', 'Y', undefined])
+      } finally {
+        restored.destroy()
+      }
+    } finally {
+      sequence.destroy()
+      tuple.destroy()
+    }
+  })
+
   it.each([
     [
       'missing native handle',

@@ -87,8 +87,8 @@ Invalid input to `apply()` or `merge()` returns `undefined` instead of throwing.
 
 | Format   | Raw (KiB) | Minified (KiB) | Minified + gzip (KiB) |
 | -------- | --------: | -------------: | --------------------: |
-| ESM      |    158.96 |         129.47 |                 46.18 |
-| CommonJS |    159.10 |         130.50 |                 46.26 |
+| ESM      |    158.25 |         128.81 |                 45.84 |
+| CommonJS |    158.39 |         129.85 |                 45.92 |
 
 Both bundles include WASM. Terser uses three compression passes; gzip uses level 9.
 
@@ -101,37 +101,37 @@ Strips contain 1–100 Frames (visible entries). Headers show Strip counts and m
 
 | Method / case  | 1,000 Strips<br>50,871 Frames | 5,000 Strips<br>252,214 Frames | 10,000 Strips<br>504,871 Frames | 15,000 Strips<br>758,280 Frames | 20,000 Strips<br>1,010,749 Frames | 25,000 Strips<br>1,264,003 Frames |
 | -------------- | ----------------------------: | -----------------------------: | ------------------------------: | ------------------------------: | --------------------------------: | --------------------------------: |
-| apply.random   |                       171,453 |                         85,179 |                          58,501 |                          44,348 |                            36,323 |                            30,990 |
-| insert.head    |                     1,276,746 |                        960,179 |                       1,042,758 |                       1,064,696 |                         1,067,029 |                         1,069,362 |
-| insert.random  |                       469,631 |                        248,663 |                         158,879 |                         119,231 |                            95,849 |                            80,824 |
-| insert.tail    |                     1,341,595 |                      1,095,289 |                       1,177,829 |                       1,194,605 |                         1,197,486 |                         1,193,245 |
+| apply.random   |                       146,171 |                         91,556 |                          86,197 |                          81,102 |                            78,841 |                            75,980 |
+| insert.head    |                       931,005 |                        721,724 |                         851,676 |                         932,058 |                           959,116 |                           981,987 |
+| insert.random  |                       426,320 |                        225,812 |                         190,177 |                         169,967 |                           154,152 |                           144,363 |
+| insert.tail    |                     1,075,341 |                        856,898 |                       1,009,383 |                       1,011,598 |                         1,047,278 |                           901,897 |
 | remove.head    |                             — |                              — |                               — |                               — |                                 — |                                 — |
-| remove.random  |                       349,893 |                        173,185 |                         113,529 |                          83,543 |                            66,557 |                            55,076 |
+| remove.random  |                       267,851 |                        146,592 |                         115,686 |                         100,122 |                            89,710 |                            83,039 |
 | remove.tail    |                             — |                              — |                               — |                               — |                                 — |                                 — |
-| replace.head   |                       417,992 |                        400,907 |                         416,099 |                         404,921 |                           412,190 |                           415,949 |
-| replace.random |                       272,164 |                        151,592 |                         104,777 |                          77,749 |                            62,754 |                            52,295 |
-| replace.tail   |                       401,524 |                        426,873 |                         402,079 |                         419,609 |                           397,504 |                           378,710 |
-| value.head     |                     2,376,498 |                      2,765,562 |                       3,050,230 |                       3,227,199 |                         3,396,157 |                         3,450,987 |
-| value.random   |                       691,744 |                        248,566 |                         141,123 |                          97,002 |                            75,434 |                            61,822 |
-| value.tail     |                     4,805,104 |                      4,436,324 |                       4,396,600 |                       4,425,266 |                         4,463,274 |                         4,357,543 |
+| replace.head   |                       366,950 |                        331,482 |                         357,695 |                         360,154 |                           367,036 |                           362,856 |
+| replace.random |                       239,481 |                        133,882 |                         107,832 |                          94,214 |                            83,824 |                            78,208 |
+| replace.tail   |                       352,941 |                        345,855 |                         379,447 |                         338,848 |                           350,992 |                           362,684 |
+| value.head     |                     2,057,699 |                      2,403,342 |                       2,697,626 |                       2,684,639 |                         2,792,485 |                         2,838,319 |
+| value.random   |                       583,209 |                        211,569 |                         152,405 |                         125,818 |                           110,572 |                            99,904 |
+| value.tail     |                     4,433,598 |                      4,139,676 |                       4,269,335 |                       4,299,398 |                         4,270,988 |                         4,242,599 |
 
 **↓ Scale down (25,000 → 0 Strips)**
 
 | Method / case  | 20,000 Strips<br>1,012,742 Frames | 15,000 Strips<br>755,860 Frames | 10,000 Strips<br>504,103 Frames | 5,000 Strips<br>251,203 Frames | 1,000 Strips<br>51,057 Frames | 0 Strips<br>0 Frames |
 | -------------- | --------------------------------: | ------------------------------: | ------------------------------: | -----------------------------: | ----------------------------: | -------------------: |
-| apply.random   |                            19,988 |                          20,193 |                          20,681 |                         20,759 |                        21,242 |               21,530 |
+| apply.random   |                            68,906 |                          66,433 |                          72,770 |                         76,814 |                        81,569 |               83,685 |
 | insert.head    |                                 — |                               — |                               — |                              — |                             — |                    — |
-| insert.random  |                            49,300 |                          49,351 |                          51,688 |                         50,838 |                        52,366 |               50,663 |
+| insert.random  |                           206,458 |                         199,772 |                         213,196 |                        223,221 |                       235,176 |              241,009 |
 | insert.tail    |                                 — |                               — |                               — |                              — |                             — |                    — |
-| remove.head    |                           481,597 |                         472,449 |                         475,588 |                        476,638 |                       478,416 |              481,279 |
-| remove.random  |                            35,338 |                          36,452 |                          38,352 |                         39,318 |                        40,890 |               41,652 |
-| remove.tail    |                           472,124 |                         452,527 |                         462,921 |                        414,675 |                       424,065 |              416,496 |
-| replace.head   |                           362,540 |                         347,442 |                         332,980 |                        294,974 |                       287,270 |              210,123 |
-| replace.random |                            34,497 |                          35,502 |                          37,360 |                         37,954 |                        39,083 |               38,305 |
-| replace.tail   |                           178,494 |                         163,617 |                         153,538 |                        140,076 |                       137,526 |              120,463 |
-| value.head     |                         1,740,991 |                       1,699,295 |                       1,703,356 |                      1,695,840 |                     1,731,440 |            1,755,420 |
-| value.random   |                            39,064 |                          40,132 |                          42,401 |                         43,506 |                        45,321 |               46,294 |
-| value.tail     |                         1,986,878 |                       1,939,252 |                       1,936,152 |                      1,937,988 |                     1,992,747 |            2,027,784 |
+| remove.head    |                           443,119 |                         428,692 |                         426,929 |                        440,906 |                       454,156 |              459,171 |
+| remove.random  |                           148,453 |                         144,541 |                         153,227 |                        158,953 |                       162,798 |              166,654 |
+| remove.tail    |                           428,260 |                         418,196 |                         430,602 |                        436,638 |                       447,527 |              452,141 |
+| replace.head   |                           289,873 |                         294,082 |                         311,468 |                        307,531 |                       315,019 |              317,844 |
+| replace.random |                           140,371 |                         136,294 |                         143,795 |                        148,426 |                       154,816 |              158,105 |
+| replace.tail   |                           141,773 |                          34,774 |                          42,853 |                         36,403 |                        40,919 |               42,350 |
+| value.head     |                         1,924,168 |                       1,858,854 |                       1,945,882 |                      1,991,125 |                     2,028,731 |            2,046,555 |
+| value.random   |                           223,533 |                         220,156 |                         234,372 |                        245,535 |                       259,612 |              267,126 |
+| value.tail     |                         3,190,002 |                       3,106,506 |                       3,152,450 |                      3,180,373 |                     3,231,156 |            3,248,100 |
 
 ### API throughput at checkpoint
 
@@ -141,17 +141,17 @@ Checkpoint calls, in ops/s, averaged across runs.
 
 | Method                            | 1,000 Strips<br>50,871 Frames | 5,000 Strips<br>252,214 Frames | 10,000 Strips<br>504,871 Frames | 15,000 Strips<br>758,280 Frames | 20,000 Strips<br>1,010,749 Frames | 25,000 Strips<br>1,264,003 Frames |
 | --------------------------------- | ----------------------------: | -----------------------------: | ------------------------------: | ------------------------------: | --------------------------------: | --------------------------------: |
-| new Projection(actorID, sequence) |                         4,600 |                          1,050 |                             603 |                             418 |                               287 |                               241 |
-| sequence()                        |                           559 |                             96 |                              46 |                              29 |                                20 |                                14 |
-| values()                          |                           663 |                            214 |                              65 |                              59 |                                37 |                                38 |
+| new Projection(actorID, sequence) |                         2,899 |                          1,090 |                             525 |                             331 |                               237 |                               164 |
+| sequence()                        |                           444 |                            100 |                              64 |                              49 |                                37 |                                27 |
+| values()                          |                           518 |                            206 |                              48 |                              66 |                                34 |                                48 |
 
 **↓ Scale down (25,000 → 0 Strips)**
 
 | Method                            | 20,000 Strips<br>1,012,742 Frames | 15,000 Strips<br>755,860 Frames | 10,000 Strips<br>504,103 Frames | 5,000 Strips<br>251,203 Frames | 1,000 Strips<br>51,057 Frames | 0 Strips<br>0 Frames |
 | --------------------------------- | --------------------------------: | ------------------------------: | ------------------------------: | -----------------------------: | ----------------------------: | -------------------: |
-| new Projection(actorID, sequence) |                               284 |                             420 |                             503 |                          1,269 |                         5,331 |               21,152 |
-| sequence()                        |                                14 |                              14 |                              10 |                             10 |                             8 |                    9 |
-| values()                          |                                55 |                              33 |                              78 |                             84 |                           207 |              105,615 |
+| new Projection(actorID, sequence) |                               216 |                             322 |                             464 |                          1,074 |                         5,268 |               44,859 |
+| sequence()                        |                                39 |                              42 |                              59 |                             78 |                           128 |                  595 |
+| values()                          |                                43 |                              67 |                              65 |                            119 |                           366 |               99,516 |
 
 ### Sequence disk size at checkpoint
 
@@ -161,38 +161,38 @@ Complete exported Sequences, including Footage and acknowledgements. Sizes are i
 
 | Encoding           | 1,000 Strips<br>50,871 Frames | 5,000 Strips<br>252,214 Frames | 10,000 Strips<br>504,871 Frames | 15,000 Strips<br>758,280 Frames | 20,000 Strips<br>1,010,749 Frames | 25,000 Strips<br>1,264,003 Frames |
 | ------------------ | ----------------------------: | -----------------------------: | ------------------------------: | ------------------------------: | --------------------------------: | --------------------------------: |
-| JSON               |                        277.17 |                       1,621.63 |                        3,261.64 |                        4,900.86 |                          7,041.20 |                          9,162.56 |
-| JSON + gzip        |                         14.59 |                          73.79 |                          150.28 |                          226.66 |                            310.89 |                            391.35 |
-| MessagePack        |                        164.81 |                         818.88 |                        1,639.69 |                        3,529.41 |                          5,081.04 |                          6,483.22 |
-| MessagePack + gzip |                         12.38 |                          61.62 |                          124.91 |                          198.58 |                            263.54 |                            332.77 |
+| JSON               |                        277.30 |                       1,620.42 |                        3,265.52 |                        4,932.17 |                          7,108.60 |                          9,259.61 |
+| JSON + gzip        |                         14.59 |                          73.45 |                          148.95 |                          226.02 |                            310.91 |                            392.49 |
+| MessagePack        |                        164.81 |                         818.92 |                        1,646.03 |                        3,553.60 |                          5,126.26 |                          6,551.31 |
+| MessagePack + gzip |                         12.38 |                          61.63 |                          124.81 |                          200.05 |                            263.43 |                            335.06 |
 
 **↓ Scale down (25,000 → 0 Strips)**
 
 | Encoding           | 20,000 Strips<br>1,012,742 Frames | 15,000 Strips<br>755,860 Frames | 10,000 Strips<br>504,103 Frames | 5,000 Strips<br>251,203 Frames | 1,000 Strips<br>51,057 Frames | 0 Strips<br>0 Frames |
 | ------------------ | --------------------------------: | ------------------------------: | ------------------------------: | -----------------------------: | ----------------------------: | -------------------: |
-| JSON               |                          7,446.36 |                        5,617.47 |                        3,769.77 |                       1,885.57 |                        383.22 |                 0.02 |
-| JSON + gzip        |                            322.95 |                          244.24 |                          163.81 |                          80.60 |                         16.34 |                 0.03 |
-| MessagePack        |                          5,237.17 |                        3,930.33 |                        2,628.38 |                       1,312.43 |                        266.67 |                 0.01 |
-| MessagePack + gzip |                            274.96 |                          207.78 |                          137.38 |                          67.40 |                         13.67 |                 0.03 |
+| JSON               |                          7,569.89 |                        5,704.68 |                        3,812.65 |                       1,889.45 |                        381.38 |                 0.02 |
+| JSON + gzip        |                            326.57 |                          247.37 |                          164.91 |                          79.62 |                         15.97 |                 0.03 |
+| MessagePack        |                          5,314.83 |                        3,986.78 |                        2,658.67 |                       1,319.82 |                        266.79 |                 0.01 |
+| MessagePack + gzip |                            278.09 |                          209.77 |                          139.95 |                          67.74 |                         13.66 |                 0.03 |
 
 ### Memory usage at checkpoint
 
-One instance: WASM memory plus retained JS array slots, in KiB (1,024 bytes).
+One instance after checkpoint compaction and recreation: live native allocation plus retained JS array slots, in KiB (1,024 bytes). Unused WASM capacity is excluded.
 
 **↑ Scale up (0 → 25,000 Strips)**
 
 | Measurement            | 1,000 Strips<br>50,871 Frames | 5,000 Strips<br>252,214 Frames | 10,000 Strips<br>504,871 Frames | 15,000 Strips<br>758,280 Frames | 20,000 Strips<br>1,010,749 Frames | 25,000 Strips<br>1,264,003 Frames |
 | ---------------------- | ----------------------------: | -----------------------------: | ------------------------------: | ------------------------------: | --------------------------------: | --------------------------------: |
-| Estimated memory (KiB) |                      5,343.67 |                      25,100.58 |                       50,470.89 |                       82,701.27 |                         98,036.35 |                        153,462.93 |
+| Estimated memory (KiB) |                        915.04 |                       4,318.67 |                        7,912.60 |                       11,368.22 |                         15,034.19 |                         18,460.98 |
 
 **↓ Scale down (25,000 → 0 Strips)**
 
 | Measurement            | 20,000 Strips<br>1,012,742 Frames | 15,000 Strips<br>755,860 Frames | 10,000 Strips<br>504,103 Frames | 5,000 Strips<br>251,203 Frames | 1,000 Strips<br>51,057 Frames | 0 Strips<br>0 Frames |
 | ---------------------- | --------------------------------: | ------------------------------: | ------------------------------: | -----------------------------: | ----------------------------: | -------------------: |
-| Estimated memory (KiB) |                        163,746.93 |                      174,034.00 |                      202,660.72 |                     293,941.85 |                    302,158.29 |           304,203.30 |
+| Estimated memory (KiB) |                         15,322.58 |                       12,255.98 |                        9,031.64 |                       5,894.00 |                      3,102.37 |             1,560.48 |
 
-Measured on Node 24.22.2, V8 13.6.233.17-node.63,
-linux x64, AMD EPYC 7763 64-Core Processor.
+Measured on Node 24.16.0, V8 13.6.233.17-node.49,
+win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz.
 Peer synchronization, encoding and JS process garbage collection are outside API timings.
 [Full lifecycle results](benchmark/.results/lifecycle.md) · [Throughput results](benchmark/.results/throughput.md).
 
@@ -204,37 +204,37 @@ Arithmetic means of 3 runs. Ordinary Projection versus a static tuple with maxLe
 
 | Indices | Method / case   | Projection | Static tuple | Tuple / Projection |
 | ------: | --------------- | ---------: | -----------: | -----------------: |
-|       2 | create.sequence |    671,232 |      605,130 |              0.90× |
-|       2 | replace.random  |    727,952 |    1,167,663 |              1.60× |
-|       2 | apply.replace   |    496,236 |      649,176 |              1.31× |
-|       2 | value.random    | 31,247,502 |   50,026,903 |              1.60× |
-|       4 | create.sequence |    479,185 |      530,192 |              1.11× |
-|       4 | replace.random  |    765,676 |    1,239,945 |              1.62× |
-|       4 | apply.replace   |    396,319 |      755,856 |              1.91× |
-|       4 | value.random    | 25,741,279 |   49,159,717 |              1.91× |
-|       8 | create.sequence |    351,017 |      435,424 |              1.24× |
-|       8 | replace.random  |    773,074 |    1,159,168 |              1.50× |
-|       8 | apply.replace   |    353,373 |      631,010 |              1.79× |
-|       8 | value.random    | 19,929,925 |   49,563,350 |              2.49× |
-|     100 | create.sequence |     68,980 |      100,622 |              1.46× |
-|     100 | replace.random  |    670,840 |    1,180,230 |              1.76× |
-|     100 | apply.replace   |    331,266 |      730,372 |              2.20× |
-|     100 | value.random    |  9,127,830 |   48,386,741 |              5.30× |
+|       2 | create.sequence |    655,035 |      567,631 |              0.87× |
+|       2 | replace.random  |    729,090 |    1,131,956 |              1.55× |
+|       2 | apply.replace   |    527,911 |      682,592 |              1.29× |
+|       2 | value.random    | 25,741,854 |   40,200,076 |              1.56× |
+|       4 | create.sequence |    368,804 |      384,430 |              1.04× |
+|       4 | replace.random  |    646,095 |      895,062 |              1.39× |
+|       4 | apply.replace   |    309,623 |      545,099 |              1.76× |
+|       4 | value.random    | 20,933,492 |   40,262,360 |              1.92× |
+|       8 | create.sequence |    321,304 |      377,905 |              1.18× |
+|       8 | replace.random  |    674,094 |    1,033,396 |              1.53× |
+|       8 | apply.replace   |    290,298 |      422,935 |              1.46× |
+|       8 | value.random    | 14,186,324 |   35,039,107 |              2.47× |
+|     100 | create.sequence |     51,410 |       81,770 |              1.59× |
+|     100 | replace.random  |    495,750 |    1,064,078 |              2.15× |
+|     100 | apply.replace   |    230,210 |      567,547 |              2.47× |
+|     100 | value.random    |  7,987,133 |   44,342,892 |              5.55× |
 
 #### Space (KiB)
 
 | Indices | Mode         | Estimated allocated memory | MessagePack | MessagePack + gzip |
 | ------: | ------------ | -------------------------: | ----------: | -----------------: |
-|       2 | Projection   |                       0.98 |        0.03 |               0.04 |
-|       2 | Static tuple |                       0.90 |        0.04 |               0.05 |
-|       4 | Projection   |                       1.57 |        0.06 |               0.05 |
-|       4 | Static tuple |                       1.09 |        0.06 |               0.07 |
-|       8 | Projection   |                       2.52 |        0.12 |               0.08 |
-|       8 | Static tuple |                       1.55 |        0.10 |               0.09 |
-|     100 | Projection   |                      23.78 |        0.67 |               0.57 |
-|     100 | Static tuple |                      12.23 |        0.51 |               0.35 |
+|       2 | Projection   |                       0.86 |        0.03 |               0.04 |
+|       2 | Static tuple |                       0.85 |        0.04 |               0.05 |
+|       4 | Projection   |                       1.54 |        0.06 |               0.05 |
+|       4 | Static tuple |                       1.04 |        0.06 |               0.07 |
+|       8 | Projection   |                       2.49 |        0.12 |               0.08 |
+|       8 | Static tuple |                       1.51 |        0.10 |               0.09 |
+|     100 | Projection   |                      23.75 |        0.67 |               0.57 |
+|     100 | Static tuple |                      12.18 |        0.51 |               0.35 |
 
-Measured on Node 24.22.2, V8 13.6.233.17-node.63, linux x64, AMD EPYC 7763 64-Core Processor. Fixtures are hydrated compacted snapshots after one replacement per field. Each case warms up for ≥25 ms and measures ≥50 ms of API time; mutation bursts restart after 4,096 replacements. Peer authoring, encoding, result checks, destruction and explicit JS process garbage collection are outside API timings. Memory estimates are the increase in live native allocator bytes plus retained JS array slots for one instance, including exercised runtime buffers. Unused WASM capacity, JS object headers and referenced payload objects are excluded.
+Measured on Node 24.16.0, V8 13.6.233.17-node.49, win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz. Fixtures are hydrated compacted snapshots after one replacement per field. Each case warms up for ≥25 ms and measures ≥50 ms of API time; mutation bursts restart after 4,096 replacements. Peer authoring, encoding, result checks, destruction and explicit JS process garbage collection are outside API timings. Memory estimates are the increase in live native allocator bytes plus retained JS array slots for one instance, including exercised runtime buffers. Unused WASM capacity, JS object headers and referenced payload objects are excluded.
 
 [Full tuple results](benchmark/.results/tuple.md).
 
@@ -242,7 +242,7 @@ Measured on Node 24.22.2, V8 13.6.233.17-node.63, linux x64, AMD EPYC 7763 64-Co
 
 ### Behaviour guaranteed by excessive tests
 
-The latest verification passed 271 Vitest tests and 117 compatibility checks.
+The latest verification passed 272 Vitest tests and 104 compatibility checks.
 The configured 100% coverage threshold is met (100% statements, 100% branches, 100% functions, 100% lines).
 See the [test suites](test/README.md) and
 [automated test report](https://sovereignbase.dev/sequencer/tests/).
@@ -258,7 +258,7 @@ Runtimes covered by the latest compatibility verification:
 - Edge Runtime: passed
 - Cloudflare Workers through workerd: passed
 - Chromium browser windows: passed
-- Firefox browser windows: passed
+- Firefox browser windows: skipped
 - WebKit browser windows: passed
 
 ### Tested realtime and offline text editing behaviour examples

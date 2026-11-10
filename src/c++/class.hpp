@@ -24,8 +24,6 @@ public:
       gate_position{} /**< Visible position at the gate Strip's first Frame or boundary. */;
   /** Rounded jump spacing and the largest Strip count for which it remains valid. */
   std::array<Word, 2> jump_spacing{1, 2};
-  Index left_jump_to_patch{} /**< Left endpoint of the jump spanning the next local edit. */,
-      right_jump_to_patch{} /**< Right endpoint of that same jump. */;
   /** Last locally authored positive root eligible for an intact extension. */
   Index last_insert{};
   /** Independent positive and reducing clocks, each stored as [Session, next time]. */

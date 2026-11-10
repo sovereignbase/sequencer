@@ -12,34 +12,30 @@ Word Projection::find_frame(Word position, bool for_insertion) {
   // A hit within the visible gate needs no walk. Insertion at its first Frame
   // still resolves hidden boundaries through the ordinary traversal below.
   if (gate && position >= gate_position && (!for_insertion || position != gate_position) &&
-      strips.fragment_diff[gate] > 0 &&
-      position - gate_position < Word(strips.fragment_diff[gate])) {
-    if (strips.right_jump[gate]) {
-      left_jump_to_patch = gate;
-      right_jump_to_patch = strips.right_jump[gate];
-    } else if (gate == right_jump_to_patch)
-      left_jump_to_patch = right_jump_to_patch = none;
+      strips.fragment_diff[gate] > 0 && position - gate_position < Word(strips.fragment_diff[gate]))
     return strips.fragment_start[gate] + position - gate_position;
+  const auto tail_index = frame_count - Word(strips.fragment_diff[tail]);
+  // The last visible fragment owns its entire range. Its first insertion
+  // boundary can still belong to hidden history and uses the resolution below.
+  if (position >= tail_index && position < frame_count &&
+      (!for_insertion || position != tail_index)) {
+    gate = tail;
+    gate_position = tail_index;
+    return strips.fragment_start[tail] + position - tail_index;
   }
   std::int64_t index = position, cursor_index = gate_position;
   auto cursor = gate;
   Word after = 0;
-  auto patch_left = left_jump_to_patch, patch_right = right_jump_to_patch;
-  const auto tail_index = std::int64_t(frame_count) - strips.fragment_diff[tail];
-  const auto tail_distance = std::abs(tail_index - index);
+  const auto tail_distance = std::abs(std::int64_t(tail_index) - index);
   const auto gate_distance = std::abs(cursor_index - index);
   // Start at the closest known visible reference; structural distance can differ
   // because masks and zero-effect fragments do not advance Projection positions.
   if (index < gate_distance && index <= tail_distance) {
     cursor = head;
     cursor_index = 0;
-    patch_left = cursor;
-    patch_right = strips.right_jump[cursor];
   } else if (tail_distance < gate_distance) {
     cursor = tail;
     cursor_index = tail_index;
-    patch_left = strips.left_jump[cursor];
-    patch_right = cursor;
   }
   const auto spacing = traversal_spacing();
   auto jump_start = cursor;
@@ -55,7 +51,7 @@ Word Projection::find_frame(Word position, bool for_insertion) {
     if (cursor_index <= index && index < cursor_index + length) {
       // A visible fragment start can conceal an earlier stable mask boundary.
       // Insertion resolution may choose that history; ordinary reads stay on visible content.
-      if (for_insertion && !after && index == cursor_index && strips.offset[cursor]) {
+      if (for_insertion && !after && index == cursor_index && strips.identity[cursor].offset) {
         const auto mask = strips.left[cursor];
         const auto m = mask;
         const auto c = cursor;
@@ -70,7 +66,7 @@ Word Projection::find_frame(Word position, bool for_insertion) {
                 strips.identity[m].coordinates.anchor_session &&
             strips.identity[strips.left[m]].coordinates.start ==
                 strips.identity[m].coordinates.anchor_start &&
-            !strips.offset[strips.left[m]];
+            !strips.identity[strips.left[m]].offset;
         const bool adjoining_mask =
             mask &&
             strips.identity[m].coordinates.anchor_session ==
@@ -123,15 +119,8 @@ Word Projection::find_frame(Word position, bool for_insertion) {
                      strips.left_jump_strips[jump_start] + steps);
         link_jumps(*this, cursor, jump_start, frames, Word(-steps));
       }
-      if (strips.right_jump[cursor]) {
-        patch_left = cursor;
-        patch_right = strips.right_jump[cursor];
-      } else if (cursor == patch_right)
-        patch_left = patch_right = none;
       gate = cursor;
       gate_position = Word(cursor_index);
-      left_jump_to_patch = patch_left;
-      right_jump_to_patch = patch_right;
       // Return original coordinates; content_start maps those coordinates to JavaScript slots.
       return Word(strips.fragment_start[cursor] + index - cursor_index + after);
     }
@@ -152,27 +141,16 @@ Word Projection::find_frame(Word position, bool for_insertion) {
           }
         }
         const auto destination = cursor_index + frames;
-        if (cursor_index <= index && index <= destination) {
-          patch_left = cursor;
-          patch_right = jump;
-        }
         // Jump only when its visible destination cannot overshoot the requested Frame.
         if (destination <= index && distance > 1) {
           cursor = jump;
           cursor_index = destination;
-          patch_left = patch_right = none;
           continue;
         }
-      }
-      if (jump) {
-        patch_left = cursor;
-        patch_right = jump;
       }
       cursor = walk;
       cursor_index = walk_index;
       ++steps;
-      if (cursor == patch_right)
-        patch_left = patch_right = none;
     } else {
       const auto walk = strips.left[cursor];
       const auto walk_index = cursor_index - std::max(0, strips.fragment_diff[walk]);
@@ -189,26 +167,15 @@ Word Projection::find_frame(Word position, bool for_insertion) {
           }
         }
         const auto destination = cursor_index - frames;
-        if (destination <= index && index <= cursor_index) {
-          patch_left = jump;
-          patch_right = cursor;
-        }
         if (index <= destination && distance > 1) {
           cursor = jump;
           cursor_index = destination;
-          patch_left = patch_right = none;
           continue;
         }
-      }
-      if (jump) {
-        patch_left = jump;
-        patch_right = cursor;
       }
       cursor = walk;
       cursor_index = walk_index;
       --steps;
-      if (cursor == patch_left)
-        patch_left = patch_right = none;
     }
   }
   throw std::runtime_error("Visible position has no owner");

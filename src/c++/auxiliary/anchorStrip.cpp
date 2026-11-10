@@ -47,7 +47,7 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point,
       const auto available = std::max<std::int64_t>(0, std::int64_t(strips.fragment_start[anchor]) +
                                                            strips.fragment_diff[anchor] - point);
       diff = -std::int32_t(std::min<std::int64_t>(-std::int64_t(diff), available));
-      strips.fragmented[incoming] = true;
+      strips.identity[incoming].fragmented = true;
       strips.fragment_diff[incoming] = diff;
     }
     // A fully overlapped mask still has identity and descendants; clamp only its placement.
@@ -172,7 +172,7 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point,
     // offsets are relative to the removal, while each targets original parent Frames.
     const auto start = strips.fragment_start[next];
     const auto mask = allocate({c, 0});
-    strips.offset[mask] = strips.fragmented[mask] = true;
+    strips.identity[mask].offset = strips.identity[mask].fragmented = true;
     strips.fragment_start[mask] = start - c.anchor_diff;
     strips.fragment_diff[mask] =
         -std::int32_t(std::min(Word(std::max(0, strips.fragment_diff[next])), removal_end - start));

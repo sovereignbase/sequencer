@@ -39,7 +39,7 @@ std::pair<Word, Index> Projection::find_containing_fragment(Index origin, const 
     // Frame and therefore excludes the target fragment's right endpoint.
     if (c.diff < 0 ? c.anchor_diff >= fs && c.anchor_diff < fe : c.anchor_diff <= fe) {
       if (c.diff < 0 && magnitude(c.diff) > fe - c.anchor_diff) {
-        strips.fragmented[incoming] = true;
+        strips.identity[incoming].fragmented = true;
         strips.fragment_diff[incoming] = std::int32_t(c.anchor_diff) - std::int32_t(fe);
       }
       return {std::max(c.anchor_diff, fs), anchor};
@@ -89,7 +89,7 @@ std::pair<Word, Index> Projection::find_containing_fragment(Index origin, const 
       const auto consumed =
           std::min(magnitude(strips.fragment_diff[incoming]), end - c.anchor_diff);
       strips.fragment_start[incoming] += consumed;
-      strips.offset[incoming] = strips.fragmented[incoming] = true;
+      strips.identity[incoming].offset = strips.identity[incoming].fragmented = true;
       strips.fragment_diff[incoming] = c.diff + std::int32_t(strips.fragment_start[incoming]);
       if (!strips.fragment_diff[incoming])
         return {point + consumed, mask};

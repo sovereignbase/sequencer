@@ -56,7 +56,12 @@ struct Insertion {
   Word content_start{};
   /** Whether Footage is privately writable; false requests copy-on-write before masking. */
   bool content_owned{};
+  /** Whether materialization has diverged from one intact Strip. */
+  bool fragmented{};
+  /** Whether this Strip represents an offset fragment or consumed mask prefix. */
+  bool offset{};
 };
+static_assert(sizeof(Insertion) == 36);
 /** Actor ID followed by removal Session/frontier pairs. */
 using Acknowledgement = std::vector<Word>;
 /** Discriminated Gossip entry; only the selected Insertion or frontier is meaningful. */
@@ -127,7 +132,7 @@ struct Sequence {
  * hot fragment/link fields use indexed lanes. Growth preserves indices, not pointers.
  */
 struct Strips {
-  /** Owning allocation containing identities, twelve word lanes and two flag lanes. */
+  /** Owning allocation containing identities and twelve word lanes. */
   std::unique_ptr<std::byte[]> memory;
   Word count{} /**< Allocated slots, including the absent-link sentinel. */,
       capacity{} /**< Slots available in each lane. */;
@@ -147,8 +152,6 @@ struct Strips {
       *left_jump_strips{} /**< Structural steps to the left jump endpoint. */,
       *right_jump_frames{} /**< Visible distance to the right jump endpoint. */,
       *right_jump_strips{} /**< Structural steps to the right jump endpoint. */;
-  std::uint8_t *fragmented{} /**< Whether materialization has diverged from one intact Strip. */,
-      *offset{} /**< Whether this Strip represents an offset fragment or consumed mask prefix. */;
 
   /** Grows every lane together, preserving initialized slots and stable indices.
    * @param next Required arena capacity; existing capacity is retained when sufficient.
@@ -158,10 +161,9 @@ struct Strips {
       return;
     constexpr Word lanes = 12;
     auto grown = std::make_unique_for_overwrite<std::byte[]>(
-        (sizeof(Insertion) + lanes * sizeof(Word) + 2) * next);
+        (sizeof(Insertion) + lanes * sizeof(Word)) * next);
     auto *identities = reinterpret_cast<Insertion *>(grown.get());
     auto *fields = reinterpret_cast<Word *>(identities + next);
-    auto *bits = reinterpret_cast<std::uint8_t *>(fields + lanes * next);
     // Copy only constructed slots. Lane spacing changes with capacity, so one
     // whole-allocation memcpy would place every traversal field incorrectly.
     if (count) {
@@ -169,8 +171,6 @@ struct Strips {
       auto *old = reinterpret_cast<Word *>(identity + capacity);
       for (Word field = 0; field < lanes; ++field)
         std::memcpy(fields + field * next, old + field * capacity, count * sizeof(Word));
-      std::memcpy(bits, fragmented, count);
-      std::memcpy(bits + next, offset, count);
     }
     // Every cached lane pointer belongs to the new allocation after this commit.
     memory = std::move(grown);
@@ -188,8 +188,6 @@ struct Strips {
     left_jump_strips = fields + 9 * next;
     right_jump_frames = fields + 10 * next;
     right_jump_strips = fields + 11 * next;
-    fragmented = bits;
-    offset = bits + next;
     // Slot zero is needed only once history exists; empty Projections own no arena.
     if (!count)
       append({});
@@ -203,12 +201,11 @@ struct Strips {
     if (count == capacity)
       reserve(std::max(Word(2), capacity * 2));
     const auto index = count++;
+    insertion.fragmented = insertion.offset = false;
     std::construct_at(identity + index, insertion);
     auto *fields = reinterpret_cast<Word *>(identity + capacity);
     for (Word field = 0; field < lanes; ++field)
       std::construct_at(fields + field * capacity + index, Word(0));
-    std::construct_at(fragmented + index, std::uint8_t(0));
-    std::construct_at(offset + index, std::uint8_t(0));
     fragment_diff[index] = insertion.coordinates.diff;
     return index;
   }

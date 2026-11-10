@@ -10,15 +10,16 @@
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
 <li><a href="" aria-current="page">InsertionWords</a></li></ul>
 <h1>Type Alias InsertionWords</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">InsertionWords</span><span class="tsd-signature-symbol">:</span> <a href="U32List.html" class="tsd-signature-type tsd-kind-type-alias">U32List</a></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">InsertionWords</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ReadonlyArray</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-comment tsd-typography"><p>Exactly six words, in the replication order:
 <code>[anchorSession, anchorStart, anchorDiff,   insertionSession, insertionStart, insertionDiff]</code>.
 The anchor triple names a logical point in an existing Insertion; the Session
 and start pair identifies the authored Insertion. A positive diff adds Frames;
-a negative diff masks original Frames. Signed values use uint32 bit patterns.</p>
+a negative diff masks original Frames. Signed values use uint32 bit patterns.
+In tuple mode, <code>anchorDiff</code> is the stable index and diff is <code>1</code> or <code>-1</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/7de4a1dab0b39a9fc77cb4c72e820744a30cc308/src/typescript/types/type.ts#L12">src/typescript/types/type.ts:12</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/e13815837934e5a6814fa7744ffbcaac7526a9e6/src/typescript/types/type.ts#L10">src/typescript/types/type.ts:10</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

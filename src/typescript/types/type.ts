@@ -1,6 +1,3 @@
-/** Unsigned 32-bit structural words, accepted as a typed view or JSON numeric array. */
-export type U32List = Uint32Array | ReadonlyArray<number>
-
 /**
  * Exactly six words, in the replication order:
  * `[anchorSession, anchorStart, anchorDiff,
@@ -10,7 +7,7 @@ export type U32List = Uint32Array | ReadonlyArray<number>
  * a negative diff masks original Frames. Signed values use uint32 bit patterns.
  * In tuple mode, `anchorDiff` is the stable index and diff is `1` or `-1`.
  */
-export type InsertionWords = U32List
+export type InsertionWords = ReadonlyArray<number>
 
 /**
  * Canonical replication operation and optional JavaScript-owned Footage.
@@ -33,7 +30,7 @@ export type Insertion<T> = Readonly<
  * Compaction requires equal complete Session frontiers from every active Actor.
  * The application must deliver pending history before claiming that frontier.
  */
-export type Acknowledgement = U32List
+export type Acknowledgement = ReadonlyArray<number>
 
 /** Replication batch within retained history; delivery may be duplicated or causally reordered. */
 export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>
@@ -51,14 +48,14 @@ export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>
  * String-encoded Footage preserves Insertion order, not visible text order.
  * It uses one UTF-16 code unit per Frame. Missing slots use
  * NUL (`\u0000`); hydration splits the string with `split('')`.
- * `[[], []]` is an empty Sequence. Both numeric arrays and typed views are accepted.
+ * `[[], []]` is an empty Sequence. Structural words use numeric arrays.
  * Tuple metadata prefixes the payload with `[0xffffffff, 1, maxLength, length]`;
  * `maxLength = 0xffffffff` denotes dynamic growth. Tuple indices are never translated.
  */
 export type Sequence<T, StringEncoded extends boolean = false> = Readonly<
   [
     /** Acknowledgements followed by canonical Insertions in Structural Order. */
-    words: U32List,
+    words: ReadonlyArray<number>,
     /** Consecutive positive Insertion spans, including missing Footage slots. */
     footage: StringEncoded extends true ? string : ReadonlyArray<T | undefined>,
   ]

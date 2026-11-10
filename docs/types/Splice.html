@@ -11,14 +11,16 @@
 <li><a href="" aria-current="page">Splice</a></li></ul>
 <h1>Type Alias Splice&lt;T&gt;</h1></div>
 <div class="tsd-signature"><span class="tsd-kind-type-alias">Splice</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><br/>    <span class="tsd-signature-symbol">[</span><br/>        startAt<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>        endWith<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">,</span><br/>        values<span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">ReadonlyArray</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span></div>
-<div class="tsd-comment tsd-typography"><p>Visible mutation: insertion uses <code>[at, at, values]</code>; removal ends exclusively.</p>
+<div class="tsd-comment tsd-typography"><p>Visible mutation: insertion uses <code>[at, at, values]</code>; removal ends exclusively.
+Tuple changes assign one stable index using <code>[index, index + 1, [value]]</code>;
+an empty register supplies <code>undefined</code>, without shifting other indices.</p>
 </div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
 <li><span id="t"><span class="tsd-kind-type-parameter">T</span></span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/7de4a1dab0b39a9fc77cb4c72e820744a30cc308/src/typescript/types/type.ts#L65">src/typescript/types/type.ts:65</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/sovereignbase/sequencer/blob/e13815837934e5a6814fa7744ffbcaac7526a9e6/src/typescript/types/type.ts#L69">src/typescript/types/type.ts:69</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

@@ -22,7 +22,7 @@ Index Projection::split_strip(Index a, Word point, std::int32_t incoming_diff) {
   // fragment_start still addresses the original Insertion's coordinate space.
   const auto left_diff = (effect < 0 ? -1 : 1) * std::int32_t(point - strips.fragment_start[a]);
   const auto right_diff = effect - left_diff + std::min(0, incoming_diff);
-  strips.fragmented[a] = true;
+  strips.identity[a].fragmented = true;
   strips.fragment_diff[a] = left_diff;
   if (!right_diff)
     return old_right;
@@ -30,7 +30,7 @@ Index Projection::split_strip(Index a, Word point, std::int32_t incoming_diff) {
   strips.fragment[right] = old_fragment;
   strips.fragment_start[right] = point + (incoming_diff < 0 ? magnitude(incoming_diff) : 0);
   strips.fragment_diff[right] = right_diff;
-  strips.fragmented[right] = strips.offset[right] = true;
+  strips.identity[right].fragmented = strips.identity[right].offset = true;
   strips.left[right] = a;
   strips.right[right] = old_right;
   // Fragment links track common identity; structural links also include intervening children.

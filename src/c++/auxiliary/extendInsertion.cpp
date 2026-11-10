@@ -21,7 +21,7 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
   const auto next = strips.right[last];
   // An intact visible endpoint can grow in place. Existing children or interior
   // fragmentation require replay through the same anchor placement used for normal history.
-  if ((last == tail || (!strips.fragmented[origin] &&
+  if ((last == tail || (!strips.identity[origin].fragmented &&
                         (!next || !contains_anchor(original.coordinates,
                                                    strips.identity[next].coordinates, 0, end)))) &&
       strips.fragment_diff[last] > 0 &&
@@ -30,8 +30,6 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
         last == tail ? frame_count : position_of(last) + Word(strips.fragment_diff[last]);
     gate = last;
     gate_position = at - Word(strips.fragment_diff[last]);
-    left_jump_to_patch = last;
-    right_jump_to_patch = strips.right_jump[last];
     strips.fragment_diff[last] += std::int32_t(count);
     frame_count += count;
     const auto right = strips.right_jump[last];
@@ -58,7 +56,7 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
   const auto incoming = allocate(grown);
   strips.fragment_start[incoming] = end;
   strips.fragment_diff[incoming] = std::int32_t(count);
-  strips.offset[incoming] = strips.fragmented[incoming] = true;
+  strips.identity[incoming].offset = strips.identity[incoming].fragmented = true;
   strips.left[incoming] = left;
   strips.right[incoming] = right;
   strips.right[left] = incoming;
@@ -74,7 +72,7 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
     strips.identity[fragment].coordinates.diff = grown.coordinates.diff;
     strips.identity[fragment].content_start = 0;
     strips.identity[fragment].content_owned = true;
-    strips.fragmented[fragment] = true;
+    strips.identity[fragment].fragmented = true;
   }
   // All fragments share the grown original extent and the rebased private Footage array.
   strips.fragment[last] = incoming;
@@ -88,8 +86,6 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
     tail = incoming;
   gate = incoming;
   gate_position = at;
-  left_jump_to_patch = incoming;
-  right_jump_to_patch = strips.right_jump[incoming];
   return at;
 }
 } // namespace sequencer

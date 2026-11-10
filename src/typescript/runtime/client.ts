@@ -1,16 +1,122 @@
 import module from '../wasm/index.js'
 import { SequencerError } from '../errors/class.js'
 import { Operation, type Opcode } from './protocol.js'
-import type { TupleParams, U32List } from '../types/type.js'
+import type { TupleParams } from '../types/type.js'
+
+/** Footage slots addressed by one Projection's native binding tokens. */
+type Bindings = Array<ReadonlyArray<unknown> | undefined>
+
+/** Materializes ordered Footage spans, including undefined slots for omitted content. */
+function readValues(
+  content: Bindings,
+  pointer: number,
+  count: number,
+  sequence?: boolean
+): unknown[] {
+  if (count === 1) {
+    const heap = module.HEAPU32,
+      begin = pointer >>> 2,
+      source = content[heap[begin]],
+      start = heap[begin + 1],
+      size = heap[begin + 2]
+    if (source && start + size <= source.length)
+      return source.slice(start, start + size)
+  }
+  const heap = module.HEAPU32
+  const begin = pointer >>> 2,
+    end = begin + count * 3
+  if (sequence && count > 1) {
+    // Adjacent native spans sharing a source can be copied together, regardless
+    // of which runtime fragments produced them. Snapshot order stays unchanged.
+    const parts: unknown[][] = []
+    for (let at = begin; at < end;) {
+      const source = content[heap[at]],
+        start = heap[at + 1]
+      let size = heap[at + 2]
+      at += 3
+      while (
+        at < end &&
+        content[heap[at]] === source &&
+        heap[at + 1] === start + size
+      ) {
+        size += heap[at + 2]
+        at += 3
+      }
+      if (source && start + size <= source.length)
+        parts.push(
+          start === 0 && size === source.length
+            ? (source as unknown[])
+            : source.slice(start, start + size)
+        )
+      else {
+        const items: unknown[] = []
+        for (let i = 0; i < size; ++i) items.push(source?.[start + i])
+        parts.push(items)
+      }
+    }
+    let result: unknown[] = []
+    // Bound argument count when concatenating many fragmented source arrays.
+    for (let at = 0; at < parts.length; at += 4096)
+      result = result.concat.apply(result, parts.slice(at, at + 4096))
+    return result
+  }
+  let size = 0
+  for (let at = begin; at < end; at += 3) size += heap[at + 2]
+  const result = new Array<unknown>(size)
+  // Every returned span is positive, so equal total size means one Frame per span.
+  if (size === count) {
+    for (let at = begin, target = 0; at < end; at += 3)
+      result[target++] = content[heap[at]]?.[heap[at + 1]]
+    return result
+  }
+  let target = 0
+  for (let at = begin; at < end; at += 3) {
+    const source = content[heap[at]],
+      start = heap[at + 1],
+      length = heap[at + 2]
+    for (let j = 0; j < length; ++j) result[target++] = source?.[start + j]
+  }
+  return result
+}
+/** Copies borrowed WASM words into metadata that survives subsequent native calls. */
+function readWords(pointer: number, count: number): number[] {
+  const heap = module.HEAPU32
+  const result = new Array<number>(count)
+  for (let i = 0, at = pointer >>> 2; i < count; ++i) result[i] = heap[at + i]
+  return result
+}
+/** Joins numeric output descriptors with retained JavaScript Footage references. */
+function readGossip(
+  content: Bindings,
+  pointer: number,
+  count: number
+): unknown[] {
+  const heap = module.HEAPU32
+  const entries: unknown[] = []
+  for (let at = pointer >>> 2, end = at + count * 4; at < end; at += 4) {
+    const tuple = heap[at] === 2
+    const coordinates = readWords(heap[at + 1], tuple ? 6 : heap[at + 2])
+    if (heap[at] === 1) entries.push(coordinates)
+    else {
+      const source = content[heap[at + 3]]
+      const footage =
+        tuple && source && source.length !== 1
+          ? source.slice(heap[at + 2], heap[at + 2] + 1)
+          : source
+      entries.push(
+        footage === undefined ? [coordinates] : [coordinates, footage]
+      )
+    }
+  }
+  return entries
+}
 
 /** Owns Projection handles and Footage bindings around one synchronous native runtime. */
 class Runtime {
   /** High-water handle; released handles are reused before allocating another. */
   private nextProjection = 0
   /** Per-Projection binding tables; token zero is reserved for absent content. */
-  private readonly content: Array<
-    Array<ReadonlyArray<unknown> | undefined> | undefined
-  > = []
+  private readonly content: Array<Bindings | undefined> = []
   /** Released handles available after native history and JavaScript bindings are cleared. */
   private readonly free: number[] = []
   // Ownership flags: 0/default is caller-owned or freed; 1 is private writable;
@@ -248,7 +354,7 @@ class Runtime {
           heap[data + 3] = numbers[3]
           heap[data + 4] = numbers[4]
           heap[data + 5] = numbers[5]
-        } else heap.set(numbers as U32List, data)
+        } else heap.set(numbers as ArrayLike<number>, data)
       }
       descriptor += 4
       data += count
@@ -352,7 +458,7 @@ class Runtime {
         a2 |= 2
       }
       if (valid && sequence !== undefined) {
-        const words = sequence[0] as U32List
+        const words = sequence[0] as ArrayLike<number>
         heap.set(words, base + configuration)
         a1 = contents.length
         footage =
@@ -398,14 +504,17 @@ class Runtime {
       p1 = heap[header + 5],
       n1 = heap[header + 6]
     const mutable = this.mutable[id]!
-    // Native values has no content side effects; a complete single span may return early.
-    if (kind === 3 && n0 === 1) {
-      const at = p0 >>> 2,
-        source = content[heap[at]],
-        start = heap[at + 1],
-        size = heap[at + 2]
-      if (source && start + size <= source.length)
-        return source.slice(start, start + size)
+    // Native values only reads bindings and can return without deferred content work.
+    if (kind === 3) {
+      if (n0 === 1) {
+        const begin = p0 >>> 2,
+          source = content[heap[begin]],
+          start = heap[begin + 1],
+          size = heap[begin + 2]
+        if (source && start + size <= source.length)
+          return source.slice(start, start + size)
+      }
+      return readValues(content, p0, n0)
     }
     if (
       kind === 6 &&
@@ -438,109 +547,13 @@ class Runtime {
       mutable.length = Math.min(mutable.length, content.length)
       return [[]]
     }
-    /** Materializes ordered Footage spans, including undefined slots for omitted content. */
-    const values = (pointer: number, count: number): unknown[] => {
-      const begin = pointer >>> 2,
-        end = begin + count * 3
-      if (count === 1) {
-        const source = content[heap[begin]],
-          start = heap[begin + 1],
-          size = heap[begin + 2]
-        if (source && start + size <= source.length)
-          return source.slice(start, start + size)
-      }
-      if (operation === Operation.Sequence && count > 1) {
-        // Adjacent native spans sharing a source can be copied together, regardless
-        // of which runtime fragments produced them. Snapshot order stays unchanged.
-        const parts: unknown[][] = []
-        for (let at = begin; at < end;) {
-          const source = content[heap[at]],
-            start = heap[at + 1]
-          let size = heap[at + 2]
-          at += 3
-          while (
-            at < end &&
-            content[heap[at]] === source &&
-            heap[at + 1] === start + size
-          ) {
-            size += heap[at + 2]
-            at += 3
-          }
-          if (source && start + size <= source.length)
-            parts.push(
-              start === 0 && size === source.length
-                ? (source as unknown[])
-                : source.slice(start, start + size)
-            )
-          else {
-            const items: unknown[] = []
-            for (let i = 0; i < size; ++i) items.push(source?.[start + i])
-            parts.push(items)
-          }
-        }
-        let result: unknown[] = []
-        // Bound argument count when concatenating many fragmented source arrays.
-        for (let at = 0; at < parts.length; at += 4096)
-          result = result.concat.apply(result, parts.slice(at, at + 4096))
-        return result
-      }
-      let size = 0
-      for (let at = begin; at < end; at += 3) size += heap[at + 2]
-      const result = new Array<unknown>(size)
-      // Every returned span is positive, so equal total size means one Frame per span.
-      if (size === count) {
-        for (let at = begin, target = 0; at < end; at += 3)
-          result[target++] = content[heap[at]]?.[heap[at + 1]]
-        return result
-      }
-      let target = 0
-      for (let at = pointer >>> 2, end = at + count * 3; at < end; at += 3) {
-        const source = content[heap[at]],
-          start = heap[at + 1],
-          length = heap[at + 2]
-        for (let j = 0; j < length; ++j) result[target++] = source?.[start + j]
-      }
-      return result
-    }
-    /** Copies borrowed WASM words into metadata that survives subsequent native calls. */
-    const words = (pointer: number, count: number): number[] => {
-      const result = new Array<number>(count)
-      for (let i = 0, at = pointer >>> 2; i < count; ++i)
-        result[i] = heap[at + i]
-      return result
-    }
-    /** Joins numeric output descriptors with retained JavaScript Footage references. */
-    const gossip = (pointer: number, count: number): unknown[] => {
-      const entries: unknown[] = []
-      for (let at = pointer >>> 2, end = at + count * 4; at < end; at += 4) {
-        const tuple = heap[at] === 2
-        const coordinates = words(heap[at + 1], tuple ? 6 : heap[at + 2])
-        if (heap[at] === 1) entries.push(coordinates)
-        else {
-          const source = content[heap[at + 3]]
-          const footage =
-            tuple && source && source.length !== 1
-              ? source.slice(heap[at + 2], heap[at + 2] + 1)
-              : source
-          entries.push(
-            footage === undefined ? [coordinates] : [coordinates, footage]
-          )
-        }
-      }
-      return entries
-    }
     let result: unknown
     switch (kind) {
       case 0:
         break
       case 2:
-        result = gossip(p0, n0)
+        result = readGossip(content, p0, n0)
         break
-      case 3: {
-        const items = values(p0, n0)
-        result = items
-        break
-      }
       case 4: {
         const changes: unknown[] = []
         for (let at = p0 >>> 2, end = at + n0 * 4; at < end; at += 4) {
@@ -554,10 +567,10 @@ class Runtime {
             (content[heap[span]] === undefined ||
               content[heap[span]]?.length === heap[span + 2])
               ? (content[heap[span]] ?? new Array<unknown>(heap[span + 2]))
-              : values(heap[at + 2], heap[at + 3])
+              : readValues(content, heap[at + 2], heap[at + 3])
           changes.push([heap[at], heap[at + 1], items])
         }
-        const acknowledgements = gossip(p1, n1)
+        const acknowledgements = readGossip(content, p1, n1)
         result = acknowledgements.length
           ? [changes, acknowledgements]
           : [changes]
@@ -571,7 +584,7 @@ class Runtime {
           metadata = [0]
           metadata.length = n0
           for (let i = 0, at = p0 >>> 2; i < n0; ++i) metadata[i] = heap[at + i]
-        } else metadata = words(p0, n0)
+        } else metadata = readWords(p0, n0)
         if (stringEncode) {
           let text = ''
           try {
@@ -609,7 +622,10 @@ class Runtime {
           content[token] = content[token]!.map((value) => value)
           mutable[token] = 3
         }
-        result = [metadata, shared ? content[token] : values(p1, n1)]
+        result = [
+          metadata,
+          shared ? content[token] : readValues(content, p1, n1, true),
+        ]
         break
       }
       case 6:

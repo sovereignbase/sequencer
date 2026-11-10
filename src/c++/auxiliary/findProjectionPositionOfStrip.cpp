@@ -62,8 +62,6 @@ Word Projection::position_of(Index target, std::int32_t gate_diff, bool locate) 
     } else
       link_jumps(*this, target, right, right_frames, right_distance);
   }
-  left_jump_to_patch = target;
-  right_jump_to_patch = strips.right_jump[target];
   // Index maintenance callers do not consume an absolute visible position.
   if (!locate)
     return 0;

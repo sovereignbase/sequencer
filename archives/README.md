@@ -8,6 +8,10 @@ the relevant reports.
 
 ## Optimization rounds
 
+[10–11 November 2026: smaller runtime state and direct endpoint lookup](optimizations_2026_11_10/competitive/README.md),
+[complete API comparison](optimizations_2026_11_10/competitive/performance.md)
+and [rejected traversal indices](optimizations_2026_11_10/traversal_attempts.md).
+
 [10 November 2026: Projection allocation, tuple initialization and shared Footage output](optimizations_2026_11_10/README.md).
 
 [10 November 2026: direct Insertion application and borrowed Acknowledgements](optimizations_2026_11_10/editing/README.md).
@@ -25,7 +29,7 @@ the relevant reports.
 | 10 August 2026    | [Length-aware traversal adjustments](optimizations_2026_08_10/length_aware_adjustments/README.md)                                                                                                                                                                                                                                    |
 | 9 August 2026     | [Indexed linked-list traversal](optimizations_2026_08_09/indexed_linked_list_traversal_in_wasm/README.md), [bounded projection adjustments](optimizations_2026_08_09/frequency_bounded_projection_adjustment/README.md), [read/write balancing](optimizations_2026_08_09/balancing_read_walk_and_length_table_adjustments/README.md) |
 
-The latest checkpoint's [complete API comparison](optimizations_2026_10_12/streaming_snapshot/performance.md)
+The 12 October checkpoint's [complete API comparison](optimizations_2026_10_12/streaming_snapshot/performance.md)
 and [document-shape measurements](optimizations_2026_10_12/streaming_snapshot/README.md)
 include remaining regressions.
 

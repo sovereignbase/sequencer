@@ -116,7 +116,7 @@ Sequence Projection::sequence() const {
     // Positive chains begin with a non-offset node. An overlapping mask may
     // consume its prefix, so its canonical node must be recognized by identity.
     const auto first =
-        !strips.offset[s] || (c.diff < 0 && containment.get(c.session, c.start) == s);
+        !strips.identity[s].offset || (c.diff < 0 && containment.get(c.session, c.start) == s);
     Word insertion = omitted;
     if (first) {
       auto exported = c;

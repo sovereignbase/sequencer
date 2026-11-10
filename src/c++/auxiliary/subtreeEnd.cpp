@@ -13,6 +13,7 @@ Index Projection::subtree_end(Index root) {
   std::vector<Index> ancestors;
   auto previous = root;
   auto jump_start = strips.right_jump[root] ? root : none;
+  auto jump_end = strips.right_jump[root];
   Word jump_frames = 0, jump_steps = 0;
   const auto finish = [&]() {
     // Competition can move an edit inside an existing traversal span. Split
@@ -23,15 +24,9 @@ Index Projection::subtree_end(Index root) {
       const auto steps = strips.right_jump_strips[jump_start];
       link_jumps(*this, previous, right, frames - jump_frames, steps - jump_steps);
       link_jumps(*this, jump_start, previous, jump_frames, jump_steps);
-      left_jump_to_patch = previous;
-      right_jump_to_patch = right;
     }
     return previous;
   };
-  if (strips.right_jump[root]) {
-    left_jump_to_patch = root;
-    right_jump_to_patch = strips.right_jump[root];
-  }
   for (auto next = strips.right[previous]; next; next = strips.right[previous]) {
     auto ancestor = previous;
     // Every fragment retains its canonical identity. Intervening masks can
@@ -74,12 +69,9 @@ Index Projection::subtree_end(Index root) {
     if (strips.right_jump[previous]) {
       jump_start = previous;
       jump_frames = jump_steps = 0;
-      left_jump_to_patch = previous;
-      right_jump_to_patch = strips.right_jump[previous];
-    } else if (previous == right_jump_to_patch) {
-      jump_start = none;
-      left_jump_to_patch = right_jump_to_patch = none;
-    }
+      jump_end = strips.right_jump[previous];
+    } else if (previous == jump_end)
+      jump_start = jump_end = none;
   }
   return finish();
 }

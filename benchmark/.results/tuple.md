@@ -6,58 +6,58 @@ Arithmetic means of 3 runs. Ordinary Projection versus a static tuple with maxLe
 
 | Indices | Method / case | Projection | Static tuple | Tuple / Projection |
 | ---: | --- | ---: | ---: | ---: |
-| 2 | create.empty | 2,054,985 | 1,632,937 | 0.79× |
-| 2 | create.sequence | 642,127 | 590,581 | 0.92× |
-| 2 | replace.random | 741,238 | 1,141,603 | 1.54× |
-| 2 | apply.replace | 513,999 | 685,896 | 1.33× |
-| 2 | apply.duplicate | 1,073,036 | 824,523 | 0.77× |
-| 2 | merge.duplicate | 930,622 | 845,604 | 0.91× |
-| 2 | length | 69,563,657 | 69,464,941 | 1.00× |
-| 2 | value.random | 30,463,204 | 62,779,182 | 2.06× |
-| 2 | values | 5,660,853 | 5,533,719 | 0.98× |
-| 2 | sequence | 2,209,098 | 1,834,885 | 0.83× |
-| 4 | create.empty | 1,864,772 | 1,729,458 | 0.93× |
-| 4 | create.sequence | 509,509 | 529,024 | 1.04× |
-| 4 | replace.random | 740,192 | 1,138,622 | 1.54× |
-| 4 | apply.replace | 408,364 | 749,708 | 1.84× |
-| 4 | apply.duplicate | 892,482 | 804,567 | 0.90× |
-| 4 | merge.duplicate | 758,475 | 669,553 | 0.88× |
-| 4 | length | 31,247,930 | 30,268,983 | 0.97× |
-| 4 | value.random | 25,861,124 | 63,562,866 | 2.46× |
-| 4 | values | 4,442,522 | 4,231,214 | 0.95× |
-| 4 | sequence | 1,760,286 | 1,750,620 | 0.99× |
-| 8 | create.empty | 1,965,747 | 1,709,528 | 0.87× |
-| 8 | create.sequence | 373,644 | 424,436 | 1.14× |
-| 8 | replace.random | 776,632 | 1,180,647 | 1.52× |
-| 8 | apply.replace | 360,469 | 756,171 | 2.10× |
-| 8 | apply.duplicate | 915,494 | 951,425 | 1.04× |
-| 8 | merge.duplicate | 469,152 | 484,069 | 1.03× |
-| 8 | length | 31,580,444 | 31,267,682 | 0.99× |
-| 8 | value.random | 19,844,641 | 64,191,176 | 3.23× |
-| 8 | values | 3,343,742 | 3,456,329 | 1.03× |
-| 8 | sequence | 1,365,530 | 1,448,312 | 1.06× |
-| 100 | create.empty | 1,863,647 | 1,753,165 | 0.94× |
-| 100 | create.sequence | 68,482 | 92,911 | 1.36× |
-| 100 | replace.random | 671,039 | 1,183,567 | 1.76× |
-| 100 | apply.replace | 336,418 | 772,618 | 2.30× |
-| 100 | apply.duplicate | 982,795 | 866,933 | 0.88× |
-| 100 | merge.duplicate | 109,079 | 77,109 | 0.71× |
-| 100 | length | 31,605,365 | 30,539,506 | 0.97× |
-| 100 | value.random | 9,321,999 | 62,781,318 | 6.73× |
-| 100 | values | 530,041 | 554,331 | 1.05× |
-| 100 | sequence | 166,562 | 173,281 | 1.04× |
+| 2 | create.empty | 1,301,080 | 1,220,890 | 0.94× |
+| 2 | create.sequence | 469,604 | 401,590 | 0.86× |
+| 2 | replace.random | 588,444 | 800,354 | 1.36× |
+| 2 | apply.replace | 425,111 | 527,211 | 1.24× |
+| 2 | apply.duplicate | 853,041 | 575,913 | 0.68× |
+| 2 | merge.duplicate | 698,495 | 695,097 | 1.00× |
+| 2 | length | 57,361,106 | 48,017,855 | 0.84× |
+| 2 | value.random | 27,772,078 | 44,951,228 | 1.62× |
+| 2 | values | 3,891,055 | 3,271,610 | 0.84× |
+| 2 | sequence | 1,284,840 | 1,337,604 | 1.04× |
+| 4 | create.empty | 1,267,272 | 1,099,258 | 0.87× |
+| 4 | create.sequence | 371,168 | 393,276 | 1.06× |
+| 4 | replace.random | 652,779 | 928,128 | 1.42× |
+| 4 | apply.replace | 284,757 | 602,494 | 2.12× |
+| 4 | apply.duplicate | 787,188 | 662,158 | 0.84× |
+| 4 | merge.duplicate | 587,216 | 561,827 | 0.96× |
+| 4 | length | 18,446,832 | 19,663,788 | 1.07× |
+| 4 | value.random | 15,881,983 | 35,579,299 | 2.24× |
+| 4 | values | 2,593,500 | 2,728,091 | 1.05× |
+| 4 | sequence | 1,150,664 | 1,245,054 | 1.08× |
+| 8 | create.empty | 1,171,847 | 994,615 | 0.85× |
+| 8 | create.sequence | 245,264 | 302,009 | 1.23× |
+| 8 | replace.random | 582,248 | 980,154 | 1.68× |
+| 8 | apply.replace | 234,801 | 503,042 | 2.14× |
+| 8 | apply.duplicate | 976,251 | 831,615 | 0.85× |
+| 8 | merge.duplicate | 389,055 | 347,783 | 0.89× |
+| 8 | length | 23,045,676 | 20,996,118 | 0.91× |
+| 8 | value.random | 10,269,621 | 31,284,326 | 3.05× |
+| 8 | values | 2,088,907 | 2,252,186 | 1.08× |
+| 8 | sequence | 848,460 | 1,033,023 | 1.22× |
+| 100 | create.empty | 1,175,356 | 906,379 | 0.77× |
+| 100 | create.sequence | 47,156 | 62,407 | 1.32× |
+| 100 | replace.random | 531,998 | 781,341 | 1.47× |
+| 100 | apply.replace | 244,130 | 631,967 | 2.59× |
+| 100 | apply.duplicate | 611,755 | 527,480 | 0.86× |
+| 100 | merge.duplicate | 70,545 | 60,973 | 0.86× |
+| 100 | length | 20,661,479 | 19,286,032 | 0.93× |
+| 100 | value.random | 6,520,938 | 36,127,913 | 5.54× |
+| 100 | values | 395,386 | 452,509 | 1.14× |
+| 100 | sequence | 133,463 | 153,534 | 1.15× |
 
 ## Space (KiB)
 
 | Indices | Mode | Estimated allocated memory | MessagePack | MessagePack + gzip |
 | ---: | --- | ---: | ---: | ---: |
-| 2 | Projection | 0.86 | 0.03 | 0.04 |
-| 2 | Static tuple | 0.85 | 0.04 | 0.05 |
-| 4 | Projection | 1.54 | 0.06 | 0.05 |
-| 4 | Static tuple | 1.04 | 0.06 | 0.07 |
-| 8 | Projection | 2.49 | 0.12 | 0.08 |
-| 8 | Static tuple | 1.51 | 0.10 | 0.09 |
-| 100 | Projection | 23.75 | 0.67 | 0.57 |
-| 100 | Static tuple | 12.18 | 0.51 | 0.35 |
+| 2 | Projection | 0.84 | 0.03 | 0.04 |
+| 2 | Static tuple | 0.84 | 0.04 | 0.05 |
+| 4 | Projection | 1.51 | 0.06 | 0.05 |
+| 4 | Static tuple | 1.02 | 0.06 | 0.07 |
+| 8 | Projection | 2.45 | 0.12 | 0.08 |
+| 8 | Static tuple | 1.49 | 0.10 | 0.09 |
+| 100 | Projection | 23.34 | 0.67 | 0.57 |
+| 100 | Static tuple | 12.16 | 0.51 | 0.35 |
 
-Measured on Node 24.22.2, V8 13.6.233.17-node.63, linux x64, AMD EPYC 7763 64-Core Processor. Fixtures are hydrated compacted snapshots after one replacement per field. Each case warms up for ≥25 ms and measures ≥50 ms of API time; mutation bursts restart after 4,096 replacements. Peer authoring, encoding, result checks, destruction and explicit JS process garbage collection are outside API timings. Memory estimates are the increase in live native allocator bytes plus retained JS array slots for one instance, including exercised runtime buffers. Unused WASM capacity, JS object headers and referenced payload objects are excluded.
+Measured on Node 24.16.0, V8 13.6.233.17-node.49, win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz. Fixtures are hydrated compacted snapshots after one replacement per field. Each case warms up for ≥25 ms and measures ≥50 ms of API time; mutation bursts restart after 4,096 replacements. Peer authoring, encoding, result checks, destruction and explicit JS process garbage collection are outside API timings. Memory estimates are the increase in live native allocator bytes plus retained JS array slots for one instance, including exercised runtime buffers. Unused WASM capacity, JS object headers and referenced payload objects are excluded.

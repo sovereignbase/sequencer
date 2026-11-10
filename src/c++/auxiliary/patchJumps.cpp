@@ -38,7 +38,5 @@ void Projection::patch_jumps(std::int32_t frame_diff, Word strip_diff, Index inc
                  strips.right_jump_strips[incoming] - 1);
     link_jumps(*this, incoming, boundary, frames, 1);
   }
-  left_jump_to_patch = incoming;
-  right_jump_to_patch = strips.right_jump[incoming];
 }
 } // namespace sequencer

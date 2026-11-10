@@ -58,7 +58,7 @@ Insertion Projection::insert(Word count, Word content, Word at) {
     const auto right = strips.right[anchor];
     // Only consecutive local edits at an intact same-Session endpoint may omit
     // the new zero reservation. Existing descendants must keep their attachment order.
-    if (count && anchor == last_insert && !strips.fragmented[anchor] &&
+    if (count && anchor == last_insert && !strips.identity[anchor].fragmented &&
         parent.session == c.session && parent.diff > 0 && point == Word(parent.diff) &&
         c.start == parent.start + point + 1 &&
         (!right || !contains_anchor(parent, strips.identity[right].coordinates, 0, point))) {

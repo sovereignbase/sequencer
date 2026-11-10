@@ -167,7 +167,7 @@ void Projection::apply(const Insertion &entry, Result &result) {
             Word(std::max<std::int64_t>(start, std::int64_t(gate_position) + gate_diff));
       // An emptied left fragment hands the gate and its distances to its surviving right
       // fragment.
-      if (diff > 0 && gate && strips.fragmented[gate] && !strips.fragment_diff[gate]) {
+      if (diff > 0 && gate && strips.identity[gate].fragmented && !strips.fragment_diff[gate]) {
         gate = strips.fragment[gate];
         const auto right = strips.right_jump[incoming];
         if (right && right != gate)
@@ -206,10 +206,6 @@ void Projection::apply(const Insertion &entry, Result &result) {
       gate_position = 0;
     } else if (strips.fragment_diff[gate] <= 0)
       find_frame(std::min(gate_position, frame_count - 1));
-    if (gate && strips.right_jump[gate]) {
-      left_jump_to_patch = gate;
-      right_jump_to_patch = strips.right_jump[gate];
-    }
     // Materialization makes this canonical identity available to waiting descendants.
     auto released_pending = pending.take(c);
     for (auto it = released_pending.rbegin(); it != released_pending.rend(); ++it)

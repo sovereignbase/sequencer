@@ -1,12 +1,10 @@
-import type { U32List } from '../../dist/index.js'
-
 /**
  * Counts retained roots outside measured API calls, without coordinate-array allocation.
  * @param words Trusted plain or compact snapshot metadata.
  * @returns Positive-root count as `stripCount`, and all retained canonical identities.
  * These counts describe export records, not native arena fragments or visible workload groups.
  */
-export function sequenceCounts(words: U32List): {
+export function sequenceCounts(words: ReadonlyArray<number>): {
   stripCount: number
   retainedInsertionCount: number
 } {
@@ -44,7 +42,7 @@ export function sequenceCounts(words: U32List): {
  * @returns Exact ACK lanes and six-word Insertion records; signed diffs retain uint32 bit patterns.
  * This inspection helper is not part of runtime application or the timed benchmark path.
  */
-export function sequenceMetadata(words: U32List): {
+export function sequenceMetadata(words: ReadonlyArray<number>): {
   frontiers: number[][]
   insertions: number[][]
 } {

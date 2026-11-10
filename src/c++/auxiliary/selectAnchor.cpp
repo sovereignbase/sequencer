@@ -8,6 +8,13 @@
 
 namespace sequencer {
 std::pair<Word, Index> Projection::select_anchor(Word position) {
+  // The visible head already owns this boundary unless an offset fragment or
+  // a hidden gate at zero requires the historical boundary resolution below.
+  if (!position && !strips.identity[head].offset && (gate == head || gate_position)) {
+    gate = head;
+    gate_position = 0;
+    return {strips.fragment_start[head], head};
+  }
   const auto removed = strips.left[gate];
   const auto right = strips.right[gate];
   const auto g = gate;
@@ -16,7 +23,8 @@ std::pair<Word, Index> Projection::select_anchor(Word position) {
   // visible successor belongs to a different original fragment or older mask.
   if (position == gate_position && gate && strips.identity[g].coordinates.diff < 0 && removed &&
       right && (position > 0 || strips.fragment_diff[r] > 0) &&
-      (strips.offset[r] || (strips.fragmented[r] && strips.fragment_diff[r] == 0) ||
+      (strips.identity[r].offset ||
+       (strips.identity[r].fragmented && strips.fragment_diff[r] == 0) ||
        // A whole replacement can precede an older mask. Its free endpoint
        // stays at this visible boundary even when the original subtree sorts later.
        (strips.identity[r].coordinates.diff < 0 && strips.identity[removed].coordinates.diff > 0 &&
@@ -38,8 +46,6 @@ std::pair<Word, Index> Projection::select_anchor(Word position) {
     return {strips.fragment_start[g] - strips.fragment_diff[g], gate};
   // Appending anchors at the last visible fragment's original logical endpoint.
   if (position == frame_count) {
-    left_jump_to_patch = tail;
-    right_jump_to_patch = strips.right_jump[tail];
     return {strips.fragment_start[tail] + magnitude(strips.fragment_diff[tail]), tail};
   }
   const auto point = find_frame(position, true);

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/sovereignbase/sequencer/compare/v1.2.1...v1.2.2) (2026-11-10)
+
+
+### Performance Improvements
+
+* remove apply allocations and insertion wrappers ([bff2484](https://github.com/sovereignbase/sequencer/commit/bff248404d526b62ea7f86244c29fb588a5cb15e))
+
 ## [1.2.1](https://github.com/sovereignbase/sequencer/compare/v1.2.0...v1.2.1) (2026-11-10)
 
 

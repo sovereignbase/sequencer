@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/sovereignbase/sequencer/compare/v1.2.0...v1.2.1) (2026-11-10)
+
+
+### Performance Improvements
+
+* reduce projection allocations and tuple initialization costs ([7189b28](https://github.com/sovereignbase/sequencer/commit/7189b28764b778256f563ad132803112d0d29da7))
+
 ## [1.2.0](https://github.com/sovereignbase/sequencer/compare/v1.1.1...v1.2.0) (2026-11-09)
 
 

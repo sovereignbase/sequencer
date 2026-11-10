@@ -12,6 +12,8 @@ the relevant reports.
 
 [10 November 2026: direct Insertion application and borrowed Acknowledgements](optimizations_2026_11_10/editing/README.md).
 
+[10 November 2026: rejected synchronous inline Wasm gzip](optimizations_2026_11_10/wasm_gzip.md).
+
 [9 November 2026: tuple support, bundle size and API comparisons](optimizations_2026_11_09/README.md).
 
 | Round             | Reports                                                                                                                                                                                                                                                                                                                              |

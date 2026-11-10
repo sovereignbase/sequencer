@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.3](https://github.com/sovereignbase/sequencer/compare/v1.2.2...v1.2.3) (2026-11-10)
+
+
+### Performance Improvements
+
+* reduce runtime state and optimize endpoint lookups ([1c0a007](https://github.com/sovereignbase/sequencer/commit/1c0a007fc041db016a20a1f9bba2fb97979bd1a2))
+
 ## [1.2.2](https://github.com/sovereignbase/sequencer/compare/v1.2.1...v1.2.2) (2026-11-10)
 
 

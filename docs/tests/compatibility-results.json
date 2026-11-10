@@ -1,5 +1,5 @@
 {
-  "passed": 104,
+  "passed": 117,
   "failed": 0,
   "skipped": 0,
   "runtimes": {
@@ -22,6 +22,9 @@
       "status": "passed"
     },
     "chromium": {
+      "status": "passed"
+    },
+    "firefox": {
       "status": "passed"
     },
     "webkit": {

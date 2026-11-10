@@ -177,6 +177,11 @@ public:
    * @param result Output to append to, allowing one Result across an entire ABI batch.
    */
   void apply(std::span<const Entry> gossip, Result &result);
+  /** Integrates one Insertion and any dependencies released by it.
+   * @param insertion Canonical Insertion already validated at the ABI.
+   * @param result Output to append to.
+   */
+  void apply(const Insertion &insertion, Result &result);
   /** Reconstructs trusted exported history and prebuilds traversal jumps.
    * @param insertions Canonical Insertions in exported Structural Order.
    * @param frontiers Retained Actor Acknowledgements.

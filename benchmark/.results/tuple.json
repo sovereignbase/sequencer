@@ -1,5 +1,5 @@
 {
-  "environment": "Node 24.22.2, V8 13.6.233.17-node.63, linux x64, AMD EPYC 7763 64-Core Processor",
+  "environment": "Node 24.16.0, V8 13.6.233.17-node.49, win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz",
   "runs": 3,
   "samples": [
     {
@@ -7,8 +7,8 @@
       "size": 2,
       "mode": "projection",
       "operation": "create.empty",
-      "calls": 96768,
-      "milliseconds": 50.183540999999764
+      "calls": 91648,
+      "milliseconds": 50.11149999999975
     },
     {
       "run": 1,
@@ -16,671 +16,671 @@
       "mode": "tuple",
       "operation": "create.empty",
       "calls": 71680,
-      "milliseconds": 50.24761699999982
+      "milliseconds": 50.08860000000038
     },
     {
       "run": 1,
-      "size": 2,
-      "mode": "projection",
-      "operation": "create.sequence",
-      "calls": 33792,
-      "milliseconds": 50.002265999999395
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "create.sequence",
-      "calls": 29696,
-      "milliseconds": 50.78464600000018
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "projection",
-      "operation": "replace.random",
-      "calls": 36864,
-      "milliseconds": 51.13013999999987
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "replace.random",
-      "calls": 57344,
-      "milliseconds": 54.94658100000015
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "projection",
-      "operation": "apply.replace",
-      "calls": 28672,
-      "milliseconds": 52.72333099999992
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "apply.replace",
-      "calls": 24576,
-      "milliseconds": 50.27864599999998
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "projection",
-      "operation": "apply.duplicate",
-      "calls": 49152,
-      "milliseconds": 51.51443700000027
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "apply.duplicate",
-      "calls": 45056,
-      "milliseconds": 51.20559000000003
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "projection",
-      "operation": "merge.duplicate",
-      "calls": 49152,
-      "milliseconds": 53.78699500000039
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "merge.duplicate",
-      "calls": 49152,
-      "milliseconds": 51.70061900000019
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "projection",
-      "operation": "length",
-      "calls": 6946816,
-      "milliseconds": 50.406680999999935
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "length",
-      "calls": 7208960,
-      "milliseconds": 50.387885999999526
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "projection",
-      "operation": "value.random",
-      "calls": 1703936,
-      "milliseconds": 53.38505499999974
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "value.random",
-      "calls": 2621440,
-      "milliseconds": 51.45932199999925
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "projection",
-      "operation": "values",
-      "calls": 315392,
-      "milliseconds": 50.34857699999884
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "values",
-      "calls": 286720,
-      "milliseconds": 50.136193999998795
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "projection",
-      "operation": "sequence",
-      "calls": 110592,
-      "milliseconds": 50.04892100000234
-    },
-    {
-      "run": 1,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "sequence",
-      "calls": 81920,
-      "milliseconds": 51.76074599999811
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "projection",
-      "operation": "create.empty",
-      "calls": 91648,
-      "milliseconds": 50.00584900000649
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "create.empty",
-      "calls": 89088,
-      "milliseconds": 50.10539499999595
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "projection",
-      "operation": "create.sequence",
-      "calls": 25088,
-      "milliseconds": 50.29939999999806
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "create.sequence",
-      "calls": 27136,
-      "milliseconds": 50.72196899999835
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "projection",
-      "operation": "replace.random",
-      "calls": 40960,
-      "milliseconds": 51.336513999999625
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "replace.random",
-      "calls": 57344,
-      "milliseconds": 52.8733719999982
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "projection",
-      "operation": "apply.replace",
-      "calls": 20480,
-      "milliseconds": 53.68939500000033
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "apply.replace",
-      "calls": 36864,
-      "milliseconds": 52.24366399999872
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "projection",
-      "operation": "apply.duplicate",
-      "calls": 40960,
-      "milliseconds": 51.500990000000456
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "apply.duplicate",
-      "calls": 49152,
-      "milliseconds": 52.600704999999834
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "projection",
-      "operation": "merge.duplicate",
-      "calls": 40960,
-      "milliseconds": 52.02603899999758
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "merge.duplicate",
-      "calls": 40960,
-      "milliseconds": 53.988045000001875
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "projection",
-      "operation": "length",
-      "calls": 1572864,
-      "milliseconds": 51.52854400000069
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "length",
-      "calls": 1572864,
-      "milliseconds": 51.58367799999996
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "projection",
-      "operation": "value.random",
-      "calls": 1441792,
-      "milliseconds": 54.175263999999515
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "value.random",
-      "calls": 2490368,
-      "milliseconds": 50.83554800000002
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "projection",
-      "operation": "values",
-      "calls": 172032,
-      "milliseconds": 50.48804199999813
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "values",
-      "calls": 229376,
-      "milliseconds": 50.505127000002176
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "projection",
-      "operation": "sequence",
-      "calls": 86016,
-      "milliseconds": 50.546831999999085
-    },
-    {
-      "run": 1,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "sequence",
-      "calls": 86016,
-      "milliseconds": 50.38232600000083
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "projection",
-      "operation": "create.empty",
-      "calls": 81920,
-      "milliseconds": 50.18682500000341
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "create.empty",
-      "calls": 90112,
-      "milliseconds": 50.1837220000034
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "projection",
-      "operation": "create.sequence",
-      "calls": 18944,
-      "milliseconds": 51.13694299999952
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "create.sequence",
-      "calls": 22528,
-      "milliseconds": 51.083872999997766
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "projection",
-      "operation": "replace.random",
-      "calls": 40960,
-      "milliseconds": 50.68149699999958
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "replace.random",
-      "calls": 57344,
-      "milliseconds": 51.74762300000111
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "projection",
-      "operation": "apply.replace",
-      "calls": 20480,
-      "milliseconds": 54.986064000000624
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "apply.replace",
-      "calls": 36864,
-      "milliseconds": 53.578473999999915
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "projection",
-      "operation": "apply.duplicate",
-      "calls": 45056,
-      "milliseconds": 50.55778099999952
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "apply.duplicate",
-      "calls": 45056,
-      "milliseconds": 50.60401300000012
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "projection",
-      "operation": "merge.duplicate",
-      "calls": 28672,
-      "milliseconds": 53.81817599999977
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "merge.duplicate",
-      "calls": 28672,
-      "milliseconds": 57.53116499999851
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "projection",
-      "operation": "length",
-      "calls": 1703936,
-      "milliseconds": 51.58170599999903
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "length",
-      "calls": 1703936,
-      "milliseconds": 51.75720100000035
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "projection",
-      "operation": "value.random",
-      "calls": 1048576,
-      "milliseconds": 54.94565800000055
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "value.random",
-      "calls": 2490368,
-      "milliseconds": 50.08898899999258
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "projection",
-      "operation": "values",
-      "calls": 176128,
-      "milliseconds": 50.919230999999854
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "values",
-      "calls": 155648,
-      "milliseconds": 50.49927700000262
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "projection",
-      "operation": "sequence",
-      "calls": 69632,
-      "milliseconds": 51.90005199999723
-    },
-    {
-      "run": 1,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "sequence",
-      "calls": 77824,
-      "milliseconds": 50.721551999997246
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "projection",
-      "operation": "create.empty",
-      "calls": 92672,
-      "milliseconds": 50.10518000000229
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "tuple",
-      "operation": "create.empty",
-      "calls": 88064,
-      "milliseconds": 50.005096000020785
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "projection",
-      "operation": "create.sequence",
-      "calls": 3584,
-      "milliseconds": 51.71802900000148
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "tuple",
-      "operation": "create.sequence",
-      "calls": 5120,
-      "milliseconds": 51.12493800000266
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "projection",
-      "operation": "replace.random",
-      "calls": 36864,
-      "milliseconds": 53.17780499999935
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "tuple",
-      "operation": "replace.random",
-      "calls": 61440,
-      "milliseconds": 52.324500000000626
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "projection",
-      "operation": "apply.replace",
-      "calls": 20480,
-      "milliseconds": 56.577015000000756
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "tuple",
-      "operation": "apply.replace",
-      "calls": 32768,
-      "milliseconds": 50.07632499999636
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "projection",
-      "operation": "apply.duplicate",
-      "calls": 49152,
-      "milliseconds": 52.57399399999849
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "tuple",
-      "operation": "apply.duplicate",
-      "calls": 32768,
-      "milliseconds": 51.3418679999977
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "projection",
-      "operation": "merge.duplicate",
-      "calls": 8192,
-      "milliseconds": 72.17450800000006
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "tuple",
-      "operation": "merge.duplicate",
-      "calls": 8192,
-      "milliseconds": 98.08460000000014
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "projection",
-      "operation": "length",
-      "calls": 1572864,
-      "milliseconds": 51.53190199999699
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "tuple",
-      "operation": "length",
-      "calls": 1572864,
-      "milliseconds": 51.291355999996085
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "projection",
-      "operation": "value.random",
-      "calls": 524288,
-      "milliseconds": 56.106063000002905
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "tuple",
-      "operation": "value.random",
-      "calls": 2621440,
-      "milliseconds": 50.276428999995915
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "projection",
-      "operation": "values",
-      "calls": 28672,
-      "milliseconds": 52.32138099999793
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "tuple",
-      "operation": "values",
-      "calls": 28672,
-      "milliseconds": 56.133975000000646
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "projection",
-      "operation": "sequence",
-      "calls": 8192,
-      "milliseconds": 51.024851000000126
-    },
-    {
-      "run": 1,
-      "size": 100,
-      "mode": "tuple",
-      "operation": "sequence",
-      "calls": 12288,
-      "milliseconds": 65.33526100000017
-    },
-    {
-      "run": 2,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "create.empty",
-      "calls": 87552,
-      "milliseconds": 50.25273299998116
-    },
-    {
-      "run": 2,
-      "size": 2,
-      "mode": "projection",
-      "operation": "create.empty",
-      "calls": 105472,
-      "milliseconds": 50.196425999987696
-    },
-    {
-      "run": 2,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "create.sequence",
-      "calls": 29696,
-      "milliseconds": 50.679228999999395
-    },
-    {
-      "run": 2,
       "size": 2,
       "mode": "projection",
       "operation": "create.sequence",
       "calls": 31744,
-      "milliseconds": 50.415499999999156
+      "milliseconds": 50.504700000000526
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "create.sequence",
+      "calls": 28160,
+      "milliseconds": 50.23879999999929
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "projection",
+      "operation": "replace.random",
+      "calls": 32768,
+      "milliseconds": 55.17819999999983
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "replace.random",
+      "calls": 28672,
+      "milliseconds": 50.22679999999991
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "projection",
+      "operation": "apply.replace",
+      "calls": 16384,
+      "milliseconds": 63.09530000000018
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "apply.replace",
+      "calls": 20480,
+      "milliseconds": 50.66750000000002
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "projection",
+      "operation": "apply.duplicate",
+      "calls": 32768,
+      "milliseconds": 51.85220000000004
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "apply.duplicate",
+      "calls": 28672,
+      "milliseconds": 53.82519999999977
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "projection",
+      "operation": "merge.duplicate",
+      "calls": 36864,
+      "milliseconds": 55.336700000000064
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "merge.duplicate",
+      "calls": 36864,
+      "milliseconds": 50.96259999999984
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "projection",
+      "operation": "length",
+      "calls": 6684672,
+      "milliseconds": 50.64519999999948
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "length",
+      "calls": 5767168,
+      "milliseconds": 50.67759999999953
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "projection",
+      "operation": "value.random",
+      "calls": 1179648,
+      "milliseconds": 69.00060000000076
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "value.random",
+      "calls": 2621440,
+      "milliseconds": 51.83779999999933
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "projection",
+      "operation": "values",
+      "calls": 229376,
+      "milliseconds": 50.07220000000689
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "values",
+      "calls": 241664,
+      "milliseconds": 50.18279999999868
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "projection",
+      "operation": "sequence",
+      "calls": 98304,
+      "milliseconds": 51.84769999999844
+    },
+    {
+      "run": 1,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "sequence",
+      "calls": 98304,
+      "milliseconds": 51.94800000000214
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "projection",
+      "operation": "create.empty",
+      "calls": 82432,
+      "milliseconds": 50.219600000002174
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "create.empty",
+      "calls": 74240,
+      "milliseconds": 50.115099999999074
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "projection",
+      "operation": "create.sequence",
+      "calls": 24576,
+      "milliseconds": 50.54820000000018
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "create.sequence",
+      "calls": 25600,
+      "milliseconds": 50.02759999999944
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "projection",
+      "operation": "replace.random",
+      "calls": 40960,
+      "milliseconds": 51.337399999999434
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "replace.random",
+      "calls": 65536,
+      "milliseconds": 52.76599999999871
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "projection",
+      "operation": "apply.replace",
+      "calls": 20480,
+      "milliseconds": 51.74229999999989
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "apply.replace",
+      "calls": 32768,
+      "milliseconds": 53.38720000000012
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "projection",
+      "operation": "apply.duplicate",
+      "calls": 45056,
+      "milliseconds": 50.80580000000009
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "apply.duplicate",
+      "calls": 45056,
+      "milliseconds": 52.842399999998634
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "projection",
+      "operation": "merge.duplicate",
+      "calls": 36864,
+      "milliseconds": 51.26150000000234
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "merge.duplicate",
+      "calls": 36864,
+      "milliseconds": 52.05040000000008
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "projection",
+      "operation": "length",
+      "calls": 2097152,
+      "milliseconds": 51.01180000000113
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "length",
+      "calls": 2097152,
+      "milliseconds": 50.330400000000736
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "projection",
+      "operation": "value.random",
+      "calls": 524288,
+      "milliseconds": 59.36619999999948
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "value.random",
+      "calls": 1310720,
+      "milliseconds": 55.3676000000014
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "projection",
+      "operation": "values",
+      "calls": 90112,
+      "milliseconds": 52.84690000000046
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "values",
+      "calls": 118784,
+      "milliseconds": 50.42289999999775
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "projection",
+      "operation": "sequence",
+      "calls": 69632,
+      "milliseconds": 51.694399999998495
+    },
+    {
+      "run": 1,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "sequence",
+      "calls": 69632,
+      "milliseconds": 50.37870000000112
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "projection",
+      "operation": "create.empty",
+      "calls": 78336,
+      "milliseconds": 50.01530000001003
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "create.empty",
+      "calls": 74752,
+      "milliseconds": 50.21210000001338
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "projection",
+      "operation": "create.sequence",
+      "calls": 17920,
+      "milliseconds": 50.64879999999357
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "create.sequence",
+      "calls": 19968,
+      "milliseconds": 51.043699999996534
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "projection",
+      "operation": "replace.random",
+      "calls": 36864,
+      "milliseconds": 53.686899999998786
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "replace.random",
+      "calls": 53248,
+      "milliseconds": 52.669400000004316
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "projection",
+      "operation": "apply.replace",
+      "calls": 16384,
+      "milliseconds": 52.58779999999933
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "apply.replace",
+      "calls": 32768,
+      "milliseconds": 53.40549999999712
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "projection",
+      "operation": "apply.duplicate",
+      "calls": 45056,
+      "milliseconds": 51.87350000000333
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "apply.duplicate",
+      "calls": 45056,
+      "milliseconds": 51.36870000000272
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "projection",
+      "operation": "merge.duplicate",
+      "calls": 24576,
+      "milliseconds": 50.56550000000061
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "merge.duplicate",
+      "calls": 28672,
+      "milliseconds": 56.071099999999205
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "projection",
+      "operation": "length",
+      "calls": 1441792,
+      "milliseconds": 52.446500000000015
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "length",
+      "calls": 1310720,
+      "milliseconds": 51.51920000000064
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "projection",
+      "operation": "value.random",
+      "calls": 786432,
+      "milliseconds": 56.71910000000207
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "value.random",
+      "calls": 2883584,
+      "milliseconds": 50.72009999999864
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "projection",
+      "operation": "values",
+      "calls": 131072,
+      "milliseconds": 50.505300000002535
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "values",
+      "calls": 147456,
+      "milliseconds": 51.0627999999997
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "projection",
+      "operation": "sequence",
+      "calls": 61440,
+      "milliseconds": 50.567299999996976
+    },
+    {
+      "run": 1,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "sequence",
+      "calls": 65536,
+      "milliseconds": 53.25980000000345
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "projection",
+      "operation": "create.empty",
+      "calls": 71680,
+      "milliseconds": 50.26539999999113
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "tuple",
+      "operation": "create.empty",
+      "calls": 72192,
+      "milliseconds": 50.053399999997055
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "projection",
+      "operation": "create.sequence",
+      "calls": 3072,
+      "milliseconds": 52.83419999999933
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "tuple",
+      "operation": "create.sequence",
+      "calls": 4608,
+      "milliseconds": 50.29500000000007
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "projection",
+      "operation": "replace.random",
+      "calls": 32768,
+      "milliseconds": 53.75880000000325
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "tuple",
+      "operation": "replace.random",
+      "calls": 61440,
+      "milliseconds": 52.055499999998574
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "projection",
+      "operation": "apply.replace",
+      "calls": 16384,
+      "milliseconds": 51.603800000000774
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "tuple",
+      "operation": "apply.replace",
+      "calls": 40960,
+      "milliseconds": 51.80019999999604
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "projection",
+      "operation": "apply.duplicate",
+      "calls": 49152,
+      "milliseconds": 50.774099999996906
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "tuple",
+      "operation": "apply.duplicate",
+      "calls": 36864,
+      "milliseconds": 52.3130000000001
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "projection",
+      "operation": "merge.duplicate",
+      "calls": 4096,
+      "milliseconds": 50.865999999999985
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "tuple",
+      "operation": "merge.duplicate",
+      "calls": 4096,
+      "milliseconds": 58.85659999999916
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "projection",
+      "operation": "length",
+      "calls": 1441792,
+      "milliseconds": 53.10730000000149
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "tuple",
+      "operation": "length",
+      "calls": 1310720,
+      "milliseconds": 50.17479999999887
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "projection",
+      "operation": "value.random",
+      "calls": 393216,
+      "milliseconds": 56.54649999999856
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "tuple",
+      "operation": "value.random",
+      "calls": 2228224,
+      "milliseconds": 51.00510000000759
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "projection",
+      "operation": "values",
+      "calls": 20480,
+      "milliseconds": 55.24589999999989
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "tuple",
+      "operation": "values",
+      "calls": 24576,
+      "milliseconds": 56.91739999999845
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "projection",
+      "operation": "sequence",
+      "calls": 8192,
+      "milliseconds": 69.81240000000071
+    },
+    {
+      "run": 1,
+      "size": 100,
+      "mode": "tuple",
+      "operation": "sequence",
+      "calls": 8192,
+      "milliseconds": 58.65359999999782
+    },
+    {
+      "run": 2,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "create.empty",
+      "calls": 72704,
+      "milliseconds": 50.13880000002064
+    },
+    {
+      "run": 2,
+      "size": 2,
+      "mode": "projection",
+      "operation": "create.empty",
+      "calls": 84992,
+      "milliseconds": 50.022599999989325
+    },
+    {
+      "run": 2,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "create.sequence",
+      "calls": 29184,
+      "milliseconds": 50.06760000000213
+    },
+    {
+      "run": 2,
+      "size": 2,
+      "mode": "projection",
+      "operation": "create.sequence",
+      "calls": 30208,
+      "milliseconds": 50.7471000000005
     },
     {
       "run": 2,
       "size": 2,
       "mode": "tuple",
       "operation": "replace.random",
-      "calls": 61440,
-      "milliseconds": 50.83253700000023
+      "calls": 53248,
+      "milliseconds": 50.25479999999516
     },
     {
       "run": 2,
@@ -688,15 +688,15 @@
       "mode": "projection",
       "operation": "replace.random",
       "calls": 36864,
-      "milliseconds": 53.79500400000143
+      "milliseconds": 51.22310000000107
     },
     {
       "run": 2,
       "size": 2,
       "mode": "tuple",
       "operation": "apply.replace",
-      "calls": 45056,
-      "milliseconds": 53.69604099999742
+      "calls": 36864,
+      "milliseconds": 50.67820000000029
     },
     {
       "run": 2,
@@ -704,47 +704,47 @@
       "mode": "projection",
       "operation": "apply.replace",
       "calls": 32768,
-      "milliseconds": 54.45289800000137
+      "milliseconds": 57.59699999999975
     },
     {
       "run": 2,
       "size": 2,
       "mode": "tuple",
       "operation": "apply.duplicate",
-      "calls": 49152,
-      "milliseconds": 52.70717700000205
+      "calls": 45056,
+      "milliseconds": 50.34309999999641
     },
     {
       "run": 2,
       "size": 2,
       "mode": "projection",
       "operation": "apply.duplicate",
-      "calls": 40960,
-      "milliseconds": 50.44739599999775
+      "calls": 49152,
+      "milliseconds": 51.99269999999706
     },
     {
       "run": 2,
       "size": 2,
       "mode": "tuple",
+      "operation": "merge.duplicate",
+      "calls": 40960,
+      "milliseconds": 50.3059000000012
+    },
+    {
+      "run": 2,
+      "size": 2,
+      "mode": "projection",
       "operation": "merge.duplicate",
       "calls": 45056,
-      "milliseconds": 51.64784100000179
-    },
-    {
-      "run": 2,
-      "size": 2,
-      "mode": "projection",
-      "operation": "merge.duplicate",
-      "calls": 49152,
-      "milliseconds": 52.785251999996035
+      "milliseconds": 51.27170000000115
     },
     {
       "run": 2,
       "size": 2,
       "mode": "tuple",
       "operation": "length",
-      "calls": 1703936,
-      "milliseconds": 51.695379999999204
+      "calls": 1310720,
+      "milliseconds": 52.61360000000241
     },
     {
       "run": 2,
@@ -752,79 +752,79 @@
       "mode": "projection",
       "operation": "length",
       "calls": 1572864,
-      "milliseconds": 51.34839900000043
+      "milliseconds": 52.458699999999226
     },
     {
       "run": 2,
       "size": 2,
       "mode": "tuple",
       "operation": "value.random",
-      "calls": 2621440,
-      "milliseconds": 51.85425599999871
+      "calls": 2752512,
+      "milliseconds": 50.12689999999202
     },
     {
       "run": 2,
       "size": 2,
       "mode": "projection",
       "operation": "value.random",
-      "calls": 1703936,
-      "milliseconds": 51.45999800000027
+      "calls": 1441792,
+      "milliseconds": 52.34860000000481
     },
     {
       "run": 2,
       "size": 2,
       "mode": "tuple",
       "operation": "values",
-      "calls": 233472,
-      "milliseconds": 50.626294000006965
+      "calls": 176128,
+      "milliseconds": 51.15379999999641
     },
     {
       "run": 2,
       "size": 2,
       "mode": "projection",
       "operation": "values",
-      "calls": 258048,
-      "milliseconds": 50.492603000006056
+      "calls": 184320,
+      "milliseconds": 50.15410000000338
     },
     {
       "run": 2,
       "size": 2,
       "mode": "tuple",
       "operation": "sequence",
-      "calls": 114688,
-      "milliseconds": 50.3214699999935
+      "calls": 81920,
+      "milliseconds": 50.5296999999955
     },
     {
       "run": 2,
       "size": 2,
       "mode": "projection",
       "operation": "sequence",
-      "calls": 106496,
-      "milliseconds": 51.226494000004095
+      "calls": 69632,
+      "milliseconds": 50.250700000004144
     },
     {
       "run": 2,
       "size": 4,
       "mode": "tuple",
       "operation": "create.empty",
-      "calls": 91648,
-      "milliseconds": 50.07769900000312
+      "calls": 76288,
+      "milliseconds": 50.19310000002588
     },
     {
       "run": 2,
       "size": 4,
       "mode": "projection",
       "operation": "create.empty",
-      "calls": 97792,
-      "milliseconds": 50.14732500001264
+      "calls": 85504,
+      "milliseconds": 50.01020000001154
     },
     {
       "run": 2,
       "size": 4,
       "mode": "tuple",
       "operation": "create.sequence",
-      "calls": 26112,
-      "milliseconds": 50.584942000008596
+      "calls": 26624,
+      "milliseconds": 50.00760000000082
     },
     {
       "run": 2,
@@ -832,15 +832,15 @@
       "mode": "projection",
       "operation": "create.sequence",
       "calls": 25088,
-      "milliseconds": 50.450836999993044
+      "milliseconds": 50.07439999999406
     },
     {
       "run": 2,
       "size": 4,
       "mode": "tuple",
       "operation": "replace.random",
-      "calls": 65536,
-      "milliseconds": 52.29069900000104
+      "calls": 61440,
+      "milliseconds": 50.68199999999342
     },
     {
       "run": 2,
@@ -848,15 +848,15 @@
       "mode": "projection",
       "operation": "replace.random",
       "calls": 36864,
-      "milliseconds": 54.45155999999952
+      "milliseconds": 51.984999999996944
     },
     {
       "run": 2,
       "size": 4,
       "mode": "tuple",
       "operation": "apply.replace",
-      "calls": 45056,
-      "milliseconds": 53.69121999999879
+      "calls": 36864,
+      "milliseconds": 52.270200000009936
     },
     {
       "run": 2,
@@ -864,71 +864,71 @@
       "mode": "projection",
       "operation": "apply.replace",
       "calls": 16384,
-      "milliseconds": 51.160766000002695
+      "milliseconds": 62.50820000000385
     },
     {
       "run": 2,
       "size": 4,
       "mode": "tuple",
       "operation": "apply.duplicate",
-      "calls": 61440,
-      "milliseconds": 50.159872000003816
+      "calls": 57344,
+      "milliseconds": 53.45480000000316
     },
     {
       "run": 2,
       "size": 4,
       "mode": "projection",
       "operation": "apply.duplicate",
-      "calls": 36864,
-      "milliseconds": 52.35770099999718
+      "calls": 45056,
+      "milliseconds": 52.617200000000594
     },
     {
       "run": 2,
       "size": 4,
       "mode": "tuple",
       "operation": "merge.duplicate",
-      "calls": 36864,
-      "milliseconds": 52.33694099999775
+      "calls": 32768,
+      "milliseconds": 53.55819999999585
     },
     {
       "run": 2,
       "size": 4,
       "mode": "projection",
       "operation": "merge.duplicate",
-      "calls": 40960,
-      "milliseconds": 54.811804000004486
+      "calls": 36864,
+      "milliseconds": 54.461600000006
     },
     {
       "run": 2,
       "size": 4,
       "mode": "tuple",
       "operation": "length",
-      "calls": 1703936,
-      "milliseconds": 51.72601599999689
+      "calls": 1441792,
+      "milliseconds": 52.55099999999584
     },
     {
       "run": 2,
       "size": 4,
       "mode": "projection",
       "operation": "length",
-      "calls": 1572864,
-      "milliseconds": 51.71555599999192
+      "calls": 1048576,
+      "milliseconds": 53.376799999998184
     },
     {
       "run": 2,
       "size": 4,
       "mode": "tuple",
       "operation": "value.random",
-      "calls": 2621440,
-      "milliseconds": 50.897155999999086
+      "calls": 2883584,
+      "milliseconds": 51.70010000000184
     },
     {
       "run": 2,
       "size": 4,
       "mode": "projection",
       "operation": "value.random",
-      "calls": 1310720,
-      "milliseconds": 51.24800099999629
+      "calls": 1179648,
+      "milliseconds": 54.95720000000438
     },
     {
       "run": 2,
@@ -936,207 +936,207 @@
       "mode": "tuple",
       "operation": "values",
       "calls": 196608,
-      "milliseconds": 50.591266000014
+      "milliseconds": 50.43579999999565
     },
     {
       "run": 2,
       "size": 4,
-      "mode": "projection",
-      "operation": "values",
-      "calls": 184320,
-      "milliseconds": 50.21836899999835
-    },
-    {
-      "run": 2,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "sequence",
-      "calls": 94208,
-      "milliseconds": 51.354119000006904
-    },
-    {
-      "run": 2,
-      "size": 4,
-      "mode": "projection",
-      "operation": "sequence",
-      "calls": 98304,
-      "milliseconds": 51.19001099998786
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "create.empty",
-      "calls": 92672,
-      "milliseconds": 50.07233500003349
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "projection",
-      "operation": "create.empty",
-      "calls": 104448,
-      "milliseconds": 50.24084099992251
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "create.sequence",
-      "calls": 21504,
-      "milliseconds": 50.226642000005086
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "projection",
-      "operation": "create.sequence",
-      "calls": 19456,
-      "milliseconds": 50.724008999986836
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "replace.random",
-      "calls": 65536,
-      "milliseconds": 52.484519999998156
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "projection",
-      "operation": "replace.random",
-      "calls": 40960,
-      "milliseconds": 51.309003999995184
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "apply.replace",
-      "calls": 45056,
-      "milliseconds": 52.93709199999648
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "projection",
-      "operation": "apply.replace",
-      "calls": 20480,
-      "milliseconds": 56.978823999997985
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "apply.duplicate",
-      "calls": 40960,
-      "milliseconds": 52.339788000001136
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "projection",
-      "operation": "apply.duplicate",
-      "calls": 40960,
-      "milliseconds": 52.13201900000422
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "merge.duplicate",
-      "calls": 24576,
-      "milliseconds": 55.006657000001724
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "projection",
-      "operation": "merge.duplicate",
-      "calls": 28672,
-      "milliseconds": 53.764930000004824
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "length",
-      "calls": 1703936,
-      "milliseconds": 53.26462199999878
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "projection",
-      "operation": "length",
-      "calls": 1572864,
-      "milliseconds": 51.43416100000468
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "value.random",
-      "calls": 2490368,
-      "milliseconds": 51.14716199999384
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "projection",
-      "operation": "value.random",
-      "calls": 1048576,
-      "milliseconds": 51.472963999996864
-    },
-    {
-      "run": 2,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "values",
-      "calls": 163840,
-      "milliseconds": 50.82795599999372
-    },
-    {
-      "run": 2,
-      "size": 8,
       "mode": "projection",
       "operation": "values",
       "calls": 176128,
-      "milliseconds": 50.97448299999087
+      "milliseconds": 50.02489999999307
     },
     {
       "run": 2,
-      "size": 8,
+      "size": 4,
       "mode": "tuple",
       "operation": "sequence",
       "calls": 69632,
-      "milliseconds": 51.60965600000782
+      "milliseconds": 52.27339999999822
+    },
+    {
+      "run": 2,
+      "size": 4,
+      "mode": "projection",
+      "operation": "sequence",
+      "calls": 49152,
+      "milliseconds": 54.032399999992776
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "create.empty",
+      "calls": 66560,
+      "milliseconds": 50.24309999999241
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "projection",
+      "operation": "create.empty",
+      "calls": 69632,
+      "milliseconds": 50.260400000006484
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "create.sequence",
+      "calls": 20480,
+      "milliseconds": 50.50659999999698
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "projection",
+      "operation": "create.sequence",
+      "calls": 18432,
+      "milliseconds": 51.204200000003766
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "replace.random",
+      "calls": 61440,
+      "milliseconds": 51.65440000000672
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "projection",
+      "operation": "replace.random",
+      "calls": 40960,
+      "milliseconds": 53.277799999996205
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "apply.replace",
+      "calls": 40960,
+      "milliseconds": 51.108900000002905
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "projection",
+      "operation": "apply.replace",
+      "calls": 16384,
+      "milliseconds": 55.379200000006676
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "apply.duplicate",
+      "calls": 45056,
+      "milliseconds": 53.14809999999488
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "projection",
+      "operation": "apply.duplicate",
+      "calls": 36864,
+      "milliseconds": 50.30610000000161
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "merge.duplicate",
+      "calls": 20480,
+      "milliseconds": 51.443299999999
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "projection",
+      "operation": "merge.duplicate",
+      "calls": 24576,
+      "milliseconds": 58.818499999997584
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "length",
+      "calls": 1179648,
+      "milliseconds": 50.107499999998254
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "projection",
+      "operation": "length",
+      "calls": 1441792,
+      "milliseconds": 52.30309999999736
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "value.random",
+      "calls": 2883584,
+      "milliseconds": 51.35040000000299
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "projection",
+      "operation": "value.random",
+      "calls": 786432,
+      "milliseconds": 53.08030000000508
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "values",
+      "calls": 151552,
+      "milliseconds": 51.02289999999266
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "projection",
+      "operation": "values",
+      "calls": 135168,
+      "milliseconds": 50.92869999999675
+    },
+    {
+      "run": 2,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "sequence",
+      "calls": 65536,
+      "milliseconds": 50.64419999999518
     },
     {
       "run": 2,
       "size": 8,
       "mode": "projection",
       "operation": "sequence",
-      "calls": 73728,
-      "milliseconds": 51.03708299999926
+      "calls": 49152,
+      "milliseconds": 50.701600000000326
     },
     {
       "run": 2,
       "size": 100,
       "mode": "tuple",
       "operation": "create.empty",
-      "calls": 90112,
-      "milliseconds": 50.205050999993546
+      "calls": 76800,
+      "milliseconds": 50.09380000003148
     },
     {
       "run": 2,
       "size": 100,
       "mode": "projection",
       "operation": "create.empty",
-      "calls": 99328,
-      "milliseconds": 50.14535999999134
+      "calls": 86528,
+      "milliseconds": 50.23589999998512
     },
     {
       "run": 2,
@@ -1144,39 +1144,39 @@
       "mode": "tuple",
       "operation": "create.sequence",
       "calls": 5120,
-      "milliseconds": 50.67635899999732
+      "milliseconds": 54.60160000000906
     },
     {
       "run": 2,
       "size": 100,
       "mode": "projection",
       "operation": "create.sequence",
-      "calls": 3584,
-      "milliseconds": 52.601635000002716
+      "calls": 3072,
+      "milliseconds": 56.43950000000041
     },
     {
       "run": 2,
       "size": 100,
       "mode": "tuple",
       "operation": "replace.random",
-      "calls": 65536,
-      "milliseconds": 52.6098290000009
+      "calls": 61440,
+      "milliseconds": 52.153000000005704
     },
     {
       "run": 2,
       "size": 100,
       "mode": "projection",
       "operation": "replace.random",
-      "calls": 36864,
-      "milliseconds": 53.28007799999614
+      "calls": 32768,
+      "milliseconds": 52.29000000000087
     },
     {
       "run": 2,
       "size": 100,
       "mode": "tuple",
       "operation": "apply.replace",
-      "calls": 49152,
-      "milliseconds": 52.89115799999854
+      "calls": 45056,
+      "milliseconds": 54.48450000000594
     },
     {
       "run": 2,
@@ -1184,7 +1184,7 @@
       "mode": "projection",
       "operation": "apply.replace",
       "calls": 16384,
-      "milliseconds": 56.42058200000247
+      "milliseconds": 60.64050000000134
     },
     {
       "run": 2,
@@ -1192,15 +1192,15 @@
       "mode": "tuple",
       "operation": "apply.duplicate",
       "calls": 40960,
-      "milliseconds": 51.98138199999448
+      "milliseconds": 51.95209999999497
     },
     {
       "run": 2,
       "size": 100,
       "mode": "projection",
       "operation": "apply.duplicate",
-      "calls": 45056,
-      "milliseconds": 51.52980600000228
+      "calls": 49152,
+      "milliseconds": 52.79340000000229
     },
     {
       "run": 2,
@@ -1208,7 +1208,7 @@
       "mode": "tuple",
       "operation": "merge.duplicate",
       "calls": 4096,
-      "milliseconds": 50.25036700000055
+      "milliseconds": 58.733400000000984
     },
     {
       "run": 2,
@@ -1216,63 +1216,63 @@
       "mode": "projection",
       "operation": "merge.duplicate",
       "calls": 8192,
-      "milliseconds": 67.85589400000026
+      "milliseconds": 80.73170000000027
     },
     {
       "run": 2,
       "size": 100,
       "mode": "tuple",
       "operation": "length",
-      "calls": 1703936,
-      "milliseconds": 52.04256500000338
+      "calls": 1310720,
+      "milliseconds": 51.51820000000589
     },
     {
       "run": 2,
       "size": 100,
       "mode": "projection",
       "operation": "length",
-      "calls": 1703936,
-      "milliseconds": 52.749470000002475
+      "calls": 1441792,
+      "milliseconds": 53.47140000000218
     },
     {
       "run": 2,
       "size": 100,
       "mode": "tuple",
       "operation": "value.random",
-      "calls": 2621440,
-      "milliseconds": 51.38866199999757
+      "calls": 2752512,
+      "milliseconds": 50.20570000000589
     },
     {
       "run": 2,
       "size": 100,
       "mode": "projection",
       "operation": "value.random",
-      "calls": 524288,
-      "milliseconds": 56.142971999997826
+      "calls": 393216,
+      "milliseconds": 54.033400000000256
     },
     {
       "run": 2,
       "size": 100,
       "mode": "tuple",
-      "operation": "values",
-      "calls": 28672,
-      "milliseconds": 55.342281000001094
-    },
-    {
-      "run": 2,
-      "size": 100,
-      "mode": "projection",
       "operation": "values",
       "calls": 24576,
-      "milliseconds": 51.355727999995
+      "milliseconds": 55.35239999999976
+    },
+    {
+      "run": 2,
+      "size": 100,
+      "mode": "projection",
+      "operation": "values",
+      "calls": 20480,
+      "milliseconds": 51.630599999996775
     },
     {
       "run": 2,
       "size": 100,
       "mode": "tuple",
       "operation": "sequence",
-      "calls": 12288,
-      "milliseconds": 73.36801999999807
+      "calls": 8192,
+      "milliseconds": 57.90679999999702
     },
     {
       "run": 2,
@@ -1280,39 +1280,39 @@
       "mode": "projection",
       "operation": "sequence",
       "calls": 8192,
-      "milliseconds": 50.85228699999425
+      "milliseconds": 68.13379999999597
     },
     {
       "run": 3,
       "size": 2,
       "mode": "projection",
       "operation": "create.empty",
-      "calls": 103424,
-      "milliseconds": 50.14601600000606
+      "calls": 84992,
+      "milliseconds": 50.146300000003976
     },
     {
       "run": 3,
       "size": 2,
       "mode": "tuple",
       "operation": "create.empty",
-      "calls": 85504,
-      "milliseconds": 50.22021300000051
+      "calls": 81408,
+      "milliseconds": 50.23590000002878
     },
     {
       "run": 3,
       "size": 2,
       "mode": "projection",
       "operation": "create.sequence",
-      "calls": 31232,
-      "milliseconds": 50.428324000011344
+      "calls": 32768,
+      "milliseconds": 50.463299999999435
     },
     {
       "run": 3,
       "size": 2,
       "mode": "tuple",
       "operation": "create.sequence",
-      "calls": 29696,
-      "milliseconds": 50.433872999987216
+      "calls": 30208,
+      "milliseconds": 50.86419999999998
     },
     {
       "run": 3,
@@ -1320,335 +1320,335 @@
       "mode": "projection",
       "operation": "replace.random",
       "calls": 40960,
-      "milliseconds": 54.13065199999619
+      "milliseconds": 51.114299999997456
     },
     {
       "run": 3,
       "size": 2,
+      "mode": "tuple",
+      "operation": "replace.random",
+      "calls": 61440,
+      "milliseconds": 51.451499999995576
+    },
+    {
+      "run": 3,
+      "size": 2,
+      "mode": "projection",
+      "operation": "apply.replace",
+      "calls": 28672,
+      "milliseconds": 50.18999999999869
+    },
+    {
+      "run": 3,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "apply.replace",
+      "calls": 32768,
+      "milliseconds": 51.820599999995466
+    },
+    {
+      "run": 3,
+      "size": 2,
+      "mode": "projection",
+      "operation": "apply.duplicate",
+      "calls": 45056,
+      "milliseconds": 51.59299999999348
+    },
+    {
+      "run": 3,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "apply.duplicate",
+      "calls": 45056,
+      "milliseconds": 51.33730000000287
+    },
+    {
+      "run": 3,
+      "size": 2,
+      "mode": "projection",
+      "operation": "merge.duplicate",
+      "calls": 45056,
+      "milliseconds": 53.07400000000416
+    },
+    {
+      "run": 3,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "merge.duplicate",
+      "calls": 40960,
+      "milliseconds": 50.44100000000253
+    },
+    {
+      "run": 3,
+      "size": 2,
+      "mode": "projection",
+      "operation": "length",
+      "calls": 1310720,
+      "milliseconds": 50.447299999996176
+    },
+    {
+      "run": 3,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "length",
+      "calls": 1572864,
+      "milliseconds": 53.17610000000059
+    },
+    {
+      "run": 3,
+      "size": 2,
+      "mode": "projection",
+      "operation": "value.random",
+      "calls": 1441792,
+      "milliseconds": 53.865200000003824
+    },
+    {
+      "run": 3,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "value.random",
+      "calls": 2883584,
+      "milliseconds": 50.21330000000671
+    },
+    {
+      "run": 3,
+      "size": 2,
+      "mode": "projection",
+      "operation": "values",
+      "calls": 217088,
+      "milliseconds": 50.29650000000038
+    },
+    {
+      "run": 3,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "values",
+      "calls": 212992,
+      "milliseconds": 50.76520000000528
+    },
+    {
+      "run": 3,
+      "size": 2,
+      "mode": "projection",
+      "operation": "sequence",
+      "calls": 102400,
+      "milliseconds": 50.31340000000637
+    },
+    {
+      "run": 3,
+      "size": 2,
+      "mode": "tuple",
+      "operation": "sequence",
+      "calls": 81920,
+      "milliseconds": 50.67110000001048
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "projection",
+      "operation": "create.empty",
+      "calls": 77312,
+      "milliseconds": 50.12990000000718
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "create.empty",
+      "calls": 75264,
+      "milliseconds": 50.27309999999488
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "projection",
+      "operation": "create.sequence",
+      "calls": 24576,
+      "milliseconds": 50.96170000000711
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "create.sequence",
+      "calls": 25600,
+      "milliseconds": 50.24810000001162
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "projection",
+      "operation": "replace.random",
+      "calls": 40960,
+      "milliseconds": 52.2970000000023
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "replace.random",
+      "calls": 61440,
+      "milliseconds": 50.456499999996595
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "projection",
+      "operation": "apply.replace",
+      "calls": 20480,
+      "milliseconds": 52.074100000001636
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "apply.replace",
+      "calls": 36864,
+      "milliseconds": 53.705800000003364
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "projection",
+      "operation": "apply.duplicate",
+      "calls": 53248,
+      "milliseconds": 52.949599999989005
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "apply.duplicate",
+      "calls": 40960,
+      "milliseconds": 50.49810000000434
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "projection",
+      "operation": "merge.duplicate",
+      "calls": 32768,
+      "milliseconds": 54.11410000000251
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "merge.duplicate",
+      "calls": 32768,
+      "milliseconds": 54.3702999999914
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "projection",
+      "operation": "length",
+      "calls": 1179648,
+      "milliseconds": 50.13480000000345
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "length",
+      "calls": 1572864,
+      "milliseconds": 53.311799999995856
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "projection",
+      "operation": "value.random",
+      "calls": 1179648,
+      "milliseconds": 52.181299999996554
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "value.random",
+      "calls": 2752512,
+      "milliseconds": 50.04200000000128
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "projection",
+      "operation": "values",
+      "calls": 188416,
+      "milliseconds": 50.78419999997641
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "values",
+      "calls": 180224,
+      "milliseconds": 50.48680000000604
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "projection",
+      "operation": "sequence",
+      "calls": 90112,
+      "milliseconds": 50.79009999999471
+    },
+    {
+      "run": 3,
+      "size": 4,
+      "mode": "tuple",
+      "operation": "sequence",
+      "calls": 81920,
+      "milliseconds": 50.60290000000896
+    },
+    {
+      "run": 3,
+      "size": 8,
+      "mode": "projection",
+      "operation": "create.empty",
+      "calls": 88064,
+      "milliseconds": 50.234300000000076
+    },
+    {
+      "run": 3,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "create.empty",
+      "calls": 79360,
+      "milliseconds": 50.06220000000758
+    },
+    {
+      "run": 3,
+      "size": 8,
+      "mode": "projection",
+      "operation": "create.sequence",
+      "calls": 17920,
+      "milliseconds": 51.12099999997736
+    },
+    {
+      "run": 3,
+      "size": 8,
+      "mode": "tuple",
+      "operation": "create.sequence",
+      "calls": 19968,
+      "milliseconds": 50.07170000000042
+    },
+    {
+      "run": 3,
+      "size": 8,
+      "mode": "projection",
+      "operation": "replace.random",
+      "calls": 40960,
+      "milliseconds": 54.04210000000603
+    },
+    {
+      "run": 3,
+      "size": 8,
       "mode": "tuple",
       "operation": "replace.random",
       "calls": 57344,
-      "milliseconds": 52.91390899999897
-    },
-    {
-      "run": 3,
-      "size": 2,
-      "mode": "projection",
-      "operation": "apply.replace",
-      "calls": 32768,
-      "milliseconds": 57.876663000002736
-    },
-    {
-      "run": 3,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "apply.replace",
-      "calls": 32768,
-      "milliseconds": 54.19392499999958
-    },
-    {
-      "run": 3,
-      "size": 2,
-      "mode": "projection",
-      "operation": "apply.duplicate",
-      "calls": 40960,
-      "milliseconds": 51.62668599999961
-    },
-    {
-      "run": 3,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "apply.duplicate",
-      "calls": 36864,
-      "milliseconds": 50.9955639999971
-    },
-    {
-      "run": 3,
-      "size": 2,
-      "mode": "projection",
-      "operation": "merge.duplicate",
-      "calls": 49152,
-      "milliseconds": 52.043435000006866
-    },
-    {
-      "run": 3,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "merge.duplicate",
-      "calls": 36864,
-      "milliseconds": 50.516294000000926
-    },
-    {
-      "run": 3,
-      "size": 2,
-      "mode": "projection",
-      "operation": "length",
-      "calls": 1572864,
-      "milliseconds": 52.053487000011955
-    },
-    {
-      "run": 3,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "length",
-      "calls": 1703936,
-      "milliseconds": 52.02669899999819
-    },
-    {
-      "run": 3,
-      "size": 2,
-      "mode": "projection",
-      "operation": "value.random",
-      "calls": 1703936,
-      "milliseconds": 51.85258899999826
-    },
-    {
-      "run": 3,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "value.random",
-      "calls": 2621440,
-      "milliseconds": 50.59702500001367
-    },
-    {
-      "run": 3,
-      "size": 2,
-      "mode": "projection",
-      "operation": "values",
-      "calls": 266240,
-      "milliseconds": 50.45656000000599
-    },
-    {
-      "run": 3,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "values",
-      "calls": 262144,
-      "milliseconds": 50.41701899999316
-    },
-    {
-      "run": 3,
-      "size": 2,
-      "mode": "projection",
-      "operation": "sequence",
-      "calls": 114688,
-      "milliseconds": 50.27181099999143
-    },
-    {
-      "run": 3,
-      "size": 2,
-      "mode": "tuple",
-      "operation": "sequence",
-      "calls": 98304,
-      "milliseconds": 50.25501099999383
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "projection",
-      "operation": "create.empty",
-      "calls": 104960,
-      "milliseconds": 50.23420599999372
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "create.empty",
-      "calls": 93696,
-      "milliseconds": 50.25997300001109
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "projection",
-      "operation": "create.sequence",
-      "calls": 25600,
-      "milliseconds": 50.63555599999381
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "create.sequence",
-      "calls": 26112,
-      "milliseconds": 50.17063900000721
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "projection",
-      "operation": "replace.random",
-      "calls": 32768,
-      "milliseconds": 51.21230399999695
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "replace.random",
-      "calls": 49152,
-      "milliseconds": 50.31728199998906
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "projection",
-      "operation": "apply.replace",
-      "calls": 20480,
-      "milliseconds": 52.84165799999755
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "apply.replace",
-      "calls": 36864,
-      "milliseconds": 52.812700999995286
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "projection",
-      "operation": "apply.duplicate",
-      "calls": 40960,
-      "milliseconds": 51.31958300000042
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "apply.duplicate",
-      "calls": 49152,
-      "milliseconds": 52.94794499999989
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "projection",
-      "operation": "merge.duplicate",
-      "calls": 36864,
-      "milliseconds": 50.68465300000389
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "merge.duplicate",
-      "calls": 36864,
-      "milliseconds": 52.14665099999547
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "projection",
-      "operation": "length",
-      "calls": 1703936,
-      "milliseconds": 51.95785700000124
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "length",
-      "calls": 1703936,
-      "milliseconds": 52.05816800000321
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "projection",
-      "operation": "value.random",
-      "calls": 1310720,
-      "milliseconds": 53.632456999996066
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "value.random",
-      "calls": 2621440,
-      "milliseconds": 50.68648600000597
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "projection",
-      "operation": "values",
-      "calls": 225280,
-      "milliseconds": 50.04385000000548
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "values",
-      "calls": 208896,
-      "milliseconds": 50.31204399999842
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "projection",
-      "operation": "sequence",
-      "calls": 86016,
-      "milliseconds": 51.440435999997135
-    },
-    {
-      "run": 3,
-      "size": 4,
-      "mode": "tuple",
-      "operation": "sequence",
-      "calls": 73728,
-      "milliseconds": 51.28462500000751
-    },
-    {
-      "run": 3,
-      "size": 8,
-      "mode": "projection",
-      "operation": "create.empty",
-      "calls": 98816,
-      "milliseconds": 50.11617500001012
-    },
-    {
-      "run": 3,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "create.empty",
-      "calls": 94208,
-      "milliseconds": 50.15399599999
-    },
-    {
-      "run": 3,
-      "size": 8,
-      "mode": "projection",
-      "operation": "create.sequence",
-      "calls": 18432,
-      "milliseconds": 50.16924499999004
-    },
-    {
-      "run": 3,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "create.sequence",
-      "calls": 21504,
-      "milliseconds": 50.21182399999452
-    },
-    {
-      "run": 3,
-      "size": 8,
-      "mode": "projection",
-      "operation": "replace.random",
-      "calls": 40960,
-      "milliseconds": 50.98564399999668
-    },
-    {
-      "run": 3,
-      "size": 8,
-      "mode": "tuple",
-      "operation": "replace.random",
-      "calls": 53248,
-      "milliseconds": 53.06943899999533
+      "milliseconds": 50.595200000010664
     },
     {
       "run": 3,
@@ -1656,15 +1656,15 @@
       "mode": "projection",
       "operation": "apply.replace",
       "calls": 20480,
-      "milliseconds": 52.62548699999752
+      "milliseconds": 55.78579999999056
     },
     {
       "run": 3,
       "size": 8,
       "mode": "tuple",
       "operation": "apply.replace",
-      "calls": 28672,
-      "milliseconds": 50.795288000001165
+      "calls": 32768,
+      "milliseconds": 51.38170000000537
     },
     {
       "run": 3,
@@ -1672,15 +1672,15 @@
       "mode": "projection",
       "operation": "apply.duplicate",
       "calls": 49152,
-      "milliseconds": 51.950916000005236
+      "milliseconds": 53.04630000000179
     },
     {
       "run": 3,
       "size": 8,
       "mode": "tuple",
       "operation": "apply.duplicate",
-      "calls": 40960,
-      "milliseconds": 50.51405100000193
+      "calls": 45056,
+      "milliseconds": 52.638399999988906
     },
     {
       "run": 3,
@@ -1688,55 +1688,55 @@
       "mode": "projection",
       "operation": "merge.duplicate",
       "calls": 24576,
-      "milliseconds": 51.584327000000485
+      "milliseconds": 55.336199999997916
     },
     {
       "run": 3,
       "size": 8,
       "mode": "tuple",
       "operation": "merge.duplicate",
-      "calls": 28672,
-      "milliseconds": 56.61190799999895
+      "calls": 24576,
+      "milliseconds": 54.48659999999654
     },
     {
       "run": 3,
       "size": 8,
       "mode": "projection",
       "operation": "length",
-      "calls": 1703936,
-      "milliseconds": 52.572979000004125
+      "calls": 1310720,
+      "milliseconds": 52.32270000000426
     },
     {
       "run": 3,
       "size": 8,
       "mode": "tuple",
       "operation": "length",
-      "calls": 1572864,
-      "milliseconds": 52.16430199999013
+      "calls": 1441792,
+      "milliseconds": 53.083500000007916
     },
     {
       "run": 3,
       "size": 8,
       "mode": "projection",
       "operation": "value.random",
-      "calls": 1048576,
-      "milliseconds": 50.88162899999952
+      "calls": 917504,
+      "milliseconds": 55.44819999999163
     },
     {
       "run": 3,
       "size": 8,
       "mode": "tuple",
       "operation": "value.random",
-      "calls": 2621440,
-      "milliseconds": 52.42301900000166
+      "calls": 2883584,
+      "milliseconds": 50.915199999988545
     },
     {
       "run": 3,
       "size": 8,
       "mode": "projection",
       "operation": "values",
-      "calls": 184320,
-      "milliseconds": 50.83070000000225
+      "calls": 118784,
+      "milliseconds": 50.176099999989674
     },
     {
       "run": 3,
@@ -1744,47 +1744,47 @@
       "mode": "tuple",
       "operation": "values",
       "calls": 135168,
-      "milliseconds": 50.78754000000117
+      "milliseconds": 50.96060000001307
     },
     {
       "run": 3,
       "size": 8,
       "mode": "projection",
       "operation": "sequence",
-      "calls": 73728,
-      "milliseconds": 50.20256599999993
+      "calls": 61440,
+      "milliseconds": 52.10450000000128
     },
     {
       "run": 3,
       "size": 8,
       "mode": "tuple",
       "operation": "sequence",
-      "calls": 73728,
-      "milliseconds": 50.34200600000986
+      "calls": 61440,
+      "milliseconds": 52.226300000016636
     },
     {
       "run": 3,
       "size": 100,
       "mode": "projection",
       "operation": "create.empty",
-      "calls": 99328,
-      "milliseconds": 50.121433000051184
+      "calls": 73728,
+      "milliseconds": 50.13130000005185
     },
     {
       "run": 3,
       "size": 100,
       "mode": "tuple",
       "operation": "create.empty",
-      "calls": 88576,
-      "milliseconds": 50.161910000002536
+      "calls": 74752,
+      "milliseconds": 50.13949999996839
     },
     {
       "run": 3,
       "size": 100,
       "mode": "projection",
       "operation": "create.sequence",
-      "calls": 3584,
-      "milliseconds": 52.41602499999499
+      "calls": 3072,
+      "milliseconds": 51.515500000008615
     },
     {
       "run": 3,
@@ -1792,15 +1792,15 @@
       "mode": "tuple",
       "operation": "create.sequence",
       "calls": 5120,
-      "milliseconds": 51.063631000000896
+      "milliseconds": 53.34360000000015
     },
     {
       "run": 3,
       "size": 100,
       "mode": "projection",
       "operation": "replace.random",
-      "calls": 28672,
-      "milliseconds": 52.381185000005644
+      "calls": 32768,
+      "milliseconds": 52.2959000000119
     },
     {
       "run": 3,
@@ -1808,39 +1808,39 @@
       "mode": "tuple",
       "operation": "replace.random",
       "calls": 57344,
-      "milliseconds": 51.37452500000654
+      "milliseconds": 52.37650000000576
     },
     {
       "run": 3,
       "size": 100,
       "mode": "projection",
       "operation": "apply.replace",
-      "calls": 20480,
-      "milliseconds": 53.96515899999213
+      "calls": 16384,
+      "milliseconds": 62.87489999999525
     },
     {
       "run": 3,
       "size": 100,
       "mode": "tuple",
       "operation": "apply.replace",
-      "calls": 49152,
-      "milliseconds": 53.84497899998678
-    },
-    {
-      "run": 3,
-      "size": 100,
-      "mode": "projection",
-      "operation": "apply.duplicate",
       "calls": 32768,
-      "milliseconds": 51.95601299998816
+      "milliseconds": 53.63620000000083
+    },
+    {
+      "run": 3,
+      "size": 100,
+      "mode": "projection",
+      "operation": "apply.duplicate",
+      "calls": 40960,
+      "milliseconds": 50.59250000001339
     },
     {
       "run": 3,
       "size": 100,
       "mode": "tuple",
       "operation": "apply.duplicate",
-      "calls": 36864,
-      "milliseconds": 50.322040999999444
+      "calls": 45056,
+      "milliseconds": 52.64100000000326
     },
     {
       "run": 3,
@@ -1848,7 +1848,7 @@
       "mode": "projection",
       "operation": "merge.duplicate",
       "calls": 8192,
-      "milliseconds": 72.18273100000079
+      "milliseconds": 83.77610000000277
     },
     {
       "run": 3,
@@ -1856,71 +1856,71 @@
       "mode": "tuple",
       "operation": "merge.duplicate",
       "calls": 4096,
-      "milliseconds": 50.63650999999663
+      "milliseconds": 57.30880000000616
     },
     {
       "run": 3,
       "size": 100,
       "mode": "projection",
       "operation": "length",
-      "calls": 1572864,
-      "milliseconds": 53.5777820000003
+      "calls": 1310720,
+      "milliseconds": 50.83280000000377
     },
     {
       "run": 3,
       "size": 100,
       "mode": "tuple",
       "operation": "length",
-      "calls": 1703936,
-      "milliseconds": 53.11259099999006
+      "calls": 1310720,
+      "milliseconds": 50.0483999999924
     },
     {
       "run": 3,
       "size": 100,
       "mode": "projection",
       "operation": "value.random",
-      "calls": 524288,
-      "milliseconds": 55.775491000007605
+      "calls": 393216,
+      "milliseconds": 53.999899999987974
     },
     {
       "run": 3,
       "size": 100,
       "mode": "tuple",
       "operation": "value.random",
-      "calls": 2621440,
-      "milliseconds": 50.78006000001187
+      "calls": 2883584,
+      "milliseconds": 51.27990000002319
     },
     {
       "run": 3,
       "size": 100,
       "mode": "projection",
       "operation": "values",
-      "calls": 28672,
-      "milliseconds": 55.918830000002345
+      "calls": 24576,
+      "milliseconds": 55.59420000000682
     },
     {
       "run": 3,
       "size": 100,
       "mode": "tuple",
       "operation": "values",
-      "calls": 28672,
-      "milliseconds": 53.764329999998154
+      "calls": 24576,
+      "milliseconds": 50.87399999999616
     },
     {
       "run": 3,
       "size": 100,
       "mode": "projection",
       "operation": "sequence",
-      "calls": 12288,
-      "milliseconds": 72.47772399999667
+      "calls": 8192,
+      "milliseconds": 59.9088000000047
     },
     {
       "run": 3,
       "size": 100,
       "mode": "tuple",
       "operation": "sequence",
-      "calls": 12288,
-      "milliseconds": 72.71628200000123
+      "calls": 8192,
+      "milliseconds": 65.06949999999779
     }
   ],
   "space": [
@@ -1970,7 +1970,7 @@
       "mode": "tuple",
       "allocatedBytes": 1544,
       "msgpackBytes": 104,
-      "gzipBytes": 93
+      "gzipBytes": 95
     },
     {
       "run": 1,
@@ -1978,7 +1978,7 @@
       "mode": "projection",
       "allocatedBytes": 24320,
       "msgpackBytes": 682,
-      "gzipBytes": 588
+      "gzipBytes": 586
     },
     {
       "run": 1,
@@ -1986,7 +1986,7 @@
       "mode": "tuple",
       "allocatedBytes": 12472,
       "msgpackBytes": 527,
-      "gzipBytes": 356
+      "gzipBytes": 354
     },
     {
       "run": 2,
@@ -2018,7 +2018,7 @@
       "mode": "projection",
       "allocatedBytes": 1576,
       "msgpackBytes": 64,
-      "gzipBytes": 53
+      "gzipBytes": 54
     },
     {
       "run": 2,
@@ -2026,7 +2026,7 @@
       "mode": "tuple",
       "allocatedBytes": 1544,
       "msgpackBytes": 104,
-      "gzipBytes": 94
+      "gzipBytes": 91
     },
     {
       "run": 2,
@@ -2042,7 +2042,7 @@
       "mode": "tuple",
       "allocatedBytes": 12472,
       "msgpackBytes": 527,
-      "gzipBytes": 356
+      "gzipBytes": 355
     },
     {
       "run": 2,
@@ -2098,7 +2098,7 @@
       "mode": "tuple",
       "allocatedBytes": 1544,
       "msgpackBytes": 104,
-      "gzipBytes": 90
+      "gzipBytes": 93
     },
     {
       "run": 3,
@@ -2106,7 +2106,7 @@
       "mode": "projection",
       "allocatedBytes": 24320,
       "msgpackBytes": 682,
-      "gzipBytes": 588
+      "gzipBytes": 585
     },
     {
       "run": 3,
@@ -2114,7 +2114,7 @@
       "mode": "tuple",
       "allocatedBytes": 12472,
       "msgpackBytes": 527,
-      "gzipBytes": 356
+      "gzipBytes": 353
     }
   ]
 }

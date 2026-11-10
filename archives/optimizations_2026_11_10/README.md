@@ -1,5 +1,8 @@
 # Projection allocation and shared Footage output
 
+The subsequent [editing and apply round](editing/README.md) uses the corrected
+checkpoint model described below.
+
 The lifecycle measurements in this round predate the checkpoint correction:
 they retained the original peers across checkpoints and counted reserved WASM
 capacity. Current lifecycle results recreate both peers at each checkpoint and

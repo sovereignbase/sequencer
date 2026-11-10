@@ -1,6 +1,7 @@
 #pragma once
 #include "../../types/type.hpp"
 #include <algorithm>
+#include <span>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -21,7 +22,7 @@ public:
   /** Observes an Actor's reported removal frontiers, admitting active Actors.
    * @param a Actor ID followed by Session/end pairs; retired Actors are ignored.
    */
-  void observe(const Acknowledgement &a) {
+  void observe(std::span<const Word> a) {
     if (a.empty() || retirees.contains(a[0]))
       return;
     if (membership.insert(a[0]).second)

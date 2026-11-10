@@ -34,11 +34,10 @@ const modulePath = join(
 /** Emscripten output before synchronous initialization is restored. */
 const code = await readFile(modulePath, 'utf8')
 // Synchronous compilation and no incoming hooks make initialization synchronous.
-// Emscripten still marks both the factory and its run function as asynchronous.
+// Emscripten still marks the factory and initialization IIFE as asynchronous.
 await writeFile(
   modulePath,
   code
     .replace(/^async function Module/, 'function Module')
-    .replace('async function run()', 'function run()')
-    .replace('await run();', 'run();')
+    .replace('await async function(){', 'void function(){')
 )

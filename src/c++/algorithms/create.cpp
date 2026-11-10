@@ -83,7 +83,7 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
     containment.set(c, incoming);
     // Hydration also records this Actor's Acknowledgement of retained reducing Insertions.
     if (c.diff < 0)
-      frontier.observe({actor, c.session, c.start - c.diff});
+      frontier.observe(std::array{actor, c.session, c.start - c.diff});
     if (pending.size()) {
       auto released = pending.take(c);
       ready.insert(ready.end(), released.rbegin(), released.rend());

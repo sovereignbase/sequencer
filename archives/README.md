@@ -10,6 +10,8 @@ the relevant reports.
 
 [10 November 2026: Projection allocation, tuple initialization and shared Footage output](optimizations_2026_11_10/README.md).
 
+[10 November 2026: direct Insertion application and borrowed Acknowledgements](optimizations_2026_11_10/editing/README.md).
+
 [9 November 2026: tuple support, bundle size and API comparisons](optimizations_2026_11_09/README.md).
 
 | Round             | Reports                                                                                                                                                                                                                                                                                                                              |

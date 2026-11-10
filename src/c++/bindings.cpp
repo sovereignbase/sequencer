@@ -94,7 +94,7 @@ struct Reader {
   bool valid = true;
   bool tuple = false;
   Word capacity = UINT32_MAX, extent = 0;
-  Entry invalid() {
+  std::pair<Insertion, std::span<const Word>> invalid() {
     valid = false;
     return {};
   }
@@ -145,7 +145,8 @@ struct Reader {
     return c;
   }
   // A rejected descriptor stops application at this entry while preserving its valid prefix.
-  Entry entry() {
+  // Acknowledgements borrow the input until the current synchronous call returns.
+  std::pair<Insertion, std::span<const Word>> entry() {
     const auto tag = word();
     const auto offset = word(), count = word(), content = word();
     if (offset > input.size() || count > input.size() - offset)
@@ -154,7 +155,7 @@ struct Reader {
     if (tag == 1) {
       if (!count || !(count & 1))
         return invalid();
-      return Entry::acknowledge({data.begin(), data.end()});
+      return {{}, data};
     } else if (tag == 0) {
       if (count != 6)
         return invalid();
@@ -163,7 +164,7 @@ struct Reader {
       if (!c.diff || c.diff == std::numeric_limits<std::int32_t>::min())
         return invalid();
       register_sessions(c);
-      return Entry::insert({c, content});
+      return {{c, content}, {}};
     } else
       return invalid();
   }
@@ -380,19 +381,18 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
       out.result.gossip.clear();
       kind = 4;
       for (Word i = 0; i < n; ++i) {
-        const auto entry = r.entry();
-        if (!r.valid) {
-          kind = 0;
-          break;
-        }
-        if (p.tuple && !entry.acknowledgement &&
-            !p.tuple->valid(entry.insertion.coordinates, p.containment)) {
+        const auto [insertion, acknowledgement] = r.entry();
+        if (!r.valid || (p.tuple && acknowledgement.empty() &&
+                         !p.tuple->valid(insertion.coordinates, p.containment))) {
           kind = 0;
           break;
         }
         // JS can discard bindings allocated for entries after the rejected prefix.
-        out.header[11] = std::max(out.header[11], entry.insertion.content);
-        p.apply(std::span(&entry, 1), out.result);
+        out.header[11] = std::max(out.header[11], insertion.content);
+        if (acknowledgement.empty())
+          p.apply(insertion, out.result);
+        else
+          p.frontier.observe(acknowledgement);
       }
       if (!r.valid)
         kind = 0;

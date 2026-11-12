@@ -46,6 +46,8 @@ static_assert(sizeof(Coordinates) == 6 * sizeof(Word));
 inline std::uint64_t identity(Word session, Word start) {
   return (std::uint64_t(session) << 32) | start;
 }
+/** State of the JavaScript array retained by one Footage binding. */
+enum class FootageState : std::uint8_t { Caller = 0, Private = 1, Retained = 2, Snapshot = 3 };
 /** Native Insertion plus an opaque JavaScript Footage reference. */
 struct Insertion {
   /** Historical anchor, canonical identity and original Frame effect. */
@@ -54,6 +56,8 @@ struct Insertion {
   Word content{};
   /** Origin of this Insertion's original Frame coordinates in the bound Footage. */
   Word content_start{};
+  /** Binding state in the low byte of an aligned word shared with native flags. */
+  FootageState footage_state{};
   /** Whether Footage is privately writable; false requests copy-on-write before masking. */
   bool content_owned{};
   /** Whether materialization has diverged from one intact Strip. */
@@ -61,28 +65,39 @@ struct Insertion {
   /** Whether this Strip represents an offset fragment or consumed mask prefix. */
   bool offset{};
 };
-static_assert(sizeof(Insertion) == 36);
+static_assert(sizeof(Insertion) == 36 && offsetof(Insertion, footage_state) % sizeof(Word) == 0);
 /** Actor ID followed by removal Session/frontier pairs. */
 using Acknowledgement = std::vector<Word>;
 /** Discriminated Gossip entry; only the selected Insertion or frontier is meaningful. */
 struct Entry {
-  /** Selects the frontier payload instead of an Insertion. */
-  bool acknowledgement{};
-  /** Canonical operation when acknowledgement is false. */
-  Insertion insertion{};
-  /** Actor Acknowledgement when acknowledgement is true. */
-  Acknowledgement frontier;
+#ifndef DOXYGEN
+  // Document the anonymous union's fields directly on Entry.
+  union {
+#endif
+    /** Canonical operation when acknowledgement_count is zero. */
+    Insertion insertion;
+    /** Locally reported Actor, removal Session and frontier. */
+    std::array<Word, 3> frontier;
+#ifndef DOXYGEN
+  };
+#endif
+  /** Zero selects Insertion; one or three selects the reported frontier words. */
+  Word acknowledgement_count{};
   /** Creates an operation entry.
    * @param i Canonical Insertion and its binding reference.
    * @return Insertion-tagged entry.
    */
-  static Entry insert(Insertion i) { return {false, i, {}}; }
-  /** Creates a Acknowledgement entry, retaining its numeric storage.
-   * @param a Actor ID and removal Session/frontier pairs.
+  static Entry insert(Insertion i) { return {.insertion = i, .acknowledgement_count = 0}; }
+  /** Creates an Acknowledgement entry without dynamic payload storage.
+   * @param a Actor ID and the reported removal Session/frontier.
+   * @param count Number of reported words; one admits only the Actor.
    * @return Acknowledgement-tagged entry.
    */
-  static Entry acknowledge(Acknowledgement a) { return {true, {}, std::move(a)}; }
+  static Entry acknowledge(std::array<Word, 3> a, Word count = 3) {
+    return {.frontier = a, .acknowledgement_count = count};
+  }
 };
+static_assert(sizeof(Entry) == 40);
 /** Ordered operations and Acknowledgements transported between replicas. */
 using Gossip = std::vector<Entry>;
 /** JavaScript Footage slice; no application values enter WASM. */
@@ -96,7 +111,7 @@ struct ContentAppend {
   Word target{} /**< Existing Insertion's content binding. */,
       source{} /**< Incoming suffix binding. */, start{} /**< First suffix slot in source. */,
       count{} /**< Suffix Frame count. */,
-      at{} /**< Original target Frame length before extension. */,
+      at{} /**< Original positive extent; the high bit requests a private Footage copy. */,
       base{} /**< Target Insertion's content-array origin before copy-on-write. */;
 };
 /** Deferred Footage changes for the current synchronous ABI call. */

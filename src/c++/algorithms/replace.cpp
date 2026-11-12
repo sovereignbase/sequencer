@@ -15,8 +15,7 @@ Gossip Projection::replace(Word count, Word content, Word start, std::int64_t en
                     std::make_move_iterator(additions.end()));
     } else
       output.push_back(Entry::insert(insert(count, content, start)));
-  } else if (tuple)
-    released.push_back({content, 0, 0});
+  }
   return output;
 }
 } // namespace sequencer

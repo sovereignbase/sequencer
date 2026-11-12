@@ -24,19 +24,19 @@ describe('runtime memory', () => {
     const right = new Projection<string>(2, snapshot)
     try {
       const estimate = runtime.memory()
-      // Four binding-table arrays, two outer tables and one shared four-slot Footage.
-      expect(estimate.javascriptBytes).toBe(160)
+      // Two binding tables, one outer table and one shared four-slot Footage.
+      expect(estimate.javascriptBytes).toBe(96)
       expect(estimate.wasmBytes).toBe(module.HEAPU32.buffer.byteLength)
-      expect(estimate.bytes).toBe(estimate.wasmBytes + 160)
+      expect(estimate.bytes).toBe(estimate.wasmBytes + 96)
       left.destroy()
-      expect(runtime.memory().javascriptBytes).toBe(120)
+      expect(runtime.memory().javascriptBytes).toBe(80)
       expect(right.values()).toEqual(['a', 'b', 'c', 'd'])
     } finally {
       left.destroy()
       right.destroy()
     }
     // Outer handle slots and the free list remain allocated after content release.
-    expect(runtime.memory().javascriptBytes).toBe(48)
+    expect(runtime.memory().javascriptBytes).toBe(32)
   })
 
   it('keeps application object contents outside the slot estimate', () => {
@@ -53,7 +53,35 @@ describe('runtime memory', () => {
     }
   })
 
+  it.each([false, true])(
+    'releases empty replacement bindings (tuple: %s)',
+    (tuple) => {
+      const projection = new Projection<string>(
+        5,
+        undefined,
+        tuple ? { enabled: 1, maxLength: 8 } : undefined
+      )
+      try {
+        projection.insert(['x'], 0)
+        projection.replace([])
+        const before = runtime.memory().javascriptBytes
+        for (let i = 0; i < 1000; ++i) projection.replace([])
+        expect(runtime.memory().javascriptBytes).toBe(before)
+        expect(projection.values()).toEqual(
+          tuple ? new Array(8).fill(undefined) : []
+        )
+      } finally {
+        projection.destroy()
+      }
+    }
+  )
+
   it('observes memory growth and retains native capacity after instance destruction', () => {
+    const survivors = Array.from({ length: 64 }, (_, index) => {
+      const state = new Projection<number>(index + 5)
+      state.insert(new Array<number>(index + 1).fill(index), 0)
+      return state
+    })
     const before = runtime.memory()
     const projection = new Projection<number>(
       4,
@@ -68,12 +96,18 @@ describe('runtime memory', () => {
     let grown: ReturnType<typeof runtime.memory>
     try {
       expect(projection.length()).toBe(16384)
+      // Existing handles remain readable after table relocation and memory growth.
+      for (let i = 0; i < survivors.length; ++i) {
+        expect(survivors[i].length()).toBe(i + 1)
+        expect(survivors[i].value(i)).toBe(i)
+      }
       grown = runtime.memory()
       expect(grown.wasmBytes).toBeGreaterThan(before.wasmBytes)
       expect(grown.wasmBytes).toBe(module.HEAPU32.buffer.byteLength)
       expect(grown.wasmBytes % 65536).toBe(0)
     } finally {
       projection.destroy()
+      for (const state of survivors) state.destroy()
     }
     const released = runtime.memory()
     expect(released.wasmBytes).toBe(grown.wasmBytes)

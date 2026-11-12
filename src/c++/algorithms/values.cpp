@@ -6,11 +6,6 @@
 #include <algorithm>
 
 namespace sequencer {
-std::vector<Span> Projection::values(Word start, Word end) {
-  std::vector<Span> output;
-  values(start, end, output);
-  return output;
-}
 void Projection::values(Word start, Word end, std::vector<Span> &output) {
   output.clear();
   if (tuple) {

@@ -19,7 +19,7 @@ Tuple::Slot &Tuple::slot(Word at) {
 }
 const Tuple::Slot *Tuple::find_slot(Word at) const {
   if (capacity != UINT32_MAX)
-    return at < capacity ? &slots[at] : nullptr;
+    return &slots[at];
   const auto page = page_index.get(at / page_size, 0);
   return page ? &pages[page - 1].slots[at % page_size] : nullptr;
 }
@@ -30,11 +30,11 @@ void Tuple::share(Word content, Word count) {
     bindings.push_back({});
     binding_index.set({0, 0, 0, content, 0, 0}, index);
   }
-  bindings[index - 1] = {count, count, false};
+  bindings[index - 1] = {count, count};
 }
 Index Tuple::winner(Word at) const {
   const auto *entry = find_slot(at);
-  return entry ? entry->winner : none;
+  return entry ? entry->winner : no_version;
 }
 bool Tuple::valid(const Coordinates &c, const ContainmentTable &containment) const {
   if (!c.session || c.start > UINT32_MAX - 2 || c.anchor_diff == UINT32_MAX ||
@@ -45,27 +45,28 @@ bool Tuple::valid(const Coordinates &c, const ContainmentTable &containment) con
   if (c.diff != -1 || !c.anchor_session)
     return false;
   const auto target = containment.get(c.anchor_session, c.anchor_start);
-  return !target || (versions[target].coordinates.diff == 1 &&
-                     versions[target].coordinates.anchor_diff == c.anchor_diff);
+  return !target || (versions[target - 1].coordinates.diff == 1 &&
+                     versions[target - 1].coordinates.anchor_diff == c.anchor_diff);
 }
 Index Tuple::add(Insertion insertion, bool shared) {
   const auto index = Word(versions.size());
-  versions.push_back(
-      {insertion.coordinates, insertion.content, insertion.content_start, 0, false, shared});
+  versions.push_back({insertion.coordinates, insertion.content, insertion.content_start, no_version,
+                      insertion.footage_state, false, shared});
   const auto &c = insertion.coordinates;
   if (c.diff > 0) {
     auto &entry = slot(c.anchor_diff);
     versions[index].next = entry.head;
     versions[index].active = true;
     entry.head = index;
-    if (!entry.winner ||
+    if (entry.winner == no_version ||
         identity(c.session, c.start) > identity(versions[entry.winner].coordinates.session,
                                                 versions[entry.winner].coordinates.start))
       entry.winner = index;
   }
-  return index;
+  return index + 1;
 }
-void Tuple::erase(Index target, std::vector<Span> &released, std::vector<Span> &copied) {
+void Tuple::erase(Index root, std::vector<Span> &released, std::vector<Span> &copied) {
+  const auto target = root - 1;
   auto &version = versions[target];
   if (!version.active)
     return;
@@ -78,7 +79,7 @@ void Tuple::erase(Index target, std::vector<Span> &released, std::vector<Span> &
   *link = version.next;
   if (entry.winner == target) {
     entry.winner = entry.head;
-    for (auto i = entry.head; i; i = versions[i].next) {
+    for (auto i = entry.head; i != no_version; i = versions[i].next) {
       const auto &a = versions[i].coordinates;
       const auto &b = versions[entry.winner].coordinates;
       if (identity(a.session, a.start) > identity(b.session, b.start))
@@ -99,6 +100,7 @@ void Tuple::erase(Index target, std::vector<Span> &released, std::vector<Span> &
     if (!binding.owned) {
       copied.push_back({token, 0, binding.extent});
       binding.owned = true;
+      binding.footage_state = FootageState::Private;
     }
     released.push_back({token, version.content_start, 1});
   }
@@ -108,13 +110,18 @@ std::vector<Word> Tuple::occupied(Word start, Word end) const {
   std::vector<Word> result;
   if (start > end)
     return result;
+  if (capacity != UINT32_MAX) {
+    if (start >= capacity)
+      return result;
+    end = std::min(end, capacity - 1);
+  }
   if (std::uint64_t(end) - start < page_size) {
     for (Word at = start; at <= end; ++at)
-      if (const auto *entry = find_slot(at); entry && entry->head)
+      if (const auto *entry = find_slot(at); entry && entry->head != no_version)
         result.push_back(at);
   } else if (capacity != UINT32_MAX) {
-    for (Word at = start; at < capacity && at <= end; ++at)
-      if (slots[at].head)
+    for (Word at = start; at <= end; ++at)
+      if (slots[at].head != no_version)
         result.push_back(at);
   } else {
     for (const auto &page : pages) {
@@ -123,7 +130,7 @@ std::vector<Word> Tuple::occupied(Word start, Word end) const {
         continue;
       for (Word offset = 0; offset < page_size; ++offset) {
         const auto at = base + offset;
-        if (at >= start && at <= end && page.slots[offset].head)
+        if (at >= start && at <= end && page.slots[offset].head != no_version)
           result.push_back(at);
       }
     }
@@ -132,7 +139,7 @@ std::vector<Word> Tuple::occupied(Word start, Word end) const {
 }
 Span Tuple::value(Word at) const {
   const auto index = winner(at);
-  if (!index)
+  if (index == no_version)
     return {0, 0, 1};
   const auto &insertion = versions[index];
   return {insertion.content, insertion.content_start, 1};

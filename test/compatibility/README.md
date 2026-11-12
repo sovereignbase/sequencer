@@ -2,7 +2,7 @@
 
 Run `npm run test:compatibility` to build the package and execute the same public-API suite in Node (ESM and CommonJS), Bun, Deno, Edge Runtime, workerd, Chromium, Firefox, and WebKit.
 
-The suite covers local editing, Footage identity, value types, ordered/shuffled/reverse delivery, duplicate apply/merge, concurrent insertion ordering, compaction, repeated JSON snapshot/hydration, and indexed traversal after hydration. Runtime adapters only load and execute this shared suite; expectations live in `.shared/suite.ts`.
+The suite covers local editing, Footage identity, value types, ordered/shuffled/reverse delivery, duplicate apply/merge, concurrent insertion ordering, compaction, large snapshot export, repeated JSON snapshot/hydration, and indexed traversal after hydration. Runtime adapters only load and execute this shared suite; expectations live in `.shared/suite.ts`.
 
 Every runtime also verifies the exported `SequencerError`, its code, message and
 `cause`, and the error raised after destruction. Node verifies class identity

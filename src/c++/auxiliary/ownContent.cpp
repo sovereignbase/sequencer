@@ -16,6 +16,7 @@ void Projection::own_content(Index fragment) {
   for (auto i = root; i; i = strips.fragment[i]) {
     strips.identity[i].content_start = 0;
     strips.identity[i].content_owned = true;
+    strips.identity[i].footage_state = FootageState::Private;
   }
 }
 } // namespace sequencer

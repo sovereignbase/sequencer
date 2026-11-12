@@ -28,3 +28,12 @@ export class SequencerError extends Error {
     this.name = 'SequencerError'
   }
 }
+
+/** Preserves library errors and identifies the public call for unexpected failures. */
+export function unknownError(cause: unknown, method: string): SequencerError {
+  return cause instanceof SequencerError
+    ? cause
+    : new SequencerError('UNKNOWN_ERROR', `Projection.${method}() failed.`, {
+        cause,
+      })
+}

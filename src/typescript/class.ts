@@ -1,7 +1,17 @@
 import type { Gossip, Result, Sequence, TupleParams } from './types/type.js'
-import { runtime } from './runtime/client.js'
+import {
+  apply,
+  call,
+  create,
+  destroy,
+  insert,
+  length,
+  sequence,
+  value,
+  values,
+} from './runtime/client.js'
 import { Operation } from './runtime/protocol.js'
-import { SequencerError } from './errors/class.js'
+import { SequencerError, unknownError } from './errors/class.js'
 
 /** Visible Projection of a replicated Sequence. */
 export class Projection<T> {
@@ -22,15 +32,9 @@ export class Projection<T> {
     tupleParams?: TupleParams
   ) {
     try {
-      this.id = runtime.create(this, actorID, trustedSequence, tupleParams)
+      this.id = create(this, actorID, trustedSequence, tupleParams)
     } catch (cause) {
-      throw cause instanceof SequencerError
-        ? cause
-        : new SequencerError(
-            'UNKNOWN_ERROR',
-            'Projection.constructor() failed.',
-            { cause }
-          )
+      throw unknownError(cause, 'constructor')
     }
   }
 
@@ -44,13 +48,9 @@ export class Projection<T> {
    */
   apply(gossip: unknown): Result<T> | undefined {
     try {
-      return runtime.apply(this.id, gossip)
+      return apply(this.id, gossip)
     } catch (cause) {
-      throw cause instanceof SequencerError
-        ? cause
-        : new SequencerError('UNKNOWN_ERROR', 'Projection.apply() failed.', {
-            cause,
-          })
+      throw unknownError(cause, 'apply')
     }
   }
 
@@ -64,13 +64,9 @@ export class Projection<T> {
    */
   insert(values: Array<T>, at: number): Gossip<T> {
     try {
-      return runtime.insert(this.id, values, at) as Gossip<T>
+      return insert(this.id, values, at) as Gossip<T>
     } catch (cause) {
-      throw cause instanceof SequencerError
-        ? cause
-        : new SequencerError('UNKNOWN_ERROR', 'Projection.insert() failed.', {
-            cause,
-          })
+      throw unknownError(cause, 'insert')
     }
   }
 
@@ -82,13 +78,9 @@ export class Projection<T> {
    */
   length(): number {
     try {
-      return runtime.length(this.id)
+      return length(this.id)
     } catch (cause) {
-      throw cause instanceof SequencerError
-        ? cause
-        : new SequencerError('UNKNOWN_ERROR', 'Projection.length() failed.', {
-            cause,
-          })
+      throw unknownError(cause, 'length')
     }
   }
 
@@ -102,13 +94,9 @@ export class Projection<T> {
    */
   merge(sequence: unknown): Result<T> | undefined {
     try {
-      return runtime.call(Operation.Merge, this.id, sequence)
+      return call(Operation.Merge, this.id, sequence)
     } catch (cause) {
-      throw cause instanceof SequencerError
-        ? cause
-        : new SequencerError('UNKNOWN_ERROR', 'Projection.merge() failed.', {
-            cause,
-          })
+      throw unknownError(cause, 'merge')
     }
   }
 
@@ -122,13 +110,9 @@ export class Projection<T> {
    */
   remove(startAt?: number, endWith?: number): Gossip<T> {
     try {
-      return runtime.call(Operation.Remove, this.id, startAt, endWith)
+      return call(Operation.Remove, this.id, startAt, endWith)
     } catch (cause) {
-      throw cause instanceof SequencerError
-        ? cause
-        : new SequencerError('UNKNOWN_ERROR', 'Projection.remove() failed.', {
-            cause,
-          })
+      throw unknownError(cause, 'remove')
     }
   }
 
@@ -143,19 +127,9 @@ export class Projection<T> {
    */
   replace(withValues: Array<T>, startAt?: number, endWith?: number): Gossip<T> {
     try {
-      return runtime.call(
-        Operation.Replace,
-        this.id,
-        withValues,
-        startAt,
-        endWith
-      )
+      return call(Operation.Replace, this.id, withValues, startAt, endWith)
     } catch (cause) {
-      throw cause instanceof SequencerError
-        ? cause
-        : new SequencerError('UNKNOWN_ERROR', 'Projection.replace() failed.', {
-            cause,
-          })
+      throw unknownError(cause, 'replace')
     }
   }
 
@@ -171,13 +145,9 @@ export class Projection<T> {
    */
   retire(actorID: number): void {
     try {
-      return runtime.call(Operation.Retire, this.id, actorID)
+      return call(Operation.Retire, this.id, actorID)
     } catch (cause) {
-      throw cause instanceof SequencerError
-        ? cause
-        : new SequencerError('UNKNOWN_ERROR', 'Projection.retire() failed.', {
-            cause,
-          })
+      throw unknownError(cause, 'retire')
     }
   }
 
@@ -198,13 +168,9 @@ export class Projection<T> {
     stringEncode?: StringEncoded
   ): Sequence<T, StringEncoded> {
     try {
-      return runtime.sequence(this.id, stringEncode)
+      return sequence(this.id, stringEncode)
     } catch (cause) {
-      throw cause instanceof SequencerError
-        ? cause
-        : new SequencerError('UNKNOWN_ERROR', 'Projection.sequence() failed.', {
-            cause,
-          })
+      throw unknownError(cause, 'sequence')
     }
   }
 
@@ -217,13 +183,9 @@ export class Projection<T> {
    */
   value(at: number): T | undefined {
     try {
-      return runtime.value(this.id, at)
+      return value(this.id, at)
     } catch (cause) {
-      throw cause instanceof SequencerError
-        ? cause
-        : new SequencerError('UNKNOWN_ERROR', 'Projection.value() failed.', {
-            cause,
-          })
+      throw unknownError(cause, 'value')
     }
   }
 
@@ -237,13 +199,9 @@ export class Projection<T> {
    */
   values(startAt?: number, endWith?: number): Array<T> {
     try {
-      return runtime.call(Operation.Values, this.id, startAt, endWith)
+      return values(this.id, startAt, endWith)
     } catch (cause) {
-      throw cause instanceof SequencerError
-        ? cause
-        : new SequencerError('UNKNOWN_ERROR', 'Projection.values() failed.', {
-            cause,
-          })
+      throw unknownError(cause, 'values')
     }
   }
 
@@ -251,14 +209,10 @@ export class Projection<T> {
   destroy(): void {
     try {
       if (this.id < 0) return
-      runtime.destroy(this, this.id)
+      destroy(this, this.id)
       this.id = -1
     } catch (cause) {
-      throw cause instanceof SequencerError
-        ? cause
-        : new SequencerError('UNKNOWN_ERROR', 'Projection.destroy() failed.', {
-            cause,
-          })
+      throw unknownError(cause, 'destroy')
     }
   }
 }

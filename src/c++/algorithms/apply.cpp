@@ -8,21 +8,6 @@
 #include <algorithm>
 
 namespace sequencer {
-Result Projection::apply(std::span<const Entry> gossip) {
-  Result result;
-  apply(gossip, result);
-  return result;
-}
-void Projection::apply(std::span<const Entry> gossip, Result &result) {
-  for (const auto &entry : gossip) {
-    // Acknowledgements affect compaction consensus, not visible or Structural Order.
-    if (entry.acknowledgement) {
-      frontier.observe(entry.frontier);
-      continue;
-    }
-    apply(entry.insertion, result);
-  }
-}
 void Projection::apply(const Insertion &entry, Result &result) {
   // The first operation needs no queued allocation; released dependencies share
   // this stack and are pushed in reverse to retain arrival order.
@@ -44,13 +29,12 @@ void Projection::apply(const Insertion &entry, Result &result) {
         released.push_back({insertion.content, 0, 0});
         insertion.content = 0;
       }
-      Acknowledgement a{actor, c.session, c.start - c.diff};
+      const std::array a{actor, c.session, c.start - c.diff};
       frontier.observe(a);
-      result.gossip.push_back(Entry::acknowledge(std::move(a)));
+      result.gossip.push_back(Entry::acknowledge(a));
     }
     const auto extension = !tuple && c.extension();
     const auto existing = extension ? none : containment.get(c.session, c.start);
-    const auto origin = c.birth() ? none : containment.get(c.anchor_session, c.anchor_start);
     // A snapshot may carry a longer known positive root. Suffix Gossip instead
     // continues its parent's logical time without a new zero reservation.
     const auto growing = !tuple && existing && c.diff > 0 &&
@@ -62,6 +46,9 @@ void Projection::apply(const Insertion &entry, Result &result) {
         released.push_back({insertion.content, 0, 0});
       continue;
     }
+    const auto origin = c.birth() || (tuple && c.diff > 0)
+                            ? none
+                            : containment.get(c.anchor_session, c.anchor_start);
     if (tuple) {
       const auto before = tuple->winner(c.anchor_diff);
       const auto incoming = tuple->add(insertion);

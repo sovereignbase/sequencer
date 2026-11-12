@@ -273,6 +273,27 @@ export function runSuite(
       },
     ],
     [
+      'large snapshot Footage and hydration',
+      () => {
+        const source = new Constructor<number>(1)
+        let restored: Projection<number> | undefined
+        const count = 17_000
+        const expected = Array.from(
+          { length: count },
+          (_, index) => count - index - 1
+        )
+        try {
+          for (let value = 0; value < count; ++value) source.insert([value], 0)
+          restored = new Constructor<number>(2, snapshot(source))
+          check(source, expected)
+          check(restored, expected)
+        } finally {
+          source.destroy()
+          restored?.destroy()
+        }
+      },
+    ],
+    [
       'indexed reads across hydrated jumps',
       () => {
         const source = new Constructor<number>(1)

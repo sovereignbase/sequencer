@@ -8,7 +8,7 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=f6a572b4" />
-    <script src="_static/documentation_options.js?v=c5e1e573"></script>
+    <script src="_static/documentation_options.js?v=4d3ded8b"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="#" />
@@ -90,7 +90,7 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="index.html#_CPPv414runtime_createNSt8uint32_tENSt8uint32_tE">runtime_create (C++ function)</a>
+      <li><a href="index.html#_CPPv414runtime_createNSt8uint32_tENSt8uint32_tEbNSt8uint32_tE">runtime_create (C++ function)</a>
 </li>
       <li><a href="index.html#_CPPv415runtime_destroyNSt8uint32_tE">runtime_destroy (C++ function)</a>
 </li>
@@ -108,6 +108,8 @@
 </li>
       <li><a href="index.html#_CPPv413runtime_valueNSt8uint32_tENSt8uint32_tE">runtime_value (C++ function)</a>
 </li>
+      <li><a href="index.html#_CPPv414runtime_valuesNSt8uint32_tENSt8uint32_tENSt8uint32_tE">runtime_values (C++ function)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -121,6 +123,8 @@
       <li><a href="index.html#_CPPv4N9sequencer15AcknowledgementE">sequencer::Acknowledgement (C++ type)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer15anchors_overlapERK11CoordinatesRK11Coordinates">sequencer::anchors_overlap (C++ function)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer8appendedE">sequencer::appended (C++ member)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer21competition_is_largerERK11CoordinatesRK11Coordinates">sequencer::competition_is_larger (C++ function)</a>
 </li>
@@ -184,17 +188,29 @@
 </li>
       <li><a href="index.html#_CPPv4N9sequencer11Coordinates5startE">sequencer::Coordinates::start (C++ member)</a>
 </li>
+      <li><a href="index.html#_CPPv4N9sequencer6copiedE">sequencer::copied (C++ member)</a>
+</li>
       <li><a href="index.html#_CPPv4N9sequencer5EntryE">sequencer::Entry (C++ struct)</a>
 </li>
-      <li><a href="index.html#_CPPv4N9sequencer5Entry11acknowledgeE15Acknowledgement">sequencer::Entry::acknowledge (C++ function)</a>
+      <li><a href="index.html#_CPPv4N9sequencer5Entry11acknowledgeENSt5arrayI4WordXL3EEEE4Word">sequencer::Entry::acknowledge (C++ function)</a>
 </li>
-      <li><a href="index.html#_CPPv4N9sequencer5Entry15acknowledgementE">sequencer::Entry::acknowledgement (C++ member)</a>
+      <li><a href="index.html#_CPPv4N9sequencer5Entry21acknowledgement_countE">sequencer::Entry::acknowledgement_count (C++ member)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer5Entry8frontierE">sequencer::Entry::frontier (C++ member)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer5Entry6insertE9Insertion">sequencer::Entry::insert (C++ function)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer5Entry9insertionE">sequencer::Entry::insertion (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer12FootageStateE">sequencer::FootageState (C++ enum)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer12FootageState6CallerE">sequencer::FootageState::Caller (C++ enumerator)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer12FootageState7PrivateE">sequencer::FootageState::Private (C++ enumerator)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer12FootageState8RetainedE">sequencer::FootageState::Retained (C++ enumerator)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer12FootageState8SnapshotE">sequencer::FootageState::Snapshot (C++ enumerator)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer13FrontierTableE">sequencer::FrontierTable (C++ class)</a>
 </li>
@@ -206,7 +222,7 @@
 </li>
       <li><a href="index.html#_CPPv4N9sequencer13FrontierTable10membershipE">sequencer::FrontierTable::membership (C++ member)</a>
 </li>
-      <li><a href="index.html#_CPPv4N9sequencer13FrontierTable7observeERK15Acknowledgement">sequencer::FrontierTable::observe (C++ function)</a>
+      <li><a href="index.html#_CPPv4N9sequencer13FrontierTable7observeENSt4spanIK4WordEE">sequencer::FrontierTable::observe (C++ function)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer13FrontierTable6retireE4Word">sequencer::FrontierTable::retire (C++ function)</a>
 </li>
@@ -238,6 +254,12 @@
 </li>
       <li><a href="index.html#_CPPv4N9sequencer9Insertion11coordinatesE">sequencer::Insertion::coordinates (C++ member)</a>
 </li>
+      <li><a href="index.html#_CPPv4N9sequencer9Insertion13footage_stateE">sequencer::Insertion::footage_state (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer9Insertion10fragmentedE">sequencer::Insertion::fragmented (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer9Insertion6offsetE">sequencer::Insertion::offset (C++ member)</a>
+</li>
       <li><a href="index.html#_CPPv4N9sequencer10link_jumpsER10Projection5Index5Index4Word4Word">sequencer::link_jumps (C++ function)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer9magnitudeENSt7int32_tE">sequencer::magnitude (C++ function)</a>
@@ -262,13 +284,9 @@
 </li>
       <li><a href="index.html#_CPPv4N9sequencer10Projection12anchor_stripE5Index5Index4Wordb">sequencer::Projection::anchor_strip (C++ function)</a>
 </li>
-      <li><a href="index.html#_CPPv4N9sequencer10Projection8appendedE">sequencer::Projection::appended (C++ member)</a>
-</li>
-      <li><a href="index.html#_CPPv4N9sequencer10Projection5applyENSt4spanIK5EntryEE">sequencer::Projection::apply (C++ function)</a>, <a href="index.html#_CPPv4N9sequencer10Projection5applyENSt4spanIK5EntryEER6Result">[1]</a>
+      <li><a href="index.html#_CPPv4N9sequencer10Projection5applyERK9InsertionR6Result">sequencer::Projection::apply (C++ function)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer10Projection11containmentE">sequencer::Projection::containment (C++ member)</a>
-</li>
-      <li><a href="index.html#_CPPv4N9sequencer10Projection6copiedE">sequencer::Projection::copied (C++ member)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer10Projection14decrease_clockE">sequencer::Projection::decrease_clock (C++ member)</a>
 </li>
@@ -276,8 +294,6 @@
 </li>
       <li><a href="index.html#_CPPv4N9sequencer10Projection24find_containing_fragmentE5IndexRK11Coordinates5Index">sequencer::Projection::find_containing_fragment (C++ function)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="index.html#_CPPv4N9sequencer10Projection10find_frameE4Wordb">sequencer::Projection::find_frame (C++ function)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer10Projection11frame_countE">sequencer::Projection::frame_count (C++ member)</a>
@@ -290,11 +306,13 @@
 </li>
       <li><a href="index.html#_CPPv4N9sequencer10Projection4headE">sequencer::Projection::head (C++ member)</a>
 </li>
-      <li><a href="index.html#_CPPv4N9sequencer10Projection7hydrateERK6GossipRKNSt6vectorI15AcknowledgementEE">sequencer::Projection::hydrate (C++ function)</a>
+      <li><a href="index.html#_CPPv4N9sequencer10Projection7hydrateENSt4spanIK9InsertionEERKNSt6vectorI15AcknowledgementEE">sequencer::Projection::hydrate (C++ function)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer10Projection14increase_clockE">sequencer::Projection::increase_clock (C++ member)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer10Projection6insertE4Word4Word4Word">sequencer::Projection::insert (C++ function)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer10Projection12insert_batchE4Word4Word4Word">sequencer::Projection::insert_batch (C++ function)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer10Projection12insert_firstE5Index">sequencer::Projection::insert_first (C++ function)</a>
 </li>
@@ -302,11 +320,11 @@
 </li>
       <li><a href="index.html#_CPPv4N9sequencer10Projection11last_insertE">sequencer::Projection::last_insert (C++ member)</a>
 </li>
-      <li><a href="index.html#_CPPv4N9sequencer10Projection18left_jump_to_patchE">sequencer::Projection::left_jump_to_patch (C++ member)</a>
-</li>
       <li><a href="index.html#_CPPv4NK9sequencer10Projection6lengthEv">sequencer::Projection::length (C++ function)</a>
 </li>
-      <li><a href="index.html#_CPPv4N9sequencer10Projection5mergeERK6GossipRKNSt6vectorI15AcknowledgementEE">sequencer::Projection::merge (C++ function)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="index.html#_CPPv4N9sequencer10Projection5mergeENSt4spanIK9InsertionEERKNSt6vectorI15AcknowledgementEE">sequencer::Projection::merge (C++ function)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer10Projection11own_contentE5Index">sequencer::Projection::own_content (C++ function)</a>
 </li>
@@ -316,15 +334,11 @@
 </li>
       <li><a href="index.html#_CPPv4N9sequencer10Projection11position_ofE5IndexNSt7int32_tEb">sequencer::Projection::position_of (C++ function)</a>
 </li>
-      <li><a href="index.html#_CPPv4N9sequencer10Projection10ProjectionE4Word4Word4Word">sequencer::Projection::Projection (C++ function)</a>
-</li>
-      <li><a href="index.html#_CPPv4N9sequencer10Projection8releasedE">sequencer::Projection::released (C++ member)</a>
+      <li><a href="index.html#_CPPv4N9sequencer10Projection10ProjectionE4Word4Word4Wordb4Word">sequencer::Projection::Projection (C++ function)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer10Projection6removeE4WordNSt7int64_tE">sequencer::Projection::remove (C++ function)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer10Projection7replaceE4Word4Word4WordNSt7int64_tE">sequencer::Projection::replace (C++ function)</a>
-</li>
-      <li><a href="index.html#_CPPv4N9sequencer10Projection19right_jump_to_patchE">sequencer::Projection::right_jump_to_patch (C++ member)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer10Projection13select_anchorE4Word">sequencer::Projection::select_anchor (C++ function)</a>
 </li>
@@ -344,7 +358,11 @@
 </li>
       <li><a href="index.html#_CPPv4N9sequencer10Projection17traversal_spacingEv">sequencer::Projection::traversal_spacing (C++ function)</a>
 </li>
-      <li><a href="index.html#_CPPv4N9sequencer10Projection6valuesE4Word4Word">sequencer::Projection::values (C++ function)</a>, <a href="index.html#_CPPv4N9sequencer10Projection6valuesE4Word4WordRNSt6vectorI4SpanEE">[1]</a>
+      <li><a href="index.html#_CPPv4N9sequencer10Projection5tupleE">sequencer::Projection::tuple (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer10Projection6valuesE4Word4WordRNSt6vectorI4SpanEE">sequencer::Projection::values (C++ function)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer8releasedE">sequencer::released (C++ member)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer6ResultE">sequencer::Result (C++ struct)</a>
 </li>
@@ -410,8 +428,6 @@
 </li>
       <li><a href="index.html#_CPPv4N9sequencer6Strips14fragment_startE">sequencer::Strips::fragment_start (C++ member)</a>
 </li>
-      <li><a href="index.html#_CPPv4N9sequencer6Strips10fragmentedE">sequencer::Strips::fragmented (C++ member)</a>
-</li>
       <li><a href="index.html#_CPPv4N9sequencer6Strips8identityE">sequencer::Strips::identity (C++ member)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer6Strips4leftE">sequencer::Strips::left (C++ member)</a>
@@ -424,8 +440,6 @@
 </li>
       <li><a href="index.html#_CPPv4N9sequencer6Strips6memoryE">sequencer::Strips::memory (C++ member)</a>
 </li>
-      <li><a href="index.html#_CPPv4N9sequencer6Strips6offsetE">sequencer::Strips::offset (C++ member)</a>
-</li>
       <li><a href="index.html#_CPPv4N9sequencer6Strips7reserveE4Word">sequencer::Strips::reserve (C++ function)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer6Strips5rightE">sequencer::Strips::right (C++ member)</a>
@@ -436,7 +450,83 @@
 </li>
       <li><a href="index.html#_CPPv4N9sequencer6Strips17right_jump_stripsE">sequencer::Strips::right_jump_strips (C++ member)</a>
 </li>
-      <li><a href="index.html#_CPPv4N9sequencer6Strips6StripsEv">sequencer::Strips::Strips (C++ function)</a>
+      <li><a href="index.html#_CPPv4N9sequencer5TupleE">sequencer::Tuple (C++ class)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple3addE9Insertionb">sequencer::Tuple::add (C++ function)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple7BindingE">sequencer::Tuple::Binding (C++ struct)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple7Binding6extentE">sequencer::Tuple::Binding::extent (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple7Binding13footage_stateE">sequencer::Tuple::Binding::footage_state (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple7Binding5ownedE">sequencer::Tuple::Binding::owned (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple7Binding10referencesE">sequencer::Tuple::Binding::references (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple13binding_indexE">sequencer::Tuple::binding_index (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple8bindingsE">sequencer::Tuple::bindings (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple8capacityE">sequencer::Tuple::capacity (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple5eraseE5IndexRNSt6vectorI4SpanEERNSt6vectorI4SpanEE">sequencer::Tuple::erase (C++ function)</a>
+</li>
+      <li><a href="index.html#_CPPv4NK9sequencer5Tuple9find_slotE4Word">sequencer::Tuple::find_slot (C++ function)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple10no_versionE">sequencer::Tuple::no_version (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4NK9sequencer5Tuple8occupiedE4Word4Word">sequencer::Tuple::occupied (C++ function)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple4PageE">sequencer::Tuple::Page (C++ struct)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple4Page6numberE">sequencer::Tuple::Page::number (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple4Page5slotsE">sequencer::Tuple::Page::slots (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple10page_indexE">sequencer::Tuple::page_index (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple9page_sizeE">sequencer::Tuple::page_size (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple5pagesE">sequencer::Tuple::pages (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple5shareE4Word4Word">sequencer::Tuple::share (C++ function)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple4slotE4Word">sequencer::Tuple::slot (C++ function)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple4SlotE">sequencer::Tuple::Slot (C++ struct)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple4Slot4headE">sequencer::Tuple::Slot::head (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple4Slot6winnerE">sequencer::Tuple::Slot::winner (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple5slotsE">sequencer::Tuple::slots (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple5TupleE4Word">sequencer::Tuple::Tuple (C++ function)</a>
+</li>
+      <li><a href="index.html#_CPPv4NK9sequencer5Tuple5validERK11CoordinatesRK16ContainmentTable">sequencer::Tuple::valid (C++ function)</a>
+</li>
+      <li><a href="index.html#_CPPv4NK9sequencer5Tuple5valueE4Word">sequencer::Tuple::value (C++ function)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple7VersionE">sequencer::Tuple::Version (C++ struct)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple7Version6activeE">sequencer::Tuple::Version::active (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple7Version7contentE">sequencer::Tuple::Version::content (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple7Version13content_startE">sequencer::Tuple::Version::content_start (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple7Version11coordinatesE">sequencer::Tuple::Version::coordinates (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple7Version13footage_stateE">sequencer::Tuple::Version::footage_state (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple7Version4nextE">sequencer::Tuple::Version::next (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple7Version6sharedE">sequencer::Tuple::Version::shared (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4N9sequencer5Tuple8versionsE">sequencer::Tuple::versions (C++ member)</a>
+</li>
+      <li><a href="index.html#_CPPv4NK9sequencer5Tuple6winnerE4Word">sequencer::Tuple::winner (C++ function)</a>
 </li>
       <li><a href="index.html#_CPPv4N9sequencer4WordE">sequencer::Word (C++ type)</a>
 </li>

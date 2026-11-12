@@ -10,6 +10,7 @@ interface WasmModule {
   _runtime_length(_0: number): number;
   _runtime_insert(_0: number, _1: number, _2: number, _3: number): number;
   _runtime_value(_0: number, _1: number): number;
+  _runtime_values(_0: number, _1: number, _2: number): number;
 }
 
 export type MainModule = WasmModule & typeof RuntimeExports;

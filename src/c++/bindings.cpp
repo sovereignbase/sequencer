@@ -28,7 +28,9 @@ std::span<const Word> input;
 
 // One retained input buffer and Output serve non-reentrant synchronous calls.
 // Every returned pointer is borrowed until the next operation mutates its storage.
-std::vector<Word> input_buffer;
+// The caller overwrites the next input; growth need not retain or initialize old words.
+std::unique_ptr<Word[]> input_buffer;
+Word input_capacity{};
 Word address(const void *pointer) { return Word(reinterpret_cast<std::uintptr_t>(pointer)); }
 // Output descriptors carry byte pointers; input descriptors carry buffer-relative word offsets.
 struct EntryView {
@@ -52,8 +54,8 @@ struct Output {
   void expose(const Gossip &source, bool tuple = false) {
     gossip.clear();
     for (const auto &e : source)
-      gossip.push_back(e.acknowledgement
-                           ? EntryView{1, address(e.frontier.data()), Word(e.frontier.size()), 0}
+      gossip.push_back(e.acknowledgement_count
+                           ? EntryView{1, address(e.frontier.data()), e.acknowledgement_count, 0}
                            : EntryView{tuple ? 2u : 0u, address(&e.insertion.coordinates),
                                        tuple ? e.insertion.content_start : 6u,
                                        e.insertion.content});
@@ -164,12 +166,14 @@ struct Reader {
       if (!c.diff || c.diff == std::numeric_limits<std::int32_t>::min())
         return invalid();
       register_sessions(c);
-      return {{c, content}, {}};
+      Insertion insertion{c, content};
+      insertion.footage_state = FootageState::Retained;
+      return {insertion, {}};
     } else
       return invalid();
   }
-  std::pair<Gossip, std::vector<Acknowledgement>> sequence(Word content) {
-    Gossip insertions;
+  std::pair<std::vector<Insertion>, std::vector<Acknowledgement>> sequence(Word content) {
+    std::vector<Insertion> insertions;
     std::vector<Acknowledgement> frontiers;
     if (input.empty())
       return {std::move(insertions), std::move(frontiers)};
@@ -246,7 +250,8 @@ struct Reader {
         return {};
       }
       register_sessions(c);
-      insertions.push_back(Entry::insert({c, c.diff > 0 ? content + bindings++ : 0, offset}));
+      insertions.push_back({c, c.diff > 0 ? content + bindings++ : 0, offset});
+      insertions.back().footage_state = FootageState::Retained;
       if (c.diff > 0)
         offset += Word(c.diff);
       previous = c;
@@ -278,9 +283,12 @@ EMSCRIPTEN_KEEPALIVE void runtime_seed(std::uint32_t seed) {
  */
 EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_reserve(std::uint32_t count) {
   using namespace sequencer;
-  if (input_buffer.size() < count)
-    input_buffer.resize(count);
-  return input_buffer.data();
+  if (input_capacity < count) {
+    const auto capacity = std::max(count, input_capacity * 2);
+    input_buffer = std::make_unique_for_overwrite<Word[]>(capacity);
+    input_capacity = capacity;
+  }
+  return input_buffer.get();
 }
 /** Allocates independent native history in the shared module.
  * @param id JavaScript-assigned Projection handle.
@@ -318,7 +326,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
                  std::uint32_t arg2, const std::uint32_t *pointer, std::uint32_t count) {
   using namespace sequencer;
   input = {pointer, count};
-  // Result kinds: 0 rejected, 1 scalar, 2 Gossip, 3 spans, 4 Result,
+  // Result kinds: 0 rejected, 2 Gossip, 4 Result,
   // 5 Sequence, 6 void, 7 local operation error.
   out.header = {6, 0, 0, 0, 0, 0, 0};
   if (operation == 11) {
@@ -364,7 +372,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
       out.header[11] = r.bindings;
       // Hydrated identities must not collide with freshly selected authoring clocks.
       for (const auto &e : g) {
-        const auto c = e.insertion.coordinates;
+        const auto c = e.coordinates;
         for (auto *clock : {&p.increase_clock, &p.decrease_clock})
           if ((*clock)[0] == c.session || (*clock)[0] == c.anchor_session)
             (*clock)[0] = next_session();
@@ -408,7 +416,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
       }
       if (p.tuple) {
         for (const auto &entry : g)
-          if (!p.tuple->valid(entry.insertion.coordinates, p.containment))
+          if (!p.tuple->valid(entry.coordinates, p.containment))
             r.valid = false;
         if (!r.valid) {
           kind = 0;
@@ -442,11 +450,6 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
       out.sequence = p.sequence();
       kind = 5;
       break;
-    case 10:
-      p.values(arg0 == UINT32_MAX ? 0 : arg0, arg1 == UINT32_MAX ? p.length() - 1 : arg1,
-               out.values);
-      kind = 3;
-      break;
     default:
       kind = 7;
       out.header[3] = 2;
@@ -469,10 +472,6 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     out.header[3] = address(out.gossip.data());
     out.header[4] = Word(out.gossip.size());
     break;
-  case 3:
-    out.header[3] = address(out.values.data());
-    out.header[4] = Word(out.values.size());
-    break;
   case 4:
     out.splices.clear();
     for (const auto &s : out.result.changes)
@@ -485,15 +484,30 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
     out.header[6] = Word(out.gossip.size());
     break;
   case 5:
-    // Sharing one full root is safe only if every live fragment loses write ownership.
     if (out.sequence.footage.size() == 1 && out.sequence.shared_root) {
       const auto root = out.sequence.shared_root;
-      const auto &source = p.strips.identity[root];
       const auto span = out.sequence.footage[0];
-      if (span.content == source.content && span.start == source.content_start &&
-          span.count == Word(source.coordinates.diff))
-        for (auto i = root; i; i = p.strips.fragment[i])
-          p.strips.identity[i].content_owned = false;
+      if (p.tuple) {
+        auto &version = p.tuple->versions[root - 1];
+        if (version.content) {
+          if (version.shared) {
+            auto &binding = p.tuple->bindings[p.tuple->binding_index.get(version.content, 0) - 1];
+            binding.owned = false;
+            out.header[11] = address(&binding.footage_state);
+          } else
+            out.header[11] = address(&version.footage_state);
+        }
+      } else {
+        auto &source = p.strips.identity[root];
+        if (span.content == source.content) {
+          out.header[11] = address(&source.footage_state);
+          // JS may expose a full array only at offset zero. Revoke write ownership
+          // before it marks the binding shared, including compacted root spans.
+          if (!span.start)
+            for (auto i = root; i; i = p.strips.fragment[i])
+              p.strips.identity[i].content_owned = false;
+        }
+      }
     }
     out.header[3] = address(out.sequence.words.data());
     out.header[4] = Word(out.sequence.words.size());
@@ -565,5 +579,24 @@ EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_value(std::uint32_t id, std::u
   static std::array<Word, 2> value;
   value = {p.strips.identity[p.gate].content, p.strips.identity[p.gate].content_start + frame};
   return value.data();
+}
+/** Resolves a visible range without mutation output or input descriptors.
+ * @param id Live Projection handle.
+ * @param start First included position.
+ * @param end Last included position, or UINT32_MAX for the visible end.
+ * @return Borrowed [span pointer, span count], or nullptr on native failure.
+ */
+EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_values(std::uint32_t id, std::uint32_t start,
+                                                         std::uint32_t end) {
+  using namespace sequencer;
+  auto &p = *projections[id];
+  try {
+    p.values(start == UINT32_MAX ? 0 : start, end == UINT32_MAX ? p.length() - 1 : end, out.values);
+    static std::array<Word, 2> values;
+    values = {address(out.values.data()), Word(out.values.size())};
+    return values.data();
+  } catch (...) {
+    return nullptr;
+  }
 }
 }

@@ -3,7 +3,7 @@ import { expect, it, vi } from 'vitest'
 import { Projection, SequencerError } from '../../../src/typescript/class.ts'
 import module from '../../../src/typescript/wasm/index.ts'
 
-/** Faults enter at native exports, after valid public arguments reach the runtime. */
+/** Faults enter at the native call used by a valid public operation. */
 const operations = [
   ['constructor', '_runtime_dispatch', () => new Projection<string>(2)],
   ['apply', '_runtime_dispatch', (p: Projection<string>) => p.apply([])],
@@ -19,7 +19,7 @@ const operations = [
   ['retire', '_runtime_dispatch', (p: Projection<string>) => p.retire(2)],
   ['sequence', '_runtime_dispatch', (p: Projection<string>) => p.sequence()],
   ['value', '_runtime_value', (p: Projection<string>) => p.value(0)],
-  ['values', '_runtime_dispatch', (p: Projection<string>) => p.values()],
+  ['values', '_runtime_values', (p: Projection<string>) => p.values()],
   ['destroy', '_runtime_dispatch', (p: Projection<string>) => p.destroy()],
 ] as const
 
@@ -110,6 +110,47 @@ it.each([undefined, null, 'failure'])(
     }
   }
 )
+
+it('reports a native range-resolution failure', () => {
+  const projection = new Projection<string>(1)
+  const fault = vi.spyOn(module, '_runtime_values').mockReturnValueOnce(0)
+  try {
+    expect(() => projection.values()).toThrowError(
+      expect.objectContaining({
+        code: 'NATIVE_OPERATION_FAILED',
+        message:
+          '{@sovereignbase/sequencer} Projection.values() failed in the native runtime.',
+      })
+    )
+  } finally {
+    fault.mockRestore()
+    projection.destroy()
+  }
+})
+
+it('retries failed snapshot copying and preserves the exported Footage during replay', () => {
+  const projection = new Projection<string>(1)
+  const footage = ['a', 'b']
+  const cause = new RangeError('Snapshot copy failed')
+  projection.apply([[[0, 0, 0, 100, 0, 2], footage]])
+  const fault = vi.spyOn(footage, 'slice').mockImplementationOnce(() => {
+    throw cause
+  })
+  try {
+    expect(() => projection.sequence()).toThrowError(
+      expect.objectContaining({ code: 'UNKNOWN_ERROR', cause })
+    )
+    fault.mockRestore()
+    const snapshot = projection.sequence()
+    projection.apply([[[100, 0, 2, 100, 2, 1], ['c']]])
+    expect(projection.values()).toEqual(['a', 'b', 'c'])
+    expect(snapshot[1]).toEqual(['a', 'b'])
+    expect(footage).toEqual(['a', 'b'])
+  } finally {
+    fault.mockRestore()
+    projection.destroy()
+  }
+})
 
 it('identifies a JavaScript input-access failure without changing the Projection', () => {
   const projection = new Projection<string>(1)

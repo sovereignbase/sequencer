@@ -15,8 +15,8 @@ Gossip Projection::remove(Word start, std::int64_t end) {
   if (tuple && end >= start) {
     for (const auto at : tuple->occupied(start, Word(end))) {
       auto index = tuple->slot(at).head;
-      tuple->slot(at).winner = none;
-      while (index) {
+      tuple->slot(at).winner = Tuple::no_version;
+      while (index != Tuple::no_version) {
         const auto next = tuple->versions[index].next;
         const auto target = tuple->versions[index].coordinates;
         Insertion mask{
@@ -24,7 +24,7 @@ Gossip Projection::remove(Word start, std::int64_t end) {
         decrease_clock[1] += 2;
         const auto incoming = tuple->add(mask);
         containment.set(mask.coordinates, incoming);
-        tuple->erase(index, released, copied);
+        tuple->erase(index + 1, released, copied);
         output.push_back(Entry::insert(mask));
         index = next;
       }
@@ -54,11 +54,10 @@ Gossip Projection::remove(Word start, std::int64_t end) {
     remaining -= count;
   }
   // The reported frontier is the mask endpoint, excluding the next reserved zero.
-  Acknowledgement a{actor, decrease_clock[0], decrease_clock[1] - 1};
-  if (tuple && !decrease_clock[1])
-    a.resize(1);
-  frontier.observe(a);
-  output.push_back(Entry::acknowledge(std::move(a)));
+  const std::array a{actor, decrease_clock[0], decrease_clock[1] - 1};
+  const Word count = tuple && !decrease_clock[1] ? 1 : 3;
+  frontier.observe(std::span(a).first(count));
+  output.push_back(Entry::acknowledge(a, count));
   return output;
 }
 } // namespace sequencer

@@ -12,7 +12,7 @@ Gossip Projection::insert_batch(Word count, Word content, Word at) {
   Gossip output;
   output.reserve(count);
   // Reserve the same geometric capacity once instead of copying intermediate pools.
-  auto capacity = tuple->versions.capacity();
+  auto capacity = std::max(std::size_t(1), tuple->versions.capacity());
   while (capacity < tuple->versions.size() + count)
     capacity *= 2;
   tuple->versions.reserve(capacity);

@@ -9,7 +9,7 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=f6a572b4" />
-    <script src="_static/documentation_options.js?v=c5e1e573"></script>
+    <script src="_static/documentation_options.js?v=4d3ded8b"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -91,7 +91,7 @@ for unregistered offline history.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">class.hpp</span></code> defines Projection state and operations.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">algorithms/</span></code> implements editing, replication, reads and snapshot export.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">auxiliary/</span></code> implements anchor resolution, fragmentation and traversal.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">components/</span></code> contains the containment, pending and frontier tables.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">components/</span></code> contains containment, pending and frontier tables, and stable-index tuple storage.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">types/type.hpp</span></code> defines coordinates, Strips, spans and results.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">bindings.cpp</span></code> exposes numeric inputs and borrowed output views to TypeScript.</p></li>
 </ul>
@@ -237,7 +237,7 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer13ContentAppend2atE">
 <span id="_CPPv3N9sequencer13ContentAppend2atE"></span><span id="_CPPv2N9sequencer13ContentAppend2atE"></span><span id="sequencer::ContentAppend::at__Word"></span><span class="target" id="structsequencer_1_1ContentAppend_1adfc195d93a8d065ed809df9229e9e881"></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">at</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer13ContentAppend2atE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Original target Frame length before extension. </p>
+<dd><p>Original positive extent; the high bit requests a private Footage copy. </p>
 </dd></dl>
 
 <dl class="cpp var">
@@ -354,33 +354,36 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Entry15acknowledgementE">
-<span id="_CPPv3N9sequencer5Entry15acknowledgementE"></span><span id="_CPPv2N9sequencer5Entry15acknowledgementE"></span><span id="sequencer::Entry::acknowledgement__b"></span><span class="target" id="structsequencer_1_1Entry_1adf26cbbd4ccef396f2d8a31eab944445"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">acknowledgement</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Entry15acknowledgementE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Selects the frontier payload instead of an <a class="reference internal" href="#structsequencer_1_1Insertion"><span class="std std-ref">Insertion</span></a>. </p>
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Entry21acknowledgement_countE">
+<span id="_CPPv3N9sequencer5Entry21acknowledgement_countE"></span><span id="_CPPv2N9sequencer5Entry21acknowledgement_countE"></span><span id="sequencer::Entry::acknowledgement_count__Word"></span><span class="target" id="structsequencer_1_1Entry_1ab017de12bd709a7d75734f8e2c1828f8"></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">acknowledgement_count</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Entry21acknowledgement_countE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Zero selects <a class="reference internal" href="#structsequencer_1_1Insertion"><span class="std std-ref">Insertion</span></a>; one or three selects the reported frontier words. </p>
 </dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Entry8frontierE">
-<span id="_CPPv3N9sequencer5Entry8frontierE"></span><span id="_CPPv2N9sequencer5Entry8frontierE"></span><span id="sequencer::Entry::frontier__Acknowledgement"></span><span class="target" id="structsequencer_1_1Entry_1adf761ecb7803c34cd5245ffb6b60167e"></span><a class="reference internal" href="#_CPPv4N9sequencer15AcknowledgementE" title="sequencer::Acknowledgement"><span class="n"><span class="pre">Acknowledgement</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">frontier</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Entry8frontierE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Actor Acknowledgement when acknowledgement is true. </p>
+<span id="_CPPv3N9sequencer5Entry8frontierE"></span><span id="_CPPv2N9sequencer5Entry8frontierE"></span><span id="sequencer::Entry::frontier__std::array:Word.3:"></span><span class="target" id="structsequencer_1_1Entry_1ab87646410b4e82c6c46c4f20ec12e9f3"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">frontier</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Entry8frontierE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Locally reported Actor, removal Session and frontier. </p>
 </dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Entry9insertionE">
 <span id="_CPPv3N9sequencer5Entry9insertionE"></span><span id="_CPPv2N9sequencer5Entry9insertionE"></span><span id="sequencer::Entry::insertion__Insertion"></span><span class="target" id="structsequencer_1_1Entry_1aa3c03e42b9061511d32154d0d81fb3f1"></span><a class="reference internal" href="#_CPPv4N9sequencer9InsertionE" title="sequencer::Insertion"><span class="n"><span class="pre">Insertion</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">insertion</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Entry9insertionE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Canonical operation when acknowledgement is false. </p>
+<dd><p>Canonical operation when acknowledgement_count is zero. </p>
 </dd></dl>
 
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Entry11acknowledgeE15Acknowledgement">
-<span id="_CPPv3N9sequencer5Entry11acknowledgeE15Acknowledgement"></span><span id="_CPPv2N9sequencer5Entry11acknowledgeE15Acknowledgement"></span><span id="sequencer::Entry::acknowledge__Acknowledgement"></span><span class="target" id="structsequencer_1_1Entry_1a5ad130c6619a538e1ccd6fbaab99a235"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer5EntryE" title="sequencer::Entry"><span class="n"><span class="pre">Entry</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">acknowledge</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer15AcknowledgementE" title="sequencer::Acknowledgement"><span class="n"><span class="pre">Acknowledgement</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">a</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer5Entry11acknowledgeE15Acknowledgement" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Creates a Acknowledgement entry, retaining its numeric storage. </p>
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Entry11acknowledgeENSt5arrayI4WordXL3EEEE4Word">
+<span id="_CPPv3N9sequencer5Entry11acknowledgeENSt5arrayI4WordXL3EEEE4Word"></span><span id="_CPPv2N9sequencer5Entry11acknowledgeENSt5arrayI4WordX3EEE4Word"></span><span id="sequencer::Entry::acknowledge__std::array:Word.3:.Word"></span><span class="target" id="structsequencer_1_1Entry_1a92e141d3ff150feeb68fb8449524d571"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer5EntryE" title="sequencer::Entry"><span class="n"><span class="pre">Entry</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">acknowledge</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">a</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer5Entry11acknowledgeENSt5arrayI4WordXL3EEEE4Word" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Creates an Acknowledgement entry without dynamic payload storage. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>a</strong> – Actor ID and removal Session/frontier pairs. </p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – Actor ID and the reported removal Session/frontier. </p></li>
+<li><p><strong>count</strong> – Number of reported words; one admits only the Actor. </p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Acknowledgement-tagged entry. </p>
@@ -436,8 +439,8 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer13FrontierTable7observeERK15Acknowledgement">
-<span id="_CPPv3N9sequencer13FrontierTable7observeERK15Acknowledgement"></span><span id="_CPPv2N9sequencer13FrontierTable7observeERK15Acknowledgement"></span><span id="sequencer::FrontierTable::observe__AcknowledgementCR"></span><span class="target" id="classsequencer_1_1FrontierTable_1abbd14d59904636959621d853c3b07b03"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">observe</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer15AcknowledgementE" title="sequencer::Acknowledgement"><span class="n"><span class="pre">Acknowledgement</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">a</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer13FrontierTable7observeERK15Acknowledgement" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer13FrontierTable7observeENSt4spanIK4WordEE">
+<span id="_CPPv3N9sequencer13FrontierTable7observeENSt4spanIK4WordEE"></span><span id="_CPPv2N9sequencer13FrontierTable7observeENSt4spanIK4WordEE"></span><span id="sequencer::FrontierTable::observe__std::span:WordC:"></span><span class="target" id="classsequencer_1_1FrontierTable_1a6af23b64edea7e099b5e6a819c0ef22d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">observe</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">span</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">a</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer13FrontierTable7observeENSt4spanIK4WordEE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Observes an Actor’s reported removal frontiers, admitting active Actors. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -536,6 +539,24 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer9Insertion11coordinatesE">
 <span id="_CPPv3N9sequencer9Insertion11coordinatesE"></span><span id="_CPPv2N9sequencer9Insertion11coordinatesE"></span><span id="sequencer::Insertion::coordinates__Coordinates"></span><span class="target" id="structsequencer_1_1Insertion_1a49929d33bd169abf13012ae9222da2ac"></span><a class="reference internal" href="#_CPPv4N9sequencer11CoordinatesE" title="sequencer::Coordinates"><span class="n"><span class="pre">Coordinates</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">coordinates</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer9Insertion11coordinatesE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Historical anchor, canonical identity and original Frame effect. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer9Insertion13footage_stateE">
+<span id="_CPPv3N9sequencer9Insertion13footage_stateE"></span><span id="_CPPv2N9sequencer9Insertion13footage_stateE"></span><span id="sequencer::Insertion::footage_state__FootageState"></span><span class="target" id="structsequencer_1_1Insertion_1a8ac81e3e6832ffde45054ab676c32d6f"></span><a class="reference internal" href="#_CPPv4N9sequencer12FootageStateE" title="sequencer::FootageState"><span class="n"><span class="pre">FootageState</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">footage_state</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer9Insertion13footage_stateE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Binding state in the low byte of an aligned word shared with native flags. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer9Insertion10fragmentedE">
+<span id="_CPPv3N9sequencer9Insertion10fragmentedE"></span><span id="_CPPv2N9sequencer9Insertion10fragmentedE"></span><span id="sequencer::Insertion::fragmented__b"></span><span class="target" id="structsequencer_1_1Insertion_1af7092ac08243c31f204c2351c52c8312"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fragmented</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer9Insertion10fragmentedE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Whether materialization has diverged from one intact Strip. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer9Insertion6offsetE">
+<span id="_CPPv3N9sequencer9Insertion6offsetE"></span><span id="_CPPv2N9sequencer9Insertion6offsetE"></span><span id="sequencer::Insertion::offset__b"></span><span class="target" id="structsequencer_1_1Insertion_1a5be1379d33e08b48e95261282b454305"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">offset</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer9Insertion6offsetE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Whether this Strip represents an offset fragment or consumed mask prefix. </p>
 </dd></dl>
 
 </div>
@@ -638,28 +659,14 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection5applyENSt4spanIK5EntryEE">
-<span id="_CPPv3N9sequencer10Projection5applyENSt4spanIK5EntryEE"></span><span id="_CPPv2N9sequencer10Projection5applyENSt4spanIK5EntryEE"></span><span id="sequencer::Projection::apply__std::span:EntryC:"></span><span class="target" id="classsequencer_1_1Projection_1abd0079756800ef0a6d7e68ae13c64009"></span><a class="reference internal" href="#_CPPv4N9sequencer6ResultE" title="sequencer::Result"><span class="n"><span class="pre">Result</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">apply</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">span</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer5EntryE" title="sequencer::Entry"><span class="n"><span class="pre">Entry</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">gossip</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection5applyENSt4spanIK5EntryEE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Integrates canonical operations and releases newly satisfied dependencies. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>gossip</strong> – Already read native entries; transport validation occurs at the ABI. </p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Ordered visible Splices and Gossip containing Acknowledgements. </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection5applyENSt4spanIK5EntryEER6Result">
-<span id="_CPPv3N9sequencer10Projection5applyENSt4spanIK5EntryEER6Result"></span><span id="_CPPv2N9sequencer10Projection5applyENSt4spanIK5EntryEER6Result"></span><span id="sequencer::Projection::apply__std::span:EntryC:.ResultR"></span><span class="target" id="classsequencer_1_1Projection_1a422aeffc5e212cd23b32f209c7fc7b3f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">apply</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">span</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer5EntryE" title="sequencer::Entry"><span class="n"><span class="pre">Entry</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">gossip</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer6ResultE" title="sequencer::Result"><span class="n"><span class="pre">Result</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">result</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection5applyENSt4spanIK5EntryEER6Result" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Integrates operations into retained output storage without clearing existing results. </p>
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection5applyERK9InsertionR6Result">
+<span id="_CPPv3N9sequencer10Projection5applyERK9InsertionR6Result"></span><span id="_CPPv2N9sequencer10Projection5applyERK9InsertionR6Result"></span><span id="sequencer::Projection::apply__InsertionCR.ResultR"></span><span class="target" id="classsequencer_1_1Projection_1a15c8c47bcb0b5de96cd423ce57b00e09"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">apply</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer9InsertionE" title="sequencer::Insertion"><span class="n"><span class="pre">Insertion</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">insertion</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer6ResultE" title="sequencer::Result"><span class="n"><span class="pre">Result</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">result</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection5applyERK9InsertionR6Result" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Integrates one <a class="reference internal" href="#structsequencer_1_1Insertion"><span class="std std-ref">Insertion</span></a> and any dependencies released by it. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>gossip</strong> – Already read native entries. </p></li>
-<li><p><strong>result</strong> – Output to append to, allowing one <a class="reference internal" href="#structsequencer_1_1Result"><span class="std std-ref">Result</span></a> across an entire ABI batch. </p></li>
+<li><p><strong>insertion</strong> – Canonical <a class="reference internal" href="#structsequencer_1_1Insertion"><span class="std std-ref">Insertion</span></a> already validated at the ABI. </p></li>
+<li><p><strong>result</strong> – Output to append to. </p></li>
 </ul>
 </dd>
 </dl>
@@ -720,8 +727,8 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection7hydrateERK6GossipRKNSt6vectorI15AcknowledgementEE">
-<span id="_CPPv3N9sequencer10Projection7hydrateERK6GossipRKNSt6vectorI15AcknowledgementEE"></span><span id="_CPPv2N9sequencer10Projection7hydrateERK6GossipRKNSt6vectorI15AcknowledgementEE"></span><span id="sequencer::Projection::hydrate__GossipCR.std::vector:Acknowledgement:CR"></span><span class="target" id="classsequencer_1_1Projection_1a1443c8a8051c3524c16d24ba30ebcaca"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hydrate</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer6GossipE" title="sequencer::Gossip"><span class="n"><span class="pre">Gossip</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">insertions</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer15AcknowledgementE" title="sequencer::Acknowledgement"><span class="n"><span class="pre">Acknowledgement</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">frontiers</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection7hydrateERK6GossipRKNSt6vectorI15AcknowledgementEE" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection7hydrateENSt4spanIK9InsertionEERKNSt6vectorI15AcknowledgementEE">
+<span id="_CPPv3N9sequencer10Projection7hydrateENSt4spanIK9InsertionEERKNSt6vectorI15AcknowledgementEE"></span><span id="_CPPv2N9sequencer10Projection7hydrateENSt4spanIK9InsertionEERKNSt6vectorI15AcknowledgementEE"></span><span id="sequencer::Projection::hydrate__std::span:InsertionC:.std::vector:Acknowledgement:CR"></span><span class="target" id="classsequencer_1_1Projection_1ad4140da720bbec710dda30c95c593d6b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hydrate</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">span</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer9InsertionE" title="sequencer::Insertion"><span class="n"><span class="pre">Insertion</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">insertions</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer15AcknowledgementE" title="sequencer::Acknowledgement"><span class="n"><span class="pre">Acknowledgement</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">frontiers</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection7hydrateENSt4spanIK9InsertionEERKNSt6vectorI15AcknowledgementEE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Reconstructs trusted exported history and prebuilds traversal jumps. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -740,13 +747,31 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>count</strong> – Positive Footage length. </p></li>
+<li><p><strong>count</strong> – Positive Footage length; tuple mode accepts one Frame per <a class="reference internal" href="#structsequencer_1_1Insertion"><span class="std std-ref">Insertion</span></a>. </p></li>
 <li><p><strong>content</strong> – JavaScript binding token; native code never reads the values. </p></li>
 <li><p><strong>at</strong> – Visible insertion boundary. </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Canonical Gossip operation, including only the suffix for an extension. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection12insert_batchE4Word4Word4Word">
+<span id="_CPPv3N9sequencer10Projection12insert_batchE4Word4Word4Word"></span><span id="_CPPv2N9sequencer10Projection12insert_batchE4Word4Word4Word"></span><span id="sequencer::Projection::insert_batch__Word.Word.Word"></span><span class="target" id="classsequencer_1_1Projection_1a8e9a35f7def7e9fc3695e47c464a1a4a"></span><a class="reference internal" href="#_CPPv4N9sequencer6GossipE" title="sequencer::Gossip"><span class="n"><span class="pre">Gossip</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">insert_batch</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">content</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">at</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection12insert_batchE4Word4Word4Word" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Authors one <a class="reference internal" href="#structsequencer_1_1Insertion"><span class="std std-ref">Insertion</span></a> per stable tuple index, or one contiguous sequence <a class="reference internal" href="#structsequencer_1_1Insertion"><span class="std std-ref">Insertion</span></a>. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>count</strong> – Number of Frames to insert. </p></li>
+<li><p><strong>content</strong> – JavaScript Footage binding token. </p></li>
+<li><p><strong>at</strong> – First tuple index or visible insertion boundary. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Authored Insertions in Frame order. </p>
 </dd>
 </dl>
 </dd></dl>
@@ -774,8 +799,8 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection5mergeERK6GossipRKNSt6vectorI15AcknowledgementEE">
-<span id="_CPPv3N9sequencer10Projection5mergeERK6GossipRKNSt6vectorI15AcknowledgementEE"></span><span id="_CPPv2N9sequencer10Projection5mergeERK6GossipRKNSt6vectorI15AcknowledgementEE"></span><span id="sequencer::Projection::merge__GossipCR.std::vector:Acknowledgement:CR"></span><span class="target" id="classsequencer_1_1Projection_1a87ae1fdccb357330ccbdb36628a04d71"></span><a class="reference internal" href="#_CPPv4N9sequencer6ResultE" title="sequencer::Result"><span class="n"><span class="pre">Result</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">merge</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer6GossipE" title="sequencer::Gossip"><span class="n"><span class="pre">Gossip</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">insertions</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer15AcknowledgementE" title="sequencer::Acknowledgement"><span class="n"><span class="pre">Acknowledgement</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">frontiers</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection5mergeERK6GossipRKNSt6vectorI15AcknowledgementEE" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection5mergeENSt4spanIK9InsertionEERKNSt6vectorI15AcknowledgementEE">
+<span id="_CPPv3N9sequencer10Projection5mergeENSt4spanIK9InsertionEERKNSt6vectorI15AcknowledgementEE"></span><span id="_CPPv2N9sequencer10Projection5mergeENSt4spanIK9InsertionEERKNSt6vectorI15AcknowledgementEE"></span><span id="sequencer::Projection::merge__std::span:InsertionC:.std::vector:Acknowledgement:CR"></span><span class="target" id="classsequencer_1_1Projection_1a583732dbf87a34769708700567b3a9b6"></span><a class="reference internal" href="#_CPPv4N9sequencer6ResultE" title="sequencer::Result"><span class="n"><span class="pre">Result</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">merge</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">span</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer9InsertionE" title="sequencer::Insertion"><span class="n"><span class="pre">Insertion</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">insertions</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer15AcknowledgementE" title="sequencer::Acknowledgement"><span class="n"><span class="pre">Acknowledgement</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">frontiers</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection5mergeENSt4spanIK9InsertionEERKNSt6vectorI15AcknowledgementEE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Integrates snapshot history and then observes its retained Acknowledgements. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -835,8 +860,8 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection10ProjectionE4Word4Word4Word">
-<span id="_CPPv3N9sequencer10Projection10ProjectionE4Word4Word4Word"></span><span id="_CPPv2N9sequencer10Projection10ProjectionE4Word4Word4Word"></span><span id="sequencer::Projection::Projection__Word.Word.Word"></span><span class="target" id="classsequencer_1_1Projection_1ac3e95507376eb3c8afb876a274363cd1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Projection</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">actor_id</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">increasing_session</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">decreasing_session</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection10ProjectionE4Word4Word4Word" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection10ProjectionE4Word4Word4Wordb4Word">
+<span id="_CPPv3N9sequencer10Projection10ProjectionE4Word4Word4Wordb4Word"></span><span id="_CPPv2N9sequencer10Projection10ProjectionE4Word4Word4Wordb4Word"></span><span id="sequencer::Projection::Projection__Word.Word.Word.b.Word"></span><span class="target" id="classsequencer_1_1Projection_1a3ed429c39e3a7786c5f0990e3e8d04f3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Projection</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">actor_id</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">increasing_session</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">decreasing_session</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">tuple_enabled</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">tuple_capacity</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">UINT32_MAX</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection10ProjectionE4Word4Word4Wordb4Word" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Initializes empty history with independently supplied Session identities. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -844,6 +869,8 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <li><p><strong>actor_id</strong> – Acknowledging Actor. </p></li>
 <li><p><strong>increasing_session</strong> – Session for locally authored positive Insertions. </p></li>
 <li><p><strong>decreasing_session</strong> – Session for locally authored reducing Insertions. </p></li>
+<li><p><strong>tuple_enabled</strong> – Whether indices identify stable registers. </p></li>
+<li><p><strong>tuple_capacity</strong> – Fixed register count, or UINT32_MAX for dynamic growth. </p></li>
 </ul>
 </dd>
 </dl>
@@ -954,23 +981,6 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection6valuesE4Word4Word">
-<span id="_CPPv3N9sequencer10Projection6valuesE4Word4Word"></span><span id="_CPPv2N9sequencer10Projection6valuesE4Word4Word"></span><span id="sequencer::Projection::values__Word.Word"></span><span class="target" id="classsequencer_1_1Projection_1aca10758f170a17fb962ded6aece990b7"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4SpanE" title="sequencer::Span"><span class="n"><span class="pre">Span</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">values</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">start</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">end</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection6valuesE4Word4Word" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Resolves an inclusive visible range to JavaScript Footage spans. </p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>start</strong> – First included <a class="reference internal" href="#classsequencer_1_1Projection"><span class="std std-ref">Projection</span></a> position. </p></li>
-<li><p><strong>end</strong> – Last included position. </p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Ordered positive spans; masks contribute no values. </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection6valuesE4Word4WordRNSt6vectorI4SpanEE">
 <span id="_CPPv3N9sequencer10Projection6valuesE4Word4WordRNSt6vectorI4SpanEE"></span><span id="_CPPv2N9sequencer10Projection6valuesE4Word4WordRNSt6vectorI4SpanEE"></span><span id="sequencer::Projection::values__Word.Word.std::vector:Span:R"></span><span class="target" id="classsequencer_1_1Projection_1aec49b77dbe6c1b9b337b5e2d9321a7b3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">values</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">start</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">end</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4SpanE" title="sequencer::Span"><span class="n"><span class="pre">Span</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">output</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer10Projection6valuesE4Word4WordRNSt6vectorI4SpanEE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Reuses output capacity while resolving an inclusive visible range. </p>
@@ -995,21 +1005,9 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 </dd></dl>
 
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection8appendedE">
-<span id="_CPPv3N9sequencer10Projection8appendedE"></span><span id="_CPPv2N9sequencer10Projection8appendedE"></span><span id="sequencer::Projection::appended__std::vector:ContentAppend:"></span><span class="target" id="classsequencer_1_1Projection_1ab1eb93b3022ef628deb05733f034ebb1"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer13ContentAppendE" title="sequencer::ContentAppend"><span class="n"><span class="pre">ContentAppend</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">appended</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer10Projection8appendedE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Deferred suffix appends joining content under an existing <a class="reference internal" href="#structsequencer_1_1Insertion"><span class="std std-ref">Insertion</span></a> binding. </p>
-</dd></dl>
-
-<dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection11containmentE">
 <span id="_CPPv3N9sequencer10Projection11containmentE"></span><span id="_CPPv2N9sequencer10Projection11containmentE"></span><span id="sequencer::Projection::containment__ContainmentTable"></span><span class="target" id="classsequencer_1_1Projection_1a27feb1f09cb31e085616e370b0c12d64"></span><a class="reference internal" href="#_CPPv4N9sequencer16ContainmentTableE" title="sequencer::ContainmentTable"><span class="n"><span class="pre">ContainmentTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">containment</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer10Projection11containmentE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Canonical <a class="reference internal" href="#structsequencer_1_1Insertion"><span class="std std-ref">Insertion</span></a> identity to materialized root. </p>
-</dd></dl>
-
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection6copiedE">
-<span id="_CPPv3N9sequencer10Projection6copiedE"></span><span id="_CPPv2N9sequencer10Projection6copiedE"></span><span id="sequencer::Projection::copied__std::vector:Span:"></span><span class="target" id="classsequencer_1_1Projection_1af7c7febb4f7b4b1250516bcea7e0e12e"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4SpanE" title="sequencer::Span"><span class="n"><span class="pre">Span</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">copied</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer10Projection6copiedE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Deferred copy-on-write slices protecting caller arrays and retained snapshots. </p>
 </dd></dl>
 
 <dl class="cpp var">
@@ -1020,7 +1018,7 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection11frame_countE">
 <span id="_CPPv3N9sequencer10Projection11frame_countE"></span><span id="_CPPv2N9sequencer10Projection11frame_countE"></span><span id="sequencer::Projection::frame_count__Word"></span><span class="target" id="classsequencer_1_1Projection_1a3cdfc0f44e5f4620ea7361e00d7ea271"></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">frame_count</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer10Projection11frame_countE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Visible positive Frame count. </p>
+<dd><p>Visible Frame count; tuple extent includes empty registers. </p>
 </dd></dl>
 
 <dl class="cpp var">
@@ -1066,27 +1064,9 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 </dd></dl>
 
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection18left_jump_to_patchE">
-<span id="_CPPv3N9sequencer10Projection18left_jump_to_patchE"></span><span id="_CPPv2N9sequencer10Projection18left_jump_to_patchE"></span><span id="sequencer::Projection::left_jump_to_patch__Index"></span><span class="target" id="classsequencer_1_1Projection_1a685be10e86eb40a3b6afae119ac94165"></span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">left_jump_to_patch</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer10Projection18left_jump_to_patchE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Left endpoint of the jump spanning the next local edit. </p>
-</dd></dl>
-
-<dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection7pendingE">
 <span id="_CPPv3N9sequencer10Projection7pendingE"></span><span id="_CPPv2N9sequencer10Projection7pendingE"></span><span id="sequencer::Projection::pending__PendingTable"></span><span class="target" id="classsequencer_1_1Projection_1a02690986fa5b41654522dfa835748a6c"></span><a class="reference internal" href="#_CPPv4N9sequencer12PendingTableE" title="sequencer::PendingTable"><span class="n"><span class="pre">PendingTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pending</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer10Projection7pendingE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Unresolved Insertions grouped by their missing canonical parent. </p>
-</dd></dl>
-
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection8releasedE">
-<span id="_CPPv3N9sequencer10Projection8releasedE"></span><span id="_CPPv2N9sequencer10Projection8releasedE"></span><span id="sequencer::Projection::released__std::vector:Span:"></span><span class="target" id="classsequencer_1_1Projection_1ae9f214ec99cc4b274c2c30c8796ba210"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4SpanE" title="sequencer::Span"><span class="n"><span class="pre">Span</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">released</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer10Projection8releasedE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Deferred Footage releases; count zero releases the entire binding. </p>
-</dd></dl>
-
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection19right_jump_to_patchE">
-<span id="_CPPv3N9sequencer10Projection19right_jump_to_patchE"></span><span id="_CPPv2N9sequencer10Projection19right_jump_to_patchE"></span><span id="sequencer::Projection::right_jump_to_patch__Index"></span><span class="target" id="classsequencer_1_1Projection_1a45f170934da81f96e868fff39d3e9042"></span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">right_jump_to_patch</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer10Projection19right_jump_to_patchE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Right endpoint of that same jump. </p>
 </dd></dl>
 
 <dl class="cpp var">
@@ -1111,6 +1091,12 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection4tailE">
 <span id="_CPPv3N9sequencer10Projection4tailE"></span><span id="_CPPv2N9sequencer10Projection4tailE"></span><span id="sequencer::Projection::tail__Index"></span><span class="target" id="classsequencer_1_1Projection_1a6a2bfee33e254bfc1970968dad197655"></span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tail</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer10Projection4tailE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Strip owning the last visible Frame. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer10Projection5tupleE">
+<span id="_CPPv3N9sequencer10Projection5tupleE"></span><span id="_CPPv2N9sequencer10Projection5tupleE"></span><span id="sequencer::Projection::tuple__std::unique_ptr:Tuple:"></span><span class="target" id="classsequencer_1_1Projection_1ad907dc8735f229bdf1c8cefc745e9533"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">unique_ptr</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer5TupleE" title="sequencer::Tuple"><span class="n"><span class="pre">Tuple</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">tuple</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer10Projection5tupleE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Present only for stable-index register semantics. </p>
 </dd></dl>
 
 </div>
@@ -1321,12 +1307,6 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 </dl>
 </dd></dl>
 
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer6Strips6StripsEv">
-<span id="_CPPv3N9sequencer6Strips6StripsEv"></span><span id="_CPPv2N9sequencer6Strips6StripsEv"></span><span id="sequencer::Strips::Strips"></span><span class="target" id="structsequencer_1_1Strips_1a99c3f6f79e754e88a7cce2438f936040"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Strips</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer6Strips6StripsEv" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Initializes slot zero so absent links may safely read zero-valued lanes. </p>
-</dd></dl>
-
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
@@ -1367,12 +1347,6 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 </dd></dl>
 
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer6Strips10fragmentedE">
-<span id="_CPPv3N9sequencer6Strips10fragmentedE"></span><span id="_CPPv2N9sequencer6Strips10fragmentedE"></span><span id="sequencer::Strips::fragmented__std::uint8_tP"></span><span class="target" id="structsequencer_1_1Strips_1a0f835e25ab4fbbbc2ee3534bdbd87ecf"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">fragmented</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer6Strips10fragmentedE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Whether materialization has diverged from one intact Strip. </p>
-</dd></dl>
-
-<dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer6Strips8identityE">
 <span id="_CPPv3N9sequencer6Strips8identityE"></span><span id="_CPPv2N9sequencer6Strips8identityE"></span><span id="sequencer::Strips::identity__InsertionP"></span><span class="target" id="structsequencer_1_1Strips_1a366bc2d9fced4ca97ed2c6ddf3480e83"></span><a class="reference internal" href="#_CPPv4N9sequencer9InsertionE" title="sequencer::Insertion"><span class="n"><span class="pre">Insertion</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">identity</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer6Strips8identityE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Canonical coordinates and binding references, repeated across an <a class="reference internal" href="#structsequencer_1_1Insertion"><span class="std std-ref">Insertion</span></a>’s fragments. </p>
@@ -1405,13 +1379,7 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer6Strips6memoryE">
 <span id="_CPPv3N9sequencer6Strips6memoryE"></span><span id="_CPPv2N9sequencer6Strips6memoryE"></span><span id="sequencer::Strips::memory__std::unique_ptr:std::byteA:"></span><span class="target" id="structsequencer_1_1Strips_1a2a0a69bee6d1e3858cbe5d5830c45ca3"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">unique_ptr</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">byte</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">memory</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer6Strips6memoryE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Owning allocation containing identities, twelve word lanes and two flag lanes. </p>
-</dd></dl>
-
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N9sequencer6Strips6offsetE">
-<span id="_CPPv3N9sequencer6Strips6offsetE"></span><span id="_CPPv2N9sequencer6Strips6offsetE"></span><span id="sequencer::Strips::offset__std::uint8_tP"></span><span class="target" id="structsequencer_1_1Strips_1afd4efef17deef7cf865e3cf1a51d5541"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">offset</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer6Strips6offsetE" title="Link to this definition">¶</a><br /></dt>
-<dd><p>Whether this Strip represents an offset fragment or consumed mask prefix. </p>
+<dd><p>Owning allocation containing identities and twelve word lanes. </p>
 </dd></dl>
 
 <dl class="cpp var">
@@ -1437,6 +1405,324 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <span id="_CPPv3N9sequencer6Strips17right_jump_stripsE"></span><span id="_CPPv2N9sequencer6Strips17right_jump_stripsE"></span><span id="sequencer::Strips::right_jump_strips__WordP"></span><span class="target" id="structsequencer_1_1Strips_1adf29d270654e60e59da35fe87a08311a"></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">right_jump_strips</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer6Strips17right_jump_stripsE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Structural steps to the right jump endpoint. </p>
 </dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5TupleE">
+<span id="_CPPv3N9sequencer5TupleE"></span><span id="_CPPv2N9sequencer5TupleE"></span><span id="sequencer::Tuple"></span><span class="target" id="classsequencer_1_1Tuple"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Tuple</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5TupleE" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;class.hpp&gt;</em></div>
+<p>Stable-index candidate storage; <a class="reference internal" href="#classsequencer_1_1Projection"><span class="std std-ref">Projection</span></a> owns replication and Session clocks. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple3addE9Insertionb">
+<span id="_CPPv3N9sequencer5Tuple3addE9Insertionb"></span><span id="_CPPv2N9sequencer5Tuple3addE9Insertionb"></span><span id="sequencer::Tuple::add__Insertion.b"></span><span class="target" id="classsequencer_1_1Tuple_1a294284d3ec8a0c78edae5b734b6725f2"></span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">add</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer9InsertionE" title="sequencer::Insertion"><span class="n"><span class="pre">Insertion</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">insertion</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">shared</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple3addE9Insertionb" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Retains history and links positive Versions at their stable index. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>insertion</strong> – Valid canonical <a class="reference internal" href="#structsequencer_1_1Insertion"><span class="std std-ref">Insertion</span></a>. </p></li>
+<li><p><strong>shared</strong> – Whether its Footage belongs to a registered shared binding. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>One-based canonical root handle. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple5eraseE5IndexRNSt6vectorI4SpanEERNSt6vectorI4SpanEE">
+<span id="_CPPv3N9sequencer5Tuple5eraseE5IndexRNSt6vectorI4SpanEERNSt6vectorI4SpanEE"></span><span id="_CPPv2N9sequencer5Tuple5eraseE5IndexRNSt6vectorI4SpanEERNSt6vectorI4SpanEE"></span><span id="sequencer::Tuple::erase__Index.std::vector:Span:R.std::vector:Span:R"></span><span class="target" id="classsequencer_1_1Tuple_1a70406f645be0964307d34b6c6ee4f265"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">erase</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">root</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4SpanE" title="sequencer::Span"><span class="n"><span class="pre">Span</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">released</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4SpanE" title="sequencer::Span"><span class="n"><span class="pre">Span</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">copied</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple5eraseE5IndexRNSt6vectorI4SpanEERNSt6vectorI4SpanEE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Unlinks an observed Version and defers Footage release to the ABI result. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root</strong> – One-based canonical root handle. </p></li>
+<li><p><strong>released</strong> – Output bindings or ranges whose values can be released. </p></li>
+<li><p><strong>copied</strong> – Output shared bindings requiring a private copy before release. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9sequencer5Tuple9find_slotE4Word">
+<span id="_CPPv3NK9sequencer5Tuple9find_slotE4Word"></span><span id="_CPPv2NK9sequencer5Tuple9find_slotE4Word"></span><span id="sequencer::Tuple::find_slot__WordC"></span><span class="target" id="classsequencer_1_1Tuple_1a2c98b631ceb7098e7c1867f966b8372c"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer5Tuple4SlotE" title="sequencer::Tuple::Slot"><span class="n"><span class="pre">Slot</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">find_slot</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">at</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9sequencer5Tuple9find_slotE4Word" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Looks up a valid register without allocating a dynamic page. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>at</strong> – Valid tuple index. </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Register, or nullptr when its dynamic page is absent. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9sequencer5Tuple8occupiedE4Word4Word">
+<span id="_CPPv3NK9sequencer5Tuple8occupiedE4Word4Word"></span><span id="_CPPv2NK9sequencer5Tuple8occupiedE4Word4Word"></span><span id="sequencer::Tuple::occupied__Word.WordC"></span><span class="target" id="classsequencer_1_1Tuple_1a7151de32aa5bf437e0459ac95802aaaa"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">occupied</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">start</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">end</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9sequencer5Tuple8occupiedE4Word4Word" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Lists nonempty registers without scanning absent pages. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start</strong> – First tuple index, inclusive. </p></li>
+<li><p><strong>end</strong> – Last tuple index, inclusive; clipped to fixed capacity. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Indices with active Versions; dynamic page order is retained. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple5shareE4Word4Word">
+<span id="_CPPv3N9sequencer5Tuple5shareE4Word4Word"></span><span id="_CPPv2N9sequencer5Tuple5shareE4Word4Word"></span><span id="sequencer::Tuple::share__Word.Word"></span><span class="target" id="classsequencer_1_1Tuple_1a08c78f6ccbf23abc934761473898007d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">share</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">content</span></span>, <a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple5shareE4Word4Word" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Registers shared local Footage without a separate hash-table implementation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>content</strong> – JavaScript Footage binding token. </p></li>
+<li><p><strong>count</strong> – Number of Versions sharing the binding. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple4slotE4Word">
+<span id="_CPPv3N9sequencer5Tuple4slotE4Word"></span><span id="_CPPv2N9sequencer5Tuple4slotE4Word"></span><span id="sequencer::Tuple::slot__Word"></span><span class="target" id="classsequencer_1_1Tuple_1aaad5a9d97c6ac08f1e4ee642ea420a92"></span><a class="reference internal" href="#_CPPv4N9sequencer5Tuple4SlotE" title="sequencer::Tuple::Slot"><span class="n"><span class="pre">Slot</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">slot</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">at</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple4slotE4Word" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Finds or allocates the addressed register. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>at</strong> – Valid tuple index. </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Register at that index. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple5TupleE4Word">
+<span id="_CPPv3N9sequencer5Tuple5TupleE4Word"></span><span id="_CPPv2N9sequencer5Tuple5TupleE4Word"></span><span id="sequencer::Tuple::Tuple__Word"></span><span class="target" id="classsequencer_1_1Tuple_1afefc6bdff5d9a79579198ef473bbd1f5"></span><span class="k"><span class="pre">explicit</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Tuple</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">capacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple5TupleE4Word" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9sequencer5Tuple5validERK11CoordinatesRK16ContainmentTable">
+<span id="_CPPv3NK9sequencer5Tuple5validERK11CoordinatesRK16ContainmentTable"></span><span id="_CPPv2NK9sequencer5Tuple5validERK11CoordinatesRK16ContainmentTable"></span><span id="sequencer::Tuple::valid__CoordinatesCR.ContainmentTableCRC"></span><span class="target" id="classsequencer_1_1Tuple_1a973f1d7b8995bee6f8fca12eeb55366e"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">valid</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer11CoordinatesE" title="sequencer::Coordinates"><span class="n"><span class="pre">Coordinates</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">coordinates</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer16ContainmentTableE" title="sequencer::ContainmentTable"><span class="n"><span class="pre">ContainmentTable</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">containment</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9sequencer5Tuple5validERK11CoordinatesRK16ContainmentTable" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Checks external coordinates before any history or Acknowledgement changes. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coordinates</strong> – Incoming <a class="reference internal" href="#structsequencer_1_1Insertion"><span class="std std-ref">Insertion</span></a> coordinates. </p></li>
+<li><p><strong>containment</strong> – Known canonical roots for checking removal targets. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Whether the coordinates satisfy tuple insertion and removal rules. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9sequencer5Tuple5valueE4Word">
+<span id="_CPPv3NK9sequencer5Tuple5valueE4Word"></span><span id="_CPPv2NK9sequencer5Tuple5valueE4Word"></span><span id="sequencer::Tuple::value__WordC"></span><span class="target" id="classsequencer_1_1Tuple_1a390b9bd32615a38b965320d3608da391"></span><a class="reference internal" href="#_CPPv4N9sequencer4SpanE" title="sequencer::Span"><span class="n"><span class="pre">Span</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">value</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">at</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9sequencer5Tuple5valueE4Word" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Reads the winning Version at a valid tuple index. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>at</strong> – Valid tuple index. </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Footage span, or an absent span for an empty register. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9sequencer5Tuple6winnerE4Word">
+<span id="_CPPv3NK9sequencer5Tuple6winnerE4Word"></span><span id="_CPPv2NK9sequencer5Tuple6winnerE4Word"></span><span id="sequencer::Tuple::winner__WordC"></span><span class="target" id="classsequencer_1_1Tuple_1ad2e01e8d3616de3b36a6eb993acdeebd"></span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">winner</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">at</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9sequencer5Tuple6winnerE4Word" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolves the winning Version at a valid tuple index. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>at</strong> – Valid tuple index. </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Zero-based Version offset, or no_version. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple13binding_indexE">
+<span id="_CPPv3N9sequencer5Tuple13binding_indexE"></span><span id="_CPPv2N9sequencer5Tuple13binding_indexE"></span><span id="sequencer::Tuple::binding_index__ContainmentTable"></span><span class="target" id="classsequencer_1_1Tuple_1abb7d85650ba68c604ec0e0a5df34c54e"></span><a class="reference internal" href="#_CPPv4N9sequencer16ContainmentTableE" title="sequencer::ContainmentTable"><span class="n"><span class="pre">ContainmentTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">binding_index</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple13binding_indexE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple8bindingsE">
+<span id="_CPPv3N9sequencer5Tuple8bindingsE"></span><span id="_CPPv2N9sequencer5Tuple8bindingsE"></span><span id="sequencer::Tuple::bindings__std::vector:Binding:"></span><span class="target" id="classsequencer_1_1Tuple_1ada25db19d6b2c88c9b5b3de206196fce"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer5Tuple7BindingE" title="sequencer::Tuple::Binding"><span class="n"><span class="pre">Binding</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bindings</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple8bindingsE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple8capacityE">
+<span id="_CPPv3N9sequencer5Tuple8capacityE"></span><span id="_CPPv2N9sequencer5Tuple8capacityE"></span><span id="sequencer::Tuple::capacity__WordC"></span><span class="target" id="classsequencer_1_1Tuple_1a1f37d517bb2ed34f59b9807edbfde2c0"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">capacity</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple8capacityE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>UINT32_MAX denotes dynamic capacity. </p>
+<p><a class="reference internal" href="#classsequencer_1_1Projection"><span class="std std-ref">Projection</span></a> retains the visible index extent. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple10page_indexE">
+<span id="_CPPv3N9sequencer5Tuple10page_indexE"></span><span id="_CPPv2N9sequencer5Tuple10page_indexE"></span><span id="sequencer::Tuple::page_index__ContainmentTable"></span><span class="target" id="classsequencer_1_1Tuple_1a5718b1404314da1fc65967ded30085ec"></span><a class="reference internal" href="#_CPPv4N9sequencer16ContainmentTableE" title="sequencer::ContainmentTable"><span class="n"><span class="pre">ContainmentTable</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">page_index</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple10page_indexE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple5pagesE">
+<span id="_CPPv3N9sequencer5Tuple5pagesE"></span><span id="_CPPv2N9sequencer5Tuple5pagesE"></span><span id="sequencer::Tuple::pages__std::vector:Page:"></span><span class="target" id="classsequencer_1_1Tuple_1a855f6a4f8c961fdeafce1ccd7e31025f"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer5Tuple4PageE" title="sequencer::Tuple::Page"><span class="n"><span class="pre">Page</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pages</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple5pagesE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple5slotsE">
+<span id="_CPPv3N9sequencer5Tuple5slotsE"></span><span id="_CPPv2N9sequencer5Tuple5slotsE"></span><span id="sequencer::Tuple::slots__std::vector:Slot:"></span><span class="target" id="classsequencer_1_1Tuple_1aa2595f6b660b8066aacbc948eb8ecab0"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer5Tuple4SlotE" title="sequencer::Tuple::Slot"><span class="n"><span class="pre">Slot</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">slots</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple5slotsE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple8versionsE">
+<span id="_CPPv3N9sequencer5Tuple8versionsE"></span><span id="_CPPv2N9sequencer5Tuple8versionsE"></span><span id="sequencer::Tuple::versions__std::vector:Version:"></span><span class="target" id="classsequencer_1_1Tuple_1a0f9d4c63423945ec61a286dc2e23fc10"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer5Tuple7VersionE" title="sequencer::Tuple::Version"><span class="n"><span class="pre">Version</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">versions</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple8versionsE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Version offsets are zero-based; canonical root handles are one-based. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-attributes">Public Static Attributes</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple10no_versionE">
+<span id="_CPPv3N9sequencer5Tuple10no_versionE"></span><span id="_CPPv2N9sequencer5Tuple10no_versionE"></span><span id="sequencer::Tuple::no_version__Index"></span><span class="target" id="classsequencer_1_1Tuple_1ab7816d9f393b3691dbebbe697dc3776f"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">no_version</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple10no_versionE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple9page_sizeE">
+<span id="_CPPv3N9sequencer5Tuple9page_sizeE"></span><span id="_CPPv2N9sequencer5Tuple9page_sizeE"></span><span id="sequencer::Tuple::page_size__Word"></span><span class="target" id="classsequencer_1_1Tuple_1ac35bcd2eef3b442998b09bf1282dc1ff"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">page_size</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple9page_sizeE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple7BindingE">
+<span id="_CPPv3N9sequencer5Tuple7BindingE"></span><span id="_CPPv2N9sequencer5Tuple7BindingE"></span><span id="sequencer::Tuple::Binding"></span><span class="target" id="structsequencer_1_1Tuple_1_1Binding"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Binding</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple7BindingE" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple7Binding6extentE">
+<span id="_CPPv3N9sequencer5Tuple7Binding6extentE"></span><span id="_CPPv2N9sequencer5Tuple7Binding6extentE"></span><span id="sequencer::Tuple::Binding::extent__Word"></span><span class="target" id="structsequencer_1_1Tuple_1_1Binding_1af620a5b7c2db425399136f4fee5fe43d"></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">extent</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple7Binding6extentE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple7Binding13footage_stateE">
+<span id="_CPPv3N9sequencer5Tuple7Binding13footage_stateE"></span><span id="_CPPv2N9sequencer5Tuple7Binding13footage_stateE"></span><span id="sequencer::Tuple::Binding::footage_state__FootageState"></span><span class="target" id="structsequencer_1_1Tuple_1_1Binding_1a7fbfb757d1cbdf5c73fd6fd7864e769c"></span><a class="reference internal" href="#_CPPv4N9sequencer12FootageStateE" title="sequencer::FootageState"><span class="n"><span class="pre">FootageState</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">footage_state</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple7Binding13footage_stateE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Binding state shared by all Versions referencing this local batch. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple7Binding5ownedE">
+<span id="_CPPv3N9sequencer5Tuple7Binding5ownedE"></span><span id="_CPPv2N9sequencer5Tuple7Binding5ownedE"></span><span id="sequencer::Tuple::Binding::owned__b"></span><span class="target" id="structsequencer_1_1Tuple_1_1Binding_1acc6e74fd3971923843b74a5fba29bb09"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">owned</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple7Binding5ownedE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple7Binding10referencesE">
+<span id="_CPPv3N9sequencer5Tuple7Binding10referencesE"></span><span id="_CPPv2N9sequencer5Tuple7Binding10referencesE"></span><span id="sequencer::Tuple::Binding::references__Word"></span><span class="target" id="structsequencer_1_1Tuple_1_1Binding_1afe47c0b1f54128611fe594bd9465a7fe"></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">references</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple7Binding10referencesE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple4PageE">
+<span id="_CPPv3N9sequencer5Tuple4PageE"></span><span id="_CPPv2N9sequencer5Tuple4PageE"></span><span id="sequencer::Tuple::Page"></span><span class="target" id="structsequencer_1_1Tuple_1_1Page"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Page</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple4PageE" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple4Page6numberE">
+<span id="_CPPv3N9sequencer5Tuple4Page6numberE"></span><span id="_CPPv2N9sequencer5Tuple4Page6numberE"></span><span id="sequencer::Tuple::Page::number__Word"></span><span class="target" id="structsequencer_1_1Tuple_1_1Page_1a5c9021aa2d3e10a3d89df379a276b6ac"></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">number</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple4Page6numberE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple4Page5slotsE">
+<span id="_CPPv3N9sequencer5Tuple4Page5slotsE"></span><span id="_CPPv2N9sequencer5Tuple4Page5slotsE"></span><span id="sequencer::Tuple::Page::slots__std::array:Slot.page_size:"></span><span class="target" id="structsequencer_1_1Tuple_1_1Page_1ab83364970023a350fb4bfead2f5a4394"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer5Tuple4SlotE" title="sequencer::Tuple::Slot"><span class="n"><span class="pre">Slot</span></span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer5Tuple9page_sizeE" title="sequencer::Tuple::page_size"><span class="n"><span class="pre">page_size</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">slots</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple4Page5slotsE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple4SlotE">
+<span id="_CPPv3N9sequencer5Tuple4SlotE"></span><span id="_CPPv2N9sequencer5Tuple4SlotE"></span><span id="sequencer::Tuple::Slot"></span><span class="target" id="structsequencer_1_1Tuple_1_1Slot"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Slot</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple4SlotE" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple4Slot4headE">
+<span id="_CPPv3N9sequencer5Tuple4Slot4headE"></span><span id="_CPPv2N9sequencer5Tuple4Slot4headE"></span><span id="sequencer::Tuple::Slot::head__Index"></span><span class="target" id="structsequencer_1_1Tuple_1_1Slot_1a1cec82caac6d961de60257147ead70fd"></span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">head</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple4Slot4headE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple4Slot6winnerE">
+<span id="_CPPv3N9sequencer5Tuple4Slot6winnerE"></span><span id="_CPPv2N9sequencer5Tuple4Slot6winnerE"></span><span id="sequencer::Tuple::Slot::winner__Index"></span><span class="target" id="structsequencer_1_1Tuple_1_1Slot_1ab6753783d9fee1a18d8d85ae99bd12c9"></span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">winner</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple4Slot6winnerE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Winning Version offset and active-chain head; no_version means empty. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple7VersionE">
+<span id="_CPPv3N9sequencer5Tuple7VersionE"></span><span id="_CPPv2N9sequencer5Tuple7VersionE"></span><span id="sequencer::Tuple::Version"></span><span class="target" id="structsequencer_1_1Tuple_1_1Version"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Version</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple7VersionE" title="Link to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple7Version6activeE">
+<span id="_CPPv3N9sequencer5Tuple7Version6activeE"></span><span id="_CPPv2N9sequencer5Tuple7Version6activeE"></span><span id="sequencer::Tuple::Version::active__b"></span><span class="target" id="structsequencer_1_1Tuple_1_1Version_1a4277ed2e535615b9d3186d2edb78f1bc"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">active</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple7Version6activeE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Active candidate status and membership in a shared local Footage binding. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple7Version7contentE">
+<span id="_CPPv3N9sequencer5Tuple7Version7contentE"></span><span id="_CPPv2N9sequencer5Tuple7Version7contentE"></span><span id="sequencer::Tuple::Version::content__Word"></span><span class="target" id="structsequencer_1_1Tuple_1_1Version_1aa0e902e001f49a6d4b63eee864c91380"></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">content</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple7Version7contentE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple7Version13content_startE">
+<span id="_CPPv3N9sequencer5Tuple7Version13content_startE"></span><span id="_CPPv2N9sequencer5Tuple7Version13content_startE"></span><span id="sequencer::Tuple::Version::content_start__Word"></span><span class="target" id="structsequencer_1_1Tuple_1_1Version_1a177514221d664ec347871ae28097eb31"></span><a class="reference internal" href="#_CPPv4N9sequencer4WordE" title="sequencer::Word"><span class="n"><span class="pre">Word</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">content_start</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple7Version13content_startE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple7Version11coordinatesE">
+<span id="_CPPv3N9sequencer5Tuple7Version11coordinatesE"></span><span id="_CPPv2N9sequencer5Tuple7Version11coordinatesE"></span><span id="sequencer::Tuple::Version::coordinates__Coordinates"></span><span class="target" id="structsequencer_1_1Tuple_1_1Version_1af861abecfa8082a0656074eddb4fdd02"></span><a class="reference internal" href="#_CPPv4N9sequencer11CoordinatesE" title="sequencer::Coordinates"><span class="n"><span class="pre">Coordinates</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">coordinates</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple7Version11coordinatesE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple7Version13footage_stateE">
+<span id="_CPPv3N9sequencer5Tuple7Version13footage_stateE"></span><span id="_CPPv2N9sequencer5Tuple7Version13footage_stateE"></span><span id="sequencer::Tuple::Version::footage_state__FootageState"></span><span class="target" id="structsequencer_1_1Tuple_1_1Version_1aa9a45d5bafafdfec07c8c1d152172d61"></span><a class="reference internal" href="#_CPPv4N9sequencer12FootageStateE" title="sequencer::FootageState"><span class="n"><span class="pre">FootageState</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">footage_state</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple7Version13footage_stateE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Binding state when this Version owns its Footage token. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple7Version4nextE">
+<span id="_CPPv3N9sequencer5Tuple7Version4nextE"></span><span id="_CPPv2N9sequencer5Tuple7Version4nextE"></span><span id="sequencer::Tuple::Version::next__Index"></span><span class="target" id="structsequencer_1_1Tuple_1_1Version_1a3fb10a9ef72d7c5be68bdde23c2436b8"></span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">next</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple7Version4nextE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Next active candidate at the same stable index. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer5Tuple7Version6sharedE">
+<span id="_CPPv3N9sequencer5Tuple7Version6sharedE"></span><span id="_CPPv2N9sequencer5Tuple7Version6sharedE"></span><span id="sequencer::Tuple::Version::shared__b"></span><span class="target" id="structsequencer_1_1Tuple_1_1Version_1a1dc7d1dc0797d4f1585f99dd96ec7627"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">shared</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer5Tuple7Version6sharedE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
 
 </div>
 </dd></dl>
@@ -1468,6 +1754,36 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer4WordE">
 <span id="_CPPv3N9sequencer4WordE"></span><span id="_CPPv2N9sequencer4WordE"></span><span class="target" id="type_8hpp_1a33a196ab43641ddab893275e37d25c9c"></span><span class="k"><span class="pre">using</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Word</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><a class="headerlink" href="#_CPPv4N9sequencer4WordE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Unsigned wasm32 lane used for coordinates, lengths, tokens and addresses. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-enums">Enums</p>
+<dl class="cpp enum-class">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer12FootageStateE">
+<span id="_CPPv3N9sequencer12FootageStateE"></span><span id="_CPPv2N9sequencer12FootageStateE"></span><span class="target" id="type_8hpp_1a3f2da6ed43f4189244289b4b14802ff5"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FootageState</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint8_t</span></span><a class="headerlink" href="#_CPPv4N9sequencer12FootageStateE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>State of the JavaScript array retained by one Footage binding. </p>
+<p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer12FootageState6CallerE">
+<span id="_CPPv3N9sequencer12FootageState6CallerE"></span><span id="_CPPv2N9sequencer12FootageState6CallerE"></span><span class="target" id="type_8hpp_1a3f2da6ed43f4189244289b4b14802ff5a14e7dd71a82eb3c2500ac2687efef82b"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Caller</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer12FootageState6CallerE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer12FootageState7PrivateE">
+<span id="_CPPv3N9sequencer12FootageState7PrivateE"></span><span id="_CPPv2N9sequencer12FootageState7PrivateE"></span><span class="target" id="type_8hpp_1a3f2da6ed43f4189244289b4b14802ff5a47f9082fc380ca62d531096aa1d110f1"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Private</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer12FootageState7PrivateE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer12FootageState8RetainedE">
+<span id="_CPPv3N9sequencer12FootageState8RetainedE"></span><span id="_CPPv2N9sequencer12FootageState8RetainedE"></span><span class="target" id="type_8hpp_1a3f2da6ed43f4189244289b4b14802ff5a3152d729715876babcbb6e064b1ff0d1"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Retained</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer12FootageState8RetainedE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer12FootageState8SnapshotE">
+<span id="_CPPv3N9sequencer12FootageState8SnapshotE"></span><span id="_CPPv2N9sequencer12FootageState8SnapshotE"></span><span class="target" id="type_8hpp_1a3f2da6ed43f4189244289b4b14802ff5ad4e2713d1b1725a1592f9268589f990d"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Snapshot</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer12FootageState8SnapshotE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </div>
@@ -1592,9 +1908,25 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
 <dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer8appendedE">
+<span id="_CPPv3N9sequencer8appendedE"></span><span id="_CPPv2N9sequencer8appendedE"></span><span id="sequencer::appended__std::vector:ContentAppend:"></span><span class="target" id="bindings_8cpp_1adecab6dc0458ba92aa176fbc3ca1c327"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer13ContentAppendE" title="sequencer::ContentAppend"><span class="n"><span class="pre">ContentAppend</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">appended</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer8appendedE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer6copiedE">
+<span id="_CPPv3N9sequencer6copiedE"></span><span id="_CPPv2N9sequencer6copiedE"></span><span id="sequencer::copied__std::vector:Span:"></span><span class="target" id="bindings_8cpp_1aded6d524b787bee50c5828d82968bedc"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4SpanE" title="sequencer::Span"><span class="n"><span class="pre">Span</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">copied</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer6copiedE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N9sequencer4noneE">
 <span id="_CPPv3N9sequencer4noneE"></span><span id="_CPPv2N9sequencer4noneE"></span><span id="sequencer::none__Index"></span><span class="target" id="type_8hpp_1abb090f039f905e222813e08048aee0c4"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9sequencer5IndexE" title="sequencer::Index"><span class="n"><span class="pre">Index</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">none</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer4noneE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Absent Strip link, backed by a zero-initialized sentinel arena entry. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9sequencer8releasedE">
+<span id="_CPPv3N9sequencer8releasedE"></span><span id="_CPPv2N9sequencer8releasedE"></span><span id="sequencer::released__std::vector:Span:"></span><span class="target" id="bindings_8cpp_1af6f52875c7615f6f862c9bd2bd6fb3f4"></span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N9sequencer4SpanE" title="sequencer::Span"><span class="n"><span class="pre">Span</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">released</span></span></span><a class="headerlink" href="#_CPPv4N9sequencer8releasedE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Deferred Footage changes for the current synchronous ABI call. </p>
 </dd></dl>
 
 </div>
@@ -1632,8 +1964,6 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <em>#include “<a class="reference internal" href="#class_8hpp"><span class="std std-ref">../class.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include &lt;algorithm&gt;</em></div>
-<div class="docutils container">
-<em>#include &lt;unordered_map&gt;</em></div>
 <p>Hydrates canonical history and builds its initial visible traversal index. </p>
 </dd></dl>
 
@@ -1914,14 +2244,16 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv414runtime_createNSt8uint32_tENSt8uint32_tE">
-<span id="_CPPv314runtime_createNSt8uint32_tENSt8uint32_tE"></span><span id="_CPPv214runtime_createNSt8uint32_tENSt8uint32_tE"></span><span id="runtime_create__std::uint32_t.std::uint32_t"></span><span class="target" id="bindings_8cpp_1a35aa40c6ac776f746fd3c85d9e2e55d3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">runtime_create</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">id</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">actor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414runtime_createNSt8uint32_tENSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv414runtime_createNSt8uint32_tENSt8uint32_tEbNSt8uint32_tE">
+<span id="_CPPv314runtime_createNSt8uint32_tENSt8uint32_tEbNSt8uint32_tE"></span><span id="_CPPv214runtime_createNSt8uint32_tENSt8uint32_tEbNSt8uint32_tE"></span><span id="runtime_create__std::uint32_t.std::uint32_t.b.std::uint32_t"></span><span class="target" id="bindings_8cpp_1a3e40ea8ddb1e7a5f0004e441ee54e38f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">runtime_create</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">id</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">actor</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">tuple</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">capacity</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414runtime_createNSt8uint32_tENSt8uint32_tEbNSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
 <dd><p>Allocates independent native history in the shared module. </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>id</strong> – JavaScript-assigned Projection handle. </p></li>
 <li><p><strong>actor</strong> – Actor used for Acknowledgements. </p></li>
+<li><p><strong>tuple</strong> – Whether indices identify stable registers. </p></li>
+<li><p><strong>capacity</strong> – Fixed register count, or UINT32_MAX for dynamic growth. </p></li>
 </ul>
 </dd>
 </dl>
@@ -2035,6 +2367,24 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 </dl>
 </dd></dl>
 
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv414runtime_valuesNSt8uint32_tENSt8uint32_tENSt8uint32_tE">
+<span id="_CPPv314runtime_valuesNSt8uint32_tENSt8uint32_tENSt8uint32_tE"></span><span id="_CPPv214runtime_valuesNSt8uint32_tENSt8uint32_tENSt8uint32_tE"></span><span id="runtime_values__std::uint32_t.std::uint32_t.std::uint32_t"></span><span class="target" id="bindings_8cpp_1a01a588336f805278bc8fb6a939017523"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">runtime_values</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">id</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">start</span></span>, <a class="reference internal" href="#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">end</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414runtime_valuesNSt8uint32_tENSt8uint32_tENSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Resolves a visible range without mutation output or input descriptors. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> – Live Projection handle. </p></li>
+<li><p><strong>start</strong> – First included position. </p></li>
+<li><p><strong>end</strong> – Last included position, or UINT32_MAX for the visible end. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Borrowed [span pointer, span count], or nullptr on native failure. </p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 </dd></dl>
 
@@ -2047,6 +2397,8 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <em>#include “<a class="reference internal" href="#components_2FrontierTable_2class_8hpp"><span class="std std-ref">components/FrontierTable/class.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include “<a class="reference internal" href="#components_2PendingTable_2class_8hpp"><span class="std std-ref">components/PendingTable/class.hpp</span></a>”</em></div>
+<div class="docutils container">
+<em>#include “<a class="reference internal" href="#components_2Tuple_2class_8hpp"><span class="std std-ref">components/Tuple/class.hpp</span></a>”</em></div>
 <div class="docutils container">
 <em>#include &lt;cmath&gt;</em></div>
 <div class="docutils container">
@@ -2070,6 +2422,8 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <div class="docutils container">
 <em>#include &lt;algorithm&gt;</em></div>
 <div class="docutils container">
+<em>#include &lt;span&gt;</em></div>
+<div class="docutils container">
 <em>#include &lt;unordered_map&gt;</em></div>
 <div class="docutils container">
 <em>#include &lt;unordered_set&gt;</em></div>
@@ -2086,6 +2440,20 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <em>#include &lt;unordered_map&gt;</em></div>
 <div class="docutils container">
 <em>#include &lt;unordered_set&gt;</em></div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="components_2Tuple_2class_8hpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">class.hpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#components_2ContainmentTable_2class_8hpp"><span class="std std-ref">../ContainmentTable/class.hpp</span></a>”</em></div>
+</dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="class_8cpp"></span><em><span class="pre">file</span></em> <span class="sig-name descname"><span class="pre">class.cpp</span></span></dt>
+<dd><div class="docutils container">
+<em>#include “<a class="reference internal" href="#components_2Tuple_2class_8hpp"><span class="std std-ref">class.hpp</span></a>”</em></div>
 </dd></dl>
 
 <dl>
@@ -2139,6 +2507,11 @@ See <a class="reference external" href="../documents/INTERNALS.html">How Sequenc
 <dl>
 <dt class="sig sig-object cpp">
 <span class="target" id="dir_ed84fc0074c974c5afd12f62e142085a"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">components/PendingTable</span></span></dt>
+<dd></dd></dl>
+
+<dl>
+<dt class="sig sig-object cpp">
+<span class="target" id="dir_0d1f9cfccb16bbfa3331ffe38a0a6733"></span><em><span class="pre">dir</span></em> <span class="sig-name descname"><span class="pre">components/Tuple</span></span></dt>
 <dd></dd></dl>
 
 <dl>

@@ -70,7 +70,7 @@ Sequence Projection::sequence() const {
   Sequence output;
   // Eligibility is a capacity hint; the writer promotes only at 64 actually retained roots.
   const auto eligible = containment.size() >= 64;
-  const auto count = tuple ? Word(tuple->versions.size() - 1) : structural_count;
+  const auto count = tuple ? Word(tuple->versions.size()) : structural_count;
   output.words.reserve(1 + count * (eligible ? 3 : 6));
   output.footage.reserve(std::min(count, containment.size()));
   output.words.push_back(0);
@@ -92,14 +92,17 @@ Sequence Projection::sequence() const {
   SnapshotWords writer{output.words, {}, 0, false, eligible};
   constexpr auto omitted = std::numeric_limits<Word>::max();
   if (tuple) {
-    for (Index index = 1; index < tuple->versions.size(); ++index) {
+    for (Index index = 0; index < tuple->versions.size(); ++index) {
       const auto &insertion = tuple->versions[index];
       const auto &c = insertion.coordinates;
       if (removed.contains(c.diff > 0 ? identity(c.session, c.start)
                                       : identity(c.anchor_session, c.anchor_start)))
         continue;
-      if (c.diff > 0)
+      if (c.diff > 0) {
+        if (output.footage.empty())
+          output.shared_root = index + 1;
         output.footage.push_back({insertion.content, insertion.content_start, 1});
+      }
       writer.append(c);
     }
   }
@@ -121,6 +124,8 @@ Sequence Projection::sequence() const {
     if (first) {
       auto exported = c;
       auto &footage = output.footage;
+      if (c.diff > 0 && footage.empty())
+        output.shared_root = s;
       // Compaction can collapse distinct historical points. Re-anchor positive
       // roots along their resolved retained order rather than recomputing sibling competition.
       if (c.diff > 0 && !compactable.empty()) {
@@ -154,8 +159,6 @@ Sequence Projection::sequence() const {
         exported.diff +=
             std::int32_t(before(target, c.anchor_diff - c.diff) - before(target, c.anchor_diff));
       } else if (c.diff > 0) {
-        if (footage.empty())
-          output.shared_root = s;
         footage.push_back(
             {strips.identity[s].content, strips.identity[s].content_start, Word(c.diff)});
       }

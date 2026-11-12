@@ -8,6 +8,10 @@ the relevant reports.
 
 ## Optimization rounds
 
+[11 November 2026: smaller snapshot input and direct range reads](optimizations_2026_11_11/README.md),
+[complete API comparison](optimizations_2026_11_11/performance.md)
+and [follow-up measurements](optimizations_2026_11_11/measurements.md).
+
 [10–11 November 2026: smaller runtime state and direct endpoint lookup](optimizations_2026_11_10/competitive/README.md),
 [complete API comparison](optimizations_2026_11_10/competitive/performance.md)
 and [rejected traversal indices](optimizations_2026_11_10/traversal_attempts.md).

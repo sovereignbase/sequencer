@@ -137,7 +137,12 @@ public:
    * @return Canonical Gossip operation, including only the suffix for an extension.
    */
   Insertion insert(Word count, Word content, Word at);
-  /** Authors one Insertion per stable tuple index, or one contiguous sequence Insertion. */
+  /** Authors one Insertion per stable tuple index, or one contiguous sequence Insertion.
+   * @param count Number of Frames to insert.
+   * @param content JavaScript Footage binding token.
+   * @param at First tuple index or visible insertion boundary.
+   * @return Authored Insertions in Frame order.
+   */
   Gossip insert_batch(Word count, Word content, Word at);
   /** Appends a contiguous logical suffix while respecting remote fragmentation.
    * @param origin Existing positive canonical root.
@@ -165,16 +170,6 @@ public:
    * @return Gossip preserving removal-before-insertion order.
    */
   Gossip replace(Word count, Word content, Word start, std::int64_t end);
-  /** Integrates canonical operations and releases newly satisfied dependencies.
-   * @param gossip Already read native entries; transport validation occurs at the ABI.
-   * @return Ordered visible Splices and Gossip containing Acknowledgements.
-   */
-  Result apply(std::span<const Entry> gossip);
-  /** Integrates operations into retained output storage without clearing existing results.
-   * @param gossip Already read native entries.
-   * @param result Output to append to, allowing one Result across an entire ABI batch.
-   */
-  void apply(std::span<const Entry> gossip, Result &result);
   /** Integrates one Insertion and any dependencies released by it.
    * @param insertion Canonical Insertion already validated at the ABI.
    * @param result Output to append to.
@@ -184,19 +179,15 @@ public:
    * @param insertions Canonical Insertions in exported Structural Order.
    * @param frontiers Retained Actor Acknowledgements.
    */
-  void hydrate(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers);
+  void hydrate(std::span<const Insertion> insertions,
+               const std::vector<Acknowledgement> &frontiers);
   /** Integrates snapshot history and then observes its retained Acknowledgements.
    * @param insertions Canonical snapshot Insertions.
    * @param frontiers Snapshot Acknowledgements.
    * @return Visible Splices and Gossip containing Acknowledgements for newly integrated history.
    */
-  Result merge(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers);
-  /** Resolves an inclusive visible range to JavaScript Footage spans.
-   * @param start First included Projection position.
-   * @param end Last included position.
-   * @return Ordered positive spans; masks contribute no values.
-   */
-  std::vector<Span> values(Word start, Word end);
+  Result merge(std::span<const Insertion> insertions,
+               const std::vector<Acknowledgement> &frontiers);
   /** Reuses output capacity while resolving an inclusive visible range.
    * @param start First included Projection position.
    * @param end Last included position.

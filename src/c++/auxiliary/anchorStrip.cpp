@@ -149,15 +149,14 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point,
         strips.left_jump[strips.right_jump[head]] = none;
         strips.right_jump[head] = none;
       }
-      head = strips.right[head];
+      head = diff <= 0 && strips.right_jump[head] ? strips.right_jump[head] : strips.right[head];
     }
     while (tail && strips.fragment_diff[tail] <= 0) {
       if (strips.left_jump[tail] && strips.left_jump_frames[tail] > 0) {
         strips.right_jump[strips.left_jump[tail]] = none;
         strips.left_jump[tail] = none;
       }
-      tail = strips.left_jump[tail] && !strips.left_jump_frames[tail] ? strips.left_jump[tail]
-                                                                      : strips.left[tail];
+      tail = strips.left_jump[tail] ? strips.left_jump[tail] : strips.left[tail];
     }
     ++structural_count;
     frame_count += diff;

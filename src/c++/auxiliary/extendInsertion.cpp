@@ -15,7 +15,10 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
     last = strips.fragment[last];
   // Native state retains one content token. JavaScript appends the new suffix
   // after public Splices have read it, then releases its temporary source binding.
-  appended.push_back({original.content, content, source_start, count, end, original.content_start});
+  // An original positive extent fits 31 bits; its high bit requests a private JS copy.
+  const auto target = end | (original.footage_state == FootageState::Private ? 0 : 0x80000000u);
+  appended.push_back(
+      {original.content, content, source_start, count, target, original.content_start});
   if (content)
     released.push_back({content, 0, 0});
   const auto next = strips.right[last];
@@ -41,6 +44,7 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
       strips.identity[fragment].coordinates.diff += std::int32_t(count);
       strips.identity[fragment].content_start = 0;
       strips.identity[fragment].content_owned = true;
+      strips.identity[fragment].footage_state = FootageState::Private;
     }
     return at;
   }
@@ -53,6 +57,7 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
   grown.coordinates.diff += std::int32_t(count);
   grown.content_start = 0;
   grown.content_owned = true;
+  grown.footage_state = FootageState::Private;
   const auto incoming = allocate(grown);
   strips.fragment_start[incoming] = end;
   strips.fragment_diff[incoming] = std::int32_t(count);
@@ -72,6 +77,7 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
     strips.identity[fragment].coordinates.diff = grown.coordinates.diff;
     strips.identity[fragment].content_start = 0;
     strips.identity[fragment].content_owned = true;
+    strips.identity[fragment].footage_state = FootageState::Private;
     strips.identity[fragment].fragmented = true;
   }
   // All fragments share the grown original extent and the rebased private Footage array.

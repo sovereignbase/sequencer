@@ -5,24 +5,27 @@
 #include "../auxiliary/linkJumps.hpp"
 #include "../class.hpp"
 #include <algorithm>
-#include <unordered_map>
 
 namespace sequencer {
-void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledgement> &frontiers) {
+void Projection::hydrate(std::span<const Insertion> insertions,
+                         const std::vector<Acknowledgement> &frontiers) {
   for (const auto &a : frontiers)
     frontier.observe(a);
   if (insertions.empty())
     return;
   if (tuple) {
-    tuple->versions.reserve(tuple->versions.size() + insertions.size());
+    // Leave one slot for the next authored Version after hydration.
+    tuple->versions.reserve(tuple->versions.size() + insertions.size() + 1);
     containment.reserve(Word(insertions.size()));
-    apply(insertions);
+    Result result;
+    for (const auto &insertion : insertions)
+      apply(insertion, result);
     // Keep retained claims after Acknowledgements emitted during reconstruction.
     for (const auto &a : frontiers)
       frontier.observe(a);
     return;
   }
-  const auto &first = insertions.front().insertion;
+  const auto &first = insertions.front();
   if (insertions.size() == 1 && first.coordinates.birth() && first.coordinates.diff > 0) {
     // One positive root has no dependencies, fragments or jumps to reconstruct.
     const auto root = allocate(first);
@@ -32,11 +35,12 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
   }
   strips.reserve(Word(insertions.size()) + 1);
   containment.reserve(Word(insertions.size()));
-  std::unordered_map<Index, Index> fragments;
+  // Jumps are built only after hydration. Their unused right-distance lane
+  // retains the last resolved fragment of each canonical root during this pass.
   std::vector<Insertion> ready;
   for (std::size_t n = 0; n < insertions.size() || !ready.empty();) {
     const auto queued = !ready.empty();
-    const auto insertion = queued ? ready.back() : insertions[n++].insertion;
+    const auto insertion = queued ? ready.back() : insertions[n++];
     if (queued)
       ready.pop_back();
     const auto c = insertion.coordinates;
@@ -65,9 +69,9 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
       if (!c.birth()) {
         // Structural Order often visits increasing boundaries of one parent;
         // reuse its last resolved fragment only when the new boundary lies to its right.
-        const auto known = fragments.find(origin);
-        const auto fragment =
-            strips.fragment[origin] && known != fragments.end() ? known->second : origin;
+        const auto fragment = strips.fragment[origin] && strips.right_jump_strips[origin]
+                                  ? strips.right_jump_strips[origin]
+                                  : origin;
         const auto resolved = find_containing_fragment(
             c.anchor_diff > strips.fragment_start[fragment] ? fragment : origin, c, incoming);
         point = resolved.first;
@@ -76,7 +80,7 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
             strips.identity[anchor].coordinates.session ==
                 strips.identity[origin].coordinates.session &&
             strips.identity[anchor].coordinates.start == strips.identity[origin].coordinates.start)
-          fragments[origin] = anchor;
+          strips.right_jump_strips[origin] = anchor;
       }
       anchor_strip(incoming, anchor, point, false);
     }
@@ -96,6 +100,7 @@ void Projection::hydrate(const Gossip &insertions, const std::vector<Acknowledge
   Index visible_head = none, visible_tail = none;
   Word jump_frames = 0, jump_strips = 0;
   for (auto cursor = structural_head; cursor;) {
+    strips.right_jump_strips[cursor] = 0;
     const auto diff = strips.fragment_diff[cursor];
     if (diff > 0) {
       if (!visible_head) {

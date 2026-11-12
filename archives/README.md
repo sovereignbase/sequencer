@@ -8,6 +8,8 @@ the relevant reports.
 
 ## Optimization rounds
 
+[12 November 2026: removal, replicated placement and arena ownership](optimizations_2026_11_12/README.md).
+
 [11 November 2026: smaller snapshot input and direct range reads](optimizations_2026_11_11/README.md),
 [complete API comparison](optimizations_2026_11_11/performance.md)
 and [follow-up measurements](optimizations_2026_11_11/measurements.md).

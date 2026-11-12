@@ -1,5 +1,6 @@
 #pragma once
 #include "../../types/type.hpp"
+#include <span>
 
 namespace sequencer {
 /** Maps exact canonical identities to roots; runtime fragments are not separate identities. */
@@ -10,8 +11,9 @@ class ContainmentTable {
     Index strip{};
   };
   // Power-of-two capacity permits masked probing; entries are never erased from live history.
-  std::vector<Slot> slots;
+  std::unique_ptr<Slot[]> slots;
   Word count{};
+  std::size_t mask{}; /**< Slot count minus one; zero denotes empty storage. */
   /** Mixes both identity lanes for placement; exact comparison still resolves collisions. */
   static Word hash(Word session, Word start) {
     Word h = session * 0x9e3779b9u + start;
@@ -25,21 +27,22 @@ public:
    * @param capacity Required identity capacity, excluding fragments.
    */
   void reserve(Word capacity) {
-    if (std::size_t(capacity) * 4 <= slots.size() * 3)
+    if (std::size_t(capacity) * 4 <= (mask + 1) * 3)
       return;
-    auto size = std::max(std::size_t(8), slots.size());
+    auto size = std::max(std::size_t(8), mask + 1);
     while (std::size_t(capacity) * 4 > size * 3)
       size *= 2;
-    std::vector<Slot> grown(size);
-    const auto mask = Word(grown.size() - 1);
-    for (const auto &slot : slots)
+    auto grown = std::make_unique<Slot[]>(size);
+    const auto grown_mask = size - 1;
+    for (const auto &slot : std::span(slots.get(), mask ? mask + 1 : 0))
       if (slot.strip) {
-        auto at = hash(slot.session, slot.start) & mask;
+        auto at = hash(slot.session, slot.start) & grown_mask;
         while (grown[at].strip)
-          at = (at + 1) & mask;
+          at = (at + 1) & grown_mask;
         grown[at] = slot;
       }
     slots = std::move(grown);
+    mask = grown_mask;
   }
   /** Counts materialized canonical identities.
    * @return Root count, excluding fragments and pending operations.
@@ -51,9 +54,8 @@ public:
    * @return Canonical root index, or none when not materialized.
    */
   Index get(Word session, Word start) const {
-    if (slots.empty())
+    if (!mask)
       return none;
-    const auto mask = Word(slots.size() - 1);
     for (auto at = hash(session, start) & mask; slots[at].strip; at = (at + 1) & mask)
       if (slots[at].session == session && slots[at].start == start)
         return slots[at].strip;
@@ -70,9 +72,8 @@ public:
    */
   void set(const Coordinates &c, Index strip) {
     // Retain an empty probe slot by growing before the table exceeds 75% occupancy.
-    if ((count + 1) * 4 > slots.size() * 3)
+    if ((count + 1) * 4 > (mask + 1) * 3)
       reserve(count + 1);
-    const auto mask = Word(slots.size() - 1);
     auto at = hash(c.session, c.start) & mask;
     while (slots[at].strip && (slots[at].session != c.session || slots[at].start != c.start))
       at = (at + 1) & mask;

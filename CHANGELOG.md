@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.5](https://github.com/sovereignbase/sequencer/compare/v1.2.4...v1.2.5) (2026-11-12)
+
+
+### Performance Improvements
+
+* reduce identity table memory footprint ([d3108d5](https://github.com/sovereignbase/sequencer/commit/d3108d5d38fd4993ee08393c78a2771429b8e013))
+
 ## [1.2.4](https://github.com/sovereignbase/sequencer/compare/v1.2.3...v1.2.4) (2026-11-12)
 
 

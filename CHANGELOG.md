@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.4](https://github.com/sovereignbase/sequencer/compare/v1.2.3...v1.2.4) (2026-11-12)
+
+
+### Performance Improvements
+
+* optimize snapshot handling and reduce tuple memory ([9c3d92a](https://github.com/sovereignbase/sequencer/commit/9c3d92afbd87cb729e4414107da9f1df8b500ae7))
+
 ## [1.2.3](https://github.com/sovereignbase/sequencer/compare/v1.2.2...v1.2.3) (2026-11-10)
 
 

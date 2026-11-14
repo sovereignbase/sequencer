@@ -1,0 +1,1 @@
+Sequencer currently splits strings into individual characters before insertion, making bulk string operations unnecessarily expensive. A possible solution is to split strings on demand instead, using string-based strips in the underlying footage. This would require changes to both the storage structure and how text and array projections handle strips.

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.6](https://github.com/sovereignbase/sequencer/compare/v1.2.5...v1.2.6) (2026-11-14)
+
+
+### Performance Improvements
+
+* reduce traversal overhead and projection memory ([9d09a53](https://github.com/sovereignbase/sequencer/commit/9d09a53c0894c8585f7a255fc30fefa243fb9e47))
+
 ## [1.2.5](https://github.com/sovereignbase/sequencer/compare/v1.2.4...v1.2.5) (2026-11-12)
 
 

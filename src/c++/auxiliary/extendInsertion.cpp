@@ -34,12 +34,8 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
     gate = last;
     gate_position = at - Word(strips.fragment_diff[last]);
     strips.fragment_diff[last] += std::int32_t(count);
+    traversal.update(strips, last, strips.fragment_diff[last] - std::int32_t(count));
     frame_count += count;
-    const auto right = strips.right_jump[last];
-    if (right) {
-      strips.right_jump_frames[last] += count;
-      strips.left_jump_frames[right] += count;
-    }
     for (auto fragment = origin; fragment; fragment = strips.fragment[fragment]) {
       strips.identity[fragment].coordinates.diff += std::int32_t(count);
       strips.identity[fragment].content_start = 0;
@@ -72,6 +68,7 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
   if (!tail || !right || left == tail)
     tail = incoming;
   ++structural_count;
+  traversal.insert(strips, structural_head, structural_count, incoming);
   frame_count += count;
   for (auto fragment = origin; fragment; fragment = strips.fragment[fragment]) {
     strips.identity[fragment].coordinates.diff = grown.coordinates.diff;
@@ -82,7 +79,6 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
   }
   // All fragments share the grown original extent and the rebased private Footage array.
   strips.fragment[last] = incoming;
-  patch_jumps(std::int32_t(count), 1, incoming);
   const auto at = position_of(incoming, std::int32_t(count));
   if (gate && at <= gate_position)
     gate_position += count;

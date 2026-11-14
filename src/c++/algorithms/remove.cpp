@@ -43,9 +43,7 @@ Gossip Projection::remove(Word start, std::int64_t end) {
                   decrease_clock[1],
                   -std::int32_t(count)};
     const auto incoming = allocate({c, 0});
-    const auto previous_count = structural_count;
     anchor_strip(incoming, anchor, point);
-    patch_jumps(c.diff, structural_count - previous_count, incoming);
     containment.set(c, incoming);
     if (start == gate_position)
       gate = incoming;

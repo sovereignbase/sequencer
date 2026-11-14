@@ -1,10 +1,12 @@
 #pragma once
+#include "../components/Traversal/layout.hpp"
 #include <algorithm>
 #include <array>
 #include <bit>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -147,7 +149,8 @@ struct Sequence {
  * hot fragment/link fields use indexed lanes. Growth preserves indices, not pointers.
  */
 struct Strips {
-  /** Owning allocation containing identities and twelve word lanes. */
+  static constexpr Word lanes = 8;
+  /** One allocation for identities, node lanes and the traversal directory. */
   std::unique_ptr<std::byte[]> memory;
   Word count{} /**< Allocated slots, including the absent-link sentinel. */,
       capacity{} /**< Slots available in each lane. */;
@@ -161,22 +164,23 @@ struct Strips {
       *right{} /**< Next Strip in Structural Order. */,
       *competitor{} /**< Next smaller sibling using the exact same anchor triple. */,
       *fragment{} /**< Next materialized fragment of the same canonical Insertion. */,
-      *left_jump{} /**< Left endpoint of a bidirectional traversal jump. */,
-      *right_jump{} /**< Right endpoint of a bidirectional traversal jump. */;
-  Word *left_jump_frames{} /**< Visible distance to the left jump endpoint. */,
-      *left_jump_strips{} /**< Structural steps to the left jump endpoint. */,
-      *right_jump_frames{} /**< Visible distance to the right jump endpoint. */,
-      *right_jump_strips{} /**< Structural steps to the right jump endpoint. */;
+      *block_root{} /**< Stable directory identity shared by the nodes in one block. */;
+  /** Last proven endpoint of each positive Strip's causal subtree. */
+  Index *subtree_tail{};
 
   /** Grows every lane together, preserving initialized slots and stable indices.
    * @param next Required arena capacity; existing capacity is retained when sufficient.
+   * @return Former arena, kept alive until borrowed traversal views are rebound.
    */
-  void reserve(Word next) {
+  std::unique_ptr<std::byte[]> reserve(Word next) {
     if (next <= capacity)
-      return;
-    constexpr Word lanes = 12;
-    auto grown = std::make_unique_for_overwrite<std::byte[]>(
-        (sizeof(Insertion) + lanes * sizeof(Word)) * next);
+      return {};
+    const auto bytes =
+        std::uint64_t(sizeof(Insertion) + lanes * sizeof(Word)) * next +
+        std::uint64_t(TraversalLayout::words(TraversalLayout::capacity(next))) * sizeof(Word);
+    if (bytes > std::numeric_limits<std::size_t>::max())
+      throw std::bad_alloc();
+    auto grown = std::make_unique_for_overwrite<std::byte[]>(std::size_t(bytes));
     auto *identities = reinterpret_cast<Insertion *>(grown.get());
     auto *fields = reinterpret_cast<Word *>(identities + next);
     // Copy only constructed slots. Lane spacing changes with capacity, so one
@@ -188,6 +192,7 @@ struct Strips {
         std::memcpy(fields + field * next, old + field * capacity, count * sizeof(Word));
     }
     // Every cached lane pointer belongs to the new allocation after this commit.
+    auto previous = std::move(memory);
     memory = std::move(grown);
     capacity = next;
     identity = identities;
@@ -197,24 +202,18 @@ struct Strips {
     right = fields + 3 * next;
     competitor = fields + 4 * next;
     fragment = fields + 5 * next;
-    left_jump = fields + 6 * next;
-    right_jump = fields + 7 * next;
-    left_jump_frames = fields + 8 * next;
-    left_jump_strips = fields + 9 * next;
-    right_jump_frames = fields + 10 * next;
-    right_jump_strips = fields + 11 * next;
+    block_root = fields + 6 * next;
+    subtree_tail = fields + 7 * next;
     // Slot zero is needed only once history exists; empty Projections own no arena.
     if (!count)
       append({});
+    return previous;
   }
-  /** Adds an unlinked Strip initialized with its original signed Frame effect.
+  /** Adds an unlinked Strip to a reserved slot with its original signed Frame effect.
    * @param insertion Canonical Insertion and binding reference.
    * @return Stable arena index, unaffected by subsequent growth.
    */
   Index append(Insertion insertion) {
-    constexpr Word lanes = 12;
-    if (count == capacity)
-      reserve(std::max(Word(2), capacity * 2));
     const auto index = count++;
     insertion.fragmented = insertion.offset = false;
     std::construct_at(identity + index, insertion);

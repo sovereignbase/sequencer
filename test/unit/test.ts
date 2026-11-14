@@ -122,6 +122,29 @@ describe('Projection public API', () => {
       expect(projection.length()).toBe(2)
       expect(projection.value(0)).toBeUndefined()
     })
+    it('extends retained Footage with omitted suffix Frames', () => {
+      const projection = new Projection<string>(1)
+      let restored: Projection<string> | undefined
+      try {
+        projection.apply([
+          [
+            [0, 0, 0, 100, 0, 2],
+            ['a', 'b'],
+          ],
+        ])
+        expect(projection.apply([[[100, 0, 2, 100, 2, 2]]])).toEqual([
+          [[2, 2, new Array(2)]],
+        ])
+        const expected = ['a', 'b', undefined, undefined]
+        expect(projection.length()).toBe(4)
+        expect(projection.values()).toEqual(expected)
+        restored = new Projection<string>(2, projection.sequence())
+        expect(restored.values()).toEqual(expected)
+      } finally {
+        restored?.destroy()
+        projection.destroy()
+      }
+    })
     it('preserves missing Footage through extensions, partial removal and snapshot replay', () => {
       const projection = new Projection<string>(1)
       projection.apply([
@@ -543,6 +566,23 @@ describe('Projection public API', () => {
   })
   // Inclusive ranges return new arrays while preserving identities of application values.
   describe('values', () => {
+    it('reads sparse Footage beyond the signed index boundary', () => {
+      const footage = new Array<string>(0x80000001)
+      footage[0x7fffffff] = 'a'
+      footage[0x80000000] = 'b'
+      const projection = new Projection<string>(1, [
+        [1, 0, 0, 0, 100, 0, 0x7fffffff, 100, 0, 0x7fffffff, 200, 0, 2],
+        footage,
+      ])
+      try {
+        expect(projection.length()).toBe(0x80000001)
+        expect(projection.values(0x7fffffff, 0x80000000)).toEqual(['a', 'b'])
+        expect(projection.values(0x80000000, 0x80000000)).toEqual(['b'])
+      } finally {
+        projection.destroy()
+      }
+    })
+
     it('returns all values by default and an inclusive range when supplied', () => {
       const projection = seeded()
       expect(projection.values()).toEqual(['a', 'b', 'c'])

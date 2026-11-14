@@ -6,7 +6,8 @@ coordinates occupy exactly six uint32 words, with signed Frame effects interpret
 in C++.
 
 - `algorithms/` contains individual public operations.
-- `auxiliary/` contains anchoring, fragmentation, traversal and jump helpers.
+- `auxiliary/` contains anchoring, fragmentation and position helpers.
+- `components/Traversal/` indexes visible positions with weights in the Strip arena.
 - `components/ContainmentTable/` indexes canonical Insertion identities.
 - `components/PendingTable/` retains Insertions awaiting their parent identity or extent.
 - `components/FrontierTable/` tracks Acknowledgements and retired Actors.

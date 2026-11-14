@@ -3,7 +3,6 @@
  * Integrates canonical history while preserving local traversal and consumer Splice
  * order.
  */
-#include "../auxiliary/linkJumps.hpp"
 #include "../class.hpp"
 #include <algorithm>
 
@@ -156,11 +155,6 @@ void Projection::apply(const Insertion &entry, Result &result) {
       // fragment.
       if (diff > 0 && gate && strips.identity[gate].fragmented && !strips.fragment_diff[gate]) {
         gate = strips.fragment[gate];
-        const auto right = strips.right_jump[incoming];
-        if (right && right != gate)
-          link_jumps(*this, gate, right, strips.right_jump_frames[incoming] - diff,
-                     strips.right_jump_strips[incoming] - 1);
-        link_jumps(*this, incoming, gate, Word(diff), 1);
       }
     }
     containment.set(c, incoming);

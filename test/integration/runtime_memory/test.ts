@@ -53,6 +53,39 @@ describe('runtime memory', () => {
     }
   })
 
+  it('releases first-write Footage while another instance remains empty', () => {
+    const empty = new Projection<number>(7)
+    const edited = new Projection<number>(8)
+    try {
+      expect(empty.apply(null as never)).toBeUndefined()
+      edited.insert(new Array<number>(32).fill(1), 0)
+      const withContent = runtime.memory().javascriptBytes
+      edited.destroy()
+      expect(runtime.memory().javascriptBytes).toBeLessThanOrEqual(
+        withContent - 32 * 8
+      )
+      expect(empty.values()).toEqual([])
+      empty.insert([2], 0)
+      expect(empty.values()).toEqual([2])
+    } finally {
+      empty.destroy()
+      edited.destroy()
+    }
+  })
+
+  it('does not allocate missing Footage slots when removing an omitted Frame', () => {
+    const projection = new Projection<string>(4)
+    try {
+      projection.apply([[[0, 0, 0, 100, 0, 4], ['a']]])
+      const before = runtime.memory().javascriptBytes
+      projection.remove(3, 3)
+      expect(runtime.memory().javascriptBytes).toBe(before)
+      expect(projection.values()).toEqual(['a', undefined, undefined])
+    } finally {
+      projection.destroy()
+    }
+  })
+
   it.each([false, true])(
     'releases empty replacement bindings (tuple: %s)',
     (tuple) => {

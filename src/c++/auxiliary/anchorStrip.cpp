@@ -32,12 +32,6 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point,
   std::int32_t total = 0;
   const auto first = incoming;
   while (true) {
-    // A continuation can alter a different jump span from the first mask.
-    // Make its parent an endpoint before consuming that fragment's Frames.
-    if (index_fragments && incoming != first && !strips.left_jump[anchor] &&
-        !strips.right_jump[anchor])
-      position_of(anchor, 0, false);
-    const auto previous_count = structural_count;
     auto left = anchor;
     Index right = none;
     auto diff = strips.fragment_diff[incoming];
@@ -57,7 +51,7 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point,
     if (anchor) {
       right = point == strips.fragment_start[anchor] + magnitude(strips.fragment_diff[anchor])
                   ? strips.right[anchor]
-                  : split_strip(anchor, point, diff);
+                  : split_strip(anchor, point, diff, index_fragments);
     } else
       right = structural_head;
     const auto c = strips.identity[incoming].coordinates;
@@ -137,31 +131,42 @@ std::int32_t Projection::anchor_strip(Index incoming, Index anchor, Word point,
       structural_head = incoming;
     if (right)
       strips.left[right] = incoming;
+    ++structural_count;
+    if (index_fragments)
+      traversal.insert(strips, structural_head, structural_count, incoming);
     if (diff > 0) {
       if (!head || !left || right == head)
         head = incoming;
       if (!tail || !right || left == tail)
         tail = incoming;
     }
-    // Visible endpoints exclude hidden history; jumps crossing newly hidden endpoints are detached.
-    while (head && strips.fragment_diff[head] <= 0) {
-      if (strips.right_jump[head] && strips.right_jump_frames[head] > 0) {
-        strips.left_jump[strips.right_jump[head]] = none;
-        strips.right_jump[head] = none;
-      }
-      head = diff <= 0 && strips.right_jump[head] ? strips.right_jump[head] : strips.right[head];
-    }
-    while (tail && strips.fragment_diff[tail] <= 0) {
-      if (strips.left_jump[tail] && strips.left_jump_frames[tail] > 0) {
-        strips.right_jump[strips.left_jump[tail]] = none;
-        strips.left_jump[tail] = none;
-      }
-      tail = strips.left_jump[tail] ? strips.left_jump[tail] : strips.left[tail];
-    }
-    ++structural_count;
     frame_count += diff;
-    if (index_fragments && incoming != first)
-      patch_jumps(diff, structural_count - previous_count, incoming);
+    // Only visible endpoints require discovery; hidden history remains linked.
+    if (index_fragments) {
+      if (!frame_count)
+        head = tail = none;
+      else if (head && frame_count == Word(strips.fragment_diff[head]))
+        tail = head;
+      else if (tail && frame_count == Word(strips.fragment_diff[tail]))
+        head = tail;
+      else {
+        if (!head || strips.fragment_diff[head] <= 0) {
+          traversal.prepare(strips, structural_head, structural_count);
+          head = traversal.find(strips, structural_head, 0, frame_count).first;
+        }
+        if (!tail || strips.fragment_diff[tail] <= 0) {
+          traversal.prepare(strips, structural_head, structural_count);
+          tail = traversal.find(strips, structural_head, frame_count - 1, frame_count).first;
+        }
+      }
+    } else {
+      while (head && strips.fragment_diff[head] <= 0)
+        head = strips.right[head];
+      if (diff < 0 && incoming == first && frame_count == Word(strips.fragment_diff[head]))
+        tail = head;
+      while (tail && strips.fragment_diff[tail] <= 0)
+        tail = strips.left[tail];
+    }
     total += diff;
     const auto next =
         anchor && strips.identity[anchor].coordinates.diff > 0 ? strips.fragment[anchor] : none;

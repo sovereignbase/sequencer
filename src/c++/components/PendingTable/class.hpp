@@ -1,8 +1,7 @@
 #pragma once
 #include "../../types/type.hpp"
-#include <algorithm>
 #include <unordered_map>
-#include <unordered_set>
+#include <utility>
 
 namespace sequencer {
 /** Holds canonical operations until their parent's required logical extent exists. */

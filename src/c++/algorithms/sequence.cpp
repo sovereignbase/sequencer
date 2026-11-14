@@ -7,10 +7,9 @@
 #include "../class.hpp"
 #include <algorithm>
 #include <limits>
-#include <unordered_map>
 
 namespace sequencer {
-Sequence Projection::sequence() const {
+void Projection::sequence(Sequence &output) const {
   const auto compactable = frontier.compactable();
   // Original Frame deletion map, converted in place to removed-prefix counts during export.
   struct Removed {
@@ -27,12 +26,14 @@ Sequence Projection::sequence() const {
       return frames.empty() ? 0 : frames[std::min<std::size_t>(at, frames.size()) - 1];
     }
   };
-  std::unordered_map<std::uint64_t, Removed> removed;
+  ContainmentTable removed;
+  std::vector<Removed> deletions;
   if (tuple && !compactable.empty()) {
     for (const auto &version : tuple->versions) {
       const auto &c = version.coordinates;
-      if (c.diff < 0 && compactable.contains(c.session))
-        removed[identity(c.anchor_session, c.anchor_start)].whole = 1;
+      if (c.diff < 0 && compactable.contains(c.session) &&
+          !removed.get(c.anchor_session, c.anchor_start))
+        removed.set({.session = c.anchor_session, .start = c.anchor_start}, 1);
     }
   }
   // Collect actual consumed mask fragments, not authored lengths: overlapping
@@ -45,8 +46,14 @@ Sequence Projection::sequence() const {
       if (diff >= 0 || !compactable.contains(c.session))
         continue;
       const auto start = c.anchor_diff + strips.fragment_start[s];
-      auto [it, added] = removed.try_emplace(identity(c.anchor_session, c.anchor_start));
-      auto &frames = it->second;
+      auto index = removed.get(c.anchor_session, c.anchor_start);
+      const auto added = !index;
+      if (added) {
+        deletions.emplace_back();
+        index = Word(deletions.size());
+        removed.set({.session = c.anchor_session, .start = c.anchor_start}, index);
+      }
+      auto &frames = deletions[index - 1];
       if (added) {
         const auto parent = containment.get(c.anchor_session, c.anchor_start);
         const auto count = Word(strips.identity[parent].coordinates.diff);
@@ -61,18 +68,25 @@ Sequence Projection::sequence() const {
     }
   }
   const auto removed_frames = [&](Word session, Word start) -> Removed * {
-    const auto it = removed.find(identity(session, start));
-    return it == removed.end() ? nullptr : &it->second;
+    const auto index = removed.get(session, start);
+    return index ? &deletions[index - 1] : nullptr;
   };
   const auto before = [](const Removed *frames, Word at) {
     return frames ? frames->before(at) : 0;
   };
-  Sequence output;
   // Eligibility is a capacity hint; the writer promotes only at 64 actually retained roots.
   const auto eligible = containment.size() >= 64;
   const auto count = tuple ? Word(tuple->versions.size()) : structural_count;
-  output.words.reserve(1 + count * (eligible ? 3 : 6));
-  output.footage.reserve(std::min(count, containment.size()));
+  const auto words = 1 + count * (eligible ? 3 : 6);
+  const auto spans = std::min(count, containment.size());
+  // Reuse fitting buffers without retaining capacity from a larger previous snapshot.
+  if (output.words.capacity() > words || output.footage.capacity() > spans)
+    output = {};
+  output.words.clear();
+  output.footage.clear();
+  output.shared_root = none;
+  output.words.reserve(words);
+  output.footage.reserve(spans);
   output.words.push_back(0);
   // Keep Actor admission even when all of its compactable Session pairs disappear.
   for (const auto &a : frontier.frontiers()) {
@@ -95,8 +109,8 @@ Sequence Projection::sequence() const {
     for (Index index = 0; index < tuple->versions.size(); ++index) {
       const auto &insertion = tuple->versions[index];
       const auto &c = insertion.coordinates;
-      if (removed.contains(c.diff > 0 ? identity(c.session, c.start)
-                                      : identity(c.anchor_session, c.anchor_start)))
+      if (removed.get(c.diff > 0 ? c.session : c.anchor_session,
+                      c.diff > 0 ? c.start : c.anchor_start))
         continue;
       if (c.diff > 0) {
         if (output.footage.empty())
@@ -132,7 +146,7 @@ Sequence Projection::sequence() const {
         exported.anchor_session = left == omitted ? 0 : left_session;
         exported.anchor_start = left == omitted ? 0 : left_start;
         exported.anchor_diff = left_diff;
-      } else if (c.diff < 0 && !removed.empty()) {
+      } else if (c.diff < 0 && removed.size()) {
         exported.anchor_diff -=
             before(removed_frames(c.anchor_session, c.anchor_start), c.anchor_diff);
       }
@@ -153,7 +167,7 @@ Sequence Projection::sequence() const {
           frames->frames[n] = count;
         }
         exported.diff -= std::int32_t(count);
-      } else if (c.diff < 0 && !removed.empty()) {
+      } else if (c.diff < 0 && removed.size()) {
         // Retained masks cover only the target Frames left after acknowledged deletion.
         const auto *target = removed_frames(c.anchor_session, c.anchor_start);
         exported.diff +=
@@ -182,9 +196,9 @@ Sequence Projection::sequence() const {
       left_session = c.session;
       left_start = c.start;
       left_diff = strips.fragment_start[s] + magnitude(strips.fragment_diff[s]);
-      if (!removed.empty() && c.diff > 0)
+      if (removed.size() && c.diff > 0)
         left_diff -= before(frames, left_diff);
-      else if (!removed.empty()) {
+      else if (removed.size()) {
         const auto *target = removed_frames(c.anchor_session, c.anchor_start);
         left_diff -= before(target, c.anchor_diff + left_diff) - before(target, c.anchor_diff);
       }
@@ -196,6 +210,5 @@ Sequence Projection::sequence() const {
     output.words.insert(output.words.begin(), {UINT32_MAX, 1, tuple->capacity, frame_count});
   else if (output.words.size() == 1)
     output.words.clear();
-  return output;
 }
 } // namespace sequencer

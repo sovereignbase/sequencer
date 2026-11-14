@@ -43,7 +43,6 @@ Insertion Projection::insert(Word count, Word content, Word at) {
     else {
       // Empty visible content can still have anchors held by disconnected peers.
       anchor_strip(incoming, none, 0);
-      position_of(incoming, 0, false);
       gate = incoming;
       gate_position = 0;
     }
@@ -69,9 +68,7 @@ Insertion Projection::insert(Word count, Word content, Word at) {
       return {c, content};
     }
     const auto incoming = allocate({c, content});
-    const auto previous_count = structural_count;
     anchor_strip(incoming, anchor, point);
-    patch_jumps(c.diff, structural_count - previous_count, incoming);
     containment.set(c, incoming);
     last_insert = incoming;
     if (count && !at)

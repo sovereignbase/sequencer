@@ -7,6 +7,8 @@ Tests use public methods and the documented wire types. They do not inspect runt
 Structured-error checks cover the exported `SequencerError`, stable codes,
 package-prefixed messages, standard `cause`, and rejection by every operational
 method after destruction. Repeated `destroy()` calls remain safe.
+Range reads also cover sparse Footage beyond the signed 32-bit index boundary.
+Omitted suffix Footage retains its Frames after snapshot hydration.
 
 Convergence, integration, stress, and runtime compatibility remain separate suites.
 

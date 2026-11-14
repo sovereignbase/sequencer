@@ -74,7 +74,12 @@ function readValues(
     const source = content[heap[at]],
       start = heap[at + 1],
       length = heap[at + 2]
-    for (let j = 0; j < length; ++j) result[target++] = source?.[start + j]
+    if (source)
+      for (let j = 0; j < length; ++j) result[target++] = source[start + j]
+    else {
+      result.fill(undefined, target, target + length)
+      target += length
+    }
   }
   return result
 }
@@ -159,7 +164,14 @@ export function create(
   const id = free.pop() ?? nextProjection++
   bindings[id] = [undefined]
   try {
-    call(Operation.Create, id, actorID, sequence, tupleParams)
+    if (sequence === undefined)
+      module._runtime_create(
+        id,
+        actorID,
+        tupleParams?.enabled ? 1 : 0,
+        tupleParams?.maxLength ?? 0xffffffff
+      )
+    else call(Operation.Create, id, actorID, sequence, tupleParams)
   } catch (error) {
     // Failed hydration must release both sides before this handle can be reused.
     release(id)
@@ -187,7 +199,7 @@ export function length(id: number): number {
       'PROJECTION_DESTROYED',
       'Projection has been destroyed.'
     )
-  return module._runtime_length(id)
+  return module._runtime_length(id) >>> 0
 }
 /** Resolves one visible Frame natively, then reads its JavaScript binding slot. */
 export function value<T>(id: number, at: number): T | undefined {
@@ -225,9 +237,8 @@ export function values<T>(id: number, start?: number, end?: number): T[] {
     const begin = spans >>> 2,
       source = content[heap[begin]],
       start = heap[begin + 1],
-      size = heap[begin + 2]
-    if (source && start + size <= source.length)
-      return source.slice(start, start + size) as T[]
+      end = start + heap[begin + 2]
+    if (source && end <= source.length) return source.slice(start, end) as T[]
   }
   return readValues(content, spans, count) as T[]
 }
@@ -295,7 +306,7 @@ export function apply<T>(id: number, value: unknown): T {
     )
   // An invalid outer shape becomes a rejected descriptor; native prefix handling stays uniform.
   const entries: unknown[] = Array.isArray(value) ? value : [null]
-  let words = 1 + entries.length * 4
+  let words = 1 + entries.length * 3
   for (const entry of entries) {
     const data =
       Array.isArray(entry) && typeof entry[0] !== 'number' ? entry[0] : entry
@@ -303,8 +314,7 @@ export function apply<T>(id: number, value: unknown): T {
       Array.isArray(data) || data instanceof Uint32Array ? data.length : 0
   }
 
-  // Input consists of an entry count, four-word descriptors, then numeric payloads.
-  // Descriptor payload offsets are relative to this buffer, unlike output byte pointers.
+  // Each input record stores its tag, word count and content token before its payload.
   const pointer = module._runtime_reserve(words)
   const heap = module.HEAPU32,
     base = pointer >>> 2
@@ -312,8 +322,7 @@ export function apply<T>(id: number, value: unknown): T {
   const firstBinding = contents.length
   const absent = 0xffffffff
 
-  let descriptor = base + 1
-  let data = descriptor + entries.length * 4
+  let data = base + 1
   heap[base] = entries.length
   for (const entry of entries) {
     const insertion = Array.isArray(entry) && typeof entry[0] !== 'number'
@@ -343,11 +352,10 @@ export function apply<T>(id: number, value: unknown): T {
       Array.isArray(numbers) || numbers instanceof Uint32Array
         ? numbers.length
         : 0
-    heap[descriptor] = tag
-    heap[descriptor + 1] = data - base
-    heap[descriptor + 2] = count
+    heap[data] = tag
+    heap[data + 1] = count
     // Masks never own content. Rejected coordinates need no JS binding.
-    heap[descriptor + 3] =
+    heap[data + 2] =
       insertion &&
       tag === 0 &&
       count === 6 &&
@@ -355,6 +363,7 @@ export function apply<T>(id: number, value: unknown): T {
       numbers[5] < 0x80000000
         ? contents.push(entry[1] ?? null) - 1
         : 0
+    data += 3
     if (numeric) {
       if (insertion && count === 6) {
         heap[data] = numbers[0]
@@ -365,7 +374,6 @@ export function apply<T>(id: number, value: unknown): T {
         heap[data + 5] = numbers[5]
       } else heap.set(numbers as ArrayLike<number>, data)
     }
-    descriptor += 4
     data += count
   }
   const resultPointer = module._runtime_dispatch(
@@ -386,7 +394,6 @@ export function apply<T>(id: number, value: unknown): T {
 }
 /** Sizes general-dispatch numeric storage; local scalar operations need no tuple validation. */
 function inputSize(operation: Opcode, value: unknown, other: unknown): number {
-  if (operation === Operation.Replace) return 1
   if (operation === Operation.Create || operation === Operation.Merge) {
     const sequence = operation === Operation.Create ? other : value
     return Array.isArray(sequence) &&
@@ -419,7 +426,7 @@ export function call<T>(
   const configuration =
     operation === Operation.Create && end !== undefined ? 2 : 0
   const count = inputSize(operation, value, at) + configuration
-  const pointer = count ? module._runtime_reserve(count) : 0
+  let pointer = count ? module._runtime_reserve(count) : 0
   const heap = module.HEAPU32,
     base = pointer >>> 2,
     contents = bindings[id]!
@@ -433,7 +440,7 @@ export function call<T>(
     a0 = (value as unknown[]).length
     a1 = a0 ? contents.push(value as unknown[]) - 1 : 0
     a2 = (at as number | undefined) ?? absent
-    heap[base] = (end as number | undefined) ?? absent
+    pointer = (end as number | undefined) ?? absent
   } else if (operation === Operation.Remove) {
     a0 = (value as number | undefined) ?? absent
     a1 = (at as number | undefined) ?? absent
@@ -444,16 +451,15 @@ export function call<T>(
     const sequence = operation === Operation.Create ? at : value
     // Hydration trusts numeric lanes; merge validates lanes from external retained state.
     const valid =
-      (operation === Operation.Create && sequence === undefined) ||
-      (Array.isArray(sequence) &&
-        sequence.length === 2 &&
-        (Array.isArray(sequence[0]) || sequence[0] instanceof Uint32Array) &&
-        (Array.isArray(sequence[1]) || typeof sequence[1] === 'string') &&
-        (operation === Operation.Create ||
-          sequence[0] instanceof Uint32Array ||
-          sequence[0].every(
-            (word: number) => typeof word === 'number' && word === word >>> 0
-          )))
+      Array.isArray(sequence) &&
+      sequence.length === 2 &&
+      (Array.isArray(sequence[0]) || sequence[0] instanceof Uint32Array) &&
+      (Array.isArray(sequence[1]) || typeof sequence[1] === 'string') &&
+      (operation === Operation.Create ||
+        sequence[0] instanceof Uint32Array ||
+        sequence[0].every(
+          (word: number) => typeof word === 'number' && word === word >>> 0
+        ))
     a2 = valid ? 1 : 0
     if (configuration) {
       const tuple = end as TupleParams
@@ -461,7 +467,7 @@ export function call<T>(
       heap[base + 1] = tuple.maxLength ?? absent
       a2 |= 2
     }
-    if (valid && sequence !== undefined) {
+    if (valid) {
       const words = sequence[0] as ArrayLike<number>
       heap.set(words, base + configuration)
       a1 = contents.length
@@ -683,6 +689,9 @@ function readResult(
       } else {
         content[token] = undefined
       }
+    } else if (count === 1) {
+      const footage = content[token] as unknown[] | undefined
+      if (footage && start < footage.length) footage[start] = undefined
     } else
       (content[token] as unknown[] | undefined)?.fill(
         undefined,

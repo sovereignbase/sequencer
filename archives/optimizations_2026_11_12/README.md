@@ -30,6 +30,15 @@ fixed-size vector with an owning slot array and a probe mask. It is retained as 
 [user-requested checkpoint](fixed-table.md) with unresolved timing differences;
 this is not an all-row acceptance claim.
 
+After that checkpoint, [direct zero-distance merging](direct-zero.md) is also
+rejected: five complete pairs and a separate A/A production control leave
+unresolved timing losses despite much faster replicated replacement. Native
+allocation and snapshot sizes are unchanged.
+
+The smaller [sole-visible-Strip tail shortcut](sole-tail.md) is under evaluation.
+The [concurrent mixed-edit profile](concurrent-profile.md) identifies visible
+position resolution as the main native follow-up for concurrent random editing.
+
 Additional comparisons: [shorter jump interval rejection](rejected-jump-density.md),
 [input-address cache rejection](input-reservation.md), [isolated cache
 measurements](input-isolated.md), [complete artifacts](artifacts.md).

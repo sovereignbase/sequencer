@@ -8,6 +8,7 @@ project(
 )
 
 set(SEQUENCER_SOURCES
+  src/c++/components/Traversal/class.cpp
   src/c++/components/Tuple/class.cpp
   src/c++/algorithms/apply.cpp
   src/c++/algorithms/create.cpp
@@ -24,8 +25,6 @@ set(SEQUENCER_SOURCES
   src/c++/auxiliary/findFramePositionByProjectionPosition.cpp
   src/c++/auxiliary/findProjectionPositionOfStrip.cpp
   src/c++/auxiliary/insertFirst.cpp
-  src/c++/auxiliary/linkJumps.cpp
-  src/c++/auxiliary/patchJumps.cpp
   src/c++/auxiliary/selectAnchor.cpp
   src/c++/auxiliary/splitStrip.cpp
   src/c++/auxiliary/subtreeEnd.cpp

@@ -2,8 +2,8 @@
 #include "components/ContainmentTable/class.hpp"
 #include "components/FrontierTable/class.hpp"
 #include "components/PendingTable/class.hpp"
+#include "components/Traversal/class.hpp"
 #include "components/Tuple/class.hpp"
-#include <cmath>
 #include <span>
 #include <stdexcept>
 
@@ -22,8 +22,8 @@ public:
   Word structural_count{} /**< Linked Strip count, including fragments and masks. */,
       frame_count{} /**< Visible Frame count; tuple extent includes empty registers. */,
       gate_position{} /**< Visible position at the gate Strip's first Frame or boundary. */;
-  /** Rounded jump spacing and the largest Strip count for which it remains valid. */
-  std::array<Word, 2> jump_spacing{1, 2};
+  /** Weighted view into the arena's traversal directory. */
+  Traversal traversal;
   /** Last locally authored positive root eligible for an intact extension. */
   Index last_insert{};
   /** Independent positive and reducing clocks, each stored as [Session, next time]. */
@@ -57,22 +57,18 @@ public:
    * @param i Canonical coordinates and JavaScript binding reference.
    * @return Stable arena index.
    */
-  Index allocate(Insertion i) { return strips.append(i); }
+  Index allocate(Insertion i) {
+    if (strips.count == strips.capacity) {
+      // Directory rows still refer to the previous allocation until grow rebases them.
+      const auto previous = strips.reserve(std::max(Word(2), strips.capacity * 2));
+      traversal.grow(strips);
+    }
+    return strips.append(i);
+  }
   /** Reads visible length without structural traversal.
    * @return Maintained visible Frame count.
    */
   Word length() const { return frame_count; }
-  /** Reuses square-root spacing until Structural Order crosses its next rounding boundary.
-   * @return At least one Strip per target jump interval.
-   */
-  Word traversal_spacing() {
-    if (structural_count > jump_spacing[1]) {
-      const auto spacing = Word(std::max(1.0, std::round(std::sqrt(structural_count))));
-      jump_spacing = {spacing, Word(std::min<std::uint64_t>(UINT32_MAX, std::uint64_t(spacing) *
-                                                                            (spacing + 1)))};
-    }
-    return jump_spacing[0];
-  }
   /** Initializes structural and visible endpoints for the first root.
    * @param i Unlinked root Strip in an empty Structural Order.
    */
@@ -81,9 +77,10 @@ public:
    * @param anchor Strip containing the logical boundary.
    * @param point Original Frame boundary, relative to its canonical Insertion.
    * @param incoming_diff Incoming visible effect; negative values consume the right prefix.
+   * @param indexed Whether the live traversal directory is maintained during this split.
    * @return Structural successor at the new boundary.
    */
-  Index split_strip(Index anchor, Word point, std::int32_t incoming_diff);
+  Index split_strip(Index anchor, Word point, std::int32_t incoming_diff, bool indexed = true);
   /** Finds a competitor's final descendant so sibling subtrees stay contiguous.
    * @param root First Strip of the causal subtree.
    * @return Last Strip belonging to that subtree.
@@ -102,7 +99,7 @@ public:
    * @param incoming Unlinked Strip to place.
    * @param anchor Current owner of the logical boundary; none for the virtual root.
    * @param point Boundary relative to the owning Insertion or mask.
-   * @param index_fragments Whether to maintain jumps while linking secondary mask fragments.
+   * @param index_fragments Whether to maintain the live traversal directory during placement.
    * @return Actual signed visible effect across all materialized fragments.
    */
   std::int32_t anchor_strip(Index incoming, Index anchor, Word point, bool index_fragments = true);
@@ -112,19 +109,12 @@ public:
    * @return Original Frame coordinate within the gate Insertion.
    */
   Word find_frame(Word position, bool for_insertion = false);
-  /** Locates a newly linked Strip relative to the retained local gate.
+  /** Locates a linked Strip without moving the retained local gate.
    * @param strip Strip whose visible start is required.
    * @param gate_diff Effect already applied before the retained gate boundary.
-   * @param locate Whether to resolve an absolute position after repairing local jumps.
-   * @return Visible Projection position, or zero when only repairing jumps.
+   * @return Visible Projection position.
    */
-  Word position_of(Index strip, std::int32_t gate_diff = 0, bool locate = true);
-  /** Updates and, when necessary, splits the jump spanning a local edit.
-   * @param frame_diff Signed change to visible distance.
-   * @param strip_diff Added structural Strip count.
-   * @param incoming Strip marking the edit boundary.
-   */
-  void patch_jumps(std::int32_t frame_diff, Word strip_diff, Index incoming);
+  Word position_of(Index strip, std::int32_t gate_diff = 0);
   /** Translates a visible insertion boundary into a replayable logical anchor.
    * @param position Insertion boundary in 0..frame_count.
    * @return Logical point and its anchoring Strip.
@@ -175,7 +165,7 @@ public:
    * @param result Output to append to.
    */
   void apply(const Insertion &insertion, Result &result);
-  /** Reconstructs trusted exported history and prebuilds traversal jumps.
+  /** Reconstructs trusted exported history and builds its traversal directory.
    * @param insertions Canonical Insertions in exported Structural Order.
    * @param frontiers Retained Actor Acknowledgements.
    */
@@ -195,8 +185,8 @@ public:
    */
   void values(Word start, Word end, std::vector<Span> &output);
   /** Exports equivalent retained state without rewriting live history.
-   * @return Snapshot with acknowledgement-gated removal compaction.
+   * @param output Snapshot replaced with acknowledgement-gated removal compaction.
    */
-  Sequence sequence() const;
+  void sequence(Sequence &output) const;
 };
 } // namespace sequencer

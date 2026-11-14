@@ -32,7 +32,7 @@ std::span<const Word> input;
 std::unique_ptr<Word[]> input_buffer;
 Word input_capacity{};
 Word address(const void *pointer) { return Word(reinterpret_cast<std::uintptr_t>(pointer)); }
-// Output descriptors carry byte pointers; input descriptors carry buffer-relative word offsets.
+// Output descriptors carry byte pointers; input payloads follow their record headers.
 struct EntryView {
   Word tag, pointer, count, content;
 };
@@ -150,10 +150,11 @@ struct Reader {
   // Acknowledgements borrow the input until the current synchronous call returns.
   std::pair<Insertion, std::span<const Word>> entry() {
     const auto tag = word();
-    const auto offset = word(), count = word(), content = word();
-    if (offset > input.size() || count > input.size() - offset)
+    const auto count = word(), content = word();
+    if (count > input.size() - position)
       return invalid();
-    const auto data = input.subspan(offset, count);
+    const auto data = input.subspan(position, count);
+    position += count;
     if (tag == 1) {
       if (!count || !(count & 1))
         return invalid();
@@ -296,7 +297,8 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_reserve(std::uint32_t count) {
  * @param tuple Whether indices identify stable registers.
  * @param capacity Fixed register count, or UINT32_MAX for dynamic growth.
  */
-void runtime_create(std::uint32_t id, std::uint32_t actor, bool tuple, std::uint32_t capacity) {
+EMSCRIPTEN_KEEPALIVE [[gnu::noinline]] void runtime_create(std::uint32_t id, std::uint32_t actor,
+                                                           bool tuple, std::uint32_t capacity) {
   using namespace sequencer;
   if (projections.size() <= id)
     projections.resize(std::size_t(id) + 1);
@@ -317,15 +319,16 @@ void runtime_destroy(std::uint32_t id) {
  * @param arg0 First operation-specific scalar.
  * @param arg1 Second scalar, including the first content token for snapshot input.
  * @param arg2 Third scalar, including snapshot shape validity for create and merge.
- * @param pointer Numeric input buffer; application content never enters this memory.
+ * @param input_or_end Numeric input address, or the inclusive replacement end.
  * @param count Input word count.
  * @return Twelve-word output header with byte pointers and element counts.
  */
-EMSCRIPTEN_KEEPALIVE std::uint32_t *
-runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, std::uint32_t arg1,
-                 std::uint32_t arg2, const std::uint32_t *pointer, std::uint32_t count) {
+EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, std::uint32_t id,
+                                                     std::uint32_t arg0, std::uint32_t arg1,
+                                                     std::uint32_t arg2, std::uint32_t input_or_end,
+                                                     std::uint32_t count) {
   using namespace sequencer;
-  input = {pointer, count};
+  input = {count ? reinterpret_cast<const Word *>(input_or_end) : nullptr, count};
   // Result kinds: 0 rejected, 2 Gossip, 4 Result,
   // 5 Sequence, 6 void, 7 local operation error.
   out.header = {6, 0, 0, 0, 0, 0, 0};
@@ -436,10 +439,9 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
       kind = 2;
       break;
     case 6: {
-      Reader r;
-      auto end = r.word();
-      out.entries = p.replace(arg0, arg1, arg2 == UINT32_MAX ? 0 : arg2,
-                              end == UINT32_MAX ? std::int64_t(p.length()) - 1 : end);
+      out.entries =
+          p.replace(arg0, arg1, arg2 == UINT32_MAX ? 0 : arg2,
+                    input_or_end == UINT32_MAX ? std::int64_t(p.length()) - 1 : input_or_end);
       kind = 2;
       break;
     }
@@ -447,7 +449,7 @@ runtime_dispatch(std::uint32_t operation, std::uint32_t id, std::uint32_t arg0, 
       p.frontier.retire(arg0);
       break;
     case 8:
-      out.sequence = p.sequence();
+      p.sequence(out.sequence);
       kind = 5;
       break;
     default:

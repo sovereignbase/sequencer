@@ -7,7 +7,7 @@
 #include <algorithm>
 
 namespace sequencer {
-Index Projection::split_strip(Index a, Word point, std::int32_t incoming_diff) {
+Index Projection::split_strip(Index a, Word point, std::int32_t incoming_diff, bool indexed) {
   // Masking may clear content slots, so detach externally owned Footage first.
   if (incoming_diff < 0)
     own_content(a);
@@ -24,8 +24,11 @@ Index Projection::split_strip(Index a, Word point, std::int32_t incoming_diff) {
   const auto right_diff = effect - left_diff + std::min(0, incoming_diff);
   strips.identity[a].fragmented = true;
   strips.fragment_diff[a] = left_diff;
-  if (!right_diff)
+  if (!right_diff) {
+    if (indexed)
+      traversal.update(strips, a, effect);
     return old_right;
+  }
   const auto right = allocate(original);
   strips.fragment[right] = old_fragment;
   strips.fragment_start[right] = point + (incoming_diff < 0 ? magnitude(incoming_diff) : 0);
@@ -37,9 +40,15 @@ Index Projection::split_strip(Index a, Word point, std::int32_t incoming_diff) {
   strips.fragment[a] = strips.right[a] = right;
   if (old_right)
     strips.left[old_right] = right;
+  if (head == a && !left_diff && right_diff > 0)
+    head = right;
   if (tail == a)
     tail = right;
   ++structural_count;
+  // Both fragments share one block until insertion splits it; update only their net weight.
+  if (indexed)
+    traversal.insert(strips, structural_head, structural_count, right,
+                     Word(std::max(0, effect) - std::max(0, left_diff)));
   return right;
 }
 } // namespace sequencer

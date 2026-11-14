@@ -2,7 +2,6 @@
  * @file
  * Hydrates canonical history and builds its initial visible traversal index.
  */
-#include "../auxiliary/linkJumps.hpp"
 #include "../class.hpp"
 #include <algorithm>
 
@@ -27,16 +26,17 @@ void Projection::hydrate(std::span<const Insertion> insertions,
   }
   const auto &first = insertions.front();
   if (insertions.size() == 1 && first.coordinates.birth() && first.coordinates.diff > 0) {
-    // One positive root has no dependencies, fragments or jumps to reconstruct.
+    // One positive root has no dependencies or fragments to reconstruct.
     const auto root = allocate(first);
     insert_first(root);
     containment.set(first.coordinates, root);
     return;
   }
   strips.reserve(Word(insertions.size()) + 1);
+  traversal.grow(strips);
   containment.reserve(Word(insertions.size()));
-  // Jumps are built only after hydration. Their unused right-distance lane
-  // retains the last resolved fragment of each canonical root during this pass.
+  // The directory is built after hydration. Its unused block lane retains
+  // each root's last resolved fragment during reconstruction.
   std::vector<Insertion> ready;
   for (std::size_t n = 0; n < insertions.size() || !ready.empty();) {
     const auto queued = !ready.empty();
@@ -69,8 +69,8 @@ void Projection::hydrate(std::span<const Insertion> insertions,
       if (!c.birth()) {
         // Structural Order often visits increasing boundaries of one parent;
         // reuse its last resolved fragment only when the new boundary lies to its right.
-        const auto fragment = strips.fragment[origin] && strips.right_jump_strips[origin]
-                                  ? strips.right_jump_strips[origin]
+        const auto fragment = strips.fragment[origin] && strips.block_root[origin]
+                                  ? strips.block_root[origin]
                                   : origin;
         const auto resolved = find_containing_fragment(
             c.anchor_diff > strips.fragment_start[fragment] ? fragment : origin, c, incoming);
@@ -80,7 +80,7 @@ void Projection::hydrate(std::span<const Insertion> insertions,
             strips.identity[anchor].coordinates.session ==
                 strips.identity[origin].coordinates.session &&
             strips.identity[anchor].coordinates.start == strips.identity[origin].coordinates.start)
-          strips.right_jump_strips[origin] = anchor;
+          strips.block_root[origin] = anchor;
       }
       anchor_strip(incoming, anchor, point, false);
     }
@@ -93,39 +93,9 @@ void Projection::hydrate(std::span<const Insertion> insertions,
       ready.insert(ready.end(), released.rbegin(), released.rend());
     }
   }
-  // Later masks can still split an earlier prefix. Index only the completed
-  // Structural Order so endpoints and distances describe the final fragments.
-  const auto spacing = traversal_spacing();
-  Index jump_start = structural_head, tail_jump_start = none;
-  Index visible_head = none, visible_tail = none;
-  Word jump_frames = 0, jump_strips = 0;
-  for (auto cursor = structural_head; cursor;) {
-    strips.right_jump_strips[cursor] = 0;
-    const auto diff = strips.fragment_diff[cursor];
-    if (diff > 0) {
-      if (!visible_head) {
-        visible_head = jump_start = cursor;
-        jump_frames = jump_strips = 0;
-      }
-      visible_tail = cursor;
-      tail_jump_start = jump_start;
-    }
-    jump_frames += std::max(0, diff);
-    ++jump_strips;
-    cursor = strips.right[cursor];
-    if (jump_strips == spacing && cursor) {
-      link_jumps(*this, jump_start, cursor, jump_frames, jump_strips);
-      jump_start = cursor;
-      jump_frames = jump_strips = 0;
-    }
-  }
-  head = visible_head;
-  tail = visible_tail;
-  // A final jump past the last visible Frame cannot accelerate visible-position lookup.
-  if (tail_jump_start && tail_jump_start != tail && strips.right_jump[tail_jump_start]) {
-    strips.left_jump[strips.right_jump[tail_jump_start]] = none;
-    strips.right_jump[tail_jump_start] = none;
-  }
+  const auto endpoints = traversal.build(strips, structural_head, structural_count);
+  head = endpoints.first;
+  tail = endpoints.second;
   gate = head;
   gate_position = 0;
 }

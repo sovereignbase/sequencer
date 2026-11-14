@@ -83,7 +83,7 @@ describe('runtime lifetime', () => {
     const collector = Collector.instance
     const owners = collector.owners.size
     const dispatch = module._runtime_dispatch
-    // Force real native error results at the ABI boundary; public construction owns cleanup.
+    // Retained-state initialization reports native error headers; construction owns cleanup.
     const fault = vi
       .spyOn(module, '_runtime_dispatch')
       .mockImplementationOnce((_operation, id, actor) =>
@@ -92,7 +92,7 @@ describe('runtime lifetime', () => {
           : dispatch(0, id, actor, 0, 0, 0, 0)
       )
     try {
-      expect(() => new Projection<string>(1)).toThrowError(
+      expect(() => new Projection<string>(1, [[], []])).toThrowError(
         expect.objectContaining({
           name: 'SequencerError',
           code,

@@ -1,0 +1,223 @@
+# directory-bidirectional-tuple: tuple follow-up
+
+5 matched rounds use the unchanged production tuple CLI. Sizes 2, 4, 8 and 100; both ordinary Projection and fixed tuple modes; minimum 25 ms of API warmup and 50 ms of measured API work per case. Every burst retains its original correctness checks. Build order rotates and reverses between rounds.
+
+Times are median ns/call, space is bytes. IQR is the third minus first quartile. Paired changes compare matching rounds. Length remains reported and is excluded from the timing decision. All raw samples and slower results are retained.
+
+## fixed-table → direct-create
+
+| Case                                 |   Before |     IQR |    After |    IQR | Difference |  Change | Paired change | Paired IQR, pp | Slower in every pair |
+| :----------------------------------- | -------: | ------: | -------: | -----: | ---------: | ------: | ------------: | -------------: | :------------------- |
+| tuple/projection/2/create.empty      |   518.34 |   78.86 |   355.58 |  10.83 |    -162.77 | -31.40% |       -30.91% |           7.82 |                      |
+| tuple/tuple/2/create.empty           |   527.63 |   17.27 |   431.27 |  29.35 |     -96.36 | -18.26% |       -17.31% |           4.89 |                      |
+| tuple/projection/2/create.sequence   |  1208.62 |   47.98 |  1290.12 | 346.17 |      81.50 |   6.74% |         5.77% |          11.80 | yes                  |
+| tuple/tuple/2/create.sequence        |  1311.93 |   88.05 |  1421.93 |  93.15 |     110.00 |   8.38% |         1.41% |           2.69 |                      |
+| tuple/projection/2/replace.random    |  1231.66 |  131.53 |  1339.13 |  55.09 |     107.47 |   8.73% |        10.39% |          18.34 |                      |
+| tuple/tuple/2/replace.random         |   706.78 |  206.57 |   665.25 |  34.04 |     -41.53 |  -5.88% |         3.93% |          29.53 |                      |
+| tuple/projection/2/apply.replace     |  1951.22 |  246.11 |  2054.51 | 203.26 |     103.29 |   5.29% |         5.43% |          11.91 |                      |
+| tuple/tuple/2/apply.replace          |  1182.71 |   88.04 |  1149.54 | 149.64 |     -33.18 |  -2.81% |         5.45% |          16.53 |                      |
+| tuple/projection/2/apply.duplicate   |   575.07 |   17.59 |   605.23 |  65.05 |      30.15 |   5.24% |         0.31% |          21.58 |                      |
+| tuple/tuple/2/apply.duplicate        |   595.69 |   26.01 |   593.03 |  57.63 |      -2.66 |  -0.45% |        -3.07% |          10.07 |                      |
+| tuple/projection/2/merge.duplicate   |   792.16 |  459.79 |   683.60 |  69.40 |    -108.56 | -13.70% |       -13.32% |          38.73 |                      |
+| tuple/tuple/2/merge.duplicate        |   807.35 |   93.24 |   664.20 |  49.51 |    -143.15 | -17.73% |       -22.80% |           3.07 |                      |
+| tuple/projection/2/length            |     8.06 |    0.32 |     7.96 |   0.19 |      -0.10 |  -1.19% |        -4.26% |          11.62 |                      |
+| tuple/tuple/2/length                 |     8.00 |    0.59 |     7.66 |   0.49 |      -0.33 |  -4.17% |        -1.26% |           2.42 |                      |
+| tuple/projection/2/value.random      |    30.84 |    3.26 |    36.61 |   6.59 |       5.77 |  18.72% |        -0.32% |          20.23 |                      |
+| tuple/tuple/2/value.random           |    19.93 |    2.21 |    20.61 |   1.68 |       0.68 |   3.40% |         3.40% |           8.99 |                      |
+| tuple/projection/2/values            |    91.50 |    8.29 |    92.49 |  10.34 |       0.99 |   1.09% |        12.87% |          17.89 |                      |
+| tuple/tuple/2/values                 |    86.19 |   23.83 |    87.86 |  37.03 |       1.67 |   1.94% |         1.94% |          12.07 |                      |
+| tuple/projection/2/sequence          |   458.62 |   65.38 |   475.44 |  75.03 |      16.82 |   3.67% |         6.18% |           1.31 |                      |
+| tuple/tuple/2/sequence               |   590.81 |   68.80 |   558.90 |  53.60 |     -31.91 |  -5.40% |        -4.96% |          18.16 |                      |
+| tuple/projection/4/create.empty      |   614.74 |   55.59 |   445.74 |   8.67 |    -169.01 | -27.49% |       -28.11% |          19.86 |                      |
+| tuple/tuple/4/create.empty           |   703.89 |  160.69 |   496.59 | 210.56 |    -207.30 | -29.45% |       -13.12% |           9.71 |                      |
+| tuple/projection/4/create.sequence   |  1803.80 |  250.68 |  1722.83 | 706.94 |     -80.97 |  -4.49% |         1.79% |          18.68 |                      |
+| tuple/tuple/4/create.sequence        |  1644.43 |  382.58 |  1602.58 | 712.15 |     -41.85 |  -2.55% |         4.13% |          22.76 |                      |
+| tuple/projection/4/replace.random    |  1444.40 |  374.22 |  1412.35 | 358.89 |     -32.05 |  -2.22% |        -3.65% |          34.45 |                      |
+| tuple/tuple/4/replace.random         |   758.53 |   84.29 |   740.24 | 164.59 |     -18.30 |  -2.41% |        -2.41% |           6.53 |                      |
+| tuple/projection/4/apply.replace     |  2711.01 |  346.67 |  1908.58 | 236.65 |    -802.43 | -29.60% |       -24.77% |           3.53 |                      |
+| tuple/tuple/4/apply.replace          |  1220.89 |  185.21 |  1125.44 | 120.27 |     -95.44 |  -7.82% |         5.50% |          25.59 |                      |
+| tuple/projection/4/apply.duplicate   |   574.24 |  113.78 |   571.40 |  57.32 |      -2.83 |  -0.49% |        -6.90% |          13.63 |                      |
+| tuple/tuple/4/apply.duplicate        |   600.01 |   83.28 |   625.69 |  44.47 |      25.68 |   4.28% |        -3.12% |           7.70 |                      |
+| tuple/projection/4/merge.duplicate   |  1056.95 |   97.76 |   737.71 |  84.49 |    -319.24 | -30.20% |       -33.72% |          11.99 |                      |
+| tuple/tuple/4/merge.duplicate        |  1072.07 |   28.41 |   731.11 |  90.51 |    -340.96 | -31.80% |       -24.88% |           9.62 |                      |
+| tuple/projection/4/length            |    25.57 |   14.96 |     8.02 |  19.68 |     -17.55 | -68.64% |       -16.70% |          74.40 |                      |
+| tuple/tuple/4/length                 |    25.17 |   17.67 |     8.48 |  18.58 |     -16.69 | -66.31% |        -9.94% |          65.06 |                      |
+| tuple/projection/4/value.random      |    40.45 |    3.79 |    41.28 |   0.91 |       0.83 |   2.05% |        -1.12% |           3.71 |                      |
+| tuple/tuple/4/value.random           |    18.47 |    1.63 |    18.19 |   0.24 |      -0.28 |  -1.54% |        -2.30% |           9.84 |                      |
+| tuple/projection/4/values            |   139.34 |   33.11 |   143.71 |  37.02 |       4.37 |   3.14% |         0.44% |           4.37 |                      |
+| tuple/tuple/4/values                 |   137.47 |    3.01 |   113.85 |  28.04 |     -23.62 | -17.18% |       -17.77% |           4.31 |                      |
+| tuple/projection/4/sequence          |   489.54 |   12.53 |   516.26 |  82.00 |      26.72 |   5.46% |        12.41% |          14.01 |                      |
+| tuple/tuple/4/sequence               |   536.73 |   17.06 |   569.96 |  42.62 |      33.23 |   6.19% |         6.40% |           2.72 |                      |
+| tuple/projection/8/create.empty      |   490.92 |   20.68 |   431.92 |  17.94 |     -59.00 | -12.02% |       -14.46% |           6.16 |                      |
+| tuple/tuple/8/create.empty           |   531.51 |   10.27 |   463.58 |  28.67 |     -67.93 | -12.78% |       -16.02% |           2.36 |                      |
+| tuple/projection/8/create.sequence   |  2221.77 |  102.33 |  2202.91 |  51.56 |     -18.86 |  -0.85% |        -1.31% |           6.40 |                      |
+| tuple/tuple/8/create.sequence        |  1851.71 |  116.87 |  1886.95 | 122.55 |      35.24 |   1.90% |        -2.89% |           6.12 |                      |
+| tuple/projection/8/replace.random    |  1119.75 |   24.01 |  1234.51 | 121.02 |     114.76 |  10.25% |        10.25% |           8.38 | yes                  |
+| tuple/tuple/8/replace.random         |   637.87 |   47.71 |   642.45 |  17.87 |       4.58 |   0.72% |        -1.26% |           0.63 |                      |
+| tuple/projection/8/apply.replace     |  2532.68 |  185.74 |  1710.75 |  69.41 |    -821.92 | -32.45% |       -30.83% |           4.31 |                      |
+| tuple/tuple/8/apply.replace          |  1031.85 |   63.01 |   959.13 |  69.69 |     -72.72 |  -7.05% |        -1.51% |           7.91 |                      |
+| tuple/projection/8/apply.duplicate   |   567.55 |   25.72 |   540.64 |  34.93 |     -26.91 |  -4.74% |        -2.06% |           4.39 |                      |
+| tuple/tuple/8/apply.duplicate        |   600.19 |   32.80 |   543.43 |   5.82 |     -56.76 |  -9.46% |        -9.46% |           6.23 |                      |
+| tuple/projection/8/merge.duplicate   |  1496.29 |  167.63 |  1001.60 |  72.66 |    -494.69 | -33.06% |       -30.45% |           1.37 |                      |
+| tuple/tuple/8/merge.duplicate        |  1502.20 |   91.20 |  1045.16 |  58.05 |    -457.04 | -30.42% |       -30.96% |           3.92 |                      |
+| tuple/projection/8/length            |    25.03 |   18.27 |     8.09 |  19.29 |     -16.93 | -67.67% |         1.49% |          75.49 |                      |
+| tuple/tuple/8/length                 |    25.09 |   18.56 |     8.36 |  21.41 |     -16.73 | -66.67% |       -12.55% |          76.75 |                      |
+| tuple/projection/8/value.random      |    52.62 |    7.39 |    52.36 |   7.05 |      -0.26 |  -0.49% |        -5.68% |          22.90 |                      |
+| tuple/tuple/8/value.random           |    18.09 |    1.68 |    18.77 |   1.43 |       0.68 |   3.76% |         5.63% |           6.23 |                      |
+| tuple/projection/8/values            |   215.82 |    9.04 |   224.82 |  16.88 |       9.00 |   4.17% |         4.17% |          40.72 |                      |
+| tuple/tuple/8/values                 |   200.14 |    5.29 |   178.98 |  33.24 |     -21.15 | -10.57% |        -0.10% |          19.11 |                      |
+| tuple/projection/8/sequence          |   725.75 |   18.96 |   719.97 |  21.73 |      -5.78 |  -0.80% |         1.69% |           3.33 |                      |
+| tuple/tuple/8/sequence               |   728.98 |  120.58 |   694.22 |   7.00 |     -34.76 |  -4.77% |        -5.27% |          14.61 |                      |
+| tuple/projection/100/create.empty    |   589.40 |  221.65 |   439.68 |  23.38 |    -149.71 | -25.40% |       -24.61% |          20.58 |                      |
+| tuple/tuple/100/create.empty         |   579.75 |  290.15 |   490.78 |  31.36 |     -88.97 | -15.35% |       -19.99% |          29.13 |                      |
+| tuple/projection/100/create.sequence | 14342.83 | 6719.17 | 14313.50 | 815.23 |     -29.32 |  -0.20% |        -5.61% |          24.62 |                      |
+| tuple/tuple/100/create.sequence      | 10683.07 | 3397.51 | 10424.37 | 571.68 |    -258.69 |  -2.42% |         2.32% |          21.76 |                      |
+| tuple/projection/100/replace.random  |  1329.19 |  405.10 |  1258.93 | 124.54 |     -70.26 |  -5.29% |        -4.98% |          23.80 |                      |
+| tuple/tuple/100/replace.random       |   635.08 |  162.25 |   648.06 |  17.39 |      12.98 |   2.04% |         0.22% |          25.24 |                      |
+| tuple/projection/100/apply.replace   |  3107.56 |  846.31 |  1715.77 |  27.65 |   -1391.79 | -44.79% |       -45.64% |          12.63 |                      |
+| tuple/tuple/100/apply.replace        |  1056.63 |  235.90 |  1023.58 |  35.46 |     -33.05 |  -3.13% |        -3.13% |          21.46 |                      |
+| tuple/projection/100/apply.duplicate |   575.33 |   30.95 |   541.07 |  13.36 |     -34.26 |  -5.95% |        -5.95% |           7.13 |                      |
+| tuple/tuple/100/apply.duplicate      |   598.44 |   16.32 |   554.88 |  39.96 |     -43.55 |  -7.28% |        -8.28% |           7.48 |                      |
+| tuple/projection/100/merge.duplicate |  9503.91 | 1765.49 |  8881.10 | 279.79 |    -622.80 |  -6.55% |        -6.55% |          17.23 |                      |
+| tuple/tuple/100/merge.duplicate      | 13794.36 | 3777.98 | 12924.83 | 439.48 |    -869.53 |  -6.30% |         1.31% |          27.18 |                      |
+| tuple/projection/100/length          |    24.08 |   17.48 |    23.85 |  17.98 |      -0.23 |  -0.96% |         0.16% |           1.85 |                      |
+| tuple/tuple/100/length               |    26.34 |   19.44 |    24.31 |  16.85 |      -2.03 |  -7.70% |         3.57% |          59.24 |                      |
+| tuple/projection/100/value.random    |   114.22 |    6.71 |    76.84 |  10.26 |     -37.39 | -32.73% |       -33.12% |           4.16 |                      |
+| tuple/tuple/100/value.random         |    18.00 |    1.38 |    19.17 |   0.72 |       1.17 |   6.48% |         6.23% |           5.30 |                      |
+| tuple/projection/100/values          |  1869.75 |   54.77 |  1984.80 | 114.56 |     115.04 |   6.15% |         5.77% |           0.96 | yes                  |
+| tuple/tuple/100/values               |  1504.79 |   16.61 |  1619.92 |  18.92 |     115.13 |   7.65% |         7.65% |           4.80 |                      |
+| tuple/projection/100/sequence        |  6246.64 |  210.82 |  6435.24 | 289.43 |     188.60 |   3.02% |         2.55% |           5.02 |                      |
+| tuple/tuple/100/sequence             |  5752.36 |  449.15 |  5733.37 | 309.47 |     -18.99 |  -0.33% |        -4.31% |           9.20 |                      |
+| space/projection/2/allocatedBytes    |   816.00 |    0.00 |   752.00 |   0.00 |     -64.00 |  -7.84% |        -7.84% |           0.00 |                      |
+| space/projection/2/msgpackBytes      |    32.00 |    0.00 |    32.00 |   0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/projection/2/gzipBytes         |    42.00 |    0.00 |    42.00 |   0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/tuple/2/allocatedBytes         |   808.00 |    0.00 |   792.00 |   0.00 |     -16.00 |  -1.98% |        -1.98% |           0.00 |                      |
+| space/tuple/2/msgpackBytes           |    38.00 |    0.00 |    38.00 |   0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/tuple/2/gzipBytes              |    56.00 |    0.00 |    56.00 |   0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/projection/4/allocatedBytes    |  1488.00 |    0.00 |  1432.00 |   0.00 |     -56.00 |  -3.76% |        -3.76% |           0.00 |                      |
+| space/projection/4/msgpackBytes      |    64.00 |    0.00 |    64.00 |   0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/projection/4/gzipBytes         |    53.00 |    0.00 |    53.00 |   0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/tuple/4/allocatedBytes         |   984.00 |    0.00 |   968.00 |   0.00 |     -16.00 |  -1.63% |        -1.63% |           0.00 |                      |
+| space/tuple/4/msgpackBytes           |    60.00 |    0.00 |    60.00 |   0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/tuple/4/gzipBytes              |    71.00 |    0.00 |    71.00 |   0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/projection/8/allocatedBytes    |  2416.00 |    0.00 |  2328.00 |   0.00 |     -88.00 |  -3.64% |        -3.64% |           0.00 |                      |
+| space/projection/8/msgpackBytes      |   124.00 |    0.00 |   124.00 |   0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/projection/8/gzipBytes         |    80.00 |    0.00 |    80.00 |   0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/tuple/8/allocatedBytes         |  1432.00 |    0.00 |  1416.00 |   0.00 |     -16.00 |  -1.12% |        -1.12% |           0.00 |                      |
+| space/tuple/8/msgpackBytes           |   104.00 |    0.00 |   104.00 |   0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/tuple/8/gzipBytes              |    92.00 |    0.00 |    92.00 |   0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/projection/100/allocatedBytes  | 23080.00 |    0.00 | 21400.00 |   0.00 |   -1680.00 |  -7.28% |        -7.28% |           0.00 |                      |
+| space/projection/100/msgpackBytes    |   682.00 |    0.00 |   682.00 |   0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/projection/100/gzipBytes       |   586.00 |    0.00 |   586.00 |   0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/tuple/100/allocatedBytes       | 11624.00 |    0.00 | 11608.00 |   0.00 |     -16.00 |  -0.14% |        -0.14% |           0.00 |                      |
+| space/tuple/100/msgpackBytes         |   527.00 |    0.00 |   527.00 |   0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/tuple/100/gzipBytes            |   356.00 |    0.00 |   356.00 |   0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+
+## fixed-table → directory-bidirectional
+
+| Case                                 |   Before |     IQR |    After |     IQR | Difference |  Change | Paired change | Paired IQR, pp | Slower in every pair |
+| :----------------------------------- | -------: | ------: | -------: | ------: | ---------: | ------: | ------------: | -------------: | :------------------- |
+| tuple/projection/2/create.empty      |   518.34 |   78.86 |   365.95 |   20.18 |    -152.39 | -29.40% |       -31.17% |          11.42 |                      |
+| tuple/tuple/2/create.empty           |   527.63 |   17.27 |   437.20 |   11.63 |     -90.43 | -17.14% |       -18.86% |           6.73 |                      |
+| tuple/projection/2/create.sequence   |  1208.62 |   47.98 |  1225.94 |   89.45 |      17.32 |   1.43% |        10.27% |           9.37 |                      |
+| tuple/tuple/2/create.sequence        |  1311.93 |   88.05 |  1363.47 |   65.80 |      51.54 |   3.93% |         3.87% |           4.03 |                      |
+| tuple/projection/2/replace.random    |  1231.66 |  131.53 |  1232.70 |  192.84 |       1.05 |   0.08% |         3.78% |          17.80 |                      |
+| tuple/tuple/2/replace.random         |   706.78 |  206.57 |   685.10 |   37.85 |     -21.68 |  -3.07% |        -5.63% |          14.37 |                      |
+| tuple/projection/2/apply.replace     |  1951.22 |  246.11 |  1870.25 |  146.84 |     -80.97 |  -4.15% |         1.52% |          18.86 |                      |
+| tuple/tuple/2/apply.replace          |  1182.71 |   88.04 |  1219.44 |  101.80 |      36.72 |   3.10% |        -2.01% |          12.02 |                      |
+| tuple/projection/2/apply.duplicate   |   575.07 |   17.59 |   587.43 |   78.24 |      12.36 |   2.15% |         0.41% |          27.61 |                      |
+| tuple/tuple/2/apply.duplicate        |   595.69 |   26.01 |   597.49 |   42.02 |       1.80 |   0.30% |         3.42% |           8.37 |                      |
+| tuple/projection/2/merge.duplicate   |   792.16 |  459.79 |   643.51 |   51.51 |    -148.65 | -18.76% |       -18.76% |          23.19 |                      |
+| tuple/tuple/2/merge.duplicate        |   807.35 |   93.24 |   619.77 |   58.44 |    -187.58 | -23.23% |       -26.42% |           2.64 |                      |
+| tuple/projection/2/length            |     8.06 |    0.32 |     7.82 |    0.66 |      -0.24 |  -2.97% |         1.44% |           4.98 |                      |
+| tuple/tuple/2/length                 |     8.00 |    0.59 |     7.84 |    0.57 |      -0.16 |  -1.99% |         4.14% |          12.79 |                      |
+| tuple/projection/2/value.random      |    30.84 |    3.26 |    31.37 |    1.68 |       0.53 |   1.71% |         1.71% |           4.89 |                      |
+| tuple/tuple/2/value.random           |    19.93 |    2.21 |    20.40 |    1.27 |       0.47 |   2.36% |         3.08% |          14.83 |                      |
+| tuple/projection/2/values            |    91.50 |    8.29 |    82.34 |   24.27 |      -9.16 | -10.01% |        -3.89% |          12.03 |                      |
+| tuple/tuple/2/values                 |    86.19 |   23.83 |    86.13 |   34.48 |      -0.05 |  -0.06% |        -4.67% |          27.15 |                      |
+| tuple/projection/2/sequence          |   458.62 |   65.38 |   467.72 |   40.37 |       9.09 |   1.98% |         0.84% |          11.88 |                      |
+| tuple/tuple/2/sequence               |   590.81 |   68.80 |   566.57 |   39.20 |     -24.23 |  -4.10% |        -3.06% |           9.43 |                      |
+| tuple/projection/4/create.empty      |   614.74 |   55.59 |   432.18 |   26.40 |    -182.56 | -29.70% |       -28.19% |          12.84 |                      |
+| tuple/tuple/4/create.empty           |   703.89 |  160.69 |   451.39 |   82.57 |    -252.50 | -35.87% |       -22.67% |           8.26 |                      |
+| tuple/projection/4/create.sequence   |  1803.80 |  250.68 |  1666.22 |   71.52 |    -137.58 |  -7.63% |        -7.63% |           9.58 |                      |
+| tuple/tuple/4/create.sequence        |  1644.43 |  382.58 |  1630.81 |  432.70 |     -13.62 |  -0.83% |         1.55% |           9.56 |                      |
+| tuple/projection/4/replace.random    |  1444.40 |  374.22 |  1218.78 |  137.49 |    -225.62 | -15.62% |        -8.43% |           7.70 |                      |
+| tuple/tuple/4/replace.random         |   758.53 |   84.29 |   624.95 |   73.97 |    -133.58 | -17.61% |        -9.03% |          10.82 |                      |
+| tuple/projection/4/apply.replace     |  2711.01 |  346.67 |  1767.75 |   86.38 |    -943.25 | -34.79% |       -32.55% |           5.75 |                      |
+| tuple/tuple/4/apply.replace          |  1220.89 |  185.21 |  1048.97 |  197.04 |    -171.91 | -14.08% |        -6.45% |           4.93 |                      |
+| tuple/projection/4/apply.duplicate   |   574.24 |  113.78 |   558.84 |   63.81 |     -15.40 |  -2.68% |        -0.65% |          16.72 |                      |
+| tuple/tuple/4/apply.duplicate        |   600.01 |   83.28 |   634.62 |  167.02 |      34.61 |   5.77% |        13.86% |          26.95 |                      |
+| tuple/projection/4/merge.duplicate   |  1056.95 |   97.76 |   741.08 |  104.34 |    -315.87 | -29.89% |       -29.89% |          17.64 |                      |
+| tuple/tuple/4/merge.duplicate        |  1072.07 |   28.41 |   828.08 |   84.55 |    -243.99 | -22.76% |       -20.38% |           3.17 |                      |
+| tuple/projection/4/length            |    25.57 |   14.96 |    28.18 |    3.41 |       2.60 |  10.19% |         3.47% |         196.84 |                      |
+| tuple/tuple/4/length                 |    25.17 |   17.67 |    25.70 |    2.96 |       0.53 |   2.09% |         4.10% |         223.32 |                      |
+| tuple/projection/4/value.random      |    40.45 |    3.79 |    44.48 |    0.56 |       4.03 |   9.95% |         9.32% |           4.93 |                      |
+| tuple/tuple/4/value.random           |    18.47 |    1.63 |    19.07 |    0.80 |       0.60 |   3.26% |         3.07% |           5.93 |                      |
+| tuple/projection/4/values            |   139.34 |   33.11 |   147.39 |    9.77 |       8.06 |   5.78% |         5.15% |          27.69 |                      |
+| tuple/tuple/4/values                 |   137.47 |    3.01 |   141.03 |    7.72 |       3.56 |   2.59% |         5.77% |          28.10 |                      |
+| tuple/projection/4/sequence          |   489.54 |   12.53 |   509.83 |   15.07 |      20.29 |   4.15% |         2.43% |           2.21 |                      |
+| tuple/tuple/4/sequence               |   536.73 |   17.06 |   590.61 |  108.69 |      53.88 |  10.04% |        10.04% |          12.77 |                      |
+| tuple/projection/8/create.empty      |   490.92 |   20.68 |   430.22 |    9.45 |     -60.70 | -12.37% |       -10.99% |           9.05 |                      |
+| tuple/tuple/8/create.empty           |   531.51 |   10.27 |   456.59 |   48.09 |     -74.92 | -14.10% |       -15.87% |          16.24 |                      |
+| tuple/projection/8/create.sequence   |  2221.77 |  102.33 |  2337.45 |   36.02 |     115.68 |   5.21% |         5.21% |           6.45 |                      |
+| tuple/tuple/8/create.sequence        |  1851.71 |  116.87 |  1975.20 |   97.55 |     123.49 |   6.67% |         7.25% |           6.43 |                      |
+| tuple/projection/8/replace.random    |  1119.75 |   24.01 |  1223.70 |  116.47 |     103.95 |   9.28% |        10.57% |          19.69 | yes                  |
+| tuple/tuple/8/replace.random         |   637.87 |   47.71 |   667.03 |   40.66 |      29.16 |   4.57% |         1.30% |           4.42 |                      |
+| tuple/projection/8/apply.replace     |  2532.68 |  185.74 |  1788.86 |   50.19 |    -743.81 | -29.37% |       -27.15% |           5.87 |                      |
+| tuple/tuple/8/apply.replace          |  1031.85 |   63.01 |  1009.72 |   63.85 |     -22.13 |  -2.14% |        -0.25% |           0.56 |                      |
+| tuple/projection/8/apply.duplicate   |   567.55 |   25.72 |   595.05 |   70.14 |      27.50 |   4.85% |         3.98% |           8.11 | yes                  |
+| tuple/tuple/8/apply.duplicate        |   600.19 |   32.80 |   587.39 |   93.54 |     -12.80 |  -2.13% |        -2.37% |          11.63 |                      |
+| tuple/projection/8/merge.duplicate   |  1496.29 |  167.63 |  1085.11 |   21.04 |    -411.18 | -27.48% |       -27.28% |          16.72 |                      |
+| tuple/tuple/8/merge.duplicate        |  1502.20 |   91.20 |  1054.79 |   51.80 |    -447.42 | -29.78% |       -30.73% |           4.48 |                      |
+| tuple/projection/8/length            |    25.03 |   18.27 |    27.89 |    2.51 |       2.86 |  11.44% |         3.75% |         291.68 |                      |
+| tuple/tuple/8/length                 |    25.09 |   18.56 |    25.56 |    1.55 |       0.48 |   1.91% |        -0.62% |         260.69 |                      |
+| tuple/projection/8/value.random      |    52.62 |    7.39 |    54.95 |    8.19 |       2.33 |   4.42% |        -2.34% |          29.65 |                      |
+| tuple/tuple/8/value.random           |    18.09 |    1.68 |    19.66 |    2.12 |       1.57 |   8.70% |         8.70% |           6.84 |                      |
+| tuple/projection/8/values            |   215.82 |    9.04 |   233.25 |   19.02 |      17.43 |   8.08% |         1.10% |          43.64 |                      |
+| tuple/tuple/8/values                 |   200.14 |    5.29 |   208.04 |    5.12 |       7.90 |   3.95% |         3.72% |          19.68 |                      |
+| tuple/projection/8/sequence          |   725.75 |   18.96 |   745.43 |   71.87 |      19.68 |   2.71% |         6.39% |          16.09 |                      |
+| tuple/tuple/8/sequence               |   728.98 |  120.58 |   724.97 |   20.86 |      -4.01 |  -0.55% |         2.69% |          13.12 |                      |
+| tuple/projection/100/create.empty    |   589.40 |  221.65 |   443.94 |   23.52 |    -145.46 | -24.68% |       -21.82% |          30.22 |                      |
+| tuple/tuple/100/create.empty         |   579.75 |  290.15 |   462.19 |   47.85 |    -117.56 | -20.28% |       -23.30% |          34.14 |                      |
+| tuple/projection/100/create.sequence | 14342.83 | 6719.17 | 13944.31 |  456.85 |    -398.52 |  -2.78% |        -1.49% |          29.13 |                      |
+| tuple/tuple/100/create.sequence      | 10683.07 | 3397.51 | 10007.89 |   86.09 |    -675.18 |  -6.32% |        -5.81% |          22.75 |                      |
+| tuple/projection/100/replace.random  |  1329.19 |  405.10 |  1256.26 |   30.21 |     -72.93 |  -5.49% |       -14.25% |          20.28 |                      |
+| tuple/tuple/100/replace.random       |   635.08 |  162.25 |   640.76 |   35.48 |       5.68 |   0.89% |        -4.16% |          24.56 |                      |
+| tuple/projection/100/apply.replace   |  3107.56 |  846.31 |  1783.65 |   14.56 |   -1323.91 | -42.60% |       -42.60% |          14.19 |                      |
+| tuple/tuple/100/apply.replace        |  1056.63 |  235.90 |  1020.74 |   26.68 |     -35.88 |  -3.40% |        -3.40% |          18.58 |                      |
+| tuple/projection/100/apply.duplicate |   575.33 |   30.95 |   559.15 |    4.62 |     -16.19 |  -2.81% |        -2.81% |           5.75 |                      |
+| tuple/tuple/100/apply.duplicate      |   598.44 |   16.32 |   564.32 |   76.94 |     -34.12 |  -5.70% |        -5.37% |           9.67 |                      |
+| tuple/projection/100/merge.duplicate |  9503.91 | 1765.49 |  8432.48 |  638.60 |   -1071.42 | -11.27% |       -13.37% |          20.50 |                      |
+| tuple/tuple/100/merge.duplicate      | 13794.36 | 3777.98 | 12985.30 | 1293.97 |    -809.06 |  -5.87% |        -1.44% |          18.60 |                      |
+| tuple/projection/100/length          |    24.08 |   17.48 |    27.33 |    1.07 |       3.25 |  13.51% |        23.16% |         189.24 |                      |
+| tuple/tuple/100/length               |    26.34 |   19.44 |    26.22 |    2.52 |      -0.12 |  -0.44% |        10.53% |         248.96 |                      |
+| tuple/projection/100/value.random    |   114.22 |    6.71 |    82.73 |    6.79 |     -31.50 | -27.57% |       -32.68% |           5.61 |                      |
+| tuple/tuple/100/value.random         |    18.00 |    1.38 |    18.26 |    0.62 |       0.26 |   1.45% |         0.23% |           5.57 |                      |
+| tuple/projection/100/values          |  1869.75 |   54.77 |  1955.24 |  162.74 |      85.48 |   4.57% |         4.57% |          15.05 |                      |
+| tuple/tuple/100/values               |  1504.79 |   16.61 |  1545.07 |  113.38 |      40.28 |   2.68% |         4.74% |           3.75 | yes                  |
+| tuple/projection/100/sequence        |  6246.64 |  210.82 |  6598.36 |  475.95 |     351.72 |   5.63% |         4.92% |          10.65 |                      |
+| tuple/tuple/100/sequence             |  5752.36 |  449.15 |  5670.00 |  143.26 |     -82.36 |  -1.43% |        -0.45% |          15.99 |                      |
+| space/projection/2/allocatedBytes    |   816.00 |    0.00 |   752.00 |    0.00 |     -64.00 |  -7.84% |        -7.84% |           0.00 |                      |
+| space/projection/2/msgpackBytes      |    32.00 |    0.00 |    32.00 |    0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/projection/2/gzipBytes         |    42.00 |    0.00 |    42.00 |    0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/tuple/2/allocatedBytes         |   808.00 |    0.00 |   792.00 |    0.00 |     -16.00 |  -1.98% |        -1.98% |           0.00 |                      |
+| space/tuple/2/msgpackBytes           |    38.00 |    0.00 |    38.00 |    0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/tuple/2/gzipBytes              |    56.00 |    0.00 |    56.00 |    0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/projection/4/allocatedBytes    |  1488.00 |    0.00 |  1432.00 |    0.00 |     -56.00 |  -3.76% |        -3.76% |           0.00 |                      |
+| space/projection/4/msgpackBytes      |    64.00 |    0.00 |    64.00 |    0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/projection/4/gzipBytes         |    53.00 |    0.00 |    53.00 |    0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/tuple/4/allocatedBytes         |   984.00 |    0.00 |   968.00 |    0.00 |     -16.00 |  -1.63% |        -1.63% |           0.00 |                      |
+| space/tuple/4/msgpackBytes           |    60.00 |    0.00 |    60.00 |    0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/tuple/4/gzipBytes              |    71.00 |    0.00 |    71.00 |    0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/projection/8/allocatedBytes    |  2416.00 |    0.00 |  2328.00 |    0.00 |     -88.00 |  -3.64% |        -3.64% |           0.00 |                      |
+| space/projection/8/msgpackBytes      |   124.00 |    0.00 |   124.00 |    0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/projection/8/gzipBytes         |    80.00 |    0.00 |    80.00 |    0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/tuple/8/allocatedBytes         |  1432.00 |    0.00 |  1416.00 |    0.00 |     -16.00 |  -1.12% |        -1.12% |           0.00 |                      |
+| space/tuple/8/msgpackBytes           |   104.00 |    0.00 |   104.00 |    0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/tuple/8/gzipBytes              |    92.00 |    0.00 |    92.00 |    0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/projection/100/allocatedBytes  | 23080.00 |    0.00 | 21400.00 |    0.00 |   -1680.00 |  -7.28% |        -7.28% |           0.00 |                      |
+| space/projection/100/msgpackBytes    |   682.00 |    0.00 |   682.00 |    0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/projection/100/gzipBytes       |   586.00 |    0.00 |   586.00 |    0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/tuple/100/allocatedBytes       | 11624.00 |    0.00 | 11608.00 |    0.00 |     -16.00 |  -0.14% |        -0.14% |           0.00 |                      |
+| space/tuple/100/msgpackBytes         |   527.00 |    0.00 |   527.00 |    0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |
+| space/tuple/100/gzipBytes            |   356.00 |    0.00 |   356.00 |    0.00 |       0.00 |   0.00% |         0.00% |           0.00 |                      |

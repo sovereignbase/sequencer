@@ -8,6 +8,8 @@ the relevant reports.
 
 ## Optimization rounds
 
+[13–14 November 2026: traversal indexing, replicated editing and the checkpoint comparison](optimizations_2026_11_13/README.md).
+
 [12 November 2026: removal, replicated placement and arena ownership](optimizations_2026_11_12/README.md).
 
 [11 November 2026: smaller snapshot input and direct range reads](optimizations_2026_11_11/README.md),

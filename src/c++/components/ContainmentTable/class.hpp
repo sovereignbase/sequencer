@@ -29,7 +29,7 @@ public:
   void reserve(Word capacity) {
     if (std::size_t(capacity) * 4 <= (mask + 1) * 3)
       return;
-    auto size = std::max(std::size_t(8), mask + 1);
+    auto size = std::max(std::size_t(2), mask + 1);
     while (std::size_t(capacity) * 4 > size * 3)
       size *= 2;
     auto grown = std::make_unique<Slot[]>(size);
@@ -61,11 +61,6 @@ public:
         return slots[at].strip;
     return none;
   }
-  /** Tests materialization independently of anchor coordinates and Footage.
-   * @param c Coordinates whose authoring identity is queried.
-   * @return Whether that canonical Insertion has a root.
-   */
-  bool has(const Coordinates &c) const { return get(c.session, c.start) != none; }
   /** Registers or replaces an identity's canonical root.
    * @param c Coordinates supplying Session and start.
    * @param strip Nonzero materialized root index.

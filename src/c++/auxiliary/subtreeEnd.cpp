@@ -4,29 +4,22 @@
  */
 #include "../class.hpp"
 #include "containsAnchor.hpp"
-#include "linkJumps.hpp"
 #include "magnitude.hpp"
 #include <algorithm>
 
 namespace sequencer {
 Index Projection::subtree_end(Index root) {
-  std::vector<Index> ancestors;
-  auto previous = root;
-  auto jump_start = strips.right_jump[root] ? root : none;
-  auto jump_end = strips.right_jump[root];
-  Word jump_frames = 0, jump_steps = 0;
-  const auto finish = [&]() {
-    // Competition can move an edit inside an existing traversal span. Split
-    // that span at the resolved boundary using the walk already performed.
-    if (jump_start && previous != jump_start) {
-      const auto right = strips.right_jump[jump_start];
-      const auto frames = strips.right_jump_frames[jump_start];
-      const auto steps = strips.right_jump_strips[jump_start];
-      link_jumps(*this, previous, right, frames - jump_frames, steps - jump_steps);
-      link_jumps(*this, jump_start, previous, jump_frames, jump_steps);
-    }
-    return previous;
+  const auto positive = strips.identity[root].coordinates.diff > 0;
+  const auto finish = [&](Index end) {
+    if (positive)
+      strips.subtree_tail[root] = end;
+    return end;
   };
+  auto previous = positive && strips.subtree_tail[root] ? strips.subtree_tail[root] : root;
+  std::vector<Index> ancestors;
+  // Positive subtrees only extend in live Structural Order; masks retain the full walk.
+  if (previous != root && strips.right[previous])
+    ancestors.push_back(root);
   for (auto next = strips.right[previous]; next; next = strips.right[previous]) {
     auto ancestor = previous;
     // Every fragment retains its canonical identity. Intervening masks can
@@ -43,17 +36,17 @@ Index Projection::subtree_end(Index root) {
         const auto r = strips.identity[root].coordinates;
         const auto n = strips.identity[next].coordinates;
         if (n.anchor_session == r.anchor_session && n.anchor_start == r.anchor_start)
-          return finish();
+          return finish(previous);
         auto parent = containment.get(n.anchor_session, n.anchor_start);
         while (parent && (strips.identity[parent].coordinates.session != r.session ||
                           strips.identity[parent].coordinates.start != r.start)) {
           const auto c = strips.identity[parent].coordinates;
           if (c.session == r.anchor_session && c.start == r.anchor_start)
-            return finish();
+            return finish(previous);
           parent = containment.get(c.anchor_session, c.anchor_start);
         }
         if (!parent)
-          return finish();
+          return finish(previous);
         ancestor = root;
         break;
       }
@@ -61,18 +54,8 @@ Index Projection::subtree_end(Index root) {
       ancestors.pop_back();
     }
     ancestors.push_back(ancestor);
-    if (jump_start) {
-      jump_frames += Word(std::max(0, strips.fragment_diff[previous]));
-      ++jump_steps;
-    }
     previous = next;
-    if (strips.right_jump[previous]) {
-      jump_start = previous;
-      jump_frames = jump_steps = 0;
-      jump_end = strips.right_jump[previous];
-    } else if (previous == jump_end)
-      jump_start = jump_end = none;
   }
-  return finish();
+  return finish(previous);
 }
 } // namespace sequencer

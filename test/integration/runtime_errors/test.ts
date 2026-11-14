@@ -5,7 +5,7 @@ import module from '../../../src/typescript/wasm/index.ts'
 
 /** Faults enter at the native call used by a valid public operation. */
 const operations = [
-  ['constructor', '_runtime_dispatch', () => new Projection<string>(2)],
+  ['constructor', '_runtime_create', () => new Projection<string>(2)],
   ['apply', '_runtime_dispatch', (p: Projection<string>) => p.apply([])],
   ['insert', '_runtime_insert', (p: Projection<string>) => p.insert(['b'], 1)],
   ['length', '_runtime_length', (p: Projection<string>) => p.length()],

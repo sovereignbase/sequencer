@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.7](https://github.com/sovereignbase/sequencer/compare/v1.2.6...v1.2.7) (2026-11-20)
+
+
+### Performance Improvements
+
+* retain string footage without character arrays ([a8b04de](https://github.com/sovereignbase/sequencer/commit/a8b04de920ae60bd3c0bdb53171a36a3a6ae85c5))
+
 ## [1.2.6](https://github.com/sovereignbase/sequencer/compare/v1.2.5...v1.2.6) (2026-11-14)
 
 

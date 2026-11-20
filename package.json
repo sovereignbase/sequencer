@@ -64,23 +64,23 @@
     "@playwright/test": "^1.65.1",
     "@types/node": "^26.6.6",
     "@types/ws": "^8.18.2",
-    "@vitest/browser-playwright": "^5.1.0",
-    "@vitest/coverage-v8": "^5.1.0",
+    "@vitest/browser-playwright": "^5.1.1",
+    "@vitest/coverage-v8": "^5.1.1",
     "@vitest/ui": "^5.1.0",
-    "bun": "^1.4.4",
+    "bun": "^1.4.5",
     "deno": "^2.9.6",
     "edge-runtime": "^4.0.1",
-    "fast-check": "^4.10.2",
+    "fast-check": "^4.10.3",
     "fast-glob": "^3.3.3",
     "husky": "^9.1.7",
     "playwright": "^1.65.1",
     "prettier": "^3.10.1",
-    "terser": "^5.51.2",
+    "terser": "^5.51.4",
     "tsdown": "^0.23.7",
     "typedoc": "^0.28.20",
     "typescript": "^6.0.3",
-    "vitest": "^5.1.0",
-    "wrangler": "^4.162.0",
+    "vitest": "^5.1.1",
+    "wrangler": "^4.166.0",
     "ws": "^8.23.0"
   },
   "repository": {
@@ -92,9 +92,9 @@
   },
   "homepage": "https://sovereignbase.dev/sequencer",
   "allowScripts": {
-    "bun@1.4.4": true,
     "deno@2.9.6": true,
     "esbuild@0.28.2": true,
-    "workerd@1.20261113.1": true
+    "workerd@1.20261119.1": true,
+    "bun@1.4.5": true
   }
 }

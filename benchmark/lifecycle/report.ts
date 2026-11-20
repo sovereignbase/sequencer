@@ -1,6 +1,7 @@
 import { caseColumns, writeReportFiles } from '../.shared/report.ts'
 import { measureBundles } from '../.shared/bundle.ts'
 import { updateLifecycleReadme } from './readme.ts'
+import { sourceLine } from '../.shared/readme.ts'
 import {
   aggregate_names,
   management_names,
@@ -62,7 +63,7 @@ const makeMarkdown = (report: BenchmarkReport): string => {
   const lines: Array<string> = [
     '# Sequencer dynamic lifecycle benchmark',
     '',
-    'Generated: ' + report.generatedAt,
+    sourceLine(report),
     '',
     'Node ' +
       report.environment.node +
@@ -231,7 +232,7 @@ const makeMarkdown = (report: BenchmarkReport): string => {
     '',
     'One instance after both peers restart from the same compacted checkpoint. Its peer is excluded. WASM bytes are live native allocations, excluding unused WASM capacity; JavaScript uses eight bytes per retained array slot, counting each Footage array once.',
     '',
-    '| Run | direction | visible Strips | estimated KiB | WASM KiB | JS slots KiB |',
+    '| Run | direction | visible Strips | estimated MiB | WASM MiB | JS MiB |',
     '| ---: | --- | ---: | ---: | ---: | ---: |'
   )
   for (const run of report.runs)
@@ -242,9 +243,9 @@ const makeMarkdown = (report: BenchmarkReport): string => {
           String(run.run),
           checkpoint.direction,
           String(checkpoint.stripCount),
-          decimal(memory.bytes / 1024),
-          decimal(memory.wasmBytes / 1024),
-          decimal(memory.javascriptBytes / 1024),
+          decimal(memory.bytes / 1048576),
+          decimal(memory.wasmBytes / 1048576),
+          decimal(memory.javascriptBytes / 1048576),
         ])
       )
     }
@@ -254,7 +255,7 @@ const makeMarkdown = (report: BenchmarkReport): string => {
     '',
     'The representation estimate describes exported metadata and Footage slots, independently of the live runtime.',
     '',
-    '| Run | direction | Replica | visible Strips | retained insertions | Frames | estimated memory bytes | memory B/Strip | memory B/Frame | process RSS | process heap used |',
+    '| Run | direction | Replica | visible Strips | retained insertions | Frames | estimated memory MiB | memory B/Strip | memory B/Frame | process RSS MiB | process heap used MiB |',
     '| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |'
   )
   for (const run of report.runs)
@@ -269,11 +270,11 @@ const makeMarkdown = (report: BenchmarkReport): string => {
             observed.strips.stripCount.toLocaleString('en-US'),
             observed.strips.retainedDeltaCount.toLocaleString('en-US'),
             observed.strips.frameCount.toLocaleString('en-US'),
-            observed.memory.bytes.toLocaleString('en-US'),
+            decimal(observed.memory.bytes / 1048576),
             decimal(observed.memory.bytesPerStrip),
             decimal(observed.memory.bytesPerFrame),
-            checkpoint.processMemory.rssBytes.toLocaleString('en-US'),
-            checkpoint.processMemory.heapUsedBytes.toLocaleString('en-US'),
+            decimal(checkpoint.processMemory.rssBytes / 1048576),
+            decimal(checkpoint.processMemory.heapUsedBytes / 1048576),
           ])
         )
       }

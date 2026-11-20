@@ -6,6 +6,35 @@ import module from '../../../src/typescript/wasm/index.ts'
 import { makeSequence } from '../../.shared/sequence.ts'
 
 describe('runtime memory', () => {
+  it('counts shared string Footage once without allocating character slots', () => {
+    const text = 'x'.repeat(1024)
+    const snapshot = makeSequence(
+      [],
+      [
+        [[0, 0, 0, 100, 0, 512], []],
+        [[100, 0, 512, 200, 0, 512], []],
+      ]
+    )
+    const before = runtime.memory().javascriptBytes
+    const left = new Projection<string>(1, [snapshot[0], text], undefined, true)
+    const first = runtime.memory().javascriptBytes
+    const right = new Projection<string>(
+      2,
+      [snapshot[0], text],
+      undefined,
+      true
+    )
+    try {
+      expect(first - before).toBeGreaterThanOrEqual(text.length * 2)
+      expect(first - before).toBeLessThan(text.length * 2 + 128)
+      expect(runtime.memory().javascriptBytes - first).toBeLessThan(128)
+      expect(left.values(undefined, undefined, true)).toBe(text)
+      expect(right.value(1023)).toBe('x')
+    } finally {
+      left.destroy()
+      right.destroy()
+    }
+  })
   it('counts shared Footage once across hydrated roots and releases destroyed bindings', () => {
     const snapshot = makeSequence(
       [],

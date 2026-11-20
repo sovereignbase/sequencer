@@ -48,7 +48,7 @@ static_assert(sizeof(Coordinates) == 6 * sizeof(Word));
 inline std::uint64_t identity(Word session, Word start) {
   return (std::uint64_t(session) << 32) | start;
 }
-/** State of the JavaScript array retained by one Footage binding. */
+/** Ownership of one JavaScript Footage binding. */
 enum class FootageState : std::uint8_t { Caller = 0, Private = 1, Retained = 2, Snapshot = 3 };
 /** Native Insertion plus an opaque JavaScript Footage reference. */
 struct Insertion {
@@ -60,8 +60,10 @@ struct Insertion {
   Word content_start{};
   /** Binding state in the low byte of an aligned word shared with native flags. */
   FootageState footage_state{};
-  /** Whether Footage is privately writable; false requests copy-on-write before masking. */
-  bool content_owned{};
+  /** Whether array Footage is privately writable before masking. */
+  bool content_owned : 1 {};
+  /** Immutable UTF-16 Footage; masked ranges are emitted as missing snapshot spans. */
+  bool string_content : 1 {};
   /** Whether materialization has diverged from one intact Strip. */
   bool fragmented{};
   /** Whether this Strip represents an offset fragment or consumed mask prefix. */

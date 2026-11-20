@@ -124,24 +124,27 @@ public:
    * @param count Positive Footage length; tuple mode accepts one Frame per Insertion.
    * @param content JavaScript binding token; native code never reads the values.
    * @param at Visible insertion boundary.
+   * @param text Whether the binding retains immutable UTF-16 text.
    * @return Canonical Gossip operation, including only the suffix for an extension.
    */
-  Insertion insert(Word count, Word content, Word at);
+  Insertion insert(Word count, Word content, Word at, bool text = false);
   /** Authors one Insertion per stable tuple index, or one contiguous sequence Insertion.
    * @param count Number of Frames to insert.
    * @param content JavaScript Footage binding token.
    * @param at First tuple index or visible insertion boundary.
+   * @param text Whether the input retains UTF-16 text.
    * @return Authored Insertions in Frame order.
    */
-  Gossip insert_batch(Word count, Word content, Word at);
+  Gossip insert_batch(Word count, Word content, Word at, bool text = false);
   /** Appends a contiguous logical suffix while respecting remote fragmentation.
    * @param origin Existing positive canonical root.
    * @param count Number of newly visible Frames.
    * @param content Binding carrying the incoming suffix.
    * @param source_start Offset of that suffix in its source Footage.
+   * @param text Whether the suffix binding retains UTF-16 text.
    * @return Visible start of the added suffix.
    */
-  Word extend(Index origin, Word count, Word content, Word source_start = 0);
+  Word extend(Index origin, Word count, Word content, Word source_start = 0, bool text = false);
   /** Requests private Footage before clearing externally owned content slots.
    * @param fragment Any fragment of the positive canonical Insertion.
    */
@@ -157,9 +160,10 @@ public:
    * @param content Replacement Footage binding.
    * @param start First replaced Projection position.
    * @param end Last replaced position, inclusive.
+   * @param text Whether replacement Footage retains UTF-16 text.
    * @return Gossip preserving removal-before-insertion order.
    */
-  Gossip replace(Word count, Word content, Word start, std::int64_t end);
+  Gossip replace(Word count, Word content, Word start, std::int64_t end, bool text = false);
   /** Integrates one Insertion and any dependencies released by it.
    * @param insertion Canonical Insertion already validated at the ABI.
    * @param result Output to append to.

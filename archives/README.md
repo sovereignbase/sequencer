@@ -8,6 +8,10 @@ the relevant reports.
 
 ## Optimization rounds
 
+[19–20 November 2026: large string Footage, text reads and snapshot retention](optimizations_2026_11_19/README.md).
+The [final checkpoint](optimizations_2026_11_19/checkpoint.md) records the retained
+implementation and remaining regressions.
+
 [13–14 November 2026: traversal indexing, replicated editing and the checkpoint comparison](optimizations_2026_11_13/README.md).
 
 [12 November 2026: removal, replicated placement and arena ownership](optimizations_2026_11_12/README.md).

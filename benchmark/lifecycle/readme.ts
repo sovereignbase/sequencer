@@ -1,7 +1,4 @@
-import { readFile, writeFile } from 'node:fs/promises'
-import { relative } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { tupleReadmeSection } from '../tuple/readme.ts'
+import { reportLink, sourceLine, updateReadme } from '../.shared/readme.ts'
 import {
   management_names,
   operation_names,
@@ -26,6 +23,14 @@ const kib = (bytes: number | null): string =>
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       })
+/** Live library memory in binary mebibytes. */
+const mib = (bytes: number | null): string =>
+  bytes === null
+    ? '—'
+    : (bytes / 1048576).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
 const rate = (value: number | null): string =>
   value === null
     ? '—'
@@ -40,16 +45,8 @@ export async function updateLifecycleReadme(
   report: BenchmarkReport,
   markdownPath: string
 ): Promise<void> {
-  const root = fileURLToPath(new URL('../../', import.meta.url))
-  const readmePath = new URL('../../README.md', import.meta.url)
-  const original = await readFile(readmePath, 'utf8')
-  const tuple = tupleReadmeSection(original)
   const bundles = report.bundles
-  const newline = original.includes('\r\n') ? '\r\n' : '\n'
-  const start = original.indexOf(`## Benchmarks${newline}`)
-  const end = original.indexOf(`## Tests${newline}`, start)
-  if (start < 0 || end < 0 || !bundles)
-    throw new Error('Missing benchmark section or bundle measurements')
+  if (!bundles) throw new Error('Missing bundle measurements')
 
   const findCheckpoint = (
     run: BenchmarkReport['runs'][number],
@@ -128,11 +125,11 @@ export async function updateLifecycleReadme(
       ),
       '',
     ])
-  const link = relative(root, markdownPath).replaceAll('\\', '/')
+  const link = reportLink(markdownPath)
   const lines = [
-    '## Benchmarks',
+    sourceLine(report),
     '',
-    '### Moderate bundle size',
+    '#### Moderate bundle size',
     '',
     '| Format | Raw (KiB) | Minified (KiB) | Minified + gzip (KiB) |',
     '| --- | ---: | ---: | ---: |',
@@ -147,7 +144,7 @@ export async function updateLifecycleReadme(
     '',
     'Both bundles include WASM. Terser uses three compression passes; gzip uses level 9.',
     '',
-    '### Average throughput during editing to checkpoint',
+    '#### Average throughput during editing to checkpoint',
     '',
     `Arithmetic means of ${report.runs.length} runs, in ops/s, from each phase's start to checkpoint.`,
     `Strips contain ${report.config.minimumStripFrameLength}–${report.config.maximumStripFrameLength} Frames (visible entries). Headers show Strip counts and mean Frame counts.`,
@@ -160,7 +157,7 @@ export async function updateLifecycleReadme(
       ])
     ),
     '',
-    '### API throughput at checkpoint',
+    '#### API throughput at checkpoint',
     '',
     'Checkpoint calls, in ops/s, averaged across runs.',
     '',
@@ -174,7 +171,7 @@ export async function updateLifecycleReadme(
       ])
     ),
     '',
-    '### Sequence disk size at checkpoint',
+    '#### Sequence disk size at checkpoint',
     '',
     'Complete exported Sequences, including Footage and acknowledgements. Sizes are in KiB.',
     '',
@@ -193,31 +190,19 @@ export async function updateLifecycleReadme(
       ],
     ]),
     '',
-    '### Memory usage at checkpoint',
+    '#### Memory usage at checkpoint',
     '',
-    'One instance after checkpoint compaction and recreation: live native allocation plus retained JS array slots, in KiB (1,024 bytes). Unused WASM capacity is excluded.',
+    'One instance after checkpoint compaction and recreation: live native allocation plus retained JS array slots and string code units, in MiB (1,048,576 bytes). Unused WASM capacity is excluded.',
     '',
     ...tables('Measurement', [
-      ['Estimated memory (KiB)', (point) => point.runtimeMemory.bytes, kib],
+      ['Estimated memory (MiB)', (point) => point.runtimeMemory.bytes, mib],
     ]),
     '',
     `Measured on Node ${report.environment.node}, V8 ${report.environment.v8},`,
     `${report.environment.platform} ${report.environment.architecture}, ${report.environment.cpu}.`,
-    'Peer synchronization, encoding and JS process garbage collection are outside API timings.',
+    'Peer synchronization, encoding and explicit JS process garbage collection are outside API timings.',
     `[Full lifecycle results](${link}) · [Throughput results](benchmark/.results/throughput.md).`,
     '',
-    tuple,
-    '',
   ]
-  // Format only the generated section so manual README content remains untouched.
-  const { format, resolveConfig } = await import('prettier')
-  const section = await format(lines.join('\n'), {
-    ...(await resolveConfig(fileURLToPath(readmePath))),
-    parser: 'markdown',
-    endOfLine: newline === '\r\n' ? 'crlf' : 'lf',
-  })
-  await writeFile(
-    readmePath,
-    original.slice(0, start) + section + newline + original.slice(end)
-  )
+  await updateReadme('projection:benchmarks', lines.join('\n'))
 }

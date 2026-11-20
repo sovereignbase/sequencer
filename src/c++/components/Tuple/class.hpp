@@ -19,6 +19,8 @@ public:
     FootageState footage_state{};
     /** Active candidate status and membership in a shared local Footage binding. */
     bool active{}, shared{};
+    /** Immutable UTF-16 Footage; uses the trailing alignment byte. */
+    bool string_content{};
   };
   struct Binding {
     Word references{}, extent{};

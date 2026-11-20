@@ -7,9 +7,21 @@
 #include <algorithm>
 
 namespace sequencer {
-Word Projection::extend(Index origin, Word count, Word content, Word source_start) {
+Word Projection::extend(Index origin, Word count, Word content, Word source_start, bool text) {
   const auto original = strips.identity[origin];
   const auto end = Word(original.coordinates.diff);
+  // A mixed suffix materializes an array; restore the text root's masked slots there.
+  if (original.string_content && !text && original.fragmented) {
+    Word start = 0;
+    for (auto fragment = origin; fragment; fragment = strips.fragment[fragment]) {
+      const auto point = strips.fragment_start[fragment];
+      if (point > start)
+        released.push_back({original.content, start, point - start});
+      start = point + Word(std::max(0, strips.fragment_diff[fragment]));
+    }
+    if (end > start)
+      released.push_back({original.content, start, end - start});
+  }
   auto last = origin;
   while (strips.fragment[last])
     last = strips.fragment[last];
@@ -41,6 +53,7 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
       strips.identity[fragment].content_start = 0;
       strips.identity[fragment].content_owned = true;
       strips.identity[fragment].footage_state = FootageState::Private;
+      strips.identity[fragment].string_content = original.string_content && text;
     }
     return at;
   }
@@ -54,6 +67,7 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
   grown.content_start = 0;
   grown.content_owned = true;
   grown.footage_state = FootageState::Private;
+  grown.string_content = original.string_content && text;
   const auto incoming = allocate(grown);
   strips.fragment_start[incoming] = end;
   strips.fragment_diff[incoming] = std::int32_t(count);
@@ -75,6 +89,7 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
     strips.identity[fragment].content_start = 0;
     strips.identity[fragment].content_owned = true;
     strips.identity[fragment].footage_state = FootageState::Private;
+    strips.identity[fragment].string_content = grown.string_content;
     strips.identity[fragment].fragmented = true;
   }
   // All fragments share the grown original extent and the rebased private Footage array.

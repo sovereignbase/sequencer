@@ -7,7 +7,7 @@ clocks, pending Insertions, Acknowledgements and snapshot compaction.
 
 The synchronous WebAssembly instance is shared by the
 `TypeScript API <../index.html>`_. Each Projection retains independent history.
-JavaScript owns Footage; native spans refer to its binding tokens and array
+JavaScript owns Footage; native spans refer to its binding tokens and Frame
 offsets. Application values never enter WebAssembly memory.
 
 Register all active Actors before removals. Equal complete frontiers from every

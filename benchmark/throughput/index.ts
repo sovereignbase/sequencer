@@ -1,5 +1,6 @@
 /** Isolated public-API bursts; fixture generation, serialization and observation are untimed. */
 import { caseColumns } from '../.shared/report.ts'
+import { runSource } from '../.shared/readme.ts'
 import { arch, cpus, platform } from 'node:os'
 import type { Gossip, Sequence } from '../../dist/index.js'
 import {
@@ -83,6 +84,7 @@ export type ThroughputReport = {
   schemaVersion: 4
   suite: 'throughput'
   generatedAt: string
+  run?: string
   environment: BenchmarkReport['environment']
   config: BenchmarkConfig
   samples: Array<ThroughputSample>
@@ -496,7 +498,7 @@ export async function runThroughput(
   return {
     schemaVersion: 4,
     suite: 'throughput',
-    generatedAt: new Date().toISOString(),
+    ...runSource(),
     config,
     environment: {
       node: process.versions.node,
@@ -528,8 +530,10 @@ function printCheckpoint(samples: Array<ThroughputSample>): void {
     samples.map(({ operation, before, after }) => ({
       ...caseColumns(operation),
       'visible Strips': after.stripCount,
-      'initial Sequencer KiB': (before.runtimeMemory.bytes / 1024).toFixed(2),
-      'final Sequencer KiB': (after.runtimeMemory.bytes / 1024).toFixed(2),
+      'initial Sequencer MiB': (before.runtimeMemory.bytes / 1048576).toFixed(
+        2
+      ),
+      'final Sequencer MiB': (after.runtimeMemory.bytes / 1048576).toFixed(2),
     }))
   )
   console.log('Disk usage (serialized Sequence)')

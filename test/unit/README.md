@@ -15,5 +15,8 @@ Convergence, integration, stress, and runtime compatibility remain separate suit
 [String-encoded Sequences](string_encoded_sequence/README.md) cover optional
 string Footage, automatic hydration and concatenation errors.
 
+[String Footage](string_footage/README.md) covers direct text edits, string
+Splices, optional retained hydration and array/text equivalence after replay.
+
 [Tuples](tuple/README.md) cover stable indices, optional fixed capacity,
 configuration persistence and local edits.

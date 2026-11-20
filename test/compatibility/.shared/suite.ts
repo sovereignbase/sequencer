@@ -273,6 +273,39 @@ export function runSuite(
       },
     ],
     [
+      'string Footage replay and retained hydration',
+      () => {
+        const source = new Constructor<string>(1)
+        const receiver = new Constructor<string>(2)
+        let restored: Projection<string> | undefined
+        const text = 'a😀\0\ud800'.repeat(1024)
+        try {
+          const gossip = source.insert(text, 0)
+          equal(
+            receiver.apply(JSON.parse(JSON.stringify(gossip)), true)![0][0][2],
+            text
+          )
+          restored = new Constructor<string>(
+            3,
+            JSON.parse(JSON.stringify(receiver.sequence(true))),
+            undefined,
+            true
+          )
+          equal(restored.values(undefined, undefined, true), text)
+          check(restored, text.split(''))
+          restored.replace('X', 1, 2)
+          equal(
+            restored.values(undefined, undefined, true),
+            'aX' + text.slice(3)
+          )
+        } finally {
+          source.destroy()
+          receiver.destroy()
+          restored?.destroy()
+        }
+      },
+    ],
+    [
       'large snapshot Footage and hydration',
       () => {
         const source = new Constructor<number>(1)

@@ -6,6 +6,8 @@
   bursts at starting sizes of 100, 1,000 and 10,000 Strips.
 - [Tuple](tuple/README.md) compares small static tuples with ordinary Projections;
   run it separately with `npm run bench:tuple`.
+- [Large strings](text/README.md) measures bulk text, partial edits, replication,
+  hydration and reads with array and string Footage; use `npm run bench:text`.
 
 ```powershell
 npm run bench
@@ -21,9 +23,11 @@ Both report calls per second and average latency, with separate memory usage
 and disk usage tables. Run `npm run bench -- --help` for shared options.
 
 Lifecycle report writes also refresh the README's bundle and checkpoint tables.
+Tuple and text runs refresh their own benchmark blocks without replacing other
+results. Reports identify local runs or link to their producing CI run.
 Those tables average independent runs at each growth and shrinkage checkpoint
 and show JSON/MessagePack transport sizes with gzip in KiB. Memory estimates
-cover one instance's live native allocation and retained JS array slots, excluding
+are shown in MiB and cover one instance's live native allocation and retained JS Footage, excluding
 unused WASM capacity. At lifecycle checkpoints both peers are destroyed and
 recreated from the same compacted Sequence before measuring memory and continuing
 edits. The peer uses a separate runtime. `--no-output` preserves existing reports

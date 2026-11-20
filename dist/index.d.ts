@@ -9,16 +9,18 @@
  * In tuple mode, `anchorDiff` is the stable index and diff is `1` or `-1`.
  */
 type InsertionWords = ReadonlyArray<number>;
+/** Frame values, or UTF-16 code units retained as a string; missing text slots use NUL. */
+type Footage<T, StringEncoded extends boolean = false> = StringEncoded extends true ? string : ReadonlyArray<T | undefined>;
 /**
  * Canonical replication operation and optional JavaScript-owned Footage.
  * Positive Insertions may omit Footage; their Frames then read as `undefined`.
  * Reducing Insertions carry no content into native state.
  */
-type Insertion<T> = Readonly<[
+type Insertion<T, StringEncoded extends boolean = false> = Readonly<[
 /** Stable anchor, identity and signed Frame effect. */
 words: InsertionWords,
 /** Values of a positive Insertion, in original Frame order. */
-footage?: ReadonlyArray<T | undefined>]>;
+footage?: Footage<T, StringEncoded>]>;
 /**
  * Describes one Actor's acknowledgement frontier.
  * `[actorID, sessionID, sessionEnd, ...]` contains removal Session/frontier pairs.
@@ -28,7 +30,7 @@ footage?: ReadonlyArray<T | undefined>]>;
  */
 type Acknowledgement = ReadonlyArray<number>;
 /** Replication batch within retained history; delivery may be duplicated or causally reordered. */
-type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>;
+type Gossip<T, StringEncoded extends boolean = false> = ReadonlyArray<Acknowledgement | Insertion<T, StringEncoded>>;
 /**
  * Retained state required to hydrate the same visible Projection.
  * One structural array and JavaScript-owned Footage.
@@ -41,7 +43,7 @@ type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>;
  * Positive insertion diffs consume successive spans of `footage`.
  * String-encoded Footage preserves Insertion order, not visible text order.
  * It uses one UTF-16 code unit per Frame. Missing slots use
- * NUL (`\u0000`); hydration splits the string with `split('')`.
+ * NUL (`\u0000`). Constructor string Footage is retained when requested explicitly.
  * `[[], []]` is an empty Sequence. Structural words use numeric arrays.
  * Tuple metadata prefixes the payload with `[0xffffffff, 1, maxLength, length]`;
  * `maxLength = 0xffffffff` denotes dynamic growth. Tuple indices are never translated.
@@ -50,23 +52,23 @@ type Sequence<T, StringEncoded extends boolean = false> = Readonly<[
 /** Acknowledgements followed by canonical Insertions in Structural Order. */
 words: ReadonlyArray<number>,
 /** Consecutive positive Insertion spans, including missing Footage slots. */
-footage: StringEncoded extends true ? string : ReadonlyArray<T | undefined>]>;
+footage: Footage<T, StringEncoded>]>;
 /**
  * Visible mutation: insertion uses `[at, at, values]`; removal ends exclusively.
  * Tuple changes assign one stable index using `[index, index + 1, [value]]`;
  * an empty register supplies `undefined`, without shifting other indices.
  */
-type Splice<T> = Readonly<[
+type Splice<T, StringEncoded extends boolean = false> = Readonly<[
 /** First affected position in the Projection after preceding Splices. */
 startAt: number,
 /** Exclusive removal boundary; equal to `startAt` for insertion. */
 endWith: number,
 /** Inserted Footage; omitted for removal. */
-values?: ReadonlyArray<T | undefined>]>;
+values?: Footage<T, StringEncoded>]>;
 /** Splices applied in order to reproduce the remote operation's visible effect. */
-type Change<T> = ReadonlyArray<Splice<T>>;
+type Change<T, StringEncoded extends boolean = false> = ReadonlyArray<Splice<T, StringEncoded>>;
 /** Visible changes and optional Gossip returned by `apply()` or `merge()`. */
-type Result<T> = Readonly<[change: Change<T>, gossip?: Gossip<T>]>;
+type Result<T, StringEncoded extends boolean = false> = Readonly<[change: Change<T, StringEncoded>, gossip?: Gossip<T>]>;
 /** Stable-index register configuration; omitting maxLength permits dynamic growth. */
 type TupleParams = {
   /** Whether indices remain fixed when values are inserted or removed. */
@@ -98,29 +100,32 @@ export declare class Projection<T> {
    * Prepares to sequence a projection, optionally hydrating from a trusted sequence stored by the application.
    *
    * @param actorID Actor identifier used in acknowledgements.
-   * @param trustedSequence Optional trusted Sequence in Structural Order; string Footage is split into UTF-16 code units.
+   * @param trustedSequence Optional trusted Sequence in Structural Order; string Footage uses UTF-16 code units.
    * @param tupleParams Enables stable indices, optionally bounded by a fixed length. Tuple Sequences retain this configuration.
+   * @param stringFootage Whether to retain string snapshot Footage without splitting. Defaults to `false`.
    * @throws {@link SequencerError} if native initialization fails.
    */
-  constructor(actorID: number, trustedSequence?: unknown, tupleParams?: TupleParams);
+  constructor(actorID: number, trustedSequence?: unknown, tupleParams?: TupleParams, stringFootage?: boolean);
   /**
    * Applies gossiped Insertions and Acknowledgements.
    *
    * @param gossip Batch of Insertion and Acknowledgement tuples.
+   * @param stringEncode Whether inserted Splice Footage is returned as strings. Defaults to `false`.
    * @returns Visible changes and optional acknowledgement Gossip, or
    * `undefined` for invalid input. Earlier entries may already have been applied.
    * @throws {@link SequencerError} with code `PROJECTION_DESTROYED` after destruction.
+   * @throws {@link SequencerError} with code `STRING_ENCODING_FAILED` if requested text concatenation fails.
    */
-  apply(gossip: unknown): Result<T> | undefined;
+  apply<StringEncoded extends boolean = false>(gossip: unknown, stringEncode?: StringEncoded): Result<T, StringEncoded> | undefined;
   /**
    * Inserts values at a Projection position.
    *
-   * @param values Nonempty array of values to insert.
+   * @param values Nonempty array of values, or a string of UTF-16 code units.
    * @param at Insertion position in `0..length()`, inclusive. In tuple mode, the first stable index to write; each value creates a competing version.
-   * @returns Gossip describing the insertion.
+   * @returns Gossip retaining the supplied array or string Footage.
    * @throws {@link SequencerError} with code `PROJECTION_DESTROYED` after destruction.
    */
-  insert(values: Array<T>, at: number): Gossip<T>;
+  insert<Values extends Array<T> | (string extends T ? string : never)>(values: Values, at: number): Gossip<T, Values extends string ? true : false>;
   /**
    * Returns the length, A.K.A. amount of entries of this projection.
    *
@@ -132,11 +137,13 @@ export declare class Projection<T> {
    * Applies relevant acknowledgements and nonduplicate insertions from a replica of the sequence.
    *
    * @param sequence Sequence to merge.
+   * @param stringEncode Whether to retain string Footage and return string Splices. Defaults to `false`.
    * @returns Visible changes and optional acknowledgement Gossip, or
    * `undefined` if the Sequence has an invalid runtime shape.
    * @throws {@link SequencerError} with code `PROJECTION_DESTROYED` after destruction.
+   * @throws {@link SequencerError} with code `STRING_ENCODING_FAILED` if requested text concatenation fails.
    */
-  merge(sequence: unknown): Result<T> | undefined;
+  merge<StringEncoded extends boolean = false>(sequence: unknown, stringEncode?: StringEncoded): Result<T, StringEncoded> | undefined;
   /**
    * Removes an inclusive range of Projection positions.
    *
@@ -149,13 +156,13 @@ export declare class Projection<T> {
   /**
    * Replaces an inclusive range of Projection positions.
    *
-   * @param withValues Replacement values; an empty array only removes the range.
+   * @param withValues Replacement values or UTF-16 text; an empty input only removes the range.
    * @param startAt First position to replace; defaults to 0.
    * @param endWith Last position to replace; defaults to `length() - 1`.
    * @returns Removal and insertion Gossip, in that order. Tuple replacement removes known versions and writes consecutive stable indices.
    * @throws {@link SequencerError} if destroyed or the native runtime reports an operation failure.
    */
-  replace(withValues: Array<T>, startAt?: number, endWith?: number): Gossip<T>;
+  replace<Values extends Array<T> | (string extends T ? string : never)>(withValues: Values, startAt?: number, endWith?: number): Gossip<T, Values extends string ? true : false>;
   /**
    * Retires an Actor from future compaction requirements.
    *
@@ -194,12 +201,14 @@ export declare class Projection<T> {
    *
    * @param startAt First included position; defaults to 0.
    * @param endWith Last included position; defaults to `length() - 1`.
-   * @returns A new array of values, or an empty array for an empty range.
+   * @param stringEncode Whether to return UTF-16 text instead of an array. Defaults to `false`.
+   * @returns A new array of values, or UTF-16 text when requested.
    * @throws {@link SequencerError} if destroyed or the native runtime reports an operation failure.
+   * @throws {@link SequencerError} with code `STRING_ENCODING_FAILED` if requested text concatenation fails.
    */
-  values(startAt?: number, endWith?: number): Array<T>;
+  values<StringEncoded extends boolean = false>(startAt?: number, endWith?: number, stringEncode?: StringEncoded): StringEncoded extends true ? string : Array<T>;
   /** Destroys the Projection. Repeated calls have no effect. */
   destroy(): void;
 }
-export type { Acknowledgement, Change, Gossip, Insertion, InsertionWords, Result, Sequence, SequencerErrorCode, Splice, TupleParams };
+export type { Acknowledgement, Change, Footage, Gossip, Insertion, InsertionWords, Result, Sequence, SequencerErrorCode, Splice, TupleParams };
 //# sourceMappingURL=index.d.ts.map

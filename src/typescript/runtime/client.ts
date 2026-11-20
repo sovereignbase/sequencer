@@ -4,7 +4,59 @@ import { Operation, type Opcode } from './protocol.js'
 import type { TupleParams } from '../types/type.js'
 
 /** Footage bindings: undefined is released; null retains missing application content. */
-type Bindings = Array<ReadonlyArray<unknown> | null | undefined>
+type Bindings = Array<ReadonlyArray<unknown> | string | null | undefined>
+
+/** Concatenates native spans without materializing an intermediate character array. */
+function readText(
+  content: Bindings,
+  pointer: number,
+  count: number,
+  description = 'Sequence'
+): string {
+  const heap = module.HEAPU32
+  let text = ''
+  let backingLength = 0
+  try {
+    if (count === 1) {
+      const at = pointer >>> 2,
+        source = content[heap[at]]
+      if (
+        typeof source === 'string' &&
+        heap[at + 1] + heap[at + 2] <= source.length
+      ) {
+        const part = source.slice(heap[at + 1], heap[at + 1] + heap[at + 2])
+        // Detach a short checkpoint from a much larger string backing.
+        return description === 'Sequence' && source.length > part.length * 2
+          ? (' ' + part).slice(1)
+          : part
+      }
+    }
+    for (let at = pointer >>> 2, end = at + count * 3; at < end; at += 3) {
+      const source = content[heap[at]],
+        start = heap[at + 1],
+        length = heap[at + 2]
+      if (typeof source === 'string') {
+        if (description === 'Sequence')
+          backingLength = Math.max(backingLength, source.length)
+        const part = source.slice(start, start + length)
+        text += part
+        if (part.length < length) text += '\0'.repeat(length - part.length)
+      } else if (!source) text += '\0'.repeat(length)
+      else
+        for (let i = 0; i < length; ++i) {
+          const value = source[start + i]
+          text += value === undefined ? '\0' : (value as string)
+        }
+    }
+    return backingLength > text.length * 2 ? (' ' + text).slice(1) : text
+  } catch (cause) {
+    throw new SequencerError(
+      'STRING_ENCODING_FAILED',
+      `${description} Footage could not be encoded as a string.`,
+      { cause }
+    )
+  }
+}
 
 /** Materializes ordered Footage spans, including undefined slots for omitted content. */
 function readValues(
@@ -20,7 +72,9 @@ function readValues(
       start = heap[begin + 1],
       size = heap[begin + 2]
     if (source && start + size <= source.length)
-      return source.slice(start, start + size)
+      return typeof source === 'string'
+        ? source.slice(start, start + size).split('')
+        : source.slice(start, start + size)
   }
   const heap = module.HEAPU32
   const begin = pointer >>> 2,
@@ -42,7 +96,13 @@ function readValues(
         size += heap[at + 2]
         at += 3
       }
-      if (source && start + size <= source.length)
+      if (typeof source === 'string' && start + size <= source.length)
+        parts.push(source.slice(start, start + size).split(''))
+      else if (
+        source &&
+        typeof source !== 'string' &&
+        start + size <= source.length
+      )
         parts.push(
           start === 0 && size === source.length
             ? (source as unknown[])
@@ -125,22 +185,26 @@ const free: number[] = []
 /** Best-effort collection fallback; explicit destroy supplies deterministic release. */
 const finalizer = new FinalizationRegistry<number>(release)
 
-/** Returns linear-memory bytes plus eight bytes per retained JavaScript array slot. */
+/** Estimates retained slots at eight bytes and string code units at two bytes each. */
 function memory(): {
   bytes: number
   wasmBytes: number
   javascriptBytes: number
 } {
   const arrays = new Set<ReadonlyArray<unknown>>([bindings, free])
+  const strings = new Set<string>()
   for (let id = 0; id < bindings.length; ++id) {
     const content = bindings[id]
     if (!content) continue
     arrays.add(content)
     // Multiple hydrated roots can retain the same flat Footage array.
-    for (const footage of content) if (footage) arrays.add(footage)
+    for (const footage of content)
+      if (typeof footage === 'string') strings.add(footage)
+      else if (footage) arrays.add(footage)
   }
   let javascriptBytes = 0
   for (const array of arrays) javascriptBytes += array.length * 8
+  for (const text of strings) javascriptBytes += text.length * 2
   const wasmBytes = module.HEAPU32.buffer.byteLength
   return { bytes: wasmBytes + javascriptBytes, wasmBytes, javascriptBytes }
 }
@@ -156,7 +220,8 @@ export function create(
   owner: object,
   actorID: number,
   sequence?: unknown,
-  tupleParams?: TupleParams
+  tupleParams?: TupleParams,
+  stringFootage?: boolean
 ): number {
   // Seed once per runtime; individual Projections receive fresh native Session clocks.
   if (nextProjection === 0)
@@ -171,7 +236,8 @@ export function create(
         tupleParams?.enabled ? 1 : 0,
         tupleParams?.maxLength ?? 0xffffffff
       )
-    else call(Operation.Create, id, actorID, sequence, tupleParams)
+    else
+      call(Operation.Create, id, actorID, sequence, tupleParams, stringFootage)
   } catch (error) {
     // Failed hydration must release both sides before this handle can be reused.
     release(id)
@@ -215,7 +281,12 @@ export function value<T>(id: number, at: number): T | undefined {
   return bindings[id]![heap[pointer]]?.[heap[pointer + 1]] as T | undefined
 }
 /** Reads an inclusive visible range without mutation descriptors or input storage. */
-export function values<T>(id: number, start?: number, end?: number): T[] {
+export function values<T>(
+  id: number,
+  start?: number,
+  end?: number,
+  stringEncode?: boolean
+): T[] | string {
   if (id < 0)
     throw new SequencerError(
       'PROJECTION_DESTROYED',
@@ -231,14 +302,21 @@ export function values<T>(id: number, start?: number, end?: number): T[] {
   const heap = module.HEAPU32
   const spans = heap[pointer],
     count = heap[pointer + 1]
-  if (!count) return []
+  if (!count) return stringEncode ? '' : []
   const content = bindings[id]!
+  if (stringEncode)
+    return readText(content, spans, count, 'Projection.values()')
   if (count === 1) {
     const begin = spans >>> 2,
       source = content[heap[begin]],
       start = heap[begin + 1],
       end = start + heap[begin + 2]
-    if (source && end <= source.length) return source.slice(start, end) as T[]
+    if (source && end <= source.length)
+      return (
+        typeof source === 'string'
+          ? source.slice(start, end).split('')
+          : source.slice(start, end)
+      ) as T[]
   }
   return readValues(content, spans, count) as T[]
 }
@@ -257,7 +335,11 @@ export function sequence<T>(id: number, stringEncode?: boolean): T {
   ) as T
 }
 /** Authors trusted local Frames through the dedicated six-word result path. */
-export function insert<T>(id: number, values: T[], at: number): unknown {
+export function insert<T>(
+  id: number,
+  values: T[] | string,
+  at: number
+): unknown {
   if (id < 0)
     throw new SequencerError(
       'PROJECTION_DESTROYED',
@@ -265,8 +347,12 @@ export function insert<T>(id: number, values: T[], at: number): unknown {
     )
   const content = bindings[id]!
   const pointer =
-    module._runtime_insert(id, values.length, content.push(values) - 1, at) >>>
-    2
+    module._runtime_insert(
+      id,
+      values.length + (typeof values === 'string' ? 0x80000000 : 0),
+      content.push(values) - 1,
+      at
+    ) >>> 2
   const heap = module.HEAPU32
   // Tuple batches contain one canonical Insertion per stable index.
   if (heap[pointer + 6] === 0xffffffff)
@@ -283,7 +369,7 @@ export function insert<T>(id: number, values: T[], at: number): unknown {
   // Gossip retains the caller's suffix; only the internal binding is concatenated.
   const token = heap[pointer + 6]
   if (token) {
-    let footage = content[token] as unknown[]
+    let footage = content[token] as unknown[] | string
     const extent = heap[pointer + 7]
     if (extent & 0x80000000) {
       // Preserve caller arrays and retained snapshots before extending private Footage.
@@ -291,14 +377,24 @@ export function insert<T>(id: number, values: T[], at: number): unknown {
       footage = footage.slice(base, base + (extent & 0x7fffffff))
       content[token] = footage
     }
-    const end = footage.length
-    for (let i = 0; i < values.length; ++i) footage[end + i] = values[i]
+    if (typeof footage === 'string' && typeof values === 'string')
+      content[token] = footage + values
+    else {
+      if (typeof footage === 'string')
+        content[token] = footage = footage.split('')
+      const end = footage.length
+      for (let i = 0; i < values.length; ++i) footage[end + i] = values[i]
+    }
     content.pop()
   }
   return [[coordinates, values]]
 }
 /** Validates remote tuple lanes and supplies a descriptor batch to native application. */
-export function apply<T>(id: number, value: unknown): T {
+export function apply<T>(
+  id: number,
+  value: unknown,
+  stringEncode?: boolean
+): T {
   if (id < 0)
     throw new SequencerError(
       'PROJECTION_DESTROYED',
@@ -342,12 +438,16 @@ export function apply<T>(id: number, value: unknown): T {
         }
       }
     }
+    const footage = insertion ? entry[1] : undefined
+    let text = false
     const shape = insertion
       ? entry.length <= 2 &&
         entry.length > 0 &&
-        (entry[1] === undefined || Array.isArray(entry[1]))
+        (footage === undefined ||
+          Array.isArray(footage) ||
+          (text = typeof footage === 'string'))
       : true
-    const tag = numeric && shape ? (insertion ? 0 : 1) : 2
+    const tag = numeric && shape ? (insertion ? (text ? 3 : 0) : 1) : 2
     const count =
       Array.isArray(numbers) || numbers instanceof Uint32Array
         ? numbers.length
@@ -357,11 +457,11 @@ export function apply<T>(id: number, value: unknown): T {
     // Masks never own content. Rejected coordinates need no JS binding.
     heap[data + 2] =
       insertion &&
-      tag === 0 &&
+      tag !== 2 &&
       count === 6 &&
       numbers[5] > 0 &&
       numbers[5] < 0x80000000
-        ? contents.push(entry[1] ?? null) - 1
+        ? contents.push(footage ?? null) - 1
         : 0
     data += 3
     if (numeric) {
@@ -390,7 +490,7 @@ export function apply<T>(id: number, value: unknown): T {
     const consumed = module.HEAPU32[(resultPointer >>> 2) + 11]
     contents.length = Math.max(firstBinding, consumed + 1)
   }
-  return readResult(Operation.Apply, id, resultPointer) as T
+  return readResult(Operation.Apply, id, resultPointer, stringEncode) as T
 }
 /** Sizes general-dispatch numeric storage; local scalar operations need no tuple validation. */
 function inputSize(operation: Opcode, value: unknown, other: unknown): number {
@@ -416,7 +516,8 @@ export function call<T>(
   id: number,
   value?: unknown,
   at?: unknown,
-  end?: unknown
+  end?: unknown,
+  stringEncode?: boolean
 ): T {
   if (id < 0)
     throw new SequencerError(
@@ -435,10 +536,11 @@ export function call<T>(
   let a0 = 0,
     a1 = 0,
     a2 = 0
-  let footage: ReadonlyArray<unknown> | undefined
+  let footage: ReadonlyArray<unknown> | string | undefined
   if (operation === Operation.Replace) {
-    a0 = (value as unknown[]).length
-    a1 = a0 ? contents.push(value as unknown[]) - 1 : 0
+    a0 = (value as unknown[] | string).length
+    a1 = a0 ? contents.push(value as unknown[] | string) - 1 : 0
+    if (typeof value === 'string') a0 += 0x80000000
     a2 = (at as number | undefined) ?? absent
     pointer = (end as number | undefined) ?? absent
   } else if (operation === Operation.Remove) {
@@ -471,8 +573,12 @@ export function call<T>(
       const words = sequence[0] as ArrayLike<number>
       heap.set(words, base + configuration)
       a1 = contents.length
-      footage =
-        typeof sequence[1] === 'string' ? sequence[1].split('') : sequence[1]
+      if (typeof sequence[1] === 'string') {
+        if (stringEncode) {
+          footage = sequence[1]
+          a2 |= 4
+        } else footage = sequence[1].split('')
+      } else footage = sequence[1]
     }
   }
 
@@ -492,7 +598,7 @@ export function call<T>(
     contents.length += bindings
     contents.fill(footage, a1)
   }
-  return readResult(operation, id, resultPointer) as T
+  return readResult(operation, id, resultPointer, stringEncode) as T
 }
 /** Consumes borrowed native output before another call may overwrite its storage. */
 function readResult(
@@ -537,6 +643,8 @@ function readResult(
     return [[]]
   }
   let result: unknown
+  // Native replay is already applied; complete Footage updates before reporting encoding failure.
+  let encodingFailure: unknown
   switch (kind) {
     case 0:
       break
@@ -550,13 +658,22 @@ function readResult(
           changes.push([heap[at], heap[at + 1]])
           continue
         }
-        const span = heap[at + 2] >>> 2
-        const items =
-          heap[span + 1] === 0 &&
-          (content[heap[span]] == null ||
-            content[heap[span]]?.length === heap[span + 2])
-            ? (content[heap[span]] ?? new Array<unknown>(heap[span + 2]))
-            : readValues(content, heap[at + 2], heap[at + 3])
+        const span = heap[at + 2] >>> 2,
+          source = content[heap[span]]
+        let items: unknown
+        if (stringEncode) {
+          try {
+            items = readText(content, heap[at + 2], heap[at + 3], 'Splice')
+          } catch (error) {
+            encodingFailure = error
+          }
+        } else
+          items =
+            typeof source !== 'string' &&
+            heap[span + 1] === 0 &&
+            (source == null || source.length === heap[span + 2])
+              ? (source ?? new Array<unknown>(heap[span + 2]))
+              : readValues(content, heap[at + 2], heap[at + 3])
         changes.push([heap[at], heap[at + 1], items])
       }
       result = n1 ? [changes, readGossip(content, p1, n1)] : [changes]
@@ -572,27 +689,7 @@ function readResult(
         for (let i = 0, at = p0 >>> 2; i < n0; ++i) metadata[i] = heap[at + i]
       } else metadata = readWords(p0, n0)
       if (stringEncode) {
-        let text = ''
-        try {
-          // Consume native spans directly; no intermediate Footage array is needed.
-          for (let at = p1 >>> 2, end = at + n1 * 3; at < end; at += 3) {
-            const source = content[heap[at]],
-              start = heap[at + 1],
-              count = heap[at + 2]
-            for (let i = 0; i < count; ++i) {
-              const value = source?.[start + i]
-              // Retained missing slots still occupy one original Frame coordinate.
-              text += value === undefined ? '\0' : (value as string)
-            }
-          }
-        } catch (cause) {
-          throw new SequencerError(
-            'STRING_ENCODING_FAILED',
-            'Sequence Footage could not be encoded as a string.',
-            { cause }
-          )
-        }
-        result = [metadata, text]
+        result = [metadata, readText(content, p1, n1)]
         break
       }
       const span = p1 >>> 2,
@@ -625,9 +722,12 @@ function readResult(
           'Projection has been destroyed.'
         )
       // Resolve the public method name only on failure; successful calls do no extra work.
-      const name = Object.entries(Operation).find(
-        ([, opcode]) => opcode === operation
-      )![0]
+      let name = ''
+      for (const method in Operation)
+        if (Operation[method as keyof typeof Operation] === operation) {
+          name = method
+          break
+        }
       throw new SequencerError(
         'NATIVE_OPERATION_FAILED',
         operation === Operation.Create
@@ -661,14 +761,31 @@ function readResult(
       offset = heap[at + 4] & 0x7fffffff,
       base = heap[at + 5]
     if (content[target] == null && source == null) continue
-    let footage = content[target] as unknown[] | null | undefined
+    let footage = content[target] as unknown[] | string | null | undefined
     if (heap[at + 4] & 0x80000000 || footage == null) {
       footage =
         footage?.slice(base, base + offset) ?? new Array<unknown>(offset)
       content[target] = footage
     }
+    if (typeof footage === 'string') {
+      if (
+        typeof source === 'string' &&
+        footage.length === offset &&
+        start + count <= source.length
+      ) {
+        content[target] = footage + source.slice(start, start + count)
+        continue
+      }
+      content[target] = footage = footage.split('')
+    }
     if (footage!.length < offset) footage!.length = offset
-    if (source && start === 0 && count === source.length && count <= 4096)
+    if (
+      source &&
+      typeof source !== 'string' &&
+      start === 0 &&
+      count === source.length &&
+      count <= 4096
+    )
       footage!.push.apply(footage, source as unknown[])
     else for (let i = 0; i < count; ++i) footage!.push(source?.[start + i])
   }
@@ -690,19 +807,20 @@ function readResult(
         content[token] = undefined
       }
     } else if (count === 1) {
-      const footage = content[token] as unknown[] | undefined
-      if (footage && start < footage.length) footage[start] = undefined
+      const footage = content[token]
+      if (footage && typeof footage !== 'string' && start < footage.length)
+        (footage as unknown[])[start] = undefined
     } else
-      (content[token] as unknown[] | undefined)?.fill(
-        undefined,
-        start,
-        start + count
-      )
+      (typeof content[token] === 'string'
+        ? undefined
+        : (content[token] as unknown[] | undefined)
+      )?.fill(undefined, start, start + count)
   }
   if (trim) {
     while (content.length > 1 && content[content.length - 1] === undefined)
       content.pop()
   }
+  if (encodingFailure) throw encodingFailure
   return result
 }
 /** Memory diagnostics for retained native and JavaScript state. */

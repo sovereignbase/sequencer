@@ -18,7 +18,7 @@ in C++.
 One synchronous WASM instance owns native allocation and algorithm execution.
 Deferred Footage changes use shared queues cleared before each operation.
 JavaScript reads borrowed numeric result views and retains generic Footage.
-Native spans address opaque Footage tokens and array offsets. Structural Strip
+Native spans address opaque Footage tokens and Frame offsets. Structural Strip
 indices, original Frame coordinates and visible Projection positions are distinct.
 Fragments retain their canonical identity; only their runtime materialization changes.
 

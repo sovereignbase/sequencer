@@ -9,17 +9,23 @@
  */
 export type InsertionWords = ReadonlyArray<number>
 
+/** Frame values, or UTF-16 code units retained as a string; missing text slots use NUL. */
+export type Footage<
+  T,
+  StringEncoded extends boolean = false,
+> = StringEncoded extends true ? string : ReadonlyArray<T | undefined>
+
 /**
  * Canonical replication operation and optional JavaScript-owned Footage.
  * Positive Insertions may omit Footage; their Frames then read as `undefined`.
  * Reducing Insertions carry no content into native state.
  */
-export type Insertion<T> = Readonly<
+export type Insertion<T, StringEncoded extends boolean = false> = Readonly<
   [
     /** Stable anchor, identity and signed Frame effect. */
     words: InsertionWords,
     /** Values of a positive Insertion, in original Frame order. */
-    footage?: ReadonlyArray<T | undefined>,
+    footage?: Footage<T, StringEncoded>,
   ]
 >
 
@@ -33,7 +39,9 @@ export type Insertion<T> = Readonly<
 export type Acknowledgement = ReadonlyArray<number>
 
 /** Replication batch within retained history; delivery may be duplicated or causally reordered. */
-export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>
+export type Gossip<T, StringEncoded extends boolean = false> = ReadonlyArray<
+  Acknowledgement | Insertion<T, StringEncoded>
+>
 
 /**
  * Retained state required to hydrate the same visible Projection.
@@ -47,7 +55,7 @@ export type Gossip<T> = ReadonlyArray<Acknowledgement | Insertion<T>>
  * Positive insertion diffs consume successive spans of `footage`.
  * String-encoded Footage preserves Insertion order, not visible text order.
  * It uses one UTF-16 code unit per Frame. Missing slots use
- * NUL (`\u0000`); hydration splits the string with `split('')`.
+ * NUL (`\u0000`). Constructor string Footage is retained when requested explicitly.
  * `[[], []]` is an empty Sequence. Structural words use numeric arrays.
  * Tuple metadata prefixes the payload with `[0xffffffff, 1, maxLength, length]`;
  * `maxLength = 0xffffffff` denotes dynamic growth. Tuple indices are never translated.
@@ -57,7 +65,7 @@ export type Sequence<T, StringEncoded extends boolean = false> = Readonly<
     /** Acknowledgements followed by canonical Insertions in Structural Order. */
     words: ReadonlyArray<number>,
     /** Consecutive positive Insertion spans, including missing Footage slots. */
-    footage: StringEncoded extends true ? string : ReadonlyArray<T | undefined>,
+    footage: Footage<T, StringEncoded>,
   ]
 >
 
@@ -66,21 +74,25 @@ export type Sequence<T, StringEncoded extends boolean = false> = Readonly<
  * Tuple changes assign one stable index using `[index, index + 1, [value]]`;
  * an empty register supplies `undefined`, without shifting other indices.
  */
-export type Splice<T> = Readonly<
+export type Splice<T, StringEncoded extends boolean = false> = Readonly<
   [
     /** First affected position in the Projection after preceding Splices. */
     startAt: number,
     /** Exclusive removal boundary; equal to `startAt` for insertion. */
     endWith: number,
     /** Inserted Footage; omitted for removal. */
-    values?: ReadonlyArray<T | undefined>,
+    values?: Footage<T, StringEncoded>,
   ]
 >
 
 /** Splices applied in order to reproduce the remote operation's visible effect. */
-export type Change<T> = ReadonlyArray<Splice<T>>
+export type Change<T, StringEncoded extends boolean = false> = ReadonlyArray<
+  Splice<T, StringEncoded>
+>
 /** Visible changes and optional Gossip returned by `apply()` or `merge()`. */
-export type Result<T> = Readonly<[change: Change<T>, gossip?: Gossip<T>]>
+export type Result<T, StringEncoded extends boolean = false> = Readonly<
+  [change: Change<T, StringEncoded>, gossip?: Gossip<T>]
+>
 
 /** Stable-index register configuration; omitting maxLength permits dynamic growth. */
 export type TupleParams = {

@@ -14,6 +14,7 @@ import { Random } from '../.shared/support.ts'
 import { writeReportFiles } from '../.shared/report.ts'
 import { render } from './report.ts'
 import { updateTupleReadme } from './readme.ts'
+import { runSource, type RunSource } from '../.shared/readme.ts'
 
 type Mode = 'projection' | 'tuple'
 export type Sample = {
@@ -32,7 +33,7 @@ export type Space = {
   msgpackBytes: number
   gzipBytes: number
 }
-export type Report = {
+export type Report = RunSource & {
   environment: string
   runs: number
   samples: Sample[]
@@ -181,6 +182,7 @@ async function main(): Promise<void> {
       'Runs must be positive integers; sizes must be integers in 1..100.'
     )
   const report: Report = {
+    ...runSource(),
     environment: `Node ${process.versions.node}, V8 ${process.versions.v8}, ${platform()} ${arch()}, ${cpus()[0]?.model ?? 'unknown CPU'}`,
     runs,
     samples: [],

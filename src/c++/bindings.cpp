@@ -159,7 +159,7 @@ struct Reader {
       if (!count || !(count & 1))
         return invalid();
       return {{}, data};
-    } else if (tag == 0) {
+    } else if (tag == 0 || tag == 3) {
       if (count != 6)
         return invalid();
       Coordinates c{data[0], data[1], data[2],
@@ -169,6 +169,8 @@ struct Reader {
       register_sessions(c);
       Insertion insertion{c, content};
       insertion.footage_state = FootageState::Retained;
+      if (tag == 3) [[unlikely]]
+        insertion.string_content = true;
       return {insertion, {}};
     } else
       return invalid();
@@ -373,6 +375,9 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
         break;
       }
       out.header[11] = r.bindings;
+      if (arg2 & 4)
+        for (auto &insertion : g)
+          insertion.string_content = true;
       // Hydrated identities must not collide with freshly selected authoring clocks.
       for (const auto &e : g) {
         const auto c = e.coordinates;
@@ -412,7 +417,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
     case 4: {
       Reader r;
       auto [g, f] = r.sequence(arg1);
-      if (arg2 != 1 || !r.valid || r.tuple != bool(p.tuple) ||
+      if ((arg2 != 1 && arg2 != 5) || !r.valid || r.tuple != bool(p.tuple) ||
           (r.tuple && r.capacity != p.tuple->capacity)) {
         kind = 0;
         break;
@@ -427,6 +432,9 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
         }
       }
       out.header[11] = r.bindings;
+      if (arg2 & 4)
+        for (auto &insertion : g)
+          insertion.string_content = true;
       out.result = p.merge(g, f);
       if (p.tuple)
         p.frame_count = std::max(p.frame_count, r.extent);
@@ -440,8 +448,9 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
       break;
     case 6: {
       out.entries =
-          p.replace(arg0, arg1, arg2 == UINT32_MAX ? 0 : arg2,
-                    input_or_end == UINT32_MAX ? std::int64_t(p.length()) - 1 : input_or_end);
+          p.replace(arg0 & 0x7fffffffu, arg1, arg2 == UINT32_MAX ? 0 : arg2,
+                    input_or_end == UINT32_MAX ? std::int64_t(p.length()) - 1 : input_or_end,
+                    arg0 & 0x80000000u);
       kind = 2;
       break;
     }
@@ -491,7 +500,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
       const auto span = out.sequence.footage[0];
       if (p.tuple) {
         auto &version = p.tuple->versions[root - 1];
-        if (version.content) {
+        if (version.content && !version.string_content) {
           if (version.shared) {
             auto &binding = p.tuple->bindings[p.tuple->binding_index.get(version.content, 0) - 1];
             binding.owned = false;
@@ -501,7 +510,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
         }
       } else {
         auto &source = p.strips.identity[root];
-        if (span.content == source.content) {
+        if (span.content == source.content && !source.string_content) {
           out.header[11] = address(&source.footage_state);
           // JS may expose a full array only at offset zero. Revoke write ownership
           // before it marks the binding shared, including compacted root spans.
@@ -528,7 +537,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t runtime_length(std::uint32_t id) {
 }
 /** Authors local positive Frames without general result descriptors.
  * @param id Live Projection handle.
- * @param count Positive Frame count supplied by trusted local code.
+ * @param count Positive Frame count; its high bit marks immutable UTF-16 input.
  * @param content JavaScript token for the incoming Footage.
  * @param at Visible insertion boundary.
  * @return Six coordinate words and an optional append target, endpoint and content origin.
@@ -540,8 +549,10 @@ EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_insert(std::uint32_t id, std::
   appended.clear();
   released.clear();
   copied.clear();
+  const auto text = bool(count & 0x80000000u);
+  count &= 0x7fffffffu;
   if (p.tuple && count > 1) {
-    out.entries = p.insert_batch(count, content, at);
+    out.entries = p.insert_batch(count, content, at, text);
     out.expose(out.entries, true);
     out.header = {2, 0, 0, address(out.gossip.data()), Word(out.gossip.size())};
     static std::array<Word, 9> tuple_result;
@@ -549,7 +560,7 @@ EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_insert(std::uint32_t id, std::
     tuple_result[7] = address(out.header.data());
     return tuple_result.data();
   }
-  const auto insertion = p.insert(count, content, at);
+  const auto insertion = p.insert(count, content, at, text);
   static std::array<Word, 9> result;
   const auto coordinates = std::bit_cast<std::array<Word, 6>>(insertion.coordinates);
   std::copy(coordinates.begin(), coordinates.end(), result.begin());

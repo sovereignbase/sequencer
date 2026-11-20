@@ -52,6 +52,8 @@ Index Tuple::add(Insertion insertion, bool shared) {
   const auto index = Word(versions.size());
   versions.push_back({insertion.coordinates, insertion.content, insertion.content_start, no_version,
                       insertion.footage_state, false, shared});
+  if (insertion.string_content) [[unlikely]]
+    versions[index].string_content = true;
   const auto &c = insertion.coordinates;
   if (c.diff > 0) {
     auto &entry = slot(c.anchor_diff);

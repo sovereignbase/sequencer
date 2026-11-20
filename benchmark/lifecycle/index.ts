@@ -7,6 +7,7 @@ import {
   resetRuntime,
 } from '../.shared/runtime.ts'
 import { caseColumns } from '../.shared/report.ts'
+import { runSource } from '../.shared/readme.ts'
 import { measureProcessMemory, measureSpace } from '../.shared/space.ts'
 import { measureEncodedSequence } from './space.ts'
 import type { Gossip, Result } from '../../dist/index.js'
@@ -723,7 +724,7 @@ export async function runBenchmark(
   const runs = await runLifecycles(config)
   return {
     schemaVersion: 5,
-    generatedAt: new Date().toISOString(),
+    ...runSource(),
     environment: {
       node: process.versions.node,
       v8: process.versions.v8,

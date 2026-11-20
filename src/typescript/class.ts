@@ -22,17 +22,25 @@ export class Projection<T> {
    * Prepares to sequence a projection, optionally hydrating from a trusted sequence stored by the application.
    *
    * @param actorID Actor identifier used in acknowledgements.
-   * @param trustedSequence Optional trusted Sequence in Structural Order; string Footage is split into UTF-16 code units.
+   * @param trustedSequence Optional trusted Sequence in Structural Order; string Footage uses UTF-16 code units.
    * @param tupleParams Enables stable indices, optionally bounded by a fixed length. Tuple Sequences retain this configuration.
+   * @param stringFootage Whether to retain string snapshot Footage without splitting. Defaults to `false`.
    * @throws {@link SequencerError} if native initialization fails.
    */
   constructor(
     public readonly actorID: number,
     trustedSequence?: unknown,
-    tupleParams?: TupleParams
+    tupleParams?: TupleParams,
+    stringFootage?: boolean
   ) {
     try {
-      this.id = create(this, actorID, trustedSequence, tupleParams)
+      this.id = create(
+        this,
+        actorID,
+        trustedSequence,
+        tupleParams,
+        stringFootage
+      )
     } catch (cause) {
       throw unknownError(cause, 'constructor')
     }
@@ -42,13 +50,18 @@ export class Projection<T> {
    * Applies gossiped Insertions and Acknowledgements.
    *
    * @param gossip Batch of Insertion and Acknowledgement tuples.
+   * @param stringEncode Whether inserted Splice Footage is returned as strings. Defaults to `false`.
    * @returns Visible changes and optional acknowledgement Gossip, or
    * `undefined` for invalid input. Earlier entries may already have been applied.
    * @throws {@link SequencerError} with code `PROJECTION_DESTROYED` after destruction.
+   * @throws {@link SequencerError} with code `STRING_ENCODING_FAILED` if requested text concatenation fails.
    */
-  apply(gossip: unknown): Result<T> | undefined {
+  apply<StringEncoded extends boolean = false>(
+    gossip: unknown,
+    stringEncode?: StringEncoded
+  ): Result<T, StringEncoded> | undefined {
     try {
-      return apply(this.id, gossip)
+      return apply(this.id, gossip, stringEncode)
     } catch (cause) {
       throw unknownError(cause, 'apply')
     }
@@ -57,14 +70,20 @@ export class Projection<T> {
   /**
    * Inserts values at a Projection position.
    *
-   * @param values Nonempty array of values to insert.
+   * @param values Nonempty array of values, or a string of UTF-16 code units.
    * @param at Insertion position in `0..length()`, inclusive. In tuple mode, the first stable index to write; each value creates a competing version.
-   * @returns Gossip describing the insertion.
+   * @returns Gossip retaining the supplied array or string Footage.
    * @throws {@link SequencerError} with code `PROJECTION_DESTROYED` after destruction.
    */
-  insert(values: Array<T>, at: number): Gossip<T> {
+  insert<Values extends Array<T> | (string extends T ? string : never)>(
+    values: Values,
+    at: number
+  ): Gossip<T, Values extends string ? true : false> {
     try {
-      return insert(this.id, values, at) as Gossip<T>
+      return insert(this.id, values, at) as Gossip<
+        T,
+        Values extends string ? true : false
+      >
     } catch (cause) {
       throw unknownError(cause, 'insert')
     }
@@ -88,13 +107,25 @@ export class Projection<T> {
    * Applies relevant acknowledgements and nonduplicate insertions from a replica of the sequence.
    *
    * @param sequence Sequence to merge.
+   * @param stringEncode Whether to retain string Footage and return string Splices. Defaults to `false`.
    * @returns Visible changes and optional acknowledgement Gossip, or
    * `undefined` if the Sequence has an invalid runtime shape.
    * @throws {@link SequencerError} with code `PROJECTION_DESTROYED` after destruction.
+   * @throws {@link SequencerError} with code `STRING_ENCODING_FAILED` if requested text concatenation fails.
    */
-  merge(sequence: unknown): Result<T> | undefined {
+  merge<StringEncoded extends boolean = false>(
+    sequence: unknown,
+    stringEncode?: StringEncoded
+  ): Result<T, StringEncoded> | undefined {
     try {
-      return call(Operation.Merge, this.id, sequence)
+      return call(
+        Operation.Merge,
+        this.id,
+        sequence,
+        undefined,
+        undefined,
+        stringEncode
+      )
     } catch (cause) {
       throw unknownError(cause, 'merge')
     }
@@ -119,13 +150,17 @@ export class Projection<T> {
   /**
    * Replaces an inclusive range of Projection positions.
    *
-   * @param withValues Replacement values; an empty array only removes the range.
+   * @param withValues Replacement values or UTF-16 text; an empty input only removes the range.
    * @param startAt First position to replace; defaults to 0.
    * @param endWith Last position to replace; defaults to `length() - 1`.
    * @returns Removal and insertion Gossip, in that order. Tuple replacement removes known versions and writes consecutive stable indices.
    * @throws {@link SequencerError} if destroyed or the native runtime reports an operation failure.
    */
-  replace(withValues: Array<T>, startAt?: number, endWith?: number): Gossip<T> {
+  replace<Values extends Array<T> | (string extends T ? string : never)>(
+    withValues: Values,
+    startAt?: number,
+    endWith?: number
+  ): Gossip<T, Values extends string ? true : false> {
     try {
       return call(Operation.Replace, this.id, withValues, startAt, endWith)
     } catch (cause) {
@@ -194,12 +229,23 @@ export class Projection<T> {
    *
    * @param startAt First included position; defaults to 0.
    * @param endWith Last included position; defaults to `length() - 1`.
-   * @returns A new array of values, or an empty array for an empty range.
+   * @param stringEncode Whether to return UTF-16 text instead of an array. Defaults to `false`.
+   * @returns A new array of values, or UTF-16 text when requested.
    * @throws {@link SequencerError} if destroyed or the native runtime reports an operation failure.
+   * @throws {@link SequencerError} with code `STRING_ENCODING_FAILED` if requested text concatenation fails.
    */
-  values(startAt?: number, endWith?: number): Array<T> {
+  values<StringEncoded extends boolean = false>(
+    startAt?: number,
+    endWith?: number,
+    stringEncode?: StringEncoded
+  ): StringEncoded extends true ? string : Array<T> {
     try {
-      return values(this.id, startAt, endWith)
+      return values(
+        this.id,
+        startAt,
+        endWith,
+        stringEncode
+      ) as StringEncoded extends true ? string : Array<T>
     } catch (cause) {
       throw unknownError(cause, 'values')
     }

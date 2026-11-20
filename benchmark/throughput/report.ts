@@ -1,5 +1,6 @@
 import { caseColumns, writeReportFiles } from '../.shared/report.ts'
 import type { ThroughputReport } from './index.ts'
+import { sourceLine } from '../.shared/readme.ts'
 
 const row = (cells: Array<string | number>) => '| ' + cells.join(' | ') + ' |'
 const decimal = (value: number | null) =>
@@ -11,7 +12,7 @@ export async function writeThroughputReport(report: ThroughputReport) {
   const lines = [
     '# Sequencer throughput benchmark',
     '',
-    'Generated: ' + report.generatedAt,
+    sourceLine(report),
     '',
     `Node ${report.environment.node}; V8 ${report.environment.v8}; ${report.environment.platform} ${report.environment.architecture}; ${report.environment.cpu}.`,
     '',
@@ -70,7 +71,7 @@ export async function writeThroughputReport(report: ThroughputReport) {
     '',
     'Each case uses a fresh isolated runtime for one measured instance. Its sender, initial-data generation and temporary constructors use a separate runtime. Live native allocator bytes are included once, together with eight bytes per retained JavaScript array slot. Footage arrays are deduplicated; unused WASM capacity, application object contents and JS engine overhead are excluded.',
     '',
-    '| Method | case | run | initial Strips | initial estimated KiB | final estimated KiB | final WASM KiB | final JS slots KiB |',
+    '| Method | case | run | initial Strips | initial estimated MiB | final estimated MiB | final WASM MiB | final JS MiB |',
     '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |'
   )
   for (const {
@@ -85,10 +86,10 @@ export async function writeThroughputReport(report: ThroughputReport) {
         ...Object.values(caseColumns(operation)),
         run + 1,
         initialStripCount,
-        decimal(before.runtimeMemory.bytes / 1024),
-        decimal(after.runtimeMemory.bytes / 1024),
-        decimal(after.runtimeMemory.wasmBytes / 1024),
-        decimal(after.runtimeMemory.javascriptBytes / 1024),
+        decimal(before.runtimeMemory.bytes / 1048576),
+        decimal(after.runtimeMemory.bytes / 1048576),
+        decimal(after.runtimeMemory.wasmBytes / 1048576),
+        decimal(after.runtimeMemory.javascriptBytes / 1048576),
       ])
     )
   lines.push(

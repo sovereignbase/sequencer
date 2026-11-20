@@ -4,13 +4,13 @@ import module from '../../src/typescript/wasm/index.js'
 import type { RuntimeMemoryResult } from './types.ts'
 export { Projection } from '../../src/typescript/class.js'
 
-/** Samples live library allocation, excluding unused WASM capacity and the peer. */
+/** Samples live native allocation and retained Footage, excluding unused pages and the peer. */
 export const measureRuntimeMemory = (): RuntimeMemoryResult => {
   const { javascriptBytes } = runtime.memory()
   const wasmBytes = module._runtime_allocated()
   return {
     scope: 'single-instance-runtime',
-    measurement: 'wasm-live-allocation-plus-js-array-slots',
+    measurement: 'wasm-live-allocation-plus-js-footage',
     javascriptSlotBytes: 8,
     bytes: wasmBytes + javascriptBytes,
     wasmBytes,

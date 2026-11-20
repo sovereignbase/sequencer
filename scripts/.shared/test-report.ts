@@ -3,6 +3,7 @@ import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import vitest_config from '../../vitest.config.ts'
 import { render_report } from './test-report-page.ts'
+import { sourceLine, type RunSource } from './run-source.ts'
 
 /** Passed, failed, or unexecuted verification. */
 export type Status = 'passed' | 'failed' | 'skipped'
@@ -21,12 +22,12 @@ export interface RuntimeResult {
 }
 
 /** Compatibility results collected from Node's structured test events. */
-export interface CompatibilityReport extends Counts {
+export interface CompatibilityReport extends Counts, Partial<RunSource> {
   runtimes: Record<string, RuntimeResult>
 }
 
 /** Vitest's JSON summary; coverage failures are reported separately. */
-interface VitestReport {
+interface VitestReport extends Partial<RunSource> {
   numPassedTests: number
   numFailedTests: number
   numPendingTests: number
@@ -155,12 +156,14 @@ export function update_reports(): void {
     : 'Coverage was not collected in the latest Vitest run.'
 
   const behavior = [
+    ...(vitest?.generatedAt ? [sourceLine(vitest), ''] : []),
     `The latest verification passed ${vitest_counts.passed} Vitest tests${count_suffix(vitest_counts)} and ${compatibility_counts.passed} compatibility checks${count_suffix(compatibility_counts)}.`,
     coverage_text,
     'See the [test suites](test/README.md) and',
     '[automated test report](https://sovereignbase.dev/sequencer/tests/).',
   ].join('\n')
   const runtime_text = [
+    ...(compatibility?.generatedAt ? [sourceLine(compatibility), ''] : []),
     'Runtimes covered by the latest compatibility verification:',
     '',
     ...runtimes.map(([name, label]) => {

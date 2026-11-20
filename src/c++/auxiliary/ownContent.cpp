@@ -7,7 +7,7 @@
 namespace sequencer {
 void Projection::own_content(Index fragment) {
   const auto original = strips.identity[fragment];
-  if (!original.content || original.content_owned)
+  if (!original.content || original.content_owned || original.string_content)
     return;
   const auto root = containment.get(original.coordinates.session, original.coordinates.start);
   // Copy the full original extent once, not each visible fragment independently.

@@ -1,9 +1,16 @@
 /** Runs verification and refreshes README and HTML results even when checks fail. */
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, rmSync } from 'node:fs'
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { paths, update_reports } from './.shared/test-report.ts'
+import { runSource } from './.shared/run-source.ts'
 
 /** Repository directory used by both runners and their report destinations. */
 const root = fileURLToPath(new URL('../', import.meta.url))
@@ -35,6 +42,16 @@ function run(args: readonly string[]): void {
   if (result.status !== 0) status ||= result.status ?? 1
 }
 
+/** Attaches origin only to results produced by this invocation. */
+function recordSource(path: string): void {
+  if (!existsSync(path)) return
+  const report = JSON.parse(readFileSync(path, 'utf8'))
+  writeFileSync(
+    path,
+    JSON.stringify({ ...report, ...runSource() }, null, 2) + '\n'
+  )
+}
+
 try {
   if (suite !== 'compatibility')
     run(['node_modules/vitest/vitest.mjs', 'run', ...arguments_])
@@ -50,6 +67,8 @@ try {
       'test/compatibility/index.ts',
     ])
 } finally {
+  if (suite !== 'compatibility') recordSource(paths.vitest)
+  if (suite !== 'vitest') recordSource(paths.compatibility)
   update_reports()
 }
 process.exitCode = status

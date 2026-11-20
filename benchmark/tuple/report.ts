@@ -1,4 +1,5 @@
 import type { Report } from './index.ts'
+import { sourceLine } from '../.shared/readme.ts'
 
 /** Means of independent runs, comparing the same populated field count. */
 export function render(report: Report, summary = false): string {
@@ -12,7 +13,8 @@ export function render(report: Report, summary = false): string {
     ...new Set(report.samples.map((sample) => sample.operation)),
   ]
   const lines = [
-    summary ? '### Tuple mode' : '# Tuple benchmarks',
+    ...(summary ? [] : ['# Tuple benchmarks', '']),
+    sourceLine(report),
     '',
     `Arithmetic means of ${report.runs} runs. Ordinary Projection versus a static tuple with maxLength. Both contain the same values; replacements preserve the field count.`,
     '',
@@ -52,9 +54,9 @@ export function render(report: Report, summary = false): string {
   }
   lines.push(
     '',
-    summary ? '#### Space (KiB)' : '## Space (KiB)',
+    summary ? '#### Memory and encoded size' : '## Memory and encoded size',
     '',
-    '| Indices | Mode | Estimated allocated memory | MessagePack | MessagePack + gzip |',
+    '| Indices | Mode | Estimated allocated memory (MiB) | MessagePack (KiB) | MessagePack + gzip (KiB) |',
     '| ---: | --- | ---: | ---: | ---: |'
   )
   for (const size of sizes) {
@@ -63,8 +65,11 @@ export function render(report: Report, summary = false): string {
         (sample) => sample.size === size && sample.mode === mode
       )
       const kib = (values: number[]) => (mean(values) / 1024).toFixed(2)
+      const memory = (
+        mean(samples.map((sample) => sample.allocatedBytes)) / 1048576
+      ).toFixed(4)
       lines.push(
-        `| ${size} | ${mode === 'tuple' ? 'Static tuple' : 'Projection'} | ${kib(samples.map((sample) => sample.allocatedBytes))} | ${kib(samples.map((sample) => sample.msgpackBytes))} | ${kib(samples.map((sample) => sample.gzipBytes))} |`
+        `| ${size} | ${mode === 'tuple' ? 'Static tuple' : 'Projection'} | ${memory} | ${kib(samples.map((sample) => sample.msgpackBytes))} | ${kib(samples.map((sample) => sample.gzipBytes))} |`
       )
     }
   }

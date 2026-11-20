@@ -3,6 +3,7 @@
  * Exports compactable history while preserving hydrated Projection and future ordering.
  */
 #include "../auxiliary/magnitude.hpp"
+#include "../auxiliary/snapshotFootage.hpp"
 #include "../auxiliary/snapshotWords.hpp"
 #include "../class.hpp"
 #include <algorithm>
@@ -138,6 +139,7 @@ void Projection::sequence(Sequence &output) const {
     if (first) {
       auto exported = c;
       auto &footage = output.footage;
+      auto fragment = s;
       if (c.diff > 0 && footage.empty())
         output.shared_root = s;
       // Compaction can collapse distinct historical points. Re-anchor positive
@@ -154,17 +156,33 @@ void Projection::sequence(Sequence &output) const {
         // Copy surviving Footage in original order and turn deletion marks into
         // prefix counts for later anchors and masks targeting this same Insertion.
         Word count = 0;
-        for (Word n = 0; n < Word(c.diff); ++n) {
-          if (!frames->frames[n]) {
-            if (!footage.empty() && footage.back().content == strips.identity[s].content &&
-                footage.back().start + footage.back().count == strips.identity[s].content_start + n)
-              ++footage.back().count;
-            else
-              footage.push_back(
-                  {strips.identity[s].content, strips.identity[s].content_start + n, 1});
+        if (strips.identity[s].string_content) {
+          Word start = 0;
+          for (Word n = 0; n < Word(c.diff); ++n) {
+            if (frames->frames[n]) {
+              if (n > start)
+                append_text_spans(strips, s, start, n - start, fragment, footage);
+              start = n + 1;
+            }
+            count += frames->frames[n];
+            frames->frames[n] = count;
           }
-          count += frames->frames[n];
-          frames->frames[n] = count;
+          if (start < Word(c.diff))
+            append_text_spans(strips, s, start, Word(c.diff) - start, fragment, footage);
+        } else {
+          for (Word n = 0; n < Word(c.diff); ++n) {
+            if (!frames->frames[n]) {
+              if (!footage.empty() && footage.back().content == strips.identity[s].content &&
+                  footage.back().start + footage.back().count ==
+                      strips.identity[s].content_start + n)
+                ++footage.back().count;
+              else
+                footage.push_back(
+                    {strips.identity[s].content, strips.identity[s].content_start + n, 1});
+            }
+            count += frames->frames[n];
+            frames->frames[n] = count;
+          }
         }
         exported.diff -= std::int32_t(count);
       } else if (c.diff < 0 && removed.size()) {
@@ -173,8 +191,11 @@ void Projection::sequence(Sequence &output) const {
         exported.diff +=
             std::int32_t(before(target, c.anchor_diff - c.diff) - before(target, c.anchor_diff));
       } else if (c.diff > 0) {
-        footage.push_back(
-            {strips.identity[s].content, strips.identity[s].content_start, Word(c.diff)});
+        if (strips.identity[s].string_content && strips.identity[s].fragmented)
+          append_text_spans(strips, s, 0, Word(c.diff), fragment, footage);
+        else
+          footage.push_back(
+              {strips.identity[s].content, strips.identity[s].content_start, Word(c.diff)});
       }
       if (exported.diff) {
         insertion = Word(output.words.size());

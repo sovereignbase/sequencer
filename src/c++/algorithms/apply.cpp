@@ -78,8 +78,8 @@ void Projection::apply(const Insertion &entry, Result &result) {
       if (end > known && (growing || c.anchor_diff == known)) {
         // A longer snapshot includes the known prefix; replay only its unknown suffix.
         const auto source_start = growing ? known : known - c.anchor_diff;
-        const auto at =
-            extend(parent, end - known, insertion.content, insertion.content_start + source_start);
+        const auto at = extend(parent, end - known, insertion.content,
+                               insertion.content_start + source_start, insertion.string_content);
         result.changes.push_back(
             {at, at, Span{insertion.content, insertion.content_start + source_start, end - known}});
         auto released_pending = pending.take(strips.identity[parent].coordinates);

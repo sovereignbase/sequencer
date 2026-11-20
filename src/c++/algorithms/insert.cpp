@@ -6,9 +6,9 @@
 #include "../class.hpp"
 
 namespace sequencer {
-Gossip Projection::insert_batch(Word count, Word content, Word at) {
+Gossip Projection::insert_batch(Word count, Word content, Word at, bool text) {
   if (!tuple || count == 1)
-    return {Entry::insert(insert(count, content, at))};
+    return {Entry::insert(insert(count, content, at, text))};
   Gossip output;
   output.reserve(count);
   // Reserve the same geometric capacity once instead of copying intermediate pools.
@@ -25,19 +25,26 @@ Gossip Projection::insert_batch(Word count, Word content, Word at) {
         {0, 0, at + offset, increase_clock[0], increase_clock[1], 1}, content, offset};
     increase_clock[1] += 2;
     const auto index = tuple->add(insertion, count > 1);
+    if (text) [[unlikely]]
+      tuple->versions[index - 1].string_content = true;
     containment.set(insertion.coordinates, index);
     output.push_back(Entry::insert(insertion));
   }
   return output;
 }
-Insertion Projection::insert(Word count, Word content, Word at) {
+Insertion Projection::insert(Word count, Word content, Word at, bool text) {
   Coordinates c{0, 0, 0, increase_clock[0], increase_clock[1], std::int32_t(count)};
   if (tuple) {
     c.anchor_diff = at;
-    containment.set(c, tuple->add({c, content}));
+    const auto index = tuple->add({c, content});
+    if (text) [[unlikely]]
+      tuple->versions[index - 1].string_content = true;
+    containment.set(c, index);
     frame_count = std::max(frame_count, at + 1);
   } else if (frame_count == 0) {
     const auto incoming = allocate({c, content});
+    if (text) [[unlikely]]
+      strips.identity[incoming].string_content = true;
     if (!structural_count)
       insert_first(incoming);
     else {
@@ -63,11 +70,13 @@ Insertion Projection::insert(Word count, Word content, Word at) {
         (!right || !contains_anchor(parent, strips.identity[right].coordinates, 0, point))) {
       // The suffix starts at the old endpoint itself, identifying extension on replay.
       --c.start;
-      extend(anchor, count, content);
+      extend(anchor, count, content, 0, text);
       increase_clock[1] += count;
       return {c, content};
     }
     const auto incoming = allocate({c, content});
+    if (text) [[unlikely]]
+      strips.identity[incoming].string_content = true;
     anchor_strip(incoming, anchor, point);
     containment.set(c, incoming);
     last_insert = incoming;

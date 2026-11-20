@@ -8,6 +8,8 @@ the relevant reports.
 
 ## Optimization rounds
 
+[21 November 2026: concurrent bulk text profiling and range reads](optimizations_2026_11_21/README.md).
+
 [19–20 November 2026: large string Footage, text reads and snapshot retention](optimizations_2026_11_19/README.md).
 The [final checkpoint](optimizations_2026_11_19/checkpoint.md) records the retained
 implementation and remaining regressions.

@@ -1,125 +1,125 @@
 # Large string benchmarks
 
-2026-11-20T20:13:10.487Z · local run
+2026-11-20T20:30:14.425Z · [CI run](https://github.com/sovereignbase/sequencer/actions/runs/44811048570)
 
 3 runs; times are median ns/call. IQR is Q3 minus Q1.
 
 | UTF-16 code units | Operation | Representation | Median ns | IQR ns |
 | ---: | --- | --- | ---: | ---: |
-| 1024 | insert | array | 1963.50 | 212.33 |
-| 1024 | insert.append | array | 16861.97 | 2153.51 |
-| 1024 | replace | array | 6644.88 | 304.76 |
-| 1024 | remove | array | 4197.90 | 154.60 |
-| 1024 | remove.middle | array | 2097.49 | 268.90 |
-| 1024 | replace.middle | array | 2441.13 | 138.78 |
-| 1024 | apply | array | 767.88 | 101.98 |
-| 1024 | apply.array | array | 575.93 | 24.54 |
-| 1024 | concurrent.apply | array | 63371.14 | 3252.44 |
-| 1024 | merge | array | 3024.60 | 251.02 |
-| 1024 | create | array | 3268.26 | 1587.76 |
-| 1024 | value.random | array | 51.17 | 17.25 |
-| 1024 | values.range | array | 126.98 | 12.62 |
-| 1024 | values.array | array | 1333.01 | 83.84 |
-| 1024 | values.text | array | 13557.34 | 4575.95 |
-| 1024 | sequence.array | array | 1452.85 | 54.59 |
-| 1024 | sequence.text | array | 9431.61 | 141.09 |
-| 1024 | sequence.edited.text | array | 14540.58 | 187.60 |
-| 1024 | sequence.masked.text | array | 11045.05 | 467.23 |
-| 1024 | insert | string | 391.98 | 38.46 |
-| 1024 | insert.append | string | 3899.08 | 280.60 |
-| 1024 | replace | string | 1489.75 | 201.62 |
-| 1024 | remove | string | 1154.97 | 90.01 |
-| 1024 | remove.middle | string | 1023.29 | 36.01 |
-| 1024 | replace.middle | string | 1409.50 | 179.17 |
-| 1024 | apply | string | 766.86 | 73.86 |
-| 1024 | apply.array | string | 2347.34 | 70.34 |
-| 1024 | concurrent.apply | string | 3569.80 | 193.50 |
-| 1024 | merge | string | 1152.37 | 107.56 |
-| 1024 | create | string | 1151.31 | 19.59 |
-| 1024 | value.random | string | 52.33 | 1.07 |
-| 1024 | values.range | string | 174.68 | 41.43 |
-| 1024 | values.array | string | 1964.98 | 195.20 |
-| 1024 | values.text | string | 68.48 | 2.15 |
-| 1024 | sequence.array | string | 2200.81 | 78.14 |
-| 1024 | sequence.text | string | 199.00 | 18.23 |
-| 1024 | sequence.edited.text | string | 2523.82 | 520.23 |
-| 1024 | sequence.masked.text | string | 4079.17 | 289.24 |
-| 65536 | insert | array | 264528.12 | 11892.85 |
-| 65536 | insert.append | array | 1131656.52 | 15898.26 |
-| 65536 | replace | array | 668960.47 | 21131.06 |
-| 65536 | remove | array | 411893.75 | 32347.24 |
-| 65536 | remove.middle | array | 258965.98 | 9793.67 |
-| 65536 | replace.middle | array | 241649.04 | 8833.43 |
-| 65536 | apply | array | 1065.20 | 179.93 |
-| 65536 | apply.array | array | 633.75 | 41.85 |
-| 65536 | concurrent.apply | array | 4435716.67 | 469325.00 |
-| 65536 | merge | array | 249767.19 | 23870.90 |
-| 65536 | create | array | 253597.66 | 24193.51 |
-| 65536 | value.random | array | 49.59 | 3.67 |
-| 65536 | values.range | array | 145.87 | 17.40 |
-| 65536 | values.array | array | 222256.35 | 11701.57 |
-| 65536 | values.text | array | 825458.06 | 29357.51 |
-| 65536 | sequence.array | array | 210976.98 | 1828.74 |
-| 65536 | sequence.text | array | 628477.50 | 155697.39 |
-| 65536 | sequence.edited.text | array | 908387.50 | 389917.19 |
-| 65536 | sequence.masked.text | array | 697305.56 | 81776.87 |
-| 65536 | insert | string | 372.18 | 56.54 |
-| 65536 | insert.append | string | 16425.24 | 4190.51 |
-| 65536 | replace | string | 1549.44 | 154.13 |
-| 65536 | remove | string | 1114.34 | 148.37 |
-| 65536 | remove.middle | string | 1058.50 | 89.21 |
-| 65536 | replace.middle | string | 1335.53 | 71.33 |
-| 65536 | apply | string | 708.00 | 43.71 |
-| 65536 | apply.array | string | 248120.31 | 25244.95 |
-| 65536 | concurrent.apply | string | 144743.35 | 7401.23 |
-| 65536 | merge | string | 1157.09 | 51.76 |
-| 65536 | create | string | 1099.56 | 55.97 |
-| 65536 | value.random | string | 47.03 | 6.97 |
-| 65536 | values.range | string | 158.39 | 3.26 |
-| 65536 | values.array | string | 256055.47 | 8346.48 |
-| 65536 | values.text | string | 69.24 | 23.05 |
-| 65536 | sequence.array | string | 251768.75 | 27765.21 |
-| 65536 | sequence.text | string | 213.61 | 21.80 |
-| 65536 | sequence.edited.text | string | 101953.66 | 2351.66 |
-| 65536 | sequence.masked.text | string | 3907.83 | 43.81 |
-| 1048576 | insert | array | 3346587.50 | 41043.75 |
-| 1048576 | insert.append | array | 26316700.00 | 813175.00 |
-| 1048576 | replace | array | 8919266.67 | 530683.33 |
-| 1048576 | remove | array | 5602000.00 | 314390.00 |
-| 1048576 | remove.middle | array | 2542390.00 | 19455.00 |
-| 1048576 | replace.middle | array | 2681880.00 | 291136.25 |
-| 1048576 | apply | array | 1039.31 | 4.15 |
-| 1048576 | apply.array | array | 560.63 | 133.80 |
-| 1048576 | concurrent.apply | array | 68293600.00 | 1957550.00 |
-| 1048576 | merge | array | 3315987.50 | 190764.29 |
-| 1048576 | create | array | 3362737.50 | 1052793.33 |
-| 1048576 | value.random | array | 52.12 | 3.07 |
-| 1048576 | values.range | array | 154.92 | 28.87 |
-| 1048576 | values.array | array | 2533060.00 | 150822.73 |
-| 1048576 | values.text | array | 12898800.00 | 475050.00 |
-| 1048576 | sequence.array | array | 2354200.00 | 90381.82 |
-| 1048576 | sequence.text | array | 59511650.00 | 6796650.00 |
-| 1048576 | sequence.edited.text | array | 50785200.00 | 5117950.00 |
-| 1048576 | sequence.masked.text | array | 53901900.00 | 6472500.00 |
-| 1048576 | insert | string | 411.12 | 20.06 |
-| 1048576 | insert.append | string | 579093.18 | 22885.79 |
-| 1048576 | replace | string | 1743.32 | 66.74 |
-| 1048576 | remove | string | 1015.23 | 265.69 |
-| 1048576 | remove.middle | string | 1072.81 | 77.64 |
-| 1048576 | replace.middle | string | 1260.67 | 14.56 |
-| 1048576 | apply | string | 687.10 | 68.99 |
-| 1048576 | apply.array | string | 3495762.50 | 58331.25 |
-| 1048576 | concurrent.apply | string | 1278655.00 | 71949.72 |
-| 1048576 | merge | string | 1098.19 | 6.87 |
-| 1048576 | create | string | 1091.35 | 13.19 |
-| 1048576 | value.random | string | 45.15 | 8.74 |
-| 1048576 | values.range | string | 162.31 | 12.66 |
-| 1048576 | values.array | string | 3457000.00 | 203775.00 |
-| 1048576 | values.text | string | 65.24 | 0.74 |
-| 1048576 | sequence.array | string | 3307087.50 | 115325.00 |
-| 1048576 | sequence.text | string | 188.44 | 4.20 |
-| 1048576 | sequence.edited.text | string | 1749173.33 | 16020.00 |
-| 1048576 | sequence.masked.text | string | 3704.20 | 109.67 |
+| 1024 | insert | array | 1062.90 | 24.70 |
+| 1024 | insert.append | array | 9281.05 | 1569.78 |
+| 1024 | replace | array | 3256.44 | 257.06 |
+| 1024 | remove | array | 2154.63 | 318.20 |
+| 1024 | remove.middle | array | 1210.53 | 138.49 |
+| 1024 | replace.middle | array | 1444.77 | 242.33 |
+| 1024 | apply | array | 451.16 | 42.78 |
+| 1024 | apply.array | array | 308.60 | 34.38 |
+| 1024 | concurrent.apply | array | 32371.12 | 1014.59 |
+| 1024 | merge | array | 1340.57 | 154.55 |
+| 1024 | create | array | 1434.78 | 120.76 |
+| 1024 | value.random | array | 33.18 | 4.64 |
+| 1024 | values.range | array | 79.37 | 13.15 |
+| 1024 | values.array | array | 592.10 | 90.92 |
+| 1024 | values.text | array | 6687.19 | 369.89 |
+| 1024 | sequence.array | array | 667.75 | 96.89 |
+| 1024 | sequence.text | array | 4083.86 | 192.57 |
+| 1024 | sequence.edited.text | array | 6380.88 | 118.58 |
+| 1024 | sequence.masked.text | array | 5438.60 | 221.89 |
+| 1024 | insert | string | 214.60 | 19.71 |
+| 1024 | insert.append | string | 2049.70 | 73.70 |
+| 1024 | replace | string | 874.62 | 35.99 |
+| 1024 | remove | string | 515.38 | 7.53 |
+| 1024 | remove.middle | string | 569.48 | 9.62 |
+| 1024 | replace.middle | string | 741.71 | 15.31 |
+| 1024 | apply | string | 443.69 | 59.48 |
+| 1024 | apply.array | string | 1031.14 | 15.66 |
+| 1024 | concurrent.apply | string | 1747.43 | 168.10 |
+| 1024 | merge | string | 634.75 | 66.74 |
+| 1024 | create | string | 732.84 | 20.36 |
+| 1024 | value.random | string | 34.81 | 6.28 |
+| 1024 | values.range | string | 94.13 | 11.10 |
+| 1024 | values.array | string | 744.91 | 58.36 |
+| 1024 | values.text | string | 54.74 | 12.86 |
+| 1024 | sequence.array | string | 851.27 | 122.32 |
+| 1024 | sequence.text | string | 100.86 | 3.12 |
+| 1024 | sequence.edited.text | string | 1221.52 | 6.95 |
+| 1024 | sequence.masked.text | string | 2332.95 | 27.04 |
+| 65536 | insert | array | 195722.27 | 17462.49 |
+| 65536 | insert.append | array | 840395.77 | 64628.19 |
+| 65536 | replace | array | 460698.13 | 36033.57 |
+| 65536 | remove | array | 240387.70 | 12063.19 |
+| 65536 | remove.middle | array | 180301.58 | 6393.11 |
+| 65536 | replace.middle | array | 178597.02 | 10187.56 |
+| 65536 | apply | array | 564.14 | 18.50 |
+| 65536 | apply.array | array | 327.36 | 10.20 |
+| 65536 | concurrent.apply | array | 2440649.64 | 25576.82 |
+| 65536 | merge | array | 191905.37 | 6396.42 |
+| 65536 | create | array | 191683.73 | 15026.49 |
+| 65536 | value.random | array | 33.59 | 6.34 |
+| 65536 | values.range | array | 86.49 | 16.46 |
+| 65536 | values.array | array | 200612.28 | 1519.27 |
+| 65536 | values.text | array | 512984.22 | 4617.59 |
+| 65536 | sequence.array | array | 196168.80 | 1414.50 |
+| 65536 | sequence.text | array | 283476.36 | 52984.42 |
+| 65536 | sequence.edited.text | array | 423281.31 | 109536.22 |
+| 65536 | sequence.masked.text | array | 275312.54 | 51062.99 |
+| 65536 | insert | string | 261.90 | 9.53 |
+| 65536 | insert.append | string | 6808.31 | 483.55 |
+| 65536 | replace | string | 848.34 | 71.39 |
+| 65536 | remove | string | 532.98 | 42.43 |
+| 65536 | remove.middle | string | 552.45 | 49.50 |
+| 65536 | replace.middle | string | 757.72 | 21.33 |
+| 65536 | apply | string | 495.93 | 54.67 |
+| 65536 | apply.array | string | 205014.50 | 1444.66 |
+| 65536 | concurrent.apply | string | 108846.61 | 4820.38 |
+| 65536 | merge | string | 621.41 | 30.00 |
+| 65536 | create | string | 713.88 | 63.88 |
+| 65536 | value.random | string | 41.72 | 1.15 |
+| 65536 | values.range | string | 91.87 | 3.94 |
+| 65536 | values.array | string | 201151.85 | 3459.47 |
+| 65536 | values.text | string | 42.37 | 6.83 |
+| 65536 | sequence.array | string | 199545.84 | 1678.43 |
+| 65536 | sequence.text | string | 95.65 | 2.21 |
+| 65536 | sequence.edited.text | string | 52612.04 | 285.57 |
+| 65536 | sequence.masked.text | string | 2340.57 | 59.37 |
+| 1048576 | insert | array | 3326402.13 | 32164.31 |
+| 1048576 | insert.append | array | 19613240.00 | 999515.00 |
+| 1048576 | replace | array | 7485960.25 | 211118.88 |
+| 1048576 | remove | array | 4166890.00 | 218496.46 |
+| 1048576 | remove.middle | array | 3423912.13 | 306733.19 |
+| 1048576 | replace.middle | array | 3598272.57 | 251923.47 |
+| 1048576 | apply | array | 560.81 | 28.17 |
+| 1048576 | apply.array | array | 314.24 | 26.98 |
+| 1048576 | concurrent.apply | array | 57408878.00 | 1710377.00 |
+| 1048576 | merge | array | 3216335.00 | 183321.85 |
+| 1048576 | create | array | 2916325.67 | 115129.76 |
+| 1048576 | value.random | array | 41.73 | 10.15 |
+| 1048576 | values.range | array | 61.74 | 12.22 |
+| 1048576 | values.array | array | 3387788.38 | 85106.00 |
+| 1048576 | values.text | array | 8373181.50 | 144372.08 |
+| 1048576 | sequence.array | array | 3366331.62 | 354828.43 |
+| 1048576 | sequence.text | array | 28881598.00 | 7450182.75 |
+| 1048576 | sequence.edited.text | array | 32108368.00 | 389865.75 |
+| 1048576 | sequence.masked.text | array | 28517951.50 | 170681.00 |
+| 1048576 | insert | string | 269.27 | 26.75 |
+| 1048576 | insert.append | string | 425952.66 | 3543.04 |
+| 1048576 | replace | string | 922.85 | 68.27 |
+| 1048576 | remove | string | 627.20 | 35.98 |
+| 1048576 | remove.middle | string | 604.91 | 5.90 |
+| 1048576 | replace.middle | string | 837.33 | 24.53 |
+| 1048576 | apply | string | 587.57 | 71.03 |
+| 1048576 | apply.array | string | 3362998.50 | 13760.69 |
+| 1048576 | concurrent.apply | string | 1639920.44 | 16614.66 |
+| 1048576 | merge | string | 671.47 | 23.94 |
+| 1048576 | create | string | 644.84 | 32.63 |
+| 1048576 | value.random | string | 41.76 | 4.01 |
+| 1048576 | values.range | string | 92.67 | 2.69 |
+| 1048576 | values.array | string | 3210497.00 | 33555.25 |
+| 1048576 | values.text | string | 53.57 | 8.39 |
+| 1048576 | sequence.array | string | 3135055.00 | 19659.88 |
+| 1048576 | sequence.text | string | 101.24 | 6.03 |
+| 1048576 | sequence.edited.text | string | 913430.54 | 1271.21 |
+| 1048576 | sequence.masked.text | string | 2385.90 | 96.14 |
 
 Encoded snapshots use string Footage in both representations.
 
@@ -127,11 +127,11 @@ Encoded snapshots use string Footage in both representations.
 
 | UTF-16 code units | Representation | Estimated MiB | Snapshot MessagePack KiB | Snapshot gzip KiB | Gossip MessagePack KiB | Gossip gzip KiB |
 | ---: | --- | ---: | ---: | ---: | ---: | ---: |
-| 1024 | array | 0.0082 | 1.02 | 0.04 | 2.02 | 0.05 |
+| 1024 | array | 0.0082 | 1.02 | 0.05 | 2.02 | 0.05 |
 | 1024 | string | 0.0023 | 1.02 | 0.05 | 1.02 | 0.05 |
 | 65536 | array | 0.5004 | 64.02 | 0.12 | 128.02 | 0.18 |
 | 65536 | string | 0.1254 | 64.02 | 0.12 | 64.02 | 0.12 |
 | 1048576 | array | 8.0004 | 1024.02 | 1.05 | 2048.02 | 2.05 |
 | 1048576 | string | 2.0004 | 1024.02 | 1.05 | 1024.02 | 1.05 |
 
-Measured on Node 24.16.0, V8 13.6.233.17-node.49, win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz. Splitting and text assembly are included where required; peer preparation, encoding and explicit JS process garbage collection are outside API timings.
+Measured on Node 24.22.3, V8 13.6.233.17-node.63, linux x64, Intel(R) Xeon(R) 6975P-C. Splitting and text assembly are included where required; peer preparation, encoding and explicit JS process garbage collection are outside API timings.

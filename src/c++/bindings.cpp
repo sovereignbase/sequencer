@@ -3,6 +3,8 @@
  * Synchronous wasm32 ABI: numeric input, borrowed output views and opaque Footage tokens.
  */
 #include "class.hpp"
+#include "components/Words/reader.hpp"
+#include "components/Words/writer.hpp"
 #include <algorithm>
 #include <bit>
 #include <limits>
@@ -50,6 +52,7 @@ struct Output {
   std::vector<Span> values;
   std::vector<EntryView> gossip;
   std::vector<SpliceView> splices;
+  std::vector<std::uint8_t> bytes;
   // Descriptor pointers refer to source storage; source must outlive JavaScript consumption.
   void expose(const Gossip &source, bool tuple = false) {
     gossip.clear();
@@ -60,9 +63,42 @@ struct Output {
                                        tuple ? e.insertion.content_start : 6u,
                                        e.insertion.content});
   }
+  void expose_binary(const Gossip &source, bool tuple) {
+    // Byte output tags: 3 Insertion, 4 ACK, 5 tuple Insertion with an offset prefix.
+    bytes.clear();
+    gossip.clear();
+    for (const auto &e : source) {
+      // Tuple Footage offsets are ABI fields, separate from the encoded coordinates.
+      while (bytes.size() & 3)
+        bytes.push_back(0);
+      auto begin = Word(bytes.size());
+      const auto acknowledgement = e.acknowledgement_count != 0;
+      if (tuple && !acknowledgement) {
+        const auto offset = e.insertion.content_start;
+        bytes.resize(bytes.size() + sizeof(offset));
+        std::memcpy(bytes.data() + begin, &offset, sizeof(offset));
+        begin += sizeof(offset);
+      }
+      WordsWriter<> writer(bytes);
+      if (acknowledgement)
+        writer.acknowledgement({e.frontier.data(), e.acknowledgement_count});
+      else
+        writer.append(e.insertion.coordinates);
+      gossip.push_back({acknowledgement ? 4u
+                        : tuple         ? 5u
+                                        : 3u,
+                        begin, Word(bytes.size()) - begin,
+                        acknowledgement ? 0 : e.insertion.content});
+    }
+    // Growth is complete before offsets become borrowed pointers.
+    const auto base = address(bytes.data());
+    for (auto &entry : gossip)
+      entry.pointer += base;
+  }
 };
 static_assert(sizeof(Span) == 12 && sizeof(EntryView) == 16 && sizeof(SpliceView) == 16);
 Output out;
+std::vector<Word> decoded_acknowledgement;
 std::unordered_set<Word> session_ids;
 // Last-seen caching avoids repeated hash inserts in same-Session document runs.
 Word registered_session{}, registered_anchor{};
@@ -151,6 +187,36 @@ struct Reader {
   std::pair<Insertion, std::span<const Word>> entry() {
     const auto tag = word();
     const auto count = word(), content = word();
+    // Byte input tags: 4 array Insertion, 5 text Insertion, 6 ACK; count is bytes.
+    if (tag >= 4 && tag <= 6) {
+      const auto words = (std::uint64_t(count) + 3) / 4;
+      if (words > input.size() - position)
+        return invalid();
+      WordsReader<> reader(
+          {reinterpret_cast<const std::uint8_t *>(input.data() + position), count});
+      position += std::size_t(words);
+      if (tag == 6) {
+        if (!count)
+          return invalid();
+        decoded_acknowledgement.clear();
+        decoded_acknowledgement.push_back(reader.uint());
+        while (reader.valid && reader.remaining()) {
+          decoded_acknowledgement.push_back(reader.session());
+          decoded_acknowledgement.push_back(reader.uint());
+        }
+        if (!reader.valid)
+          return invalid();
+        return {{}, decoded_acknowledgement};
+      }
+      const auto c = reader.coordinates();
+      if (!reader.valid || reader.remaining())
+        return invalid();
+      register_sessions(c);
+      Insertion insertion{c, content};
+      insertion.footage_state = FootageState::Retained;
+      insertion.string_content = tag == 5;
+      return {insertion, {}};
+    }
     if (count > input.size() - position)
       return invalid();
     const auto data = input.subspan(position, count);
@@ -175,7 +241,85 @@ struct Reader {
     } else
       return invalid();
   }
-  std::pair<std::vector<Insertion>, std::vector<Acknowledgement>> sequence(Word content) {
+  bool append_coordinates(const Coordinates &c, Word content, Word &offset,
+                          std::vector<Insertion> &insertions) {
+    if (!valid || !c.diff || c.diff == std::numeric_limits<std::int32_t>::min() ||
+        (tuple && ((c.diff > 0 && c.anchor_diff >= extent) || (c.diff != 1 && c.diff != -1) ||
+                   (c.diff > 0 && (c.anchor_session | c.anchor_start))))) {
+      valid = false;
+      return false;
+    }
+    register_sessions(c);
+    insertions.push_back({c, c.diff > 0 ? content + bindings++ : 0, offset});
+    insertions.back().footage_state = FootageState::Retained;
+    if (c.diff > 0)
+      offset += Word(c.diff);
+    return true;
+  }
+  std::pair<std::vector<Insertion>, std::vector<Acknowledgement>> binary_sequence(Word content) {
+    std::vector<Insertion> insertions;
+    std::vector<Acknowledgement> frontiers;
+    if (input.empty() || input[0] > (input.size() - 1) * sizeof(Word)) {
+      valid = false;
+      return {};
+    }
+    if (!input[0])
+      return {};
+    WordsReader<true> reader({reinterpret_cast<const std::uint8_t *>(input.data() + 1), input[0]});
+    const auto records = reader.records();
+    const auto header = reader.byte();
+    tuple = header & 128;
+    if ((header & 63) != 1 || (!tuple && (header & 64))) {
+      valid = false;
+      return {};
+    }
+    if (tuple) {
+      if (header & 64)
+        capacity = extent = reader.uint();
+      else
+        extent = reader.uint();
+    }
+    const auto actors = reader.uint();
+    if (!reader.valid || actors > reader.remaining()) {
+      valid = false;
+      return {};
+    }
+    for (Word i = 0; i < actors; ++i) {
+      const auto count = reader.uint();
+      if (!reader.valid || !count || !(count & 1) || count > reader.remaining()) {
+        valid = false;
+        return {};
+      }
+      auto &a = frontiers.emplace_back();
+      a.reserve(count);
+      a.push_back(reader.uint());
+      for (Word n = 1; n < count; n += 2) {
+        a.push_back(reader.session());
+        a.push_back(reader.uint());
+      }
+    }
+    if (!reader.valid || records > reader.remaining()) {
+      valid = false;
+      return {};
+    }
+    insertions.reserve(records);
+    Word offset = 0;
+    for (Word i = 0; i < records; ++i) {
+      const auto c = reader.coordinates();
+      valid = reader.valid;
+      if (!append_coordinates(c, content, offset, insertions))
+        return {};
+    }
+    if (!reader.valid || reader.remaining()) {
+      valid = false;
+      return {};
+    }
+    return {std::move(insertions), std::move(frontiers)};
+  }
+  std::pair<std::vector<Insertion>, std::vector<Acknowledgement>> sequence(Word content,
+                                                                           bool binary = false) {
+    if (binary)
+      return binary_sequence(content);
     std::vector<Insertion> insertions;
     std::vector<Acknowledgement> frontiers;
     if (input.empty())
@@ -243,20 +387,8 @@ struct Reader {
         c = {data[0], data[1], data[2], data[3], data[4], std::bit_cast<std::int32_t>(data[5])};
         position += 6;
       }
-      if (!valid || !c.diff || c.diff == std::numeric_limits<std::int32_t>::min()) {
-        valid = false;
+      if (!append_coordinates(c, content, offset, insertions))
         return {};
-      }
-      if (tuple && ((c.diff > 0 && c.anchor_diff >= extent) || (c.diff != 1 && c.diff != -1) ||
-                    (c.diff > 0 && (c.anchor_session | c.anchor_start)))) {
-        valid = false;
-        return {};
-      }
-      register_sessions(c);
-      insertions.push_back({c, c.diff > 0 ? content + bindings++ : 0, offset});
-      insertions.back().footage_state = FootageState::Retained;
-      if (c.diff > 0)
-        offset += Word(c.diff);
       previous = c;
     }
     if (position != input.size()) {
@@ -316,11 +448,11 @@ void runtime_destroy(std::uint32_t id) {
 }
 
 /** Executes a general operation and exposes output until the next native call.
- * @param operation Dispatch opcode shared with the TypeScript protocol.
+ * @param operation Dispatch opcode; bit 7 requests byte metadata output.
  * @param id Live Projection handle, or the handle to create or destroy.
  * @param arg0 First operation-specific scalar.
  * @param arg1 Second scalar, including the first content token for snapshot input.
- * @param arg2 Third scalar, including snapshot shape validity for create and merge.
+ * @param arg2 Third scalar, including snapshot shape, text and byte-input flags.
  * @param input_or_end Numeric input address, or the inclusive replacement end.
  * @param count Input word count.
  * @return Twelve-word output header with byte pointers and element counts.
@@ -330,6 +462,8 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
                                                      std::uint32_t arg2, std::uint32_t input_or_end,
                                                      std::uint32_t count) {
   using namespace sequencer;
+  const auto binary = bool(operation & 128);
+  operation &= 127;
   input = {count ? reinterpret_cast<const Word *>(input_or_end) : nullptr, count};
   // Result kinds: 0 rejected, 2 Gossip, 4 Result,
   // 5 Sequence, 6 void, 7 local operation error.
@@ -349,6 +483,13 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
     } else if (input.size() >= 4 && input[0] == UINT32_MAX) {
       tuple_enabled = true;
       tuple_capacity = input[2];
+    } else if ((arg2 & 8) && input.size() >= 2 && input[0] &&
+               input[0] <= (input.size() - 1) * sizeof(Word)) {
+      WordsReader<> reader({reinterpret_cast<const std::uint8_t *>(input.data() + 1), input[0]});
+      const auto header = reader.byte();
+      tuple_enabled = header & 128;
+      if (tuple_enabled && (header & 64))
+        tuple_capacity = reader.uint();
     }
     runtime_create(id, arg0, tuple_enabled, tuple_capacity);
   }
@@ -365,7 +506,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
     switch (operation) {
     case 0: {
       Reader r;
-      auto [g, f] = r.sequence(arg1);
+      auto [g, f] = r.sequence(arg1, arg2 & 8);
       if (!(arg2 & 1) || !r.valid ||
           (configured && ((r.tuple && (!tuple_enabled || r.capacity != tuple_capacity)) ||
                           (!r.tuple && !g.empty() && tuple_enabled))) ||
@@ -416,8 +557,8 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
     }
     case 4: {
       Reader r;
-      auto [g, f] = r.sequence(arg1);
-      if ((arg2 != 1 && arg2 != 5) || !r.valid || r.tuple != bool(p.tuple) ||
+      auto [g, f] = r.sequence(arg1, arg2 & 8);
+      if (((arg2 & ~8u) != 1 && (arg2 & ~8u) != 5) || !r.valid || r.tuple != bool(p.tuple) ||
           (r.tuple && r.capacity != p.tuple->capacity)) {
         kind = 0;
         break;
@@ -458,7 +599,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
       p.frontier.retire(arg0);
       break;
     case 8:
-      p.sequence(out.sequence);
+      p.sequence(out.sequence, binary);
       kind = 5;
       break;
     default:
@@ -479,7 +620,10 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
   out.header[10] = Word(copied.size());
   switch (kind) {
   case 2:
-    out.expose(out.entries, bool(p.tuple));
+    if (binary)
+      out.expose_binary(out.entries, bool(p.tuple));
+    else
+      out.expose(out.entries, bool(p.tuple));
     out.header[3] = address(out.gossip.data());
     out.header[4] = Word(out.gossip.size());
     break;
@@ -488,7 +632,10 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
     for (const auto &s : out.result.changes)
       out.splices.push_back(
           {s.start, s.end, s.values ? address(&*s.values) : 0, Word(s.values.has_value())});
-    out.expose(out.result.gossip, bool(p.tuple));
+    if (binary)
+      out.expose_binary(out.result.gossip, bool(p.tuple));
+    else
+      out.expose(out.result.gossip, bool(p.tuple));
     out.header[3] = address(out.splices.data());
     out.header[4] = Word(out.splices.size());
     out.header[5] = address(out.gossip.data());
@@ -520,8 +667,9 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
         }
       }
     }
-    out.header[3] = address(out.sequence.words.data());
-    out.header[4] = Word(out.sequence.words.size());
+    out.header[3] =
+        binary ? address(out.sequence.bytes.data()) : address(out.sequence.words.data());
+    out.header[4] = binary ? Word(out.sequence.bytes.size()) : Word(out.sequence.words.size());
     out.header[5] = address(out.sequence.footage.data());
     out.header[6] = Word(out.sequence.footage.size());
     break;
@@ -535,15 +683,18 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
 EMSCRIPTEN_KEEPALIVE std::uint32_t runtime_length(std::uint32_t id) {
   return sequencer::projections[id]->length();
 }
+} // extern "C"
+namespace {
 /** Authors local positive Frames without general result descriptors.
  * @param id Live Projection handle.
  * @param count Positive Frame count; its high bit marks immutable UTF-16 input.
  * @param content JavaScript token for the incoming Footage.
  * @param at Visible insertion boundary.
- * @return Six coordinate words and an optional append target, endpoint and content origin.
+ * @return Coordinates or a byte pointer/count, plus append target, endpoint and content origin.
  */
-EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_insert(std::uint32_t id, std::uint32_t count,
-                                                         std::uint32_t content, std::uint32_t at) {
+template <bool Binary>
+const std::uint32_t *insert_result(std::uint32_t id, std::uint32_t count, std::uint32_t content,
+                                   std::uint32_t at) {
   using namespace sequencer;
   auto &p = *projections[id];
   appended.clear();
@@ -553,7 +704,10 @@ EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_insert(std::uint32_t id, std::
   count &= 0x7fffffffu;
   if (p.tuple && count > 1) {
     out.entries = p.insert_batch(count, content, at, text);
-    out.expose(out.entries, true);
+    if constexpr (Binary)
+      out.expose_binary(out.entries, true);
+    else
+      out.expose(out.entries, true);
     out.header = {2, 0, 0, address(out.gossip.data()), Word(out.gossip.size())};
     static std::array<Word, 9> tuple_result;
     tuple_result[6] = UINT32_MAX;
@@ -562,8 +716,16 @@ EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_insert(std::uint32_t id, std::
   }
   const auto insertion = p.insert(count, content, at, text);
   static std::array<Word, 9> result;
-  const auto coordinates = std::bit_cast<std::array<Word, 6>>(insertion.coordinates);
-  std::copy(coordinates.begin(), coordinates.end(), result.begin());
+  if constexpr (Binary) {
+    out.bytes.clear();
+    WordsWriter<> writer(out.bytes);
+    writer.append(insertion.coordinates);
+    result[0] = address(out.bytes.data());
+    result[1] = Word(out.bytes.size());
+  } else {
+    const auto coordinates = std::bit_cast<std::array<Word, 6>>(insertion.coordinates);
+    std::copy(coordinates.begin(), coordinates.end(), result.begin());
+  }
   result[6] = 0;
   if (!appended.empty()) {
     const auto &append = appended.back();
@@ -572,6 +734,19 @@ EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_insert(std::uint32_t id, std::
     result[8] = append.base;
   }
   return result.data();
+}
+} // namespace
+extern "C" {
+EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_insert(std::uint32_t id, std::uint32_t count,
+                                                         std::uint32_t content, std::uint32_t at) {
+  return insert_result<false>(id, count, content, at);
+}
+/** Authors the same local Insertion with byte metadata in its borrowed result. */
+EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_insert_binary(std::uint32_t id,
+                                                                std::uint32_t count,
+                                                                std::uint32_t content,
+                                                                std::uint32_t at) {
+  return insert_result<true>(id, count, content, at);
 }
 /** Resolves one visible Frame without materializing a span vector.
  * @param id Live Projection handle.

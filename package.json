@@ -55,6 +55,7 @@
     "bench:throughput": "npm run bench -- --suite throughput",
     "bench:tuple": "npm run build:ts && node --expose-gc benchmark/tuple/index.ts",
     "bench:text": "npm run build:ts && node --expose-gc benchmark/text/index.ts",
+    "bench:words": "npm run build:ts && node --expose-gc benchmark/words/index.ts",
     "prepare": "husky"
   },
   "devDependencies": {

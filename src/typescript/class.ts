@@ -51,17 +51,22 @@ export class Projection<T> {
    *
    * @param gossip Batch of Insertion and Acknowledgement tuples.
    * @param stringEncode Whether inserted Splice Footage is returned as strings. Defaults to `false`.
+   * @param binaryEncode Whether returned Gossip words use `Uint8Array`. Defaults to `false`.
    * @returns Visible changes and optional acknowledgement Gossip, or
    * `undefined` for invalid input. Earlier entries may already have been applied.
    * @throws {@link SequencerError} with code `PROJECTION_DESTROYED` after destruction.
    * @throws {@link SequencerError} with code `STRING_ENCODING_FAILED` if requested text concatenation fails.
    */
-  apply<StringEncoded extends boolean = false>(
+  apply<
+    StringEncoded extends boolean = false,
+    BinaryEncoded extends boolean = false,
+  >(
     gossip: unknown,
-    stringEncode?: StringEncoded
-  ): Result<T, StringEncoded> | undefined {
+    stringEncode?: StringEncoded,
+    binaryEncode: BinaryEncoded = false as BinaryEncoded
+  ): Result<T, StringEncoded, BinaryEncoded> | undefined {
     try {
-      return apply(this.id, gossip, stringEncode)
+      return apply(this.id, gossip, stringEncode, binaryEncode)
     } catch (cause) {
       throw unknownError(cause, 'apply')
     }
@@ -72,17 +77,23 @@ export class Projection<T> {
    *
    * @param values Nonempty array of values, or a string of UTF-16 code units.
    * @param at Insertion position in `0..length()`, inclusive. In tuple mode, the first stable index to write; each value creates a competing version.
+   * @param binaryEncode Whether Gossip words use `Uint8Array`. Defaults to `false`.
    * @returns Gossip retaining the supplied array or string Footage.
    * @throws {@link SequencerError} with code `PROJECTION_DESTROYED` after destruction.
    */
-  insert<Values extends Array<T> | (string extends T ? string : never)>(
+  insert<
+    Values extends Array<T> | (string extends T ? string : never),
+    BinaryEncoded extends boolean = false,
+  >(
     values: Values,
-    at: number
-  ): Gossip<T, Values extends string ? true : false> {
+    at: number,
+    binaryEncode: BinaryEncoded = false as BinaryEncoded
+  ): Gossip<T, Values extends string ? true : false, BinaryEncoded> {
     try {
-      return insert(this.id, values, at) as Gossip<
+      return insert(this.id, values, at, binaryEncode) as Gossip<
         T,
-        Values extends string ? true : false
+        Values extends string ? true : false,
+        BinaryEncoded
       >
     } catch (cause) {
       throw unknownError(cause, 'insert')
@@ -108,15 +119,20 @@ export class Projection<T> {
    *
    * @param sequence Sequence to merge.
    * @param stringEncode Whether to retain string Footage and return string Splices. Defaults to `false`.
+   * @param binaryEncode Whether returned Gossip words use `Uint8Array`. Defaults to `false`.
    * @returns Visible changes and optional acknowledgement Gossip, or
    * `undefined` if the Sequence has an invalid runtime shape.
    * @throws {@link SequencerError} with code `PROJECTION_DESTROYED` after destruction.
    * @throws {@link SequencerError} with code `STRING_ENCODING_FAILED` if requested text concatenation fails.
    */
-  merge<StringEncoded extends boolean = false>(
+  merge<
+    StringEncoded extends boolean = false,
+    BinaryEncoded extends boolean = false,
+  >(
     sequence: unknown,
-    stringEncode?: StringEncoded
-  ): Result<T, StringEncoded> | undefined {
+    stringEncode?: StringEncoded,
+    binaryEncode: BinaryEncoded = false as BinaryEncoded
+  ): Result<T, StringEncoded, BinaryEncoded> | undefined {
     try {
       return call(
         Operation.Merge,
@@ -124,7 +140,8 @@ export class Projection<T> {
         sequence,
         undefined,
         undefined,
-        stringEncode
+        stringEncode,
+        binaryEncode
       )
     } catch (cause) {
       throw unknownError(cause, 'merge')
@@ -136,12 +153,25 @@ export class Projection<T> {
    *
    * @param startAt First position to remove; defaults to 0.
    * @param endWith Last position to remove; defaults to `length() - 1`.
+   * @param binaryEncode Whether Gossip words use `Uint8Array`. Defaults to `false`.
    * @returns Reducing Insertions and their acknowledgement as Gossip. Tuple removal targets all known active versions without shifting indices.
    * @throws {@link SequencerError} if destroyed or the native runtime reports an operation failure.
    */
-  remove(startAt?: number, endWith?: number): Gossip<T> {
+  remove<BinaryEncoded extends boolean = false>(
+    startAt?: number,
+    endWith?: number,
+    binaryEncode: BinaryEncoded = false as BinaryEncoded
+  ): Gossip<T, false, BinaryEncoded> {
     try {
-      return call(Operation.Remove, this.id, startAt, endWith)
+      return call(
+        Operation.Remove,
+        this.id,
+        startAt,
+        endWith,
+        undefined,
+        undefined,
+        binaryEncode
+      )
     } catch (cause) {
       throw unknownError(cause, 'remove')
     }
@@ -153,16 +183,29 @@ export class Projection<T> {
    * @param withValues Replacement values or UTF-16 text; an empty input only removes the range.
    * @param startAt First position to replace; defaults to 0.
    * @param endWith Last position to replace; defaults to `length() - 1`.
+   * @param binaryEncode Whether Gossip words use `Uint8Array`. Defaults to `false`.
    * @returns Removal and insertion Gossip, in that order. Tuple replacement removes known versions and writes consecutive stable indices.
    * @throws {@link SequencerError} if destroyed or the native runtime reports an operation failure.
    */
-  replace<Values extends Array<T> | (string extends T ? string : never)>(
+  replace<
+    Values extends Array<T> | (string extends T ? string : never),
+    BinaryEncoded extends boolean = false,
+  >(
     withValues: Values,
     startAt?: number,
-    endWith?: number
-  ): Gossip<T, Values extends string ? true : false> {
+    endWith?: number,
+    binaryEncode: BinaryEncoded = false as BinaryEncoded
+  ): Gossip<T, Values extends string ? true : false, BinaryEncoded> {
     try {
-      return call(Operation.Replace, this.id, withValues, startAt, endWith)
+      return call(
+        Operation.Replace,
+        this.id,
+        withValues,
+        startAt,
+        endWith,
+        undefined,
+        binaryEncode
+      )
     } catch (cause) {
       throw unknownError(cause, 'replace')
     }
@@ -195,15 +238,20 @@ export class Projection<T> {
    * Compaction may translate retained anchors without rewriting this instance.
    *
    * @param stringEncode Whether to concatenate Footage into a string; each text Frame must be one UTF-16 code unit. Defaults to `false`.
+   * @param binaryEncode Whether Sequence words use `Uint8Array`. Defaults to `false`.
    * @returns A Sequence with acknowledged removals compacted in the exported state.
    * @throws {@link SequencerError} if destroyed or the native runtime reports an operation failure.
    * @throws {@link SequencerError} with code `STRING_ENCODING_FAILED` if Footage concatenation fails.
    */
-  sequence<StringEncoded extends boolean = false>(
-    stringEncode?: StringEncoded
-  ): Sequence<T, StringEncoded> {
+  sequence<
+    StringEncoded extends boolean = false,
+    BinaryEncoded extends boolean = false,
+  >(
+    stringEncode?: StringEncoded,
+    binaryEncode: BinaryEncoded = false as BinaryEncoded
+  ): Sequence<T, StringEncoded, BinaryEncoded> {
     try {
-      return sequence(this.id, stringEncode)
+      return sequence(this.id, stringEncode, binaryEncode)
     } catch (cause) {
       throw unknownError(cause, 'sequence')
     }

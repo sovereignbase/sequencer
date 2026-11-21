@@ -150,6 +150,10 @@ function readWords(pointer: number, count: number): number[] {
   for (let i = 0, at = pointer >>> 2; i < count; ++i) result[i] = heap[at + i]
   return result
 }
+/** Copies encoded bytes before the shared native output can be reused. */
+function readBytes(pointer: number, count: number): Uint8Array {
+  return module.HEAPU8.slice(pointer, pointer + count)
+}
 /** Joins numeric output descriptors with retained JavaScript Footage references. */
 function readGossip(
   content: Bindings,
@@ -159,14 +163,19 @@ function readGossip(
   const heap = module.HEAPU32
   const entries: unknown[] = []
   for (let at = pointer >>> 2, end = at + count * 4; at < end; at += 4) {
-    const tuple = heap[at] === 2
-    const coordinates = readWords(heap[at + 1], tuple ? 6 : heap[at + 2])
-    if (heap[at] === 1) entries.push(coordinates)
+    const tag = heap[at],
+      tuple = tag === 2 || tag === 5,
+      binary = tag >= 3
+    const coordinates = binary
+      ? readBytes(heap[at + 1], heap[at + 2])
+      : readWords(heap[at + 1], tuple ? 6 : heap[at + 2])
+    if (tag === 1 || tag === 4) entries.push(coordinates)
     else {
       const source = content[heap[at + 3]] ?? undefined
+      const offset = tag === 5 ? heap[(heap[at + 1] - 4) >>> 2] : heap[at + 2]
       const footage =
         tuple && source && source.length !== 1
-          ? source.slice(heap[at + 2], heap[at + 2] + 1)
+          ? source.slice(offset, offset + 1)
           : source
       entries.push(
         footage === undefined ? [coordinates] : [coordinates, footage]
@@ -321,7 +330,11 @@ export function values<T>(
   return readValues(content, spans, count) as T[]
 }
 /** Exports native spans directly, with optional string Footage assembled in JavaScript. */
-export function sequence<T>(id: number, stringEncode?: boolean): T {
+export function sequence<T>(
+  id: number,
+  stringEncode?: boolean,
+  binaryEncode?: boolean
+): T {
   if (id < 0)
     throw new SequencerError(
       'PROJECTION_DESTROYED',
@@ -330,15 +343,25 @@ export function sequence<T>(id: number, stringEncode?: boolean): T {
   return readResult(
     Operation.Sequence,
     id,
-    module._runtime_dispatch(Operation.Sequence, id, 0, 0, 0, 0, 0),
-    stringEncode
+    module._runtime_dispatch(
+      Operation.Sequence | (binaryEncode ? 128 : 0),
+      id,
+      0,
+      0,
+      0,
+      0,
+      0
+    ),
+    stringEncode,
+    binaryEncode
   ) as T
 }
 /** Authors trusted local Frames through the dedicated six-word result path. */
 export function insert<T>(
   id: number,
   values: T[] | string,
-  at: number
+  at: number,
+  binaryEncode?: boolean
 ): unknown {
   if (id < 0)
     throw new SequencerError(
@@ -346,25 +369,32 @@ export function insert<T>(
       'Projection has been destroyed.'
     )
   const content = bindings[id]!
+  const count = values.length + (typeof values === 'string' ? 0x80000000 : 0)
+  const incoming = content.push(values) - 1
   const pointer =
-    module._runtime_insert(
-      id,
-      values.length + (typeof values === 'string' ? 0x80000000 : 0),
-      content.push(values) - 1,
-      at
-    ) >>> 2
+    (binaryEncode
+      ? module._runtime_insert_binary(id, count, incoming, at)
+      : module._runtime_insert(id, count, incoming, at)) >>> 2
   const heap = module.HEAPU32
   // Tuple batches contain one canonical Insertion per stable index.
   if (heap[pointer + 6] === 0xffffffff)
-    return readResult(Operation.Insert, id, heap[pointer + 7])
-  const coordinates = [
-    heap[pointer],
-    heap[pointer + 1],
-    heap[pointer + 2],
-    heap[pointer + 3],
-    heap[pointer + 4],
-    heap[pointer + 5],
-  ]
+    return readResult(
+      Operation.Insert,
+      id,
+      heap[pointer + 7],
+      undefined,
+      binaryEncode
+    )
+  const coordinates = binaryEncode
+    ? readBytes(heap[pointer], heap[pointer + 1])
+    : [
+        heap[pointer],
+        heap[pointer + 1],
+        heap[pointer + 2],
+        heap[pointer + 3],
+        heap[pointer + 4],
+        heap[pointer + 5],
+      ]
   // A nonzero target means the suffix extends an existing canonical Insertion.
   // Gossip retains the caller's suffix; only the internal binding is concatenated.
   const token = heap[pointer + 6]
@@ -393,7 +423,8 @@ export function insert<T>(
 export function apply<T>(
   id: number,
   value: unknown,
-  stringEncode?: boolean
+  stringEncode?: boolean,
+  binaryEncode?: boolean
 ): T {
   if (id < 0)
     throw new SequencerError(
@@ -407,13 +438,18 @@ export function apply<T>(
     const data =
       Array.isArray(entry) && typeof entry[0] !== 'number' ? entry[0] : entry
     words +=
-      Array.isArray(data) || data instanceof Uint32Array ? data.length : 0
+      data instanceof Uint8Array
+        ? Math.ceil(data.length / 4)
+        : Array.isArray(data) || data instanceof Uint32Array
+          ? data.length
+          : 0
   }
 
   // Each input record stores its tag, word count and content token before its payload.
   const pointer = module._runtime_reserve(words)
   const heap = module.HEAPU32,
     base = pointer >>> 2
+  const bytes = module.HEAPU8
   const contents = bindings[id]!
   const firstBinding = contents.length
   const absent = 0xffffffff
@@ -423,7 +459,8 @@ export function apply<T>(
   for (const entry of entries) {
     const insertion = Array.isArray(entry) && typeof entry[0] !== 'number'
     const numbers = insertion ? entry[0] : entry
-    let numeric = numbers instanceof Uint32Array
+    const binary = numbers instanceof Uint8Array
+    let numeric = binary || numbers instanceof Uint32Array
     if (Array.isArray(numbers)) {
       numeric = true
       for (let i = 0; i < numbers.length; ++i) {
@@ -447,9 +484,22 @@ export function apply<T>(
           Array.isArray(footage) ||
           (text = typeof footage === 'string'))
       : true
-    const tag = numeric && shape ? (insertion ? (text ? 3 : 0) : 1) : 2
+    const tag =
+      numeric && shape
+        ? binary
+          ? insertion
+            ? text
+              ? 5
+              : 4
+            : 6
+          : insertion
+            ? text
+              ? 3
+              : 0
+            : 1
+        : 2
     const count =
-      Array.isArray(numbers) || numbers instanceof Uint32Array
+      binary || Array.isArray(numbers) || numbers instanceof Uint32Array
         ? numbers.length
         : 0
     heap[data] = tag
@@ -458,13 +508,15 @@ export function apply<T>(
     heap[data + 2] =
       insertion &&
       tag !== 2 &&
-      count === 6 &&
-      numbers[5] > 0 &&
-      numbers[5] < 0x80000000
+      (binary
+        ? count > 0 && !(numbers[0] & 128)
+        : count === 6 && numbers[5] > 0 && numbers[5] < 0x80000000)
         ? contents.push(footage ?? null) - 1
         : 0
     data += 3
-    if (numeric) {
+    if (binary) {
+      bytes.set(numbers, data * 4)
+    } else if (numeric) {
       if (insertion && count === 6) {
         heap[data] = numbers[0]
         heap[data + 1] = numbers[1]
@@ -474,10 +526,10 @@ export function apply<T>(
         heap[data + 5] = numbers[5]
       } else heap.set(numbers as ArrayLike<number>, data)
     }
-    data += count
+    data += binary ? Math.ceil(count / 4) : count
   }
   const resultPointer = module._runtime_dispatch(
-    Operation.Apply,
+    Operation.Apply | (binaryEncode ? 128 : 0),
     id,
     0,
     0,
@@ -490,7 +542,13 @@ export function apply<T>(
     const consumed = module.HEAPU32[(resultPointer >>> 2) + 11]
     contents.length = Math.max(firstBinding, consumed + 1)
   }
-  return readResult(Operation.Apply, id, resultPointer, stringEncode) as T
+  return readResult(
+    Operation.Apply,
+    id,
+    resultPointer,
+    stringEncode,
+    binaryEncode
+  ) as T
 }
 /** Sizes general-dispatch numeric storage; local scalar operations need no tuple validation. */
 function inputSize(operation: Opcode, value: unknown, other: unknown): number {
@@ -499,7 +557,9 @@ function inputSize(operation: Opcode, value: unknown, other: unknown): number {
     return Array.isArray(sequence) &&
       (Array.isArray(sequence[0]) || sequence[0] instanceof Uint32Array)
       ? sequence[0].length
-      : 0
+      : Array.isArray(sequence) && sequence[0] instanceof Uint8Array
+        ? 1 + Math.ceil(sequence[0].length / 4)
+        : 0
   }
   return 0
 }
@@ -517,7 +577,8 @@ export function call<T>(
   value?: unknown,
   at?: unknown,
   end?: unknown,
-  stringEncode?: boolean
+  stringEncode?: boolean,
+  binaryEncode?: boolean
 ): T {
   if (id < 0)
     throw new SequencerError(
@@ -555,10 +616,13 @@ export function call<T>(
     const valid =
       Array.isArray(sequence) &&
       sequence.length === 2 &&
-      (Array.isArray(sequence[0]) || sequence[0] instanceof Uint32Array) &&
+      (Array.isArray(sequence[0]) ||
+        sequence[0] instanceof Uint32Array ||
+        sequence[0] instanceof Uint8Array) &&
       (Array.isArray(sequence[1]) || typeof sequence[1] === 'string') &&
       (operation === Operation.Create ||
         sequence[0] instanceof Uint32Array ||
+        sequence[0] instanceof Uint8Array ||
         sequence[0].every(
           (word: number) => typeof word === 'number' && word === word >>> 0
         ))
@@ -571,7 +635,11 @@ export function call<T>(
     }
     if (valid) {
       const words = sequence[0] as ArrayLike<number>
-      heap.set(words, base + configuration)
+      if (words instanceof Uint8Array) {
+        heap[base + configuration] = words.length
+        module.HEAPU8.set(words, (base + configuration + 1) * 4)
+        a2 |= 8
+      } else heap.set(words, base + configuration)
       a1 = contents.length
       if (typeof sequence[1] === 'string') {
         if (stringEncode) {
@@ -583,7 +651,7 @@ export function call<T>(
   }
 
   const resultPointer = module._runtime_dispatch(
-    operation,
+    operation | (binaryEncode ? 128 : 0),
     id,
     a0,
     a1,
@@ -598,14 +666,21 @@ export function call<T>(
     contents.length += bindings
     contents.fill(footage, a1)
   }
-  return readResult(operation, id, resultPointer, stringEncode) as T
+  return readResult(
+    operation,
+    id,
+    resultPointer,
+    stringEncode,
+    binaryEncode
+  ) as T
 }
 /** Consumes borrowed native output before another call may overwrite its storage. */
 function readResult(
   operation: Opcode,
   id: number,
   pointer: number,
-  stringEncode?: boolean
+  stringEncode?: boolean,
+  binaryEncode?: boolean
 ): unknown {
   const heap = module.HEAPU32,
     header = pointer >>> 2,
@@ -682,8 +757,9 @@ function readResult(
     case 5: {
       // A literal allocation site keeps compact words in integer elements
       // independently of full uint32 Gossip's double-element feedback.
-      let metadata: number[]
-      if (n0 > 0 && heap[p0 >>> 2] === 0) {
+      let metadata: number[] | Uint8Array
+      if (binaryEncode) metadata = readBytes(p0, n0)
+      else if (n0 > 0 && heap[p0 >>> 2] === 0) {
         metadata = [0]
         metadata.length = n0
         for (let i = 0, at = p0 >>> 2; i < n0; ++i) metadata[i] = heap[at + i]

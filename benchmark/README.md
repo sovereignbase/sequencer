@@ -8,6 +8,8 @@
   run it separately with `npm run bench:tuple`.
 - [Large strings](text/README.md) measures bulk text, partial edits, replication,
   hydration and reads with array and string Footage; use `npm run bench:text`.
+- [Words](words/README.md) compares numeric and byte metadata, transport sizes,
+  encoding and complete loading; use `npm run bench:words`.
 
 ```powershell
 npm run bench

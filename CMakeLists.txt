@@ -78,7 +78,7 @@ if(EMSCRIPTEN)
       "-sFILESYSTEM=0"
       "-sDYNAMIC_EXECUTION=0"
       "-sINCOMING_MODULE_JS_API=[]"
-      "-sEXPORTED_RUNTIME_METHODS=['HEAPU32']"
+      "-sEXPORTED_RUNTIME_METHODS=['HEAPU32','HEAPU8']"
       "--emit-tsd=${CMAKE_CURRENT_BINARY_DIR}/sequencer_wasm.d.mts"
   )
 

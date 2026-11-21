@@ -1,8 +1,9 @@
-# Snapshot words
+# Numeric snapshot words
 
-Gossip insertion coordinates remain six uint32 words. `Sequence` keeps two arrays,
+Numeric Gossip insertion coordinates remain six uint32 words. `Sequence` keeps
 `[words, footage]`, and the ordering and meaning of every insertion and ACK.
 Footage stays in JavaScript. Packing and reconstruction execute in WASM.
+Optional [byte words](../components/Words/README.md) retain the same coordinates.
 
 Snapshots with fewer than 64 retained insertions keep the plain layout:
 
@@ -36,7 +37,7 @@ Explicit fields follow that order. Start, anchor start, anchor diff and zigzag d
 use the unsigned-field representation above. The reader accepts both snapshot
 layouts, checks boundaries and counts, and reconstructs the original coordinates
 before hydration or merge. Old readers accept plain snapshots; compact snapshots
-require the updated reader. Gossip remains interoperable.
+require the updated reader. Numeric Gossip remains interoperable.
 
 Positive fragment chains begin with a non-offset arena node. Negative roots can
 have consumed prefixes and are recognized by their containment identity. Snapshot

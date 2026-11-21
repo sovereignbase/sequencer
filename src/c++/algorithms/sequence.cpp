@@ -6,11 +6,12 @@
 #include "../auxiliary/snapshotFootage.hpp"
 #include "../auxiliary/snapshotWords.hpp"
 #include "../class.hpp"
+#include "../components/Words/writer.hpp"
 #include <algorithm>
 #include <limits>
 
 namespace sequencer {
-void Projection::sequence(Sequence &output) const {
+template <bool Binary> void Projection::sequence_into(Sequence &output) const {
   const auto compactable = frontier.compactable();
   // Original Frame deletion map, converted in place to removed-prefix counts during export.
   struct Removed {
@@ -81,16 +82,53 @@ void Projection::sequence(Sequence &output) const {
   const auto words = 1 + count * (eligible ? 3 : 6);
   const auto spans = std::min(count, containment.size());
   // Reuse fitting buffers without retaining capacity from a larger previous snapshot.
-  if (output.words.capacity() > words || output.footage.capacity() > spans)
+  if ((Binary ? output.bytes.capacity() > std::size_t(words) * 2
+              : output.words.capacity() > words) ||
+      output.footage.capacity() > spans)
     output = {};
   output.words.clear();
+  output.bytes.clear();
   output.footage.clear();
   output.shared_root = none;
-  output.words.reserve(words);
+  if constexpr (Binary)
+    output.bytes.reserve(std::size_t(words) * 2);
+  else
+    output.words.reserve(words);
   output.footage.reserve(spans);
-  output.words.push_back(0);
+  auto writer = [&] {
+    if constexpr (Binary)
+      return WordsWriter<true>(output.bytes);
+    else
+      return SnapshotWords{output.words, {}, 0, false, eligible};
+  }();
+  const auto frontiers = frontier.frontiers();
+  if constexpr (Binary) {
+    writer.byte(
+        std::uint8_t(1 | (tuple ? 128 : 0) | (tuple && tuple->capacity != UINT32_MAX ? 64 : 0)));
+    if (tuple) {
+      if (tuple->capacity != UINT32_MAX)
+        writer.uint(tuple->capacity);
+      else
+        writer.uint(frame_count);
+    }
+    writer.uint(Word(frontiers.size()));
+  } else
+    output.words.push_back(0);
   // Keep Actor admission even when all of its compactable Session pairs disappear.
-  for (const auto &a : frontier.frontiers()) {
+  for (const auto &a : frontiers) {
+    if constexpr (Binary) {
+      Word count = 1;
+      for (std::size_t i = 1; i + 1 < a.size(); i += 2)
+        count += compactable.contains(a[i]) ? 0 : 2;
+      writer.uint(count);
+      writer.uint(a[0]);
+      for (std::size_t i = 1; i + 1 < a.size(); i += 2)
+        if (!compactable.contains(a[i])) {
+          writer.session(a[i]);
+          writer.uint(a[i + 1]);
+        }
+      continue;
+    }
     const auto begin = output.words.size();
     output.words.push_back(0);
     output.words.push_back(a[0]);
@@ -103,8 +141,8 @@ void Projection::sequence(Sequence &output) const {
     }
     output.words[begin] = count;
   }
-  output.words[0] = Word(output.words.size());
-  SnapshotWords writer{output.words, {}, 0, false, eligible};
+  if constexpr (!Binary)
+    output.words[0] = Word(output.words.size());
   constexpr auto omitted = std::numeric_limits<Word>::max();
   if (tuple) {
     for (Index index = 0; index < tuple->versions.size(); ++index) {
@@ -198,7 +236,10 @@ void Projection::sequence(Sequence &output) const {
               {strips.identity[s].content, strips.identity[s].content_start, Word(c.diff)});
       }
       if (exported.diff) {
-        insertion = Word(output.words.size());
+        if constexpr (Binary)
+          insertion = 0;
+        else
+          insertion = Word(output.words.size());
         writer.append(exported);
       }
     } else if (c.diff > 0) {
@@ -225,11 +266,23 @@ void Projection::sequence(Sequence &output) const {
       }
     }
   }
-  if (writer.packed)
-    output.words[2] = writer.count;
-  if (tuple)
-    output.words.insert(output.words.begin(), {UINT32_MAX, 1, tuple->capacity, frame_count});
-  else if (output.words.size() == 1)
-    output.words.clear();
+  if constexpr (Binary) {
+    writer.finish();
+    if (!tuple && !writer.count && frontiers.empty())
+      output.bytes.clear();
+  } else {
+    if (writer.packed)
+      output.words[2] = writer.count;
+    if (tuple)
+      output.words.insert(output.words.begin(), {UINT32_MAX, 1, tuple->capacity, frame_count});
+    else if (output.words.size() == 1)
+      output.words.clear();
+  }
+}
+void Projection::sequence(Sequence &output, bool binary) const {
+  if (binary)
+    sequence_into<true>(output);
+  else
+    sequence_into<false>(output);
 }
 } // namespace sequencer

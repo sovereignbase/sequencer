@@ -1,6 +1,7 @@
 // TypeScript bindings for emscripten-generated code.  Automatically generated at compile time.
 declare namespace RuntimeExports {
     let HEAPU32: Uint32Array;
+    let HEAPU8: Uint8Array;
 }
 interface WasmModule {
   _runtime_allocated(): number;
@@ -10,6 +11,7 @@ interface WasmModule {
   _runtime_dispatch(_0: number, _1: number, _2: number, _3: number, _4: number, _5: number, _6: number): number;
   _runtime_length(_0: number): number;
   _runtime_insert(_0: number, _1: number, _2: number, _3: number): number;
+  _runtime_insert_binary(_0: number, _1: number, _2: number, _3: number): number;
   _runtime_value(_0: number, _1: number): number;
   _runtime_values(_0: number, _1: number, _2: number): number;
 }

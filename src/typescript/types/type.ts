@@ -1,13 +1,15 @@
 /**
- * Exactly six words, in the replication order:
+ * Numeric insertion metadata has exactly six words, in replication order:
  * `[anchorSession, anchorStart, anchorDiff,
  *   insertionSession, insertionStart, insertionDiff]`.
  * The anchor triple names a logical point in an existing Insertion; the Session
  * and start pair identifies the authored Insertion. A positive diff adds Frames;
  * a negative diff masks original Frames. Signed values use uint32 bit patterns.
  * In tuple mode, `anchorDiff` is the stable index and diff is `1` or `-1`.
+ * Binary encoding stores the same coordinates in a `Uint8Array`.
  */
-export type InsertionWords = ReadonlyArray<number>
+export type InsertionWords<BinaryEncoded extends boolean = false> =
+  BinaryEncoded extends true ? Uint8Array : ReadonlyArray<number>
 
 /** Frame values, or UTF-16 code units retained as a string; missing text slots use NUL. */
 export type Footage<
@@ -20,10 +22,14 @@ export type Footage<
  * Positive Insertions may omit Footage; their Frames then read as `undefined`.
  * Reducing Insertions carry no content into native state.
  */
-export type Insertion<T, StringEncoded extends boolean = false> = Readonly<
+export type Insertion<
+  T,
+  StringEncoded extends boolean = false,
+  BinaryEncoded extends boolean = false,
+> = Readonly<
   [
     /** Stable anchor, identity and signed Frame effect. */
-    words: InsertionWords,
+    words: InsertionWords<BinaryEncoded>,
     /** Values of a positive Insertion, in original Frame order. */
     footage?: Footage<T, StringEncoded>,
   ]
@@ -31,22 +37,27 @@ export type Insertion<T, StringEncoded extends boolean = false> = Readonly<
 
 /**
  * Describes one Actor's acknowledgement frontier.
- * `[actorID, sessionID, sessionEnd, ...]` contains removal Session/frontier pairs.
+ * Numeric `[actorID, sessionID, sessionEnd, ...]` contains removal Session/frontier pairs.
  * Actor-only tuples establish membership before removals, including offline Actors.
  * Compaction requires equal complete Session frontiers from every active Actor.
  * The application must deliver pending history before claiming that frontier.
  */
-export type Acknowledgement = ReadonlyArray<number>
+export type Acknowledgement<BinaryEncoded extends boolean = false> =
+  BinaryEncoded extends true ? Uint8Array : ReadonlyArray<number>
 
 /** Replication batch within retained history; delivery may be duplicated or causally reordered. */
-export type Gossip<T, StringEncoded extends boolean = false> = ReadonlyArray<
-  Acknowledgement | Insertion<T, StringEncoded>
+export type Gossip<
+  T,
+  StringEncoded extends boolean = false,
+  BinaryEncoded extends boolean = false,
+> = ReadonlyArray<
+  Acknowledgement<BinaryEncoded> | Insertion<T, StringEncoded, BinaryEncoded>
 >
 
 /**
  * Retained state required to hydrate the same visible Projection.
- * One structural array and JavaScript-owned Footage.
- * Small snapshots use six-word insertion records after length-prefixed ACKs;
+ * Structural metadata and JavaScript-owned Footage.
+ * Small numeric snapshots use six-word insertion records after length-prefixed ACKs;
  * `words[0]` locates those records. Large snapshots begin with
  * `[0, frontiersEnd, insertionCount]` and omit predictable coordinate fields.
  * Both layouts encode the retained coordinates and acknowledgements.
@@ -56,14 +67,19 @@ export type Gossip<T, StringEncoded extends boolean = false> = ReadonlyArray<
  * String-encoded Footage preserves Insertion order, not visible text order.
  * It uses one UTF-16 code unit per Frame. Missing slots use
  * NUL (`\u0000`). Constructor string Footage is retained when requested explicitly.
- * `[[], []]` is an empty Sequence. Structural words use numeric arrays.
+ * `[[], []]` is an empty Sequence. Structural words use numeric arrays by default;
+ * binary encoding uses a `Uint8Array` without changing Footage.
  * Tuple metadata prefixes the payload with `[0xffffffff, 1, maxLength, length]`;
  * `maxLength = 0xffffffff` denotes dynamic growth. Tuple indices are never translated.
  */
-export type Sequence<T, StringEncoded extends boolean = false> = Readonly<
+export type Sequence<
+  T,
+  StringEncoded extends boolean = false,
+  BinaryEncoded extends boolean = false,
+> = Readonly<
   [
     /** Acknowledgements followed by canonical Insertions in Structural Order. */
-    words: ReadonlyArray<number>,
+    words: InsertionWords<BinaryEncoded>,
     /** Consecutive positive Insertion spans, including missing Footage slots. */
     footage: Footage<T, StringEncoded>,
   ]
@@ -90,8 +106,12 @@ export type Change<T, StringEncoded extends boolean = false> = ReadonlyArray<
   Splice<T, StringEncoded>
 >
 /** Visible changes and optional Gossip returned by `apply()` or `merge()`. */
-export type Result<T, StringEncoded extends boolean = false> = Readonly<
-  [change: Change<T, StringEncoded>, gossip?: Gossip<T>]
+export type Result<
+  T,
+  StringEncoded extends boolean = false,
+  BinaryEncoded extends boolean = false,
+> = Readonly<
+  [change: Change<T, StringEncoded>, gossip?: Gossip<T, false, BinaryEncoded>]
 >
 
 /** Stable-index register configuration; omitting maxLength permits dynamic growth. */

@@ -190,7 +190,11 @@ public:
   void values(Word start, Word end, std::vector<Span> &output);
   /** Exports equivalent retained state without rewriting live history.
    * @param output Snapshot replaced with acknowledgement-gated removal compaction.
+   * @param binary Whether metadata is written as bytes instead of numeric words.
    */
-  void sequence(Sequence &output) const;
+  void sequence(Sequence &output, bool binary = false) const;
+
+private:
+  template <bool Binary> void sequence_into(Sequence &output) const;
 };
 } // namespace sequencer

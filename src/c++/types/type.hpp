@@ -139,6 +139,8 @@ struct Result {
 struct Sequence {
   /** Plain or compact metadata, including retained Acknowledgements. */
   std::vector<Word> words;
+  /** Optional byte metadata; ordinary exports retain numeric words. */
+  std::vector<std::uint8_t> bytes;
   /** Positive original Frame spans in exported Insertion order. */
   std::vector<Span> footage;
   /** Candidate root for sharing one complete Footage span; never serialized. */

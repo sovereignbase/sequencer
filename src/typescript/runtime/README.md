@@ -9,14 +9,17 @@ Local operations trust their caller. `length`, `value` and `insert` use direct W
 exports; other operations expose native coordinates, frontiers and spans through
 pointers and counts. No worker, RPC, Promise or shared memory is involved.
 
-Insertion coordinates contain exactly six uint32 words. Typed lists and JSON
-numeric lists are accepted; signed effects use their 32-bit bit pattern. Inputs
-use a reusable native numeric region. Results retain independent coordinate
-arrays. Snapshots retain one independent words array and one content array.
+Insertion coordinates contain exactly six uint32 words. Numeric arrays remain
+the default, including JSON transport; signed effects use their 32-bit bit pattern.
+The optional final `binaryEncode` argument returns owned `Uint8Array` metadata
+for binary transport. Both forms enter a reusable native input region. Byte
+packing, bounds checks and coordinate reconstruction execute in WASM.
+Snapshots keep `[words, footage]`; neither metadata form serializes Footage.
 With `sequence(true)`, TypeScript concatenates the native Footage spans with
 `+=` into a string instead. No intermediate Footage array is built. Text Frames
 must be UTF-16 code units; absent slots use NUL to retain their coordinates.
-Hydration and merge split string Footage with `split('')` before binding it.
+Hydration and merge split string Footage by default; their existing text options
+retain the string instead.
 Footage remains in canonical Insertion order, reconstructed by the words.
 From 64 retained insertions onward, WASM omits predictable coordinate fields
 during export. Compact words remain JSON-compatible uint32 numbers; the reader

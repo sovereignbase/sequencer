@@ -20,3 +20,6 @@ Splices, optional retained hydration and array/text equivalence after replay.
 
 [Tuples](tuple/README.md) cover stable indices, optional fixed capacity,
 configuration persistence and local edits.
+
+[Packed words](binary_words/README.md) cover optional byte metadata, transport,
+replay, hydration and malformed input.

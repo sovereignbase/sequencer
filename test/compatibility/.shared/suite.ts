@@ -281,10 +281,7 @@ export function runSuite(
         const text = 'a😀\0\ud800'.repeat(1024)
         try {
           const gossip = source.insert(text, 0)
-          equal(
-            receiver.apply(JSON.parse(JSON.stringify(gossip)), true)![0][0][2],
-            text
-          )
+          equal(receiver.apply(gossip, true)![0][0][2], text)
           restored = new Constructor<string>(
             3,
             JSON.parse(JSON.stringify(receiver.sequence(true))),
@@ -298,6 +295,38 @@ export function runSuite(
             restored.values(undefined, undefined, true),
             'aX' + text.slice(3)
           )
+        } finally {
+          source.destroy()
+          receiver.destroy()
+          restored?.destroy()
+        }
+      },
+    ],
+    [
+      'packed words replay and hydration',
+      () => {
+        const source = new Constructor<string>(1)
+        const receiver = new Constructor<string>(2)
+        let restored: Projection<string> | undefined
+        try {
+          source.apply([[1], [2]])
+          receiver.apply([[1], [2]])
+          const gossip = source.insert('ab😀', 0, true)
+          equal(gossip[0][0] instanceof Uint8Array, true)
+          equal(receiver.apply(gossip, true, true)![0][0][2], 'ab😀')
+          const result = receiver.apply(source.remove(1, 1, true), true, true)!
+          equal(result[1]![0] instanceof Uint8Array, true)
+          source.apply(result[1]!)
+          const snapshot = receiver.sequence(true, true)
+          equal(snapshot[0] instanceof Uint8Array, true)
+          restored = new Constructor<string>(
+            2,
+            [snapshot[0].slice(), snapshot[1]],
+            undefined,
+            true
+          )
+          equal(restored.values(undefined, undefined, true), 'a😀')
+          check(restored, source.values())
         } finally {
           source.destroy()
           receiver.destroy()

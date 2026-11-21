@@ -22,9 +22,9 @@ Implementation
 * ``class.hpp`` defines Projection state and operations.
 * ``algorithms/`` implements editing, replication, reads and snapshot export.
 * ``auxiliary/`` implements anchor resolution, fragmentation and traversal.
-* ``components/`` contains containment, pending and frontier tables, and stable-index tuple storage.
+* ``components/`` contains containment, pending and frontier tables, stable-index tuple storage and metadata encoding.
 * ``types/type.hpp`` defines coordinates, Strips, spans and results.
-* ``bindings.cpp`` exposes numeric inputs and borrowed output views to TypeScript.
+* ``bindings.cpp`` exposes numeric/byte inputs and borrowed output views to TypeScript.
 
 The API reference below is generated from the declarations and documentation
 in ``src/c++``. Strip indices, original Frame coordinates and visible Projection

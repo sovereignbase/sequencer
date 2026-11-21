@@ -25,14 +25,14 @@ running the external benchmark suite. CPU sampling over 3,000 repetitions puts
 the largest sample counts in MessagePack UTF-8 counting, buffer growth and
 encoding. Instrumented mean phase times are:
 
-| Phase | Mean µs |
-| :-- | --: |
-| Two local inserts | 2.17 |
-| Two update encodes | 64.16 |
-| Two update decodes | 10.52 |
-| Two remote applications | 5.09 |
-| Three text reads | 1.91 |
-| Text equality assertion | 9.84 |
+| Phase                   | Mean µs |
+| :---------------------- | ------: |
+| Two local inserts       |    2.17 |
+| Two update encodes      |   64.16 |
+| Two update decodes      |   10.52 |
+| Two remote applications |    5.09 |
+| Three text reads        |    1.91 |
+| Text equality assertion |    9.84 |
 
 These phase diagnostics include sampling and instrumentation overhead. They
 identify where time is spent; they are not benchmark acceptance results.
@@ -51,13 +51,13 @@ diagnostic only: it moves native compilation into module initialization before
 the timed calls. It is not enabled in the library or acceptance benchmarks.
 
 | Cold-path diagnostic, median | Normal µs | Eager Wasm compilation µs |
-| :-- | --: | --: |
-| Total | 3,370.40 | 1,518.50 |
-| Local inserts | 539.00 | 35.30 |
-| Update encoding | 1,322.90 | 862.90 |
-| Update decoding | 252.30 | 201.30 |
-| Remote application | 319.30 | 63.10 |
-| Text reads | 468.50 | 188.60 |
+| :--------------------------- | --------: | ------------------------: |
+| Total                        |  3,370.40 |                  1,518.50 |
+| Local inserts                |    539.00 |                     35.30 |
+| Update encoding              |  1,322.90 |                    862.90 |
+| Update decoding              |    252.30 |                    201.30 |
+| Remote application           |    319.30 |                     63.10 |
+| Text reads                   |    468.50 |                    188.60 |
 
 Each row is its own median, not a decomposition of the total median. Native
 first-use compilation materially affects the short workload; initialization

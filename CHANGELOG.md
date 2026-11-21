@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.8](https://github.com/sovereignbase/sequencer/compare/v1.2.7...v1.2.8) (2026-11-21)
+
+
+### Performance Improvements
+
+* add compact binary words encoding ([dcf3b11](https://github.com/sovereignbase/sequencer/commit/dcf3b11da8231c84533cb09ea4d8d566e6fb7edd))
+
 ## [1.2.7](https://github.com/sovereignbase/sequencer/compare/v1.2.6...v1.2.7) (2026-11-20)
 
 

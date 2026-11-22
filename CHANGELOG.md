@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.9](https://github.com/sovereignbase/sequencer/compare/v1.2.8...v1.2.9) (2026-11-22)
+
+
+### Performance Improvements
+
+* compress binary coordinates and removal updates ([27c234d](https://github.com/sovereignbase/sequencer/commit/27c234da74fc146a05d579a8d644151b03cdb280))
+
 ## [1.2.8](https://github.com/sovereignbase/sequencer/compare/v1.2.7...v1.2.8) (2026-11-21)
 
 

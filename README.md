@@ -42,7 +42,7 @@ console.log(projectionA.value(0)) // "Hello Dude"
 const replaceAcknowledgement = projectionB.apply(replaceDelta)
 console.log(projectionB.value(0)) // "Hello Dude"
 
-projectionA.apply(replaceAcknowledgement?.[1] ?? [])
+projectionA.apply(replaceAcknowledgement?.[1])
 
 const removeDelta = projectionA.remove(0, 0)
 console.log(projectionA.value(0)) // undefined
@@ -50,12 +50,12 @@ console.log(projectionA.value(0)) // undefined
 const removeAcknowledgement = projectionB.apply(removeDelta)
 console.log(projectionB.value(0)) // undefined
 
-projectionA.apply(removeAcknowledgement?.[1] ?? [])
+projectionA.apply(removeAcknowledgement?.[1])
 
 const serializable = projectionA.sequence()
 
 const acknowledgements = projectionB.merge(serializable)
-projectionA.apply(acknowledgements?.[1] ?? [])
+projectionA.apply(acknowledgements?.[1])
 
 projectionA.destroy()
 projectionB.destroy()

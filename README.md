@@ -351,22 +351,22 @@ replica.destroy()
 
 <!-- BEGIN GENERATED:words:benchmarks -->
 
-2026-11-21T14:21:22.297Z · [CI run](https://github.com/sovereignbase/sequencer/actions/runs/44912963007)
+2026-11-22T17:11:59.308Z · local run
 
 3 runs, 6,000 edits. Median results; string Footage in both modes.
 
 | Workload   | Words    | Snapshot KiB | Snapshot gzip KiB | Mean update B | Encode ops/s | Load ops/s | Receive batches/s |
 | ---------- | -------- | -----------: | ----------------: | ------------: | -----------: | ---------: | ----------------: |
-| append     | unpacked |         5.90 |              3.61 |         22.88 |       92,074 |    339,077 |               688 |
-| append     | packed   |         5.90 |              3.61 |         13.98 |       94,075 |    418,427 |               837 |
-| prepend    | unpacked |        40.07 |             18.07 |         22.94 |        5,270 |      1,472 |               579 |
-| prepend    | packed   |        17.62 |              3.67 |         14.99 |       79,677 |      2,211 |               625 |
-| random     | unpacked |       138.05 |             57.31 |         39.88 |        1,178 |        360 |               193 |
-| random     | packed   |        54.84 |             36.96 |         29.60 |       43,066 |      1,067 |               227 |
-| concurrent | unpacked |        92.24 |             42.77 |         32.34 |        1,617 |        427 |               243 |
-| concurrent | packed   |        42.46 |             29.09 |         23.69 |       49,978 |      1,202 |               276 |
+| append     | unpacked |         5.90 |              3.61 |         22.88 |       30,831 |    173,799 |               239 |
+| append     | packed   |         5.90 |              3.61 |         13.98 |       35,374 |    203,519 |               319 |
+| prepend    | unpacked |        40.07 |             18.07 |         22.94 |        1,856 |        688 |               228 |
+| prepend    | packed   |         5.90 |              3.61 |         13.99 |       33,095 |      1,284 |               230 |
+| random     | unpacked |       138.05 |             57.31 |         39.88 |          513 |        278 |                79 |
+| random     | packed   |        49.58 |             35.37 |         23.45 |       14,299 |        542 |               131 |
+| concurrent | unpacked |        92.22 |             42.81 |         32.34 |          691 |        290 |               109 |
+| concurrent | packed   |        38.94 |             28.16 |         20.71 |       18,337 |        466 |               139 |
 
-Measured on Node 24.22.3, V8 13.6.233.17-node.63, linux x64, AMD EPYC 9V45 96-Core Processor. Random and concurrent workloads mix insertion, removal and replacement. Concurrent authors edit independent views. Sizes use MessagePack; updates are encoded individually. Load includes decoding and construction. Receive includes decoding and applying one complete edit batch. Preparation, checks, destruction and explicit JS process garbage collection are outside timings.
+Measured on Node 24.16.0, V8 13.6.233.17-node.49, win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz. Random and concurrent workloads mix insertion, removal and replacement. Concurrent authors edit independent views. Sizes use MessagePack; updates are encoded individually. Load includes decoding and construction. Receive includes decoding and applying one complete edit batch. Preparation, checks, destruction and explicit JS process garbage collection are outside timings.
 
 [Full words results](benchmark/.results/words.md).
 
@@ -387,16 +387,16 @@ Invalid input to `apply()` or `merge()` returns `undefined` instead of throwing.
 
 ### Behaviour guaranteed by excessive tests
 
-2026-11-21T14:18:16.567Z · [CI run](https://github.com/sovereignbase/sequencer/actions/runs/44912963007)
+2026-11-22T16:32:56.194Z · local run
 
-The latest verification passed 336 Vitest tests and 144 compatibility checks.
+The latest verification passed 357 Vitest tests and 128 compatibility checks (1 failed).
 The configured 100% coverage threshold is met (100% statements, 100% branches, 100% functions, 100% lines).
 See the [test suites](test/README.md) and
 [automated test report](https://sovereignbase.dev/sequencer/tests/).
 
 ### Works everywhere where JavaScript and Wasm works
 
-2026-11-21T14:18:16.570Z · [CI run](https://github.com/sovereignbase/sequencer/actions/runs/44912963007)
+2026-11-22T16:48:16.230Z · local run
 
 Runtimes covered by the latest compatibility verification:
 
@@ -407,7 +407,7 @@ Runtimes covered by the latest compatibility verification:
 - Edge Runtime: passed
 - Cloudflare Workers through workerd: passed
 - Chromium browser windows: passed
-- Firefox browser windows: passed
+- Firefox browser windows: failed (matching Playwright browser binary unavailable)
 - WebKit browser windows: passed
 
 ### Tested realtime and offline text editing behaviour examples

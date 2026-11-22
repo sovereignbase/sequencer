@@ -8,6 +8,9 @@ template <bool Dictionary = false> class WordsWriter {
   std::vector<std::uint8_t> &bytes;
   ContainmentTable sessions;
   Word session_count{}, previous_session{}, previous_start{}, previous_size{};
+  std::array<Word, 4> previous_record;
+  std::size_t record_size{}, run_begin{};
+  Word repetitions{};
 
 public:
   Word count{};
@@ -25,8 +28,12 @@ public:
   /** Session entropy stays in four little-endian bytes. */
   void session(Word value) {
     if constexpr (Dictionary) {
+      if (!value) {
+        uint(0);
+        return;
+      }
       const auto index = sessions.get(value, 0);
-      uint(index);
+      uint(index ? index + 1 : 1);
       if (index)
         return;
       sessions.set({.session = value}, ++session_count);
@@ -39,6 +46,7 @@ public:
   void append(const Coordinates &c) {
     const auto birth = c.birth();
     const auto zero_anchor = c.anchor_session == 0;
+    const auto zero_point = zero_anchor && c.anchor_diff == 0;
     const auto predicted =
         Dictionary ? c.session == previous_session ? previous_start + previous_size + 1 : 0
         : !birth && c.anchor_session == c.session ? c.anchor_start + c.anchor_diff + 1
@@ -47,36 +55,72 @@ public:
     const auto anchor_delta = c.anchor_start - anchor;
     const auto delta = c.start - predicted;
     const auto size = magnitude(c.diff);
+    const auto inline_anchor = !Dictionary && c.session && c.anchor_session == c.session;
     const auto control =
-        Word(c.session != previous_session) |
-        (Word(!zero_anchor && c.anchor_session != c.session) << 1) | (Word(delta != 0) << 2) |
-        (Word(anchor_delta != 0) << 3) | (Word(c.anchor_diff != (zero_anchor ? 0u : 1u)) << 4) |
-        (Word(size != 1) << 5) | (Word(zero_anchor) << 6) | (Word(c.diff < 0) << 7);
-    byte(std::uint8_t(control));
-    if (control & 1)
-      session(c.session);
-    if (control & 2)
-      session(c.anchor_session);
-    if (control & 8)
-      uint(Dictionary ? (anchor_delta << 1) ^ (0u - (anchor_delta >> 31)) : anchor_delta);
-    if (control & 16)
-      uint(c.anchor_diff);
-    if (control & 4)
-      uint((delta << 1) ^ (0u - (delta >> 31)));
-    if (control & 32)
-      uint(size);
+        inline_anchor
+            ? Word(66) | Word(c.anchor_diff > 1) | (Word(delta != 0) << 2) |
+                  (Word(anchor_delta != 0) << 3) | (Word(c.anchor_diff == 0) << 4) |
+                  (Word(size != 1) << 5) | (Word(c.diff < 0) << 7)
+            : Word(c.session != previous_session) |
+                  (Word((Dictionary ? !zero_point : !zero_anchor) && c.anchor_session != c.session)
+                   << 1) |
+                  (Word(delta != 0) << 2) | (Word(anchor_delta != 0) << 3) |
+                  (Word(Dictionary ? c.anchor_diff == 0 : c.anchor_diff != (zero_anchor ? 0u : 1u))
+                   << 4) |
+                  (Word(size != 1) << 5) |
+                  (Word(Dictionary ? c.anchor_diff > 1 || zero_point : zero_anchor) << 6) |
+                  (Word(c.diff < 0) << 7);
+    const auto begin = bytes.size();
+    bool repeated = false;
+    if constexpr (Dictionary) {
+      // Session references must be read explicitly so dictionary admission stays ordered.
+      if (control & 3) {
+        record_size = 0;
+        repetitions = 0;
+      } else {
+        const std::array<Word, 4> record{control, anchor_delta, c.anchor_diff, delta};
+        repeated = record_size && size == previous_size && record == previous_record;
+        if (repeated) {
+          if (!repetitions)
+            run_begin = begin;
+          bytes.resize(run_begin);
+          ++repetitions;
+          if (record_size == 1 && repetitions == 1)
+            byte(std::uint8_t(control));
+          else {
+            byte(255);
+            uint(repetitions);
+          }
+        } else {
+          previous_record = record;
+          repetitions = 0;
+        }
+      }
+    }
+    if (!repeated) {
+      byte(std::uint8_t(control));
+      if (inline_anchor || (control & 1))
+        session(c.session);
+      if (!inline_anchor && (control & 2))
+        session(c.anchor_session);
+      if (control & 8)
+        uint(Dictionary ? (anchor_delta << 1) ^ (0u - (anchor_delta >> 31)) : anchor_delta);
+      if (Dictionary      ? (control & 64) && !(control & 16)
+          : inline_anchor ? control & 1
+                          : control & 16)
+        uint(c.anchor_diff);
+      if (control & 4)
+        uint((delta << 1) ^ (0u - (delta >> 31)));
+      if (control & 32)
+        uint(size);
+      if constexpr (Dictionary)
+        record_size = control & 3 ? 0 : bytes.size() - begin;
+    }
     previous_session = c.session;
     previous_start = c.start;
     previous_size = size;
-    ++count;
-  }
-  /** Standalone ACKs end at their byte boundary; only snapshots share Session references. */
-  void acknowledgement(std::span<const Word> a) {
-    uint(a[0]);
-    for (std::size_t i = 1; i + 1 < a.size(); i += 2) {
-      session(a[i]);
-      uint(a[i + 1]);
-    }
+    if constexpr (Dictionary)
+      ++count;
   }
   /** A reversed final varuint supplies record count without moving the encoded prefix. */
   void finish() {

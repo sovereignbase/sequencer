@@ -104,7 +104,7 @@ template <bool Binary> void Projection::sequence_into(Sequence &output) const {
   const auto frontiers = frontier.frontiers();
   if constexpr (Binary) {
     writer.byte(
-        std::uint8_t(1 | (tuple ? 128 : 0) | (tuple && tuple->capacity != UINT32_MAX ? 64 : 0)));
+        std::uint8_t(3 | (tuple ? 128 : 0) | (tuple && tuple->capacity != UINT32_MAX ? 64 : 0)));
     if (tuple) {
       if (tuple->capacity != UINT32_MAX)
         writer.uint(tuple->capacity);

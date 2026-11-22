@@ -1,60 +1,74 @@
 # Byte words
 
-Byte metadata encodes the same canonical coordinates and ACKs as numeric words.
-Footage stays outside the byte stream. Numeric output remains the default.
+Numeric output keeps its existing six-word coordinates and JSON transport.
+Opt-in byte output keeps Footage outside Wasm and accepts previously written
+version-one snapshots and standalone Gossip.
 
-Unsigned integers use little-endian base-128 groups, at most five bytes per
-uint32. Session literals use four little-endian bytes rather than five-byte
-varints for random IDs. Standalone Gossip entries have no shared encoding state.
+## Snapshot coordinates
 
-Snapshots share a Session dictionary: reference zero introduces a four-byte
-literal; references `1..count` select earlier literals. ACKs and coordinates use
-the same dictionary. It exists only while writing or reading that snapshot.
+Version three retains the Session dictionary, preceding-record start predictions,
+zigzag start deltas and reversed insertion-count footer. Session token zero means
+Session zero; token one introduces a four-byte little-endian literal; tokens
+`2..count + 1` select previous literals. ACKs and coordinates share that dictionary.
+Version one retains its original dictionary and control-bit meanings.
 
-## Coordinates
+The coordinate control byte uses the following version-three fields:
 
-One control byte precedes optional fields. The preceding insertion Session is
-initially zero. Anchor coordinates default to the current Session, start zero
-and diff one. A zero anchor Session instead defaults its start and diff to zero.
+| Bit | Meaning                                            |
+| --- | -------------------------------------------------- |
+| 0   | Insertion Session differs from the previous record |
+| 1   | Explicit anchor Session                            |
+| 2   | Explicit zigzag insertion-start delta              |
+| 3   | Explicit zigzag anchor-start delta                 |
+| 4   | Anchor diff is zero                                |
+| 5   | Insertion magnitude differs from one               |
+| 6   | Explicit anchor diff greater than one              |
+| 7   | Negative insertion diff                            |
 
-| Bit | Explicit field or meaning                            |
-| --- | ---------------------------------------------------- |
-| 0   | Insertion Session differs from the preceding Session |
-| 1   | Anchor Session differs from the insertion Session    |
-| 2   | Zigzag-encoded insertion-start delta                 |
-| 3   | Explicit anchor start or snapshot anchor-start delta |
-| 4   | Anchor diff differs from one                         |
-| 5   | Insertion magnitude differs from one                 |
-| 6   | Anchor Session is zero; bit 1 must be clear          |
-| 7   | Negative insertion diff                              |
+Bits 4 and 6 together encode anchor Session zero and anchor diff zero, with no
+Session token. Bit 1 must then be clear. Otherwise the omitted anchor Session is
+the current insertion Session, and omitted anchor diff is one. Field order is
+Session, anchor Session, anchor-start delta, anchor diff, start delta, magnitude.
+All predictions use modular uint32 arithmetic; zero and `INT32_MIN` effects are
+invalid. Tuple mode and capacity remain in the snapshot header's upper bits.
 
-Fields follow this order: insertion Session, anchor Session, anchor start,
-anchor diff, insertion-start delta and magnitude. Same-Session anchors predict
-`start = anchorStart + anchorDiff + 1`; other anchors predict zero. Deltas and
-predictions use modular uint32 arithmetic. Magnitude is unsigned; the control
-byte supplies its sign. Zero and `INT32_MIN` diffs remain invalid.
+Control `0xff` followed by a positive varuint repeats the preceding encoded
+coordinate fields. Each repetition advances the normal predictions, reconstructing
+a distinct canonical Insertion. Session references are never repeated this way,
+so dictionary admission remains explicit. The footer counts expanded records;
+a run cannot exceed the remaining declared count. A single repeated one-byte
+record stays literal to avoid expanding short runs.
 
-Snapshots predict insertion start from the preceding record's start plus its
-magnitude plus one, or zero after a Session change. An anchor in that preceding
-Session predicts its start from the preceding record; other anchors predict
-zero. Explicit snapshot starts use zigzag deltas. Predictions change only the
-encoding; every original uint32 coordinate is reconstructed exactly.
+## Standalone coordinates
 
-## ACKs and snapshots
+Standalone records retain raw four-byte Session IDs and the version-one control
+layout. When the anchor Session equals the insertion Session, the otherwise
+invalid flag combination `0x42` identifies an inline anchor. Its insertion Session
+is explicit, its anchor Session is implied, bit 0 supplies an anchor diff greater
+than one, and bit 4 supplies zero. With neither bit set the anchor diff is one.
+Bits 0 and 4 cannot both be set. Start, anchor-start, magnitude and sign flags
+keep their existing meanings. No cross-packet dictionary or retained decoding
+state is needed.
 
-A standalone ACK contains its Actor varuint, then Session/end pairs until its
-byte boundary. A snapshot prefixes each ACK with its logical word count and
-uses dictionary Session references. Actor membership is retained even when
-acknowledged Session pairs are omitted by compaction.
+## Removal packets and ACKs
 
-Snapshot header low six bits contain version one. Bit 7 marks tuple mode and
-bit 6 marks fixed tuple capacity. Fixed tuples store capacity; dynamic tuples
-store current length. The following varuint counts ACKs. ACKs precede retained
-coordinates in Structural Order. The final reversed varuint contains insertion
-count, allowing the reader to reserve exact record capacity without moving or
-repacking the encoded prefix. An empty ordinary Sequence has zero metadata bytes.
+A mask immediately followed by its matching author ACK can carry that ACK in
+its metadata: `0xff`, standalone coordinates, then the Actor varuint. The Session
+and endpoint are reconstructed from the mask. The effect must be negative.
 
-Readers check field bounds, uint32 overflow, dictionary references, record and
-ACK counts, tuple configuration and trailing bytes before accepting a snapshot.
-Gossip retains valid-prefix application on rejection. JS copies input/output
-bytes; coordinate packing, validation and reconstruction execute in Wasm.
+Several consecutive masks from one removal use `0xff, 1`, the record count and
+Actor, followed by version-three coordinates sharing one Session dictionary.
+Their matching author frontier follows the last mask's Session and endpoint.
+Canonical masks are applied in order; pending anchors and valid-prefix rejection
+retain their existing behavior. Footage is never included in a removal packet.
+
+A standalone ACK contains its Actor varuint and raw Session/end pairs. Consecutive
+ACKs for the same Actor can share a packet. Consecutive nonzero claims for one
+Session retain the last report, including a lower one. Zero reports remain in
+order because their handling depends on Actor/Session identity. Claims are never
+replaced with their maximum. Actor-only ACKs still establish membership.
+
+Readers bound fields, uint32 values, references, record counts, repetitions,
+tuple configuration and trailing bytes. Byte output requires a receiver supporting
+these packet forms; older stored version-one data remains readable. JavaScript
+copies buffers and binds Footage; coordinate packing and replay execute in Wasm.

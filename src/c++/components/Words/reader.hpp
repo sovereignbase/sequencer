@@ -8,10 +8,13 @@ template <bool Dictionary = false> class WordsReader {
   std::span<const std::uint8_t> bytes;
   std::vector<Word> sessions;
   Word previous_session{}, previous_start{}, previous_size{};
+  std::size_t previous_record{};
+  Word repetitions{};
 
 public:
   std::size_t position{};
   bool valid = true;
+  bool compact{};
   explicit WordsReader(std::span<const std::uint8_t> input) : bytes(input) {}
   std::size_t remaining() const { return bytes.size() - position; }
   std::uint8_t byte() {
@@ -38,7 +41,12 @@ public:
   }
   Word session() {
     if constexpr (Dictionary) {
-      const auto index = uint();
+      auto index = uint();
+      if (compact) {
+        if (!index)
+          return 0;
+        --index;
+      }
       if (index) {
         if (index > sessions.size()) {
           valid = false;
@@ -58,18 +66,61 @@ public:
       sessions.push_back(value);
     return value;
   }
-  Coordinates coordinates() {
-    const auto control = byte();
+  Coordinates coordinates(Word remaining_records = 0) {
+    const auto begin = position;
+    std::size_t after_run = 0;
+    std::uint8_t control;
+    if constexpr (Dictionary) {
+      if (repetitions) {
+        after_run = position;
+        position = previous_record;
+      }
+    }
+    control = byte();
+    if constexpr (Dictionary) {
+      if (compact && !repetitions && control == 255) {
+        repetitions = uint();
+        if (!previous_record || !repetitions || repetitions > remaining_records) {
+          valid = false;
+          return {};
+        }
+        after_run = position;
+        position = previous_record;
+        control = byte();
+        if (control & 3) {
+          valid = false;
+          return {};
+        }
+      }
+      if (!repetitions)
+        previous_record = begin;
+    }
     Coordinates c;
-    c.session = control & 1 ? session() : previous_session;
-    if ((control & 64) && (control & 2))
+    const auto compact_fields = Dictionary && compact;
+    const auto inline_anchor = !Dictionary && (control & 66) == 66;
+    const auto zero_point = compact_fields && (control & 80) == 80;
+    c.session = inline_anchor || (control & 1) ? session() : previous_session;
+    if (inline_anchor    ? (control & 17) == 17
+        : compact_fields ? zero_point && (control & 2)
+                         : (control & 64) && (control & 2))
       valid = false;
-    c.anchor_session = control & 64 ? 0 : control & 2 ? session() : c.session;
+    c.anchor_session = inline_anchor                                       ? c.session
+                       : zero_point || (!compact_fields && (control & 64)) ? 0
+                       : control & 2                                       ? session()
+                                                                           : c.session;
     const auto anchor = Dictionary && c.anchor_session == previous_session ? previous_start : 0;
     const auto anchor_delta = control & 8 ? uint() : 0;
     c.anchor_start =
         anchor + (Dictionary ? (anchor_delta >> 1) ^ (0u - (anchor_delta & 1)) : anchor_delta);
-    c.anchor_diff = control & 16 ? uint() : control & 64 ? 0 : 1;
+    c.anchor_diff = inline_anchor    ? control & 1    ? uint()
+                                       : control & 16 ? 0
+                                                      : 1
+                    : compact_fields ? control & 16   ? 0
+                                       : control & 64 ? uint()
+                                                      : 1
+                    : control & 16   ? uint()
+                    : control & 64   ? 0
+                                     : 1;
     const auto predicted =
         Dictionary ? c.session == previous_session ? previous_start + previous_size + 1 : 0
         : !c.birth() && c.anchor_session == c.session ? c.anchor_start + c.anchor_diff + 1
@@ -83,6 +134,12 @@ public:
     previous_session = c.session;
     previous_start = c.start;
     previous_size = size;
+    if constexpr (Dictionary) {
+      if (repetitions) {
+        --repetitions;
+        position = after_run;
+      }
+    }
     return c;
   }
   /** Reads the reversed footer and excludes it from subsequent field bounds. */

@@ -67,7 +67,8 @@ struct Output {
     // Byte output tags: 3 Insertion, 4 ACK, 5 tuple Insertion with an offset prefix.
     bytes.clear();
     gossip.clear();
-    for (const auto &e : source) {
+    for (std::size_t i = 0; i < source.size(); ++i) {
+      const auto &e = source[i];
       // Tuple Footage offsets are ABI fields, separate from the encoded coordinates.
       while (bytes.size() & 3)
         bytes.push_back(0);
@@ -80,10 +81,55 @@ struct Output {
         begin += sizeof(offset);
       }
       WordsWriter<> writer(bytes);
-      if (acknowledgement)
-        writer.acknowledgement({e.frontier.data(), e.acknowledgement_count});
-      else
-        writer.append(e.insertion.coordinates);
+      if (acknowledgement) {
+        const auto actor = e.frontier[0];
+        writer.uint(actor);
+        for (;;) {
+          if (source[i].acknowledgement_count == 3) {
+            const auto session = source[i].frontier[1];
+            auto end = source[i].frontier[2];
+            // Later claims replace earlier claims; a lower report must remain lower.
+            while (end && i + 1 < source.size() && source[i + 1].acknowledgement_count == 3 &&
+                   source[i + 1].frontier[0] == actor && source[i + 1].frontier[1] == session &&
+                   source[i + 1].frontier[2])
+              end = source[++i].frontier[2];
+            writer.session(session);
+            writer.uint(end);
+          }
+          if (i + 1 == source.size() || !source[i + 1].acknowledgement_count ||
+              source[i + 1].frontier[0] != actor)
+            break;
+          ++i;
+        }
+      } else {
+        auto end = i;
+        while (end < source.size() && !source[end].acknowledgement_count &&
+               source[end].insertion.coordinates.diff < 0)
+          ++end;
+        if (end - i > 1 && end < source.size() && source[end].acknowledgement_count == 3 &&
+            source[end].frontier[1] == source[end - 1].insertion.coordinates.session &&
+            source[end].frontier[2] == source[end - 1].insertion.coordinates.start -
+                                           source[end - 1].insertion.coordinates.diff) {
+          writer.byte(255);
+          writer.byte(1);
+          writer.uint(Word(end - i));
+          writer.uint(source[end].frontier[0]);
+          WordsWriter<true> batch(bytes);
+          for (; i < end; ++i)
+            batch.append(source[i].insertion.coordinates);
+        } else {
+          const auto &c = e.insertion.coordinates;
+          const auto combined = c.diff < 0 && i + 1 < source.size() &&
+                                source[i + 1].acknowledgement_count == 3 &&
+                                source[i + 1].frontier[1] == c.session &&
+                                source[i + 1].frontier[2] == c.start - c.diff;
+          if (combined)
+            writer.byte(255);
+          writer.append(e.insertion.coordinates);
+          if (combined)
+            writer.uint(source[++i].frontier[0]);
+        }
+      }
       gossip.push_back({acknowledgement ? 4u
                         : tuple         ? 5u
                                         : 3u,
@@ -135,6 +181,42 @@ struct Reader {
   std::pair<Insertion, std::span<const Word>> invalid() {
     valid = false;
     return {};
+  }
+  /** Applies one byte packet containing only masks and their author's final frontier. */
+  void removal_batch(Projection &projection, Result &result) {
+    const auto size = input[position + 1];
+    const auto words = (std::uint64_t(size) + 3) / 4;
+    if (words > input.size() - position - 3) {
+      valid = false;
+      return;
+    }
+    const auto *bytes = reinterpret_cast<const std::uint8_t *>(input.data() + position + 3);
+    position += 3 + std::size_t(words);
+    WordsReader<true> reader({bytes, size});
+    reader.position = 2;
+    reader.compact = true;
+    const auto count = reader.uint(), actor = reader.uint();
+    if (!reader.valid || !count || count > std::vector<Insertion>{}.max_size()) {
+      valid = false;
+      return;
+    }
+    Coordinates last;
+    for (Word i = 0; i < count; ++i) {
+      const auto c = reader.coordinates(count - i);
+      if (!reader.valid || c.diff >= 0 ||
+          (projection.tuple && !projection.tuple->valid(c, projection.containment))) {
+        valid = false;
+        return;
+      }
+      register_sessions(c);
+      projection.apply({c, 0}, result);
+      last = c;
+    }
+    valid = reader.valid && !reader.remaining();
+    if (valid) {
+      const std::array frontier{actor, last.session, last.start - last.diff};
+      projection.frontier.observe(frontier);
+    }
   }
   Word word() {
     if (position >= input.size()) {
@@ -192,8 +274,8 @@ struct Reader {
       const auto words = (std::uint64_t(count) + 3) / 4;
       if (words > input.size() - position)
         return invalid();
-      WordsReader<> reader(
-          {reinterpret_cast<const std::uint8_t *>(input.data() + position), count});
+      const auto *bytes = reinterpret_cast<const std::uint8_t *>(input.data() + position);
+      WordsReader<> reader({bytes, count});
       position += std::size_t(words);
       if (tag == 6) {
         if (!count)
@@ -208,14 +290,23 @@ struct Reader {
           return invalid();
         return {{}, decoded_acknowledgement};
       }
+      const auto combined = count && bytes[0] == 255;
+      reader.position = combined;
       const auto c = reader.coordinates();
+      if (combined) {
+        if (c.diff >= 0)
+          return invalid();
+        const auto actor = reader.uint();
+        decoded_acknowledgement = {actor, c.session, c.start - c.diff};
+      }
       if (!reader.valid || reader.remaining())
         return invalid();
       register_sessions(c);
       Insertion insertion{c, content};
       insertion.footage_state = FootageState::Retained;
       insertion.string_content = tag == 5;
-      return {insertion, {}};
+      return {insertion,
+              combined ? std::span<const Word>(decoded_acknowledgement) : std::span<const Word>{}};
     }
     if (count > input.size() - position)
       return invalid();
@@ -269,7 +360,8 @@ struct Reader {
     const auto records = reader.records();
     const auto header = reader.byte();
     tuple = header & 128;
-    if ((header & 63) != 1 || (!tuple && (header & 64))) {
+    reader.compact = (header & 63) == 3;
+    if (((header & 63) != 1 && !reader.compact) || (!tuple && (header & 64))) {
       valid = false;
       return {};
     }
@@ -298,14 +390,15 @@ struct Reader {
         a.push_back(reader.uint());
       }
     }
-    if (!reader.valid || records > reader.remaining()) {
+    if (!reader.valid || (!reader.compact && records > reader.remaining()) ||
+        records > insertions.max_size()) {
       valid = false;
       return {};
     }
     insertions.reserve(records);
     Word offset = 0;
     for (Word i = 0; i < records; ++i) {
-      const auto c = reader.coordinates();
+      const auto c = reader.coordinates(records - i);
       valid = reader.valid;
       if (!append_coordinates(c, content, offset, insertions))
         return {};
@@ -538,17 +631,26 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
       out.result.gossip.clear();
       kind = 4;
       for (Word i = 0; i < n; ++i) {
+        if (input.size() - r.position >= 4 && (input[r.position] == 4 || input[r.position] == 5) &&
+            input[r.position + 1] >= 2 && (input[r.position + 3] & 65535) == 511) {
+          r.removal_batch(p, out.result);
+          if (!r.valid) {
+            kind = 0;
+            break;
+          }
+          continue;
+        }
         const auto [insertion, acknowledgement] = r.entry();
-        if (!r.valid || (p.tuple && acknowledgement.empty() &&
+        if (!r.valid || (p.tuple && insertion.coordinates.diff &&
                          !p.tuple->valid(insertion.coordinates, p.containment))) {
           kind = 0;
           break;
         }
         // JS can discard bindings allocated for entries after the rejected prefix.
         out.header[11] = std::max(out.header[11], insertion.content);
-        if (acknowledgement.empty())
+        if (insertion.coordinates.diff)
           p.apply(insertion, out.result);
-        else
+        if (!acknowledgement.empty())
           p.frontier.observe(acknowledgement);
       }
       if (!r.valid)

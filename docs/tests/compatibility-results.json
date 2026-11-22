@@ -1,6 +1,6 @@
 {
-  "passed": 128,
-  "failed": 1,
+  "passed": 144,
+  "failed": 0,
   "skipped": 0,
   "runtimes": {
     "node.esm": {
@@ -25,12 +25,12 @@
       "status": "passed"
     },
     "firefox": {
-      "status": "failed",
-      "reason": "matching Playwright browser binary unavailable"
+      "status": "passed"
     },
     "webkit": {
       "status": "passed"
     }
   },
-  "generatedAt": "2026-11-22T16:48:16.230Z"
+  "generatedAt": "2026-11-22T17:20:11.943Z",
+  "run": "https://github.com/sovereignbase/sequencer/actions/runs/45048530438"
 }

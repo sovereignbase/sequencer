@@ -24,7 +24,7 @@
     "updated": 0,
     "didUpdate": false
   },
-  "startTime": 1795524320493,
+  "startTime": 1795524848930,
   "success": true,
   "testResults": [
     {
@@ -36,7 +36,7 @@
           "fullName": "generative convergence stress converges or reports a bounded replayable native hang",
           "status": "passed",
           "title": "converges or reports a bounded replayable native hang",
-          "duration": 2274.428624,
+          "duration": 2075.875554,
           "failureMessages": [],
           "location": {
             "line": 116,
@@ -47,8 +47,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524326075,
-      "endTime": 1795524328349.4287,
+      "startTime": 1795524853057,
+      "endTime": 1795524855132.8755,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/stress/convergence.stress.test.ts"
@@ -60,7 +60,7 @@
           "fullName": "converges after opposite Gossip delivery orders in a browser",
           "status": "passed",
           "title": "converges after opposite Gossip delivery orders in a browser",
-          "duration": 124.01371600000004,
+          "duration": 182.19027,
           "failureMessages": [],
           "location": {
             "line": 11,
@@ -71,8 +71,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524328845,
-      "endTime": 1795524328969.0137,
+      "startTime": 1795524855633,
+      "endTime": 1795524855815.1902,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/integration/fanout_browser/test.ts"
@@ -84,7 +84,7 @@
           "fullName": "peer gossip resolves B child at C after delayed A parent",
           "status": "passed",
           "title": "peer gossip resolves B child at C after delayed A parent",
-          "duration": 283.4256540000001,
+          "duration": 332.532774,
           "failureMessages": [],
           "location": {
             "line": 14,
@@ -99,7 +99,7 @@
           "fullName": "peer browsers converge with independent reordering and editor timers",
           "status": "passed",
           "title": "peer browsers converge with independent reordering and editor timers",
-          "duration": 723.5232070000002,
+          "duration": 689.9832980000001,
           "failureMessages": [],
           "location": {
             "line": 109,
@@ -110,8 +110,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524322783,
-      "endTime": 1795524323790.5232,
+      "startTime": 1795524849872,
+      "endTime": 1795524850894.9834,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/integration/fanout_peer_to_peer/test.ts"
@@ -123,7 +123,7 @@
           "fullName": "converges through stateless WebSocket fanout with independent editor timers",
           "status": "passed",
           "title": "converges through stateless WebSocket fanout with independent editor timers",
-          "duration": 559.537129,
+          "duration": 597.6404729999999,
           "failureMessages": [],
           "location": {
             "line": 24,
@@ -134,8 +134,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524325247,
-      "endTime": 1795524325806.537,
+      "startTime": 1795524852238,
+      "endTime": 1795524852835.6404,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/integration/fanout_websocket/test.ts"
@@ -147,7 +147,7 @@
           "fullName": "constructor names an unexpected platform failure and preserves its cause",
           "status": "passed",
           "title": "constructor names an unexpected platform failure and preserves its cause",
-          "duration": 8.631011999999998,
+          "duration": 7.611212999999992,
           "failureMessages": [],
           "location": {
             "line": 31,
@@ -162,7 +162,7 @@
           "fullName": "apply names an unexpected platform failure and preserves its cause",
           "status": "passed",
           "title": "apply names an unexpected platform failure and preserves its cause",
-          "duration": 1.0303289999999947,
+          "duration": 0.9112700000000018,
           "failureMessages": [],
           "location": {
             "line": 31,
@@ -177,7 +177,7 @@
           "fullName": "batch names an unexpected platform failure and preserves its cause",
           "status": "passed",
           "title": "batch names an unexpected platform failure and preserves its cause",
-          "duration": 1.4378360000000043,
+          "duration": 0.7985400000000027,
           "failureMessages": [],
           "location": {
             "line": 31,
@@ -192,7 +192,7 @@
           "fullName": "insert names an unexpected platform failure and preserves its cause",
           "status": "passed",
           "title": "insert names an unexpected platform failure and preserves its cause",
-          "duration": 0.9732860000000016,
+          "duration": 0.40109300000000303,
           "failureMessages": [],
           "location": {
             "line": 31,
@@ -207,7 +207,7 @@
           "fullName": "length names an unexpected platform failure and preserves its cause",
           "status": "passed",
           "title": "length names an unexpected platform failure and preserves its cause",
-          "duration": 0.9938549999999964,
+          "duration": 0.5586199999999906,
           "failureMessages": [],
           "location": {
             "line": 31,
@@ -222,7 +222,7 @@
           "fullName": "merge names an unexpected platform failure and preserves its cause",
           "status": "passed",
           "title": "merge names an unexpected platform failure and preserves its cause",
-          "duration": 0.7283469999999852,
+          "duration": 0.7316399999999987,
           "failureMessages": [],
           "location": {
             "line": 31,
@@ -237,7 +237,7 @@
           "fullName": "remove names an unexpected platform failure and preserves its cause",
           "status": "passed",
           "title": "remove names an unexpected platform failure and preserves its cause",
-          "duration": 1.7955519999999865,
+          "duration": 0.5144239999999911,
           "failureMessages": [],
           "location": {
             "line": 31,
@@ -252,7 +252,7 @@
           "fullName": "replace names an unexpected platform failure and preserves its cause",
           "status": "passed",
           "title": "replace names an unexpected platform failure and preserves its cause",
-          "duration": 0.5409559999999942,
+          "duration": 0.5217750000000194,
           "failureMessages": [],
           "location": {
             "line": 31,
@@ -267,7 +267,7 @@
           "fullName": "retire names an unexpected platform failure and preserves its cause",
           "status": "passed",
           "title": "retire names an unexpected platform failure and preserves its cause",
-          "duration": 0.49795199999999795,
+          "duration": 0.43049699999997415,
           "failureMessages": [],
           "location": {
             "line": 31,
@@ -282,7 +282,7 @@
           "fullName": "sequence names an unexpected platform failure and preserves its cause",
           "status": "passed",
           "title": "sequence names an unexpected platform failure and preserves its cause",
-          "duration": 0.897389000000004,
+          "duration": 0.8581100000000106,
           "failureMessages": [],
           "location": {
             "line": 31,
@@ -297,7 +297,7 @@
           "fullName": "value names an unexpected platform failure and preserves its cause",
           "status": "passed",
           "title": "value names an unexpected platform failure and preserves its cause",
-          "duration": 2.798950999999988,
+          "duration": 3.2618089999999995,
           "failureMessages": [],
           "location": {
             "line": 31,
@@ -312,7 +312,7 @@
           "fullName": "values names an unexpected platform failure and preserves its cause",
           "status": "passed",
           "title": "values names an unexpected platform failure and preserves its cause",
-          "duration": 0.40611200000000736,
+          "duration": 0.4088250000000073,
           "failureMessages": [],
           "location": {
             "line": 31,
@@ -327,7 +327,7 @@
           "fullName": "destroy names an unexpected platform failure and preserves its cause",
           "status": "passed",
           "title": "destroy names an unexpected platform failure and preserves its cause",
-          "duration": 0.30357100000000514,
+          "duration": 0.2530399999999986,
           "failureMessages": [],
           "location": {
             "line": 31,
@@ -342,7 +342,7 @@
           "fullName": "constructor passes an existing SequencerError through unchanged",
           "status": "passed",
           "title": "constructor passes an existing SequencerError through unchanged",
-          "duration": 0.29681999999999675,
+          "duration": 0.24762199999997847,
           "failureMessages": [],
           "location": {
             "line": 63,
@@ -357,7 +357,7 @@
           "fullName": "apply passes an existing SequencerError through unchanged",
           "status": "passed",
           "title": "apply passes an existing SequencerError through unchanged",
-          "duration": 0.14570699999998737,
+          "duration": 0.12780200000000264,
           "failureMessages": [],
           "location": {
             "line": 63,
@@ -372,7 +372,7 @@
           "fullName": "batch passes an existing SequencerError through unchanged",
           "status": "passed",
           "title": "batch passes an existing SequencerError through unchanged",
-          "duration": 0.12312599999998497,
+          "duration": 0.10568899999998393,
           "failureMessages": [],
           "location": {
             "line": 63,
@@ -387,7 +387,7 @@
           "fullName": "insert passes an existing SequencerError through unchanged",
           "status": "passed",
           "title": "insert passes an existing SequencerError through unchanged",
-          "duration": 0.10502300000001696,
+          "duration": 0.09756600000000049,
           "failureMessages": [],
           "location": {
             "line": 63,
@@ -402,7 +402,7 @@
           "fullName": "length passes an existing SequencerError through unchanged",
           "status": "passed",
           "title": "length passes an existing SequencerError through unchanged",
-          "duration": 0.079039999999992,
+          "duration": 0.10458800000000679,
           "failureMessages": [],
           "location": {
             "line": 63,
@@ -417,7 +417,7 @@
           "fullName": "merge passes an existing SequencerError through unchanged",
           "status": "passed",
           "title": "merge passes an existing SequencerError through unchanged",
-          "duration": 0.09570899999999938,
+          "duration": 0.08367599999999698,
           "failureMessages": [],
           "location": {
             "line": 63,
@@ -432,7 +432,7 @@
           "fullName": "remove passes an existing SequencerError through unchanged",
           "status": "passed",
           "title": "remove passes an existing SequencerError through unchanged",
-          "duration": 0.08975900000001502,
+          "duration": 0.09648500000000126,
           "failureMessages": [],
           "location": {
             "line": 63,
@@ -447,7 +447,7 @@
           "fullName": "replace passes an existing SequencerError through unchanged",
           "status": "passed",
           "title": "replace passes an existing SequencerError through unchanged",
-          "duration": 0.07959900000000175,
+          "duration": 0.06631000000001563,
           "failureMessages": [],
           "location": {
             "line": 63,
@@ -462,7 +462,7 @@
           "fullName": "retire passes an existing SequencerError through unchanged",
           "status": "passed",
           "title": "retire passes an existing SequencerError through unchanged",
-          "duration": 0.08601999999999066,
+          "duration": 0.07459199999999555,
           "failureMessages": [],
           "location": {
             "line": 63,
@@ -477,7 +477,7 @@
           "fullName": "sequence passes an existing SequencerError through unchanged",
           "status": "passed",
           "title": "sequence passes an existing SequencerError through unchanged",
-          "duration": 0.09697399999998879,
+          "duration": 0.10094200000000342,
           "failureMessages": [],
           "location": {
             "line": 63,
@@ -492,7 +492,7 @@
           "fullName": "value passes an existing SequencerError through unchanged",
           "status": "passed",
           "title": "value passes an existing SequencerError through unchanged",
-          "duration": 0.07897099999999568,
+          "duration": 0.07042599999999766,
           "failureMessages": [],
           "location": {
             "line": 63,
@@ -507,7 +507,7 @@
           "fullName": "values passes an existing SequencerError through unchanged",
           "status": "passed",
           "title": "values passes an existing SequencerError through unchanged",
-          "duration": 0.07190600000001268,
+          "duration": 0.05689600000002315,
           "failureMessages": [],
           "location": {
             "line": 63,
@@ -522,7 +522,7 @@
           "fullName": "destroy passes an existing SequencerError through unchanged",
           "status": "passed",
           "title": "destroy passes an existing SequencerError through unchanged",
-          "duration": 0.07019399999998654,
+          "duration": 0.05730600000001118,
           "failureMessages": [],
           "location": {
             "line": 63,
@@ -537,7 +537,7 @@
           "fullName": "preserves the thrown value undefined without coercion",
           "status": "passed",
           "title": "preserves the thrown value undefined without coercion",
-          "duration": 1.1079000000000008,
+          "duration": 0.8854910000000018,
           "failureMessages": [],
           "location": {
             "line": 93,
@@ -552,7 +552,7 @@
           "fullName": "preserves the thrown value null without coercion",
           "status": "passed",
           "title": "preserves the thrown value null without coercion",
-          "duration": 0.1897040000000061,
+          "duration": 0.5316589999999906,
           "failureMessages": [],
           "location": {
             "line": 93,
@@ -567,7 +567,7 @@
           "fullName": "preserves the thrown value failure without coercion",
           "status": "passed",
           "title": "preserves the thrown value failure without coercion",
-          "duration": 0.346287000000018,
+          "duration": 0.41710699999998724,
           "failureMessages": [],
           "location": {
             "line": 93,
@@ -582,7 +582,7 @@
           "fullName": "reports a native range-resolution failure",
           "status": "passed",
           "title": "reports a native range-resolution failure",
-          "duration": 0.4778210000000058,
+          "duration": 0.6371980000000121,
           "failureMessages": [],
           "location": {
             "line": 119,
@@ -597,7 +597,7 @@
           "fullName": "retries failed snapshot copying and preserves the exported Footage during replay",
           "status": "passed",
           "title": "retries failed snapshot copying and preserves the exported Footage during replay",
-          "duration": 2.142226000000022,
+          "duration": 2.611647000000005,
           "failureMessages": [],
           "location": {
             "line": 136,
@@ -612,7 +612,7 @@
           "fullName": "identifies a JavaScript input-access failure without changing the Projection",
           "status": "passed",
           "title": "identifies a JavaScript input-access failure without changing the Projection",
-          "duration": 0.30611999999999284,
+          "duration": 0.4387700000000052,
           "failureMessages": [],
           "location": {
             "line": 160,
@@ -623,8 +623,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524324534,
-      "endTime": 1795524324561.3062,
+      "startTime": 1795524851645,
+      "endTime": 1795524851669.6116,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/integration/runtime_errors/test.ts"
@@ -638,7 +638,7 @@
           "fullName": "runtime lifetime keeps Footage independent across interleaved sequence and tuple edits",
           "status": "passed",
           "title": "keeps Footage independent across interleaved sequence and tuple edits",
-          "duration": 9.300463000000008,
+          "duration": 11.166899,
           "failureMessages": [],
           "location": {
             "line": 37,
@@ -655,7 +655,7 @@
           "fullName": "runtime lifetime releases bindings after missing native handle",
           "status": "passed",
           "title": "releases bindings after missing native handle",
-          "duration": 1.692953999999986,
+          "duration": 2.5221819999999866,
           "failureMessages": [],
           "location": {
             "line": 82,
@@ -672,7 +672,7 @@
           "fullName": "runtime lifetime releases bindings after rejected native initialization",
           "status": "passed",
           "title": "releases bindings after rejected native initialization",
-          "duration": 0.31565999999997985,
+          "duration": 0.533692000000002,
           "failureMessages": [],
           "location": {
             "line": 82,
@@ -689,7 +689,7 @@
           "fullName": "runtime lifetime identifies a failed operation without changing the live Projection",
           "status": "passed",
           "title": "identifies a failed operation without changing the live Projection",
-          "duration": 0.9611759999999947,
+          "duration": 2.204864999999984,
           "failureMessages": [],
           "location": {
             "line": 117,
@@ -706,7 +706,7 @@
           "fullName": "runtime lifetime releases collected owners once and reuses their handles without shared history",
           "status": "passed",
           "title": "releases collected owners once and reuses their handles without shared history",
-          "duration": 0.7066639999999893,
+          "duration": 1.1105699999999956,
           "failureMessages": [],
           "location": {
             "line": 149,
@@ -717,8 +717,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524324095,
-      "endTime": 1795524324108.7065,
+      "startTime": 1795524851194,
+      "endTime": 1795524851212.1106,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/integration/runtime_lifetime/test.ts"
@@ -732,7 +732,7 @@
           "fullName": "runtime memory counts shared string Footage once without allocating character slots",
           "status": "passed",
           "title": "counts shared string Footage once without allocating character slots",
-          "duration": 10.448457000000019,
+          "duration": 6.339212000000003,
           "failureMessages": [],
           "location": {
             "line": 9,
@@ -749,7 +749,7 @@
           "fullName": "runtime memory counts shared Footage once across hydrated roots and releases destroyed bindings",
           "status": "passed",
           "title": "counts shared Footage once across hydrated roots and releases destroyed bindings",
-          "duration": 1.7699040000000252,
+          "duration": 3.689638000000002,
           "failureMessages": [],
           "location": {
             "line": 38,
@@ -766,7 +766,7 @@
           "fullName": "runtime memory keeps application object contents outside the slot estimate",
           "status": "passed",
           "title": "keeps application object contents outside the slot estimate",
-          "duration": 0.7325799999999845,
+          "duration": 2.2761219999999867,
           "failureMessages": [],
           "location": {
             "line": 71,
@@ -783,7 +783,7 @@
           "fullName": "runtime memory releases first-write Footage while another instance remains empty",
           "status": "passed",
           "title": "releases first-write Footage while another instance remains empty",
-          "duration": 0.9702619999999911,
+          "duration": 0.7846799999999803,
           "failureMessages": [],
           "location": {
             "line": 85,
@@ -800,7 +800,7 @@
           "fullName": "runtime memory does not allocate missing Footage slots when removing an omitted Frame",
           "status": "passed",
           "title": "does not allocate missing Footage slots when removing an omitted Frame",
-          "duration": 1.8889920000000018,
+          "duration": 1.5493100000000197,
           "failureMessages": [],
           "location": {
             "line": 105,
@@ -817,7 +817,7 @@
           "fullName": "runtime memory releases empty replacement bindings (tuple: false)",
           "status": "passed",
           "title": "releases empty replacement bindings (tuple: false)",
-          "duration": 11.196747999999985,
+          "duration": 4.131771999999984,
           "failureMessages": [],
           "location": {
             "line": 118,
@@ -834,7 +834,7 @@
           "fullName": "runtime memory releases empty replacement bindings (tuple: true)",
           "status": "passed",
           "title": "releases empty replacement bindings (tuple: true)",
-          "duration": 10.22549699999999,
+          "duration": 2.2073579999999993,
           "failureMessages": [],
           "location": {
             "line": 118,
@@ -851,7 +851,7 @@
           "fullName": "runtime memory observes memory growth and retains native capacity after instance destruction",
           "status": "passed",
           "title": "observes memory growth and retains native capacity after instance destruction",
-          "duration": 34.32611800000001,
+          "duration": 32.273825000000016,
           "failureMessages": [],
           "location": {
             "line": 141,
@@ -862,8 +862,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524324290,
-      "endTime": 1795524324362.3262,
+      "startTime": 1795524851444,
+      "endTime": 1795524851497.274,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/integration/runtime_memory/test.ts"
@@ -878,7 +878,7 @@
           "fullName": "Projection public API SequencerError exposes an Error with a stable code and a package-prefixed default message",
           "status": "passed",
           "title": "exposes an Error with a stable code and a package-prefixed default message",
-          "duration": 3.2999999999883585,
+          "duration": 4,
           "failureMessages": [],
           "location": {
             "line": 31,
@@ -896,7 +896,7 @@
           "fullName": "Projection public API SequencerError preserves custom detail and the original cause",
           "status": "passed",
           "title": "preserves custom detail and the original cause",
-          "duration": 0.39999999999417923,
+          "duration": 0.5,
           "failureMessages": [],
           "location": {
             "line": 40,
@@ -914,7 +914,7 @@
           "fullName": "Projection public API constructor creates an empty projection for the supplied actor",
           "status": "passed",
           "title": "creates an empty projection for the supplied actor",
-          "duration": 0.8999999999941792,
+          "duration": 1.1000000000058208,
           "failureMessages": [],
           "location": {
             "line": 54,
@@ -932,7 +932,7 @@
           "fullName": "Projection public API constructor hydrates a trusted Sequence",
           "status": "passed",
           "title": "hydrates a trusted Sequence",
-          "duration": 1.7000000000116415,
+          "duration": 4.600000000005821,
           "failureMessages": [],
           "location": {
             "line": 60,
@@ -950,7 +950,7 @@
           "fullName": "Projection public API constructor keeps a flat snapshot unchanged when an offset insertion is removed and extended",
           "status": "passed",
           "title": "keeps a flat snapshot unchanged when an offset insertion is removed and extended",
-          "duration": 2.8999999999941792,
+          "duration": 3.8999999999941792,
           "failureMessages": [],
           "location": {
             "line": 73,
@@ -968,7 +968,7 @@
           "fullName": "Projection public API apply returns insertion splices using visible positions",
           "status": "passed",
           "title": "returns insertion splices using visible positions",
-          "duration": 0.1999999999825377,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 102,
@@ -986,7 +986,7 @@
           "fullName": "Projection public API apply returns removal splices with an exclusive end and acknowledgement Gossip",
           "status": "passed",
           "title": "returns removal splices with an exclusive end and acknowledgement Gossip",
-          "duration": 0.40000000002328306,
+          "duration": 0.39999999999417923,
           "failureMessages": [],
           "location": {
             "line": 110,
@@ -1004,7 +1004,7 @@
           "fullName": "Projection public API apply preserves the Frame count in returned splices when Footage is omitted",
           "status": "passed",
           "title": "preserves the Frame count in returned splices when Footage is omitted",
-          "duration": 0.1999999999825377,
+          "duration": 0.6000000000058208,
           "failureMessages": [],
           "location": {
             "line": 118,
@@ -1022,7 +1022,7 @@
           "fullName": "Projection public API apply extends retained Footage with omitted suffix Frames",
           "status": "passed",
           "title": "extends retained Footage with omitted suffix Frames",
-          "duration": 0.39999999999417923,
+          "duration": 1.1000000000058208,
           "failureMessages": [],
           "location": {
             "line": 125,
@@ -1058,7 +1058,7 @@
           "fullName": "Projection public API apply accepts empty batches, acknowledgements, and duplicate Insertions without visible changes",
           "status": "passed",
           "title": "accepts empty batches, acknowledgements, and duplicate Insertions without visible changes",
-          "duration": 0.20000000001164153,
+          "duration": 0.1999999999825377,
           "failureMessages": [],
           "location": {
             "line": 188,
@@ -1076,7 +1076,7 @@
           "fullName": "Projection public API apply keeps omitted Footage isolated through masking, extensions and duplicate batches",
           "status": "passed",
           "title": "keeps omitted Footage isolated through masking, extensions and duplicate batches",
-          "duration": 0.5999999999767169,
+          "duration": 0.8000000000174623,
           "failureMessages": [],
           "location": {
             "line": 195,
@@ -1094,7 +1094,7 @@
           "fullName": "Projection public API apply defers an Insertion until its parent arrives",
           "status": "passed",
           "title": "defers an Insertion until its parent arrives",
-          "duration": 0.3000000000174623,
+          "duration": 0.39999999999417923,
           "failureMessages": [],
           "location": {
             "line": 216,
@@ -1112,7 +1112,7 @@
           "fullName": "Projection public API apply returns undefined for malformed input undefined",
           "status": "passed",
           "title": "returns undefined for malformed input undefined",
-          "duration": 0,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 238,
@@ -1130,7 +1130,7 @@
           "fullName": "Projection public API apply returns undefined for malformed input null",
           "status": "passed",
           "title": "returns undefined for malformed input null",
-          "duration": 0.10000000000582077,
+          "duration": 0.09999999997671694,
           "failureMessages": [],
           "location": {
             "line": 238,
@@ -1148,7 +1148,7 @@
           "fullName": "Projection public API apply returns undefined for malformed input {}",
           "status": "passed",
           "title": "returns undefined for malformed input {}",
-          "duration": 0.09999999997671694,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 238,
@@ -1166,7 +1166,7 @@
           "fullName": "Projection public API apply returns undefined for malformed input gossip",
           "status": "passed",
           "title": "returns undefined for malformed input gossip",
-          "duration": 0.10000000000582077,
+          "duration": 0,
           "failureMessages": [],
           "location": {
             "line": 238,
@@ -1184,7 +1184,7 @@
           "fullName": "Projection public API apply returns undefined for malformed input [ [ [ 0, 0, 0, 200, 0, 0 ], [] ] ]",
           "status": "passed",
           "title": "returns undefined for malformed input [ [ [ 0, 0, 0, 200, 0, 0 ], [] ] ]",
-          "duration": 0,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 238,
@@ -1202,7 +1202,7 @@
           "fullName": "Projection public API apply returns undefined for malformed input [ [ 1, 2 ] ]",
           "status": "passed",
           "title": "returns undefined for malformed input [ [ 1, 2 ] ]",
-          "duration": 0,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 238,
@@ -1238,7 +1238,7 @@
           "fullName": "Projection public API apply retains earlier valid entries when a later entry is invalid",
           "status": "passed",
           "title": "retains earlier valid entries when a later entry is invalid",
-          "duration": 0.20000000001164153,
+          "duration": 0.1999999999825377,
           "failureMessages": [],
           "location": {
             "line": 244,
@@ -1256,7 +1256,7 @@
           "fullName": "Projection public API insert inserts at boundary 0 and returns replicable Gossip",
           "status": "passed",
           "title": "inserts at boundary 0 and returns replicable Gossip",
-          "duration": 0.5,
+          "duration": 0.39999999999417923,
           "failureMessages": [],
           "location": {
             "line": 259,
@@ -1274,7 +1274,7 @@
           "fullName": "Projection public API insert inserts at boundary 1 and returns replicable Gossip",
           "status": "passed",
           "title": "inserts at boundary 1 and returns replicable Gossip",
-          "duration": 0.09999999997671694,
+          "duration": 0.3000000000174623,
           "failureMessages": [],
           "location": {
             "line": 259,
@@ -1292,7 +1292,7 @@
           "fullName": "Projection public API insert inserts at boundary 3 and returns replicable Gossip",
           "status": "passed",
           "title": "inserts at boundary 3 and returns replicable Gossip",
-          "duration": 0.10000000000582077,
+          "duration": 0,
           "failureMessages": [],
           "location": {
             "line": 259,
@@ -1310,7 +1310,7 @@
           "fullName": "Projection public API insert inserts into an empty projection and preserves returned value references",
           "status": "passed",
           "title": "inserts into an empty projection and preserves returned value references",
-          "duration": 0.20000000001164153,
+          "duration": 0.1999999999825377,
           "failureMessages": [],
           "location": {
             "line": 267,
@@ -1328,7 +1328,7 @@
           "fullName": "Projection public API length reports the visible size after insertion, removal, and replacement",
           "status": "passed",
           "title": "reports the visible size after insertion, removal, and replacement",
-          "duration": 0.1999999999825377,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 280,
@@ -1346,7 +1346,7 @@
           "fullName": "Projection public API merge accepts acknowledgement frontiers in an exported Sequence",
           "status": "passed",
           "title": "accepts acknowledgement frontiers in an exported Sequence",
-          "duration": 0.3000000000174623,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 293,
@@ -1364,7 +1364,7 @@
           "fullName": "Projection public API merge merges a Sequence and returns its visible changes",
           "status": "passed",
           "title": "merges a Sequence and returns its visible changes",
-          "duration": 0.1999999999825377,
+          "duration": 0.6000000000058208,
           "failureMessages": [],
           "location": {
             "line": 302,
@@ -1382,7 +1382,7 @@
           "fullName": "Projection public API merge rejects malformed input undefined before applying any part of it",
           "status": "passed",
           "title": "rejects malformed input undefined before applying any part of it",
-          "duration": 0.10000000000582077,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 323,
@@ -1400,7 +1400,7 @@
           "fullName": "Projection public API merge rejects malformed input null before applying any part of it",
           "status": "passed",
           "title": "rejects malformed input null before applying any part of it",
-          "duration": 0.10000000000582077,
+          "duration": 0,
           "failureMessages": [],
           "location": {
             "line": 323,
@@ -1418,7 +1418,7 @@
           "fullName": "Projection public API merge rejects malformed input {} before applying any part of it",
           "status": "passed",
           "title": "rejects malformed input {} before applying any part of it",
-          "duration": 0,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 323,
@@ -1436,7 +1436,7 @@
           "fullName": "Projection public API merge rejects malformed input [] before applying any part of it",
           "status": "passed",
           "title": "rejects malformed input [] before applying any part of it",
-          "duration": 0.10000000000582077,
+          "duration": 0.09999999997671694,
           "failureMessages": [],
           "location": {
             "line": 323,
@@ -1472,7 +1472,7 @@
           "fullName": "Projection public API merge rejects malformed input [ [ 1, 0, 0, 0, 100, 0 ], [] ] before applying any part of it",
           "status": "passed",
           "title": "rejects malformed input [ [ 1, 0, 0, 0, 100, 0 ], [] ] before applying any part of it",
-          "duration": 0.09999999997671694,
+          "duration": 0,
           "failureMessages": [],
           "location": {
             "line": 323,
@@ -1490,7 +1490,7 @@
           "fullName": "Projection public API merge rejects malformed input [ null, [] ] before applying any part of it",
           "status": "passed",
           "title": "rejects malformed input [ null, [] ] before applying any part of it",
-          "duration": 0,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 323,
@@ -1508,7 +1508,7 @@
           "fullName": "Projection public API merge rejects malformed input [ [], {} ] before applying any part of it",
           "status": "passed",
           "title": "rejects malformed input [ [], {} ] before applying any part of it",
-          "duration": 0,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 323,
@@ -1544,7 +1544,7 @@
           "fullName": "Projection public API merge rejects malformed input [ [ [Array] ], [ [Array] ] ] before applying any part of it",
           "status": "passed",
           "title": "rejects malformed input [ [ [Array] ], [ [Array] ] ] before applying any part of it",
-          "duration": 0.10000000000582077,
+          "duration": 0,
           "failureMessages": [],
           "location": {
             "line": 323,
@@ -1562,7 +1562,7 @@
           "fullName": "Projection public API remove removes an inclusive range and returns replicable Gossip",
           "status": "passed",
           "title": "removes an inclusive range and returns replicable Gossip",
-          "duration": 0,
+          "duration": 0.09999999997671694,
           "failureMessages": [],
           "location": {
             "line": 333,
@@ -1580,7 +1580,7 @@
           "fullName": "Projection public API remove defaults the end to the last visible position",
           "status": "passed",
           "title": "defaults the end to the last visible position",
-          "duration": 0.10000000000582077,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 339,
@@ -1598,7 +1598,7 @@
           "fullName": "Projection public API remove defaults to removing the entire projection, including an empty one",
           "status": "passed",
           "title": "defaults to removing the entire projection, including an empty one",
-          "duration": 0.1999999999825377,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 345,
@@ -1616,7 +1616,7 @@
           "fullName": "Projection public API replace replaces an inclusive range and returns removal/insertion Gossip",
           "status": "passed",
           "title": "replaces an inclusive range and returns removal/insertion Gossip",
-          "duration": 0.20000000001164153,
+          "duration": 0.3000000000174623,
           "failureMessages": [],
           "location": {
             "line": 356,
@@ -1634,7 +1634,7 @@
           "fullName": "Projection public API replace uses an empty replacement as removal only",
           "status": "passed",
           "title": "uses an empty replacement as removal only",
-          "duration": 0.10000000000582077,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 362,
@@ -1652,7 +1652,7 @@
           "fullName": "Projection public API replace defaults to replacing the whole projection",
           "status": "passed",
           "title": "defaults to replacing the whole projection",
-          "duration": 0,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 368,
@@ -1670,7 +1670,7 @@
           "fullName": "Projection public API replace can initialize an empty projection",
           "status": "passed",
           "title": "can initialize an empty projection",
-          "duration": 0.1999999999825377,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 374,
@@ -1706,7 +1706,7 @@
           "fullName": "Projection public API sequence preserves large coordinates, masks and future replay in compact snapshots with compaction false",
           "status": "passed",
           "title": "preserves large coordinates, masks and future replay in compact snapshots with compaction false",
-          "duration": 2.7999999999883585,
+          "duration": 3.8999999999941792,
           "failureMessages": [],
           "location": {
             "line": 407,
@@ -1724,7 +1724,7 @@
           "fullName": "Projection public API sequence preserves large coordinates, masks and future replay in compact snapshots with compaction true",
           "status": "passed",
           "title": "preserves large coordinates, masks and future replay in compact snapshots with compaction true",
-          "duration": 2.2000000000116415,
+          "duration": 4.600000000005821,
           "failureMessages": [],
           "location": {
             "line": 407,
@@ -1742,7 +1742,7 @@
           "fullName": "Projection public API sequence reads current caller-owned Footage on every snapshot",
           "status": "passed",
           "title": "reads current caller-owned Footage on every snapshot",
-          "duration": 0.1999999999825377,
+          "duration": 0.5,
           "failureMessages": [],
           "location": {
             "line": 458,
@@ -1760,7 +1760,7 @@
           "fullName": "Projection public API sequence exports an empty Sequence",
           "status": "passed",
           "title": "exports an empty Sequence",
-          "duration": 0.20000000001164153,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 467,
@@ -1778,7 +1778,7 @@
           "fullName": "Projection public API sequence exports reconstructible state without changing the live projection",
           "status": "passed",
           "title": "exports reconstructible state without changing the live projection",
-          "duration": 0.10000000000582077,
+          "duration": 0.1999999999825377,
           "failureMessages": [],
           "location": {
             "line": 470,
@@ -1796,7 +1796,7 @@
           "fullName": "Projection public API sequence retains a removal Session until active actors acknowledge the same complete frontier",
           "status": "passed",
           "title": "retains a removal Session until active actors acknowledge the same complete frontier",
-          "duration": 0.5,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 482,
@@ -1814,7 +1814,7 @@
           "fullName": "Projection public API value returns undefined when no visible Frame exists at the requested position",
           "status": "passed",
           "title": "returns undefined when no visible Frame exists at the requested position",
-          "duration": 0.09999999997671694,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 506,
@@ -1832,7 +1832,7 @@
           "fullName": "Projection public API value reads visible position 0",
           "status": "passed",
           "title": "reads visible position 0",
-          "duration": 0.10000000000582077,
+          "duration": 0.09999999997671694,
           "failureMessages": [],
           "location": {
             "line": 513,
@@ -1850,7 +1850,7 @@
           "fullName": "Projection public API value reads visible position 1",
           "status": "passed",
           "title": "reads visible position 1",
-          "duration": 0,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 513,
@@ -1868,7 +1868,7 @@
           "fullName": "Projection public API value reads visible position 2",
           "status": "passed",
           "title": "reads visible position 2",
-          "duration": 0.10000000000582077,
+          "duration": 0,
           "failureMessages": [],
           "location": {
             "line": 513,
@@ -1886,7 +1886,7 @@
           "fullName": "Projection public API value preserves undefined as a valid inserted value",
           "status": "passed",
           "title": "preserves undefined as a valid inserted value",
-          "duration": 0.10000000000582077,
+          "duration": 0,
           "failureMessages": [],
           "location": {
             "line": 516,
@@ -1904,7 +1904,7 @@
           "fullName": "Projection public API destroy releases the instance, rejects further calls synchronously, and permits repeated destruction",
           "status": "passed",
           "title": "releases the instance, rejects further calls synchronously, and permits repeated destruction",
-          "duration": 2.1999999999825377,
+          "duration": 2.3000000000174623,
           "failureMessages": [],
           "location": {
             "line": 525,
@@ -1940,7 +1940,7 @@
           "fullName": "Projection public API values reads sparse Footage beyond the signed index boundary",
           "status": "passed",
           "title": "reads sparse Footage beyond the signed index boundary",
-          "duration": 0.20000000001164153,
+          "duration": 1.099999999976717,
           "failureMessages": [],
           "location": {
             "line": 569,
@@ -1958,7 +1958,7 @@
           "fullName": "Projection public API values returns all values by default and an inclusive range when supplied",
           "status": "passed",
           "title": "returns all values by default and an inclusive range when supplied",
-          "duration": 0.1999999999825377,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 586,
@@ -1976,7 +1976,7 @@
           "fullName": "Projection public API values returns an empty array for an empty projection or inverted range",
           "status": "passed",
           "title": "returns an empty array for an empty projection or inverted range",
-          "duration": 0,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 593,
@@ -1994,7 +1994,7 @@
           "fullName": "Projection public API values returns a new array without cloning its values",
           "status": "passed",
           "title": "returns a new array without cloning its values",
-          "duration": 0.40000000002328306,
+          "duration": 0.39999999999417923,
           "failureMessages": [],
           "location": {
             "line": 597,
@@ -2005,8 +2005,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524323950,
-      "endTime": 1795524323977.4,
+      "startTime": 1795524850381,
+      "endTime": 1795524850420.4,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/unit/test.ts"
@@ -2018,7 +2018,7 @@
           "fullName": "chooses the same identity for every conflict delivery order",
           "status": "passed",
           "title": "chooses the same identity for every conflict delivery order",
-          "duration": 9,
+          "duration": 6.2999999999883585,
           "failureMessages": [],
           "location": {
             "line": 38,
@@ -2033,7 +2033,7 @@
           "fullName": "breaks same-Session ties by logical start and reports only winner changes",
           "status": "passed",
           "title": "breaks same-Session ties by logical start and reports only winner changes",
-          "duration": 0.6000000000058208,
+          "duration": 0.39999999999417923,
           "failureMessages": [],
           "location": {
             "line": 60,
@@ -2048,7 +2048,7 @@
           "fullName": "removes all observed candidates so hidden versions cannot reappear",
           "status": "passed",
           "title": "removes all observed candidates so hidden versions cannot reappear",
-          "duration": 0.9000000000232831,
+          "duration": 0.6000000000058208,
           "failureMessages": [],
           "location": {
             "line": 71,
@@ -2063,7 +2063,7 @@
           "fullName": "preserves an unseen concurrent version when observed versions are removed",
           "status": "passed",
           "title": "preserves an unseen concurrent version when observed versions are removed",
-          "duration": 0.29999999998835847,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 87,
@@ -2078,7 +2078,7 @@
           "fullName": "resolves removals arriving before their targets, including across restart",
           "status": "passed",
           "title": "resolves removals arriving before their targets, including across restart",
-          "duration": 0.8999999999941792,
+          "duration": 0.6000000000058208,
           "failureMessages": [],
           "location": {
             "line": 99,
@@ -2093,7 +2093,7 @@
           "fullName": "replays replacements and range removals at unchanged indices",
           "status": "passed",
           "title": "replays replacements and range removals at unchanged indices",
-          "duration": 1,
+          "duration": 0.5,
           "failureMessages": [],
           "location": {
             "line": 114,
@@ -2108,7 +2108,7 @@
           "fullName": "retains losing candidates through packed snapshots and idempotent merges",
           "status": "passed",
           "title": "retains losing candidates through packed snapshots and idempotent merges",
-          "duration": 1,
+          "duration": 0.6999999999825377,
           "failureMessages": [],
           "location": {
             "line": 125,
@@ -2123,7 +2123,7 @@
           "fullName": "compacts acknowledged masks and deleted versions without rewriting stable indices",
           "status": "passed",
           "title": "compacts acknowledged masks and deleted versions without rewriting stable indices",
-          "duration": 1.3999999999941792,
+          "duration": 1.3000000000174623,
           "failureMessages": [],
           "location": {
             "line": 143,
@@ -2138,7 +2138,7 @@
           "fullName": "retains removals until missing Actors acknowledge or retire",
           "status": "passed",
           "title": "retains removals until missing Actors acknowledge or retire",
-          "duration": 0.39999999999417923,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 169,
@@ -2153,7 +2153,7 @@
           "fullName": "converges across every permutation of candidates and targeted removals",
           "status": "passed",
           "title": "converges across every permutation of candidates and targeted removals",
-          "duration": 0.39999999999417923,
+          "duration": 0.3000000000174623,
           "failureMessages": [],
           "location": {
             "line": 179,
@@ -2168,7 +2168,7 @@
           "fullName": "preserves every register across reordered multi-Actor editing histories",
           "status": "passed",
           "title": "preserves every register across reordered multi-Actor editing histories",
-          "duration": 13.5,
+          "duration": 13.599999999976717,
           "failureMessages": [],
           "location": {
             "line": 199,
@@ -2179,8 +2179,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524325776,
-      "endTime": 1795524325805.5,
+      "startTime": 1795524851936,
+      "endTime": 1795524851961.6,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/tuple/test.ts"
@@ -2192,7 +2192,7 @@
           "fullName": "retains foreign Session 0 and large anchor times across mixed edits",
           "status": "passed",
           "title": "retains foreign Session 0 and large anchor times across mixed edits",
-          "duration": 11.199999999982538,
+          "duration": 6.899999999994179,
           "failureMessages": [],
           "location": {
             "line": 10,
@@ -2207,7 +2207,7 @@
           "fullName": "retains foreign Session 2147483647 and large anchor times across mixed edits",
           "status": "passed",
           "title": "retains foreign Session 2147483647 and large anchor times across mixed edits",
-          "duration": 0.7000000000116415,
+          "duration": 0.5999999999767169,
           "failureMessages": [],
           "location": {
             "line": 10,
@@ -2237,7 +2237,7 @@
           "fullName": "retains foreign Session 4294967295 and large anchor times across mixed edits",
           "status": "passed",
           "title": "retains foreign Session 4294967295 and large anchor times across mixed edits",
-          "duration": 1.3999999999941792,
+          "duration": 0.3000000000174623,
           "failureMessages": [],
           "location": {
             "line": 10,
@@ -2252,7 +2252,7 @@
           "fullName": "replays repeated writes to one tuple index from the first packed record",
           "status": "passed",
           "title": "replays repeated writes to one tuple index from the first packed record",
-          "duration": 1.1999999999825377,
+          "duration": 0.6999999999825377,
           "failureMessages": [],
           "location": {
             "line": 43,
@@ -2267,7 +2267,7 @@
           "fullName": "retains a single input array and releases its editor scope",
           "status": "passed",
           "title": "retains a single input array and releases its editor scope",
-          "duration": 1.3000000000174623,
+          "duration": 0.3000000000174623,
           "failureMessages": [],
           "location": {
             "line": 61,
@@ -2282,7 +2282,7 @@
           "fullName": "closes the editor before collecting returned array Footage",
           "status": "passed",
           "title": "closes the editor before collecting returned array Footage",
-          "duration": 1.7999999999883585,
+          "duration": 1.2999999999883585,
           "failureMessages": [],
           "location": {
             "line": 78,
@@ -2297,7 +2297,7 @@
           "fullName": "clears the default range with batch remove",
           "status": "passed",
           "title": "clears the default range with batch remove",
-          "duration": 2.1000000000058208,
+          "duration": 0.8000000000174623,
           "failureMessages": [],
           "location": {
             "line": 113,
@@ -2312,7 +2312,7 @@
           "fullName": "clears the default range with batch replace",
           "status": "passed",
           "title": "clears the default range with batch replace",
-          "duration": 0.29999999998835847,
+          "duration": 0.1999999999825377,
           "failureMessages": [],
           "location": {
             "line": 113,
@@ -2327,7 +2327,7 @@
           "fullName": "keeps nested and interleaved batches independently replayable",
           "status": "passed",
           "title": "keeps nested and interleaved batches independently replayable",
-          "duration": 0.39999999999417923,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 133,
@@ -2342,7 +2342,7 @@
           "fullName": "supports missing and partial Footage before later ordinary Gossip",
           "status": "passed",
           "title": "supports missing and partial Footage before later ordinary Gossip",
-          "duration": 0.5,
+          "duration": 0.3000000000174623,
           "failureMessages": [],
           "location": {
             "line": 164,
@@ -2357,7 +2357,7 @@
           "fullName": "finishes retained output after its Projection is explicitly destroyed",
           "status": "passed",
           "title": "finishes retained output after its Projection is explicitly destroyed",
-          "duration": 0.20000000001164153,
+          "duration": 0.09999999997671694,
           "failureMessages": [],
           "location": {
             "line": 186,
@@ -2372,7 +2372,7 @@
           "fullName": "reports native batch begin failure and releases temporary state",
           "status": "passed",
           "title": "reports native batch begin failure and releases temporary state",
-          "duration": 1.8999999999941792,
+          "duration": 1.3000000000174623,
           "failureMessages": [],
           "location": {
             "line": 203,
@@ -2387,7 +2387,7 @@
           "fullName": "reports native batch begin-signed failure and releases temporary state",
           "status": "passed",
           "title": "reports native batch begin-signed failure and releases temporary state",
-          "duration": 0.8000000000174623,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 203,
@@ -2402,7 +2402,7 @@
           "fullName": "reports native batch edit failure and releases temporary state",
           "status": "passed",
           "title": "reports native batch edit failure and releases temporary state",
-          "duration": 0.29999999998835847,
+          "duration": 0.1999999999825377,
           "failureMessages": [],
           "location": {
             "line": 203,
@@ -2417,7 +2417,7 @@
           "fullName": "reports native batch end failure and releases temporary state",
           "status": "passed",
           "title": "reports native batch end failure and releases temporary state",
-          "duration": 0.29999999998835847,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 203,
@@ -2432,7 +2432,7 @@
           "fullName": "applies edits immediately and replays one packed text packet",
           "status": "passed",
           "title": "applies edits immediately and replays one packed text packet",
-          "duration": 2,
+          "duration": 1.7999999999883585,
           "failureMessages": [],
           "location": {
             "line": 235,
@@ -2462,7 +2462,7 @@
           "fullName": "packs 127 prepends with a shared dictionary",
           "status": "passed",
           "title": "packs 127 prepends with a shared dictionary",
-          "duration": 0.6000000000058208,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 265,
@@ -2477,7 +2477,7 @@
           "fullName": "packs 128 prepends with a shared dictionary",
           "status": "passed",
           "title": "packs 128 prepends with a shared dictionary",
-          "duration": 2.6000000000058208,
+          "duration": 0.9000000000232831,
           "failureMessages": [],
           "location": {
             "line": 265,
@@ -2492,7 +2492,7 @@
           "fullName": "packs 6000 prepends with a shared dictionary",
           "status": "passed",
           "title": "packs 6000 prepends with a shared dictionary",
-          "duration": 14.099999999976717,
+          "duration": 10.099999999976717,
           "failureMessages": [],
           "location": {
             "line": 265,
@@ -2507,7 +2507,7 @@
           "fullName": "replays a combined extension after the receiver fragments its parent",
           "status": "passed",
           "title": "replays a combined extension after the receiver fragments its parent",
-          "duration": 0.3000000000174623,
+          "duration": 0.40000000002328306,
           "failureMessages": [],
           "location": {
             "line": 286,
@@ -2522,7 +2522,7 @@
           "fullName": "retains mixed Footage and UTF-16 boundaries",
           "status": "passed",
           "title": "retains mixed Footage and UTF-16 boundaries",
-          "duration": 0.39999999999417923,
+          "duration": 0.6999999999825377,
           "failureMessages": [],
           "location": {
             "line": 306,
@@ -2537,7 +2537,7 @@
           "fullName": "preserves tuple versions with capacity 8",
           "status": "passed",
           "title": "preserves tuple versions with capacity 8",
-          "duration": 2.1999999999825377,
+          "duration": 3.5,
           "failureMessages": [],
           "location": {
             "line": 335,
@@ -2552,7 +2552,7 @@
           "fullName": "preserves tuple versions with capacity undefined",
           "status": "passed",
           "title": "preserves tuple versions with capacity undefined",
-          "duration": 0.40000000002328306,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 335,
@@ -2567,7 +2567,7 @@
           "fullName": "closes escaped editors and retains completed edits after an exception",
           "status": "passed",
           "title": "closes escaped editors and retains completed edits after an exception",
-          "duration": 0.6999999999825377,
+          "duration": 0.7999999999883585,
           "failureMessages": [],
           "location": {
             "line": 362,
@@ -2582,7 +2582,7 @@
           "fullName": "rejects malformed packets after retaining the valid Gossip prefix",
           "status": "passed",
           "title": "rejects malformed packets after retaining the valid Gossip prefix",
-          "duration": 0.29999999998835847,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 401,
@@ -2593,8 +2593,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524324574,
-      "endTime": 1795524324623.3,
+      "startTime": 1795524850863,
+      "endTime": 1795524850896.2,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/unit/batch/test.ts"
@@ -2606,7 +2606,7 @@
           "fullName": "hydrates repeated coordinates across 3 insertions",
           "status": "passed",
           "title": "hydrates repeated coordinates across 3 insertions",
-          "duration": 7.899999999994179,
+          "duration": 10.599999999976717,
           "failureMessages": [],
           "location": {
             "line": 13,
@@ -2621,7 +2621,7 @@
           "fullName": "hydrates repeated coordinates across 129 insertions",
           "status": "passed",
           "title": "hydrates repeated coordinates across 129 insertions",
-          "duration": 1.2999999999883585,
+          "duration": 1.7999999999883585,
           "failureMessages": [],
           "location": {
             "line": 13,
@@ -2636,7 +2636,7 @@
           "fullName": "hydrates repeated coordinates across 6000 insertions",
           "status": "passed",
           "title": "hydrates repeated coordinates across 6000 insertions",
-          "duration": 30.60000000000582,
+          "duration": 58.89999999999418,
           "failureMessages": [],
           "location": {
             "line": 13,
@@ -2651,7 +2651,7 @@
           "fullName": "reads version-one byte snapshots without repetition markers",
           "status": "passed",
           "title": "reads version-one byte snapshots without repetition markers",
-          "duration": 0.29999999998835847,
+          "duration": 0.6000000000058208,
           "failureMessages": [],
           "location": {
             "line": 42,
@@ -2666,7 +2666,7 @@
           "fullName": "rejects invalid coordinate repetitions [ 3, 0, 255, 1, 1 ]",
           "status": "passed",
           "title": "rejects invalid coordinate repetitions [ 3, 0, 255, 1, 1 ]",
-          "duration": 0.20000000001164153,
+          "duration": 0.7000000000116415,
           "failureMessages": [],
           "location": {
             "line": 66,
@@ -2681,7 +2681,7 @@
           "fullName": "rejects invalid coordinate repetitions [ 3, 0, 19, 1, 68, 51, 34, 17, 0, …(3) ]",
           "status": "passed",
           "title": "rejects invalid coordinate repetitions [ 3, 0, 19, 1, 68, 51, 34, 17, 0, …(3) ]",
-          "duration": 0.09999999997671694,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 66,
@@ -2696,7 +2696,7 @@
           "fullName": "rejects invalid coordinate repetitions [ 3, 0, 19, 1, 68, 51, 34, 17, 0, …(4) ]",
           "status": "passed",
           "title": "rejects invalid coordinate repetitions [ 3, 0, 19, 1, 68, 51, 34, 17, 0, …(4) ]",
-          "duration": 0.20000000001164153,
+          "duration": 0,
           "failureMessages": [],
           "location": {
             "line": 66,
@@ -2726,7 +2726,7 @@
           "fullName": "rejects invalid coordinate repetitions [ 3, 0, 19, 1, 68, 51, 34, 17, 0, …(3) ]",
           "status": "passed",
           "title": "rejects invalid coordinate repetitions [ 3, 0, 19, 1, 68, 51, 34, 17, 0, …(3) ]",
-          "duration": 0.10000000000582077,
+          "duration": 0.1999999999825377,
           "failureMessages": [],
           "location": {
             "line": 66,
@@ -2741,7 +2741,7 @@
           "fullName": "rejects invalid coordinate repetitions [ 3, 0, 19, 1, 68, 51, 34, 17, 0, …(4) ]",
           "status": "passed",
           "title": "rejects invalid coordinate repetitions [ 3, 0, 19, 1, 68, 51, 34, 17, 0, …(4) ]",
-          "duration": 0.20000000001164153,
+          "duration": 0,
           "failureMessages": [],
           "location": {
             "line": 66,
@@ -2756,7 +2756,7 @@
           "fullName": "rejects invalid coordinate repetitions [ 3, 0, 19, 1, 68, 51, 34, 17, 0, …(8) ]",
           "status": "passed",
           "title": "rejects invalid coordinate repetitions [ 3, 0, 19, 1, 68, 51, 34, 17, 0, …(8) ]",
-          "duration": 0.20000000001164153,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 66,
@@ -2771,7 +2771,7 @@
           "fullName": "keeps numeric defaults and infers requested byte metadata",
           "status": "passed",
           "title": "keeps numeric defaults and infers requested byte metadata",
-          "duration": 0.8999999999941792,
+          "duration": 1,
           "failureMessages": [],
           "location": {
             "line": 77,
@@ -2786,7 +2786,7 @@
           "fullName": "retains the author acknowledgement inside a removal with tuple false",
           "status": "passed",
           "title": "retains the author acknowledgement inside a removal with tuple false",
-          "duration": 0.7999999999883585,
+          "duration": 1,
           "failureMessages": [],
           "location": {
             "line": 103,
@@ -2801,7 +2801,7 @@
           "fullName": "retains the author acknowledgement inside a removal with tuple true",
           "status": "passed",
           "title": "retains the author acknowledgement inside a removal with tuple true",
-          "duration": 0.5,
+          "duration": 0.6000000000058208,
           "failureMessages": [],
           "location": {
             "line": 103,
@@ -2816,7 +2816,7 @@
           "fullName": "rejects a missing or trailing author before applying a combined removal",
           "status": "passed",
           "title": "rejects a missing or trailing author before applying a combined removal",
-          "duration": 0.10000000000582077,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 138,
@@ -2831,7 +2831,7 @@
           "fullName": "replays a packed mask batch before its anchors with tuple false",
           "status": "passed",
           "title": "replays a packed mask batch before its anchors with tuple false",
-          "duration": 0.7000000000116415,
+          "duration": 0.6000000000058208,
           "failureMessages": [],
           "location": {
             "line": 157,
@@ -2846,7 +2846,7 @@
           "fullName": "replays a packed mask batch before its anchors with tuple true",
           "status": "passed",
           "title": "replays a packed mask batch before its anchors with tuple true",
-          "duration": 0.1999999999825377,
+          "duration": 0.39999999999417923,
           "failureMessages": [],
           "location": {
             "line": 157,
@@ -2861,7 +2861,7 @@
           "fullName": "retains a later lower frontier when packing acknowledgement replies",
           "status": "passed",
           "title": "retains a later lower frontier when packing acknowledgement replies",
-          "duration": 0.39999999999417923,
+          "duration": 0.6000000000058208,
           "failureMessages": [],
           "location": {
             "line": 194,
@@ -2876,7 +2876,7 @@
           "fullName": "preserves zero-frontier handling for Actor 456",
           "status": "passed",
           "title": "preserves zero-frontier handling for Actor 456",
-          "duration": 0.3000000000174623,
+          "duration": 0.6999999999825377,
           "failureMessages": [],
           "location": {
             "line": 228,
@@ -2891,7 +2891,7 @@
           "fullName": "preserves zero-frontier handling for Actor 999",
           "status": "passed",
           "title": "preserves zero-frontier handling for Actor 999",
-          "duration": 0.10000000000582077,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 228,
@@ -2906,7 +2906,7 @@
           "fullName": "rejects empty and truncated mask batches",
           "status": "passed",
           "title": "rejects empty and truncated mask batches",
-          "duration": 0.29999999998835847,
+          "duration": 0.5,
           "failureMessages": [],
           "location": {
             "line": 261,
@@ -2921,7 +2921,7 @@
           "fullName": "replays edits and acknowledgements with string Footage false",
           "status": "passed",
           "title": "replays edits and acknowledgements with string Footage false",
-          "duration": 0.7999999999883585,
+          "duration": 4.2999999999883585,
           "failureMessages": [],
           "location": {
             "line": 285,
@@ -2936,7 +2936,7 @@
           "fullName": "replays edits and acknowledgements with string Footage true",
           "status": "passed",
           "title": "replays edits and acknowledgements with string Footage true",
-          "duration": 0.5,
+          "duration": 1.6000000000058208,
           "failureMessages": [],
           "location": {
             "line": 285,
@@ -2951,7 +2951,7 @@
           "fullName": "retains byte outputs and accepts views with nonzero offsets",
           "status": "passed",
           "title": "retains byte outputs and accepts views with nonzero offsets",
-          "duration": 0.40000000002328306,
+          "duration": 0.5,
           "failureMessages": [],
           "location": {
             "line": 333,
@@ -2966,7 +2966,7 @@
           "fullName": "preserves Footage identity and snapshot isolation with packed words",
           "status": "passed",
           "title": "preserves Footage identity and snapshot isolation with packed words",
-          "duration": 0.1999999999825377,
+          "duration": 0.3000000000174623,
           "failureMessages": [],
           "location": {
             "line": 371,
@@ -2981,7 +2981,7 @@
           "fullName": "mixes numeric and packed records in one batch and validates numeric fallback",
           "status": "passed",
           "title": "mixes numeric and packed records in one batch and validates numeric fallback",
-          "duration": 0.20000000001164153,
+          "duration": 0.1999999999825377,
           "failureMessages": [],
           "location": {
             "line": 394,
@@ -2996,7 +2996,7 @@
           "fullName": "preserves Session 0 and full uint32 coordinates",
           "status": "passed",
           "title": "preserves Session 0 and full uint32 coordinates",
-          "duration": 0.1999999999825377,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 430,
@@ -3011,7 +3011,7 @@
           "fullName": "preserves Session 2147483648 and full uint32 coordinates",
           "status": "passed",
           "title": "preserves Session 2147483648 and full uint32 coordinates",
-          "duration": 0.3000000000174623,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 430,
@@ -3026,7 +3026,7 @@
           "fullName": "preserves Session 4294967295 and full uint32 coordinates",
           "status": "passed",
           "title": "preserves Session 4294967295 and full uint32 coordinates",
-          "duration": 0.29999999998835847,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 430,
@@ -3041,7 +3041,7 @@
           "fullName": "preserves tuple configuration with capacity undefined",
           "status": "passed",
           "title": "preserves tuple configuration with capacity undefined",
-          "duration": 0.5,
+          "duration": 3.3999999999941792,
           "failureMessages": [],
           "location": {
             "line": 473,
@@ -3056,7 +3056,7 @@
           "fullName": "preserves tuple configuration with capacity 8",
           "status": "passed",
           "title": "preserves tuple configuration with capacity 8",
-          "duration": 0.10000000000582077,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 473,
@@ -3071,7 +3071,7 @@
           "fullName": "retains a sparse tuple index above the signed boundary",
           "status": "passed",
           "title": "retains a sparse tuple index above the signed boundary",
-          "duration": 0.10000000000582077,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 516,
@@ -3086,7 +3086,7 @@
           "fullName": "preserves multibyte counts and Session dictionary references",
           "status": "passed",
           "title": "preserves multibyte counts and Session dictionary references",
-          "duration": 1.2999999999883585,
+          "duration": 1.8999999999941792,
           "failureMessages": [],
           "location": {
             "line": 532,
@@ -3116,7 +3116,7 @@
           "fullName": "hydrates empty packed snapshots and rejects mismatched tuple capacity",
           "status": "passed",
           "title": "hydrates empty packed snapshots and rejects mismatched tuple capacity",
-          "duration": 1.3999999999941792,
+          "duration": 5.399999999994179,
           "failureMessages": [],
           "location": {
             "line": 576,
@@ -3131,7 +3131,7 @@
           "fullName": "rejects truncated packed words without losing an already accepted prefix",
           "status": "passed",
           "title": "rejects truncated packed words without losing an already accepted prefix",
-          "duration": 1.1999999999825377,
+          "duration": 1.2000000000116415,
           "failureMessages": [],
           "location": {
             "line": 606,
@@ -3146,7 +3146,7 @@
           "fullName": "rejects malformed insertion bytes []",
           "status": "passed",
           "title": "rejects malformed insertion bytes []",
-          "duration": 0.10000000000582077,
+          "duration": 0.1999999999825377,
           "failureMessages": [],
           "location": {
             "line": 642,
@@ -3161,7 +3161,7 @@
           "fullName": "rejects malformed insertion bytes [ 66 ]",
           "status": "passed",
           "title": "rejects malformed insertion bytes [ 66 ]",
-          "duration": 0.20000000001164153,
+          "duration": 0,
           "failureMessages": [],
           "location": {
             "line": 642,
@@ -3176,7 +3176,7 @@
           "fullName": "rejects malformed insertion bytes [ 68, 255, 255, 255, 255, 16 ]",
           "status": "passed",
           "title": "rejects malformed insertion bytes [ 68, 255, 255, 255, 255, 16 ]",
-          "duration": 0.10000000000582077,
+          "duration": 0,
           "failureMessages": [],
           "location": {
             "line": 642,
@@ -3191,7 +3191,7 @@
           "fullName": "rejects malformed insertion bytes [ 96, 0 ]",
           "status": "passed",
           "title": "rejects malformed insertion bytes [ 96, 0 ]",
-          "duration": 0,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 642,
@@ -3206,7 +3206,7 @@
           "fullName": "rejects malformed insertion bytes [ 96, 128, 128, 128, 128, 8 ]",
           "status": "passed",
           "title": "rejects malformed insertion bytes [ 96, 128, 128, 128, 128, 8 ]",
-          "duration": 0,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 642,
@@ -3221,7 +3221,7 @@
           "fullName": "rejects malformed insertion bytes [ 224 ]",
           "status": "passed",
           "title": "rejects malformed insertion bytes [ 224 ]",
-          "duration": 0.10000000000582077,
+          "duration": 0,
           "failureMessages": [],
           "location": {
             "line": 642,
@@ -3251,7 +3251,7 @@
           "fullName": "rejects malformed acknowledgement bytes []",
           "status": "passed",
           "title": "rejects malformed acknowledgement bytes []",
-          "duration": 0.20000000001164153,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 655,
@@ -3266,7 +3266,7 @@
           "fullName": "rejects malformed acknowledgement bytes [ 128 ]",
           "status": "passed",
           "title": "rejects malformed acknowledgement bytes [ 128 ]",
-          "duration": 0,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 655,
@@ -3296,7 +3296,7 @@
           "fullName": "rejects malformed acknowledgement bytes [ 1, 0, 0, 0, 0 ]",
           "status": "passed",
           "title": "rejects malformed acknowledgement bytes [ 1, 0, 0, 0, 0 ]",
-          "duration": 0.10000000000582077,
+          "duration": 0.09999999997671694,
           "failureMessages": [],
           "location": {
             "line": 655,
@@ -3326,7 +3326,7 @@
           "fullName": "rejects malformed snapshot bytes [ 0 ]",
           "status": "passed",
           "title": "rejects malformed snapshot bytes [ 0 ]",
-          "duration": 0.1999999999825377,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 672,
@@ -3341,7 +3341,7 @@
           "fullName": "rejects malformed snapshot bytes [ 2, 0, 0 ]",
           "status": "passed",
           "title": "rejects malformed snapshot bytes [ 2, 0, 0 ]",
-          "duration": 0,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 672,
@@ -3386,7 +3386,7 @@
           "fullName": "rejects malformed snapshot bytes [ 1, 255, 255, 255, 255, 15, 0 ]",
           "status": "passed",
           "title": "rejects malformed snapshot bytes [ 1, 255, 255, 255, 255, 15, 0 ]",
-          "duration": 0.10000000000582077,
+          "duration": 0,
           "failureMessages": [],
           "location": {
             "line": 672,
@@ -3401,7 +3401,7 @@
           "fullName": "matches numeric acknowledgement replay across seeded mixed edits and checkpoints",
           "status": "passed",
           "title": "matches numeric acknowledgement replay across seeded mixed edits and checkpoints",
-          "duration": 44.39999999999418,
+          "duration": 78.39999999999418,
           "failureMessages": [],
           "location": {
             "line": 681,
@@ -3412,8 +3412,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524323660,
-      "endTime": 1795524323759.4,
+      "startTime": 1795524849943,
+      "endTime": 1795524850125.4,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/unit/binary_words/test.ts"
@@ -3425,7 +3425,7 @@
           "fullName": "keeps array Footage by default and narrows the optional string result",
           "status": "passed",
           "title": "keeps array Footage by default and narrows the optional string result",
-          "duration": 4.7999999999883585,
+          "duration": 4.399999999994179,
           "failureMessages": [],
           "location": {
             "line": 7,
@@ -3440,7 +3440,7 @@
           "fullName": "hydrates and merges an empty string snapshot",
           "status": "passed",
           "title": "hydrates and merges an empty string snapshot",
-          "duration": 0.9000000000232831,
+          "duration": 0.7000000000116415,
           "failureMessages": [],
           "location": {
             "line": 29,
@@ -3455,7 +3455,7 @@
           "fullName": "roundtrips UTF-16 text and edits after hydration, JSON false",
           "status": "passed",
           "title": "roundtrips UTF-16 text and edits after hydration, JSON false",
-          "duration": 1.2999999999883585,
+          "duration": 1,
           "failureMessages": [],
           "location": {
             "line": 45,
@@ -3470,7 +3470,7 @@
           "fullName": "roundtrips UTF-16 text and edits after hydration, JSON true",
           "status": "passed",
           "title": "roundtrips UTF-16 text and edits after hydration, JSON true",
-          "duration": 0.29999999998835847,
+          "duration": 0.3000000000174623,
           "failureMessages": [],
           "location": {
             "line": 45,
@@ -3485,7 +3485,7 @@
           "fullName": "retains missing masked slots until the offline Actor acknowledges",
           "status": "passed",
           "title": "retains missing masked slots until the offline Actor acknowledges",
-          "duration": 1.3000000000174623,
+          "duration": 1.1999999999825377,
           "failureMessages": [],
           "location": {
             "line": 81,
@@ -3500,7 +3500,7 @@
           "fullName": "merges JSON string Footage with compact metadata and replays the returned Splices",
           "status": "passed",
           "title": "merges JSON string Footage with compact metadata and replays the returned Splices",
-          "duration": 1.2999999999883585,
+          "duration": 1.1000000000058208,
           "failureMessages": [],
           "location": {
             "line": 112,
@@ -3515,7 +3515,7 @@
           "fullName": "keeps missing bindings and short Footage at their original coordinates",
           "status": "passed",
           "title": "keeps missing bindings and short Footage at their original coordinates",
-          "duration": 0.10000000000582077,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 137,
@@ -3530,7 +3530,7 @@
           "fullName": "reports a symbol concatenation failure with its original cause",
           "status": "passed",
           "title": "reports a symbol concatenation failure with its original cause",
-          "duration": 1.5,
+          "duration": 1.1999999999825377,
           "failureMessages": [],
           "location": {
             "line": 148,
@@ -3545,7 +3545,7 @@
           "fullName": "reports a coercion concatenation failure with its original cause",
           "status": "passed",
           "title": "reports a coercion concatenation failure with its original cause",
-          "duration": 0.39999999999417923,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 148,
@@ -3556,8 +3556,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524332310,
-      "endTime": 1795524332322.4,
+      "startTime": 1795524858174,
+      "endTime": 1795524858185.2,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/unit/string_encoded_sequence/test.ts"
@@ -3569,7 +3569,7 @@
           "fullName": "infers string Gossip and opt-in text results without changing array defaults",
           "status": "passed",
           "title": "infers string Gossip and opt-in text results without changing array defaults",
-          "duration": 5.199999999982538,
+          "duration": 5.5,
           "failureMessages": [],
           "location": {
             "line": 17,
@@ -3584,7 +3584,7 @@
           "fullName": "extends text with a string suffix without changing earlier snapshots",
           "status": "passed",
           "title": "extends text with a string suffix without changing earlier snapshots",
-          "duration": 1.2999999999883585,
+          "duration": 1.599999999976717,
           "failureMessages": [],
           "location": {
             "line": 45,
@@ -3599,7 +3599,7 @@
           "fullName": "extends text with a array suffix without changing earlier snapshots",
           "status": "passed",
           "title": "extends text with a array suffix without changing earlier snapshots",
-          "duration": 0.3000000000174623,
+          "duration": 0.5,
           "failureMessages": [],
           "location": {
             "line": 45,
@@ -3614,7 +3614,7 @@
           "fullName": "extends an array root with a string suffix",
           "status": "passed",
           "title": "extends an array root with a string suffix",
-          "duration": 0.1999999999825377,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 73,
@@ -3659,7 +3659,7 @@
           "fullName": "restores masked slots when a remote array suffix materializes a text binding",
           "status": "passed",
           "title": "restores masked slots when a remote array suffix materializes a text binding",
-          "duration": 0.3000000000174623,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 131,
@@ -3674,7 +3674,7 @@
           "fullName": "rebases a masked text span before appending an array suffix from a shared snapshot",
           "status": "passed",
           "title": "rebases a masked text span before appending an array suffix from a shared snapshot",
-          "duration": 0.1999999999825377,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 152,
@@ -3689,7 +3689,7 @@
           "fullName": "pads short text and omitted suffixes at their original Frame coordinates",
           "status": "passed",
           "title": "pads short text and omitted suffixes at their original Frame coordinates",
-          "duration": 0.3000000000174623,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 184,
@@ -3734,7 +3734,7 @@
           "fullName": "merges string snapshots with text Splices true",
           "status": "passed",
           "title": "merges string snapshots with text Splices true",
-          "duration": 0.1999999999825377,
+          "duration": 0.09999999997671694,
           "failureMessages": [],
           "location": {
             "line": 224,
@@ -3749,7 +3749,7 @@
           "fullName": "preserves fixed tuple indices and shared string snapshots",
           "status": "passed",
           "title": "preserves fixed tuple indices and shared string snapshots",
-          "duration": 0.39999999999417923,
+          "duration": 0.40000000002328306,
           "failureMessages": [],
           "location": {
             "line": 248,
@@ -3764,7 +3764,7 @@
           "fullName": "materializes one-slot tuple snapshots from local, replayed and hydrated text",
           "status": "passed",
           "title": "materializes one-slot tuple snapshots from local, replayed and hydrated text",
-          "duration": 0.20000000001164153,
+          "duration": 0.09999999997671694,
           "failureMessages": [],
           "location": {
             "line": 277,
@@ -3794,7 +3794,7 @@
           "fullName": "exports a small middle from a large text binding",
           "status": "passed",
           "title": "exports a small middle from a large text binding",
-          "duration": 0.09999999997671694,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 302,
@@ -3809,7 +3809,7 @@
           "fullName": "matches array Footage through deterministic mixed edits, compaction and recreation",
           "status": "passed",
           "title": "matches array Footage through deterministic mixed edits, compaction and recreation",
-          "duration": 90.30000000001746,
+          "duration": 60.10000000000582,
           "failureMessages": [],
           "location": {
             "line": 325,
@@ -3824,7 +3824,7 @@
           "fullName": "replays concurrent text and array Gossip in reverse order, including duplicates",
           "status": "passed",
           "title": "replays concurrent text and array Gossip in reverse order, including duplicates",
-          "duration": 0.5,
+          "duration": 0.40000000002328306,
           "failureMessages": [],
           "location": {
             "line": 367,
@@ -3839,7 +3839,7 @@
           "fullName": "finishes extension bindings before reporting a text Splice encoding failure",
           "status": "passed",
           "title": "finishes extension bindings before reporting a text Splice encoding failure",
-          "duration": 2.3999999999941792,
+          "duration": 2.1999999999825377,
           "failureMessages": [],
           "location": {
             "line": 395,
@@ -3854,7 +3854,7 @@
           "fullName": "preserves the original cause when values text encoding fails",
           "status": "passed",
           "title": "preserves the original cause when values text encoding fails",
-          "duration": 1.3000000000174623,
+          "duration": 0.8000000000174623,
           "failureMessages": [],
           "location": {
             "line": 418,
@@ -3884,7 +3884,7 @@
           "fullName": "preserves the original cause when merge text encoding fails",
           "status": "passed",
           "title": "preserves the original cause when merge text encoding fails",
-          "duration": 0.5,
+          "duration": 0.3000000000174623,
           "failureMessages": [],
           "location": {
             "line": 418,
@@ -3895,8 +3895,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524324158,
-      "endTime": 1795524324266.5,
+      "startTime": 1795524850567,
+      "endTime": 1795524850643.3,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/unit/string_footage/test.ts"
@@ -3910,7 +3910,7 @@
           "fullName": "Tuple public API keeps ordinary sequence behavior when disabled",
           "status": "passed",
           "title": "keeps ordinary sequence behavior when disabled",
-          "duration": 4.399999999994179,
+          "duration": 3.7999999999883585,
           "failureMessages": [],
           "location": {
             "line": 21,
@@ -3944,7 +3944,7 @@
           "fullName": "Tuple public API authors six words per Frame without shifting adjacent indices",
           "status": "passed",
           "title": "authors six words per Frame without shifting adjacent indices",
-          "duration": 1.2000000000116415,
+          "duration": 1,
           "failureMessages": [],
           "location": {
             "line": 50,
@@ -3961,7 +3961,7 @@
           "fullName": "Tuple public API replaces an inclusive range without moving the remaining registers",
           "status": "passed",
           "title": "replaces an inclusive range without moving the remaining registers",
-          "duration": 0.29999999998835847,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 75,
@@ -3978,7 +3978,7 @@
           "fullName": "Tuple public API grows dynamically while preserving empty and removed indices",
           "status": "passed",
           "title": "grows dynamically while preserving empty and removed indices",
-          "duration": 1.3999999999941792,
+          "duration": 1.2999999999883585,
           "failureMessages": [],
           "location": {
             "line": 98,
@@ -3995,7 +3995,7 @@
           "fullName": "Tuple public API addresses sparse high indices without allocating intervening registers",
           "status": "passed",
           "title": "addresses sparse high indices without allocating intervening registers",
-          "duration": 0.40000000002328306,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 118,
@@ -4012,7 +4012,7 @@
           "fullName": "Tuple public API restores fixed configuration and canonical offsets from array or string snapshots",
           "status": "passed",
           "title": "restores fixed configuration and canonical offsets from array or string snapshots",
-          "duration": 0.8999999999941792,
+          "duration": 0.8000000000174623,
           "failureMessages": [],
           "location": {
             "line": 131,
@@ -4029,7 +4029,7 @@
           "fullName": "Tuple public API retains omitted Footage and typed numeric lanes",
           "status": "passed",
           "title": "retains omitted Footage and typed numeric lanes",
-          "duration": 0.6000000000058208,
+          "duration": 0.7999999999883585,
           "failureMessages": [],
           "location": {
             "line": 148,
@@ -4063,7 +4063,7 @@
           "fullName": "Tuple public API rejects invalid remote coordinates while keeping the accepted prefix",
           "status": "passed",
           "title": "rejects invalid remote coordinates while keeping the accepted prefix",
-          "duration": 0.1999999999825377,
+          "duration": 0.39999999999417923,
           "failureMessages": [],
           "location": {
             "line": 185,
@@ -4091,8 +4091,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524325978,
-      "endTime": 1795524325990.3,
+      "startTime": 1795524852087,
+      "endTime": 1795524852099.3,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/unit/tuple/test.ts"
@@ -4106,7 +4106,7 @@
           "fullName": "apply equivalence at a fragmented boundary anchors a boundary insertion identically at its author and receiver",
           "status": "passed",
           "title": "anchors a boundary insertion identically at its author and receiver",
-          "duration": 5.2000000000116415,
+          "duration": 4.899999999994179,
           "failureMessages": [],
           "location": {
             "line": 23,
@@ -4117,8 +4117,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524335444,
-      "endTime": 1795524335449.2,
+      "startTime": 1795524860975,
+      "endTime": 1795524860979.9,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/anchoring/fragmented_apply_equivalence/test.ts"
@@ -4132,7 +4132,7 @@
           "fullName": "safe local anchor selection replaces the first Frame of an appended insertion at the requested index (1000, 1001)",
           "status": "passed",
           "title": "replaces the first Frame of an appended insertion at the requested index (1000, 1001)",
-          "duration": 6.699999999982538,
+          "duration": 5.199999999982538,
           "failureMessages": [],
           "location": {
             "line": 13,
@@ -4149,7 +4149,7 @@
           "fullName": "safe local anchor selection replaces the first Frame of an appended insertion at the requested index (1001, 1000)",
           "status": "passed",
           "title": "replaces the first Frame of an appended insertion at the requested index (1001, 1000)",
-          "duration": 0.5,
+          "duration": 0.39999999999417923,
           "failureMessages": [],
           "location": {
             "line": 13,
@@ -4166,7 +4166,7 @@
           "fullName": "safe local anchor selection uses the preceding mask end at the visible head after leaving the cached gate",
           "status": "passed",
           "title": "uses the preceding mask end at the visible head after leaving the cached gate",
-          "duration": 1.3000000000174623,
+          "duration": 1,
           "failureMessages": [],
           "location": {
             "line": 48,
@@ -4183,7 +4183,7 @@
           "fullName": "safe local anchor selection uses the preceding mask end before a nonzero head fragment on a synchronized peer",
           "status": "passed",
           "title": "uses the preceding mask end before a nonzero head fragment on a synchronized peer",
-          "duration": 0.39999999999417923,
+          "duration": 0.40000000002328306,
           "failureMessages": [],
           "location": {
             "line": 69,
@@ -4200,7 +4200,7 @@
           "fullName": "safe local anchor selection uses a removed child's free mask end after leaving the cached gate (1001, 1002)",
           "status": "passed",
           "title": "uses a removed child's free mask end after leaving the cached gate (1001, 1002)",
-          "duration": 2.8999999999941792,
+          "duration": 2.2999999999883585,
           "failureMessages": [],
           "location": {
             "line": 107,
@@ -4217,7 +4217,7 @@
           "fullName": "safe local anchor selection uses a removed child's free mask end after leaving the cached gate (1002, 1001)",
           "status": "passed",
           "title": "uses a removed child's free mask end after leaving the cached gate (1002, 1001)",
-          "duration": 1.7999999999883585,
+          "duration": 1.5,
           "failureMessages": [],
           "location": {
             "line": 107,
@@ -4234,7 +4234,7 @@
           "fullName": "safe local anchor selection uses the fresh mask end before a fully removed whole successor",
           "status": "passed",
           "title": "uses the fresh mask end before a fully removed whole successor",
-          "duration": 0.8000000000174623,
+          "duration": 0.6000000000058208,
           "failureMessages": [],
           "location": {
             "line": 167,
@@ -4251,7 +4251,7 @@
           "fullName": "safe local anchor selection preserves a head replacement before the next insertion (1001, 1002)",
           "status": "passed",
           "title": "preserves a head replacement before the next insertion (1001, 1002)",
-          "duration": 0.29999999998835847,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 205,
@@ -4268,7 +4268,7 @@
           "fullName": "safe local anchor selection preserves a head replacement before the next insertion (1002, 1001)",
           "status": "passed",
           "title": "preserves a head replacement before the next insertion (1002, 1001)",
-          "duration": 0.20000000001164153,
+          "duration": 0.1999999999825377,
           "failureMessages": [],
           "location": {
             "line": 205,
@@ -4285,7 +4285,7 @@
           "fullName": "safe local anchor selection uses a free mask boundary before a zero-offset fragment of another insertion",
           "status": "passed",
           "title": "uses a free mask boundary before a zero-offset fragment of another insertion",
-          "duration": 0.1999999999825377,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 234,
@@ -4302,7 +4302,7 @@
           "fullName": "safe local anchor selection uses the anchored insertion end when a boundary is already reserved",
           "status": "passed",
           "title": "uses the anchored insertion end when a boundary is already reserved",
-          "duration": 0.3000000000174623,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 263,
@@ -4319,7 +4319,7 @@
           "fullName": "safe local anchor selection uses a free mask boundary after the occupying insertion is removed",
           "status": "passed",
           "title": "uses a free mask boundary after the occupying insertion is removed",
-          "duration": 0.1999999999825377,
+          "duration": 0.09999999997671694,
           "failureMessages": [],
           "location": {
             "line": 276,
@@ -4364,8 +4364,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524324412,
-      "endTime": 1795524324428.1,
+      "startTime": 1795524850744,
+      "endTime": 1795524850756.2,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/anchoring/safe_anchor_selection/test.ts"
@@ -4379,7 +4379,7 @@
           "fullName": "causal staging retains a child and resolves it when its missing parent arrives",
           "status": "passed",
           "title": "retains a child and resolves it when its missing parent arrives",
-          "duration": 4.5,
+          "duration": 4,
           "failureMessages": [],
           "location": {
             "line": 11,
@@ -4390,8 +4390,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524335858,
-      "endTime": 1795524335862.5,
+      "startTime": 1795524861351,
+      "endTime": 1795524861355,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/causality/causal_staging/test.ts"
@@ -4403,7 +4403,7 @@
           "fullName": "A child anchored to the authored end of an overlapping mask remains replayable when only part of that mask consumes Frames.",
           "status": "passed",
           "title": "A child anchored to the authored end of an overlapping mask remains replayable when only part of that mask consumes Frames.",
-          "duration": 12.199999999982538,
+          "duration": 11.199999999982538,
           "failureMessages": [],
           "location": {
             "line": 6,
@@ -4414,8 +4414,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524336271,
-      "endTime": 1795524336283.2,
+      "startTime": 1795524861727,
+      "endTime": 1795524861738.2,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/causality/overlapped_mask_descendant/test.ts"
@@ -4429,7 +4429,7 @@
           "fullName": "pending replace pair preserves remove-before-replacement order after its parent arrives",
           "status": "passed",
           "title": "preserves remove-before-replacement order after its parent arrives",
-          "duration": 4.7000000000116415,
+          "duration": 4.5,
           "failureMessages": [],
           "location": {
             "line": 9,
@@ -4440,8 +4440,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524335756,
-      "endTime": 1795524335760.7,
+      "startTime": 1795524861260,
+      "endTime": 1795524861264.5,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/causality/pending_replace_pair/test.ts"
@@ -4453,7 +4453,7 @@
           "fullName": "continues editing from a shared compacted checkpoint, JSON false",
           "status": "passed",
           "title": "continues editing from a shared compacted checkpoint, JSON false",
-          "duration": 6.899999999994179,
+          "duration": 8.39999999999418,
           "failureMessages": [],
           "location": {
             "line": 24,
@@ -4468,7 +4468,7 @@
           "fullName": "continues editing from a shared compacted checkpoint, JSON true",
           "status": "passed",
           "title": "continues editing from a shared compacted checkpoint, JSON true",
-          "duration": 0.5,
+          "duration": 0.39999999999417923,
           "failureMessages": [],
           "location": {
             "line": 24,
@@ -4483,7 +4483,7 @@
           "fullName": "retains an offline Actor's anchors until its history and acknowledgement arrive",
           "status": "passed",
           "title": "retains an offline Actor's anchors until its history and acknowledgement arrive",
-          "duration": 0.6999999999825377,
+          "duration": 0.6000000000058208,
           "failureMessages": [],
           "location": {
             "line": 57,
@@ -4498,7 +4498,7 @@
           "fullName": "keeps all masks until every active Actor reports the complete removal Session",
           "status": "passed",
           "title": "keeps all masks until every active Actor reports the complete removal Session",
-          "duration": 0.9000000000232831,
+          "duration": 0.8999999999941792,
           "failureMessages": [],
           "location": {
             "line": 93,
@@ -4528,7 +4528,7 @@
           "fullName": "merges a compacted checkpoint into prefix retained history",
           "status": "passed",
           "title": "merges a compacted checkpoint into prefix retained history",
-          "duration": 0.3000000000174623,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 120,
@@ -4543,7 +4543,7 @@
           "fullName": "merges a compacted checkpoint into complete retained history",
           "status": "passed",
           "title": "merges a compacted checkpoint into complete retained history",
-          "duration": 0.29999999998835847,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 120,
@@ -4558,7 +4558,7 @@
           "fullName": "discards repeated acknowledged replacements without retaining their mask identities",
           "status": "passed",
           "title": "discards repeated acknowledged replacements without retaining their mask identities",
-          "duration": 4.899999999994179,
+          "duration": 5.2999999999883585,
           "failureMessages": [],
           "location": {
             "line": 158,
@@ -4573,7 +4573,7 @@
           "fullName": "releases a pending extension from an uncompacted snapshot, known prefix false",
           "status": "passed",
           "title": "releases a pending extension from an uncompacted snapshot, known prefix false",
-          "duration": 0.6000000000058208,
+          "duration": 3,
           "failureMessages": [],
           "location": {
             "line": 189,
@@ -4588,7 +4588,7 @@
           "fullName": "releases a pending extension from an uncompacted snapshot, known prefix true",
           "status": "passed",
           "title": "releases a pending extension from an uncompacted snapshot, known prefix true",
-          "duration": 0.39999999999417923,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 189,
@@ -4603,7 +4603,7 @@
           "fullName": "keeps an exported compacted snapshot isolated from later removals",
           "status": "passed",
           "title": "keeps an exported compacted snapshot isolated from later removals",
-          "duration": 0.3000000000174623,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 220,
@@ -4618,7 +4618,7 @@
           "fullName": "accepts a disconnected author's suffix while its acknowledgement blocks compaction",
           "status": "passed",
           "title": "accepts a disconnected author's suffix while its acknowledgement blocks compaction",
-          "duration": 3.6000000000058208,
+          "duration": 0.6000000000058208,
           "failureMessages": [],
           "location": {
             "line": 244,
@@ -4629,8 +4629,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524324901,
-      "endTime": 1795524324920.6,
+      "startTime": 1795524851162,
+      "endTime": 1795524851182.6,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/compaction/acknowledged_session_compaction/test.ts"
@@ -4642,7 +4642,7 @@
           "fullName": "retains repeated middle replacements before an older mask with compaction false",
           "status": "passed",
           "title": "retains repeated middle replacements before an older mask with compaction false",
-          "duration": 7.600000000005821,
+          "duration": 6.300000000017462,
           "failureMessages": [],
           "location": {
             "line": 7,
@@ -4657,7 +4657,7 @@
           "fullName": "retains repeated middle replacements before an older mask with compaction true",
           "status": "passed",
           "title": "retains repeated middle replacements before an older mask with compaction true",
-          "duration": 0.5,
+          "duration": 0.6999999999825377,
           "failureMessages": [],
           "location": {
             "line": 7,
@@ -4674,7 +4674,7 @@
           "fullName": "projection equivalence before and after hydration preserves repeated head replacements and the next edit with compaction false",
           "status": "passed",
           "title": "preserves repeated head replacements and the next edit with compaction false",
-          "duration": 0.5999999999767169,
+          "duration": 0.6000000000058208,
           "failureMessages": [],
           "location": {
             "line": 36,
@@ -4691,7 +4691,7 @@
           "fullName": "projection equivalence before and after hydration preserves repeated head replacements and the next edit with compaction true",
           "status": "passed",
           "title": "preserves repeated head replacements and the next edit with compaction true",
-          "duration": 0.20000000001164153,
+          "duration": 0.1999999999825377,
           "failureMessages": [],
           "location": {
             "line": 36,
@@ -4708,7 +4708,7 @@
           "fullName": "projection equivalence before and after hydration preserves insertion order with compaction false",
           "status": "passed",
           "title": "preserves insertion order with compaction false",
-          "duration": 0.8999999999941792,
+          "duration": 1,
           "failureMessages": [],
           "location": {
             "line": 57,
@@ -4742,7 +4742,7 @@
           "fullName": "projection equivalence before and after hydration preserves children at distinct points collapsed by compaction",
           "status": "passed",
           "title": "preserves children at distinct points collapsed by compaction",
-          "duration": 0.39999999999417923,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 114,
@@ -4759,7 +4759,7 @@
           "fullName": "projection equivalence before and after hydration retains children when the only compactable mask is fully overlapped",
           "status": "passed",
           "title": "retains children when the only compactable mask is fully overlapped",
-          "duration": 0.1999999999825377,
+          "duration": 0.39999999999417923,
           "failureMessages": [],
           "location": {
             "line": 153,
@@ -4776,7 +4776,7 @@
           "fullName": "projection equivalence before and after hydration compacts an acknowledged mask while retaining an overlapping unacknowledged mask",
           "status": "passed",
           "title": "compacts an acknowledged mask while retaining an overlapping unacknowledged mask",
-          "duration": 0.3000000000174623,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 187,
@@ -4787,8 +4787,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524325652,
-      "endTime": 1795524325663.3,
+      "startTime": 1795524851813,
+      "endTime": 1795524851823.2,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/compaction/projection_equivalence_before_and_after_hydration/test.ts"
@@ -4800,7 +4800,7 @@
           "fullName": "converges offline batch edits and compacts fully with tuple false",
           "status": "passed",
           "title": "converges offline batch edits and compacts fully with tuple false",
-          "duration": 18.10000000000582,
+          "duration": 18.60000000000582,
           "failureMessages": [],
           "location": {
             "line": 8,
@@ -4815,7 +4815,7 @@
           "fullName": "converges offline batch edits and compacts fully with tuple true",
           "status": "passed",
           "title": "converges offline batch edits and compacts fully with tuple true",
-          "duration": 6,
+          "duration": 5,
           "failureMessages": [],
           "location": {
             "line": 8,
@@ -4826,8 +4826,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524333324,
-      "endTime": 1795524333348,
+      "startTime": 1795524859105,
+      "endTime": 1795524859129,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/delivery/batch/test.ts"
@@ -4841,7 +4841,7 @@
           "fullName": "concurrent replacement delivery converges in chronological and deterministic mixed order",
           "status": "passed",
           "title": "converges in chronological and deterministic mixed order",
-          "duration": 6.7000000000116415,
+          "duration": 6.300000000017462,
           "failureMessages": [],
           "location": {
             "line": 55,
@@ -4852,8 +4852,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524333043,
-      "endTime": 1795524333049.7,
+      "startTime": 1795524858860,
+      "endTime": 1795524858866.3,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/delivery/concurrent_replacement_delivery/test.ts"
@@ -4884,7 +4884,7 @@
           "fullName": "three online and three offline editors keeps all six causal branches deterministic in 10,000 arrival orders",
           "status": "passed",
           "title": "keeps all six causal branches deterministic in 10,000 arrival orders",
-          "duration": 426.70000000001164,
+          "duration": 301.69999999998254,
           "failureMessages": [],
           "location": {
             "line": 190,
@@ -4901,7 +4901,7 @@
           "fullName": "three online and three offline editors converges mixed insert/remove/replace lifecycles exactly",
           "status": "passed",
           "title": "converges mixed insert/remove/replace lifecycles exactly",
-          "duration": 10.300000000017462,
+          "duration": 11,
           "failureMessages": [],
           "location": {
             "line": 210,
@@ -4912,8 +4912,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524325067,
-      "endTime": 1795524325512.3,
+      "startTime": 1795524851355,
+      "endTime": 1795524851676,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/delivery/offline_realtime_editing/test.ts"
@@ -4927,7 +4927,7 @@
           "fullName": "same actor in multiple replicas keeps per-instance Clocks independent across concurrent tabs",
           "status": "passed",
           "title": "keeps per-instance Clocks independent across concurrent tabs",
-          "duration": 8.5,
+          "duration": 7.2999999999883585,
           "failureMessages": [],
           "location": {
             "line": 51,
@@ -4938,8 +4938,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524333474,
-      "endTime": 1795524333482.5,
+      "startTime": 1795524859245,
+      "endTime": 1795524859252.3,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/delivery/same_actor_multi_replica/test.ts"
@@ -4953,7 +4953,7 @@
           "fullName": "unordered replace delivery converges in chronological, reverse, and mixed delivery order",
           "status": "passed",
           "title": "converges in chronological, reverse, and mixed delivery order",
-          "duration": 8.699999999982538,
+          "duration": 6.100000000005821,
           "failureMessages": [],
           "location": {
             "line": 67,
@@ -4964,8 +4964,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524332925,
-      "endTime": 1795524332933.7,
+      "startTime": 1795524858754,
+      "endTime": 1795524858760.1,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/delivery/unordered_replace_delivery/test.ts"
@@ -4979,7 +4979,7 @@
           "fullName": "hostile three-peer delivery converges from an empty sequence in chronological and mixed order",
           "status": "passed",
           "title": "converges from an empty sequence in chronological and mixed order",
-          "duration": 14.200000000011642,
+          "duration": 15,
           "failureMessages": [],
           "location": {
             "line": 76,
@@ -4990,8 +4990,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524332426,
-      "endTime": 1795524332440.2,
+      "startTime": 1795524858289,
+      "endTime": 1795524858304,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/delivery/unordered_three_peer_delivery/test.ts"
@@ -5003,7 +5003,7 @@
           "fullName": "reports a head insertion at zero after resolving a free original zero in the middle",
           "status": "passed",
           "title": "reports a head insertion at zero after resolving a free original zero in the middle",
-          "duration": 6.899999999994179,
+          "duration": 6.399999999994179,
           "failureMessages": [],
           "location": {
             "line": 16,
@@ -5018,7 +5018,7 @@
           "fullName": "matches array editing and consumer splices with compaction false",
           "status": "passed",
           "title": "matches array editing and consumer splices with compaction false",
-          "duration": 3397.9000000000233,
+          "duration": 3281.100000000006,
           "failureMessages": [],
           "location": {
             "line": 63,
@@ -5033,7 +5033,7 @@
           "fullName": "matches array editing and consumer splices with compaction true",
           "status": "passed",
           "title": "matches array editing and consumer splices with compaction true",
-          "duration": 2021.4000000000233,
+          "duration": 1824.2000000000116,
           "failureMessages": [],
           "location": {
             "line": 63,
@@ -5044,8 +5044,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524326523,
-      "endTime": 1795524331949.4,
+      "startTime": 1795524852709,
+      "endTime": 1795524857821.2,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/editing/array_model_equivalence/test.ts"
@@ -5059,7 +5059,7 @@
           "fullName": "author-time view equivalence orders same-actor insertions by the view in which they were authored",
           "status": "passed",
           "title": "orders same-actor insertions by the view in which they were authored",
-          "duration": 5.100000000005821,
+          "duration": 4.800000000017462,
           "failureMessages": [],
           "location": {
             "line": 11,
@@ -5070,8 +5070,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524334800,
-      "endTime": 1795524334805.1,
+      "startTime": 1795524860405,
+      "endTime": 1795524860409.8,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/editing/author_time_view_equivalence/test.ts"
@@ -5085,7 +5085,7 @@
           "fullName": "contiguous insertion extensions retains a mask-end child before a suffix with ordered delivery",
           "status": "passed",
           "title": "retains a mask-end child before a suffix with ordered delivery",
-          "duration": 6.7999999999883585,
+          "duration": 6.300000000017462,
           "failureMessages": [],
           "location": {
             "line": 28,
@@ -5119,7 +5119,7 @@
           "fullName": "contiguous insertion extensions preserves missing content slots before appending an extension",
           "status": "passed",
           "title": "preserves missing content slots before appending an extension",
-          "duration": 0.09999999997671694,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 69,
@@ -5136,7 +5136,7 @@
           "fullName": "contiguous insertion extensions replays an extension after concurrent remote fragmentation with compaction false",
           "status": "passed",
           "title": "replays an extension after concurrent remote fragmentation with compaction false",
-          "duration": 0.40000000002328306,
+          "duration": 0.39999999999417923,
           "failureMessages": [],
           "location": {
             "line": 77,
@@ -5153,7 +5153,7 @@
           "fullName": "contiguous insertion extensions replays an extension after concurrent remote fragmentation with compaction true",
           "status": "passed",
           "title": "replays an extension after concurrent remote fragmentation with compaction true",
-          "duration": 0.29999999998835847,
+          "duration": 0.39999999999417923,
           "failureMessages": [],
           "location": {
             "line": 77,
@@ -5170,7 +5170,7 @@
           "fullName": "contiguous insertion extensions keeps extending an intact local insertion before an existing tail",
           "status": "passed",
           "title": "keeps extending an intact local insertion before an existing tail",
-          "duration": 1.7000000000116415,
+          "duration": 1.3999999999941792,
           "failureMessages": [],
           "location": {
             "line": 102,
@@ -5187,7 +5187,7 @@
           "fullName": "contiguous insertion extensions grows one insertion and sends only the new six-word suffix",
           "status": "passed",
           "title": "grows one insertion and sends only the new six-word suffix",
-          "duration": 0.39999999999417923,
+          "duration": 0.5,
           "failureMessages": [],
           "location": {
             "line": 117,
@@ -5204,7 +5204,7 @@
           "fullName": "contiguous insertion extensions preserves earlier snapshots after subsequent extensions",
           "status": "passed",
           "title": "preserves earlier snapshots after subsequent extensions",
-          "duration": 0.5999999999767169,
+          "duration": 0.8000000000174623,
           "failureMessages": [],
           "location": {
             "line": 150,
@@ -5221,7 +5221,7 @@
           "fullName": "contiguous insertion extensions replays missing suffixes, duplicates, and dependencies in hostile delivery order",
           "status": "passed",
           "title": "replays missing suffixes, duplicates, and dependencies in hostile delivery order",
-          "duration": 0.40000000002328306,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 164,
@@ -5238,7 +5238,7 @@
           "fullName": "contiguous insertion extensions places endpoint children before the continuation for session 50",
           "status": "passed",
           "title": "places endpoint children before the continuation for session 50",
-          "duration": 0.5,
+          "duration": 0.7000000000116415,
           "failureMessages": [],
           "location": {
             "line": 175,
@@ -5255,7 +5255,7 @@
           "fullName": "contiguous insertion extensions places endpoint children before the continuation for session 150",
           "status": "passed",
           "title": "places endpoint children before the continuation for session 150",
-          "duration": 0.39999999999417923,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 175,
@@ -5289,7 +5289,7 @@
           "fullName": "contiguous insertion extensions starts a new insertion after fragmentation with compaction false",
           "status": "passed",
           "title": "starts a new insertion after fragmentation with compaction false",
-          "duration": 0.20000000001164153,
+          "duration": 0.3000000000174623,
           "failureMessages": [],
           "location": {
             "line": 221,
@@ -5306,7 +5306,7 @@
           "fullName": "contiguous insertion extensions starts a new insertion after fragmentation with compaction true",
           "status": "passed",
           "title": "starts a new insertion after fragmentation with compaction true",
-          "duration": 0.1999999999825377,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 221,
@@ -5323,7 +5323,7 @@
           "fullName": "contiguous insertion extensions extends after a concurrently removed endpoint",
           "status": "passed",
           "title": "extends after a concurrently removed endpoint",
-          "duration": 0.40000000002328306,
+          "duration": 0.3000000000174623,
           "failureMessages": [],
           "location": {
             "line": 244,
@@ -5340,7 +5340,7 @@
           "fullName": "contiguous insertion extensions preserves insertion splices when a root and its extensions arrive in one batch",
           "status": "passed",
           "title": "preserves insertion splices when a root and its extensions arrive in one batch",
-          "duration": 0.1999999999825377,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 258,
@@ -5351,8 +5351,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524324758,
-      "endTime": 1795524324772.4,
+      "startTime": 1795524851026,
+      "endTime": 1795524851040.1,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/editing/contiguous_insertion_extension/test.ts"
@@ -5366,7 +5366,7 @@
           "fullName": "local editing lifecycle preserves visible values through local edits and reconstruction",
           "status": "passed",
           "title": "preserves visible values through local edits and reconstruction",
-          "duration": 7.199999999982538,
+          "duration": 11.89999999999418,
           "failureMessages": [],
           "location": {
             "line": 17,
@@ -5377,8 +5377,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524333983,
-      "endTime": 1795524333990.2,
+      "startTime": 1795524859711,
+      "endTime": 1795524859722.9,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/editing/editing_lifecycle/test.ts"
@@ -5392,7 +5392,7 @@
           "fullName": "local replace gate keeps the gate index on the left side of a same-strip replacement",
           "status": "passed",
           "title": "keeps the gate index on the left side of a same-strip replacement",
-          "duration": 4.300000000017462,
+          "duration": 4,
           "failureMessages": [],
           "location": {
             "line": 10,
@@ -5403,8 +5403,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524336168,
-      "endTime": 1795524336172.3,
+      "startTime": 1795524861634,
+      "endTime": 1795524861638,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/editing/gate_replace/test.ts"
@@ -5416,7 +5416,7 @@
           "fullName": "A valid local removal remains addressable after alternating live replacements, mask fragmentation and restarts.",
           "status": "passed",
           "title": "A valid local removal remains addressable after alternating live replacements, mask fragmentation and restarts.",
-          "duration": 14.599999999976717,
+          "duration": 12.299999999988358,
           "failureMessages": [],
           "location": {
             "line": 6,
@@ -5427,8 +5427,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524336495,
-      "endTime": 1795524336509.6,
+      "startTime": 1795524861930,
+      "endTime": 1795524861942.3,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/editing/live_fragmented_range_removal/test.ts"
@@ -5442,7 +5442,7 @@
           "fullName": "live replace then remove keeps the local and remotely applied structures equivalent",
           "status": "passed",
           "title": "keeps the local and remotely applied structures equivalent",
-          "duration": 9.300000000017462,
+          "duration": 10.400000000023283,
           "failureMessages": [],
           "location": {
             "line": 49,
@@ -5453,8 +5453,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524333742,
-      "endTime": 1795524333751.3,
+      "startTime": 1795524859487,
+      "endTime": 1795524859497.4,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/editing/live_replace_then_remove/test.ts"
@@ -5468,7 +5468,7 @@
           "fullName": "live scale-down gossip keeps every projection position converged while shrinking",
           "status": "passed",
           "title": "keeps every projection position converged while shrinking",
-          "duration": 18.70000000001164,
+          "duration": 19.199999999982538,
           "failureMessages": [],
           "location": {
             "line": 141,
@@ -5479,8 +5479,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524332555,
-      "endTime": 1795524332573.7,
+      "startTime": 1795524858411,
+      "endTime": 1795524858430.2,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/editing/live_scale_down_gossip/test.ts"
@@ -5494,7 +5494,7 @@
           "fullName": "local/remote replacement equivalence converges after every immediately delivered Gossip update",
           "status": "passed",
           "title": "converges after every immediately delivered Gossip update",
-          "duration": 63.89999999999418,
+          "duration": 61.29999999998836,
           "failureMessages": [],
           "location": {
             "line": 25,
@@ -5505,8 +5505,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524332117,
-      "endTime": 1795524332180.9,
+      "startTime": 1795524858006,
+      "endTime": 1795524858067.3,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/editing/local_remote_replace_equivalence/test.ts"
@@ -5518,7 +5518,7 @@
           "fullName": "A replacement at a surviving fragment boundary stays at the requested visible position on both live peers.",
           "status": "passed",
           "title": "A replacement at a surviving fragment boundary stays at the requested visible position on both live peers.",
-          "duration": 13.299999999988358,
+          "duration": 11.10000000000582,
           "failureMessages": [],
           "location": {
             "line": 6,
@@ -5529,8 +5529,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524336726,
-      "endTime": 1795524336739.3,
+      "startTime": 1795524862139,
+      "endTime": 1795524862150.1,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/editing/masked_fragment_insertion_boundary/test.ts"
@@ -5542,7 +5542,7 @@
           "fullName": "orders boundary children for adjacent ranges in every delivery order (reverse Sessions: false)",
           "status": "passed",
           "title": "orders boundary children for adjacent ranges in every delivery order (reverse Sessions: false)",
-          "duration": 144.59999999997672,
+          "duration": 191.79999999998836,
           "failureMessages": [],
           "location": {
             "line": 27,
@@ -5557,7 +5557,7 @@
           "fullName": "orders boundary children for adjacent ranges in every delivery order (reverse Sessions: true)",
           "status": "passed",
           "title": "orders boundary children for adjacent ranges in every delivery order (reverse Sessions: true)",
-          "duration": 75.69999999998254,
+          "duration": 82.19999999998254,
           "failureMessages": [],
           "location": {
             "line": 27,
@@ -5572,7 +5572,7 @@
           "fullName": "orders boundary children for one endpoint in every delivery order (reverse Sessions: false)",
           "status": "passed",
           "title": "orders boundary children for one endpoint in every delivery order (reverse Sessions: false)",
-          "duration": 12.60000000000582,
+          "duration": 11.5,
           "failureMessages": [],
           "location": {
             "line": 27,
@@ -5587,7 +5587,7 @@
           "fullName": "orders boundary children for one endpoint in every delivery order (reverse Sessions: true)",
           "status": "passed",
           "title": "orders boundary children for one endpoint in every delivery order (reverse Sessions: true)",
-          "duration": 13.300000000017462,
+          "duration": 9.5,
           "failureMessages": [],
           "location": {
             "line": 27,
@@ -5602,7 +5602,7 @@
           "fullName": "retains an offline insertion inside repeated tail replacement history",
           "status": "passed",
           "title": "retains an offline insertion inside repeated tail replacement history",
-          "duration": 4.899999999994179,
+          "duration": 4,
           "failureMessages": [],
           "location": {
             "line": 81,
@@ -5617,7 +5617,7 @@
           "fullName": "retains an offline insertion inside a coalesced deleted prefix",
           "status": "passed",
           "title": "retains an offline insertion inside a coalesced deleted prefix",
-          "duration": 0.7000000000116415,
+          "duration": 0.5,
           "failureMessages": [],
           "location": {
             "line": 117,
@@ -5632,7 +5632,7 @@
           "fullName": "retains a child at the zero anchor of an overlapped mask (reverse: false)",
           "status": "passed",
           "title": "retains a child at the zero anchor of an overlapped mask (reverse: false)",
-          "duration": 0.39999999999417923,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 143,
@@ -5647,7 +5647,7 @@
           "fullName": "retains a child at the zero anchor of an overlapped mask (reverse: true)",
           "status": "passed",
           "title": "retains a child at the zero anchor of an overlapped mask (reverse: true)",
-          "duration": 0.1999999999825377,
+          "duration": 0,
           "failureMessages": [],
           "location": {
             "line": 143,
@@ -5662,7 +5662,7 @@
           "fullName": "keeps a gate in another root subtree across a fragmented remote removal",
           "status": "passed",
           "title": "keeps a gate in another root subtree across a fragmented remote removal",
-          "duration": 0.9000000000232831,
+          "duration": 0.39999999999417923,
           "failureMessages": [],
           "location": {
             "line": 171,
@@ -5692,7 +5692,7 @@
           "fullName": "compacts separate removals that together consume an entire original Footage",
           "status": "passed",
           "title": "compacts separate removals that together consume an entire original Footage",
-          "duration": 0.29999999998835847,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 213,
@@ -5703,8 +5703,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524326122,
-      "endTime": 1795524326376.5,
+      "startTime": 1795524852272,
+      "endTime": 1795524852574.5,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/masking/canonical_mask_boundaries/test.ts"
@@ -5718,7 +5718,7 @@
           "fullName": "concurrent remove and insert keeps the concurrent insertion outside the origin remove",
           "status": "passed",
           "title": "keeps the concurrent insertion outside the origin remove",
-          "duration": 5.899999999994179,
+          "duration": 5.399999999994179,
           "failureMessages": [],
           "location": {
             "line": 14,
@@ -5729,8 +5729,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524335652,
-      "endTime": 1795524335657.9,
+      "startTime": 1795524861161,
+      "endTime": 1795524861166.4,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/masking/concurrent_remove_insert/test.ts"
@@ -5742,7 +5742,7 @@
           "fullName": "apply reports separate removals around surviving concurrent insertions",
           "status": "passed",
           "title": "apply reports separate removals around surviving concurrent insertions",
-          "duration": 6.599999999976717,
+          "duration": 4.5,
           "failureMessages": [],
           "location": {
             "line": 28,
@@ -5757,7 +5757,7 @@
           "fullName": "merge reports separate removals around surviving concurrent insertions",
           "status": "passed",
           "title": "merge reports separate removals around surviving concurrent insertions",
-          "duration": 1.400000000023283,
+          "duration": 1,
           "failureMessages": [],
           "location": {
             "line": 28,
@@ -5772,7 +5772,7 @@
           "fullName": "reports replacement splices against the view left by preceding removals",
           "status": "passed",
           "title": "reports replacement splices against the view left by preceding removals",
-          "duration": 0.1999999999825377,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 48,
@@ -5787,7 +5787,7 @@
           "fullName": "omits zero-effect mask fragments after earlier overlapping removals",
           "status": "passed",
           "title": "omits zero-effect mask fragments after earlier overlapping removals",
-          "duration": 0.39999999999417923,
+          "duration": 0.3000000000174623,
           "failureMessages": [],
           "location": {
             "line": 56,
@@ -5798,8 +5798,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524334568,
-      "endTime": 1795524334577.4,
+      "startTime": 1795524860217,
+      "endTime": 1795524860223.3,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/masking/fragmented_consumer_splices/test.ts"
@@ -5813,7 +5813,7 @@
           "fullName": "overlapping remove ownership converges in chronological, reverse, and mixed delivery order",
           "status": "passed",
           "title": "converges in chronological, reverse, and mixed delivery order",
-          "duration": 7,
+          "duration": 6.400000000023283,
           "failureMessages": [],
           "location": {
             "line": 62,
@@ -5824,8 +5824,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524332679,
-      "endTime": 1795524332686,
+      "startTime": 1795524858530,
+      "endTime": 1795524858536.4,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/masking/overlapping_remove_ownership/test.ts"
@@ -5837,7 +5837,7 @@
           "fullName": "apply preserves Splice Footage before same-batch masking rebases its binding",
           "status": "passed",
           "title": "apply preserves Splice Footage before same-batch masking rebases its binding",
-          "duration": 6,
+          "duration": 5.399999999994179,
           "failureMessages": [],
           "location": {
             "line": 5,
@@ -5852,7 +5852,7 @@
           "fullName": "merge preserves Splice Footage before same-batch masking rebases its binding",
           "status": "passed",
           "title": "merge preserves Splice Footage before same-batch masking rebases its binding",
-          "duration": 0.40000000002328306,
+          "duration": 0.5,
           "failureMessages": [],
           "location": {
             "line": 5,
@@ -5863,8 +5863,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524335961,
-      "endTime": 1795524335967.4,
+      "startTime": 1795524861444,
+      "endTime": 1795524861450.5,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/masking/same_batch_footage_rebasing/test.ts"
@@ -5878,7 +5878,7 @@
           "fullName": "concurrent root ordering keeps concurrent root subtrees deterministic and separate",
           "status": "passed",
           "title": "keeps concurrent root subtrees deterministic and separate",
-          "duration": 6.7000000000116415,
+          "duration": 5.100000000005821,
           "failureMessages": [],
           "location": {
             "line": 12,
@@ -5889,8 +5889,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524334686,
-      "endTime": 1795524334692.7,
+      "startTime": 1795524860312,
+      "endTime": 1795524860317.1,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/ordering/concurrent_root_ordering/test.ts"
@@ -5904,7 +5904,7 @@
           "fullName": "concurrent root subtree orders a complete concurrent subtree delivered before the other root",
           "status": "passed",
           "title": "orders a complete concurrent subtree delivered before the other root",
-          "duration": 5.100000000005821,
+          "duration": 5,
           "failureMessages": [],
           "location": {
             "line": 11,
@@ -5915,8 +5915,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524335237,
-      "endTime": 1795524335242.1,
+      "startTime": 1795524860788,
+      "endTime": 1795524860793,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/ordering/concurrent_root_subtree/test.ts"
@@ -5928,7 +5928,7 @@
           "fullName": "Reverse and duplicate delivery retains complete causal subtrees through local edits and snapshot hydration.",
           "status": "passed",
           "title": "Reverse and duplicate delivery retains complete causal subtrees through local edits and snapshot hydration.",
-          "duration": 15.299999999988358,
+          "duration": 12.300000000017462,
           "failureMessages": [],
           "location": {
             "line": 6,
@@ -5939,8 +5939,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524336611,
-      "endTime": 1795524336626.3,
+      "startTime": 1795524862037,
+      "endTime": 1795524862049.3,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/ordering/root_subtree_redelivery/test.ts"
@@ -5954,7 +5954,7 @@
           "fullName": "concurrent replace remove restart keeps a concurrent root outside the causal replace remove",
           "status": "passed",
           "title": "keeps a concurrent root outside the causal replace remove",
-          "duration": 6.2999999999883585,
+          "duration": 5.899999999994179,
           "failureMessages": [],
           "location": {
             "line": 12,
@@ -5965,8 +5965,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524334908,
-      "endTime": 1795524334914.3,
+      "startTime": 1795524860498,
+      "endTime": 1795524860503.9,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/persistence/concurrent_replace_remove_restart/test.ts"
@@ -5980,7 +5980,7 @@
           "fullName": "concurrent root restart preserves complete root subtrees through restart and redelivery",
           "status": "passed",
           "title": "preserves complete root subtrees through restart and redelivery",
-          "duration": 6.100000000005821,
+          "duration": 5.5,
           "failureMessages": [],
           "location": {
             "line": 12,
@@ -5991,8 +5991,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524335021,
-      "endTime": 1795524335027.1,
+      "startTime": 1795524860594,
+      "endTime": 1795524860599.5,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/persistence/concurrent_root_restart/test.ts"
@@ -6006,7 +6006,7 @@
           "fullName": "concurrent root sequence recreates three concurrent root subtrees in deterministic order",
           "status": "passed",
           "title": "recreates three concurrent root subtrees in deterministic order",
-          "duration": 6,
+          "duration": 5.2999999999883585,
           "failureMessages": [],
           "location": {
             "line": 12,
@@ -6017,8 +6017,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524335339,
-      "endTime": 1795524335345,
+      "startTime": 1795524860882,
+      "endTime": 1795524860887.3,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/persistence/concurrent_root_sequence/test.ts"
@@ -6030,7 +6030,7 @@
           "fullName": "Hydration indexes the completed Structural Order when later masks revisit a previously visible prefix.",
           "status": "passed",
           "title": "Hydration indexes the completed Structural Order when later masks revisit a previously visible prefix.",
-          "duration": 14.89999999999418,
+          "duration": 11.89999999999418,
           "failureMessages": [],
           "location": {
             "line": 6,
@@ -6041,8 +6041,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524336840,
-      "endTime": 1795524336854.9,
+      "startTime": 1795524862239,
+      "endTime": 1795524862250.9,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/persistence/hydrated_revisited_prefix/test.ts"
@@ -6056,7 +6056,7 @@
           "fullName": "restart and redelivery converges through hostile delivery, create, and stale redelivery",
           "status": "passed",
           "title": "converges through hostile delivery, create, and stale redelivery",
-          "duration": 5.900000000023283,
+          "duration": 5.5,
           "failureMessages": [],
           "location": {
             "line": 15,
@@ -6067,8 +6067,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524335132,
-      "endTime": 1795524335137.9,
+      "startTime": 1795524860687,
+      "endTime": 1795524860692.5,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/persistence/restart_redelivery/test.ts"
@@ -6082,7 +6082,7 @@
           "fullName": "snapshot/live tail append with ordered delivery converges across 2 replacements before and after hydration",
           "status": "passed",
           "title": "converges across 2 replacements before and after hydration",
-          "duration": 7,
+          "duration": 6.2999999999883585,
           "failureMessages": [],
           "location": {
             "line": 13,
@@ -6116,7 +6116,7 @@
           "fullName": "snapshot/live tail append with ordered delivery converges across 128 replacements before and after hydration",
           "status": "passed",
           "title": "converges across 128 replacements before and after hydration",
-          "duration": 2.5,
+          "duration": 2.8999999999941792,
           "failureMessages": [],
           "location": {
             "line": 13,
@@ -6133,7 +6133,7 @@
           "fullName": "snapshot/live tail append with reverse delivery converges across 2 replacements before and after hydration",
           "status": "passed",
           "title": "converges across 2 replacements before and after hydration",
-          "duration": 0.8999999999941792,
+          "duration": 0.39999999999417923,
           "failureMessages": [],
           "location": {
             "line": 13,
@@ -6167,7 +6167,7 @@
           "fullName": "snapshot/live tail append with reverse delivery converges across 128 replacements before and after hydration",
           "status": "passed",
           "title": "converges across 128 replacements before and after hydration",
-          "duration": 2.3999999999941792,
+          "duration": 3,
           "failureMessages": [],
           "location": {
             "line": 13,
@@ -6184,7 +6184,7 @@
           "fullName": "snapshot/live tail append with shuffled delivery converges across 2 replacements before and after hydration",
           "status": "passed",
           "title": "converges across 2 replacements before and after hydration",
-          "duration": 0.3000000000174623,
+          "duration": 0.39999999999417923,
           "failureMessages": [],
           "location": {
             "line": 13,
@@ -6201,7 +6201,7 @@
           "fullName": "snapshot/live tail append with shuffled delivery converges across 4 replacements before and after hydration",
           "status": "passed",
           "title": "converges across 4 replacements before and after hydration",
-          "duration": 0.29999999998835847,
+          "duration": 0.40000000002328306,
           "failureMessages": [],
           "location": {
             "line": 13,
@@ -6218,7 +6218,7 @@
           "fullName": "snapshot/live tail append with shuffled delivery converges across 128 replacements before and after hydration",
           "status": "passed",
           "title": "converges across 128 replacements before and after hydration",
-          "duration": 3.3999999999941792,
+          "duration": 4.399999999994179,
           "failureMessages": [],
           "location": {
             "line": 13,
@@ -6233,7 +6233,7 @@
           "fullName": "preserves competing offline tail appends before a later mask-end replacement",
           "status": "passed",
           "title": "preserves competing offline tail appends before a later mask-end replacement",
-          "duration": 0.39999999999417923,
+          "duration": 0.7999999999883585,
           "failureMessages": [],
           "location": {
             "line": 80,
@@ -6244,8 +6244,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524333594,
-      "endTime": 1795524333612.4,
+      "startTime": 1795524859350,
+      "endTime": 1795524859370.8,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/persistence/snapshot_live_tail_append/test.ts"
@@ -6257,7 +6257,7 @@
           "fullName": "retains its visible tail across concurrent removals of the same suffix",
           "status": "passed",
           "title": "retains its visible tail across concurrent removals of the same suffix",
-          "duration": 6.399999999994179,
+          "duration": 5.900000000023283,
           "failureMessages": [],
           "location": {
             "line": 6,
@@ -6287,7 +6287,7 @@
           "fullName": "retains 17 visible Frames while hydrating an unacknowledged hidden suffix",
           "status": "passed",
           "title": "retains 17 visible Frames while hydrating an unacknowledged hidden suffix",
-          "duration": 1,
+          "duration": 0.7999999999883585,
           "failureMessages": [],
           "location": {
             "line": 45,
@@ -6302,7 +6302,7 @@
           "fullName": "retains 28 visible Frames while hydrating an unacknowledged hidden suffix",
           "status": "passed",
           "title": "retains 28 visible Frames while hydrating an unacknowledged hidden suffix",
-          "duration": 0.5,
+          "duration": 0.40000000002328306,
           "failureMessages": [],
           "location": {
             "line": 45,
@@ -6328,8 +6328,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524334099,
-      "endTime": 1795524334108.3,
+      "startTime": 1795524859818,
+      "endTime": 1795524859826.3,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/projection/hydrated_hidden_suffix/test.ts"
@@ -6343,7 +6343,7 @@
           "fullName": "live peer projection-position equivalence through jumps returns the same Footage from every projection position",
           "status": "passed",
           "title": "returns the same Footage from every projection position",
-          "duration": 6.800000000017462,
+          "duration": 5.600000000005821,
           "failureMessages": [],
           "location": {
             "line": 44,
@@ -6354,8 +6354,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524334456,
-      "endTime": 1795524334462.8,
+      "startTime": 1795524860121,
+      "endTime": 1795524860126.6,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/projection/live_peer_index_equivalence/test.ts"
@@ -6369,7 +6369,7 @@
           "fullName": "unobserved live peer lookup resolves every Frame after several edits without intermediate reads",
           "status": "passed",
           "title": "resolves every Frame after several edits without intermediate reads",
-          "duration": 5.300000000017462,
+          "duration": 5.100000000005821,
           "failureMessages": [],
           "location": {
             "line": 25,
@@ -6380,8 +6380,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524334341,
-      "endTime": 1795524334346.3,
+      "startTime": 1795524860029,
+      "endTime": 1795524860034.1,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/projection/live_unobserved_peer_lookup/test.ts"
@@ -6393,7 +6393,7 @@
           "fullName": "Local insertion after a competing subtree updates the enclosing jump before indexed reads.",
           "status": "passed",
           "title": "Local insertion after a competing subtree updates the enclosing jump before indexed reads.",
-          "duration": 10.300000000017462,
+          "duration": 8.900000000023283,
           "failureMessages": [],
           "location": {
             "line": 6,
@@ -6404,8 +6404,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524336953,
-      "endTime": 1795524336963.3,
+      "startTime": 1795524862340,
+      "endTime": 1795524862348.9,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/projection/local_competitor_jump/test.ts"
@@ -6419,7 +6419,7 @@
           "fullName": "local emptying and reordered gossip retains the old anchor when a disconnected peer inserts at 0",
           "status": "passed",
           "title": "retains the old anchor when a disconnected peer inserts at 0",
-          "duration": 8,
+          "duration": 8.799999999988358,
           "failureMessages": [],
           "location": {
             "line": 21,
@@ -6453,7 +6453,7 @@
           "fullName": "local emptying and reordered gossip keeps bulk and indexed reads convergent after disconnected edits and duplicate delivery",
           "status": "passed",
           "title": "keeps bulk and indexed reads convergent after disconnected edits and duplicate delivery",
-          "duration": 11.5,
+          "duration": 13.89999999999418,
           "failureMessages": [],
           "location": {
             "line": 67,
@@ -6464,8 +6464,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524333191,
-      "endTime": 1795524333212.5,
+      "startTime": 1795524858968,
+      "endTime": 1795524858991.9,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/projection/local_empty_reordered_gossip/test.ts"
@@ -6479,7 +6479,7 @@
           "fullName": "overlapping remove gate keeps the gate index correct across overlapping removals",
           "status": "passed",
           "title": "keeps the gate index correct across overlapping removals",
-          "duration": 6.399999999994179,
+          "duration": 5.599999999976717,
           "failureMessages": [],
           "location": {
             "line": 11,
@@ -6490,8 +6490,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524335547,
-      "endTime": 1795524335553.4,
+      "startTime": 1795524861069,
+      "endTime": 1795524861074.6,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/projection/overlapping_remove_gate/test.ts"
@@ -6505,7 +6505,7 @@
           "fullName": "head projection boundary keeps head on the left-most projected Frame after a head removal",
           "status": "passed",
           "title": "keeps head on the left-most projected Frame after a head removal",
-          "duration": 6.100000000005821,
+          "duration": 5.5,
           "failureMessages": [],
           "location": {
             "line": 12,
@@ -6516,8 +6516,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524336066,
-      "endTime": 1795524336072.1,
+      "startTime": 1795524861541,
+      "endTime": 1795524861546.5,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/projection/projection_boundary_head/test.ts"
@@ -6531,7 +6531,7 @@
           "fullName": "tail replace remove keeps late insertions visible inside repeated tail replacement history",
           "status": "passed",
           "title": "keeps late insertions visible inside repeated tail replacement history",
-          "duration": 8.10000000000582,
+          "duration": 7.5,
           "failureMessages": [],
           "location": {
             "line": 7,
@@ -6548,7 +6548,7 @@
           "fullName": "tail replace remove keeps the replacement paired with its remove through restart",
           "status": "passed",
           "title": "keeps the replacement paired with its remove through restart",
-          "duration": 1.900000000023283,
+          "duration": 1.5,
           "failureMessages": [],
           "location": {
             "line": 42,
@@ -6559,8 +6559,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524334221,
-      "endTime": 1795524334230.9,
+      "startTime": 1795524859929,
+      "endTime": 1795524859937.5,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/projection/projection_boundary_tail/test.ts"
@@ -6574,7 +6574,7 @@
           "fullName": "projection gate stability retains the local Strip while remote edits shift its visible index",
           "status": "passed",
           "title": "retains the local Strip while remote edits shift its visible index",
-          "duration": 8,
+          "duration": 6.2000000000116415,
           "failureMessages": [],
           "location": {
             "line": 11,
@@ -6591,7 +6591,7 @@
           "fullName": "projection gate stability follows the original content when insertion splits the gate at its start",
           "status": "passed",
           "title": "follows the original content when insertion splits the gate at its start",
-          "duration": 0.20000000001164153,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 42,
@@ -6608,7 +6608,7 @@
           "fullName": "projection gate stability moves to surviving neighbouring content when the local Strip is removed",
           "status": "passed",
           "title": "moves to surviving neighbouring content when the local Strip is removed",
-          "duration": 0.3000000000174623,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 54,
@@ -6625,7 +6625,7 @@
           "fullName": "projection gate stability keeps lookups correct after splitting the gate, another remote, and a local removal",
           "status": "passed",
           "title": "keeps lookups correct after splitting the gate, another remote, and a local removal",
-          "duration": 0.8999999999941792,
+          "duration": 0.7999999999883585,
           "failureMessages": [],
           "location": {
             "line": 68,
@@ -6642,7 +6642,7 @@
           "fullName": "projection gate stability counts only the fragmented mask before local position 5",
           "status": "passed",
           "title": "counts only the fragmented mask before local position 5",
-          "duration": 0.5,
+          "duration": 0.29999999998835847,
           "failureMessages": [],
           "location": {
             "line": 93,
@@ -6659,7 +6659,7 @@
           "fullName": "projection gate stability counts only the fragmented mask before local position 6",
           "status": "passed",
           "title": "counts only the fragmented mask before local position 6",
-          "duration": 0.29999999998835847,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 93,
@@ -6676,7 +6676,7 @@
           "fullName": "projection gate stability clears the gate when remote removal empties the projection",
           "status": "passed",
           "title": "clears the gate when remote removal empties the projection",
-          "duration": 0.10000000000582077,
+          "duration": 0.20000000001164153,
           "failureMessages": [],
           "location": {
             "line": 119,
@@ -6693,7 +6693,7 @@
           "fullName": "projection gate stability starts at the visible head after local emptying and a new remote root 50",
           "status": "passed",
           "title": "starts at the visible head after local emptying and a new remote root 50",
-          "duration": 0.10000000000582077,
+          "duration": 0.09999999997671694,
           "failureMessages": [],
           "location": {
             "line": 129,
@@ -6710,7 +6710,7 @@
           "fullName": "projection gate stability starts at the visible head after local emptying and a new remote root 150",
           "status": "passed",
           "title": "starts at the visible head after local emptying and a new remote root 150",
-          "duration": 0.20000000001164153,
+          "duration": 0.10000000000582077,
           "failureMessages": [],
           "location": {
             "line": 129,
@@ -6721,8 +6721,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524332802,
-      "endTime": 1795524332812.3,
+      "startTime": 1795524858639,
+      "endTime": 1795524858648.1,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/projection/projection_gate_stability/test.ts"
@@ -6734,7 +6734,7 @@
           "fullName": "Bounded and indexed reads agree with bulk values after live replacements and restarts.",
           "status": "passed",
           "title": "Bounded and indexed reads agree with bulk values after live replacements and restarts.",
-          "duration": 10.89999999999418,
+          "duration": 11.39999999999418,
           "failureMessages": [],
           "location": {
             "line": 6,
@@ -6745,8 +6745,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524337062,
-      "endTime": 1795524337072.9,
+      "startTime": 1795524862468,
+      "endTime": 1795524862479.4,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/projection/range_read_after_replacement/test.ts"
@@ -6758,7 +6758,7 @@
           "fullName": "Every fragment of a remote removal repairs its own traversal span, including across concurrent surviving content.",
           "status": "passed",
           "title": "Every fragment of a remote removal repairs its own traversal span, including across concurrent surviving content.",
-          "duration": 12.299999999988358,
+          "duration": 10.800000000017462,
           "failureMessages": [],
           "location": {
             "line": 6,
@@ -6769,8 +6769,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524336382,
-      "endTime": 1795524336394.3,
+      "startTime": 1795524861830,
+      "endTime": 1795524861840.8,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/projection/remote_mask_continuation_jump/test.ts"
@@ -6784,7 +6784,7 @@
           "fullName": "sequence jump preoptimization hydrates successive fragment boundaries and their same-point competitors",
           "status": "passed",
           "title": "hydrates successive fragment boundaries and their same-point competitors",
-          "duration": 7.099999999976717,
+          "duration": 6.5,
           "failureMessages": [],
           "location": {
             "line": 7,
@@ -6801,7 +6801,7 @@
           "fullName": "sequence jump preoptimization creates valid square-root-spaced jumps during reconstruction",
           "status": "passed",
           "title": "creates valid square-root-spaced jumps during reconstruction",
-          "duration": 0.7000000000116415,
+          "duration": 0.5,
           "failureMessages": [],
           "location": {
             "line": 33,
@@ -6818,7 +6818,7 @@
           "fullName": "sequence jump preoptimization retains valid jumps through local and remote edits inside prebuilt spans",
           "status": "passed",
           "title": "retains valid jumps through local and remote edits inside prebuilt spans",
-          "duration": 16.39999999999418,
+          "duration": 12,
           "failureMessages": [],
           "location": {
             "line": 46,
@@ -6829,8 +6829,8 @@
           "benchmarks": []
         }
       ],
-      "startTime": 1795524333855,
-      "endTime": 1795524333879.4,
+      "startTime": 1795524859593,
+      "endTime": 1795524859612,
       "status": "passed",
       "message": "",
       "name": "/home/runner/work/sequencer/sequencer/test/convergence/projection/sequence_jump_preoptimization/test.ts"
@@ -22774,16 +22774,16 @@
         }
       },
       "s": {
-        "0": 7726,
-        "1": 7727,
-        "2": 7727,
-        "3": 7727,
-        "4": 7727,
-        "5": 7255,
-        "6": 7255,
-        "7": 7255,
-        "8": 7212,
-        "9": 7212,
+        "0": 7671,
+        "1": 7672,
+        "2": 7672,
+        "3": 7672,
+        "4": 7672,
+        "5": 7200,
+        "6": 7200,
+        "7": 7200,
+        "8": 7157,
+        "9": 7157,
         "10": 515,
         "11": 515,
         "12": 515,
@@ -22805,14 +22805,14 @@
         "28": 29287,
         "29": 509,
         "30": 6,
-        "31": 123538,
-        "32": 3720,
-        "33": 3712,
-        "34": 3712,
-        "35": 3712,
-        "36": 3712,
-        "37": 3712,
-        "38": 3687,
+        "31": 123540,
+        "32": 3722,
+        "33": 3714,
+        "34": 3714,
+        "35": 3714,
+        "36": 3714,
+        "37": 3714,
+        "38": 3689,
         "39": 119840,
         "40": 119851,
         "41": 119851,
@@ -22820,17 +22820,17 @@
         "43": 31453,
         "44": 31453,
         "45": 31453,
-        "46": 356957,
-        "47": 356957,
-        "48": 356957,
-        "49": 356957,
-        "50": 356957,
-        "51": 17920,
-        "52": 17920,
-        "53": 356957,
+        "46": 356963,
+        "47": 356963,
+        "48": 356963,
+        "49": 356963,
+        "50": 356963,
+        "51": 17914,
+        "52": 17914,
+        "53": 356963,
         "54": 8242,
-        "55": 348715,
-        "56": 348622,
+        "55": 348721,
+        "56": 348628,
         "57": 93,
         "58": 93,
         "59": 93,
@@ -22870,7 +22870,7 @@
         "93": 212109,
         "94": 212109,
         "95": 212109,
-        "96": 5080674,
+        "96": 5080684,
         "97": 212109,
         "98": 6952,
         "99": 70216,
@@ -22927,11 +22927,11 @@
         "150": 66211,
         "151": 55568,
         "152": 55568,
-        "153": 65999,
+        "153": 65467,
         "154": 1,
-        "155": 65998,
-        "156": 65998,
-        "157": 65998,
+        "155": 65466,
+        "156": 65466,
+        "157": 65466,
         "158": 259442,
         "159": 2,
         "160": 259440,
@@ -23190,7 +23190,7 @@
         "413": 61682,
         "414": 61682,
         "415": 61682,
-        "416": 4132,
+        "416": 4128,
         "417": 61682,
         "418": 61682,
         "419": 4,
@@ -23228,35 +23228,35 @@
         "451": 390530,
         "452": 37106,
         "453": 353424,
-        "454": 112280,
-        "455": 112280,
-        "456": 112280,
+        "454": 112264,
+        "455": 112264,
+        "456": 112264,
         "457": 1481,
         "458": 1481,
-        "459": 112280,
+        "459": 112264,
         "460": 1481,
-        "461": 112280,
-        "462": 241144,
+        "461": 112264,
+        "462": 241160,
         "463": 101,
         "464": 34489,
         "465": 34489,
-        "466": 131474,
-        "467": 131474,
-        "468": 131474,
-        "469": 131474,
-        "470": 202944,
+        "466": 131490,
+        "467": 131490,
+        "468": 131490,
+        "469": 131490,
+        "470": 202906,
         "471": 57869,
         "472": 57869,
-        "473": 145075,
-        "474": 145075,
-        "475": 145075,
-        "476": 7212,
-        "477": 7212,
+        "473": 145037,
+        "474": 145037,
+        "475": 145037,
+        "476": 7157,
+        "477": 7157,
         "478": 3,
-        "479": 137863,
-        "480": 145075,
-        "481": 131474,
-        "482": 131474,
+        "479": 137880,
+        "480": 145037,
+        "481": 131490,
+        "482": 131490,
         "483": 50426,
         "484": 54,
         "485": 50372,
@@ -23265,7 +23265,7 @@
         "488": 2796,
         "489": 2796,
         "490": 2796,
-        "491": 1800378,
+        "491": 1799444,
         "492": 47576,
         "493": 50426,
         "494": 486,
@@ -23288,16 +23288,16 @@
         "511": 14,
         "512": 14,
         "513": 14,
-        "514": 241126,
-        "515": 241126,
-        "516": 241126,
+        "514": 241142,
+        "515": 241142,
+        "516": 241142,
         "517": 383137,
         "518": 383137,
         "519": 383137,
         "520": 383137,
-        "521": 241126,
-        "522": 241126,
-        "523": 241126,
+        "521": 241142,
+        "522": 241142,
+        "523": 241142,
         "524": 31402,
         "525": 31402,
         "526": 31402,
@@ -23322,10 +23322,10 @@
         "545": 8,
         "546": 8,
         "547": 16,
-        "548": 241126,
-        "549": 241126,
-        "550": 241126,
-        "551": 241126,
+        "548": 241142,
+        "549": 241142,
+        "550": 241142,
+        "551": 241142,
         "552": 580002,
         "553": 580002,
         "554": 580002,
@@ -23339,24 +23339,24 @@
         "562": 181460,
         "563": 180328,
         "564": 364878,
-        "565": 241126,
+        "565": 241142,
         "566": 31868,
         "567": 1447,
-        "568": 241126,
+        "568": 241142,
         "569": 3,
-        "570": 241123,
+        "570": 241139,
         "571": 59
       },
       "f": {
-        "0": 7727,
-        "1": 123538,
+        "0": 7672,
+        "1": 123540,
         "2": 212109,
         "3": 6952,
         "4": 72224,
         "5": 19,
         "6": 66227,
         "7": 55568,
-        "8": 65999,
+        "8": 65467,
         "9": 259442,
         "10": 637025,
         "11": 178473,
@@ -23371,31 +23371,31 @@
         "20": 243763,
         "21": 96169,
         "22": 96177,
-        "23": 4132,
+        "23": 4128,
         "24": 390530
       },
       "b": {
         "0": [
-          7727
+          7672
         ],
         "1": [
-          7255,
+          7200,
           472
         ],
         "2": [
-          7212,
+          7157,
           43
         ],
         "3": [
-          7255,
-          7213
+          7200,
+          7158
         ],
         "4": [
           1,
-          7211
+          7156
         ],
         "5": [
-          7212,
+          7157,
           14
         ],
         "6": [
@@ -23423,19 +23423,19 @@
           508
         ],
         "12": [
-          3712,
+          3714,
           119826
         ],
         "13": [
-          3687,
+          3689,
           25
         ],
         "14": [
-          3712,
-          3693
+          3714,
+          3695
         ],
         "15": [
-          54,
+          56,
           3633
         ],
         "16": [
@@ -23447,34 +23447,34 @@
           40917
         ],
         "18": [
-          356957,
+          356963,
           343424,
-          19711
+          19705
         ],
         "19": [
           8242,
-          348715
+          348721
         ],
         "20": [
-          356957,
+          356963,
           8242
         ],
         "21": [
-          348622,
+          348628,
           93
         ],
         "22": [
-          348715,
-          348623,
-          348623
+          348721,
+          348629,
+          348629
         ],
         "23": [
           332342,
-          16280
+          16286
         ],
         "24": [
-          348622,
-          338206
+          348628,
+          338318
         ],
         "25": [
           23134,
@@ -23559,7 +23559,7 @@
         ],
         "45": [
           1,
-          65998
+          65466
         ],
         "46": [
           2,
@@ -24096,8 +24096,8 @@
           62
         ],
         "174": [
-          4132,
-          4130
+          4128,
+          4126
         ],
         "175": [
           61673,
@@ -24150,53 +24150,53 @@
           37106
         ],
         "187": [
-          112280,
-          241144
+          112264,
+          241160
         ],
         "188": [
           353424,
           243754,
-          114552,
-          112280,
-          112280
+          114535,
+          112264,
+          112264
         ],
         "189": [
-          112280,
-          100111
+          112264,
+          100095
         ],
         "190": [
           101,
           34489,
-          131474,
+          131490,
           50426,
           24639,
           15
         ],
         "191": [
           57869,
-          145075
+          145037
         ],
         "192": [
-          7212,
-          137863
+          7157,
+          137880
         ],
         "193": [
-          137578,
-          285
+          137593,
+          287
         ],
         "194": [
-          137863,
-          137820,
-          137587,
-          137566
+          137880,
+          137835,
+          137602,
+          137581
         ],
         "195": [
-          137578,
+          137593,
           21
         ],
         "196": [
           37735,
-          93739
+          93755
         ],
         "197": [
           54,
@@ -24324,7 +24324,7 @@
         ],
         "226": [
           31868,
-          209258
+          209274
         ],
         "227": [
           31868,
@@ -24332,7 +24332,7 @@
         ],
         "228": [
           3,
-          241123
+          241139
         ]
       },
       "meta": {
@@ -25218,6 +25218,6 @@
       }
     }
   },
-  "generatedAt": "2026-11-24T12:45:49.602Z",
-  "run": "https://github.com/sovereignbase/sequencer/actions/runs/45395972158"
+  "generatedAt": "2026-11-24T12:54:28.063Z",
+  "run": "https://github.com/sovereignbase/sequencer/actions/runs/45397524890"
 }

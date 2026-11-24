@@ -21,6 +21,14 @@ must be UTF-16 code units; absent slots use NUL to retain their coordinates.
 Hydration and merge split string Footage by default; their existing text options
 retain the string instead.
 Footage remains in canonical Insertion order, reconstructed by the words.
+`batch()` uses the same native editing algorithms and returns one encoded Gossip
+packet. Its callback editor has no per-edit Gossip result. Native coordinates
+share local Session identities and clocks and retain eligible extension runs before encoding;
+JavaScript combines the original Footage. Remote packet records receive separate
+binding slots, so releasing one root cannot release another root's content.
+Single-Frame text packets retain individual code units rather than the full
+packet string in each binding. The editor closes when its callback returns;
+completed edits remain if that callback throws.
 From 64 retained insertions onward, WASM omits predictable coordinate fields
 during export. Compact words remain JSON-compatible uint32 numbers; the reader
 also accepts the plain six-word snapshot layout. Footage is never packed in WASM.
@@ -31,6 +39,7 @@ native state and retained content; subsequent calls throw, and repeated
 destruction is safe. Finalization releases unreachable instances.
 
 Library-reported failures use the exported `SequencerError`:
+`BATCH_CLOSED` identifies an editor used outside its callback scope.
 `PROJECTION_DESTROYED` identifies a released instance and
 `NATIVE_OPERATION_FAILED` identifies a failure reported by native dispatch.
 `STRING_ENCODING_FAILED` identifies a failed Footage concatenation and preserves

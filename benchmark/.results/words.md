@@ -1,79 +1,79 @@
 # Words benchmarks
 
-2026-11-22T17:33:17.991Z · [CI run](https://github.com/sovereignbase/sequencer/actions/runs/45049365331)
+2026-11-24T10:49:37.992Z · local run
 
 3 runs, 6,000 edits. Median results; string Footage in both modes.
 
 | Workload | Words | Snapshot KiB | Snapshot gzip KiB | Mean update B | Encode ops/s | Load ops/s | Receive batches/s |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| append | unpacked | 5.90 | 3.61 | 22.88 | 51,539 | 217,596 | 334 |
-| append | packed | 5.90 | 3.61 | 13.98 | 42,172 | 193,971 | 392 |
-| prepend | unpacked | 40.07 | 18.07 | 22.94 | 2,628 | 756 | 273 |
-| prepend | packed | 5.90 | 3.62 | 13.99 | 39,072 | 1,318 | 299 |
-| random | unpacked | 138.05 | 57.31 | 39.88 | 674 | 264 | 103 |
-| random | packed | 49.58 | 35.38 | 23.45 | 29,457 | 605 | 150 |
-| concurrent | unpacked | 92.24 | 42.76 | 32.34 | 919 | 290 | 132 |
-| concurrent | packed | 38.94 | 28.16 | 20.71 | 28,975 | 455 | 157 |
+| append | unpacked | 5.90 | 3.61 | 22.88 | 27,045 | 152,753 | 234 |
+| append | packed | 5.90 | 3.61 | 13.98 | 29,175 | 188,646 | 333 |
+| prepend | unpacked | 40.07 | 18.07 | 22.94 | 1,794 | 688 | 238 |
+| prepend | packed | 5.90 | 3.61 | 13.99 | 30,197 | 1,143 | 254 |
+| random | unpacked | 138.05 | 57.31 | 39.88 | 439 | 205 | 80 |
+| random | packed | 49.58 | 35.37 | 23.45 | 14,630 | 494 | 130 |
+| concurrent | unpacked | 92.23 | 42.79 | 32.34 | 659 | 251 | 107 |
+| concurrent | packed | 38.94 | 28.16 | 20.71 | 17,492 | 409 | 145 |
 
 ## API and transport latency
 
 | Workload | Words | Operation | Median ns | IQR ns |
 | --- | --- | --- | ---: | ---: |
-| append | numeric | sequence | 754.76 | 66.28 |
-| append | numeric | encode | 19402.70 | 4561.41 |
-| append | numeric | decode | 2053.17 | 261.68 |
-| append | numeric | create | 1671.15 | 14.41 |
-| append | numeric | load | 4595.66 | 482.69 |
-| append | numeric | apply | 1210037.55 | 121514.86 |
-| append | numeric | receive | 2989927.41 | 738181.31 |
-| append | binary | sequence | 1046.27 | 262.33 |
-| append | binary | encode | 23712.35 | 3987.35 |
-| append | binary | decode | 1934.46 | 255.14 |
-| append | binary | create | 1838.76 | 130.82 |
-| append | binary | load | 5155.40 | 846.97 |
-| append | binary | apply | 1199482.93 | 56464.44 |
-| append | binary | receive | 2550383.05 | 144788.97 |
-| prepend | numeric | sequence | 338780.75 | 36931.70 |
-| prepend | numeric | encode | 380519.68 | 62570.23 |
-| prepend | numeric | decode | 144166.04 | 21056.70 |
-| prepend | numeric | create | 747005.28 | 13173.15 |
-| prepend | numeric | load | 1323339.87 | 46504.58 |
-| prepend | numeric | apply | 1824931.89 | 7761.96 |
-| prepend | numeric | receive | 3657065.29 | 317387.41 |
-| prepend | binary | sequence | 344504.75 | 859.32 |
-| prepend | binary | encode | 25593.95 | 583.79 |
-| prepend | binary | decode | 2221.34 | 232.87 |
-| prepend | binary | create | 754098.27 | 16809.76 |
-| prepend | binary | load | 758539.27 | 15633.76 |
-| prepend | binary | apply | 1861141.41 | 39695.22 |
-| prepend | binary | receive | 3340992.33 | 146277.38 |
-| random | numeric | sequence | 898193.43 | 20811.58 |
-| random | numeric | encode | 1484535.71 | 14545.31 |
-| random | numeric | decode | 1090774.09 | 55476.07 |
-| random | numeric | create | 1503935.06 | 37210.48 |
-| random | numeric | load | 3781250.93 | 329505.55 |
-| random | numeric | apply | 5810858.89 | 109717.72 |
-| random | numeric | receive | 9705221.00 | 210453.73 |
-| random | binary | sequence | 753111.12 | 2261.93 |
-| random | binary | encode | 33947.98 | 1581.06 |
-| random | binary | decode | 2354.54 | 479.53 |
-| random | binary | create | 1597068.44 | 36163.09 |
-| random | binary | load | 1653259.81 | 45630.63 |
-| random | binary | apply | 5003213.70 | 119318.18 |
-| random | binary | receive | 6665584.25 | 399446.92 |
-| concurrent | numeric | sequence | 751358.28 | 2489.90 |
-| concurrent | numeric | encode | 1088694.37 | 93921.44 |
-| concurrent | numeric | decode | 725781.32 | 232769.45 |
-| concurrent | numeric | create | 2038077.84 | 388944.82 |
-| concurrent | numeric | load | 3447355.13 | 555713.95 |
-| concurrent | numeric | apply | 4612509.36 | 141273.14 |
-| concurrent | numeric | receive | 7571845.71 | 147683.21 |
-| concurrent | binary | sequence | 620930.63 | 4608.23 |
-| concurrent | binary | encode | 34512.33 | 5631.61 |
-| concurrent | binary | decode | 2326.66 | 725.08 |
-| concurrent | binary | create | 2088964.92 | 361112.72 |
-| concurrent | binary | load | 2196062.48 | 379680.93 |
-| concurrent | binary | apply | 4198418.58 | 70832.28 |
-| concurrent | binary | receive | 6384190.75 | 322166.70 |
+| append | numeric | sequence | 711.03 | 299.46 |
+| append | numeric | encode | 36974.80 | 11867.90 |
+| append | numeric | decode | 3088.42 | 697.74 |
+| append | numeric | create | 3496.97 | 1712.62 |
+| append | numeric | load | 6546.52 | 2397.95 |
+| append | numeric | apply | 2092600.00 | 1284211.66 |
+| append | numeric | receive | 4268683.33 | 5029327.88 |
+| append | binary | sequence | 925.96 | 522.09 |
+| append | binary | encode | 34276.03 | 4551.50 |
+| append | binary | decode | 2550.58 | 256.16 |
+| append | binary | create | 2068.77 | 285.87 |
+| append | binary | load | 5300.92 | 1272.84 |
+| append | binary | apply | 1454085.71 | 598651.62 |
+| append | binary | receive | 3006947.06 | 5146223.53 |
+| prepend | numeric | sequence | 439035.96 | 54360.44 |
+| prepend | numeric | encode | 557512.22 | 47506.68 |
+| prepend | numeric | decode | 212772.34 | 27597.59 |
+| prepend | numeric | create | 824959.02 | 77208.64 |
+| prepend | numeric | load | 1454440.00 | 68685.34 |
+| prepend | numeric | apply | 2723036.84 | 245038.10 |
+| prepend | numeric | receive | 4197425.00 | 724812.86 |
+| prepend | binary | sequence | 447999.11 | 5147.24 |
+| prepend | binary | encode | 33116.23 | 1098.33 |
+| prepend | binary | decode | 2200.48 | 98.93 |
+| prepend | binary | create | 819174.19 | 41896.66 |
+| prepend | binary | load | 874693.10 | 68656.27 |
+| prepend | binary | apply | 2443085.71 | 105839.17 |
+| prepend | binary | receive | 3932384.62 | 28953.85 |
+| random | numeric | sequence | 925369.09 | 46341.27 |
+| random | numeric | encode | 2276795.45 | 167244.58 |
+| random | numeric | decode | 1196661.90 | 477357.95 |
+| random | numeric | create | 1915025.93 | 179877.87 |
+| random | numeric | load | 4883181.82 | 761370.38 |
+| random | numeric | apply | 8211428.57 | 280942.86 |
+| random | numeric | receive | 12532250.00 | 1071060.00 |
+| random | binary | sequence | 1029289.80 | 235751.23 |
+| random | binary | encode | 68353.24 | 502.67 |
+| random | binary | decode | 2287.98 | 637.39 |
+| random | binary | create | 1990442.31 | 11930.00 |
+| random | binary | load | 2024420.00 | 51607.69 |
+| random | binary | apply | 6260000.00 | 117767.36 |
+| random | binary | receive | 7686357.14 | 4855280.36 |
+| concurrent | numeric | sequence | 811967.74 | 25276.92 |
+| concurrent | numeric | encode | 1516805.88 | 23837.92 |
+| concurrent | numeric | decode | 807243.55 | 73700.12 |
+| concurrent | numeric | create | 1604603.13 | 364079.71 |
+| concurrent | numeric | load | 3990669.23 | 810310.23 |
+| concurrent | numeric | apply | 5874400.00 | 251308.33 |
+| concurrent | numeric | receive | 9375333.33 | 45258.33 |
+| concurrent | binary | sequence | 743401.47 | 15549.33 |
+| concurrent | binary | encode | 57170.17 | 1533.93 |
+| concurrent | binary | decode | 2246.93 | 564.16 |
+| concurrent | binary | create | 2370259.09 | 468866.23 |
+| concurrent | binary | load | 2445409.52 | 467037.19 |
+| concurrent | binary | apply | 4885236.36 | 46118.18 |
+| concurrent | binary | receive | 6903025.00 | 351147.32 |
 
-Measured on Node 24.22.3, V8 13.6.233.17-node.63, linux x64, AMD EPYC 7763 64-Core Processor. Random and concurrent workloads mix insertion, removal and replacement. Concurrent authors edit independent views. Sizes use MessagePack; updates are encoded individually. Load includes decoding and construction. Receive includes decoding and applying one complete edit batch. Preparation, checks, destruction and explicit JS process garbage collection are outside timings.
+Measured on Node 24.16.0, V8 13.6.233.17-node.49, win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz. Random and concurrent workloads mix insertion, removal and replacement. Concurrent authors edit independent views. Sizes use MessagePack; updates are encoded individually. Load includes decoding and construction. Receive includes decoding and applying one complete edit batch. Preparation, checks, destruction and explicit JS process garbage collection are outside timings.

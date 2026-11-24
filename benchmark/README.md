@@ -3,13 +3,15 @@
 - [Lifecycle](lifecycle/README.md) measures scaling through continuous growth,
   mutation, immediate gossip and shrinkage.
 - [Throughput](throughput/README.md) measures repeated API calls in independent
-  bursts at starting sizes of 100, 1,000 and 10,000 Strips.
+  bursts at configured checkpoints from 100 to 25,000 Strips.
 - [Tuple](tuple/README.md) compares small static tuples with ordinary Projections;
   run it separately with `npm run bench:tuple`.
 - [Large strings](text/README.md) measures bulk text, partial edits, replication,
   hydration and reads with array and string Footage; use `npm run bench:text`.
 - [Words](words/README.md) compares numeric and byte metadata, transport sizes,
   encoding and complete loading; use `npm run bench:words`.
+- [Batch](batch/README.md) compares individual binary outputs with batched editing,
+  transport and compact checkpoints; use `npm run bench:batch`.
 
 ```powershell
 npm run bench

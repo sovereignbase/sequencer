@@ -12,6 +12,7 @@ in C++.
 - `components/PendingTable/` retains Insertions awaiting their parent identity or extent.
 - `components/FrontierTable/` tracks Acknowledgements and retired Actors.
 - `components/Tuple/` stores stable indices and active competing versions without Strip links.
+- `components/Batch/` collects local replication coordinates and their shared byte encoding.
 - `types/type.hpp` defines coordinates, strips, spans and operation results.
 - `bindings.cpp` exposes scalar calls and contiguous numeric result buffers.
 

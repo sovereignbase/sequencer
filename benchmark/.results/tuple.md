@@ -1,6 +1,6 @@
 # Tuple benchmarks
 
-2026-11-22T17:32:13.284Z · [CI run](https://github.com/sovereignbase/sequencer/actions/runs/45049365331)
+2026-11-24T10:48:59.150Z · local run
 
 Arithmetic means of 3 runs. Ordinary Projection versus a static tuple with maxLength. Both contain the same values; replacements preserve the field count.
 
@@ -8,46 +8,46 @@ Arithmetic means of 3 runs. Ordinary Projection versus a static tuple with maxLe
 
 | Indices | Method / case | Projection | Static tuple | Tuple / Projection |
 | ---: | --- | ---: | ---: | ---: |
-| 2 | create.empty | 2,898,014 | 2,750,350 | 0.95× |
-| 2 | create.sequence | 796,001 | 695,036 | 0.87× |
-| 2 | replace.random | 1,094,331 | 1,604,289 | 1.47× |
-| 2 | apply.replace | 633,563 | 1,014,522 | 1.60× |
-| 2 | apply.duplicate | 1,902,684 | 1,919,062 | 1.01× |
-| 2 | merge.duplicate | 1,260,625 | 1,285,881 | 1.02× |
-| 2 | length | 77,167,175 | 74,139,842 | 0.96× |
-| 2 | value.random | 35,948,053 | 60,644,258 | 1.69× |
-| 2 | values | 12,140,847 | 11,410,589 | 0.94× |
-| 2 | sequence | 2,540,375 | 2,483,010 | 0.98× |
-| 4 | create.empty | 2,848,800 | 2,718,247 | 0.95× |
-| 4 | create.sequence | 611,509 | 617,383 | 1.01× |
-| 4 | replace.random | 908,608 | 1,596,397 | 1.76× |
-| 4 | apply.replace | 617,634 | 1,051,957 | 1.70× |
-| 4 | apply.duplicate | 1,932,946 | 1,940,854 | 1.00× |
-| 4 | merge.duplicate | 993,892 | 988,646 | 0.99× |
-| 4 | length | 41,726,455 | 42,619,069 | 1.02× |
-| 4 | value.random | 27,571,062 | 61,597,032 | 2.23× |
-| 4 | values | 7,516,010 | 8,205,050 | 1.09× |
-| 4 | sequence | 2,468,284 | 2,178,516 | 0.88× |
-| 8 | create.empty | 2,833,225 | 2,650,375 | 0.94× |
-| 8 | create.sequence | 456,854 | 497,842 | 1.09× |
-| 8 | replace.random | 893,231 | 1,612,278 | 1.80× |
-| 8 | apply.replace | 580,975 | 1,048,244 | 1.80× |
-| 8 | apply.duplicate | 1,940,893 | 1,823,049 | 0.94× |
-| 8 | merge.duplicate | 707,409 | 671,825 | 0.95× |
-| 8 | length | 42,969,553 | 42,781,023 | 1.00× |
-| 8 | value.random | 21,098,420 | 62,991,566 | 2.99× |
-| 8 | values | 4,963,007 | 5,057,683 | 1.02× |
-| 8 | sequence | 1,909,770 | 1,744,208 | 0.91× |
-| 100 | create.empty | 2,741,456 | 2,594,354 | 0.95× |
-| 100 | create.sequence | 79,668 | 87,748 | 1.10× |
-| 100 | replace.random | 863,651 | 1,605,716 | 1.86× |
-| 100 | apply.replace | 550,933 | 1,094,186 | 1.99× |
-| 100 | apply.duplicate | 1,888,045 | 1,842,793 | 0.98× |
-| 100 | merge.duplicate | 124,250 | 85,742 | 0.69× |
-| 100 | length | 41,855,604 | 42,878,864 | 1.02× |
-| 100 | value.random | 15,467,120 | 59,873,341 | 3.87× |
-| 100 | values | 592,851 | 719,385 | 1.21× |
-| 100 | sequence | 182,303 | 195,467 | 1.07× |
+| 2 | create.empty | 2,466,447 | 2,281,104 | 0.92× |
+| 2 | create.sequence | 670,414 | 707,336 | 1.06× |
+| 2 | replace.random | 890,266 | 1,160,063 | 1.30× |
+| 2 | apply.replace | 529,783 | 794,765 | 1.50× |
+| 2 | apply.duplicate | 1,422,220 | 1,392,754 | 0.98× |
+| 2 | merge.duplicate | 1,089,976 | 1,094,078 | 1.00× |
+| 2 | length | 36,132,801 | 33,416,165 | 0.92× |
+| 2 | value.random | 30,119,010 | 53,596,746 | 1.78× |
+| 2 | values | 9,431,978 | 8,604,302 | 0.91× |
+| 2 | sequence | 2,186,377 | 2,009,516 | 0.92× |
+| 4 | create.empty | 2,440,128 | 2,269,709 | 0.93× |
+| 4 | create.sequence | 625,074 | 619,153 | 0.99× |
+| 4 | replace.random | 924,093 | 1,494,621 | 1.62× |
+| 4 | apply.replace | 588,859 | 964,755 | 1.64× |
+| 4 | apply.duplicate | 1,607,692 | 1,584,441 | 0.99× |
+| 4 | merge.duplicate | 1,004,465 | 938,945 | 0.93× |
+| 4 | length | 35,428,421 | 34,220,421 | 0.97× |
+| 4 | value.random | 23,387,943 | 50,819,167 | 2.17× |
+| 4 | values | 6,591,692 | 7,079,986 | 1.07× |
+| 4 | sequence | 2,001,043 | 1,710,900 | 0.86× |
+| 8 | create.empty | 2,422,361 | 2,200,362 | 0.91× |
+| 8 | create.sequence | 446,737 | 489,030 | 1.09× |
+| 8 | replace.random | 894,716 | 1,542,476 | 1.72× |
+| 8 | apply.replace | 586,050 | 951,459 | 1.62× |
+| 8 | apply.duplicate | 1,485,449 | 1,610,273 | 1.08× |
+| 8 | merge.duplicate | 656,773 | 628,684 | 0.96× |
+| 8 | length | 33,045,784 | 34,073,469 | 1.03× |
+| 8 | value.random | 17,055,331 | 49,881,755 | 2.92× |
+| 8 | values | 4,151,055 | 4,546,779 | 1.10× |
+| 8 | sequence | 1,421,733 | 1,328,574 | 0.93× |
+| 100 | create.empty | 1,872,263 | 1,692,067 | 0.90× |
+| 100 | create.sequence | 60,899 | 80,206 | 1.32× |
+| 100 | replace.random | 806,509 | 1,523,735 | 1.89× |
+| 100 | apply.replace | 565,152 | 976,821 | 1.73× |
+| 100 | apply.duplicate | 1,616,405 | 1,576,032 | 0.98× |
+| 100 | merge.duplicate | 111,603 | 77,725 | 0.70× |
+| 100 | length | 32,422,955 | 30,799,381 | 0.95× |
+| 100 | value.random | 10,804,386 | 45,055,943 | 4.17× |
+| 100 | values | 475,247 | 595,229 | 1.25× |
+| 100 | sequence | 135,481 | 160,249 | 1.18× |
 
 ## Memory and encoded size
 
@@ -62,4 +62,4 @@ Arithmetic means of 3 runs. Ordinary Projection versus a static tuple with maxLe
 | 100 | Projection | 0.0204 | 0.67 | 0.57 |
 | 100 | Static tuple | 0.0111 | 0.51 | 0.35 |
 
-Measured on Node 24.22.3, V8 13.6.233.17-node.63, linux x64, AMD EPYC 7763 64-Core Processor. Fixtures are hydrated compacted snapshots after one replacement per field. Each case warms up for ≥25 ms and measures ≥50 ms of API time; mutation bursts restart after 4,096 replacements. Peer authoring, encoding, result checks, destruction and explicit JS process garbage collection are outside API timings. Memory estimates are the increase in live native allocator bytes plus retained JS array slots for one instance, including exercised runtime buffers. Unused WASM capacity, JS object headers and referenced payload objects are excluded.
+Measured on Node 24.16.0, V8 13.6.233.17-node.49, win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz. Fixtures are hydrated compacted snapshots after one replacement per field. Each case warms up for ≥25 ms and measures ≥50 ms of API time; mutation bursts restart after 4,096 replacements. Peer authoring, encoding, result checks, destruction and explicit JS process garbage collection are outside API timings. Memory estimates are the increase in live native allocator bytes plus retained JS array slots for one instance, including exercised runtime buffers. Unused WASM capacity, JS object headers and referenced payload objects are excluded.

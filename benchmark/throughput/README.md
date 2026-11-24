@@ -1,7 +1,7 @@
 # Sequencer throughput benchmark
 
 Throughput repeatedly calls one public API on an independent Projection at each
-starting size. The defaults are three runs at 100, 1,000 and 10,000 Strips,
+starting size. The defaults are three runs at checkpoints from 100 to 25,000 Strips,
 with generated Strip lengths of 1–100 Frames, matching lifecycle inputs.
 Lifecycle follows one document through growth and shrinkage; throughput isolates
 each call pattern in its own burst.
@@ -12,7 +12,7 @@ npm run bench:throughput -- --runs 1 --max-strips 100 --burst-ms 10 --max-calls 
 ```
 
 `--start-strips` controls the first size, `--max-strips` the last. Checkpoints
-include powers of ten within that range and both exact endpoints. `--runs`,
+include the configured scales within that range and both exact endpoints. `--runs`,
 `--seed`, Strip length options, `--warmup-cycles`, `--output` and `--no-output`
 are shared with lifecycle. Reports default to `benchmark/.results/throughput.{json,md}`.
 

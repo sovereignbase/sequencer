@@ -116,6 +116,7 @@ jobs:
       - run: npm run bench:tuple
       - run: npm run bench:text
       - run: npm run bench:words
+      - run: npm run bench:batch
 
       - name: Format generated README
         if: always()

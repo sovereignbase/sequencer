@@ -23,6 +23,7 @@ Implementation
 * ``algorithms/`` implements editing, replication, reads and snapshot export.
 * ``auxiliary/`` implements anchor resolution, fragmentation and traversal.
 * ``components/`` contains containment, pending and frontier tables, stable-index tuple storage and metadata encoding.
+* ``components/Batch/`` collects local operations into one shared coordinate stream.
 * ``types/type.hpp`` defines coordinates, Strips, spans and results.
 * ``bindings.cpp`` exposes numeric/byte inputs and borrowed output views to TypeScript.
 

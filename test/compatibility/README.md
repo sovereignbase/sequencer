@@ -9,7 +9,7 @@ Every runtime also verifies the exported `SequencerError`, its code, message and
 against the exports of each package format separately.
 
 Text checks include UTF-16 string Gossip, text Splices and retained string snapshot hydration.
-Binary checks cover byte Gossip, ACK exchange and byte snapshot hydration.
+Binary checks cover byte Gossip, batched edits, ACK exchange and byte snapshot hydration.
 
 JSON transport omits absent optional Footage fields, keeping masks as six-field tuples. Active receivers are registered before removals so compaction follows the acknowledgement model.
 

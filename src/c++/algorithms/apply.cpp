@@ -7,7 +7,7 @@
 #include <algorithm>
 
 namespace sequencer {
-void Projection::apply(const Insertion &entry, Result &result) {
+void Projection::apply(const Insertion &entry, Result &result, bool binary) {
   // The first operation needs no queued allocation; released dependencies share
   // this stack and are pushed in reverse to retain arrival order.
   std::vector<Insertion> queue;
@@ -30,7 +30,12 @@ void Projection::apply(const Insertion &entry, Result &result) {
       }
       const std::array a{actor, c.session, c.start - c.diff};
       frontier.observe(a);
-      result.gossip.push_back(Entry::acknowledge(a));
+      // Preserve the final report, including lower frontiers; zero reports remain ordered.
+      if (binary && !result.gossip.empty() && result.gossip.back().frontier[1] == c.session &&
+          result.gossip.back().frontier[2] && a[2])
+        result.gossip.back().frontier[2] = a[2];
+      else
+        result.gossip.push_back(Entry::acknowledge(a));
     }
     const auto extension = !tuple && c.extension();
     const auto existing = extension ? none : containment.get(c.session, c.start);

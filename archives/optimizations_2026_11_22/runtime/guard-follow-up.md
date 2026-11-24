@@ -1,0 +1,96 @@
+# Full-guard follow-up
+
+Five rotated/reversed fresh-process rounds. The same original throughput cases and tuple bursts retain their inputs, warm-up, timing windows and caps. The baseline copy is a byte-identical A/A control. Lower nanoseconds are better; every sample is retained. The Session candidate is rejected independently for its packing/latency tradeoff.
+
+| Case                                | Build         |   Before ns (IQR) |    After ns (IQR) |  Change | Paired change (IQR pp) | Slower in every pair |
+| ----------------------------------- | ------------- | ----------------: | ----------------: | ------: | ---------------------: | -------------------- |
+| throughput/100/apply.remove         | baseline-copy |  1948.28 (586.95) |  2147.12 (316.67) |  10.21% |         -9.58% (23.58) |                      |
+| throughput/100/apply.remove         | ack-final     |  1948.28 (586.95) | 2049.95 (1105.59) |   5.22% |         19.72% (19.79) |                      |
+| throughput/100/apply.remove         | session-orbit |  1948.28 (586.95) |  1920.39 (188.15) |  -1.43% |         -6.39% (11.15) |                      |
+| throughput/10000/apply.remove       | baseline-copy |  1617.18 (261.74) |  1589.63 (796.80) |  -1.70% |         16.00% (30.98) |                      |
+| throughput/10000/apply.remove       | ack-final     |  1617.18 (261.74) |  1325.64 (108.22) | -18.03% |         -3.20% (21.44) |                      |
+| throughput/10000/apply.remove       | session-orbit |  1617.18 (261.74) |  1435.50 (274.51) | -11.23% |          -3.33% (8.64) |                      |
+| throughput/20000/apply.remove       | baseline-copy |   2401.50 (88.68) | 2137.99 (1057.52) | -10.97% |         -3.98% (57.13) |                      |
+| throughput/20000/apply.remove       | ack-final     |   2401.50 (88.68) |  2350.44 (158.82) |  -2.13% |           3.19% (7.08) |                      |
+| throughput/20000/apply.remove       | session-orbit |   2401.50 (88.68) |  2362.36 (138.27) |  -1.63% |          -2.33% (6.42) |                      |
+| throughput/25000/apply.remove       | baseline-copy |   1071.01 (64.65) |  1051.56 (134.56) |  -1.82% |         -1.82% (23.21) |                      |
+| throughput/25000/apply.remove       | ack-final     |   1071.01 (64.65) |    1047.78 (6.19) |  -2.17% |          -1.66% (0.91) |                      |
+| throughput/25000/apply.remove       | session-orbit |   1071.01 (64.65) |   1047.47 (53.94) |  -2.20% |          1.72% (10.79) |                      |
+| throughput/100/create.empty         | baseline-copy |    623.00 (58.02) |   737.54 (203.65) |  18.39% |          5.16% (47.70) |                      |
+| throughput/100/create.empty         | ack-final     |    623.00 (58.02) |   628.80 (339.13) |   0.93% |         12.10% (61.60) |                      |
+| throughput/100/create.empty         | session-orbit |    623.00 (58.02) |   788.18 (117.86) |  26.51% |          4.88% (29.54) |                      |
+| throughput/10000/create.empty       | baseline-copy |    603.84 (70.16) |    576.23 (72.06) |  -4.57% |           1.99% (1.11) |                      |
+| throughput/10000/create.empty       | ack-final     |    603.84 (70.16) |    610.22 (30.42) |   1.06% |          1.06% (18.26) |                      |
+| throughput/10000/create.empty       | session-orbit |    603.84 (70.16) |    568.19 (19.27) |  -5.90% |          -7.24% (9.61) |                      |
+| throughput/20000/create.empty       | baseline-copy |   566.96 (102.05) |    636.04 (84.39) |  12.18% |          4.97% (14.70) |                      |
+| throughput/20000/create.empty       | ack-final     |   566.96 (102.05) |    619.25 (27.57) |   9.22% |          8.65% (22.72) |                      |
+| throughput/20000/create.empty       | session-orbit |   566.96 (102.05) |    625.77 (10.57) |  10.37% |          9.69% (21.70) |                      |
+| throughput/25000/create.empty       | baseline-copy |    619.71 (56.51) |   652.99 (251.87) |   5.37% |          4.21% (58.86) |                      |
+| throughput/25000/create.empty       | ack-final     |    619.71 (56.51) |    619.10 (24.87) |  -0.10% |          -2.05% (6.62) |                      |
+| throughput/25000/create.empty       | session-orbit |    619.71 (56.51) |    633.42 (59.85) |   2.21% |          -0.42% (8.79) |                      |
+| throughput/100/insert.middle        | baseline-copy |    841.44 (64.55) |    828.20 (85.81) |  -1.57% |          6.58% (17.22) |                      |
+| throughput/100/insert.middle        | ack-final     |    841.44 (64.55) |   793.69 (204.05) |  -5.67% |          -2.41% (9.64) |                      |
+| throughput/100/insert.middle        | session-orbit |    841.44 (64.55) |   870.72 (114.20) |   3.48% |          4.73% (16.49) |                      |
+| throughput/10000/insert.middle      | baseline-copy |    590.66 (72.28) |    629.70 (39.69) |   6.61% |           6.61% (7.79) |                      |
+| throughput/10000/insert.middle      | ack-final     |    590.66 (72.28) |   579.38 (548.17) |  -1.91% |        -2.92% (108.14) |                      |
+| throughput/10000/insert.middle      | session-orbit |    590.66 (72.28) |    622.61 (36.27) |   5.41% |          8.07% (12.05) |                      |
+| throughput/20000/insert.middle      | baseline-copy |    571.03 (27.25) |    568.47 (61.08) |  -0.45% |         -0.20% (18.37) |                      |
+| throughput/20000/insert.middle      | ack-final     |    571.03 (27.25) |    580.94 (60.74) |   1.74% |         -3.23% (20.79) |                      |
+| throughput/20000/insert.middle      | session-orbit |    571.03 (27.25) |    594.28 (89.25) |   4.07% |          4.07% (27.75) |                      |
+| throughput/25000/insert.middle      | baseline-copy |   611.26 (104.33) |    612.20 (25.65) |   0.15% |          0.15% (13.59) |                      |
+| throughput/25000/insert.middle      | ack-final     |   611.26 (104.33) |    577.41 (92.60) |  -5.54% |          2.78% (11.34) |                      |
+| throughput/25000/insert.middle      | session-orbit |   611.26 (104.33) |    559.44 (51.37) |  -8.48% |         -7.19% (16.34) |                      |
+| throughput/100/merge.insert         | baseline-copy |   2049.98 (98.70) |  2275.23 (573.30) |  10.99% |          9.11% (13.99) |                      |
+| throughput/100/merge.insert         | ack-final     |   2049.98 (98.70) |  2468.00 (660.68) |  20.39% |         19.12% (30.15) | yes                  |
+| throughput/100/merge.insert         | session-orbit |   2049.98 (98.70) |  2287.86 (833.26) |  11.60% |         10.05% (21.35) |                      |
+| throughput/10000/merge.insert       | baseline-copy |  2233.16 (173.42) |  2224.00 (185.01) |  -0.41% |         -0.36% (11.37) |                      |
+| throughput/10000/merge.insert       | ack-final     |  2233.16 (173.42) |  2314.05 (162.47) |   3.62% |          6.07% (20.95) |                      |
+| throughput/10000/merge.insert       | session-orbit |  2233.16 (173.42) |  2111.13 (147.99) |  -5.46% |          -2.43% (1.92) |                      |
+| throughput/20000/merge.insert       | baseline-copy |   1552.21 (43.16) |  1607.38 (296.16) |   3.55% |           3.27% (6.20) |                      |
+| throughput/20000/merge.insert       | ack-final     |   1552.21 (43.16) |   1559.79 (64.93) |   0.49% |          -1.54% (1.57) |                      |
+| throughput/20000/merge.insert       | session-orbit |   1552.21 (43.16) |  1463.29 (156.80) |  -5.73% |           1.35% (7.29) |                      |
+| throughput/25000/merge.insert       | baseline-copy |  1402.56 (148.44) |   1517.10 (22.41) |   8.17% |          7.90% (26.17) |                      |
+| throughput/25000/merge.insert       | ack-final     |  1402.56 (148.44) |  1425.19 (270.32) |   1.61% |          9.67% (20.39) |                      |
+| throughput/25000/merge.insert       | session-orbit |  1402.56 (148.44) |  1357.30 (227.52) |  -3.23% |           3.59% (6.43) |                      |
+| throughput/100/replace.random       | baseline-copy | 2332.79 (1076.14) |  2152.81 (189.61) |  -7.72% |           1.76% (3.51) |                      |
+| throughput/100/replace.random       | ack-final     | 2332.79 (1076.14) |  2418.40 (678.52) |   3.67% |         14.43% (97.54) |                      |
+| throughput/100/replace.random       | session-orbit | 2332.79 (1076.14) |  2214.06 (323.60) |  -5.09% |         -5.09% (41.22) |                      |
+| throughput/10000/replace.random     | baseline-copy |   1749.14 (19.82) |   1758.58 (52.31) |   0.54% |           0.83% (3.54) |                      |
+| throughput/10000/replace.random     | ack-final     |   1749.14 (19.82) |  2075.93 (462.86) |  18.68% |         18.68% (21.01) |                      |
+| throughput/10000/replace.random     | session-orbit |   1749.14 (19.82) |   1824.74 (22.69) |   4.32% |           4.32% (6.81) |                      |
+| throughput/20000/replace.random     | baseline-copy |  1833.84 (150.28) |  1791.72 (110.24) |  -2.30% |          -4.75% (8.39) |                      |
+| throughput/20000/replace.random     | ack-final     |  1833.84 (150.28) |  1845.82 (140.71) |   0.65% |           0.65% (3.11) |                      |
+| throughput/20000/replace.random     | session-orbit |  1833.84 (150.28) |   1784.58 (35.65) |  -2.69% |          -3.47% (1.20) |                      |
+| throughput/25000/replace.random     | baseline-copy |  1855.90 (580.63) |  2079.26 (329.39) |  12.04% |          6.10% (42.74) |                      |
+| throughput/25000/replace.random     | ack-final     |  1855.90 (580.63) |  2163.15 (282.46) |  16.56% |          6.51% (29.38) |                      |
+| throughput/25000/replace.random     | session-orbit |  1855.90 (580.63) |  2150.45 (181.19) |  15.87% |         19.25% (25.29) |                      |
+| throughput/100/value.head           | baseline-copy |    209.18 (17.58) |    247.31 (36.72) |  18.23% |         15.65% (20.52) |                      |
+| throughput/100/value.head           | ack-final     |    209.18 (17.58) |    219.17 (88.79) |   4.78% |         16.99% (39.33) |                      |
+| throughput/100/value.head           | session-orbit |    209.18 (17.58) |    216.30 (29.18) |   3.40% |          -2.03% (4.19) |                      |
+| throughput/10000/value.head         | baseline-copy |    189.07 (25.43) |    209.90 (19.76) |  11.02% |         10.50% (13.44) |                      |
+| throughput/10000/value.head         | ack-final     |    189.07 (25.43) |    185.16 (15.39) |  -2.07% |          2.68% (21.00) |                      |
+| throughput/10000/value.head         | session-orbit |    189.07 (25.43) |     181.63 (9.50) |  -3.94% |          2.54% (14.93) |                      |
+| throughput/20000/value.head         | baseline-copy |     171.66 (9.39) |    181.90 (26.82) |   5.97% |          3.83% (12.15) |                      |
+| throughput/20000/value.head         | ack-final     |     171.66 (9.39) |    159.88 (10.86) |  -6.86% |         -7.16% (12.36) |                      |
+| throughput/20000/value.head         | session-orbit |     171.66 (9.39) |     166.39 (4.61) |  -3.07% |          -0.44% (5.56) |                      |
+| throughput/25000/value.head         | baseline-copy |     157.02 (9.61) |    179.93 (18.44) |  14.59% |          3.69% (14.14) |                      |
+| throughput/25000/value.head         | ack-final     |     157.02 (9.61) |    130.94 (13.73) | -16.61% |         -4.40% (19.97) |                      |
+| throughput/25000/value.head         | session-orbit |     157.02 (9.61) |    167.54 (16.41) |   6.70% |          6.70% (33.33) | yes                  |
+| tuple/tuple/4/values                | baseline-copy |    137.85 (88.39) |      99.36 (2.36) | -27.92% |        -21.30% (42.58) |                      |
+| tuple/tuple/4/values                | ack-final     |    137.85 (88.39) |    101.91 (56.24) | -26.07% |          3.30% (85.97) |                      |
+| tuple/tuple/4/values                | session-orbit |    137.85 (88.39) |     103.27 (6.73) | -25.08% |        -25.08% (46.52) |                      |
+| tuple/tuple/8/values                | baseline-copy |    237.93 (88.84) |    179.99 (15.53) | -24.35% |        -24.35% (25.70) |                      |
+| tuple/tuple/8/values                | ack-final     |    237.93 (88.84) |    175.47 (95.62) | -26.25% |        -10.00% (14.29) |                      |
+| tuple/tuple/8/values                | session-orbit |    237.93 (88.84) |     170.88 (5.82) | -28.18% |        -28.18% (36.42) |                      |
+| tuple/tuple/8/create.empty          | baseline-copy |   488.57 (127.70) |    400.12 (14.67) | -18.10% |        -18.10% (14.09) |                      |
+| tuple/tuple/8/create.empty          | ack-final     |   488.57 (127.70) |   421.68 (182.70) | -13.69% |          -2.18% (4.19) |                      |
+| tuple/tuple/8/create.empty          | session-orbit |   488.57 (127.70) |    400.04 (15.26) | -18.12% |        -16.55% (22.03) |                      |
+| tuple/projection/2/apply.duplicate  | baseline-copy |   650.35 (233.40) |    585.86 (10.01) |  -9.92% |        -10.31% (27.20) |                      |
+| tuple/projection/2/apply.duplicate  | ack-final     |   650.35 (233.40) |   648.68 (140.04) |  -0.26% |          3.23% (15.71) |                      |
+| tuple/projection/2/apply.duplicate  | session-orbit |   650.35 (233.40) |    578.48 (30.58) | -11.05% |         -12.73% (1.70) |                      |
+| tuple/projection/100/replace.random | baseline-copy |  1374.26 (547.27) |   1407.18 (50.50) |   2.40% |          1.87% (32.79) |                      |
+| tuple/projection/100/replace.random | ack-final     |  1374.26 (547.27) |  1387.17 (361.97) |   0.94% |          -3.36% (7.60) |                      |
+| tuple/projection/100/replace.random | session-orbit |  1374.26 (547.27) |  1418.84 (312.05) |   3.24% |          0.73% (20.96) |                      |
+| tuple/projection/8/value.random     | baseline-copy |     55.07 (24.75) |      52.57 (2.83) |  -4.53% |         -9.49% (29.63) |                      |
+| tuple/projection/8/value.random     | ack-final     |     55.07 (24.75) |      54.73 (7.76) |  -0.61% |          -2.25% (3.40) |                      |
+| tuple/projection/8/value.random     | session-orbit |     55.07 (24.75) |      52.00 (7.30) |  -5.56% |        -10.95% (23.21) |                      |

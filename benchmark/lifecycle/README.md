@@ -143,7 +143,8 @@ use growth and shrinkage checkpoints and arithmetic means of independent run obs
 Shrinkage rates exclude growth-phase calls and timings.
 Checkpoint headers show Strip counts and the mean visible Frame count across runs.
 Bundle sizes include WASM and use Terser with three compression passes.
-Sizes in the README use KiB (1,024 bytes). Its memory tables show only the
+Bundle and encoded sizes use KiB (1,024 bytes); memory uses MiB (1,048,576 bytes).
+The memory tables show only the
 isolated instance's library estimate. The full report retains individual runs
 and distinguishes runtime memory from the exported Sequence representation.
 `--no-output` leaves the README untouched.

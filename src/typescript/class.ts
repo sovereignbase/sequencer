@@ -1,6 +1,13 @@
-import type { Gossip, Result, Sequence, TupleParams } from './types/type.js'
+import type {
+  Batch,
+  Gossip,
+  Result,
+  Sequence,
+  TupleParams,
+} from './types/type.js'
 import {
   apply,
+  batch,
   call,
   create,
   destroy,
@@ -69,6 +76,22 @@ export class Projection<T> {
       return apply(this.id, gossip, stringEncode, binaryEncode)
     } catch (cause) {
       throw unknownError(cause, 'apply')
+    }
+  }
+
+  /**
+   * Authors synchronous local edits as one packed Gossip.
+   *
+   * @param edit Receives local mutators; changes are immediately visible in this Projection.
+   * @returns Byte metadata and combined Footage; string-only edits retain a string.
+   * @remarks Completed edits remain applied if the callback throws.
+   * @throws {@link SequencerError} if destroyed, the editor has closed, or a native operation fails.
+   */
+  batch(edit: (batch: Batch<T>) => void): Gossip<T, boolean, true> {
+    try {
+      return batch<T>(() => this.id, edit)
+    } catch (cause) {
+      throw unknownError(cause, 'batch')
     }
   }
 

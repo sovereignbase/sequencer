@@ -1,7 +1,7 @@
 import module from '../wasm/index.js'
 import { SequencerError } from '../errors/class.js'
 import { Operation, type Opcode } from './protocol.js'
-import type { TupleParams } from '../types/type.js'
+import type { Batch, Gossip, TupleParams } from '../types/type.js'
 
 /** Footage bindings: undefined is released; null retains missing application content. */
 type Bindings = Array<ReadonlyArray<unknown> | string | null | undefined>
@@ -419,6 +419,147 @@ export function insert<T>(
   }
   return [[coordinates, values]]
 }
+
+/** Collects native coordinates while retaining application Footage in JavaScript. */
+export function batch<T>(
+  getId: () => number,
+  edit: (batch: Batch<T>) => void
+): Gossip<T, boolean, true> {
+  const id = getId()
+  if (id < 0)
+    throw new SequencerError(
+      'PROJECTION_DESTROYED',
+      'Projection has been destroyed.'
+    )
+  let handle = module._runtime_batch_begin(id) >>> 0
+  if (handle === 0xffffffff)
+    throw new SequencerError(
+      'NATIVE_OPERATION_FAILED',
+      'Projection.batch() could not start.'
+    )
+  let active = true,
+    owner: (() => number) | undefined = getId,
+    text = '',
+    parts: Array<Array<T> | string> | undefined,
+    size = 0
+  const mutate = (
+    operation: Opcode,
+    values?: Array<T> | string,
+    start?: number,
+    end?: number
+  ) => {
+    if (!active) throw new SequencerError('BATCH_CLOSED', 'Batch has finished.')
+    const id = owner!()
+    if (id < 0)
+      throw new SequencerError(
+        'PROJECTION_DESTROYED',
+        'Projection has been destroyed.'
+      )
+    let content = 0,
+      count = 0
+    if (values !== undefined) {
+      content = bindings[id]!.push(values) - 1
+      count = values.length + (typeof values === 'string' ? 0x80000000 : 0)
+      if (values.length) {
+        size += values.length
+        if (typeof values === 'string' && parts === undefined) text += values
+        else {
+          parts ??= text.length ? [text] : []
+          parts.push(values)
+        }
+      }
+    }
+    const pointer = module._runtime_batch_edit(
+      handle,
+      operation,
+      count,
+      content,
+      start ?? 0xffffffff,
+      end ?? 0xffffffff
+    )
+    if (!pointer)
+      throw new SequencerError(
+        'NATIVE_OPERATION_FAILED',
+        'Projection.batch() failed in the native runtime.'
+      )
+    if (pointer !== 1) {
+      const heap = module.HEAPU32,
+        header = pointer >>> 2
+      if (operation === Operation.Insert && typeof values === 'string') {
+        const at = heap[header + 7] >>> 2,
+          content = bindings[id]!,
+          token = heap[at],
+          footage = content[token]
+        // A complete private text root needs only concatenation and the suffix release.
+        if (typeof footage === 'string' && footage.length === heap[at + 4]) {
+          content[token] = footage + values
+          content.pop()
+          return
+        }
+      }
+      readResult(operation, id, pointer)
+    }
+  }
+  try {
+    edit({
+      insert: (values, at) => mutate(Operation.Insert, values, at),
+      remove: (start, end) => mutate(Operation.Remove, undefined, start, end),
+      replace: (values, start, end) =>
+        mutate(Operation.Replace, values, start, end),
+    })
+    active = false
+    const pointer = module._runtime_batch_end(handle, 1) >>> 2
+    handle = -1
+    if (!pointer)
+      throw new SequencerError(
+        'NATIVE_OPERATION_FAILED',
+        'Projection.batch() could not finish.'
+      )
+    const heap = module.HEAPU32,
+      first = heap[pointer],
+      firstSize = heap[pointer + 1],
+      second = heap[pointer + 2],
+      secondSize = heap[pointer + 3]
+    if (!firstSize) return []
+    const words = new Uint8Array(firstSize + secondSize)
+    words.set(module.HEAPU8.subarray(first, first + firstSize))
+    words.set(module.HEAPU8.subarray(second, second + secondSize), firstSize)
+    if (!size) return [[words]]
+    let footage: Array<T | undefined> | string = text
+    if (parts !== undefined) {
+      if (parts.length === 1) footage = parts[0]
+      else {
+        const joined: Array<T | string | undefined> = []
+        for (const part of parts)
+          for (let i = 0; i < part.length; ++i) joined.push(part[i])
+        footage = joined as Array<T | undefined>
+      }
+    }
+    return [[words, footage]]
+  } finally {
+    active = false
+    owner = undefined
+    text = ''
+    parts = undefined
+    if (handle >= 0) module._runtime_batch_end(handle, 0)
+  }
+}
+
+/** Reads only the binding count; native parsing validates the complete packet. */
+function batchBindings(words: Uint8Array): number {
+  let count = 0
+  for (
+    let at = 2, shift = 0;
+    at < words.length && shift <= 28;
+    ++at, shift += 7
+  ) {
+    const part = words[at]
+    if (shift === 28 && part > 15) return 0
+    count |= (part & 127) << shift
+    if (!(part & 128)) return count >>> 2
+  }
+  return 0
+}
 /** Validates remote tuple lanes and supplies a descriptor batch to native application. */
 export function apply<T>(
   id: number,
@@ -437,12 +578,16 @@ export function apply<T>(
   for (const entry of entries) {
     const data =
       Array.isArray(entry) && typeof entry[0] !== 'number' ? entry[0] : entry
-    words +=
-      data instanceof Uint8Array
-        ? Math.ceil(data.length / 4)
-        : Array.isArray(data) || data instanceof Uint32Array
-          ? data.length
-          : 0
+    if (data instanceof Uint8Array) {
+      words += Math.ceil(data.length / 4)
+      if (
+        Array.isArray(entry) &&
+        data[0] === 255 &&
+        (data[1] === 4 || data[1] === 5)
+      )
+        ++words
+    } else if (Array.isArray(data) || data instanceof Uint32Array)
+      words += data.length
   }
 
   // Each input record stores its tag, word count and content token before its payload.
@@ -454,12 +599,18 @@ export function apply<T>(
   const firstBinding = contents.length
   const absent = 0xffffffff
 
-  let data = base + 1
+  let data = base + 1,
+    singleBatch = false
   heap[base] = entries.length
   for (const entry of entries) {
     const insertion = Array.isArray(entry) && typeof entry[0] !== 'number'
     const numbers = insertion ? entry[0] : entry
     const binary = numbers instanceof Uint8Array
+    const packed =
+      binary &&
+      insertion &&
+      numbers[0] === 255 &&
+      (numbers[1] === 4 || numbers[1] === 5)
     let numeric = binary || numbers instanceof Uint32Array
     if (Array.isArray(numbers)) {
       numeric = true
@@ -488,9 +639,13 @@ export function apply<T>(
       numeric && shape
         ? binary
           ? insertion
-            ? text
-              ? 5
-              : 4
+            ? packed
+              ? text
+                ? 8
+                : 7
+              : text
+                ? 5
+                : 4
             : 6
           : insertion
             ? text
@@ -514,6 +669,22 @@ export function apply<T>(
         ? contents.push(footage ?? null) - 1
         : 0
     data += 3
+    if (tag === 7 || tag === 8) {
+      singleBatch = entries.length === 1
+      const extent =
+        (footage as Array<unknown> | string | undefined)?.length ?? 0
+      const count = Math.min(batchBindings(numbers as Uint8Array), extent)
+      if (count) {
+        heap[data - 1] = contents.length
+        for (let at = 0; at < count; ++at)
+          contents.push(
+            tag === 8 && (numbers as Uint8Array)[1] === 5
+              ? (footage as string)[at]
+              : (footage as Array<unknown> | string)
+          )
+      }
+      heap[data++] = extent
+    }
     if (binary) {
       bytes.set(numbers, data * 4)
     } else if (numeric) {
@@ -528,15 +699,17 @@ export function apply<T>(
     }
     data += binary ? Math.ceil(count / 4) : count
   }
-  const resultPointer = module._runtime_dispatch(
-    Operation.Apply | (binaryEncode ? 128 : 0),
-    id,
-    0,
-    0,
-    0,
-    pointer,
-    words
-  )
+  const resultPointer = singleBatch
+    ? module._runtime_apply_batch(id, pointer, words, binaryEncode ? 1 : 0)
+    : module._runtime_dispatch(
+        Operation.Apply | (binaryEncode ? 128 : 0),
+        id,
+        0,
+        0,
+        0,
+        pointer,
+        words
+      )
   if (module.HEAPU32[resultPointer >>> 2] === 0) {
     // Entries after a rejected input were never consumed by WASM.
     const consumed = module.HEAPU32[(resultPointer >>> 2) + 11]
@@ -728,17 +901,17 @@ function readResult(
       break
     case 4: {
       const changes: unknown[] = []
-      for (let at = p0 >>> 2, end = at + n0 * 4; at < end; at += 4) {
-        if (heap[at + 3] === 0) {
+      for (let at = p0 >>> 2, end = at + n0 * 5; at < end; at += 5) {
+        if (heap[at + 4] === 0) {
           changes.push([heap[at], heap[at + 1]])
           continue
         }
-        const span = heap[at + 2] >>> 2,
+        const span = at + 2,
           source = content[heap[span]]
         let items: unknown
         if (stringEncode) {
           try {
-            items = readText(content, heap[at + 2], heap[at + 3], 'Splice')
+            items = readText(content, span * 4, 1, 'Splice')
           } catch (error) {
             encodingFailure = error
           }
@@ -748,7 +921,7 @@ function readResult(
             heap[span + 1] === 0 &&
             (source == null || source.length === heap[span + 2])
               ? (source ?? new Array<unknown>(heap[span + 2]))
-              : readValues(content, heap[at + 2], heap[at + 3])
+              : readValues(content, span * 4, 1)
         changes.push([heap[at], heap[at + 1], items])
       }
       result = n1 ? [changes, readGossip(content, p1, n1)] : [changes]

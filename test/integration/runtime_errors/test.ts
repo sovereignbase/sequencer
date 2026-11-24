@@ -7,6 +7,11 @@ import module from '../../../src/typescript/wasm/index.ts'
 const operations = [
   ['constructor', '_runtime_create', () => new Projection<string>(2)],
   ['apply', '_runtime_dispatch', (p: Projection<string>) => p.apply([])],
+  [
+    'batch',
+    '_runtime_batch_begin',
+    (p: Projection<string>) => p.batch(() => {}),
+  ],
   ['insert', '_runtime_insert', (p: Projection<string>) => p.insert(['b'], 1)],
   ['length', '_runtime_length', (p: Projection<string>) => p.length()],
   ['merge', '_runtime_dispatch', (p: Projection<string>) => p.merge([[], []])],

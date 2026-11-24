@@ -23,3 +23,6 @@ configuration persistence and local edits.
 
 [Packed words](binary_words/README.md) cover optional byte metadata, transport,
 replay, hydration and malformed input.
+
+[Batch](batch/README.md) covers grouped local edits, packed replay, Footage,
+acknowledgements and editor lifetime.

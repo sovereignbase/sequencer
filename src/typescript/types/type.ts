@@ -7,6 +7,7 @@
  * a negative diff masks original Frames. Signed values use uint32 bit patterns.
  * In tuple mode, `anchorDiff` is the stable index and diff is `1` or `-1`.
  * Binary encoding stores the same coordinates in a `Uint8Array`.
+ * A packed batch can contain several operations with shared Footage.
  */
 export type InsertionWords<BinaryEncoded extends boolean = false> =
   BinaryEncoded extends true ? Uint8Array : ReadonlyArray<number>
@@ -120,4 +121,21 @@ export type TupleParams = {
   enabled: boolean | 0 | 1
   /** Fixed number of registers, indices must be in `0..maxLength - 1`. */
   maxLength?: number
+}
+
+/** Local edits collected by `Projection.batch()`. */
+export type Batch<T> = {
+  /** Inserts nonempty values at a visible boundary, or at stable tuple indices. */
+  insert<Values extends Array<T> | (string extends T ? string : never)>(
+    values: Values,
+    at: number
+  ): void
+  /** Removes an inclusive range; omitted bounds select the whole Projection. */
+  remove(startAt?: number, endWith?: number): void
+  /** Replaces an inclusive range; omitted bounds select the whole Projection. */
+  replace<Values extends Array<T> | (string extends T ? string : never)>(
+    values: Values,
+    startAt?: number,
+    endWith?: number
+  ): void
 }

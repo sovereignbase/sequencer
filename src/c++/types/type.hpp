@@ -8,7 +8,6 @@
 #include <cstring>
 #include <limits>
 #include <memory>
-#include <optional>
 #include <vector>
 
 namespace sequencer {
@@ -125,14 +124,14 @@ extern std::vector<ContentAppend> appended;
 struct Splice {
   Word start{} /**< First affected Projection position. */,
       end{} /**< Exclusive removal boundary, equal to start for insertion. */;
-  /** Inserted Footage span; omitted for a removal-only Splice. */
-  std::optional<Span> values;
+  /** Inserted Footage span; zero count denotes a removal-only Splice. */
+  Span values;
 };
 /** Output of applying operations against a live Projection. */
 struct Result {
   /** Splices applied in order; each uses the Projection left by preceding Splices. */
   std::vector<Splice> changes;
-  /** Acknowledgements generated while integrating reducing Insertions. */
+  /** Acknowledgements generated for this Projection's Actor while integrating masks. */
   Gossip gossip;
 };
 /** Retained numeric history and ordered Footage spans for snapshot export. */

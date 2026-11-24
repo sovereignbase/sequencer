@@ -1,0 +1,275 @@
+diff --git a/src/c++/components/Words/README.md b/src/c++/components/Words/README.md
+index 249ddfbd..19033633 100644
+--- a/src/c++/components/Words/README.md
++++ b/src/c++/components/Words/README.md
+@@ -50,6 +50,19 @@ Bits 0 and 4 cannot both be set. Start, anchor-start, magnitude and sign flags
+ keep their existing meanings. No cross-packet dictionary or retained decoding
+ state is needed.
+ 
++The reserved tag `0x53`, with bit 7 supplying sign, stores one of two related
++nonzero Session identifiers. The fixed uint32 transform is `x ^= x << 13;
++x ^= x >> 17; x ^= x << 5`. A second byte carries direction in bit 4 and the
++number of steps minus one in bits 5–7. The explicit identifier predicts the other
++one in one to eight steps. Both complete identifiers are reconstructed; other
++pairs keep the literal layout.
++
++The descriptor's low bits announce anchor start, anchor diff, start delta and
++magnitude, respectively. Anchor diff defaults to one; the start delta retains
++zigzag encoding. One shared last-pair cache includes unsuccessful searches and
++does not depend on Projection lifetime. This form always saves three bytes.
++Snapshot dictionaries and mask batches retain their existing layouts.
++
+ ## Removal packets and ACKs
+ 
+ A mask immediately followed by its matching author ACK can carry that ACK in
+diff --git a/src/c++/components/Words/reader.hpp b/src/c++/components/Words/reader.hpp
+index 65a9881f..3f20bce9 100644
+--- a/src/c++/components/Words/reader.hpp
++++ b/src/c++/components/Words/reader.hpp
+@@ -1,5 +1,6 @@
+ #pragma once
+ #include "../../types/type.hpp"
++#include "session.hpp"
+ #include <span>
+ 
+ namespace sequencer {
+@@ -77,6 +78,29 @@ public:
+       }
+     }
+     control = byte();
++    if constexpr (!Dictionary) {
++      if ((control & 127) == 83) {
++        const auto fields = byte();
++        const auto base = session();
++        const auto reverse = fields & 16;
++        auto value = base;
++        for (Word i = 0; i <= (fields >> 5); ++i)
++          value = predict_session(value);
++        Coordinates c;
++        c.session = reverse ? base : value;
++        c.anchor_session = reverse ? value : base;
++        c.anchor_start = fields & 1 ? uint() : 0;
++        c.anchor_diff = fields & 2 ? uint() : 1;
++        const auto delta = fields & 4 ? uint() : 0;
++        c.start = (delta >> 1) ^ (0u - (delta & 1));
++        const auto size = fields & 8 ? uint() : 1;
++        if (!size || size > Word(INT32_MAX))
++          valid = false;
++        c.diff = std::bit_cast<std::int32_t>(control & 128 ? 0u - size : size);
++        previous_session = c.session;
++        return c;
++      }
++    }
+     if constexpr (Dictionary) {
+       if (compact && !repetitions && control == 255) {
+         repetitions = uint();
+diff --git a/src/c++/components/Words/writer.hpp b/src/c++/components/Words/writer.hpp
+index 5755e6b5..4be49602 100644
+--- a/src/c++/components/Words/writer.hpp
++++ b/src/c++/components/Words/writer.hpp
+@@ -1,6 +1,7 @@
+ #pragma once
+ #include "../../auxiliary/magnitude.hpp"
+ #include "../ContainmentTable/class.hpp"
++#include "session.hpp"
+ 
+ namespace sequencer {
+ /** Writes byte metadata without changing canonical coordinates. */
+@@ -56,6 +57,48 @@ public:
+     const auto delta = c.start - predicted;
+     const auto size = magnitude(c.diff);
+     const auto inline_anchor = !Dictionary && c.session && c.anchor_session == c.session;
++    if constexpr (!Dictionary) {
++      if (c.session && c.session != previous_session && c.anchor_session &&
++          c.session != c.anchor_session) {
++        // The mapping is immutable; caching a miss also avoids repeated orbit searches.
++        static Word cached_session{}, cached_anchor{};
++        static std::uint8_t relation{};
++        if (cached_session != c.session || cached_anchor != c.anchor_session) {
++          cached_session = c.session;
++          cached_anchor = c.anchor_session;
++          relation = 0;
++          auto anchor = c.anchor_session, own = c.session;
++          for (Word step = 0; step < 8; ++step) {
++            anchor = predict_session(anchor);
++            const auto reverse = anchor != c.session;
++            if (reverse)
++              own = predict_session(own);
++            if (!reverse || own == c.anchor_session) {
++              relation = std::uint8_t(1 + step * 2 + Word(reverse));
++              break;
++            }
++          }
++        }
++        if (relation) {
++          const auto reverse = (relation - 1) & 1;
++          byte(std::uint8_t(83 | (Word(c.diff < 0) << 7)));
++          byte(std::uint8_t(((relation - 1) << 4) | Word(c.anchor_start != 0) |
++                            (Word(c.anchor_diff != 1) << 1) | (Word(c.start != 0) << 2) |
++                            (Word(size != 1) << 3)));
++          session(reverse ? c.session : c.anchor_session);
++          if (c.anchor_start)
++            uint(c.anchor_start);
++          if (c.anchor_diff != 1)
++            uint(c.anchor_diff);
++          if (c.start)
++            uint((c.start << 1) ^ (0u - (c.start >> 31)));
++          if (size != 1)
++            uint(size);
++          previous_session = c.session;
++          return;
++        }
++      }
++    }
+     const auto control =
+         inline_anchor
+             ? Word(66) | Word(c.anchor_diff > 1) | (Word(delta != 0) << 2) |
+diff --git a/test/unit/binary_words/README.md b/test/unit/binary_words/README.md
+index 59caf286..168f510a 100644
+--- a/test/unit/binary_words/README.md
++++ b/test/unit/binary_words/README.md
+@@ -8,3 +8,6 @@ remain the default.
+ Snapshot checks include repeated coordinates and version-one hydration. Removal
+ checks cover grouped masks arriving before their anchors, combined author ACKs,
+ later lower frontiers, zero claims and seeded mixed replay against numeric ACKs.
++
++Related Session coordinates cover both directions, complete uint32 identifiers,
++the reserved removal prefix and truncated input.
+diff --git a/test/unit/binary_words/test.ts b/test/unit/binary_words/test.ts
+index e1e58726..198fcc70 100644
+--- a/test/unit/binary_words/test.ts
++++ b/test/unit/binary_words/test.ts
+@@ -7,7 +7,116 @@ import type {
+   Insertion,
+   Sequence,
+ } from '../../../src/typescript/class.ts'
+-import { makeSequence, sequenceFrontiers } from '../../.shared/sequence.ts'
++import {
++  makeSequence,
++  sequenceFrontiers,
++  sequenceInsertions,
++} from '../../.shared/sequence.ts'
++
++it.each([
++  [1, 270369, 1],
++  [0x7fffffff, 0x800ba01f, 1],
++  [0x80000000, 0x80084000, 1],
++  [0xffffffff, 0x10ad81fb, 8],
++])(
++  'restores complete Session IDs %i in both predictor directions',
++  (base, next, steps) => {
++    for (const reverse of [false, true]) {
++      const session = reverse ? base : next,
++        parent = reverse ? next : base,
++        count = reverse ? 2 : 1
++      const projection = new Projection<string>(
++        10,
++        makeSequence(
++          [],
++          [[[0, 0, 0, parent, 1, count], ['a', 'b'].slice(0, count)]]
++        )
++      )
++      try {
++        const literal = Uint8Array.of(
++          base,
++          base >>> 8,
++          base >>> 16,
++          base >>> 24
++        )
++        // The descriptor carries direction, step count and optional coordinate fields.
++        const packet = Uint8Array.of(
++          211,
++          (((steps - 1) * 2 + Number(reverse)) << 4) | (reverse ? 15 : 7),
++          ...literal,
++          1,
++          0,
++          8,
++          ...(reverse ? [2] : [])
++        )
++        const result = projection.apply([[packet]])
++        expect(result).toBeDefined()
++        expect(result?.[1]).toEqual([[10, session, 4 + count]])
++        expect(projection.values()).toEqual([])
++      } finally {
++        projection.destroy()
++      }
++    }
++  }
++)
++
++it('uses related Sessions only when their complete identifiers match', () => {
++  const source = new Projection<string>(1)
++  let receiver: Projection<string> | undefined
++  try {
++    source.apply([[1], [2]])
++    source.insert('abc', 0)
++    const initial = source.sequence(true, true)
++    const removal = source.remove(1, 1, true)
++    const mask = sequenceInsertions(source.sequence()).find(
++      ([c]) => (c[5] | 0) < 0
++    )![0]
++    const step = (value: number) => {
++      value ^= value << 13
++      value ^= value >>> 17
++      return (value ^ (value << 5)) >>> 0
++    }
++    let related = false,
++      anchor = mask[0],
++      own = mask[3]
++    for (let i = 0; i < 8; ++i) {
++      anchor = step(anchor)
++      own = step(own)
++      related ||= anchor === mask[3] || own === mask[0]
++    }
++    const bytes = removal[0][0] as Uint8Array
++    expect(bytes[0]).toBe(255)
++    expect((bytes[1] & 127) === 83).toBe(related)
++    if (related) expect(bytes).toHaveLength(8)
++    receiver = new Projection<string>(
++      2,
++      decode(encode(initial)),
++      undefined,
++      true
++    )
++    expect(receiver.apply(decode(encode(removal)), true)).toBeDefined()
++    expect(receiver.values()).toEqual(source.values())
++  } finally {
++    source.destroy()
++    receiver?.destroy()
++  }
++})
++
++it.each([[83], [211], [255, 211]].map((words) => ({ words })))(
++  'rejects truncated related Session coordinates $words',
++  ({ words }) => {
++    const projection = new Projection<string>(1)
++    try {
++      projection.insert(['keep'], 0)
++      expect(
++        projection.apply([[Uint8Array.from(words), ['x']]])
++      ).toBeUndefined()
++      expect(projection.values()).toEqual(['keep'])
++    } finally {
++      projection.destroy()
++    }
++  }
++)
+ 
+ it.each([3, 129, 6000])(
+   'hydrates repeated coordinates across %i insertions',
+diff --git a/src/c++/components/Words/session.hpp b/src/c++/components/Words/session.hpp
+new file mode 100644
+--- /dev/null
++++ b/src/c++/components/Words/session.hpp
+@@ -0,0 +1,11 @@
++#pragma once
++#include "../../types/type.hpp"
++
++namespace sequencer {
++/** Reversible uint32 predictor; these shifts are part of the byte format. */
++inline Word predict_session(Word value) {
++  value ^= value << 13;
++  value ^= value >> 17;
++  return value ^ (value << 5);
++}
++} // namespace sequencer

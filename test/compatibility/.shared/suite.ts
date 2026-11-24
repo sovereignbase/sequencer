@@ -335,6 +335,35 @@ export function runSuite(
       },
     ],
     [
+      'batched editing replay',
+      () => {
+        const source = new Constructor<string>(1),
+          receiver = new Constructor<string>(2)
+        try {
+          source.apply([[1], [2]])
+          receiver.apply([[1], [2]])
+          const gossip = source.batch((edit) => {
+            edit.insert('a😀b', 0)
+            edit.replace('X', 1, 2)
+            edit.remove(2, 2)
+            edit.insert('!', source.length())
+            edit.insert('?', source.length())
+          })
+          equal(gossip.length, 1)
+          equal(gossip[0][0] instanceof Uint8Array, true)
+          const result = receiver.apply(gossip, true, true)
+          equal(result !== undefined, true)
+          source.apply(result?.[1] ?? [])
+          equal(receiver.values(undefined, undefined, true), 'aX!?')
+          check(receiver, source.values())
+          equal(receiver.apply(gossip)![0].length, 0)
+        } finally {
+          source.destroy()
+          receiver.destroy()
+        }
+      },
+    ],
+    [
       'large snapshot Footage and hydration',
       () => {
         const source = new Constructor<number>(1)

@@ -2,6 +2,7 @@
 export type SequencerErrorCode =
   | 'UNKNOWN_ERROR'
   | 'PROJECTION_DESTROYED'
+  | 'BATCH_CLOSED'
   | 'NATIVE_OPERATION_FAILED'
   | 'STRING_ENCODING_FAILED'
 

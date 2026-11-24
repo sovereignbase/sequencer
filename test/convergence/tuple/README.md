@@ -10,3 +10,5 @@ Cases cover reordered and duplicate delivery, removal before insertion,
 replacement, packed snapshots, restart, merge and acknowledged compaction.
 Compaction removes eligible masks and deleted versions while preserving indices
 and Actor membership.
+Snapshot records follow version admission order; stable indices and retained
+version identities determine their meaning across delivery orders.

@@ -8,6 +8,7 @@ project(
 )
 
 set(SEQUENCER_SOURCES
+  src/c++/components/Batch/class.cpp
   src/c++/components/Traversal/class.cpp
   src/c++/components/Tuple/class.cpp
   src/c++/algorithms/apply.cpp

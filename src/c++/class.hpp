@@ -163,12 +163,14 @@ public:
    * @param text Whether replacement Footage retains UTF-16 text.
    * @return Gossip preserving removal-before-insertion order.
    */
-  Gossip replace(Word count, Word content, Word start, std::int64_t end, bool text = false);
+  [[gnu::always_inline]] Gossip replace(Word count, Word content, Word start, std::int64_t end,
+                                        bool text = false);
   /** Integrates one Insertion and any dependencies released by it.
    * @param insertion Canonical Insertion already validated at the ABI.
    * @param result Output to append to.
+   * @param binary Whether consecutive ACKs share a report for byte output.
    */
-  void apply(const Insertion &insertion, Result &result);
+  void apply(const Insertion &insertion, Result &result, bool binary = false);
   /** Reconstructs trusted exported history and builds its traversal directory.
    * @param insertions Canonical Insertions in exported Structural Order.
    * @param frontiers Retained Actor Acknowledgements.
@@ -178,10 +180,11 @@ public:
   /** Integrates snapshot history and then observes its retained Acknowledgements.
    * @param insertions Canonical snapshot Insertions.
    * @param frontiers Snapshot Acknowledgements.
+   * @param binary Whether consecutive ACKs share a report for byte output.
    * @return Visible Splices and Gossip containing Acknowledgements for newly integrated history.
    */
-  Result merge(std::span<const Insertion> insertions,
-               const std::vector<Acknowledgement> &frontiers);
+  Result merge(std::span<const Insertion> insertions, const std::vector<Acknowledgement> &frontiers,
+               bool binary = false);
   /** Reuses output capacity while resolving an inclusive visible range.
    * @param start First included Projection position.
    * @param end Last included position.

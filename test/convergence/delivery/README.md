@@ -6,6 +6,7 @@ Receivers integrating the same canonical operations must expose the same visible
 
 | Scenario                                                                     | Expectation                                                                                             | Test                                               |
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| [batch](batch/README.md)                                                     | Packed and ordinary edits converge across offline delivery; complete ACKs remove every eligible mask.   | [test.ts](batch/test.ts)                           |
 | [concurrent_replacement_delivery](concurrent_replacement_delivery/README.md) | Three independent replacement histories retain surviving content under different delivery orders.       | [test.ts](concurrent_replacement_delivery/test.ts) |
 | [offline_realtime_editing](offline_realtime_editing/README.md)               | Online and offline causal branches converge through mid-session, reverse, and seeded shuffled delivery. | [test.ts](offline_realtime_editing/test.ts)        |
 | [same_actor_multi_replica](same_actor_multi_replica/README.md)               | Instances sharing an Actor retain independent Sessions and converge without identity collisions.        | [test.ts](same_actor_multi_replica/test.ts)        |

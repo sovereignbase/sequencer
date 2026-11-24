@@ -1,6 +1,7 @@
 {
-  "generatedAt": "2026-11-24T10:49:37.992Z",
-  "environment": "Node 24.16.0, V8 13.6.233.17-node.49, win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz",
+  "generatedAt": "2026-11-24T12:48:43.054Z",
+  "run": "https://github.com/sovereignbase/sequencer/actions/runs/45395972158",
+  "environment": "Node 24.22.3, V8 13.6.233.17-node.63, linux x64, Intel(R) Xeon(R) 6975P-C",
   "runs": 3,
   "edits": 6000,
   "samples": [
@@ -10,15 +11,15 @@
       "mode": "numeric",
       "operation": "sequence",
       "calls": 10000,
-      "milliseconds": 12.495600000000763
+      "milliseconds": 5.353148000000402
     },
     {
       "run": 1,
       "workload": "append",
       "mode": "numeric",
       "operation": "encode",
-      "calls": 873,
-      "milliseconds": 50.10989999999947
+      "calls": 2972,
+      "milliseconds": 50.016042000000425
     },
     {
       "run": 1,
@@ -26,39 +27,39 @@
       "mode": "numeric",
       "operation": "decode",
       "calls": 10000,
-      "milliseconds": 30.88420000000258
+      "milliseconds": 15.80481000000134
     },
     {
       "run": 1,
       "workload": "append",
       "mode": "numeric",
       "operation": "create",
-      "calls": 9542,
-      "milliseconds": 50.0007000000071
+      "calls": 10000,
+      "milliseconds": 12.397658999999635
     },
     {
       "run": 1,
       "workload": "append",
       "mode": "numeric",
       "operation": "load",
-      "calls": 4825,
-      "milliseconds": 50.00390000000448
+      "calls": 10000,
+      "milliseconds": 32.065587999999195
     },
     {
       "run": 1,
       "workload": "append",
       "mode": "numeric",
       "operation": "apply",
-      "calls": 13,
-      "milliseconds": 54.1880000000001
+      "calls": 66,
+      "milliseconds": 50.7276949999997
     },
     {
       "run": 1,
       "workload": "append",
       "mode": "numeric",
       "operation": "receive",
-      "calls": 4,
-      "milliseconds": 55.77170000000024
+      "calls": 29,
+      "milliseconds": 50.748662000000536
     },
     {
       "run": 1,
@@ -66,15 +67,15 @@
       "mode": "binary",
       "operation": "sequence",
       "calls": 10000,
-      "milliseconds": 18.48529999999164
+      "milliseconds": 5.7505969999992885
     },
     {
       "run": 1,
       "workload": "append",
       "mode": "binary",
       "operation": "encode",
-      "calls": 1193,
-      "milliseconds": 50.053299999998444
+      "calls": 3073,
+      "milliseconds": 50.01304899999889
     },
     {
       "run": 1,
@@ -82,7 +83,7 @@
       "mode": "binary",
       "operation": "decode",
       "calls": 10000,
-      "milliseconds": 27.473499999996875
+      "milliseconds": 9.257891000010204
     },
     {
       "run": 1,
@@ -90,1223 +91,1223 @@
       "mode": "binary",
       "operation": "create",
       "calls": 10000,
-      "milliseconds": 25.96199999998612
+      "milliseconds": 13.292325000006826
     },
     {
       "run": 1,
       "workload": "append",
       "mode": "binary",
       "operation": "load",
-      "calls": 6775,
-      "milliseconds": 50.00450000000728
-    },
-    {
-      "run": 1,
-      "workload": "append",
-      "mode": "binary",
-      "operation": "apply",
-      "calls": 20,
-      "milliseconds": 51.38119999999981
-    },
-    {
-      "run": 1,
-      "workload": "append",
-      "mode": "binary",
-      "operation": "receive",
-      "calls": 4,
-      "milliseconds": 53.0359999999996
-    },
-    {
-      "run": 1,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "sequence",
-      "calls": 98,
-      "milliseconds": 50.11070000000291
-    },
-    {
-      "run": 1,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "encode",
-      "calls": 78,
-      "milliseconds": 50.05220000000145
-    },
-    {
-      "run": 1,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "decode",
-      "calls": 235,
-      "milliseconds": 50.00150000000258
-    },
-    {
-      "run": 1,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "create",
-      "calls": 53,
-      "milliseconds": 50.25559999999905
-    },
-    {
-      "run": 1,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "load",
-      "calls": 37,
-      "milliseconds": 51.23789999999872
-    },
-    {
-      "run": 1,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "apply",
-      "calls": 18,
-      "milliseconds": 51.730799999997544
-    },
-    {
-      "run": 1,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "receive",
-      "calls": 10,
-      "milliseconds": 51.11789999999928
-    },
-    {
-      "run": 1,
-      "workload": "prepend",
-      "mode": "binary",
-      "operation": "sequence",
-      "calls": 112,
-      "milliseconds": 50.35910000000058
-    },
-    {
-      "run": 1,
-      "workload": "prepend",
-      "mode": "binary",
-      "operation": "encode",
-      "calls": 1510,
-      "milliseconds": 50.005500000004304
-    },
-    {
-      "run": 1,
-      "workload": "prepend",
-      "mode": "binary",
-      "operation": "decode",
       "calls": 10000,
-      "milliseconds": 21.935599999985243
+      "milliseconds": 27.811095999997633
     },
     {
       "run": 1,
-      "workload": "prepend",
+      "workload": "append",
       "mode": "binary",
-      "operation": "create",
+      "operation": "apply",
       "calls": 62,
-      "milliseconds": 50.78879999999799
+      "milliseconds": 50.43340099999932
+    },
+    {
+      "run": 1,
+      "workload": "append",
+      "mode": "binary",
+      "operation": "receive",
+      "calls": 28,
+      "milliseconds": 50.88208000000054
+    },
+    {
+      "run": 1,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "sequence",
+      "calls": 210,
+      "milliseconds": 50.182855999999674
+    },
+    {
+      "run": 1,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "encode",
+      "calls": 301,
+      "milliseconds": 50.05986400000211
+    },
+    {
+      "run": 1,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "decode",
+      "calls": 505,
+      "milliseconds": 50.06278699999916
+    },
+    {
+      "run": 1,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "create",
+      "calls": 98,
+      "milliseconds": 50.319973000000346
+    },
+    {
+      "run": 1,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "load",
+      "calls": 59,
+      "milliseconds": 50.51844899999901
+    },
+    {
+      "run": 1,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "apply",
+      "calls": 40,
+      "milliseconds": 51.20312800000056
+    },
+    {
+      "run": 1,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "receive",
+      "calls": 22,
+      "milliseconds": 51.20286200000032
+    },
+    {
+      "run": 1,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "sequence",
+      "calls": 222,
+      "milliseconds": 50.001486999997724
+    },
+    {
+      "run": 1,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "encode",
+      "calls": 3314,
+      "milliseconds": 50.0153330000162
+    },
+    {
+      "run": 1,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "decode",
+      "calls": 10000,
+      "milliseconds": 11.361542000011923
+    },
+    {
+      "run": 1,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "create",
+      "calls": 96,
+      "milliseconds": 50.36159900000166
     },
     {
       "run": 1,
       "workload": "prepend",
       "mode": "binary",
       "operation": "load",
-      "calls": 53,
-      "milliseconds": 50.374600000001465
+      "calls": 92,
+      "milliseconds": 50.11849300000176
     },
     {
       "run": 1,
       "workload": "prepend",
       "mode": "binary",
       "operation": "apply",
-      "calls": 20,
-      "milliseconds": 52.20090000000073
+      "calls": 38,
+      "milliseconds": 50.11671999999953
     },
     {
       "run": 1,
       "workload": "prepend",
       "mode": "binary",
       "operation": "receive",
-      "calls": 13,
-      "milliseconds": 51.02399999999898
-    },
-    {
-      "run": 1,
-      "workload": "random",
-      "mode": "numeric",
-      "operation": "sequence",
-      "calls": 55,
-      "milliseconds": 50.32639999999992
-    },
-    {
-      "run": 1,
-      "workload": "random",
-      "mode": "numeric",
-      "operation": "encode",
-      "calls": 26,
-      "milliseconds": 51.84439999999722
-    },
-    {
-      "run": 1,
-      "workload": "random",
-      "mode": "numeric",
-      "operation": "decode",
-      "calls": 44,
-      "milliseconds": 50.21430000000055
-    },
-    {
-      "run": 1,
-      "workload": "random",
-      "mode": "numeric",
-      "operation": "create",
       "calls": 24,
-      "milliseconds": 50.25560000000041
+      "milliseconds": 51.24989300000016
     },
     {
       "run": 1,
       "workload": "random",
-      "mode": "numeric",
-      "operation": "load",
-      "calls": 13,
-      "milliseconds": 50.53190000000086
-    },
-    {
-      "run": 1,
-      "workload": "random",
-      "mode": "numeric",
-      "operation": "apply",
-      "calls": 7,
-      "milliseconds": 57.479999999998654
-    },
-    {
-      "run": 1,
-      "workload": "random",
-      "mode": "numeric",
-      "operation": "receive",
-      "calls": 4,
-      "milliseconds": 54.453200000000834
-    },
-    {
-      "run": 1,
-      "workload": "random",
-      "mode": "binary",
-      "operation": "sequence",
-      "calls": 56,
-      "milliseconds": 50.572100000004866
-    },
-    {
-      "run": 1,
-      "workload": "random",
-      "mode": "binary",
-      "operation": "encode",
-      "calls": 758,
-      "milliseconds": 51.443799999993644
-    },
-    {
-      "run": 1,
-      "workload": "random",
-      "mode": "binary",
-      "operation": "decode",
-      "calls": 10000,
-      "milliseconds": 15.810799999982919
-    },
-    {
-      "run": 1,
-      "workload": "random",
-      "mode": "binary",
-      "operation": "create",
-      "calls": 26,
-      "milliseconds": 51.751500000000306
-    },
-    {
-      "run": 1,
-      "workload": "random",
-      "mode": "binary",
-      "operation": "load",
-      "calls": 25,
-      "milliseconds": 50.61050000000341
-    },
-    {
-      "run": 1,
-      "workload": "random",
-      "mode": "binary",
-      "operation": "apply",
-      "calls": 8,
-      "milliseconds": 50.59770000000117
-    },
-    {
-      "run": 1,
-      "workload": "random",
-      "mode": "binary",
-      "operation": "receive",
-      "calls": 7,
-      "milliseconds": 53.8045000000011
-    },
-    {
-      "run": 1,
-      "workload": "concurrent",
       "mode": "numeric",
       "operation": "sequence",
-      "calls": 63,
-      "milliseconds": 50.33189999999922
+      "calls": 79,
+      "milliseconds": 50.27775699999938
     },
     {
       "run": 1,
-      "workload": "concurrent",
+      "workload": "random",
       "mode": "numeric",
       "operation": "encode",
-      "calls": 33,
-      "milliseconds": 51.27470000000085
+      "calls": 48,
+      "milliseconds": 50.33095599999979
     },
     {
       "run": 1,
-      "workload": "concurrent",
+      "workload": "random",
       "mode": "numeric",
       "operation": "decode",
-      "calls": 53,
-      "milliseconds": 50.325700000001234
+      "calls": 70,
+      "milliseconds": 50.504623999997875
     },
     {
       "run": 1,
-      "workload": "concurrent",
+      "workload": "random",
       "mode": "numeric",
       "operation": "create",
-      "calls": 32,
-      "milliseconds": 51.34730000000491
+      "calls": 48,
+      "milliseconds": 50.61148099999991
     },
     {
       "run": 1,
-      "workload": "concurrent",
+      "workload": "random",
       "mode": "numeric",
       "operation": "load",
-      "calls": 13,
-      "milliseconds": 51.87870000000021
+      "calls": 19,
+      "milliseconds": 50.07104600000093
     },
     {
       "run": 1,
-      "workload": "concurrent",
+      "workload": "random",
       "mode": "numeric",
-      "operation": "apply",
-      "calls": 9,
-      "milliseconds": 51.947400000000926
-    },
-    {
-      "run": 1,
-      "workload": "concurrent",
-      "mode": "numeric",
-      "operation": "receive",
-      "calls": 6,
-      "milliseconds": 56.31490000000031
-    },
-    {
-      "run": 1,
-      "workload": "concurrent",
-      "mode": "binary",
-      "operation": "sequence",
-      "calls": 67,
-      "milliseconds": 50.68909999999778
-    },
-    {
-      "run": 1,
-      "workload": "concurrent",
-      "mode": "binary",
-      "operation": "encode",
-      "calls": 862,
-      "milliseconds": 50.04730000000109
-    },
-    {
-      "run": 1,
-      "workload": "concurrent",
-      "mode": "binary",
-      "operation": "decode",
-      "calls": 10000,
-      "milliseconds": 30.69879999998193
-    },
-    {
-      "run": 1,
-      "workload": "concurrent",
-      "mode": "binary",
-      "operation": "create",
-      "calls": 21,
-      "milliseconds": 52.346300000001065
-    },
-    {
-      "run": 1,
-      "workload": "concurrent",
-      "mode": "binary",
-      "operation": "load",
-      "calls": 21,
-      "milliseconds": 51.35359999999855
-    },
-    {
-      "run": 1,
-      "workload": "concurrent",
-      "mode": "binary",
       "operation": "apply",
       "calls": 11,
-      "milliseconds": 53.737599999999475
+      "milliseconds": 53.54184699999951
+    },
+    {
+      "run": 1,
+      "workload": "random",
+      "mode": "numeric",
+      "operation": "receive",
+      "calls": 8,
+      "milliseconds": 52.658134999999675
+    },
+    {
+      "run": 1,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "sequence",
+      "calls": 106,
+      "milliseconds": 50.35570200000029
+    },
+    {
+      "run": 1,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "encode",
+      "calls": 1596,
+      "milliseconds": 50.394954999998845
+    },
+    {
+      "run": 1,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "decode",
+      "calls": 10000,
+      "milliseconds": 15.79464299998017
+    },
+    {
+      "run": 1,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "create",
+      "calls": 45,
+      "milliseconds": 50.88025100000232
+    },
+    {
+      "run": 1,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "load",
+      "calls": 44,
+      "milliseconds": 50.994847000000846
+    },
+    {
+      "run": 1,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "apply",
+      "calls": 14,
+      "milliseconds": 53.473463999999694
+    },
+    {
+      "run": 1,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "receive",
+      "calls": 10,
+      "milliseconds": 50.02085600000191
     },
     {
       "run": 1,
       "workload": "concurrent",
-      "mode": "binary",
-      "operation": "receive",
-      "calls": 8,
-      "milliseconds": 55.224200000000565
-    },
-    {
-      "run": 2,
-      "workload": "append",
-      "mode": "binary",
-      "operation": "sequence",
-      "calls": 10000,
-      "milliseconds": 8.04340000004504
-    },
-    {
-      "run": 2,
-      "workload": "append",
-      "mode": "binary",
-      "operation": "encode",
-      "calls": 1522,
-      "milliseconds": 50.002000000005864
-    },
-    {
-      "run": 2,
-      "workload": "append",
-      "mode": "binary",
-      "operation": "decode",
-      "calls": 10000,
-      "milliseconds": 22.35020000000077
-    },
-    {
-      "run": 2,
-      "workload": "append",
-      "mode": "binary",
-      "operation": "create",
-      "calls": 10000,
-      "milliseconds": 20.687700000019504
-    },
-    {
-      "run": 2,
-      "workload": "append",
-      "mode": "binary",
-      "operation": "load",
-      "calls": 10000,
-      "milliseconds": 48.35059999999248
-    },
-    {
-      "run": 2,
-      "workload": "append",
-      "mode": "binary",
-      "operation": "apply",
-      "calls": 37,
-      "milliseconds": 50.75500000000102
-    },
-    {
-      "run": 2,
-      "workload": "append",
-      "mode": "binary",
-      "operation": "receive",
-      "calls": 17,
-      "milliseconds": 50.431400000000394
-    },
-    {
-      "run": 2,
-      "workload": "append",
       "mode": "numeric",
       "operation": "sequence",
-      "calls": 10000,
-      "milliseconds": 6.506399999988389
+      "calls": 102,
+      "milliseconds": 50.502322000001186
     },
     {
-      "run": 2,
-      "workload": "append",
+      "run": 1,
+      "workload": "concurrent",
       "mode": "numeric",
       "operation": "encode",
-      "calls": 1353,
-      "milliseconds": 50.0268999999862
-    },
-    {
-      "run": 2,
-      "workload": "append",
-      "mode": "numeric",
-      "operation": "decode",
-      "calls": 10000,
-      "milliseconds": 25.830199999956676
-    },
-    {
-      "run": 2,
-      "workload": "append",
-      "mode": "numeric",
-      "operation": "create",
-      "calls": 10000,
-      "milliseconds": 18.148200000192446
-    },
-    {
-      "run": 2,
-      "workload": "append",
-      "mode": "numeric",
-      "operation": "load",
-      "calls": 8981,
-      "milliseconds": 50.00269999999
-    },
-    {
-      "run": 2,
-      "workload": "append",
-      "mode": "numeric",
-      "operation": "apply",
-      "calls": 32,
-      "milliseconds": 51.19629999999779
-    },
-    {
-      "run": 2,
-      "workload": "append",
-      "mode": "numeric",
-      "operation": "receive",
-      "calls": 12,
-      "milliseconds": 51.224200000002384
-    },
-    {
-      "run": 2,
-      "workload": "prepend",
-      "mode": "binary",
-      "operation": "sequence",
-      "calls": 112,
-      "milliseconds": 50.17590000000746
-    },
-    {
-      "run": 2,
-      "workload": "prepend",
-      "mode": "binary",
-      "operation": "encode",
-      "calls": 1463,
-      "milliseconds": 50.029999999998836
-    },
-    {
-      "run": 2,
-      "workload": "prepend",
-      "mode": "binary",
-      "operation": "decode",
-      "calls": 10000,
-      "milliseconds": 23.91410000000542
-    },
-    {
-      "run": 2,
-      "workload": "prepend",
-      "mode": "binary",
-      "operation": "create",
-      "calls": 62,
-      "milliseconds": 50.45070000000851
-    },
-    {
-      "run": 2,
-      "workload": "prepend",
-      "mode": "binary",
-      "operation": "load",
-      "calls": 62,
-      "milliseconds": 50.41540000001078
-    },
-    {
-      "run": 2,
-      "workload": "prepend",
-      "mode": "binary",
-      "operation": "apply",
-      "calls": 21,
-      "milliseconds": 50.36569999999847
-    },
-    {
-      "run": 2,
-      "workload": "prepend",
-      "mode": "binary",
-      "operation": "receive",
-      "calls": 13,
-      "milliseconds": 51.77679999999782
-    },
-    {
-      "run": 2,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "sequence",
-      "calls": 125,
-      "milliseconds": 50.3266000000076
-    },
-    {
-      "run": 2,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "encode",
-      "calls": 92,
-      "milliseconds": 50.29469999999674
-    },
-    {
-      "run": 2,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "decode",
-      "calls": 230,
-      "milliseconds": 50.07960000000821
-    },
-    {
-      "run": 2,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "create",
       "calls": 61,
-      "milliseconds": 50.32250000000931
+      "milliseconds": 50.24207099999603
     },
     {
-      "run": 2,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "load",
-      "calls": 35,
-      "milliseconds": 50.905399999997826
-    },
-    {
-      "run": 2,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "apply",
-      "calls": 21,
-      "milliseconds": 50.060999999999694
-    },
-    {
-      "run": 2,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "receive",
-      "calls": 12,
-      "milliseconds": 50.36910000000171
-    },
-    {
-      "run": 2,
-      "workload": "random",
-      "mode": "binary",
-      "operation": "sequence",
-      "calls": 37,
-      "milliseconds": 50.85929999999826
-    },
-    {
-      "run": 2,
-      "workload": "random",
-      "mode": "binary",
-      "operation": "encode",
-      "calls": 726,
-      "milliseconds": 50.00189999999566
-    },
-    {
-      "run": 2,
-      "workload": "random",
-      "mode": "binary",
-      "operation": "decode",
-      "calls": 10000,
-      "milliseconds": 22.879800000049727
-    },
-    {
-      "run": 2,
-      "workload": "random",
-      "mode": "binary",
-      "operation": "create",
-      "calls": 26,
-      "milliseconds": 51.721800000002986
-    },
-    {
-      "run": 2,
-      "workload": "random",
-      "mode": "binary",
-      "operation": "load",
-      "calls": 25,
-      "milliseconds": 51.12000000000444
-    },
-    {
-      "run": 2,
-      "workload": "random",
-      "mode": "binary",
-      "operation": "apply",
-      "calls": 9,
-      "milliseconds": 54.802599999999074
-    },
-    {
-      "run": 2,
-      "workload": "random",
-      "mode": "binary",
-      "operation": "receive",
-      "calls": 4,
-      "milliseconds": 68.88510000000133
-    },
-    {
-      "run": 2,
-      "workload": "random",
-      "mode": "numeric",
-      "operation": "sequence",
-      "calls": 50,
-      "milliseconds": 50.385400000004665
-    },
-    {
-      "run": 2,
-      "workload": "random",
-      "mode": "numeric",
-      "operation": "encode",
-      "calls": 22,
-      "milliseconds": 51.227100000000064
-    },
-    {
-      "run": 2,
-      "workload": "random",
+      "run": 1,
+      "workload": "concurrent",
       "mode": "numeric",
       "operation": "decode",
-      "calls": 42,
-      "milliseconds": 50.25980000000345
+      "calls": 107,
+      "milliseconds": 50.43486500000563
     },
     {
-      "run": 2,
-      "workload": "random",
+      "run": 1,
+      "workload": "concurrent",
       "mode": "numeric",
       "operation": "create",
       "calls": 29,
-      "milliseconds": 50.292600000000675
+      "milliseconds": 51.61543299999994
     },
     {
-      "run": 2,
-      "workload": "random",
-      "mode": "numeric",
-      "operation": "load",
-      "calls": 11,
-      "milliseconds": 53.71499999999651
-    },
-    {
-      "run": 2,
-      "workload": "random",
-      "mode": "numeric",
-      "operation": "apply",
-      "calls": 7,
-      "milliseconds": 54.00120000000243
-    },
-    {
-      "run": 2,
-      "workload": "random",
-      "mode": "numeric",
-      "operation": "receive",
-      "calls": 5,
-      "milliseconds": 57.355899999996836
-    },
-    {
-      "run": 2,
-      "workload": "concurrent",
-      "mode": "binary",
-      "operation": "sequence",
-      "calls": 68,
-      "milliseconds": 50.55130000000463
-    },
-    {
-      "run": 2,
-      "workload": "concurrent",
-      "mode": "binary",
-      "operation": "encode",
-      "calls": 910,
-      "milliseconds": 50.04239999999845
-    },
-    {
-      "run": 2,
-      "workload": "concurrent",
-      "mode": "binary",
-      "operation": "decode",
-      "calls": 10000,
-      "milliseconds": 22.469300000062503
-    },
-    {
-      "run": 2,
-      "workload": "concurrent",
-      "mode": "binary",
-      "operation": "create",
-      "calls": 22,
-      "milliseconds": 52.145699999997305
-    },
-    {
-      "run": 2,
-      "workload": "concurrent",
-      "mode": "binary",
-      "operation": "load",
-      "calls": 20,
-      "milliseconds": 50.221800000002986
-    },
-    {
-      "run": 2,
-      "workload": "concurrent",
-      "mode": "binary",
-      "operation": "apply",
-      "calls": 11,
-      "milliseconds": 53.43289999999979
-    },
-    {
-      "run": 2,
-      "workload": "concurrent",
-      "mode": "binary",
-      "operation": "receive",
-      "calls": 8,
-      "milliseconds": 54.04210000000057
-    },
-    {
-      "run": 2,
-      "workload": "concurrent",
-      "mode": "numeric",
-      "operation": "sequence",
-      "calls": 59,
-      "milliseconds": 50.118899999997666
-    },
-    {
-      "run": 2,
-      "workload": "concurrent",
-      "mode": "numeric",
-      "operation": "encode",
-      "calls": 34,
-      "milliseconds": 51.57140000000436
-    },
-    {
-      "run": 2,
-      "workload": "concurrent",
-      "mode": "numeric",
-      "operation": "decode",
-      "calls": 63,
-      "milliseconds": 50.534899999993286
-    },
-    {
-      "run": 2,
-      "workload": "concurrent",
-      "mode": "numeric",
-      "operation": "create",
-      "calls": 33,
-      "milliseconds": 50.46250000000691
-    },
-    {
-      "run": 2,
+      "run": 1,
       "workload": "concurrent",
       "mode": "numeric",
       "operation": "load",
-      "calls": 16,
-      "milliseconds": 50.10280000000421
-    },
-    {
-      "run": 2,
-      "workload": "concurrent",
-      "mode": "numeric",
-      "operation": "apply",
-      "calls": 8,
-      "milliseconds": 50.19640000000072
-    },
-    {
-      "run": 2,
-      "workload": "concurrent",
-      "mode": "numeric",
-      "operation": "receive",
-      "calls": 6,
-      "milliseconds": 56.25199999999859
-    },
-    {
-      "run": 3,
-      "workload": "append",
-      "mode": "numeric",
-      "operation": "sequence",
-      "calls": 10000,
-      "milliseconds": 7.110300000254938
-    },
-    {
-      "run": 3,
-      "workload": "append",
-      "mode": "numeric",
-      "operation": "encode",
-      "calls": 1486,
-      "milliseconds": 50.0244999999868
-    },
-    {
-      "run": 3,
-      "workload": "append",
-      "mode": "numeric",
-      "operation": "decode",
-      "calls": 10000,
-      "milliseconds": 39.7850000000617
-    },
-    {
-      "run": 3,
-      "workload": "append",
-      "mode": "numeric",
-      "operation": "create",
-      "calls": 10000,
-      "milliseconds": 34.969699999948716
-    },
-    {
-      "run": 3,
-      "workload": "append",
-      "mode": "numeric",
-      "operation": "load",
-      "calls": 7638,
-      "milliseconds": 50.00229999989824
-    },
-    {
-      "run": 3,
-      "workload": "append",
-      "mode": "numeric",
-      "operation": "apply",
-      "calls": 24,
-      "milliseconds": 50.22239999999147
-    },
-    {
-      "run": 3,
-      "workload": "append",
-      "mode": "numeric",
-      "operation": "receive",
-      "calls": 13,
-      "milliseconds": 50.49550000000272
-    },
-    {
-      "run": 3,
-      "workload": "append",
-      "mode": "binary",
-      "operation": "sequence",
-      "calls": 10000,
-      "milliseconds": 9.259600000003047
-    },
-    {
-      "run": 3,
-      "workload": "append",
-      "mode": "binary",
-      "operation": "encode",
-      "calls": 1460,
-      "milliseconds": 50.04300000006515
-    },
-    {
-      "run": 3,
-      "workload": "append",
-      "mode": "binary",
-      "operation": "decode",
-      "calls": 10000,
-      "milliseconds": 25.505800000039017
-    },
-    {
-      "run": 3,
-      "workload": "append",
-      "mode": "binary",
-      "operation": "create",
-      "calls": 10000,
-      "milliseconds": 20.244500000137123
-    },
-    {
-      "run": 3,
-      "workload": "append",
-      "mode": "binary",
-      "operation": "load",
-      "calls": 9433,
-      "milliseconds": 50.00360000008732
-    },
-    {
-      "run": 3,
-      "workload": "append",
-      "mode": "binary",
-      "operation": "apply",
-      "calls": 35,
-      "milliseconds": 50.89299999999821
-    },
-    {
-      "run": 3,
-      "workload": "append",
-      "mode": "binary",
-      "operation": "receive",
       "calls": 17,
-      "milliseconds": 51.118099999999686
+      "milliseconds": 50.72209699999803
     },
     {
-      "run": 3,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "sequence",
-      "calls": 114,
-      "milliseconds": 50.05010000001312
-    },
-    {
-      "run": 3,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "encode",
-      "calls": 90,
-      "milliseconds": 50.176100000007864
-    },
-    {
-      "run": 3,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "decode",
-      "calls": 308,
-      "milliseconds": 50.06299999998555
-    },
-    {
-      "run": 3,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "create",
-      "calls": 63,
-      "milliseconds": 50.00949999999466
-    },
-    {
-      "run": 3,
-      "workload": "prepend",
-      "mode": "numeric",
-      "operation": "load",
-      "calls": 33,
-      "milliseconds": 50.23189999999886
-    },
-    {
-      "run": 3,
-      "workload": "prepend",
+      "run": 1,
+      "workload": "concurrent",
       "mode": "numeric",
       "operation": "apply",
-      "calls": 19,
-      "milliseconds": 51.73769999999786
+      "calls": 16,
+      "milliseconds": 53.031903999998576
     },
     {
-      "run": 3,
-      "workload": "prepend",
+      "run": 1,
+      "workload": "concurrent",
       "mode": "numeric",
       "operation": "receive",
-      "calls": 14,
-      "milliseconds": 51.270299999998315
+      "calls": 10,
+      "milliseconds": 50.10712700000022
     },
     {
-      "run": 3,
-      "workload": "prepend",
+      "run": 1,
+      "workload": "concurrent",
       "mode": "binary",
       "operation": "sequence",
-      "calls": 114,
-      "milliseconds": 50.08479999999872
+      "calls": 131,
+      "milliseconds": 50.289113000003454
     },
     {
-      "run": 3,
-      "workload": "prepend",
+      "run": 1,
+      "workload": "concurrent",
       "mode": "binary",
       "operation": "encode",
-      "calls": 1563,
-      "milliseconds": 50.01630000001205
+      "calls": 1929,
+      "milliseconds": 50.01269300000149
     },
     {
-      "run": 3,
-      "workload": "prepend",
+      "run": 1,
+      "workload": "concurrent",
       "mode": "binary",
       "operation": "decode",
       "calls": 10000,
-      "milliseconds": 22.004799999946044
+      "milliseconds": 15.190914999993765
     },
     {
-      "run": 3,
-      "workload": "prepend",
+      "run": 1,
+      "workload": "concurrent",
       "mode": "binary",
       "operation": "create",
-      "calls": 56,
-      "milliseconds": 50.26079999999274
+      "calls": 50,
+      "milliseconds": 50.30668799999694
     },
     {
-      "run": 3,
-      "workload": "prepend",
+      "run": 1,
+      "workload": "concurrent",
       "mode": "binary",
       "operation": "load",
-      "calls": 58,
-      "milliseconds": 50.732200000016746
+      "calls": 49,
+      "milliseconds": 50.83871900000213
     },
     {
-      "run": 3,
-      "workload": "prepend",
+      "run": 1,
+      "workload": "concurrent",
       "mode": "binary",
       "operation": "apply",
-      "calls": 21,
-      "milliseconds": 51.304800000001705
+      "calls": 16,
+      "milliseconds": 50.03524699999798
     },
     {
-      "run": 3,
-      "workload": "prepend",
+      "run": 1,
+      "workload": "concurrent",
       "mode": "binary",
       "operation": "receive",
       "calls": 13,
-      "milliseconds": 51.12100000000282
+      "milliseconds": 53.55886399999963
     },
     {
-      "run": 3,
-      "workload": "random",
+      "run": 2,
+      "workload": "append",
+      "mode": "binary",
+      "operation": "sequence",
+      "calls": 10000,
+      "milliseconds": 4.3321049999321986
+    },
+    {
+      "run": 2,
+      "workload": "append",
+      "mode": "binary",
+      "operation": "encode",
+      "calls": 3440,
+      "milliseconds": 50.01242299998103
+    },
+    {
+      "run": 2,
+      "workload": "append",
+      "mode": "binary",
+      "operation": "decode",
+      "calls": 10000,
+      "milliseconds": 10.088717999935398
+    },
+    {
+      "run": 2,
+      "workload": "append",
+      "mode": "binary",
+      "operation": "create",
+      "calls": 10000,
+      "milliseconds": 10.712338999920576
+    },
+    {
+      "run": 2,
+      "workload": "append",
+      "mode": "binary",
+      "operation": "load",
+      "calls": 10000,
+      "milliseconds": 27.756544000037138
+    },
+    {
+      "run": 2,
+      "workload": "append",
+      "mode": "binary",
+      "operation": "apply",
+      "calls": 54,
+      "milliseconds": 50.182246000001214
+    },
+    {
+      "run": 2,
+      "workload": "append",
+      "mode": "binary",
+      "operation": "receive",
+      "calls": 31,
+      "milliseconds": 50.09126000000015
+    },
+    {
+      "run": 2,
+      "workload": "append",
       "mode": "numeric",
       "operation": "sequence",
-      "calls": 55,
-      "milliseconds": 50.895300000000134
+      "calls": 10000,
+      "milliseconds": 3.574513999935334
     },
     {
-      "run": 3,
-      "workload": "random",
+      "run": 2,
+      "workload": "append",
       "mode": "numeric",
       "operation": "encode",
-      "calls": 22,
-      "milliseconds": 50.0895000000055
+      "calls": 3222,
+      "milliseconds": 50.00846799998453
     },
     {
-      "run": 3,
-      "workload": "random",
+      "run": 2,
+      "workload": "append",
       "mode": "numeric",
       "operation": "decode",
+      "calls": 10000,
+      "milliseconds": 12.419451999928242
+    },
+    {
+      "run": 2,
+      "workload": "append",
+      "mode": "numeric",
+      "operation": "create",
+      "calls": 10000,
+      "milliseconds": 12.931040999982542
+    },
+    {
+      "run": 2,
+      "workload": "append",
+      "mode": "numeric",
+      "operation": "load",
+      "calls": 10000,
+      "milliseconds": 29.740109000028497
+    },
+    {
+      "run": 2,
+      "workload": "append",
+      "mode": "numeric",
+      "operation": "apply",
+      "calls": 54,
+      "milliseconds": 50.85333399999945
+    },
+    {
+      "run": 2,
+      "workload": "append",
+      "mode": "numeric",
+      "operation": "receive",
+      "calls": 29,
+      "milliseconds": 51.298366000002716
+    },
+    {
+      "run": 2,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "sequence",
+      "calls": 229,
+      "milliseconds": 50.13256899999669
+    },
+    {
+      "run": 2,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "encode",
+      "calls": 3366,
+      "milliseconds": 50.00005200000396
+    },
+    {
+      "run": 2,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "decode",
+      "calls": 10000,
+      "milliseconds": 12.262468999989323
+    },
+    {
+      "run": 2,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "create",
+      "calls": 97,
+      "milliseconds": 50.4301480000031
+    },
+    {
+      "run": 2,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "load",
+      "calls": 92,
+      "milliseconds": 50.06120100000044
+    },
+    {
+      "run": 2,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "apply",
+      "calls": 36,
+      "milliseconds": 50.18934000000172
+    },
+    {
+      "run": 2,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "receive",
       "calls": 24,
-      "milliseconds": 50.30279999999766
+      "milliseconds": 50.79670000000169
     },
     {
-      "run": 3,
-      "workload": "random",
+      "run": 2,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "sequence",
+      "calls": 227,
+      "milliseconds": 50.22710599999846
+    },
+    {
+      "run": 2,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "encode",
+      "calls": 200,
+      "milliseconds": 50.00745199999437
+    },
+    {
+      "run": 2,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "decode",
+      "calls": 594,
+      "milliseconds": 50.05099600000449
+    },
+    {
+      "run": 2,
+      "workload": "prepend",
       "mode": "numeric",
       "operation": "create",
-      "calls": 27,
-      "milliseconds": 51.70570000000225
+      "calls": 98,
+      "milliseconds": 50.112851999998384
     },
     {
-      "run": 3,
-      "workload": "random",
+      "run": 2,
+      "workload": "prepend",
       "mode": "numeric",
       "operation": "load",
-      "calls": 10,
-      "milliseconds": 54.09810000000289
+      "calls": 62,
+      "milliseconds": 50.674495999998726
     },
     {
-      "run": 3,
-      "workload": "random",
+      "run": 2,
+      "workload": "prepend",
       "mode": "numeric",
       "operation": "apply",
-      "calls": 7,
-      "milliseconds": 57.93439999999464
+      "calls": 36,
+      "milliseconds": 50.14865599999848
     },
     {
-      "run": 3,
-      "workload": "random",
+      "run": 2,
+      "workload": "prepend",
       "mode": "numeric",
       "operation": "receive",
-      "calls": 4,
-      "milliseconds": 50.12899999999718
+      "calls": 22,
+      "milliseconds": 51.79690499999924
     },
     {
-      "run": 3,
+      "run": 2,
       "workload": "random",
       "mode": "binary",
       "operation": "sequence",
+      "calls": 106,
+      "milliseconds": 50.002892999988035
+    },
+    {
+      "run": 2,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "encode",
+      "calls": 1857,
+      "milliseconds": 50.00590799998463
+    },
+    {
+      "run": 2,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "decode",
+      "calls": 10000,
+      "milliseconds": 9.472792000080517
+    },
+    {
+      "run": 2,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "create",
+      "calls": 45,
+      "milliseconds": 51.1091259999921
+    },
+    {
+      "run": 2,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "load",
+      "calls": 43,
+      "milliseconds": 50.55955600000016
+    },
+    {
+      "run": 2,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "apply",
+      "calls": 14,
+      "milliseconds": 52.71669099999781
+    },
+    {
+      "run": 2,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "receive",
+      "calls": 11,
+      "milliseconds": 53.18701599999622
+    },
+    {
+      "run": 2,
+      "workload": "random",
+      "mode": "numeric",
+      "operation": "sequence",
+      "calls": 79,
+      "milliseconds": 50.237788999998884
+    },
+    {
+      "run": 2,
+      "workload": "random",
+      "mode": "numeric",
+      "operation": "encode",
+      "calls": 47,
+      "milliseconds": 50.67613700000038
+    },
+    {
+      "run": 2,
+      "workload": "random",
+      "mode": "numeric",
+      "operation": "decode",
+      "calls": 73,
+      "milliseconds": 50.334663999998156
+    },
+    {
+      "run": 2,
+      "workload": "random",
+      "mode": "numeric",
+      "operation": "create",
       "calls": 49,
-      "milliseconds": 50.43519999999626
+      "milliseconds": 50.83241799999996
     },
     {
-      "run": 3,
+      "run": 2,
       "workload": "random",
+      "mode": "numeric",
+      "operation": "load",
+      "calls": 19,
+      "milliseconds": 51.88745599999493
+    },
+    {
+      "run": 2,
+      "workload": "random",
+      "mode": "numeric",
+      "operation": "apply",
+      "calls": 12,
+      "milliseconds": 52.370897999997396
+    },
+    {
+      "run": 2,
+      "workload": "random",
+      "mode": "numeric",
+      "operation": "receive",
+      "calls": 8,
+      "milliseconds": 51.99209900000096
+    },
+    {
+      "run": 2,
+      "workload": "concurrent",
+      "mode": "binary",
+      "operation": "sequence",
+      "calls": 132,
+      "milliseconds": 50.26705900001798
+    },
+    {
+      "run": 2,
+      "workload": "concurrent",
       "mode": "binary",
       "operation": "encode",
-      "calls": 757,
-      "milliseconds": 51.743399999977555
+      "calls": 2020,
+      "milliseconds": 50.12562300001264
     },
     {
-      "run": 3,
-      "workload": "random",
+      "run": 2,
+      "workload": "concurrent",
       "mode": "binary",
       "operation": "decode",
       "calls": 10000,
-      "milliseconds": 28.558699999939563
+      "milliseconds": 9.383847999968566
     },
     {
-      "run": 3,
-      "workload": "random",
+      "run": 2,
+      "workload": "concurrent",
       "mode": "binary",
       "operation": "create",
-      "calls": 25,
-      "milliseconds": 50.32899999999063
+      "calls": 52,
+      "milliseconds": 50.50920099999894
     },
     {
-      "run": 3,
-      "workload": "random",
+      "run": 2,
+      "workload": "concurrent",
       "mode": "binary",
       "operation": "load",
-      "calls": 26,
-      "milliseconds": 50.481200000012905
+      "calls": 50,
+      "milliseconds": 50.0564039999972
     },
     {
-      "run": 3,
-      "workload": "random",
+      "run": 2,
+      "workload": "concurrent",
       "mode": "binary",
       "operation": "apply",
-      "calls": 9,
-      "milliseconds": 56.33999999999651
+      "calls": 17,
+      "milliseconds": 51.75955100000283
     },
     {
-      "run": 3,
-      "workload": "random",
+      "run": 2,
+      "workload": "concurrent",
       "mode": "binary",
       "operation": "receive",
-      "calls": 7,
-      "milliseconds": 52.575000000004366
+      "calls": 12,
+      "milliseconds": 51.641546999997445
     },
     {
-      "run": 3,
+      "run": 2,
       "workload": "concurrent",
       "mode": "numeric",
       "operation": "sequence",
-      "calls": 62,
-      "milliseconds": 50.34199999997145
+      "calls": 104,
+      "milliseconds": 50.550840999987486
     },
     {
-      "run": 3,
+      "run": 2,
       "workload": "concurrent",
       "mode": "numeric",
       "operation": "encode",
-      "calls": 34,
-      "milliseconds": 51.20750000000044
+      "calls": 68,
+      "milliseconds": 50.169442999995226
     },
     {
-      "run": 3,
+      "run": 2,
       "workload": "concurrent",
       "mode": "numeric",
       "operation": "decode",
-      "calls": 62,
-      "milliseconds": 50.04910000001473
+      "calls": 105,
+      "milliseconds": 50.012953000010384
     },
     {
-      "run": 3,
+      "run": 2,
       "workload": "concurrent",
       "mode": "numeric",
       "operation": "create",
+      "calls": 52,
+      "milliseconds": 50.13075000000208
+    },
+    {
+      "run": 2,
+      "workload": "concurrent",
+      "mode": "numeric",
+      "operation": "load",
       "calls": 23,
-      "milliseconds": 51.918500000003405
+      "milliseconds": 50.41265999999996
+    },
+    {
+      "run": 2,
+      "workload": "concurrent",
+      "mode": "numeric",
+      "operation": "apply",
+      "calls": 15,
+      "milliseconds": 51.02686200000244
+    },
+    {
+      "run": 2,
+      "workload": "concurrent",
+      "mode": "numeric",
+      "operation": "receive",
+      "calls": 10,
+      "milliseconds": 50.27289000000383
+    },
+    {
+      "run": 3,
+      "workload": "append",
+      "mode": "numeric",
+      "operation": "sequence",
+      "calls": 10000,
+      "milliseconds": 4.575700000006691
+    },
+    {
+      "run": 3,
+      "workload": "append",
+      "mode": "numeric",
+      "operation": "encode",
+      "calls": 3330,
+      "milliseconds": 50.00569999998879
+    },
+    {
+      "run": 3,
+      "workload": "append",
+      "mode": "numeric",
+      "operation": "decode",
+      "calls": 10000,
+      "milliseconds": 12.86189400006515
+    },
+    {
+      "run": 3,
+      "workload": "append",
+      "mode": "numeric",
+      "operation": "create",
+      "calls": 10000,
+      "milliseconds": 10.994419999995444
+    },
+    {
+      "run": 3,
+      "workload": "append",
+      "mode": "numeric",
+      "operation": "load",
+      "calls": 10000,
+      "milliseconds": 30.684494999986782
+    },
+    {
+      "run": 3,
+      "workload": "append",
+      "mode": "numeric",
+      "operation": "apply",
+      "calls": 58,
+      "milliseconds": 50.19801800001005
+    },
+    {
+      "run": 3,
+      "workload": "append",
+      "mode": "numeric",
+      "operation": "receive",
+      "calls": 28,
+      "milliseconds": 50.29470000000583
+    },
+    {
+      "run": 3,
+      "workload": "append",
+      "mode": "binary",
+      "operation": "sequence",
+      "calls": 10000,
+      "milliseconds": 4.396111999940331
+    },
+    {
+      "run": 3,
+      "workload": "append",
+      "mode": "binary",
+      "operation": "encode",
+      "calls": 3392,
+      "milliseconds": 50.00557799999842
+    },
+    {
+      "run": 3,
+      "workload": "append",
+      "mode": "binary",
+      "operation": "decode",
+      "calls": 10000,
+      "milliseconds": 14.194310999999288
+    },
+    {
+      "run": 3,
+      "workload": "append",
+      "mode": "binary",
+      "operation": "create",
+      "calls": 10000,
+      "milliseconds": 13.144502000066495
+    },
+    {
+      "run": 3,
+      "workload": "append",
+      "mode": "binary",
+      "operation": "load",
+      "calls": 10000,
+      "milliseconds": 26.711893999916356
+    },
+    {
+      "run": 3,
+      "workload": "append",
+      "mode": "binary",
+      "operation": "apply",
+      "calls": 56,
+      "milliseconds": 50.16758600000867
+    },
+    {
+      "run": 3,
+      "workload": "append",
+      "mode": "binary",
+      "operation": "receive",
+      "calls": 30,
+      "milliseconds": 50.46327099999871
+    },
+    {
+      "run": 3,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "sequence",
+      "calls": 225,
+      "milliseconds": 50.12409600000683
+    },
+    {
+      "run": 3,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "encode",
+      "calls": 199,
+      "milliseconds": 50.11631300000772
+    },
+    {
+      "run": 3,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "decode",
+      "calls": 539,
+      "milliseconds": 50.12622399999964
+    },
+    {
+      "run": 3,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "create",
+      "calls": 97,
+      "milliseconds": 50.38571000000411
+    },
+    {
+      "run": 3,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "load",
+      "calls": 61,
+      "milliseconds": 50.262530000007246
+    },
+    {
+      "run": 3,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "apply",
+      "calls": 37,
+      "milliseconds": 50.367040000008274
+    },
+    {
+      "run": 3,
+      "workload": "prepend",
+      "mode": "numeric",
+      "operation": "receive",
+      "calls": 21,
+      "milliseconds": 50.38784100000521
+    },
+    {
+      "run": 3,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "sequence",
+      "calls": 230,
+      "milliseconds": 50.11227000001054
+    },
+    {
+      "run": 3,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "encode",
+      "calls": 3349,
+      "milliseconds": 50.010456999963935
+    },
+    {
+      "run": 3,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "decode",
+      "calls": 10000,
+      "milliseconds": 14.279485000033674
+    },
+    {
+      "run": 3,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "create",
+      "calls": 96,
+      "milliseconds": 50.36866200000077
+    },
+    {
+      "run": 3,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "load",
+      "calls": 94,
+      "milliseconds": 50.31865199999993
+    },
+    {
+      "run": 3,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "apply",
+      "calls": 41,
+      "milliseconds": 50.993500000002314
+    },
+    {
+      "run": 3,
+      "workload": "prepend",
+      "mode": "binary",
+      "operation": "receive",
+      "calls": 24,
+      "milliseconds": 51.41090100000292
+    },
+    {
+      "run": 3,
+      "workload": "random",
+      "mode": "numeric",
+      "operation": "sequence",
+      "calls": 82,
+      "milliseconds": 50.461870000006456
+    },
+    {
+      "run": 3,
+      "workload": "random",
+      "mode": "numeric",
+      "operation": "encode",
+      "calls": 48,
+      "milliseconds": 50.82371499999863
+    },
+    {
+      "run": 3,
+      "workload": "random",
+      "mode": "numeric",
+      "operation": "decode",
+      "calls": 78,
+      "milliseconds": 50.4724450000067
+    },
+    {
+      "run": 3,
+      "workload": "random",
+      "mode": "numeric",
+      "operation": "create",
+      "calls": 48,
+      "milliseconds": 50.27572999999211
+    },
+    {
+      "run": 3,
+      "workload": "random",
+      "mode": "numeric",
+      "operation": "load",
+      "calls": 19,
+      "milliseconds": 50.90814699999646
+    },
+    {
+      "run": 3,
+      "workload": "random",
+      "mode": "numeric",
+      "operation": "apply",
+      "calls": 11,
+      "milliseconds": 50.73675099999491
+    },
+    {
+      "run": 3,
+      "workload": "random",
+      "mode": "numeric",
+      "operation": "receive",
+      "calls": 8,
+      "milliseconds": 52.13174400000025
+    },
+    {
+      "run": 3,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "sequence",
+      "calls": 106,
+      "milliseconds": 50.12593900000502
+    },
+    {
+      "run": 3,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "encode",
+      "calls": 1885,
+      "milliseconds": 50.013478000026225
+    },
+    {
+      "run": 3,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "decode",
+      "calls": 10000,
+      "milliseconds": 8.55292100006045
+    },
+    {
+      "run": 3,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "create",
+      "calls": 45,
+      "milliseconds": 50.93749399999979
+    },
+    {
+      "run": 3,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "load",
+      "calls": 43,
+      "milliseconds": 50.612368999989485
+    },
+    {
+      "run": 3,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "apply",
+      "calls": 14,
+      "milliseconds": 51.90053799999987
+    },
+    {
+      "run": 3,
+      "workload": "random",
+      "mode": "binary",
+      "operation": "receive",
+      "calls": 10,
+      "milliseconds": 51.414285999999265
+    },
+    {
+      "run": 3,
+      "workload": "concurrent",
+      "mode": "numeric",
+      "operation": "sequence",
+      "calls": 105,
+      "milliseconds": 50.481377000000066
+    },
+    {
+      "run": 3,
+      "workload": "concurrent",
+      "mode": "numeric",
+      "operation": "encode",
+      "calls": 67,
+      "milliseconds": 50.45160600000054
+    },
+    {
+      "run": 3,
+      "workload": "concurrent",
+      "mode": "numeric",
+      "operation": "decode",
+      "calls": 103,
+      "milliseconds": 50.036472999998296
+    },
+    {
+      "run": 3,
+      "workload": "concurrent",
+      "mode": "numeric",
+      "operation": "create",
+      "calls": 52,
+      "milliseconds": 50.31313600000249
     },
     {
       "run": 3,
       "workload": "concurrent",
       "mode": "numeric",
       "operation": "load",
-      "calls": 11,
-      "milliseconds": 52.2725000000064
+      "calls": 23,
+      "milliseconds": 51.22988600000281
     },
     {
       "run": 3,
       "workload": "concurrent",
       "mode": "numeric",
       "operation": "apply",
-      "calls": 9,
-      "milliseconds": 52.86960000000545
+      "calls": 15,
+      "milliseconds": 51.08688600000096
     },
     {
       "run": 3,
       "workload": "concurrent",
       "mode": "numeric",
       "operation": "receive",
-      "calls": 6,
-      "milliseconds": 55.77180000000226
+      "calls": 10,
+      "milliseconds": 50.053218000000925
     },
     {
       "run": 3,
       "workload": "concurrent",
       "mode": "binary",
       "operation": "sequence",
-      "calls": 69,
-      "milliseconds": 50.05640000000494
+      "calls": 131,
+      "milliseconds": 50.263158000003386
     },
     {
       "run": 3,
       "workload": "concurrent",
       "mode": "binary",
       "operation": "encode",
-      "calls": 875,
-      "milliseconds": 50.02390000006562
+      "calls": 2020,
+      "milliseconds": 50.03077200000007
     },
     {
       "run": 3,
@@ -1314,39 +1315,39 @@
       "mode": "binary",
       "operation": "decode",
       "calls": 10000,
-      "milliseconds": 19.415599999902042
+      "milliseconds": 11.227167999892117
     },
     {
       "run": 3,
       "workload": "concurrent",
       "mode": "binary",
       "operation": "create",
-      "calls": 33,
-      "milliseconds": 51.31330000000162
+      "calls": 50,
+      "milliseconds": 50.52223899999808
     },
     {
       "run": 3,
       "workload": "concurrent",
       "mode": "binary",
       "operation": "load",
-      "calls": 32,
-      "milliseconds": 50.46449999999459
+      "calls": 48,
+      "milliseconds": 50.386937000004764
     },
     {
       "run": 3,
       "workload": "concurrent",
       "mode": "binary",
       "operation": "apply",
-      "calls": 11,
-      "milliseconds": 54.44750000000204
+      "calls": 17,
+      "milliseconds": 52.88375200000519
     },
     {
       "run": 3,
       "workload": "concurrent",
       "mode": "binary",
       "operation": "receive",
-      "calls": 7,
-      "milliseconds": 52.20290000000023
+      "calls": 13,
+      "milliseconds": 52.03683899999305
     }
   ],
   "space": [
@@ -1356,155 +1357,11 @@
       "mode": "numeric",
       "metadataBytes": 68,
       "documentBytes": 6042,
-      "documentGzipBytes": 3699,
+      "documentGzipBytes": 3694,
       "averageUpdateBytes": 22.88
     },
     {
       "run": 1,
-      "workload": "append",
-      "mode": "binary",
-      "metadataBytes": 21,
-      "documentBytes": 6039,
-      "documentGzipBytes": 3693,
-      "averageUpdateBytes": 13.980666666666666
-    },
-    {
-      "run": 1,
-      "workload": "prepend",
-      "mode": "numeric",
-      "metadataBytes": 48080,
-      "documentBytes": 41029,
-      "documentGzipBytes": 18499,
-      "averageUpdateBytes": 22.939666666666668
-    },
-    {
-      "run": 1,
-      "workload": "prepend",
-      "mode": "binary",
-      "metadataBytes": 25,
-      "documentBytes": 6043,
-      "documentGzipBytes": 3701,
-      "averageUpdateBytes": 13.99
-    },
-    {
-      "run": 1,
-      "workload": "random",
-      "mode": "numeric",
-      "metadataBytes": 191168,
-      "documentBytes": 141367,
-      "documentGzipBytes": 58582,
-      "averageUpdateBytes": 39.88366666666667
-    },
-    {
-      "run": 1,
-      "workload": "random",
-      "mode": "binary",
-      "metadataBytes": 44751,
-      "documentBytes": 50769,
-      "documentGzipBytes": 36223,
-      "averageUpdateBytes": 23.451833333333333
-    },
-    {
-      "run": 1,
-      "workload": "concurrent",
-      "mode": "numeric",
-      "metadataBytes": 134156,
-      "documentBytes": 94407,
-      "documentGzipBytes": 43767,
-      "averageUpdateBytes": 32.3435
-    },
-    {
-      "run": 1,
-      "workload": "concurrent",
-      "mode": "binary",
-      "metadataBytes": 33042,
-      "documentBytes": 39877,
-      "documentGzipBytes": 28834,
-      "averageUpdateBytes": 20.713
-    },
-    {
-      "run": 2,
-      "workload": "append",
-      "mode": "binary",
-      "metadataBytes": 21,
-      "documentBytes": 6039,
-      "documentGzipBytes": 3693,
-      "averageUpdateBytes": 13.980666666666666
-    },
-    {
-      "run": 2,
-      "workload": "append",
-      "mode": "numeric",
-      "metadataBytes": 68,
-      "documentBytes": 6042,
-      "documentGzipBytes": 3696,
-      "averageUpdateBytes": 22.88
-    },
-    {
-      "run": 2,
-      "workload": "prepend",
-      "mode": "binary",
-      "metadataBytes": 25,
-      "documentBytes": 6043,
-      "documentGzipBytes": 3702,
-      "averageUpdateBytes": 13.99
-    },
-    {
-      "run": 2,
-      "workload": "prepend",
-      "mode": "numeric",
-      "metadataBytes": 48080,
-      "documentBytes": 41029,
-      "documentGzipBytes": 18499,
-      "averageUpdateBytes": 22.939666666666668
-    },
-    {
-      "run": 2,
-      "workload": "random",
-      "mode": "binary",
-      "metadataBytes": 44751,
-      "documentBytes": 50769,
-      "documentGzipBytes": 36223,
-      "averageUpdateBytes": 23.451833333333333
-    },
-    {
-      "run": 2,
-      "workload": "random",
-      "mode": "numeric",
-      "metadataBytes": 191160,
-      "documentBytes": 141361,
-      "documentGzipBytes": 58688,
-      "averageUpdateBytes": 39.88366666666667
-    },
-    {
-      "run": 2,
-      "workload": "concurrent",
-      "mode": "binary",
-      "metadataBytes": 33042,
-      "documentBytes": 39877,
-      "documentGzipBytes": 28836,
-      "averageUpdateBytes": 20.713
-    },
-    {
-      "run": 2,
-      "workload": "concurrent",
-      "mode": "numeric",
-      "metadataBytes": 134192,
-      "documentBytes": 94449,
-      "documentGzipBytes": 43816,
-      "averageUpdateBytes": 32.3435
-    },
-    {
-      "run": 3,
-      "workload": "append",
-      "mode": "numeric",
-      "metadataBytes": 68,
-      "documentBytes": 6042,
-      "documentGzipBytes": 3701,
-      "averageUpdateBytes": 22.88
-    },
-    {
-      "run": 3,
       "workload": "append",
       "mode": "binary",
       "metadataBytes": 21,
@@ -1513,6 +1370,150 @@
       "averageUpdateBytes": 13.980666666666666
     },
     {
+      "run": 1,
+      "workload": "prepend",
+      "mode": "numeric",
+      "metadataBytes": 48080,
+      "documentBytes": 41029,
+      "documentGzipBytes": 18499,
+      "averageUpdateBytes": 22.939666666666668
+    },
+    {
+      "run": 1,
+      "workload": "prepend",
+      "mode": "binary",
+      "metadataBytes": 25,
+      "documentBytes": 6043,
+      "documentGzipBytes": 3702,
+      "averageUpdateBytes": 13.99
+    },
+    {
+      "run": 1,
+      "workload": "random",
+      "mode": "numeric",
+      "metadataBytes": 191168,
+      "documentBytes": 141367,
+      "documentGzipBytes": 58690,
+      "averageUpdateBytes": 39.88366666666667
+    },
+    {
+      "run": 1,
+      "workload": "random",
+      "mode": "binary",
+      "metadataBytes": 44751,
+      "documentBytes": 50769,
+      "documentGzipBytes": 36224,
+      "averageUpdateBytes": 23.451833333333333
+    },
+    {
+      "run": 1,
+      "workload": "concurrent",
+      "mode": "numeric",
+      "metadataBytes": 134176,
+      "documentBytes": 94437,
+      "documentGzipBytes": 43783,
+      "averageUpdateBytes": 32.3435
+    },
+    {
+      "run": 1,
+      "workload": "concurrent",
+      "mode": "binary",
+      "metadataBytes": 33042,
+      "documentBytes": 39877,
+      "documentGzipBytes": 28930,
+      "averageUpdateBytes": 20.713
+    },
+    {
+      "run": 2,
+      "workload": "append",
+      "mode": "binary",
+      "metadataBytes": 21,
+      "documentBytes": 6039,
+      "documentGzipBytes": 3695,
+      "averageUpdateBytes": 13.980666666666666
+    },
+    {
+      "run": 2,
+      "workload": "append",
+      "mode": "numeric",
+      "metadataBytes": 68,
+      "documentBytes": 6042,
+      "documentGzipBytes": 3699,
+      "averageUpdateBytes": 22.88
+    },
+    {
+      "run": 2,
+      "workload": "prepend",
+      "mode": "binary",
+      "metadataBytes": 25,
+      "documentBytes": 6043,
+      "documentGzipBytes": 3701,
+      "averageUpdateBytes": 13.99
+    },
+    {
+      "run": 2,
+      "workload": "prepend",
+      "mode": "numeric",
+      "metadataBytes": 48080,
+      "documentBytes": 41029,
+      "documentGzipBytes": 18500,
+      "averageUpdateBytes": 22.939666666666668
+    },
+    {
+      "run": 2,
+      "workload": "random",
+      "mode": "binary",
+      "metadataBytes": 44751,
+      "documentBytes": 50769,
+      "documentGzipBytes": 36224,
+      "averageUpdateBytes": 23.451833333333333
+    },
+    {
+      "run": 2,
+      "workload": "random",
+      "mode": "numeric",
+      "metadataBytes": 191168,
+      "documentBytes": 141367,
+      "documentGzipBytes": 58687,
+      "averageUpdateBytes": 39.88366666666667
+    },
+    {
+      "run": 2,
+      "workload": "concurrent",
+      "mode": "binary",
+      "metadataBytes": 33042,
+      "documentBytes": 39877,
+      "documentGzipBytes": 28852,
+      "averageUpdateBytes": 20.713
+    },
+    {
+      "run": 2,
+      "workload": "concurrent",
+      "mode": "numeric",
+      "metadataBytes": 134196,
+      "documentBytes": 94454,
+      "documentGzipBytes": 43783,
+      "averageUpdateBytes": 32.3435
+    },
+    {
+      "run": 3,
+      "workload": "append",
+      "mode": "numeric",
+      "metadataBytes": 68,
+      "documentBytes": 6042,
+      "documentGzipBytes": 3695,
+      "averageUpdateBytes": 22.88
+    },
+    {
+      "run": 3,
+      "workload": "append",
+      "mode": "binary",
+      "metadataBytes": 21,
+      "documentBytes": 6039,
+      "documentGzipBytes": 3693,
+      "averageUpdateBytes": 13.980666666666666
+    },
+    {
       "run": 3,
       "workload": "prepend",
       "mode": "numeric",
@@ -1527,7 +1528,7 @@
       "mode": "binary",
       "metadataBytes": 25,
       "documentBytes": 6043,
-      "documentGzipBytes": 3701,
+      "documentGzipBytes": 3703,
       "averageUpdateBytes": 13.99
     },
     {
@@ -1536,7 +1537,7 @@
       "mode": "numeric",
       "metadataBytes": 191168,
       "documentBytes": 141367,
-      "documentGzipBytes": 58686,
+      "documentGzipBytes": 58685,
       "averageUpdateBytes": 39.88366666666667
     },
     {
@@ -1545,7 +1546,7 @@
       "mode": "binary",
       "metadataBytes": 44751,
       "documentBytes": 50769,
-      "documentGzipBytes": 36223,
+      "documentGzipBytes": 36224,
       "averageUpdateBytes": 23.451833333333333
     },
     {
@@ -1554,7 +1555,7 @@
       "mode": "numeric",
       "metadataBytes": 134180,
       "documentBytes": 94442,
-      "documentGzipBytes": 43848,
+      "documentGzipBytes": 43801,
       "averageUpdateBytes": 32.3435
     },
     {
@@ -1563,7 +1564,7 @@
       "mode": "binary",
       "metadataBytes": 33042,
       "documentBytes": 39877,
-      "documentGzipBytes": 28850,
+      "documentGzipBytes": 28890,
       "averageUpdateBytes": 20.713
     }
   ]

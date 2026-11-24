@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.10](https://github.com/sovereignbase/sequencer/compare/v1.2.9...v1.2.10) (2026-11-24)
+
+
+### Performance Improvements
+
+* batch local edits and compact replication metadata ([e498c27](https://github.com/sovereignbase/sequencer/commit/e498c27214c91a099e88bc8b521c503f0446dea4))
+
 ## [1.2.9](https://github.com/sovereignbase/sequencer/compare/v1.2.8...v1.2.9) (2026-11-22)
 
 

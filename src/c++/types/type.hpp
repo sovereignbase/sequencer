@@ -63,6 +63,8 @@ struct Insertion {
   bool content_owned : 1 {};
   /** Immutable UTF-16 Footage; masked ranges are emitted as missing snapshot spans. */
   bool string_content : 1 {};
+  /** Shares the hydrated Footage binding with other canonical Insertions. */
+  bool shared_content : 1 {};
   /** Whether materialization has diverged from one intact Strip. */
   bool fragmented{};
   /** Whether this Strip represents an offset fragment or consumed mask prefix. */
@@ -115,11 +117,19 @@ struct ContentAppend {
       source{} /**< Incoming suffix binding. */, start{} /**< First suffix slot in source. */,
       count{} /**< Suffix Frame count. */,
       at{} /**< Original positive extent; the high bit requests a private Footage copy. */,
-      base{} /**< Target Insertion's content-array origin before copy-on-write. */;
+      base{} /**< Target Insertion's content-array origin before copy-on-write. */,
+      prefix{} /**< Binding supplying the original extent before concatenation. */;
+};
+/** Copies one original extent into its private Footage binding. */
+struct ContentCopy {
+  Word target{}, source{}, start{}, count{};
 };
 /** Deferred Footage changes for the current synchronous ABI call. */
-extern std::vector<Span> released, copied;
+extern std::vector<Span> released;
+extern std::vector<ContentCopy> copied;
 extern std::vector<ContentAppend> appended;
+/** First unused JavaScript binding token for the current synchronous call. */
+extern Word next_content;
 /** Consumer-visible mutation; the removal end is exclusive. */
 struct Splice {
   Word start{} /**< First affected Projection position. */,

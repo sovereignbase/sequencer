@@ -3,6 +3,14 @@
 #include <algorithm>
 
 namespace sequencer {
+/** Coalesces adjacent ranges of one JavaScript Footage binding. */
+inline void append_footage(std::vector<Span> &footage, Span span) {
+  if (!footage.empty() && footage.back().content == span.content &&
+      (!span.content || footage.back().start + footage.back().count == span.start))
+    footage.back().count += span.count;
+  else
+    footage.push_back(span);
+}
 /** Appends immutable Footage ranges, preserving unacknowledged gaps as missing Frames. */
 [[gnu::noinline]] inline void append_text_spans(const Strips &strips, Index root, Word start,
                                                 Word count, Index &fragment,
@@ -21,11 +29,7 @@ namespace sequencer {
     const auto size = std::min(end, boundary) - start;
     const auto token = visible ? strips.identity[root].content : 0;
     const auto offset = visible ? strips.identity[root].content_start + start : 0;
-    if (!footage.empty() && footage.back().content == token &&
-        (!token || footage.back().start + footage.back().count == offset))
-      footage.back().count += size;
-    else
-      footage.push_back({token, offset, size});
+    append_footage(footage, {token, offset, size});
     start += size;
   }
 }

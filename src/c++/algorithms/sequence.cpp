@@ -154,7 +154,7 @@ template <bool Binary> void Projection::sequence_into(Sequence &output) const {
       if (c.diff > 0) {
         if (output.footage.empty())
           output.shared_root = index + 1;
-        output.footage.push_back({insertion.content, insertion.content_start, 1});
+        append_footage(output.footage, {insertion.content, insertion.content_start, 1});
       }
       writer.append(c);
     }
@@ -210,13 +210,8 @@ template <bool Binary> void Projection::sequence_into(Sequence &output) const {
         } else {
           for (Word n = 0; n < Word(c.diff); ++n) {
             if (!frames->frames[n]) {
-              if (!footage.empty() && footage.back().content == strips.identity[s].content &&
-                  footage.back().start + footage.back().count ==
-                      strips.identity[s].content_start + n)
-                ++footage.back().count;
-              else
-                footage.push_back(
-                    {strips.identity[s].content, strips.identity[s].content_start + n, 1});
+              append_footage(footage,
+                             {strips.identity[s].content, strips.identity[s].content_start + n, 1});
             }
             count += frames->frames[n];
             frames->frames[n] = count;
@@ -232,8 +227,8 @@ template <bool Binary> void Projection::sequence_into(Sequence &output) const {
         if (strips.identity[s].string_content && strips.identity[s].fragmented)
           append_text_spans(strips, s, 0, Word(c.diff), fragment, footage);
         else
-          footage.push_back(
-              {strips.identity[s].content, strips.identity[s].content_start, Word(c.diff)});
+          append_footage(footage, {strips.identity[s].content, strips.identity[s].content_start,
+                                   Word(c.diff)});
       }
       if (exported.diff) {
         if constexpr (Binary)

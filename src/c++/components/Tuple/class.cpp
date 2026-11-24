@@ -67,7 +67,7 @@ Index Tuple::add(Insertion insertion, bool shared) {
   }
   return index + 1;
 }
-void Tuple::erase(Index root, std::vector<Span> &released, std::vector<Span> &copied) {
+void Tuple::erase(Index root, std::vector<Span> &released, std::vector<ContentCopy> &copied) {
   const auto target = root - 1;
   auto &version = versions[target];
   if (!version.active)
@@ -100,7 +100,7 @@ void Tuple::erase(Index root, std::vector<Span> &released, std::vector<Span> &co
     released.push_back({token, 0, 0});
   } else {
     if (!binding.owned) {
-      copied.push_back({token, 0, binding.extent});
+      copied.push_back({token, token, 0, binding.extent});
       binding.owned = true;
       binding.footage_state = FootageState::Private;
     }

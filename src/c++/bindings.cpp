@@ -11,7 +11,6 @@
 #include <limits>
 #include <memory>
 #include <span>
-#include <unordered_set>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
@@ -22,8 +21,10 @@
 
 namespace sequencer {
 // All Projection handles use one non-reentrant ABI and consume these before returning to JS.
-std::vector<Span> released, copied;
+std::vector<Span> released;
+std::vector<ContentCopy> copied;
 std::vector<ContentAppend> appended;
+Word next_content{};
 namespace {
 // Native handles match JavaScript binding-table indices. Reused handles receive new history.
 std::vector<std::unique_ptr<Projection>> projections;
@@ -108,6 +109,7 @@ struct Output {
           WordsWriter<true> batch(bytes);
           for (; i < end; ++i)
             batch.append(source[i].insertion.coordinates);
+          batch.flush();
         } else {
           const auto &c = e.insertion.coordinates;
           const auto combined = c.diff < 0 && i + 1 < source.size() &&
@@ -156,16 +158,16 @@ struct Output {
 static_assert(sizeof(Span) == 12 && sizeof(EntryView) == 16 && sizeof(Splice) == 20);
 Output out;
 std::vector<Word> decoded_acknowledgement;
-std::unordered_set<Word> session_ids;
+WordTable session_ids;
 // Last-seen caching avoids repeated hash inserts in same-Session document runs.
 Word registered_session{}, registered_anchor{};
 void register_sessions(const Coordinates &c) {
   if (c.session != registered_session) {
-    session_ids.insert(c.session);
+    session_ids.set({.session = c.session}, 1);
     registered_session = c.session;
   }
   if (c.anchor_session != registered_anchor) {
-    session_ids.insert(c.anchor_session);
+    session_ids.set({.session = c.anchor_session}, 1);
     registered_anchor = c.anchor_session;
   }
 }
@@ -647,8 +649,10 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t runtime_batch_begin(std::uint32_t id) {
 /** Authors one edit; returns one when no Footage updates need consumption. */
 EMSCRIPTEN_KEEPALIVE std::uint32_t runtime_batch_edit(std::uint32_t handle, std::uint32_t operation,
                                                       std::uint32_t count, std::uint32_t content,
-                                                      std::uint32_t start, std::uint32_t end) {
+                                                      std::uint32_t start, std::uint32_t end,
+                                                      std::uint32_t bindings) {
   using namespace sequencer;
+  next_content = bindings;
   released.clear();
   copied.clear();
   appended.clear();
@@ -698,9 +702,12 @@ EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_batch_end(std::uint32_t handle
 }
 
 /** Applies one staged batch packet without entering general operation dispatch. */
-EMSCRIPTEN_KEEPALIVE const std::uint32_t *
-runtime_apply_batch(std::uint32_t id, std::uint32_t pointer, std::uint32_t count, bool binary) {
+EMSCRIPTEN_KEEPALIVE const std::uint32_t *runtime_apply_batch(std::uint32_t id,
+                                                              std::uint32_t pointer,
+                                                              std::uint32_t count, bool binary,
+                                                              std::uint32_t bindings) {
   using namespace sequencer;
+  next_content = bindings;
   input = {reinterpret_cast<const Word *>(pointer), count};
   auto &p = *projections[id];
   released.clear();
@@ -741,6 +748,12 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
   using namespace sequencer;
   const auto binary = bool(operation & 128);
   operation &= 127;
+  if (operation == 1)
+    next_content = arg0;
+  else if (operation == 5)
+    next_content = arg2;
+  else if (operation == 6)
+    next_content = arg1 + Word((arg0 & 0x7fffffffu) != 0);
   input = {count ? reinterpret_cast<const Word *>(input_or_end) : nullptr, count};
   // Result kinds: 0 rejected, 2 Gossip, 4 Result,
   // 5 Sequence, 6 void, 7 local operation error.
@@ -792,10 +805,19 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
         out.header[3] = 2;
         break;
       }
-      out.header[11] = r.bindings;
-      if (arg2 & 4)
-        for (auto &insertion : g)
-          insertion.string_content = true;
+      const auto shared = !p.tuple && r.bindings >= 64;
+      p.shared_content_count = shared ? r.bindings : 0;
+      out.header[11] = r.bindings | (shared ? 0x80000000u : 0);
+      next_content = arg1 + (shared ? 1 : r.bindings);
+      if (shared || (arg2 & 4))
+        for (auto &insertion : g) {
+          if (shared && insertion.content) {
+            insertion.content = arg1;
+            insertion.shared_content = true;
+          }
+          if (arg2 & 4)
+            insertion.string_content = true;
+        }
       // Hydrated identities must not collide with freshly selected authoring clocks.
       for (const auto &e : g) {
         const auto c = e.coordinates;
@@ -867,6 +889,7 @@ EMSCRIPTEN_KEEPALIVE std::uint32_t *runtime_dispatch(std::uint32_t operation, st
         }
       }
       out.header[11] = r.bindings;
+      next_content = arg1 + r.bindings;
       if (arg2 & 4)
         for (auto &insertion : g)
           insertion.string_content = true;
@@ -978,6 +1001,7 @@ const std::uint32_t *insert_result(std::uint32_t id, std::uint32_t count, std::u
   appended.clear();
   released.clear();
   copied.clear();
+  next_content = content + 1;
   const auto text = bool(count & 0x80000000u);
   count &= 0x7fffffffu;
   if (p.tuple && count > 1) {
@@ -994,6 +1018,18 @@ const std::uint32_t *insert_result(std::uint32_t id, std::uint32_t count, std::u
   }
   const auto insertion = p.insert(count, content, at, text);
   static std::array<Word, 9> result;
+  if (!appended.empty() && appended.back().prefix != appended.back().target) {
+    out.entries = {Entry::insert(insertion)};
+    if constexpr (Binary)
+      out.expose_binary(out.entries, false);
+    else
+      out.expose(out.entries, false);
+    out.header = {2, 0, 0, address(out.gossip.data()), Word(out.gossip.size())};
+    out.expose_effects();
+    result[6] = UINT32_MAX;
+    result[7] = address(out.header.data());
+    return result.data();
+  }
   if constexpr (Binary) {
     out.bytes.clear();
     WordsWriter<> writer(out.bytes);

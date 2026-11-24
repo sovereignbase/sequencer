@@ -74,7 +74,7 @@ public:
    * @param released Output bindings or ranges whose values can be released.
    * @param copied Output shared bindings requiring a private copy before release.
    */
-  void erase(Index root, std::vector<Span> &released, std::vector<Span> &copied);
+  void erase(Index root, std::vector<Span> &released, std::vector<ContentCopy> &copied);
   /** Lists nonempty registers without scanning absent pages.
    * @param start First tuple index, inclusive.
    * @param end Last tuple index, inclusive; clipped to fixed capacity.

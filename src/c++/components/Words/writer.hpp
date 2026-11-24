@@ -6,10 +6,10 @@ namespace sequencer {
 /** Writes byte metadata without changing canonical coordinates. */
 template <bool Dictionary = false> class WordsWriter {
   std::vector<std::uint8_t> &bytes;
-  ContainmentTable sessions;
+  WordTable sessions;
   Word session_count{}, previous_session{}, previous_start{}, previous_size{};
   std::array<Word, 4> previous_record;
-  std::size_t record_size{}, run_begin{};
+  std::size_t record_size{};
   Word repetitions{};
 
 public:
@@ -42,6 +42,20 @@ public:
     bytes.resize(begin + sizeof(value));
     std::memcpy(bytes.data() + begin, &value, sizeof(value));
   }
+  /** Emits a completed run once, without rewriting it for every repeated record. */
+  void flush() {
+    if constexpr (Dictionary) {
+      if (!repetitions)
+        return;
+      if (record_size == 1 && repetitions == 1)
+        byte(std::uint8_t(previous_record[0]));
+      else {
+        byte(255);
+        uint(repetitions);
+      }
+      repetitions = 0;
+    }
+  }
   /** Flags omit predictable fields; signed start deltas retain modular uint32 arithmetic. */
   void append(const Coordinates &c) {
     const auto birth = c.birth();
@@ -70,34 +84,22 @@ public:
                   (Word(size != 1) << 5) |
                   (Word(Dictionary ? c.anchor_diff > 1 || zero_point : zero_anchor) << 6) |
                   (Word(c.diff < 0) << 7);
-    const auto begin = bytes.size();
     bool repeated = false;
     if constexpr (Dictionary) {
       // Session references must be read explicitly so dictionary admission stays ordered.
-      if (control & 3) {
-        record_size = 0;
-        repetitions = 0;
-      } else {
-        const std::array<Word, 4> record{control, anchor_delta, c.anchor_diff, delta};
-        repeated = record_size && size == previous_size && record == previous_record;
-        if (repeated) {
-          if (!repetitions)
-            run_begin = begin;
-          bytes.resize(run_begin);
-          ++repetitions;
-          if (record_size == 1 && repetitions == 1)
-            byte(std::uint8_t(control));
-          else {
-            byte(255);
-            uint(repetitions);
-          }
-        } else {
-          previous_record = record;
-          repetitions = 0;
-        }
+      const std::array<Word, 4> record{control, anchor_delta, c.anchor_diff, delta};
+      repeated =
+          !(control & 3) && record_size && size == previous_size && record == previous_record;
+      if (repeated)
+        ++repetitions;
+      else {
+        if (repetitions)
+          flush();
+        previous_record = record;
       }
     }
     if (!repeated) {
+      const auto begin = bytes.size();
       byte(std::uint8_t(control));
       if (inline_anchor || (control & 1))
         session(c.session);
@@ -124,6 +126,7 @@ public:
   }
   /** A reversed final varuint supplies record count without moving the encoded prefix. */
   void finish() {
+    flush();
     const auto begin = bytes.size();
     uint(count);
     std::reverse(bytes.begin() + begin, bytes.end());

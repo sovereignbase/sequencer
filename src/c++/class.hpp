@@ -26,6 +26,8 @@ public:
   Traversal traversal;
   /** Last locally authored positive root eligible for an intact extension. */
   Index last_insert{};
+  /** Positive roots retaining the constructor's shared Footage binding. */
+  Word shared_content_count{};
   /** Independent positive and reducing clocks, each stored as [Session, next time]. */
   std::array<Word, 2> increase_clock, decrease_clock;
   /** Canonical Insertion identity to materialized root. */

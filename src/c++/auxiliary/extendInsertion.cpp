@@ -10,17 +10,20 @@ namespace sequencer {
 Word Projection::extend(Index origin, Word count, Word content, Word source_start, bool text) {
   const auto original = strips.identity[origin];
   const auto end = Word(original.coordinates.diff);
+  const auto target_content =
+      original.shared_content ? content && content != original.content ? content : next_content++
+                              : original.content;
   // A mixed suffix materializes an array; restore the text root's masked slots there.
   if (original.string_content && !text && original.fragmented) {
     Word start = 0;
     for (auto fragment = origin; fragment; fragment = strips.fragment[fragment]) {
       const auto point = strips.fragment_start[fragment];
       if (point > start)
-        released.push_back({original.content, start, point - start});
+        released.push_back({target_content, start, point - start});
       start = point + Word(std::max(0, strips.fragment_diff[fragment]));
     }
     if (end > start)
-      released.push_back({original.content, start, end - start});
+      released.push_back({target_content, start, end - start});
   }
   auto last = origin;
   while (strips.fragment[last])
@@ -29,9 +32,11 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
   // after public Splices have read it, then releases its temporary source binding.
   // An original positive extent fits 31 bits; its high bit requests a private JS copy.
   const auto target = end | (original.footage_state == FootageState::Private ? 0 : 0x80000000u);
-  appended.push_back(
-      {original.content, content, source_start, count, target, original.content_start});
-  if (content)
+  appended.push_back({target_content, content, source_start, count, target, original.content_start,
+                      original.content});
+  if (original.shared_content && !--shared_content_count)
+    released.push_back({original.content, 0, 0});
+  if (content && content != target_content)
     released.push_back({content, 0, 0});
   const auto next = strips.right[last];
   // An intact visible endpoint can grow in place. Existing children or interior
@@ -49,6 +54,8 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
     traversal.update(strips, last, strips.fragment_diff[last] - std::int32_t(count));
     frame_count += count;
     for (auto fragment = origin; fragment; fragment = strips.fragment[fragment]) {
+      strips.identity[fragment].content = target_content;
+      strips.identity[fragment].shared_content = false;
       strips.identity[fragment].coordinates.diff += std::int32_t(count);
       strips.identity[fragment].content_start = 0;
       strips.identity[fragment].content_owned = true;
@@ -63,6 +70,8 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
   const auto left = subtree_end(origin);
   const auto right = strips.right[left];
   auto grown = original;
+  grown.content = target_content;
+  grown.shared_content = false;
   grown.coordinates.diff += std::int32_t(count);
   grown.content_start = 0;
   grown.content_owned = true;
@@ -85,6 +94,8 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
   traversal.insert(strips, structural_head, structural_count, incoming);
   frame_count += count;
   for (auto fragment = origin; fragment; fragment = strips.fragment[fragment]) {
+    strips.identity[fragment].content = target_content;
+    strips.identity[fragment].shared_content = false;
     strips.identity[fragment].coordinates.diff = grown.coordinates.diff;
     strips.identity[fragment].content_start = 0;
     strips.identity[fragment].content_owned = true;

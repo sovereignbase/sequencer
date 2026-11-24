@@ -8,7 +8,9 @@ template <bool Dictionary = false> class WordsReader {
   std::span<const std::uint8_t> bytes;
   std::vector<Word> sessions;
   Word previous_session{}, previous_start{}, previous_size{};
-  std::size_t previous_record{};
+  Coordinates repeated_coordinates;
+  Word repeated_anchor_delta{}, repeated_start_delta{};
+  bool repeatable{};
   Word repetitions{};
 
 public:
@@ -68,33 +70,26 @@ public:
   }
   Coordinates coordinates(Word remaining_records = 0) {
     const auto begin = position;
-    std::size_t after_run = 0;
-    std::uint8_t control;
     if constexpr (Dictionary) {
-      if (repetitions) {
-        after_run = position;
-        position = previous_record;
-      }
-    }
-    control = byte();
-    if constexpr (Dictionary) {
-      if (compact && !repetitions && control == 255) {
+      if (compact && !repetitions && remaining() && bytes[position] == 255) {
+        ++position;
         repetitions = uint();
-        if (!previous_record || !repetitions || repetitions > remaining_records) {
-          valid = false;
-          return {};
-        }
-        after_run = position;
-        position = previous_record;
-        control = byte();
-        if (control & 3) {
+        if (!repeatable || !repetitions || repetitions > remaining_records) {
           valid = false;
           return {};
         }
       }
-      if (!repetitions)
-        previous_record = begin;
+      if (repetitions) {
+        --repetitions;
+        auto c = repeated_coordinates;
+        c.anchor_start =
+            (c.anchor_session == previous_session ? previous_start : 0) + repeated_anchor_delta;
+        c.start = previous_start + previous_size + 1 + repeated_start_delta;
+        previous_start = c.start;
+        return c;
+      }
     }
+    const auto control = byte();
     Coordinates c;
     const auto compact_fields = Dictionary && compact;
     const auto inline_anchor = !Dictionary && (control & 66) == 66;
@@ -131,15 +126,17 @@ public:
     if (!size || size > Word(INT32_MAX))
       valid = false;
     c.diff = std::bit_cast<std::int32_t>(control & 128 ? 0u - size : size);
+    if constexpr (Dictionary) {
+      // Repeated records cannot admit Sessions; retain their decoded deltas
+      // instead of parsing the preceding bytes again for each repetition.
+      repeatable = begin && !(control & 3);
+      repeated_coordinates = c;
+      repeated_anchor_delta = (anchor_delta >> 1) ^ (0u - (anchor_delta & 1));
+      repeated_start_delta = (delta >> 1) ^ (0u - (delta & 1));
+    }
     previous_session = c.session;
     previous_start = c.start;
     previous_size = size;
-    if constexpr (Dictionary) {
-      if (repetitions) {
-        --repetitions;
-        position = after_run;
-      }
-    }
     return c;
   }
   /** Reads the reversed footer and excludes it from subsequent field bounds. */

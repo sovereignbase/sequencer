@@ -475,7 +475,8 @@ export function batch<T>(
       count,
       content,
       start ?? 0xffffffff,
-      end ?? 0xffffffff
+      end ?? 0xffffffff,
+      bindings[id]!.length
     )
     if (!pointer)
       throw new SequencerError(
@@ -700,11 +701,17 @@ export function apply<T>(
     data += binary ? Math.ceil(count / 4) : count
   }
   const resultPointer = singleBatch
-    ? module._runtime_apply_batch(id, pointer, words, binaryEncode ? 1 : 0)
+    ? module._runtime_apply_batch(
+        id,
+        pointer,
+        words,
+        binaryEncode ? 1 : 0,
+        contents.length
+      )
     : module._runtime_dispatch(
         Operation.Apply | (binaryEncode ? 128 : 0),
         id,
-        0,
+        contents.length,
         0,
         0,
         pointer,
@@ -773,13 +780,14 @@ export function call<T>(
   let footage: ReadonlyArray<unknown> | string | undefined
   if (operation === Operation.Replace) {
     a0 = (value as unknown[] | string).length
-    a1 = a0 ? contents.push(value as unknown[] | string) - 1 : 0
+    a1 = a0 ? contents.push(value as unknown[] | string) - 1 : contents.length
     if (typeof value === 'string') a0 += 0x80000000
     a2 = (at as number | undefined) ?? absent
     pointer = (end as number | undefined) ?? absent
   } else if (operation === Operation.Remove) {
     a0 = (value as number | undefined) ?? absent
     a1 = (at as number | undefined) ?? absent
+    a2 = contents.length
   } else if (operation === Operation.Retire) {
     a0 = value as number
   } else {
@@ -836,8 +844,13 @@ export function call<T>(
     // Native parsing counts only positive roots. Each binds the same flat array
     // at its own native content_start; JavaScript never walks snapshot coordinates.
     const bindings = module.HEAPU32[(resultPointer >>> 2) + 11]
-    contents.length += bindings
-    contents.fill(footage, a1)
+    if (bindings & 0x80000000) {
+      contents.length += 1
+      contents.fill(footage, a1)
+    } else {
+      contents.length += bindings
+      contents.fill(footage, a1)
+    }
   }
   return readResult(
     operation,
@@ -989,28 +1002,30 @@ function readResult(
   // Splices retain the input spans' original offsets. Rebase private bindings only
   // after those spans have been read, before applying appends and masked-slot releases.
   for (
-    let at = heap[header + 9] >>> 2, end = at + heap[header + 10] * 3;
+    let at = heap[header + 9] >>> 2, end = at + heap[header + 10] * 4;
     at < end;
-    at += 3
+    at += 4
   ) {
     const token = heap[at],
-      start = heap[at + 1],
-      count = heap[at + 2]
-    content[token] = content[token]?.slice(start, start + count) ?? null
+      source = heap[at + 1],
+      start = heap[at + 2],
+      count = heap[at + 3]
+    content[token] = content[source]?.slice(start, start + count) ?? null
   }
   for (
-    let at = heap[header + 7] >>> 2, end = at + heap[header + 8] * 6;
+    let at = heap[header + 7] >>> 2, end = at + heap[header + 8] * 7;
     at < end;
-    at += 6
+    at += 7
   ) {
     const target = heap[at],
       source = content[heap[at + 1]],
       start = heap[at + 2],
       count = heap[at + 3],
       offset = heap[at + 4] & 0x7fffffff,
-      base = heap[at + 5]
-    if (content[target] == null && source == null) continue
-    let footage = content[target] as unknown[] | string | null | undefined
+      base = heap[at + 5],
+      prefix = heap[at + 6]
+    if (content[prefix] == null && source == null) continue
+    let footage = content[prefix] as unknown[] | string | null | undefined
     if (heap[at + 4] & 0x80000000 || footage == null) {
       footage =
         footage?.slice(base, base + offset) ?? new Array<unknown>(offset)

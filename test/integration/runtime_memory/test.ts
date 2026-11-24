@@ -6,6 +6,164 @@ import module from '../../../src/typescript/wasm/index.ts'
 import { makeSequence } from '../../.shared/sequence.ts'
 
 describe('runtime memory', () => {
+  it.each([
+    ['apply', false],
+    ['apply', true],
+    ['merge', false],
+    ['merge', true],
+  ] as const)(
+    '%s extends one hydrated root independently of shared Footage (string: %s)',
+    (method, text) => {
+      const insertions = Array.from(
+        { length: 128 },
+        (_, i) =>
+          [
+            [i ? 99 + i : 0, 0, i ? 4 : 0, 100 + i, 0, 4],
+            ['a', 'b', 'c', 'd'],
+          ] as const
+      )
+      const snapshot = makeSequence<string>([], insertions)
+      const footage = text ? snapshot[1].join('') : snapshot[1]
+      const projection = new Projection<string>(
+        1,
+        [snapshot[0], footage],
+        undefined,
+        text
+      )
+      const expected = [...snapshot[1]]
+      try {
+        projection.remove(40, 40)
+        expected.splice(40, 1)
+        if (method === 'apply')
+          projection.apply([
+            [
+              [110, 0, 4, 110, 4, 2],
+              ['e', 'f'],
+            ],
+          ])
+        else {
+          const grown = insertions.map(([words, values], i) =>
+            i === 10
+              ? ([
+                  [...words.slice(0, 5), 6],
+                  [...values, 'e', 'f'],
+                ] as const)
+              : ([words, values] as const)
+          )
+          projection.merge(makeSequence<string>([], grown))
+        }
+        expected.push('e', 'f')
+        expect(projection.values()).toEqual(expected)
+        expect(projection.values(undefined, undefined, true)).toBe(
+          expected.join('')
+        )
+        const restored = new Projection<string>(2, projection.sequence())
+        try {
+          expect(restored.values()).toEqual(expected)
+        } finally {
+          restored.destroy()
+        }
+        expect(snapshot[1]).toEqual(
+          Array.from({ length: 128 }, () => ['a', 'b', 'c', 'd']).flat()
+        )
+      } finally {
+        projection.destroy()
+      }
+    }
+  )
+  it.each([false, true])(
+    'retains flat snapshot Footage once while detaching edited roots (string: %s)',
+    (text) => {
+      const snapshot = makeSequence<string>(
+        [],
+        Array.from(
+          { length: 128 },
+          (_, i) =>
+            [
+              [i ? 99 + i : 0, 0, i ? 4 : 0, 100 + i, 0, 4],
+              ['a', 'b', 'c', 'd'],
+            ] as const
+        )
+      )
+      const footage = text ? snapshot[1].join('') : snapshot[1]
+      const before = runtime.memory().javascriptBytes
+      const projection = new Projection<string>(
+        1,
+        [snapshot[0], footage],
+        undefined,
+        text
+      )
+      const expected = [...snapshot[1]]
+      try {
+        const payloadBytes = footage.length * (text ? 2 : 8)
+        expect(runtime.memory().javascriptBytes - before).toBeLessThan(
+          payloadBytes + 512
+        )
+        expect(projection.sequence(true)[1]).toBe(snapshot[1].join(''))
+        projection.insert(['!'], 0)
+        expected.unshift('!')
+        for (let i = 0; i < 128; ++i) {
+          const at = 1 + i * 3
+          projection.remove(at, at)
+          expected.splice(at, 1)
+          expect(projection.values()).toEqual(expected)
+          expect(projection.values(undefined, undefined, true)).toBe(
+            expected.join('')
+          )
+          expect(projection.value(at)).toBe(expected[at])
+          expect(runtime.memory().javascriptBytes).toBeGreaterThan(payloadBytes)
+        }
+        const restored = new Projection<string>(
+          2,
+          projection.sequence(true),
+          undefined,
+          true
+        )
+        try {
+          expect(restored.values()).toEqual(expected)
+        } finally {
+          restored.destroy()
+        }
+        expect(snapshot[1]).toEqual(
+          Array.from({ length: 128 }, () => ['a', 'b', 'c', 'd']).flat()
+        )
+      } finally {
+        projection.destroy()
+      }
+    }
+  )
+  it('releases hydrated tuple values without changing retained Footage', () => {
+    const source = new Projection<string>(1, undefined, {
+      enabled: 1,
+      maxLength: 100,
+    })
+    const values = Array.from({ length: 64 }, (_, i) =>
+      String.fromCharCode(65 + (i % 26))
+    )
+    source.insert(values, 0)
+    const snapshot = source.sequence()
+    const projection = new Projection<string>(2, snapshot)
+    try {
+      const expected = Array.from(
+        { length: 100 },
+        (_, i): string | undefined => values[i]
+      )
+      expect(projection.values()).toEqual(expected)
+      expect(projection.values(undefined, undefined, true)).toBe(
+        expected.map((value) => value ?? '\0').join('')
+      )
+      for (let i = 0; i < 20; ++i) {
+        projection.remove(i, i)
+        expected[i] = undefined
+        expect(projection.values()).toEqual(expected)
+        expect(runtime.memory().javascriptBytes).toBeGreaterThan(0)
+      }
+      expect(snapshot[1]).toEqual(values)
+    } finally {
+      projection.destroy()
+      source.destroy()
+    }
+  })
   it('counts shared string Footage once without allocating character slots', () => {
     const text = 'x'.repeat(1024)
     const snapshot = makeSequence(

@@ -82,7 +82,7 @@
     "typedoc": "^0.28.20",
     "typescript": "^6.0.3",
     "vitest": "^5.1.1",
-    "wrangler": "^4.166.0",
+    "wrangler": "^4.168.0",
     "ws": "^8.23.0"
   },
   "repository": {
@@ -96,7 +96,7 @@
   "allowScripts": {
     "deno@2.9.6": true,
     "esbuild@0.28.2": true,
-    "workerd@1.20261119.1": true,
-    "bun@1.4.5": true
+    "bun@1.4.5": true,
+    "workerd@1.20261123.1": true
   }
 }

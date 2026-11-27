@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.12](https://github.com/sovereignbase/sequencer/compare/v1.2.11...v1.2.12) (2026-11-27)
+
+
+### Performance Improvements
+
+* speed up tail replacement and snapshot compaction ([4bd0e4a](https://github.com/sovereignbase/sequencer/commit/4bd0e4ae1b352d71ee53cf3cd284e477d5b1bdd4))
+
 ## [1.2.11](https://github.com/sovereignbase/sequencer/compare/v1.2.10...v1.2.11) (2026-11-27)
 
 

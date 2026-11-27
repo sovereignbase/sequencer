@@ -8,15 +8,15 @@ fitting snapshot-buffer reuse, two-slot initial identity tables and inline apply
 input records. The signed slice hint, lazy binding/frontier storage, removal
 intervals, indexed remote appends and combined validation/copy loops are absent.
 
-The [latest complete five-pair comparison](inline-input-performance.md) measures
+The [latest complete five-pair comparison](details.zip 'inline-input-performance.md') measures
 409 non-length timing rows against `d3108d5`: 225 median times decrease and 184
 increase; 181 decrease over 5% and 139 increase over 5%. The
-[complete positive-row inventory](inline-input-remaining-positives.md) retains
+[complete positive-row inventory](details.zip 'inline-input-remaining-positives.md') retains
 every positive change. This is a checkpoint, not an all-row performance win.
 
-The [identical-code control](inline-input-aa-performance.md) has 60 rows over 5%
+The [identical-code control](details.zip 'inline-input-aa-performance.md') has 60 rows over 5%
 faster and 226 over 5% slower, despite identical distributed bundles and runtime
-source. The [second checkpoint comparison](inline-input-control-performance.md)
+source. The [second checkpoint comparison](details.zip 'inline-input-control-performance.md')
 has 246 rows over 5% faster and 89 over 5% slower. Measurement variability does
 not establish that all primary differences are caused by the implementation;
 none of the valid slower samples is discarded.
@@ -34,7 +34,7 @@ removal, replacement and scalar reads improve 66.09%, 64.89%, 58.10% and 81.92%.
 Tail replacement improves 45.64%. Twenty native space rows decrease; all other
 76 space rows, including encoded sizes, match.
 
-The [three-run allocation collector](inline-input-space.md) measures about
+The [three-run allocation collector](details.zip 'inline-input-space.md') measures about
 414.56 native B per small single-root instance versus 534.55 B at the checkpoint;
 empty instances use 238.55 versus 254.55 B. Eight-field tuples use 966.61 versus
 1,054.61 B, and the edited eight-Frame shape uses 3,195.38 versus 3,505.26 B.
@@ -60,7 +60,7 @@ benchmark runner or adapter is changed.
 
 The sole-visible-Strip tail candidate passes all 276 tests and all 192 exact
 snapshot pairs, and substantially improves replicated tail replacement. Its
-[three-build complete guard](../optimizations_2026_11_12/sole-tail-performance.md)
+[three-build complete guard](../optimizations_2026_11_12/details.zip 'sole-tail-performance.md')
 still has unresolved differences. In particular, 25,000-Strip full values is
 slower in all five pairs against both baseline copies. The candidate is not
 accepted as an all-row improvement.
@@ -86,7 +86,7 @@ The public-API comparison separates four combinations: checkpoint, tail-only,
 copy-only and tail-plus-copy, plus a byte-identical checkpoint copy. The full
 acceptance criterion is unchanged.
 
-The [concurrent profile](../optimizations_2026_11_12/concurrent-profile.md)
+The [concurrent profile](../optimizations_2026_11_12/details.zip 'concurrent-profile.md')
 identifies position resolution as the main native follow-up. It remains separate
 from this copy experiment.
 
@@ -96,14 +96,14 @@ candidate names are `sole-tail`, `slice-only` and `sole-slice`.
 
 ### Decision
 
-The copy change is removed. The [ten-round values comparison](values-control.md)
+The copy change is removed. The [ten-round values comparison](details.zip 'values-control.md')
 does not establish the expected production API benefit. At 25,000 starting
 Strips, full values changes by +5.52% for copy-only and +1.24% for the combined
 build; the unchanged checkpoint copy changes by +2.07%. Tail-only changes by
 +1.83%, so its earlier 8.76% loss does not repeat in this isolated subset. These
 different case selections are not pooled with the full-suite samples.
 
-The [five-round complete tuple comparison](tuple-control.md) also remains mixed.
+The [five-round complete tuple comparison](details.zip 'tuple-control.md') also remains mixed.
 The combined build has 7 non-length medians over 5% faster and 7 over 5% slower.
 Eight-slot tuple replacement is 7.18% slower (paired IQR 1.17 percentage points)
 and values is 10.05% slower, each slower in all five pairs. No space row changes.
@@ -116,143 +116,149 @@ traversal directory. It must preserve visible ownership, original-coordinate
 insertion boundaries, consumer Splices, convergence and canonical snapshots.
 No benchmark or expected result is changed to accommodate it.
 
-The [traversal directory experiment](directory.md) records implementation,
+The [traversal directory experiment](details.zip 'directory.md') records implementation,
 unchanged semantic checks, final linked SIMD instructions and the complete
-guard status. Its measured [mixed concurrent replay](directory-mixed.md),
-[eight-author replay](directory-concurrent.md), and
-[native memory and artifacts](directory-space.md) remain separate from the
+guard status. Its measured [mixed concurrent replay](details.zip 'directory-mixed.md'),
+[eight-author replay](details.zip 'directory-concurrent.md'), and
+[native memory and artifacts](details.zip 'directory-space.md') remain separate from the
 rejected Footage-copying experiment above.
 
-The [known-head follow-up](directory-head.md) removes the large head-insertion
+The [known-head follow-up](details.zip 'directory-head.md') removes the large head-insertion
 loss in its five-round targeted comparison but still fails same-index insertion.
 Its gate-boundary follow-up is measured separately; neither intermediate build
 is presented as meeting the all-row condition.
 
-The [gate-boundary comparison](directory-gate.md) retains every slower result.
+The [gate-boundary comparison](details.zip 'directory-gate.md') retains every slower result.
 The next experiment uses a movable gap in the same directory allocation to
 remove redundant prefix reductions and repeated interior shifts.
 
-The [gap experiment](directory-gap.md) reduces every measured bundle encoding
+The [gap experiment](details.zip 'directory-gap.md') reduces every measured bundle encoding
 and preserves the native memory savings, but alternating endpoints expose a
 linear-gap movement regression. Its frozen full guard continues unchanged;
 the next build uses the shorter circular route and cached rotation weight.
 
-The [circular directory follow-ups](circular-directory.md) retain the complete
+The [circular directory follow-ups](details.zip 'circular-directory.md') retain the complete
 targeted tables and explain the lifecycle profile. The
-[positive subtree endpoint experiment](subtree-cache.md) addresses the measured
+[positive subtree endpoint experiment](details.zip 'subtree-cache.md') addresses the measured
 replacement bottleneck; its head-insertion regression remains unresolved.
 
-The [stable block record layout](directory-records.md) removes a per-node lane
+The [stable block record layout](details.zip 'directory-records.md') removes a per-node lane
 and reduces relocation stores. Its complete lifecycle comparison is improved,
 with smaller native allocations and artifacts; the complete guard also checks
 every throughput and tuple row against two unchanged checkpoint builds.
 
-The [deferred directory experiment](directory-lazy.md) removes maintenance before
+The [deferred directory experiment](details.zip 'directory-lazy.md') removes maintenance before
 the first actual index query. It retains all semantic checks and memory savings;
 the ten-pair endpoint comparison and complete tuple follow-up are recorded
 alongside its remaining apparent timing losses.
 
-The [reader separation experiment](footage-readers.md) is rejected and reverted:
+The [reader separation experiment](details.zip 'footage-readers.md') is rejected and reverted:
 its scale-up gains accompany repeated scale-down read losses. The following
 experiment instead removes repeated missing-source checks from the Frame loop.
 
-The [span-wide source check](footage-copy.md) improves most targeted checkpoint
+The [span-wide source check](details.zip 'footage-copy.md') improves most targeted checkpoint
 read medians while retaining native memory and artifact savings. Its complete
 guard determines acceptance; the remaining apparent losses stay reported.
 
-The [direct constructor experiment](direct-create.md) removes the general
+The [direct constructor experiment](details.zip 'direct-create.md') removes the general
 protocol from empty construction and improves its targeted timings. A repeated
 eight-index ordinary Projection replacement loss remains; its profile isolates
 structural walks inside the directory lookup for the next experiment.
 
-The [bidirectional block-search experiment](directory-bidirectional.md) does not
+The [bidirectional block-search experiment](details.zip 'directory-bidirectional.md') does not
 resolve the small-document replacement loss and is reverted. Profiling then
 identifies one-slot Footage clearing in the JS result path as another target.
 
-The [single-slot release experiment](single-release.md) replaces one-Frame
+The [single-slot release experiment](details.zip 'single-release.md') replaces one-Frame
 `Array.fill` calls with direct assignment. Its unbounded attempt is rejected
 because a short Footage array can grow; the interrupted guard is not used for
 acceptance. A bounded follow-up preserves the checkpoint's memory behavior and
 adds one public-API regression check for that observed failure.
 
-The [bounded release follow-up](bounded-release.md) preserves the checkpoint's
+The [bounded release follow-up](details.zip 'bounded-release.md') preserves the checkpoint's
 short-Footage memory behavior, passes all 277 tests at 100% coverage and improves
 the targeted replacement comparison. Complete-suite acceptance remains open.
 
-The [first-visible-member experiment](first-visible.md) fits a lookup hint into
+The [first-visible-member experiment](details.zip 'first-visible.md') fits a lookup hint into
 the existing cold block record, but introduces a repeated small apply loss and
 is reverted before another candidate is built.
 
-The [generic six-word-copy experiment](literal-words.md) introduces a repeated
+The [generic six-word-copy experiment](details.zip 'literal-words.md') introduces a repeated
 two-index replacement loss and is reverted. Its follow-up specializes the
 existing Insertion descriptor branch instead of the general metadata copier.
 
-The [Insertion-branch copy experiment](literal-gossip.md) does not establish a
+The [Insertion-branch copy experiment](details.zip 'literal-gossip.md') does not establish a
 targeted replacement benefit and is reverted. The next protocol change removes
 the single-word input buffer used only to carry replacement's inclusive end.
 
-The [scalar replacement-end experiment](scalar-end.md) removes one reserve
+The [scalar replacement-end experiment](details.zip 'scalar-end.md') removes one reserve
 bridge call, heap write and Reader step from local replacement. Tests and exact
 snapshots pass, and the targeted comparison has no every-pair slowdown; the
 complete guard remains required.
 
-The [reserved-slot append change](reserved-slot.md) removes the redundant growth
+The [reserved-slot append change](details.zip 'reserved-slot.md') removes the redundant growth
 path, verified in the linked module. Every measured artifact encoding and native
 allocation shape remains smaller than the checkpoint. Targeted replacement and
 eight-author replay have no every-pair slowdown. Its complete guard improves
 197 of 409 medians over 5%, but four cases remain slower in every pair against
 both checkpoint copies. They are retained and profiled; acceptance remains open.
 
-The [removal-interval experiments](removal-ranges.md) preserve exact snapshots
+The [removal-interval experiments](details.zip 'removal-ranges.md') preserve exact snapshots
 and improve long sparse insertions, but introduce repeated dense-removal and
 checkpoint losses. Both builds are reverted; the dense prefix map remains.
 
-The [bounded signed-slice experiment](signed-slice.md) follows the measured JS
+The [bounded signed-slice experiment](details.zip 'signed-slice.md') follows the measured JS
 slice hotspot. Its uint32 boundary test also fixes signed native length
 interpretation. All 278 tests pass; the 40-row targeted comparison remains
 mixed and complete-suite acceptance is open.
 
-The [compact removal lookup](compact-removals.md) retains the dense prefix
+The [compact removal lookup](details.zip 'compact-removals.md') retains the dense prefix
 algorithm while removing temporary hash nodes. Every sequence checkpoint median
 improves in its five-pair lifecycle comparison; the complete guard remains open.
 
-[Lazy JS binding tables](lazy-bindings.md) reduce the empty-instance JS heap
+[Lazy JS binding tables](details.zip 'lazy-bindings.md') reduce the empty-instance JS heap
 estimate by 56 B, but are reverted after repeatable apply losses. The
-[lazy ACK state experiment](lazy-frontier.md) also reduces empty-instance
+[lazy ACK state experiment](details.zip 'lazy-frontier.md') also reduces empty-instance
 memory but is reverted after apply and tail-insertion losses.
-The [deferred local insertion experiment](deferred-insert.md) is reverted after
+The [deferred local insertion experiment](details.zip 'deferred-insert.md') is reverted after
 repeatable apply losses.
 
-The compact lookup's [complete guard and follow-ups](compact-removals.md)
+The compact lookup's [complete guard and follow-ups](details.zip 'compact-removals.md')
 preserve the large lifecycle gains and improve every sequence checkpoint median,
 but retain a two-field ordinary apply.replace loss and short sequence differences.
-The [sequence outlining experiment](sequence-outline.md) is reverted. Its profile
-leads to a [tail boundary lookup experiment](visible-tail.md), also reverted
+The [sequence outlining experiment](details.zip 'sequence-outline.md') is reverted. Its profile
+leads to a [tail boundary lookup experiment](details.zip 'visible-tail.md'), also reverted
 after inspecting the full caller stack. The
-[surviving endpoint reuse](endpoint-reuse.md) removes the sampled endpoint
+[surviving endpoint reuse](details.zip 'endpoint-reuse.md') removes the sampled endpoint
 discovery lookup. Its complete guard preserves the large lifecycle gains but
 retains four every-pair losses against both checkpoint copies.
 
-[Snapshot output reuse](snapshot-reuse.md) removes repeated fitting-buffer
+[Snapshot output reuse](details.zip 'snapshot-reuse.md') removes repeated fitting-buffer
 allocations without retaining a larger previous snapshot's capacities. Exact
 state and alternating-snapshot allocation checks pass. Its complete guard retains
 three every-pair losses against both checkpoint copies.
 
-[Two-slot initial identity tables](two-slots.md) save about 72 native bytes for
+[Two-slot initial identity tables](details.zip 'two-slots.md') save about 72 native bytes for
 single-root instances and small tuples without adding state or helper code.
 The complete guard retains 127 positive non-length timing medians, including
-61 above +5%. The [positive-row inventory](remaining-positive-timings.md) lists
+61 above +5%. The [positive-row inventory](details.zip 'remaining-positive-timings.md') lists
 all of them; nine are slower in every primary pair. Acceptance remains open.
 
-[Removing the signed slice hint](plain-slice.md) preserves the unsigned-length
-fix. [Inline input records](inline-input.md) remove one internal word per apply
+[Removing the signed slice hint](details.zip 'plain-slice.md') preserves the unsigned-length
+fix. [Inline input records](details.zip 'inline-input.md') remove one internal word per apply
 entry and reduce Wasm size; their selected comparison still has losses and
 their complete guard is summarized above.
 
-The [indexed append](indexed-append.md) and [hoisted-source append](span-append.md)
+The [indexed append](details.zip 'indexed-append.md') and [hoisted-source append](details.zip 'span-append.md')
 experiments reduce some remote Footage heap estimates but introduce replay or
 merge losses. Both are reverted; the existing bulk append remains.
 
-[Combined input validation and copying](staged-input.md) also introduces
+[Combined input validation and copying](details.zip 'staged-input.md') also introduces
 repeatable losses and is reverted. The inline-input complete guard uses the
 separate validation and copy loops.
+
+## Archived files
+
+[details.zip](details.zip) contains the original reports, source files and measurements
+with their original directory structure. `MANIFEST.sha256` records every file hash.
+Temporary workspace paths in historical reports identify provenance, not included directories.

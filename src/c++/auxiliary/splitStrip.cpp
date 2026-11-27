@@ -8,13 +8,17 @@
 
 namespace sequencer {
 Index Projection::split_strip(Index a, Word point, std::int32_t incoming_diff, bool indexed) {
-  // Masking may clear content slots, so detach externally owned Footage first.
-  if (incoming_diff < 0)
-    own_content(a);
+  const auto effect = strips.fragment_diff[a];
+  // A whole array root can be released without copying or clearing its slots.
+  // Partial masks still detach externally owned Footage before clearing it.
+  if (incoming_diff < 0 && !strips.identity[a].string_content) {
+    const auto &source = strips.identity[a];
+    own_content(a, !point && !strips.fragment_start[a] && effect > 0 && incoming_diff == -effect &&
+                       effect == source.coordinates.diff);
+  }
   // Copy before arena growth: indices survive relocation, C++ references do not.
   const auto original = strips.identity[a];
   const auto old_fragment = strips.fragment[a], old_right = strips.right[a];
-  const auto effect = strips.fragment_diff[a];
   if (incoming_diff < 0 && original.content)
     released.push_back(
         {original.content, original.content_start + point, magnitude(incoming_diff)});

@@ -87,7 +87,7 @@ branch, function and line coverage.
 
 ## Decision: rejected
 
-The [complete five-pair comparison](performance.md) contains 409 non-length
+The [complete five-pair comparison](details.zip 'performance.md') contains 409 non-length
 timing rows: 145 medians improve by more than 5%, while 126 slow by more than
 5%. All 96 memory/storage rows remain equal. The range-read results are mixed:
 5,000-Strip middle reads improve 21.55%, but 20,000-Strip middle reads slow
@@ -98,7 +98,7 @@ with a 5.23-percentage-point IQR.
 Several other measurements have wide dispersion, including unrelated scalar
 reads. These are not attributed conclusively to the source change. Nevertheless,
 the candidate does not establish a reliable improvement without regressions.
-The [candidate patch](range-walk.patch) is archived and completely reverted;
+The [candidate patch](details.zip 'range-walk.patch') is archived and completely reverted;
 runtime source, distributed artifacts and tests retain their starting versions.
 No optimization is retained from this pass. No further benchmark runs follow
 the stop request.
@@ -129,3 +129,9 @@ C:/Users/jorts/emsdk/upstream/bin/wasm-dis.exe temp/optimization_2026_11_21/base
 C:/Users/jorts/emsdk/upstream/bin/wasm-dis.exe temp/optimization_2026_11_21/values-linked.wasm -o temp/optimization_2026_11_21/values.wat
 node temp/optimization_2026_11_21/inspect-values.mjs
 ```
+
+## Archived files
+
+[details.zip](details.zip) contains the original reports, source files and measurements
+with their original directory structure. `MANIFEST.sha256` records every file hash.
+Temporary workspace paths in historical reports identify provenance, not included directories.

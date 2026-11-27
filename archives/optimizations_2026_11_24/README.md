@@ -1,98 +1,110 @@
-# Batched replication, 2026-11-24
+# Batched editing
 
-Final batch measurements and implementation decisions are in [batch.md](batch.md).
-The sections below retain the prototype measurements and optimization history.
+2026-11-24T10:34:49.509Z. Five alternating runs per mode, 6,000 edits per author. Identical seeded traces,
+one MessagePack message per author in both modes, uncompressed Footage.
+Concurrent authors edit independent views; causal authors exchange history
+before the second edits. Timings below are median time changes, lower is better.
 
-The preceding canonical-lookup experiments are rejected; see the
-[complete decision](../optimizations_2026_11_23/hotpath/README.md#final-lookup-decision).
-The starting runtime retains direct Splice output and early byte ACK coalescing.
-Its native module is 115,349 B; SHA-256
-`b65114a061fcff4f239e6d1778e3e7e0116774de1f7f35c8da56450eac28a7f2`.
-All 357 original tests pass with 100% TypeScript coverage after restoration.
+| Workload              | Individual update KiB | Batch update KiB | Update change | Author time | Receive time |
+| --------------------- | --------------------: | ---------------: | ------------: | ----------: | -----------: |
+| append                |                 76.05 |             5.88 |       -92.26% |     -32.50% |      -99.53% |
+| prepend               |                 76.11 |             5.89 |       -92.26% |     -28.44% |      -56.06% |
+| random.characters     |                 82.09 |            22.95 |       -72.05% |      -9.66% |      -35.25% |
+| random.words          |                125.68 |            59.71 |       -52.49% |      -5.08% |      -43.46% |
+| concurrent.characters |                 82.04 |            22.92 |       -72.06% |     +14.18% |      -29.33% |
+| concurrent.words      |                125.74 |            59.79 |       -52.45% |     -13.79% |      -42.10% |
+| concurrent.mixed      |                154.61 |            56.88 |       -63.21% |     -22.28% |      -37.62% |
+| causal.characters     |                 88.96 |            23.18 |       -73.94% |      -7.35% |      -29.15% |
+| causal.words          |                135.13 |            60.68 |       -55.10% |     -18.76% |      -52.21% |
+| causal.mixed          |                161.05 |            57.34 |       -64.39% |     -16.80% |      -36.83% |
 
-Before batch source changes, captured three complete lifecycle, throughput,
-tuple, words and text runs from the frozen `batch-base` workspace. The
-unchanged benchmark factories use matched entropy and workload seeds.
-Raw files remain in `temp/optimization_2026_11_23_hotpath/batch-base*`.
-Node 24.16.0, V8 13.6.233.17-node.49, Windows x64, Intel Core i5-10210U;
-Emscripten 7, LLVM 24, Binaryen 133, Release `-O3 -flto`, SIMD, bulk memory
-and Wasm exceptions. No external benchmark or adapter is changed or run.
+These compare the new batch method with individual calls, rather than claiming
+that every authoring workload is faster. Author-time increases remain visible (concurrent.characters: +14.18%). Receive includes MessagePack decoding. Append coalesces 6,000
+eligible extensions into one operation, so its throughput is expressed in
+original authored edits, rather than decoded records.
 
-## Batch
+The [full report](../../benchmark/.results/batch.md) retains timing IQRs,
+separate apply/encode/decode measurements, document bytes and memory estimates.
+The memory estimate covers one receiver recreated from its compact checkpoint
+in a fresh runtime; peers are excluded. No private memory field is added to
+each Projection. All 96 memory/storage medians in the existing-API guard match
+the starting runtime exactly.
 
-Local edits still use the existing native algorithms and become visible
-immediately. An ephemeral editor defers replication output, preserving ordinary
-Projection mutator returns. A native Batch component shares the Session
-identities, coordinate deltas and repetition encoding across the batch.
-It joins only eligible consecutive extension coordinates before encoding.
-Other canonical operations and required acknowledgement reports remain intact.
-JavaScript retains Footage and returns one combined string or array with the
-coordinate packet. No application content enters Wasm or is compressed.
+## Implementation
 
-Existing public-API tests remain unchanged. New checks exercise live reads,
-packed replay, MessagePack transport, fragmented extension parents, tuple
-versions, callback failures, editor lifetime and malformed valid prefixes.
-Complete correctness, footprint, bundle and timing guards precede retention.
+`batch(edit)` exposes synchronous mutators with no per-edit Gossip allocation
+in JavaScript. Edits immediately use the existing native algorithms. Temporary
+native state joins only canonical consecutive extensions and writes one byte
+coordinate stream. JavaScript combines Footage without passing it into Wasm.
+The editor closes on return; completed edits survive callback exceptions.
 
-The initial implementation passes all 379 tests with 100% TypeScript statement,
-branch, function and line coverage, including 357 unchanged original tests.
-The callback editor preserves generic Projection assignability. Public fault
-injection checks include batch error scope/cause and native lifecycle failures.
+Local positive/reducing Session palettes, independent clock predictions,
+foreign-anchor deltas, compact size/point shapes and repetition runs remove
+repeated words. Coordinates, tuple versions and acknowledgement rules remain
+unchanged. Complete acknowledgement exchange still removes every eligible mask.
 
-A first one-receiver control, 6,000 seeded random character inserts, changes
-MessagePack update bytes 83,636 → 23,761 (−71.59%). Metadata is 53,633 → 17,753 B.
-Live allocation plus retained Footage is 1,678,634 → 1,565,104 B (−6.76%).
-The author uses an independent runtime. This control includes shared retained
-input/output buffers and is not a claim about private allocation in every document.
+An unnecessary global batch-handle vector was removed. One temporary native
+allocation is owned by the callback scope; its opaque wasm32 handle is normalized
+to unsigned in JavaScript, including the signed native failure sentinel.
 
-The first packet aliases a combined string in every positive root. Its JS
-Footage estimate is 48,106 → 59,936 B in the random-character control: many
-single-character strings can otherwise share engine storage. Add a derived
-single-Frame packet marker without an extra boundary list. The receiver validates
-that all positive records have diff one, then uses individual text code units
-with zero content offsets; arrays retain their shared source. Mixed-size packets
-keep the generic alias model. Coalesced multi-Frame runs deliberately remain
-generic, so the random control above does not change merely from this marker.
+Profiling and source inspection identified generic Footage result handling on
+every append. Complete private strings now concatenate directly; shared,
+partial or array Footage retains the existing generic path. In five-run controls,
+append batch authoring moves from 1.50 to 2.91 million edits/s; individual calls
+measure 2.15 million edits/s in the final run. This comparison spans separate
+measurement sessions; the latest per-run values are in the linked report.
 
-In a 6,000-prepend control, metadata becomes 47,932 → 17 B and MessagePack
-77,935 → 6,024 B. The JS Footage estimate remains 48,068 B in both forms;
-total live estimate is 1,655,452 → 1,535,532 B. No Footage compression is used.
+## Verification
 
-The new three-run [batch report](../../benchmark/.results/batch.md) compares
-the same seeded author traces and one MessagePack message per author in each
-mode. Two authors edit independent views in concurrent workloads. Separate
-author/receiver runtimes prevent peer allocation from entering the memory
-estimate. After complete ACK exchange the receiver is destroyed and recreated
-from its compact checkpoint in a fresh runtime before sampling memory.
-No competitive rank is claimed; these measurements use this repository's public API.
+388 Vitest tests pass with 100% statement, branch, function and line coverage
+(623 statements, 513 branches, 41 functions, 560 lines). Public tests cover
+mixed Footage, UTF-16, tuple repetition from the first encoded record, full-width
+foreign Sessions and times, pending anchors, duplicate/reordered delivery,
+complete ACK compaction, editor lifetime and native failure propagation.
+The shared compatibility suite passes 136 checks on eight installed targets.
 
-## Packed local clocks
+The [six-pair existing-API guard](details.zip 'existing-api-pointer.md') retains all 520 rows,
+including unfavorable timings. Its [equal-exposure controls](details.zip 'balanced-batch-final.md')
+precede the last apply cleanup. Each selected case executes twice per build
+in alternating ABBA/BAAB order. The last cleanup removes a repeated byte-array
+check, keeps numeric words outside batch tag selection and reuses the existing
+mask-bit check to exclude packed headers from ordinary Footage binding.
+Only `batch` and `apply` change between that guard and the final ESM bundle;
+the Wasm glue/binary bytes remain identical. The
+[final three-pair guard](details.zip 'existing-api-lean.md'),
+[words guard](details.zip 'words-batch-lean-vs-batch-base.md') and
+[text guard](details.zip 'text-batch-lean-vs-batch-base.md') cover this cleanup.
+No external competitor or adapter was modified or run, so no competitive rank
+is claimed.
 
-The final codec uses a two-Session author palette and independent positive and
-reducing clock predictions. Anchor references distinguish the current author,
-the opposite clock, the last foreign Session and explicit dictionary admission.
-Local anchors leave the foreign delta origin intact. Small size/point pairs
-share one byte; larger values retain full uint32 varints. Repetition runs reuse
-encoded field patterns, without repeating dictionary admission. Canonical
-identities and extension rules do not change.
+The all-metric no-regression target is not established. For example, the final
+three-pair full-lifecycle medians show replace.head +6.72% and replace.random
++11.93% (paired +6.09% / +6.11%). Earlier six-process controls give different
+directions, so these remain reported differences rather than being silently
+classified as noise. The earlier 100-Strip remove.middle flag does not repeat
+in the final three-pair guard (median −15.99%); tuple size-two apply.replace is
+−5.38% by medians but +3.63% paired with 8.77 pp IQR. Neither isolated sign
+is proof of a universal improvement.
 
-Compared with the first working batch codec, the three-run mixed concurrent
-update falls from 75.51 to 56.88 KiB per author. Against individual binary
-Gossip in one MessagePack message, it is 154.61 to 56.88 KiB (−63.21%).
-Random-word updates are 125.68 to 59.71 KiB (−52.49%). Footage is unchanged.
-These are preliminary three-run results; the final report also includes causal
-authors, where the second receives the first author's history before editing.
+The feature also adds code: minified ESM + gzip grows from 53,615 to 58,964 B
+(+5.22 KiB); native Wasm grows from 115,349 to 126,982 B. The
+[artifact table](details.zip 'batch-scope-artifacts.md') includes raw, minified, gzip and Brotli
+sizes for both package formats. These fixed library costs are separate from
+the unchanged per-instance memory estimates.
 
-The first full original-API guard found changes worth investigating. Generated
-code showed that adding the batch caller outlined the short replace wrapper
-and inlined the batch parser into general dispatch. Keep the existing replace
-wrapper inline and give packed receive its own native export, sharing one
-decoder with mixed Gossip. The final module retains a separate batch decoder.
-Batch edits with no deferred Footage changes return a success sentinel instead
-of constructing and consuming a void output header. Batch state adds no
-per-Projection field.
+After timing, editor closure was moved to immediately after callback return,
+before Footage collection can invoke array getters. A public regression checks
+that such a getter receives `BATCH_CLOSED`, without reaching an expired native
+handle. Only the `batch` function changes; Wasm bytes and all other functions
+remain identical to the final timing build. The full suite and compatibility
+checks pass again, and bundle sizes above use this final build.
 
-The original API regression guard uses six alternating `batch-base`/`batch-compact`
-process pairs. Raw files retain every valid run under
-`temp/optimization_2026_11_23_hotpath/batch-compact*`; flagged rows receive
-equal-exposure follow-up controls before a no-regression conclusion.
+`npm run bench:batch` refreshes the JSON/Markdown report and its README block.
+CI runs it with the other benchmarks. Tests and benchmark source keep their
+existing folder structure and local/CI provenance.
+
+## Archived files
+
+[details.zip](details.zip) contains the final batch report, the prototype history,
+recovery controls and complete comparisons, preserving their original paths.
+`MANIFEST.sha256` records every file hash.

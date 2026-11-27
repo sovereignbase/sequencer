@@ -14,26 +14,26 @@ fields directly on Entry; the compiled union layout is unchanged.
 The complete five-run comparison includes every timing and space row. Of 102
 earlier timing regressions, 96 shrink and 88 become improvements against the
 original build. Eight earlier improvements change sign. The all-row objective
-remains unfinished; the [goal assessment](recoveryendpoint-historical-goal.md)
+remains unfinished; the [goal assessment](details.zip 'recoveryendpoint-historical-goal.md')
 records the remaining work. No new optimization experiments continue past this
 checkpoint.
 
 ## Earlier measurements
 
-The continued optimization work is recorded in [recovery.md](recovery.md),
-with [inline Acknowledgements](inline_acknowledgements.md) and the measured
-[Gossip output reuse experiment](reused_output.md), followed by
-[deferred anchor lookup](deferred_anchor.md) and the rejected
-[ownership flag unification](unified_ownership.md), and the
-[empty replacement lifetime fix and rejected scalar-input experiment](scalar_replacement.md),
-[Footage copy experiments](private_footage_copy.md) and
-[snapshot copying](snapshot_copy.md), [tuple Version storage](tuple_storage.md)
-and [subsequent runtime experiments](runtime_experiments.md), including the
-[rejected Splice packing experiment](splice_span.md) and the retained
-[hidden endpoint traversal change](hidden_endpoints.md). The final checkpoint's
-[historical goal assessment](recoveryendpoint-historical-goal.md) records which
+The continued optimization work is recorded in [recovery.md](details.zip 'recovery.md'),
+with [inline Acknowledgements](details.zip 'inline_acknowledgements.md') and the measured
+[Gossip output reuse experiment](details.zip 'reused_output.md'), followed by
+[deferred anchor lookup](details.zip 'deferred_anchor.md') and the rejected
+[ownership flag unification](details.zip 'unified_ownership.md'), and the
+[empty replacement lifetime fix and rejected scalar-input experiment](details.zip 'scalar_replacement.md'),
+[Footage copy experiments](details.zip 'private_footage_copy.md') and
+[snapshot copying](details.zip 'snapshot_copy.md'), [tuple Version storage](details.zip 'tuple_storage.md')
+and [subsequent runtime experiments](details.zip 'runtime_experiments.md'), including the
+[rejected Splice packing experiment](details.zip 'splice_span.md') and the retained
+[hidden endpoint traversal change](details.zip 'hidden_endpoints.md'). The final checkpoint's
+[historical goal assessment](details.zip 'recoveryendpoint-historical-goal.md') records which
 earlier gains survive and which regressions remain. The tables below describe
-the earlier checkpoint in this round. [Measurement-window drift](measurement_environment.md)
+the earlier checkpoint in this round. [Measurement-window drift](details.zip 'measurement_environment.md')
 explains why older absolute timings cannot substitute for the fresh matched runs.
 
 Baseline: `1c0a007fc041db016a20a1f9bba2fb97979bd1a2`. The earlier
@@ -83,7 +83,7 @@ previous endpoint lookups remain. No per-Projection cache or field is added.
 Five complete runs of **each** original, baseline and candidate build, alternating
 the three-build order. All use matching fixed native Session entropy and the same
 five workload seeds. The default workloads, call limits and checkpoints are
-unchanged. [All 424 timing and 96 memory/storage rows](performance.md) include
+unchanged. [All 424 timing and 96 memory/storage rows](details.zip 'performance.md') include
 medians, IQRs and paired percentage changes against both earlier builds.
 
 - All twelve checkpoint constructor medians improve against baseline, by
@@ -106,7 +106,7 @@ The broad comparison has **166 timing medians over 5% faster and 109 over 5%
 slower** than baseline. Twenty-two rows cross from an earlier improvement over
 5% to a regression over 5% against original. Warm follow-up checks do not repeat
 the large apparent apply/tuple losses, but some small scalar and lifetime costs
-remain inconclusive. The [follow-up report](measurements.md) lists every slower
+remain inconclusive. The [follow-up report](details.zip 'measurements.md') lists every slower
 median over 5%, both read repetitions, A/A controls and rejected attempts. No
 blanket “noise only” or universal performance claim follows from these data.
 
@@ -259,3 +259,9 @@ supplies the five matching `editing-pair-N` workload seeds. Only the temporary
 factory's crypto seed is fixed: primary `0x13579bdf`, peer `0x2468ace1`. Normal
 README reports use the repository defaults and three independent runs. Every
 comparison value needed for review is preserved in the linked Markdown reports.
+
+## Archived files
+
+[details.zip](details.zip) contains the original reports, source files and measurements
+with their original directory structure. `MANIFEST.sha256` records every file hash.
+Temporary workspace paths in historical reports identify provenance, not included directories.

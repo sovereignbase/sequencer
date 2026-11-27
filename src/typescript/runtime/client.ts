@@ -370,14 +370,17 @@ export function insert<T>(
     )
   const content = bindings[id]!
   const count = values.length + (typeof values === 'string' ? 0x80000000 : 0)
-  const incoming = content.push(values) - 1
+  const incoming = content.length
   const pointer =
     (binaryEncode
       ? module._runtime_insert_binary(id, count, incoming, at)
       : module._runtime_insert(id, count, incoming, at)) >>> 2
   const heap = module.HEAPU32
+  const token = heap[pointer + 6]
+  // An extension reads its suffix directly; only retained or general results need a binding.
+  if (!token || token === 0xffffffff) content.push(values)
   // Tuple batches contain one canonical Insertion per stable index.
-  if (heap[pointer + 6] === 0xffffffff)
+  if (token === 0xffffffff)
     return readResult(
       Operation.Insert,
       id,
@@ -397,7 +400,6 @@ export function insert<T>(
       ]
   // A nonzero target means the suffix extends an existing canonical Insertion.
   // Gossip retains the caller's suffix; only the internal binding is concatenated.
-  const token = heap[pointer + 6]
   if (token) {
     let footage = content[token] as unknown[] | string
     const extent = heap[pointer + 7]
@@ -415,7 +417,6 @@ export function insert<T>(
       const end = footage.length
       for (let i = 0; i < values.length; ++i) footage[end + i] = values[i]
     }
-    content.pop()
   }
   return [[coordinates, values]]
 }
@@ -843,12 +844,15 @@ export function call<T>(
   if (footage !== undefined) {
     // Native parsing counts only positive roots. Each binds the same flat array
     // at its own native content_start; JavaScript never walks snapshot coordinates.
-    const bindings = module.HEAPU32[(resultPointer >>> 2) + 11]
-    if (bindings & 0x80000000) {
-      contents.length += 1
-      contents.fill(footage, a1)
+    const roots = module.HEAPU32[(resultPointer >>> 2) + 11]
+    const count = roots & 0x80000000 ? 1 : roots
+    if (operation === Operation.Create && count) {
+      const table = new Array<Bindings[number]>(count + 1)
+      table[0] = undefined
+      table.fill(footage, 1)
+      bindings[id] = table
     } else {
-      contents.length += bindings
+      contents.length += count
       contents.fill(footage, a1)
     }
   }
@@ -951,8 +955,7 @@ function readResult(
         for (let i = 0, at = p0 >>> 2; i < n0; ++i) metadata[i] = heap[at + i]
       } else metadata = readWords(p0, n0)
       if (stringEncode) {
-        result = [metadata, readText(content, p1, n1)]
-        break
+        return [metadata, readText(content, p1, n1)]
       }
       const span = p1 >>> 2,
         token = heap[span]
@@ -969,11 +972,11 @@ function readResult(
         content[token] = content[token]!.slice()
         heap[state] = (heap[state] & 0xffffff00) | 3
       }
-      result = [
+      // Snapshot export has no deferred Footage mutations to consume below.
+      return [
         metadata,
         shared ? content[token] : readValues(content, p1, n1, true),
       ]
-      break
     }
     case 6:
       break

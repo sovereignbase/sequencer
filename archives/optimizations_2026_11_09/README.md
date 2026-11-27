@@ -13,7 +13,7 @@ isolated runtime, matching the existing benchmark setup.
 
 Terser: three passes. Gzip: level 9. Both bundles include WASM.
 
-[Inline WASM gzip experiment](wasm_gzip.md): bundle-size measurements; packaging
+[Inline WASM gzip experiment](details.zip 'wasm_gzip.md'): bundle-size measurements; packaging
 decision deferred.
 
 ## Verification
@@ -107,3 +107,9 @@ Arithmetic means of 3 runs. Fixed and dynamic tuple modes use stable indices; or
 |  10,000 | dynamic  |                  1692.27 |       87.17 |              42.51 |
 
 Measured on Node 24.16.0, V8 13.6.233.17-node.49, win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz. Peer authoring, encoding, validation, destruction and explicit JS process garbage collection are outside API timings. Constructor results are destroyed after each burst. Memory estimates include one instance's isolated WASM linear memory and retained JS array slots; referenced payload objects are excluded.
+
+## Archived files
+
+[details.zip](details.zip) contains the original reports, source files and measurements
+with their original directory structure. `MANIFEST.sha256` records every file hash.
+Temporary workspace paths in historical reports identify provenance, not included directories.

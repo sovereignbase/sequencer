@@ -1,7 +1,7 @@
 # Removal and replicated replacement
 
 Baseline: `a792223`, Sequencer 1.2.4. The supplied
-[external results](external-results.md) identify concurrent insert/delete,
+[external results](details.zip 'external-results.md') identify concurrent insert/delete,
 replicated editing, update size and retained memory as the main follow-up areas.
 Those historical cross-library measurements are context; fresh matched local
 measurements decide whether changes are retained. External workloads, adapters
@@ -14,34 +14,34 @@ reuse, shorter global jump intervals and a JavaScript input-address cache are
 removed. Their targeted benefits do not justify their regressions or inconclusive
 representative results.
 
-The combination of [removal reservation](reserve.md), [equivalent positive
-rounding](spacing-rounding.md) and [arena pointer removal](arena-ownership.md)
-is also removed after its [complete five-pair guard](owner-performance.md).
+The combination of [removal reservation](details.zip 'reserve.md'), [equivalent positive
+rounding](details.zip 'spacing-rounding.md') and [arena pointer removal](details.zip 'arena-ownership.md')
+is also removed after its [complete five-pair guard](details.zip 'owner-performance.md').
 It saves about eight allocator bytes for ordinary sequence instances but does
 not meet the timing requirement. An isolated [smaller Gossip output
-payload](entry-payload.md) is also removed after its production control fails
+payload](details.zip 'entry-payload.md') is also removed after its production control fails
 to establish a target benefit. Generated code identifies a [hydration inlining
-change](dispatch-layout.md), but the layout experiments do not establish a
+change](details.zip 'dispatch-layout.md'), but the layout experiments do not establish a
 sufficient representative benefit and are removed. The [ACK-observation
-change](ack-observation.md) is also removed after ten complete matched pairs
+change](details.zip 'ack-observation.md') is also removed after ten complete matched pairs
 leave an unresolved repeated checkpoint-export regression, despite faster
 isolated ACK handling. The current candidate replaces the identity table's
 fixed-size vector with an owning slot array and a probe mask. It is retained as a
-[user-requested checkpoint](fixed-table.md) with unresolved timing differences;
+[user-requested checkpoint](details.zip 'fixed-table.md') with unresolved timing differences;
 this is not an all-row acceptance claim.
 
-After that checkpoint, [direct zero-distance merging](direct-zero.md) is also
+After that checkpoint, [direct zero-distance merging](details.zip 'direct-zero.md') is also
 rejected: five complete pairs and a separate A/A production control leave
 unresolved timing losses despite much faster replicated replacement. Native
 allocation and snapshot sizes are unchanged.
 
-The smaller [sole-visible-Strip tail shortcut](sole-tail.md) is under evaluation.
-The [concurrent mixed-edit profile](concurrent-profile.md) identifies visible
+The smaller [sole-visible-Strip tail shortcut](details.zip 'sole-tail.md') is under evaluation.
+The [concurrent mixed-edit profile](details.zip 'concurrent-profile.md') identifies visible
 position resolution as the main native follow-up for concurrent random editing.
 
-Additional comparisons: [shorter jump interval rejection](rejected-jump-density.md),
-[input-address cache rejection](input-reservation.md), [isolated cache
-measurements](input-isolated.md), [complete artifacts](artifacts.md).
+Additional comparisons: [shorter jump interval rejection](details.zip 'rejected-jump-density.md'),
+[input-address cache rejection](details.zip 'input-reservation.md'), [isolated cache
+measurements](details.zip 'input-isolated.md'), [complete artifacts](details.zip 'artifacts.md').
 
 ## Measurement baseline
 
@@ -98,13 +98,13 @@ are retained as diagnostics, not acceptance evidence. New two-build targets
 alternate directly. Complete-suite runs alternate correctly, and the three-build
 production controls rotate/reverse without that cancellation.
 
-The [five-pair complete comparison](coalesce-performance.md) covers all 424 timing
+The [five-pair complete comparison](details.zip 'coalesce-performance.md') covers all 424 timing
 and 96 memory/storage rows. Length remains recorded and excluded from the
 decision. Replicated replacement improves by approximately 73–83% across the
 throughput checkpoints, but 139 other timing medians are over 5% slower. This
 candidate does not meet the all-row requirement.
 
-The [5,000-Strip follow-up](control5000.md) includes a byte-identical baseline
+The [5,000-Strip follow-up](details.zip 'control5000.md') includes a byte-identical baseline
 copy as an A/A control. The large complete-suite apply(remove) slowdown does not
 repeat: its median is 0.82% faster. However, empty creation is 20.40% slower and
 slower in every matched pair. Identical-build results also vary; this does not
@@ -124,7 +124,7 @@ and 53–58% on an alternating head/tail source. Contiguous-source apply(remove)
 improves by 5–14%; alternating-source results overlap the baseline. These are
 targeted results, not all-row acceptance.
 
-The [second 5,000-Strip control](zero-control5000.md) compares all three builds in
+The [second 5,000-Strip control](details.zip 'zero-control5000.md') compares all three builds in
 five rotated/reversed rounds. The smaller candidate improves apply(replace) by
 83.27% and apply(remove) by 4.61%. Empty creation is 6.06% slower, with overlapping
 distributions. Local head/middle removal medians are substantially slower and
@@ -154,7 +154,7 @@ Bytes, identical release build, three-pass Terser and compression settings:
 
 The runtime gain has a small bundle cost; bundle size is not an improvement.
 See the retained `*-memory.json` reports for CJS and all raw allocation samples.
-The [complete artifact comparison](artifacts.md) includes CJS, generated glue,
+The [complete artifact comparison](details.zip 'artifacts.md') includes CJS, generated glue,
 distribution maps/declarations and allocation estimates for every tested build.
 
 ### Generated code
@@ -169,7 +169,7 @@ localizes generated changes; it does not establish the cause of unrelated timing
 differences or invalidate their measurements. SIMD, ILP and MLP cannot remove the
 serial dependency of this tail walk; joining intervals removes traversal work.
 
-The smaller candidate's [five-pair complete guard](zero-performance.md) is also
+The smaller candidate's [five-pair complete guard](details.zip 'zero-performance.md') is also
 complete. Of 409 timing rows excluding length, 74 medians improve by more than
 5% and 98 regress by more than 5%. Notably, 1,000-Strip apply(remove) regresses
 6.31% and 15,000-Strip empty creation regresses 28.13%, both slower in every
@@ -186,9 +186,9 @@ must still pass the same complete guard.
 
 The call-site experiment passes all 276 tests and 192 canonical comparisons.
 It reduces the Wasm addition to 144 B and minified ESM gzip addition to 67 B.
-The [5,000-Strip control](call-control5000.md) retains an 81.69% replicated
+The [5,000-Strip control](details.zip 'call-control5000.md') retains an 81.69% replicated
 replacement improvement. Empty creation is 2.49% faster; apply(remove) is 4.48%
-slower, with overlapping distributions. Its [complete five-pair guard](call-performance.md)
+slower, with overlapping distributions. Its [complete five-pair guard](details.zip 'call-performance.md')
 has 68 timing medians over 5% faster and 51 over 5% slower, excluding length.
 The 15,000-Strip empty-creation regression remains reproducible at 44.58%.
 The candidate is not retained.
@@ -202,7 +202,7 @@ await repair. After linking the combined interval, the local search cursor must
 also move to its prior endpoint; otherwise it would still walk the old chain.
 No intermediate sqrt split was reused for a span selected outside that walk.
 It failed the existing overlapping-removal test and the canonical snapshot
-guard. The change was [removed before timing](rejected-placement.md).
+guard. The change was [removed before timing](details.zip 'rejected-placement.md').
 
 ## Random removal profile and allocation follow-up
 
@@ -234,3 +234,9 @@ node --expose-gc P/coalesce-flat-remote-guard.mjs
 node --expose-gc P/coalesce-remote-guard.mjs
 node P/full.mjs baseline,coalesce 5 coalescefull
 ```
+
+## Archived files
+
+[details.zip](details.zip) contains the original reports, source files and measurements
+with their original directory structure. `MANIFEST.sha256` records every file hash.
+Temporary workspace paths in historical reports identify provenance, not included directories.

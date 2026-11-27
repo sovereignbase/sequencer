@@ -296,6 +296,65 @@ describe('runtime memory', () => {
     }
   )
 
+  it.each([false, true])(
+    'releases a wholly masked array root before a remote extension (string suffix: %s)',
+    (text) => {
+      const source = new Projection<string>(1)
+      const peer = new Projection<string>(2)
+      const prefix = ['a', 'b']
+      try {
+        source.apply([[1], [2]])
+        peer.apply([[1], [2]])
+        peer.apply(source.insert(prefix, 0))
+        peer.remove()
+        expect(peer.values()).toEqual([])
+        const suffix = source.insert(text ? 'cd' : ['c', 'd'], 2)
+        peer.apply(suffix)
+        expect(peer.values()).toEqual(['c', 'd'])
+        expect(prefix).toEqual(['a', 'b'])
+        for (const binary of [false, true]) {
+          const snapshot = peer.sequence(false, binary)
+          const restored = new Projection<string>(3, snapshot)
+          try {
+            expect(snapshot[1]).toEqual([undefined, undefined, 'c', 'd'])
+            expect(restored.values()).toEqual(['c', 'd'])
+          } finally {
+            restored.destroy()
+          }
+        }
+      } finally {
+        source.destroy()
+        peer.destroy()
+      }
+    }
+  )
+
+  it('releases wholly masked hydrated roots without retaining their shared array', () => {
+    const values = Array.from({ length: 128 }, (_, i) => String(i))
+    const snapshot = makeSequence<string>(
+      [[1], [2]],
+      values.map((value, i) => [[0, 0, 0, 100 + i, 0, 1], [value]])
+    )
+    const projection = new Projection<string>(1, snapshot)
+    try {
+      const before = runtime.memory().javascriptBytes
+      projection.remove()
+      expect(projection.values()).toEqual([])
+      expect(runtime.memory().javascriptBytes).toBeLessThan(
+        before - values.length * 8
+      )
+      expect(snapshot[1]).toEqual(values)
+      const restored = new Projection<string>(3, projection.sequence())
+      try {
+        expect(restored.values()).toEqual([])
+      } finally {
+        restored.destroy()
+      }
+    } finally {
+      projection.destroy()
+    }
+  })
+
   it('observes memory growth and retains native capacity after instance destruction', () => {
     const survivors = Array.from({ length: 64 }, (_, index) => {
       const state = new Projection<number>(index + 5)

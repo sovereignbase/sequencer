@@ -7,6 +7,8 @@ namespace sequencer {
 template <bool Dictionary = false> class WordsReader {
   std::span<const std::uint8_t> bytes;
   std::vector<Word> sessions;
+  // Count separately because older formats can admit zero as their first Session.
+  Word first_session{}, session_count{};
   Word previous_session{}, previous_start{}, previous_size{};
   Coordinates repeated_coordinates;
   Word repeated_anchor_delta{}, repeated_start_delta{};
@@ -50,11 +52,11 @@ public:
         --index;
       }
       if (index) {
-        if (index > sessions.size()) {
+        if (index > session_count) {
           valid = false;
           return 0;
         }
-        return sessions[index - 1];
+        return index == 1 ? first_session : sessions[index - 2];
       }
     }
     if (remaining() < sizeof(Word)) {
@@ -64,8 +66,12 @@ public:
     Word value;
     std::memcpy(&value, bytes.data() + position, sizeof(value));
     position += sizeof(value);
-    if constexpr (Dictionary)
-      sessions.push_back(value);
+    if constexpr (Dictionary) {
+      if (!session_count++)
+        first_session = value;
+      else
+        sessions.push_back(value);
+    }
     return value;
   }
   Coordinates coordinates(Word remaining_records = 0) {

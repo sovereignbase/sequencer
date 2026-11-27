@@ -93,24 +93,13 @@ public:
     }
     return result;
   }
-  /** Exports retained active membership and Acknowledgements.
-   * @return Acknowledgements in Actor and Session admission order.
-   */
-  std::vector<Acknowledgement> frontiers() const {
-    std::vector<Acknowledgement> result;
-    for (auto actor : actors) {
-      if (membership.get(actor) != 1)
-        continue;
-      auto &a = result.emplace_back(Acknowledgement{actor});
-      for (const auto &s : sessions) {
-        auto it = s.claims.find(actor);
-        if (it != s.claims.end()) {
-          a.push_back(s.id);
-          a.push_back(it->second);
-        }
-      }
-    }
-    return result;
+  /** Counts active Actors in the exported membership. */
+  Word size() const { return active; }
+  /** Visits active Actors and their Session claims in admission order. */
+  template <typename Function> void for_each(Function function) const {
+    for (const auto actor : actors)
+      if (membership.get(actor) == 1)
+        function(actor, sessions);
   }
 };
 } // namespace sequencer

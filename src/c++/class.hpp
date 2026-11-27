@@ -149,8 +149,9 @@ public:
   Word extend(Index origin, Word count, Word content, Word source_start = 0, bool text = false);
   /** Requests private Footage before clearing externally owned content slots.
    * @param fragment Any fragment of the positive canonical Insertion.
+   * @param discard Releases an array root whose entire original extent is masked.
    */
-  void own_content(Index fragment);
+  void own_content(Index fragment, bool discard);
   /** Authors masks for each original Insertion crossed by an inclusive visible range.
    * @param start First removed Projection position.
    * @param end Last removed position; start greater than end represents an empty range.
@@ -200,6 +201,8 @@ public:
   void sequence(Sequence &output, bool binary = false) const;
 
 private:
-  template <bool Binary> void sequence_into(Sequence &output) const;
+  template <bool Binary, typename Removed>
+  void sequence_into(Sequence &output, const WordTable &compactable,
+                     const ContainmentTable &removed, std::vector<Removed> &deletions) const;
 };
 } // namespace sequencer

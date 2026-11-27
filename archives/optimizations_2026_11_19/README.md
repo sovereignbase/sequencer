@@ -4,7 +4,7 @@ Baseline: `d8816d7`, version 1.2.6. The three fresh complete baseline runs inclu
 lifecycle, throughput and tuples, with unchanged production workloads. Frozen
 sources and raw reports are under `temp/optimization_2026_11_19/baseline*`.
 
-The [November 20 checkpoint](checkpoint.md) records the final selected build,
+The [November 20 checkpoint](details.zip 'checkpoint.md') records the final selected build,
 complete five-pair comparison, rejected follow-up optimizations and residual
 regressions. The universal 10% latency target remains unmet; the checkpoint
 retains the measured large-text gains without the rejected experiments.
@@ -45,7 +45,7 @@ The dedicated `benchmark/text` suite measures large insertion/replacement,
 whole and partial removal, replication, hydration, indexed/range reads and both
 snapshot formats. It retains default array-result replay separately, so the
 cost of explicitly materializing character arrays is visible. The final
-[large-string results](large-context.md) and [complete public-API comparison](final-performance.md)
+[large-string results](details.zip 'large-context.md') and [complete public-API comparison](details.zip 'final-performance.md')
 retain every timing, including slower results.
 
 The target is lower latency and retained memory. The initial slowdown limit was
@@ -58,7 +58,7 @@ strings and requests string Splices. This avoids adding deferred conversion work
 to existing applications that read arrays. Direct string input remains immutable
 regardless of the snapshot setting.
 
-The [five-pair large-string comparison](large-opt-in.md) uses separate fresh
+The [five-pair large-string comparison](details.zip 'large-opt-in.md') uses separate fresh
 processes for array and string representations. Both builds execute the same
 benchmark with the same sizes, warmup and operation counts. Earlier mixed-mode
 runs gave the candidate twice as many runtime-factory resets as the baseline;
@@ -74,14 +74,14 @@ compares the existing array API against the same existing array API.
 
 ## Initial guard and follow-ups
 
-The [initial complete guard](initial-complete-performance.md), three matched pairs,
+The [initial complete guard](details.zip 'initial-complete-performance.md'), three matched pairs,
 has 40 of 409 non-length median timings over 5% faster and 132 over 5% slower.
 It is not accepted. All 96 native-memory and encoded-size rows match. Source
 freezes `native-only` and `js-only` isolate native and JS changes for ordinary
 array inputs; they are diagnostics, not alternative public implementations.
-Their [48-row comparison](isolate.md) also retains an identical-code control.
+Their [48-row comparison](details.zip 'isolate.md') also retains an identical-code control.
 
-The [input/flag follow-up](refine.md) measures baseline, identical control,
+The [input/flag follow-up](details.zip 'refine.md') measures baseline, identical control,
 original candidate, cached input Footage and relocated native text flags.
 Caching input Footage has no every-pair slowdown over 5% in its three-pair
 comparison; moving the flag has six. The relocation is reverted. This does
@@ -98,20 +98,20 @@ Text snapshot compaction now appends retained ranges rather than calling the
 span writer for every retained code unit. The ordinary array prefix loop is
 unchanged; only the text range path calls `append_text_spans`.
 
-The [five-pair Splice follow-up](splices.md) rejects extracting Splice collection
+The [five-pair Splice follow-up](details.zip 'splices.md') rejects extracting Splice collection
 into a helper: its 15,000-Strip duplicate apply is +6.72% in every pair. The
 parent has no every-pair slowdown over 5% in that selected comparison (nine
 medians improve over 5%, three worsen over 5%). The helper is absent from the
 retained candidate. This subset still does not establish complete acceptance.
 
-The [opt-in complete guard](complete-performance.md) has 104 of 409 non-length
+The [opt-in complete guard](details.zip 'complete-performance.md') has 104 of 409 non-length
 median timings above +5% against the primary baseline and 68 against its
 unchanged control. Baseline versus control itself has 101 such medians, including
 one every-pair loss, so a single positive median is not accepted as proof of a
-runtime regression. The [longer-warmup control](steady.md) and
-[interleaved control](interleaved.md) retain every selected measurement.
+runtime regression. The [longer-warmup control](details.zip 'steady.md') and
+[interleaved control](details.zip 'interleaved.md') retain every selected measurement.
 
-Extracting JS text append into a helper was [inconclusive](append-steady.md) and
+Extracting JS text append into a helper was [inconclusive](details.zip 'append-steady.md') and
 is reverted. Native insertion sampling instead found 33–34% in anchor placement
 and 25–30% in `Projection::insert`, with little JS time in this case. Inspecting
 the final Wasm showed that initializing a dynamic string flag in the aggregate
@@ -134,7 +134,7 @@ the operation: V8 created a function context on entry, including successful
 calls. Replacing that callback with a failure-only property loop removes the
 context creation, reduces `readResult` bytecode from 2,554 to 2,508 bytes and
 keeps the existing error messages. The latest
-[27-row interleaved control](context-interleaved.md) puts the small snapshot
+[27-row interleaved control](details.zip 'context-interleaved.md') puts the small snapshot
 median at +0.76%; no selected row is over +5% in every pair. The complete final
 guard remains separate.
 
@@ -185,14 +185,14 @@ the baseline and its identical-runtime control:
 | 1,000 / insert.middle  |        +12.36% |               +3.40% |                       -0.12% |              +3.52% |
 | 100 / values.sameIndex |        +18.07% |               +6.02% |                       +5.54% |              +0.46% |
 
-The [28-row follow-up](final-control.md) has no every-pair slowdown above 5%
+The [28-row follow-up](details.zip 'final-control.md') has no every-pair slowdown above 5%
 against either baseline copy. Medians and paired IQR remain visible. It uses the
 original 64-call warmup, 10,000-call cap and 100 ms duration limit. Slower rows
 change across independent cohorts, including the unchanged controls; no
 repeatable above-5% loss was established for the existing array API.
 
 The new text suite separately flagged the 1,024-code-unit array append batch
-at +8.29% in its first five-pair comparison. The [complete small-array control](small-array-control.md)
+at +8.29% in its first five-pair comparison. The [complete small-array control](details.zip 'small-array-control.md')
 rechecks all 19 operations with the same workload. Append is +5.77% by the ratio
 of medians, +0.05% by the median paired change, with an 11.13-point paired IQR.
 It is not slower by 5% in every pair against either baseline copy. This is
@@ -237,7 +237,7 @@ Further scalar-read experiments were discarded: `String.at`, a `charAt` branch,
 an exported heap-view facade, moving the public catch boundary and forcing the
 native locator inline did not establish a representative gain. No extra read
 cache or per-Projection string-mode state is retained. An inline native cache
-prefix passed the correctness suite, but its [five-pair complete comparison](gate-performance.md) had
+prefix passed the correctness suite, but its [five-pair complete comparison](details.zip 'gate-performance.md') had
 38 non-length medians above +10%, versus 29 for its parent. It was reverted.
 
 A clock-correlated V8 trace of the 25,000-Strip removal replay found no garbage
@@ -247,30 +247,30 @@ This supports investigating warmup sensitivity; it does not establish that
 every slower result is noise.
 
 The next candidate checks whether external Footage is a string only after
-omitted Footage and arrays have been handled. The [five-pair input-kind control](kind-control.md)
+omitted Footage and arrays have been handled. The [five-pair input-kind control](details.zip 'kind-control.md')
 keeps all 28 results, including its slower small range reads. It does not replace
 the complete-suite comparison.
 
-The [complete input-kind guard](kind-performance.md) retains 409 non-length
+The [complete input-kind guard](details.zip 'kind-performance.md') retains 409 non-length
 timings: 71 medians improve by more than 5%, 80 slow by more than 5%, and 37
 slow by more than 10%. No timing exceeds +10% in every pair. All 96 memory and
 encoded-size comparisons remain unchanged. These raw medians do not meet an
 all-rows-within-10% claim.
 
-The [warmed throughput follow-up](kind-warm.md) repeats all 27 throughput rows
+The [warmed throughput follow-up](details.zip 'kind-warm.md') repeats all 27 throughput rows
 above +10%, with the same fixtures and measurement limits but 10,000 warmup
 calls for every build. Its largest candidate median slowdown is +8.80%; the
 identical baseline control reaches +8.74%. The different warmup is explicit,
 and paired dispersion remains visible. It diagnoses tiering sensitivity rather
 than replacing the original guard.
 
-The [empty-snapshot follow-up](empty-warm.md) measures six repeated public-API
+The [empty-snapshot follow-up](details.zip 'empty-warm.md') measures six repeated public-API
 cases. Ordinary empty snapshot creation is -3.74%, sequence -4.26% and values
 +1.88%; fixed-tuple results range from -1.34% to +0.53%. Creation includes
 destruction in this diagnostic, unlike the lifecycle's individual checkpoint
 call. Its result is not substituted into the original table.
 
-The [unchanged-warmup follow-up](kind-default.md) repeats the same 27 throughput
+The [unchanged-warmup follow-up](details.zip 'kind-default.md') repeats the same 27 throughput
 rows with the original 64 warmup calls. This retains a reproducible problem:
 10,000 / create.empty is +24.69%, above +10% in all five pairs, while the
 identical control is +1.68%. Other candidate medians over +10% include
@@ -285,14 +285,14 @@ allocation; the three extra bytes are on the hydration-only path. A short CPU
 sample includes both creation and JS process garbage collection but is too
 small to attribute the regression reliably.
 
-The [complete tuple repeat](tuple-final.md) retains all 80 rows. Its five
+The [complete tuple repeat](details.zip 'tuple-final.md') retains all 80 rows. Its five
 originally flagged rows range from -4.53% to +26.25%; for the last case,
 100-index tuple creation, the identical control also slows +17.53%, leaving
 +7.42% relative to that control. Newly flagged eight-index replacements were
-rechecked using the existing `--sizes 8` option: [all twenty candidate medians](tuple-eight.md)
+rechecked using the existing `--sizes 8` option: [all twenty candidate medians](details.zip 'tuple-eight.md')
 are within 10%. The ordinary replacement is -12.58%, static tuple +1.43%.
 
-The [warmed complete lifecycle](lifecycle-warm.md) uses the same 25,000-Strip
+The [warmed complete lifecycle](details.zip 'lifecycle-warm.md') uses the same 25,000-Strip
 growth and shrinkage with 10,000 warmup cycles per build. Original flagged
 checkpoint sequence calls become -6.04% at 25,000 Strips and -0.91% at the
 1,000-Strip shrinking checkpoint; empty checkpoint calls range from +0.79% to
@@ -300,7 +300,7 @@ checkpoint sequence calls become -6.04% at 25,000 Strips and -0.91% at the
 rows remain visible. Warmup sensitivity is not a claim that every default
 checkpoint median is within the limit.
 
-A [five-pair default-parameter experiment](default-retry.md) restores the old
+A [five-pair default-parameter experiment](details.zip 'default-retry.md') restores the old
 constructor/function `.length` values by giving the new flags `false` defaults.
 Empty creation improves to -3.84% versus baseline in that cohort, but six of
 27 timing medians still exceed +10%; the unchanged candidate has three. The
@@ -356,3 +356,9 @@ node --expose-gc benchmark/text/index.ts --runs 5 --output <path>
 The local browser exclusion is specific to this verification command and does
 not change the compatibility matrix. No external competitor benchmark was run
 or modified, so no new cross-library ranking is claimed.
+
+## Archived files
+
+[details.zip](details.zip) contains the original reports, source files and measurements
+with their original directory structure. `MANIFEST.sha256` records every file hash.
+Temporary workspace paths in historical reports identify provenance, not included directories.

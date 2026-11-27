@@ -6,8 +6,9 @@ namespace sequencer {
 /** Writes byte metadata without changing canonical coordinates. */
 template <bool Dictionary = false> class WordsWriter {
   std::vector<std::uint8_t> &bytes;
+  // The first nonzero Session stays inline; later admissions start at index two.
   WordTable sessions;
-  Word session_count{}, previous_session{}, previous_start{}, previous_size{};
+  Word first_session{}, previous_session{}, previous_start{}, previous_size{};
   std::array<Word, 4> previous_record;
   std::size_t record_size{};
   Word repetitions{};
@@ -32,11 +33,14 @@ public:
         uint(0);
         return;
       }
-      const auto index = sessions.get(value, 0);
+      const auto index = value == first_session ? 1 : sessions.get(value);
       uint(index ? index + 1 : 1);
       if (index)
         return;
-      sessions.set({.session = value}, ++session_count);
+      if (!first_session)
+        first_session = value;
+      else
+        sessions.set({.session = value}, sessions.size() + 2);
     }
     const auto begin = bytes.size();
     bytes.resize(begin + sizeof(value));

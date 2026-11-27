@@ -99,6 +99,31 @@ describe('Projection public API', () => {
   })
   // Remote inputs are validated; returned Splices use exclusive ends and current visible positions.
   describe('apply', () => {
+    it('resolves queued children while parent buckets drain in shuffled order', () => {
+      const ordered = new Projection<number>(1)
+      const delayed = new Projection<number>(2)
+      const parents: Insertion<number>[] = Array.from(
+        { length: 128 },
+        (_, i) => [[0, 0, 0, 100 + i, 0, 1], [i]]
+      )
+      const children: Insertion<number>[] = parents.map((_, i) => [
+        [100 + i, 0, 1, 1000 + i, 0, 1],
+        [~i],
+      ])
+      try {
+        ordered.apply(parents.flatMap((parent, i) => [parent, children[i]]))
+        delayed.apply(children)
+        expect(delayed.values()).toEqual([])
+        for (let i = 0; i < parents.length; ++i)
+          delayed.apply([parents[(i * 73) % parents.length]])
+        expect(delayed.values()).toEqual(ordered.values())
+        expect(delayed.sequence()).toEqual(ordered.sequence())
+      } finally {
+        ordered.destroy()
+        delayed.destroy()
+      }
+    })
+
     it('returns insertion splices using visible positions', () => {
       const projection = new Projection<string>(2)
       const incoming = sequenceInsertions(seed())
@@ -379,6 +404,77 @@ describe('Projection public API', () => {
   })
   // Retirement changes acknowledgement membership, never authored content ownership.
   describe('retire', () => {
+    it('preserves remaining frontiers after shuffled Actor retirement', () => {
+      const projection = new Projection<number>(90)
+      const session = 999,
+        maximum = 0xffffffff
+      const claims = Array.from({ length: 128 }, (_, i) => [
+        i === 127 ? maximum : i,
+        session,
+        maximum - i,
+      ])
+      try {
+        projection.apply(claims)
+        for (let i = 0; i < claims.length; ++i) {
+          const at = (i * 73) % claims.length
+          if (at === 0 || at === 127) continue
+          projection.retire(claims[at][0])
+          projection.apply([claims[at]])
+        }
+        expect(sequenceFrontiers(projection.sequence())).toEqual([
+          claims[0],
+          claims[127],
+        ])
+      } finally {
+        projection.destroy()
+      }
+    })
+
+    it('retains frontier ownership and admission order across retirements', () => {
+      const projection = new Projection<string>(90)
+      const session = 0x80000000
+      const maximum = 0xffffffff
+      try {
+        projection.apply([
+          [maximum, session, maximum],
+          [0, session, maximum - 1],
+          [42, session, maximum - 2],
+        ])
+        projection.retire(0)
+        projection.apply([[7, session, 7]])
+        expect(sequenceFrontiers(projection.sequence())).toEqual([
+          [maximum, session, maximum],
+          [42, session, maximum - 2],
+          [7, session, 7],
+        ])
+        projection.retire(maximum)
+        projection.apply([
+          [7, session, 6],
+          [maximum, session, 6],
+        ])
+        const snapshot = projection.sequence()
+        expect(sequenceFrontiers(snapshot)).toEqual([
+          [42, session, maximum - 2],
+          [7, session, 6],
+        ])
+        const restored = new Projection<string>(
+          91,
+          projection.sequence(false, true)
+        )
+        try {
+          expect(restored.sequence()).toEqual(snapshot)
+        } finally {
+          restored.destroy()
+        }
+        projection.retire(42)
+        projection.retire(7)
+        projection.apply([[8, session, 0]])
+        expect(sequenceFrontiers(projection.sequence())).toEqual([[8]])
+      } finally {
+        projection.destroy()
+      }
+    })
+
     it('excludes a retired actor from compaction requirements and future acknowledgements', () => {
       const projection = seeded()
       projection.apply([[2]])
@@ -503,6 +599,43 @@ describe('Projection public API', () => {
   })
   // Undefined is valid Footage; it must not reduce visible length or confuse binding ownership.
   describe('value', () => {
+    it('resolves cached positions across the full uint32 visible extent', () => {
+      const maximum = 0x7fffffff
+      const projection = new Projection<string>(1, [
+        [
+          1,
+          0,
+          0,
+          0,
+          100,
+          0,
+          maximum,
+          100,
+          0,
+          maximum,
+          200,
+          0,
+          maximum,
+          200,
+          0,
+          maximum,
+          300,
+          0,
+          1,
+        ],
+        ['a'],
+      ])
+      try {
+        expect(projection.length()).toBe(0xffffffff)
+        expect(projection.value(0xfffffffe)).toBeUndefined()
+        expect(projection.value(0)).toBe('a')
+        expect(projection.value(maximum)).toBeUndefined()
+        expect(projection.value(0)).toBe('a')
+      } finally {
+        projection.destroy()
+      }
+    })
+
     it('returns undefined when no visible Frame exists at the requested position', () => {
       const projection = new Projection<string>(1)
       expect(projection.value(0)).toBeUndefined()

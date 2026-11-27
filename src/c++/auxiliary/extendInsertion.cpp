@@ -11,8 +11,9 @@ Word Projection::extend(Index origin, Word count, Word content, Word source_star
   const auto original = strips.identity[origin];
   const auto end = Word(original.coordinates.diff);
   const auto target_content =
-      original.shared_content ? content && content != original.content ? content : next_content++
-                              : original.content;
+      original.shared_content || !original.content
+          ? content && content != original.content ? content : next_content++
+          : original.content;
   // A mixed suffix materializes an array; restore the text root's masked slots there.
   if (original.string_content && !text && original.fragmented) {
     Word start = 0;

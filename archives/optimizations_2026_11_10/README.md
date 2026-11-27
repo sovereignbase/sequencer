@@ -1,6 +1,6 @@
 # Projection allocation and shared Footage output
 
-The subsequent [editing and apply round](editing/README.md) uses the corrected
+The subsequent [editing and apply round](details.zip 'editing/README.md') uses the corrected
 checkpoint model described below.
 
 The lifecycle measurements in this round predate the checkpoint correction:
@@ -76,13 +76,13 @@ construction plus the first tuple batch.
 
 The complete three-run lifecycle, throughput and tuple suites were run before
 editing and after each candidate. The retained implementation's
-[424-row comparison](performance.md) includes every measured timing, including
+[424-row comparison](details.zip 'performance.md') includes every measured timing, including
 apparent regressions. Short, independently instantiated benchmark runtimes showed
 substantial run and call-site variation, including differences between two copies
 of the unchanged baseline. Those broad apparent speedups are not attributed to
 these allocation changes.
 
-The [matched measurements](measurements.md) retain the follow-up medians, IQRs and
+The [matched measurements](details.zip 'measurements.md') retain the follow-up medians, IQRs and
 individual observations. All 80 tuple cases were repeated in five matched pairs.
 Reads and replacement application were also checked in ten counterbalanced pairs
 against the actual distributed ESM, with a separately loaded unchanged baseline
@@ -112,7 +112,7 @@ All sizes are bytes; savings compare the complete retained changes with baseline
 
 No disk-size optimization was retained: the Sequence and Gossip representations
 are unchanged. Compression of the embedded Wasm remains a separate, deferred
-experiment from the [previous round](../optimizations_2026_11_09/wasm_gzip.md).
+experiment from the [previous round](../optimizations_2026_11_09/details.zip 'wasm_gzip.md').
 
 ## Rejected: emmalloc
 
@@ -183,3 +183,9 @@ Deno, Edge Runtime, workerd, Chromium and WebKit.
 
 Retained distributed ESM SHA-256:
 `168922960451976848bc93744bd6ee7f299e1a28e9b5f4250b27e89b0166aa08`.
+
+## Archived files
+
+[details.zip](details.zip) contains the original reports, source files and measurements
+with their original directory structure. `MANIFEST.sha256` records every file hash.
+Temporary workspace paths in historical reports identify provenance, not included directories.

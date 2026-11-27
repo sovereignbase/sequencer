@@ -452,16 +452,16 @@ Invalid input to `apply()` or `merge()` returns `undefined` instead of throwing.
 
 ### Behaviour guaranteed by excessive tests
 
-2026-11-24T18:41:08.324Z · [CI run](https://github.com/sovereignbase/sequencer/actions/runs/45461530116)
+2026-11-27T16:25:59.435Z · local run
 
-The latest verification passed 395 Vitest tests and 153 compatibility checks.
+The latest verification passed 403 Vitest tests and 136 compatibility checks.
 The configured 100% coverage threshold is met (100% statements, 100% branches, 100% functions, 100% lines).
 See the [test suites](test/README.md) and
 [automated test report](https://sovereignbase.dev/sequencer/tests/).
 
 ### Works everywhere where JavaScript and Wasm works
 
-2026-11-24T18:41:08.329Z · [CI run](https://github.com/sovereignbase/sequencer/actions/runs/45461530116)
+2026-11-27T16:26:35.533Z · local run
 
 Runtimes covered by the latest compatibility verification:
 
@@ -472,7 +472,7 @@ Runtimes covered by the latest compatibility verification:
 - Edge Runtime: passed
 - Cloudflare Workers through workerd: passed
 - Chromium browser windows: passed
-- Firefox browser windows: passed
+- Firefox browser windows: skipped
 - WebKit browser windows: passed
 
 ### Tested realtime and offline text editing behaviour examples

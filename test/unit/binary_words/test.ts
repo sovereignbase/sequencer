@@ -53,6 +53,24 @@ it('reads version-one byte snapshots without repetition markers', () => {
   }
 })
 
+it('reads a version-one dictionary whose first Session is zero', () => {
+  const source = new Projection<string>(1, [
+    Uint8Array.of(1, 0, 65, 0, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 1, 2),
+    'ab',
+  ])
+  try {
+    expect(source.values()).toEqual(['a', 'b'])
+    const restored = new Projection<string>(2, source.sequence(false, true))
+    try {
+      expect(restored.values()).toEqual(['a', 'b'])
+    } finally {
+      restored.destroy()
+    }
+  } finally {
+    source.destroy()
+  }
+})
+
 it.each(
   [
     [3, 0, 255, 1, 1],

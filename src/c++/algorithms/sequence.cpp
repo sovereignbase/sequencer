@@ -11,64 +11,10 @@
 #include <limits>
 
 namespace sequencer {
-template <bool Binary> void Projection::sequence_into(Sequence &output) const {
-  const auto compactable = frontier.compactable();
-  // Original Frame deletion map, converted in place to removed-prefix counts during export.
-  struct Removed {
-    // Whole positive Insertion length when every original Frame is compacted.
-    Word whole{};
-    // Per-original-Frame marks, later cumulative removed counts.
-    std::vector<Word> frames;
-    // Counts compacted Frames before an original exclusive boundary.
-    Word before(Word at) const {
-      if (!at)
-        return 0;
-      if (whole)
-        return std::min(at, whole);
-      return frames.empty() ? 0 : frames[std::min<std::size_t>(at, frames.size()) - 1];
-    }
-  };
-  ContainmentTable removed;
-  std::vector<Removed> deletions;
-  if (tuple && !compactable.empty()) {
-    for (const auto &version : tuple->versions) {
-      const auto &c = version.coordinates;
-      if (c.diff < 0 && compactable.contains(c.session) &&
-          !removed.get(c.anchor_session, c.anchor_start))
-        removed.set({.session = c.anchor_session, .start = c.anchor_start}, 1);
-    }
-  }
-  // Collect actual consumed mask fragments, not authored lengths: overlapping
-  // removals must never delete an original Frame twice from the exported Footage.
-  if (!tuple && !compactable.empty()) {
-    for (auto i = structural_head; i; i = strips.right[i]) {
-      const auto s = i;
-      const auto &c = strips.identity[s].coordinates;
-      const auto diff = strips.fragment_diff[s];
-      if (diff >= 0 || !compactable.contains(c.session))
-        continue;
-      const auto start = c.anchor_diff + strips.fragment_start[s];
-      auto index = removed.get(c.anchor_session, c.anchor_start);
-      const auto added = !index;
-      if (added) {
-        deletions.emplace_back();
-        index = Word(deletions.size());
-        removed.set({.session = c.anchor_session, .start = c.anchor_start}, index);
-      }
-      auto &frames = deletions[index - 1];
-      if (added) {
-        const auto parent = containment.get(c.anchor_session, c.anchor_start);
-        const auto count = Word(strips.identity[parent].coordinates.diff);
-        if (!start && magnitude(diff) == count)
-          frames.whole = count;
-        else
-          frames.frames.resize(count);
-      }
-      if (!frames.whole)
-        std::fill(frames.frames.begin() + start, frames.frames.begin() + start + magnitude(diff),
-                  1);
-    }
-  }
+template <bool Binary, typename Removed>
+void Projection::sequence_into(Sequence &output, const WordTable &compactable,
+                               const ContainmentTable &removed,
+                               std::vector<Removed> &deletions) const {
   const auto removed_frames = [&](Word session, Word start) -> Removed * {
     const auto index = removed.get(session, start);
     return index ? &deletions[index - 1] : nullptr;
@@ -81,27 +27,24 @@ template <bool Binary> void Projection::sequence_into(Sequence &output) const {
   const auto count = tuple ? Word(tuple->versions.size()) : structural_count;
   const auto words = 1 + count * (eligible ? 3 : 6);
   const auto spans = std::min(count, containment.size());
-  // Reuse fitting buffers without retaining capacity from a larger previous snapshot.
-  if ((Binary ? output.bytes.capacity() > std::size_t(words) * 2
-              : output.words.capacity() > words) ||
-      output.footage.capacity() > spans)
-    output = {};
   output.words.clear();
   output.bytes.clear();
   output.footage.clear();
   output.shared_root = none;
-  if constexpr (Binary)
-    output.bytes.reserve(std::size_t(words) * 2);
-  else
+  // Reuse capacity established by the previous encoded result, not its estimate.
+  if constexpr (Binary) {
+    if (!output.bytes.capacity())
+      output.bytes.reserve(std::size_t(words) * 2);
+  } else if (!output.words.capacity())
     output.words.reserve(words);
-  output.footage.reserve(spans);
+  if (!output.footage.capacity())
+    output.footage.reserve(spans);
   auto writer = [&] {
     if constexpr (Binary)
       return WordsWriter<true>(output.bytes);
     else
       return SnapshotWords{output.words, {}, 0, false, eligible};
   }();
-  const auto frontiers = frontier.frontiers();
   if constexpr (Binary) {
     writer.byte(
         std::uint8_t(3 | (tuple ? 128 : 0) | (tuple && tuple->capacity != UINT32_MAX ? 64 : 0)));
@@ -111,36 +54,41 @@ template <bool Binary> void Projection::sequence_into(Sequence &output) const {
       else
         writer.uint(frame_count);
     }
-    writer.uint(Word(frontiers.size()));
+    writer.uint(frontier.size());
   } else
     output.words.push_back(0);
   // Keep Actor admission even when all of its compactable Session pairs disappear.
-  for (const auto &a : frontiers) {
+  frontier.for_each([&](Word actor, const auto &sessions) {
+    Word count = 1;
     if constexpr (Binary) {
-      Word count = 1;
-      for (std::size_t i = 1; i + 1 < a.size(); i += 2)
-        count += compactable.contains(a[i]) ? 0 : 2;
+      for (const auto &session : sessions)
+        if (!compactable.contains(session.id) && session.claims.find(actor) != session.claims.end())
+          count += 2;
       writer.uint(count);
-      writer.uint(a[0]);
-      for (std::size_t i = 1; i + 1 < a.size(); i += 2)
-        if (!compactable.contains(a[i])) {
-          writer.session(a[i]);
-          writer.uint(a[i + 1]);
-        }
-      continue;
+      writer.uint(actor);
     }
     const auto begin = output.words.size();
-    output.words.push_back(0);
-    output.words.push_back(a[0]);
-    Word count = 1;
-    for (std::size_t i = 1; i + 1 < a.size(); i += 2) {
-      if (!compactable.contains(a[i])) {
-        output.words.insert(output.words.end(), {a[i], a[i + 1]});
+    if constexpr (!Binary) {
+      output.words.push_back(0);
+      output.words.push_back(actor);
+    }
+    for (const auto &session : sessions) {
+      if (compactable.contains(session.id))
+        continue;
+      const auto claim = session.claims.find(actor);
+      if (claim == session.claims.end())
+        continue;
+      if constexpr (Binary) {
+        writer.session(session.id);
+        writer.uint(claim->second);
+      } else {
+        output.words.insert(output.words.end(), {session.id, claim->second});
         count += 2;
       }
     }
-    output.words[begin] = count;
-  }
+    if constexpr (!Binary)
+      output.words[begin] = count;
+  });
   if constexpr (!Binary)
     output.words[0] = Word(output.words.size());
   constexpr auto omitted = std::numeric_limits<Word>::max();
@@ -263,7 +211,7 @@ template <bool Binary> void Projection::sequence_into(Sequence &output) const {
   }
   if constexpr (Binary) {
     writer.finish();
-    if (!tuple && !writer.count && frontiers.empty())
+    if (!tuple && !writer.count && !frontier.size())
       output.bytes.clear();
   } else {
     if (writer.packed)
@@ -274,10 +222,75 @@ template <bool Binary> void Projection::sequence_into(Sequence &output) const {
       output.words.clear();
   }
 }
-void Projection::sequence(Sequence &output, bool binary) const {
+[[gnu::noinline]] void Projection::sequence(Sequence &output, bool binary) const {
+  const auto compactable = frontier.compactable();
+  // Original Frame deletion map, converted in place to removed-prefix counts during export.
+  struct Removed {
+    // Whole positive Insertion length when every original Frame is compacted.
+    Word whole{};
+    // Per-original-Frame marks, later cumulative removed counts.
+    std::vector<Word> frames;
+    // Counts compacted Frames before an original exclusive boundary.
+    Word before(Word at) const {
+      if (!at)
+        return 0;
+      if (whole)
+        return std::min(at, whole);
+      return frames.empty() ? 0 : frames[std::min<std::size_t>(at, frames.size()) - 1];
+    }
+  };
+  ContainmentTable removed;
+  std::vector<Removed> deletions;
+  if (tuple && !compactable.empty()) {
+    for (const auto &version : tuple->versions) {
+      const auto &c = version.coordinates;
+      if (c.diff < 0 && compactable.contains(c.session) &&
+          !removed.get(c.anchor_session, c.anchor_start))
+        removed.set({.session = c.anchor_session, .start = c.anchor_start}, 1);
+    }
+  }
+  // Collect actual consumed mask fragments, not authored lengths: overlapping
+  // removals must never delete an original Frame twice from the exported Footage.
+  if (!tuple && !compactable.empty()) {
+    for (auto i = structural_head; i; i = strips.right[i]) {
+      const auto s = i;
+      const auto &c = strips.identity[s].coordinates;
+      const auto diff = strips.fragment_diff[s];
+      if (diff >= 0 || !compactable.contains(c.session))
+        continue;
+      const auto start = c.anchor_diff + strips.fragment_start[s];
+      auto index = removed.get(c.anchor_session, c.anchor_start);
+      const auto added = !index;
+      if (added) {
+        deletions.emplace_back();
+        index = Word(deletions.size());
+        removed.set({.session = c.anchor_session, .start = c.anchor_start}, index);
+      }
+      auto &frames = deletions[index - 1];
+      if (added) {
+        const auto parent = containment.get(c.anchor_session, c.anchor_start);
+        const auto count = Word(strips.identity[parent].coordinates.diff);
+        if (!start && magnitude(diff) == count)
+          frames.whole = count;
+        else
+          frames.frames.resize(count);
+      }
+      if (!frames.whole)
+        std::fill(frames.frames.begin() + start, frames.frames.begin() + start + magnitude(diff),
+                  1);
+    }
+  }
   if (binary)
-    sequence_into<true>(output);
+    sequence_into<true>(output, compactable, removed, deletions);
   else
-    sequence_into<false>(output);
+    sequence_into<false>(output, compactable, removed, deletions);
+  // Trim only a completed result; estimates can undercount ACKs or overcount coalesced spans.
+  const auto trim = [](auto &buffer) {
+    if (buffer.capacity() > 64 && buffer.capacity() / 2 > buffer.size())
+      buffer.shrink_to_fit();
+  };
+  trim(output.words);
+  trim(output.bytes);
+  trim(output.footage);
 }
 } // namespace sequencer

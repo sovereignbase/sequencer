@@ -17,7 +17,7 @@ Index Projection::subtree_end(Index root) {
   };
   auto previous = positive && strips.subtree_tail[root] ? strips.subtree_tail[root] : root;
   std::vector<Index> ancestors;
-  // Positive subtrees only extend in live Structural Order; masks retain the full walk.
+  // Positive roots reuse their growing prefix; masks start from their own position.
   if (previous != root && strips.right[previous])
     ancestors.push_back(root);
   for (auto next = strips.right[previous]; next; next = strips.right[previous]) {
@@ -55,6 +55,13 @@ Index Projection::subtree_end(Index root) {
     }
     ancestors.push_back(ancestor);
     previous = next;
+    // A proven positive prefix belongs to this subtree through its admitted child.
+    const auto cached =
+        strips.identity[next].coordinates.diff > 0 ? strips.subtree_tail[next] : none;
+    if (cached && cached != next) {
+      ancestors.push_back(next);
+      previous = cached;
+    }
   }
   return finish(previous);
 }

@@ -135,7 +135,8 @@ function readValues(
       start = heap[at + 1],
       length = heap[at + 2]
     if (source)
-      for (let j = 0; j < length; ++j) result[target++] = source[start + j]
+      for (let at = start, end = start + length; at < end; ++at)
+        result[target++] = source[at]
     else {
       result.fill(undefined, target, target + length)
       target += length

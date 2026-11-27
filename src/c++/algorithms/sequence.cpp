@@ -8,6 +8,7 @@
 #include "../class.hpp"
 #include "../components/Words/writer.hpp"
 #include <algorithm>
+#include <bit>
 #include <limits>
 
 namespace sequencer {
@@ -139,32 +140,35 @@ void Projection::sequence_into(Sequence &output, const WordTable &compactable,
             before(removed_frames(c.anchor_session, c.anchor_start), c.anchor_diff);
       }
       if (c.diff > 0 && frames) {
-        // Copy surviving Footage in original order and turn deletion marks into
-        // prefix counts for later anchors and masks targeting this same Insertion.
-        Word count = 0;
-        if (strips.identity[s].string_content) {
-          Word start = 0;
-          for (Word n = 0; n < Word(c.diff); ++n) {
-            if (frames->frames[n]) {
-              if (n > start)
-                append_text_spans(strips, s, start, n - start, fragment, footage);
-              start = n + 1;
-            }
-            count += frames->frames[n];
-            frames->frames[n] = count;
-          }
-          if (start < Word(c.diff))
-            append_text_spans(strips, s, start, Word(c.diff) - start, fragment, footage);
-        } else {
-          for (Word n = 0; n < Word(c.diff); ++n) {
-            if (!frames->frames[n]) {
-              append_footage(footage,
-                             {strips.identity[s].content, strips.identity[s].content_start + n, 1});
-            }
-            count += frames->frames[n];
-            frames->frames[n] = count;
+        // Copy surviving Footage in original order and prepare removed-prefix
+        // counts for later anchors and masks targeting this same Insertion.
+        const auto count = frames->prepare();
+        const auto append = [&](Word start, Word size) {
+          if (strips.identity[s].string_content)
+            append_text_spans(strips, s, start, size, fragment, footage);
+          else
+            append_footage(footage, {strips.identity[s].content,
+                                     strips.identity[s].content_start + start, size});
+        };
+        Word start = 0;
+        for (Word block = 0; block < frames->frames.size() / 2; ++block) {
+          auto bits = frames->frames[block];
+          Word point = block * 32;
+          while (bits) {
+            const auto skipped = Word(std::countr_zero(bits));
+            point += skipped;
+            bits >>= skipped;
+            const auto removed = Word(std::countr_one(bits));
+            if (point > start)
+              append(start, point - start);
+            start = point += removed;
+            if (removed == 32)
+              break;
+            bits >>= removed;
           }
         }
+        if (start < Word(c.diff))
+          append(start, Word(c.diff) - start);
         exported.diff -= std::int32_t(count);
       } else if (c.diff < 0 && removed.size()) {
         // Retained masks cover only the target Frames left after acknowledged deletion.
@@ -224,19 +228,45 @@ void Projection::sequence_into(Sequence &output, const WordTable &compactable,
 }
 [[gnu::noinline]] void Projection::sequence(Sequence &output, bool binary) const {
   const auto compactable = frontier.compactable();
-  // Original Frame deletion map, converted in place to removed-prefix counts during export.
+  // Original Frame deletion bits and removed-prefix counts prepared during export.
   struct Removed {
     // Whole positive Insertion length when every original Frame is compacted.
     Word whole{};
-    // Per-original-Frame marks, later cumulative removed counts.
+    // One deletion bit per Frame, followed by one prefix count per 32 Frames.
     std::vector<Word> frames;
+    void mark(Word start, Word count) {
+      const auto end = start + count;
+      const auto first = start / 32, last = (end - 1) / 32;
+      const auto low = ~Word(0) << (start % 32), high = ~Word(0) >> ((-end) % 32);
+      if (first == last)
+        frames[first] |= low & high;
+      else {
+        frames[first] |= low;
+        std::fill(frames.begin() + first + 1, frames.begin() + last, ~Word(0));
+        frames[last] |= high;
+      }
+    }
+    Word prepare() {
+      const auto blocks = frames.size() / 2;
+      Word count = 0;
+      for (std::size_t i = 0; i < blocks; ++i) {
+        frames[blocks + i] = count;
+        count += std::popcount(frames[i]);
+      }
+      frames.back() = count;
+      return count;
+    }
     // Counts compacted Frames before an original exclusive boundary.
     Word before(Word at) const {
-      if (!at)
+      if (!at || (frames.empty() && !whole))
         return 0;
       if (whole)
         return std::min(at, whole);
-      return frames.empty() ? 0 : frames[std::min<std::size_t>(at, frames.size()) - 1];
+      const auto blocks = Word(frames.size() / 2);
+      at = std::min(at, blocks * 32);
+      const auto block = at / 32, offset = at % 32;
+      return frames[blocks + block] +
+             (offset ? std::popcount(frames[block] & ((Word(1) << offset) - 1)) : 0);
     }
   };
   ContainmentTable removed;
@@ -273,11 +303,10 @@ void Projection::sequence_into(Sequence &output, const WordTable &compactable,
         if (!start && magnitude(diff) == count)
           frames.whole = count;
         else
-          frames.frames.resize(count);
+          frames.frames.resize(((count + 31) / 32) * 2 + 1);
       }
       if (!frames.whole)
-        std::fill(frames.frames.begin() + start, frames.frames.begin() + start + magnitude(diff),
-                  1);
+        frames.mark(start, magnitude(diff));
     }
   }
   if (binary)

@@ -7,7 +7,80 @@ import type {
   Insertion,
   Sequence,
 } from '../../../src/typescript/class.ts'
-import { makeSequence, sequenceFrontiers } from '../../.shared/sequence.ts'
+import {
+  makeSequence,
+  sequenceFrontiers,
+  sequenceInsertions,
+} from '../../.shared/sequence.ts'
+
+it('compacts overlapping removals across word boundaries with partial acknowledgements', () => {
+  for (const length of [31, 32, 33, 63, 64, 65, 130]) {
+    for (const text of [false, true]) {
+      for (const variant of [0, 1, 2]) {
+        const frames = Array.from({ length }, (_, i) =>
+          String.fromCharCode(33 + i)
+        )
+        const source = new Projection<string>(1)
+        let peer: Projection<string> | undefined
+        try {
+          source.insert(text ? frames.join('') : frames, 0)
+          source.apply([[1], [2]])
+          peer = new Projection<string>(
+            2,
+            source.sequence(text),
+            undefined,
+            text
+          )
+          peer.apply([[1], [2]])
+          const first =
+            variant === 2
+              ? [length - 1, length - 1]
+              : variant === 1
+                ? [0, 31]
+                : [31, 63]
+          const second =
+            variant === 2 ? [0, 95] : variant === 1 ? [30, 64] : [0, 31]
+          const a = first.map((i) => Math.min(i, length - 1))
+          const b = second.map((i) => Math.min(i, length - 1))
+          const own = source.remove(a[0], a[1], true)
+          const remote = peer.remove(b[0], b[1], true)
+          const ack = source.apply(remote)?.[1] ?? []
+          const expected = frames.filter(
+            (_, i) => !(i >= a[0] && i <= a[1]) && !(i >= b[0] && i <= b[1])
+          )
+          const check = () => {
+            for (const binary of [false, true]) {
+              const snapshot = source.sequence(false, binary)
+              const restored = new Projection<string>(
+                3,
+                structuredClone(snapshot)
+              )
+              try {
+                expect(restored.values()).toEqual(expected)
+              } finally {
+                restored.destroy()
+              }
+            }
+          }
+          check()
+          source.apply(peer.apply(own)?.[1] ?? [])
+          peer.apply(ack)
+          expect(peer.values()).toEqual(expected)
+          expect(source.values()).toEqual(expected)
+          check()
+          expect(
+            sequenceInsertions(source.sequence()).every(
+              ([words]) => (words[5] | 0) > 0
+            )
+          ).toBe(true)
+        } finally {
+          source.destroy()
+          peer?.destroy()
+        }
+      }
+    }
+  }
+})
 
 it.each([3, 129, 6000])(
   'hydrates repeated coordinates across %i insertions',

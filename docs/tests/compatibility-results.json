@@ -1,5 +1,5 @@
 {
-  "passed": 136,
+  "passed": 153,
   "failed": 0,
   "skipped": 0,
   "runtimes": {
@@ -24,9 +24,13 @@
     "chromium": {
       "status": "passed"
     },
+    "firefox": {
+      "status": "passed"
+    },
     "webkit": {
       "status": "passed"
     }
   },
-  "generatedAt": "2026-11-27T21:08:55.107Z"
+  "generatedAt": "2026-11-27T21:49:58.866Z",
+  "run": "https://github.com/sovereignbase/sequencer/actions/runs/46072517566"
 }

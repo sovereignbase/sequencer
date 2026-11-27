@@ -68,7 +68,7 @@ projectionB.destroy()
 
 <!-- BEGIN GENERATED:projection:benchmarks -->
 
-2026-11-27T21:42:28.739Z · local run
+2026-11-27T21:50:10.339Z · [CI run](https://github.com/sovereignbase/sequencer/actions/runs/46072517566)
 
 #### Moderate bundle size
 
@@ -81,44 +81,44 @@ Both bundles include WASM. Terser uses three compression passes; gzip uses level
 
 #### Average throughput during editing to checkpoint
 
-Arithmetic means of 5 runs, in ops/s, from each phase's start to checkpoint.
+Arithmetic means of 3 runs, in ops/s, from each phase's start to checkpoint.
 Strips contain 1–100 Frames (visible entries). Headers show Strip counts and mean Frame counts.
 
 **↑ Scale up (0 → 25,000 Strips)**
 
-| Method / case  | 1,000 Strips<br>50,378 Frames | 5,000 Strips<br>253,466 Frames | 10,000 Strips<br>507,223 Frames | 15,000 Strips<br>759,425 Frames | 20,000 Strips<br>1,010,222 Frames | 25,000 Strips<br>1,259,630 Frames |
+| Method / case  | 1,000 Strips<br>50,871 Frames | 5,000 Strips<br>252,214 Frames | 10,000 Strips<br>504,871 Frames | 15,000 Strips<br>758,280 Frames | 20,000 Strips<br>1,010,749 Frames | 25,000 Strips<br>1,264,003 Frames |
 | -------------- | ----------------------------: | -----------------------------: | ------------------------------: | ------------------------------: | --------------------------------: | --------------------------------: |
-| apply.random   |                       234,969 |                        276,890 |                         291,858 |                         299,704 |                           281,361 |                           284,865 |
-| insert.head    |                       846,092 |                      1,004,917 |                       1,154,238 |                       1,222,914 |                         1,178,029 |                         1,199,985 |
-| insert.random  |                       489,266 |                        529,106 |                         571,218 |                         590,467 |                           539,603 |                           539,953 |
-| insert.tail    |                       945,304 |                      1,120,591 |                       1,287,103 |                       1,317,392 |                         1,248,421 |                         1,242,475 |
+| apply.random   |                       638,606 |                        683,722 |                         665,571 |                         655,694 |                           655,251 |                           645,888 |
+| insert.head    |                     2,484,057 |                      2,761,385 |                       2,762,716 |                       2,775,439 |                         2,814,340 |                         2,818,296 |
+| insert.random  |                     1,351,443 |                      1,453,035 |                       1,403,634 |                       1,359,140 |                         1,307,355 |                         1,309,240 |
+| insert.tail    |                     2,771,832 |                      3,114,165 |                       3,047,465 |                       2,850,759 |                         2,972,243 |                         2,906,598 |
 | remove.head    |                             — |                              — |                               — |                               — |                                 — |                                 — |
-| remove.random  |                       405,014 |                        470,445 |                         488,357 |                         495,482 |                           441,219 |                           447,656 |
+| remove.random  |                     1,232,359 |                      1,178,985 |                       1,144,894 |                       1,118,047 |                         1,137,320 |                         1,122,616 |
 | remove.tail    |                             — |                              — |                               — |                               — |                                 — |                                 — |
-| replace.head   |                       379,376 |                        437,802 |                         485,045 |                         500,950 |                           471,903 |                           456,090 |
-| replace.random |                       338,466 |                        348,380 |                         368,893 |                         364,543 |                           330,683 |                           331,499 |
-| replace.tail   |                       423,199 |                        466,563 |                         488,908 |                         514,390 |                           467,164 |                           473,941 |
-| value.head     |                     1,066,721 |                      2,175,812 |                       2,669,991 |                       2,903,877 |                         2,787,887 |                         2,869,531 |
-| value.random   |                     1,173,684 |                      1,021,425 |                         981,538 |                         955,041 |                           870,528 |                           866,174 |
-| value.tail     |                     4,953,546 |                      5,166,085 |                       5,661,377 |                       6,001,758 |                         5,895,019 |                         6,002,592 |
+| replace.head   |                       990,502 |                      1,112,986 |                       1,160,759 |                       1,157,711 |                         1,186,269 |                         1,151,875 |
+| replace.random |                       813,090 |                        818,574 |                         799,550 |                         758,910 |                           762,640 |                           764,156 |
+| replace.tail   |                       856,552 |                      1,046,923 |                       1,103,449 |                       1,108,440 |                         1,122,140 |                         1,116,985 |
+| value.head     |                     5,566,227 |                      7,649,920 |                       8,138,223 |                       8,663,087 |                         8,984,508 |                         9,232,600 |
+| value.random   |                     3,123,300 |                      2,440,305 |                       2,159,465 |                       1,965,071 |                         1,935,627 |                         1,892,171 |
+| value.tail     |                    10,502,971 |                     13,280,741 |                      14,400,576 |                      15,265,644 |                        15,873,417 |                        16,088,976 |
 
 **↓ Scale down (25,000 → 0 Strips)**
 
-| Method / case  | 20,000 Strips<br>1,010,259 Frames | 15,000 Strips<br>757,489 Frames | 10,000 Strips<br>505,651 Frames | 5,000 Strips<br>251,976 Frames | 1,000 Strips<br>50,090 Frames | 0 Strips<br>0 Frames |
+| Method / case  | 20,000 Strips<br>1,012,742 Frames | 15,000 Strips<br>755,860 Frames | 10,000 Strips<br>504,103 Frames | 5,000 Strips<br>251,203 Frames | 1,000 Strips<br>51,057 Frames | 0 Strips<br>0 Frames |
 | -------------- | --------------------------------: | ------------------------------: | ------------------------------: | -----------------------------: | ----------------------------: | -------------------: |
-| apply.random   |                           292,165 |                         286,033 |                         288,999 |                        290,627 |                       295,339 |              297,971 |
+| apply.random   |                           657,084 |                         651,210 |                         671,994 |                        677,800 |                       674,954 |              679,819 |
 | insert.head    |                                 — |                               — |                               — |                              — |                             — |                    — |
-| insert.random  |                           489,702 |                         480,349 |                         501,978 |                        509,502 |                       523,727 |              531,952 |
+| insert.random  |                         1,179,798 |                       1,221,982 |                       1,282,025 |                      1,331,087 |                     1,312,785 |            1,330,086 |
 | insert.tail    |                                 — |                               — |                               — |                              — |                             — |                    — |
-| remove.head    |                           669,046 |                         662,854 |                         634,853 |                        643,626 |                       653,263 |              657,634 |
-| remove.random  |                           432,916 |                         424,279 |                         432,056 |                        437,801 |                       447,474 |              454,046 |
-| remove.tail    |                           719,049 |                         719,593 |                         719,164 |                        696,760 |                       706,090 |              710,559 |
-| replace.head   |                           457,398 |                         448,376 |                         451,435 |                        440,949 |                       445,766 |              449,479 |
-| replace.random |                           327,287 |                         320,983 |                         329,849 |                        330,655 |                       339,906 |              344,765 |
-| replace.tail   |                           226,735 |                         119,845 |                         152,417 |                        151,960 |                       163,674 |              168,275 |
-| value.head     |                         2,167,516 |                       2,152,989 |                       2,180,830 |                      2,162,023 |                     2,161,984 |            2,173,574 |
-| value.random   |                           820,259 |                         805,069 |                         815,162 |                        816,268 |                       835,458 |              850,225 |
-| value.tail     |                         3,973,845 |                       3,873,710 |                       3,872,325 |                      3,820,754 |                     3,808,200 |            3,824,751 |
+| remove.head    |                         1,752,553 |                       1,725,887 |                       1,593,394 |                      1,641,762 |                     1,614,738 |            1,620,099 |
+| remove.random  |                         1,154,792 |                       1,168,038 |                       1,190,701 |                      1,229,266 |                     1,215,271 |            1,228,825 |
+| remove.tail    |                         1,883,196 |                       1,870,109 |                       1,881,198 |                      1,897,755 |                     1,836,472 |            1,841,249 |
+| replace.head   |                         1,075,788 |                       1,020,516 |                       1,015,180 |                      1,026,373 |                     1,011,602 |            1,020,492 |
+| replace.random |                           761,120 |                         695,957 |                         745,426 |                        767,644 |                       763,847 |              775,120 |
+| replace.tail   |                         1,152,228 |                         370,669 |                         434,890 |                        435,670 |                       438,484 |              450,198 |
+| value.head     |                         5,331,883 |                       5,242,751 |                       5,268,591 |                      5,292,680 |                     5,179,018 |            5,216,293 |
+| value.random   |                         1,816,163 |                       1,784,329 |                       1,836,773 |                      1,871,919 |                     1,895,224 |            1,931,478 |
+| value.tail     |                         7,650,631 |                       7,433,550 |                       7,496,780 |                      7,592,886 |                     7,472,648 |            7,583,460 |
 
 #### API throughput at checkpoint
 
@@ -126,19 +126,19 @@ Checkpoint calls, in ops/s, averaged across runs.
 
 **↑ Scale up (0 → 25,000 Strips)**
 
-| Method                            | 1,000 Strips<br>50,378 Frames | 5,000 Strips<br>253,466 Frames | 10,000 Strips<br>507,223 Frames | 15,000 Strips<br>759,425 Frames | 20,000 Strips<br>1,010,222 Frames | 25,000 Strips<br>1,259,630 Frames |
+| Method                            | 1,000 Strips<br>50,871 Frames | 5,000 Strips<br>252,214 Frames | 10,000 Strips<br>504,871 Frames | 15,000 Strips<br>758,280 Frames | 20,000 Strips<br>1,010,749 Frames | 25,000 Strips<br>1,264,003 Frames |
 | --------------------------------- | ----------------------------: | -----------------------------: | ------------------------------: | ------------------------------: | --------------------------------: | --------------------------------: |
-| new Projection(actorID, sequence) |                         2,415 |                            874 |                             636 |                             375 |                               262 |                               216 |
-| sequence()                        |                           385 |                            122 |                              79 |                              65 |                                47 |                                39 |
-| values()                          |                           540 |                            237 |                             188 |                             144 |                               110 |                                85 |
+| new Projection(actorID, sequence) |                         8,057 |                          2,300 |                           1,054 |                             765 |                               531 |                               458 |
+| sequence()                        |                           836 |                            196 |                             116 |                              98 |                                68 |                                57 |
+| values()                          |                         1,867 |                            564 |                             313 |                             212 |                               170 |                               133 |
 
 **↓ Scale down (25,000 → 0 Strips)**
 
-| Method                            | 20,000 Strips<br>1,010,259 Frames | 15,000 Strips<br>757,489 Frames | 10,000 Strips<br>505,651 Frames | 5,000 Strips<br>251,976 Frames | 1,000 Strips<br>50,090 Frames | 0 Strips<br>0 Frames |
+| Method                            | 20,000 Strips<br>1,012,742 Frames | 15,000 Strips<br>755,860 Frames | 10,000 Strips<br>504,103 Frames | 5,000 Strips<br>251,203 Frames | 1,000 Strips<br>51,057 Frames | 0 Strips<br>0 Frames |
 | --------------------------------- | --------------------------------: | ------------------------------: | ------------------------------: | -----------------------------: | ----------------------------: | -------------------: |
-| new Projection(actorID, sequence) |                               259 |                             348 |                             494 |                          1,064 |                         5,101 |               58,935 |
-| sequence()                        |                                49 |                              61 |                              69 |                             97 |                           128 |                  678 |
-| values()                          |                               110 |                             151 |                             182 |                            335 |                         1,755 |               79,711 |
+| new Projection(actorID, sequence) |                               532 |                             715 |                           1,049 |                          2,167 |                         8,808 |               72,214 |
+| sequence()                        |                                73 |                              89 |                             117 |                            119 |                           202 |                1,215 |
+| values()                          |                               153 |                             211 |                             325 |                            672 |                         2,218 |              194,407 |
 
 #### Sequence disk size at checkpoint
 
@@ -146,21 +146,21 @@ Complete exported Sequences, including Footage and acknowledgements. Sizes are i
 
 **↑ Scale up (0 → 25,000 Strips)**
 
-| Encoding           | 1,000 Strips<br>50,378 Frames | 5,000 Strips<br>253,466 Frames | 10,000 Strips<br>507,223 Frames | 15,000 Strips<br>759,425 Frames | 20,000 Strips<br>1,010,222 Frames | 25,000 Strips<br>1,259,630 Frames |
+| Encoding           | 1,000 Strips<br>50,871 Frames | 5,000 Strips<br>252,214 Frames | 10,000 Strips<br>504,871 Frames | 15,000 Strips<br>758,280 Frames | 20,000 Strips<br>1,010,749 Frames | 25,000 Strips<br>1,264,003 Frames |
 | ------------------ | ----------------------------: | -----------------------------: | ------------------------------: | ------------------------------: | --------------------------------: | --------------------------------: |
-| JSON               |                        273.81 |                       1,628.82 |                        3,271.29 |                        4,935.41 |                          7,102.38 |                          9,232.99 |
-| JSON + gzip        |                         14.54 |                          73.39 |                          148.76 |                          226.03 |                            311.09 |                            392.33 |
-| MessagePack        |                        163.16 |                         822.71 |                        1,652.78 |                        3,555.65 |                          5,124.99 |                          6,530.68 |
-| MessagePack + gzip |                         12.35 |                          61.62 |                          124.74 |                          200.13 |                            263.48 |                            334.92 |
+| JSON               |                        277.29 |                       1,618.79 |                        3,264.91 |                        4,934.51 |                          7,105.24 |                          9,261.44 |
+| JSON + gzip        |                         14.59 |                          73.46 |                          149.04 |                          226.09 |                            310.81 |                            392.45 |
+| MessagePack        |                        164.81 |                         818.92 |                        1,646.03 |                        3,553.60 |                          5,126.26 |                          6,551.31 |
+| MessagePack + gzip |                         12.38 |                          61.63 |                          124.81 |                          200.02 |                            263.38 |                            335.01 |
 
 **↓ Scale down (25,000 → 0 Strips)**
 
-| Encoding           | 20,000 Strips<br>1,010,259 Frames | 15,000 Strips<br>757,489 Frames | 10,000 Strips<br>505,651 Frames | 5,000 Strips<br>251,976 Frames | 1,000 Strips<br>50,090 Frames | 0 Strips<br>0 Frames |
+| Encoding           | 20,000 Strips<br>1,012,742 Frames | 15,000 Strips<br>755,860 Frames | 10,000 Strips<br>504,103 Frames | 5,000 Strips<br>251,203 Frames | 1,000 Strips<br>51,057 Frames | 0 Strips<br>0 Frames |
 | ------------------ | --------------------------------: | ------------------------------: | ------------------------------: | -----------------------------: | ----------------------------: | -------------------: |
-| JSON               |                          7,559.55 |                        5,714.04 |                        3,822.43 |                       1,894.47 |                        373.91 |                 0.02 |
-| JSON + gzip        |                            326.54 |                          247.27 |                          164.92 |                          79.70 |                         15.96 |                 0.03 |
-| MessagePack        |                          5,305.92 |                        3,994.26 |                        2,666.42 |                       1,324.12 |                        262.08 |                 0.01 |
-| MessagePack + gzip |                            278.16 |                          209.81 |                          139.86 |                          67.83 |                         13.63 |                 0.03 |
+| JSON               |                          7,572.65 |                        5,705.40 |                        3,810.39 |                       1,889.05 |                        380.94 |                 0.02 |
+| JSON + gzip        |                            326.54 |                          247.16 |                          164.74 |                          79.63 |                         15.97 |                 0.03 |
+| MessagePack        |                          5,314.83 |                        3,986.78 |                        2,658.67 |                       1,319.82 |                        266.79 |                 0.01 |
+| MessagePack + gzip |                            278.09 |                          209.77 |                          139.97 |                          67.74 |                         13.65 |                 0.03 |
 
 #### Memory usage at checkpoint
 
@@ -168,18 +168,18 @@ One instance after checkpoint compaction and recreation: live native allocation 
 
 **↑ Scale up (0 → 25,000 Strips)**
 
-| Measurement            | 1,000 Strips<br>50,378 Frames | 5,000 Strips<br>253,466 Frames | 10,000 Strips<br>507,223 Frames | 15,000 Strips<br>759,425 Frames | 20,000 Strips<br>1,010,222 Frames | 25,000 Strips<br>1,259,630 Frames |
+| Measurement            | 1,000 Strips<br>50,871 Frames | 5,000 Strips<br>252,214 Frames | 10,000 Strips<br>504,871 Frames | 15,000 Strips<br>758,280 Frames | 20,000 Strips<br>1,010,749 Frames | 25,000 Strips<br>1,264,003 Frames |
 | ---------------------- | ----------------------------: | -----------------------------: | ------------------------------: | ------------------------------: | --------------------------------: | --------------------------------: |
-| Estimated memory (MiB) |                          0.62 |                           3.10 |                            6.21 |                            9.44 |                             12.82 |                             16.24 |
+| Estimated memory (MiB) |                          0.62 |                           3.09 |                            6.19 |                            9.43 |                             12.82 |                             16.28 |
 
 **↓ Scale down (25,000 → 0 Strips)**
 
-| Measurement            | 20,000 Strips<br>1,010,259 Frames | 15,000 Strips<br>757,489 Frames | 10,000 Strips<br>505,651 Frames | 5,000 Strips<br>251,976 Frames | 1,000 Strips<br>50,090 Frames | 0 Strips<br>0 Frames |
+| Measurement            | 20,000 Strips<br>1,012,742 Frames | 15,000 Strips<br>755,860 Frames | 10,000 Strips<br>504,103 Frames | 5,000 Strips<br>251,203 Frames | 1,000 Strips<br>51,057 Frames | 0 Strips<br>0 Frames |
 | ---------------------- | --------------------------------: | ------------------------------: | ------------------------------: | -----------------------------: | ----------------------------: | -------------------: |
-| Estimated memory (MiB) |                             13.32 |                            9.91 |                            7.15 |                           4.08 |                          1.80 |                 1.23 |
+| Estimated memory (MiB) |                             13.34 |                            9.90 |                            7.14 |                           4.08 |                          1.81 |                 1.23 |
 
-Measured on Node 24.16.0, V8 13.6.233.17-node.49,
-win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz.
+Measured on Node 24.22.3, V8 13.6.233.17-node.63,
+linux x64, AMD EPYC 9V45 96-Core Processor.
 Peer synchronization, encoding and explicit JS process garbage collection are outside API timings.
 [Full lifecycle results](benchmark/.results/lifecycle.md) · [Throughput results](benchmark/.results/throughput.md).
 
@@ -209,30 +209,30 @@ tuple.remove(2, 2)
 
 <!-- BEGIN GENERATED:tuple:benchmarks -->
 
-2026-11-27T21:42:29.855Z · local run
+2026-11-27T21:51:36.675Z · [CI run](https://github.com/sovereignbase/sequencer/actions/runs/46072517566)
 
-Arithmetic means of 5 runs. Ordinary Projection versus a static tuple with maxLength. Both contain the same values; replacements preserve the field count.
+Arithmetic means of 3 runs. Ordinary Projection versus a static tuple with maxLength. Both contain the same values; replacements preserve the field count.
 
 #### Throughput (ops/s)
 
 | Indices | Method / case   | Projection | Static tuple | Tuple / Projection |
 | ------: | --------------- | ---------: | -----------: | -----------------: |
-|       2 | create.sequence |    862,789 |      762,162 |              0.88× |
-|       2 | replace.random  |  1,031,360 |    1,409,348 |              1.37× |
-|       2 | apply.replace   |    573,333 |      770,593 |              1.34× |
-|       2 | value.random    | 29,816,071 |   46,711,029 |              1.57× |
-|       4 | create.sequence |    643,115 |      613,511 |              0.95× |
-|       4 | replace.random  |    921,970 |    1,392,683 |              1.51× |
-|       4 | apply.replace   |    602,846 |      906,500 |              1.50× |
-|       4 | value.random    | 20,803,565 |   49,813,390 |              2.39× |
-|       8 | create.sequence |    428,103 |      500,612 |              1.17× |
-|       8 | replace.random  |    918,801 |    1,281,066 |              1.39× |
-|       8 | apply.replace   |    539,563 |      888,601 |              1.65× |
-|       8 | value.random    | 15,832,620 |   49,228,662 |              3.11× |
-|     100 | create.sequence |     62,706 |       76,420 |              1.22× |
-|     100 | replace.random  |    864,726 |    1,425,262 |              1.65× |
-|     100 | apply.replace   |    559,762 |      911,188 |              1.63× |
-|     100 | value.random    | 11,077,040 |   45,412,575 |              4.10× |
+|       2 | create.sequence |  1,588,667 |    1,343,134 |              0.85× |
+|       2 | replace.random  |  2,464,067 |    3,060,140 |              1.24× |
+|       2 | apply.replace   |  1,159,706 |    1,902,650 |              1.64× |
+|       2 | value.random    | 54,431,071 |  108,013,627 |              1.98× |
+|       4 | create.sequence |  1,154,279 |    1,117,291 |              0.97× |
+|       4 | replace.random  |  1,894,437 |    3,296,243 |              1.74× |
+|       4 | apply.replace   |  1,063,946 |    2,031,294 |              1.91× |
+|       4 | value.random    | 39,784,806 |  106,948,540 |              2.69× |
+|       8 | create.sequence |    789,027 |      843,370 |              1.07× |
+|       8 | replace.random  |  1,795,336 |    3,167,106 |              1.76× |
+|       8 | apply.replace   |  1,032,328 |    1,788,855 |              1.73× |
+|       8 | value.random    | 32,967,162 |  109,393,288 |              3.32× |
+|     100 | create.sequence |    138,798 |      149,523 |              1.08× |
+|     100 | replace.random  |  1,697,062 |    3,246,802 |              1.91× |
+|     100 | apply.replace   |  1,050,619 |    2,049,471 |              1.95× |
+|     100 | value.random    | 20,971,075 |  107,647,088 |              5.13× |
 
 #### Memory and encoded size
 
@@ -247,7 +247,7 @@ Arithmetic means of 5 runs. Ordinary Projection versus a static tuple with maxLe
 |     100 | Projection   |                           0.0196 |              0.67 |                     0.57 |
 |     100 | Static tuple |                           0.0110 |              0.51 |                     0.35 |
 
-Measured on Node 24.16.0, V8 13.6.233.17-node.49, win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz. Fixtures are hydrated compacted snapshots after one replacement per field. Each case warms up for ≥25 ms and measures ≥50 ms of API time; mutation bursts restart after 4,096 replacements. Peer authoring, encoding, result checks, destruction and explicit JS process garbage collection are outside API timings. Memory estimates are the increase in live native allocator bytes plus retained JS array slots for one instance, including exercised runtime buffers. Unused WASM capacity, JS object headers and referenced payload objects are excluded.
+Measured on Node 24.22.3, V8 13.6.233.17-node.63, linux x64, AMD EPYC 9V45 96-Core Processor. Fixtures are hydrated compacted snapshots after one replacement per field. Each case warms up for ≥25 ms and measures ≥50 ms of API time; mutation bursts restart after 4,096 replacements. Peer authoring, encoding, result checks, destruction and explicit JS process garbage collection are outside API timings. Memory estimates are the increase in live native allocator bytes plus retained JS array slots for one instance, including exercised runtime buffers. Unused WASM capacity, JS object headers and referenced payload objects are excluded.
 
 [Full tuple results](benchmark/.results/tuple.md).
 
@@ -281,31 +281,31 @@ restored.destroy()
 
 <!-- BEGIN GENERATED:text:benchmarks -->
 
-2026-11-27T21:42:29.926Z · local run
+2026-11-27T21:52:16.397Z · [CI run](https://github.com/sovereignbase/sequencer/actions/runs/46072517566)
 
-5 runs; median throughput in ops/s. Sizes are UTF-16 code units.
+3 runs; median throughput in ops/s. Sizes are UTF-16 code units.
 
 | Operation            | 1,024 array | 1,024 string | 65,536 array | 65,536 string | 1,048,576 array | 1,048,576 string |
 | -------------------- | ----------: | -----------: | -----------: | ------------: | --------------: | ---------------: |
-| insert               |     459,592 |    2,061,088 |        4,191 |     2,451,374 |             294 |        1,952,522 |
-| insert.append        |      77,710 |      223,517 |          940 |        47,116 |              47 |            1,560 |
-| replace              |     318,575 |      800,234 |        3,906 |       730,626 |             294 |          557,302 |
-| remove               |     952,104 |    1,042,677 |      397,960 |       922,658 |          72,997 |          610,682 |
-| remove.middle        |     490,474 |      984,426 |        4,333 |       976,121 |             302 |          850,136 |
-| replace.middle       |     408,717 |      730,711 |        4,261 |       744,463 |             309 |          611,978 |
-| apply                |   1,013,949 |    1,140,772 |      853,983 |     1,165,806 |         837,097 |          953,134 |
-| apply.array          |   1,594,084 |      411,805 |    1,389,935 |         3,961 |       1,496,720 |              284 |
-| concurrent.apply     |      15,612 |      258,814 |          234 |         7,283 |              14 |              713 |
-| merge                |     321,023 |      727,195 |        4,655 |       925,922 |             313 |          735,249 |
-| create               |     325,930 |      984,237 |        4,834 |     1,013,222 |             308 |          994,935 |
-| value.random         |  21,883,995 |   14,447,813 |   18,989,062 |    16,468,814 |      16,363,341 |       18,450,191 |
-| values.range         |   7,263,538 |    6,191,608 |    6,214,653 |     6,782,334 |       7,942,843 |        6,685,948 |
-| values.array         |     717,571 |      562,702 |        4,471 |         3,843 |             386 |              316 |
-| values.text          |      74,000 |   14,285,932 |        1,211 |    14,601,520 |              77 |       15,273,965 |
-| sequence.array       |     560,566 |      486,411 |        4,900 |         4,013 |             454 |              306 |
-| sequence.text        |      99,512 |    5,517,868 |        1,376 |     4,467,133 |              16 |        4,881,161 |
-| sequence.edited.text |      99,878 |    1,405,063 |        1,357 |       157,203 |              20 |           10,486 |
-| sequence.masked.text |      87,915 |      285,505 |        1,311 |       299,508 |              20 |          296,088 |
+| insert               |   1,092,610 |    3,887,773 |        4,475 |     4,851,873 |             306 |        4,140,132 |
+| insert.append        |      98,941 |      490,279 |        1,352 |       166,385 |              58 |            2,422 |
+| replace              |     729,327 |    1,296,801 |        4,548 |     1,241,357 |             307 |        1,132,134 |
+| remove               |   1,919,335 |    1,782,670 |    1,347,523 |     1,726,881 |         309,029 |        1,713,885 |
+| remove.middle        |   1,008,215 |    1,841,543 |        4,830 |     1,738,400 |             312 |        1,774,208 |
+| replace.middle       |     856,366 |    1,250,539 |        4,830 |     1,318,039 |             295 |        1,318,621 |
+| apply                |   2,011,152 |    2,106,191 |    1,944,820 |     2,149,219 |       1,747,340 |        1,979,254 |
+| apply.array          |   2,888,154 |    1,022,509 |    2,986,388 |         4,463 |       2,785,956 |              302 |
+| concurrent.apply     |      47,990 |      519,947 |          546 |         9,044 |              32 |              631 |
+| merge                |     723,667 |    1,357,019 |        4,549 |     1,305,551 |             314 |        1,404,284 |
+| create               |     843,522 |    1,689,707 |        4,705 |     1,803,503 |             303 |        1,840,335 |
+| value.random         |  33,140,792 |   35,837,323 |   36,507,174 |    35,169,827 |      35,906,428 |       28,898,702 |
+| values.range         |  17,719,997 |   15,513,554 |   15,391,668 |    13,464,142 |      20,741,052 |       15,121,176 |
+| values.array         |   3,032,383 |    1,781,693 |        4,957 |         4,567 |             334 |              301 |
+| values.text          |     231,047 |   30,018,741 |        2,534 |    30,719,746 |             154 |       23,474,112 |
+| sequence.array       |   2,733,439 |    1,466,196 |        4,903 |         4,581 |             310 |              301 |
+| sequence.text        |     280,679 |   11,892,522 |        4,070 |    12,258,267 |              55 |       12,490,518 |
+| sequence.edited.text |     255,398 |    3,072,067 |        4,457 |       359,204 |              49 |           27,446 |
+| sequence.masked.text |     214,119 |      592,202 |        4,654 |       610,178 |              45 |          623,326 |
 
 Encoded snapshots use string Footage in both representations.
 
@@ -313,14 +313,14 @@ Encoded snapshots use string Footage in both representations.
 
 | UTF-16 code units | Representation | Estimated MiB | Snapshot MessagePack KiB | Snapshot gzip KiB | Gossip MessagePack KiB | Gossip gzip KiB |
 | ----------------: | -------------- | ------------: | -----------------------: | ----------------: | ---------------------: | --------------: |
-|              1024 | array          |        0.0082 |                     1.02 |              0.04 |                   2.02 |            0.05 |
-|              1024 | string         |        0.0023 |                     1.02 |              0.04 |                   1.02 |            0.05 |
+|              1024 | array          |        0.0082 |                     1.02 |              0.05 |                   2.02 |            0.05 |
+|              1024 | string         |        0.0023 |                     1.02 |              0.05 |                   1.02 |            0.05 |
 |             65536 | array          |        0.5004 |                    64.02 |              0.12 |                 128.02 |            0.18 |
 |             65536 | string         |        0.1254 |                    64.02 |              0.12 |                  64.02 |            0.12 |
 |           1048576 | array          |        8.0004 |                  1024.02 |              1.05 |                2048.02 |            2.05 |
 |           1048576 | string         |        2.0004 |                  1024.02 |              1.05 |                1024.02 |            1.05 |
 
-Measured on Node 24.16.0, V8 13.6.233.17-node.49, win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz. Splitting and text assembly are included where required; peer preparation, encoding and explicit JS process garbage collection are outside API timings.
+Measured on Node 24.22.3, V8 13.6.233.17-node.63, linux x64, AMD EPYC 9V45 96-Core Processor. Splitting and text assembly are included where required; peer preparation, encoding and explicit JS process garbage collection are outside API timings.
 
 [Full text results](benchmark/.results/text.md).
 
@@ -352,22 +352,22 @@ replica.destroy()
 
 <!-- BEGIN GENERATED:words:benchmarks -->
 
-2026-11-27T21:42:30.008Z · local run
+2026-11-27T21:54:17.712Z · [CI run](https://github.com/sovereignbase/sequencer/actions/runs/46072517566)
 
-5 runs, 6,000 edits. Median results; string Footage in both modes.
+3 runs, 6,000 edits. Median results; string Footage in both modes.
 
 | Workload   | Words    | Snapshot KiB | Snapshot gzip KiB | Mean update B | Encode ops/s | Load ops/s | Receive batches/s |
 | ---------- | -------- | -----------: | ----------------: | ------------: | -----------: | ---------: | ----------------: |
-| append     | unpacked |         5.90 |              3.61 |         22.88 |       29,947 |    176,630 |               179 |
-| append     | packed   |         5.90 |              3.61 |         13.98 |       25,913 |    183,022 |               292 |
-| prepend    | unpacked |        40.07 |             18.06 |         22.94 |        1,848 |        749 |               253 |
-| prepend    | packed   |         5.90 |              3.62 |         13.99 |       26,666 |      1,530 |               251 |
-| random     | unpacked |       138.05 |             57.31 |         39.88 |          457 |        236 |                80 |
-| random     | packed   |        49.58 |             35.38 |         23.45 |       11,897 |        488 |               119 |
-| concurrent | unpacked |        92.24 |             42.76 |         32.34 |          602 |        206 |                94 |
-| concurrent | packed   |        38.94 |             28.15 |         20.71 |       15,580 |        418 |               119 |
+| append     | unpacked |         5.90 |              3.61 |         22.88 |       99,569 |    374,996 |               700 |
+| append     | packed   |         5.90 |              3.61 |         13.98 |       95,140 |    410,951 |               816 |
+| prepend    | unpacked |        40.07 |             18.07 |         22.94 |        5,332 |      1,780 |               583 |
+| prepend    | packed   |         5.90 |              3.61 |         13.99 |       90,033 |      3,551 |               645 |
+| random     | unpacked |       138.05 |             57.31 |         39.88 |        1,241 |        452 |               193 |
+| random     | packed   |        49.58 |             35.38 |         23.45 |       51,456 |      1,094 |               251 |
+| concurrent | unpacked |        92.22 |             42.78 |         32.34 |        1,531 |        431 |               237 |
+| concurrent | packed   |        38.94 |             28.15 |         20.71 |       52,951 |        778 |               315 |
 
-Measured on Node 24.16.0, V8 13.6.233.17-node.49, win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz. Random and concurrent workloads mix insertion, removal and replacement. Concurrent authors edit independent views. Sizes use MessagePack; updates are encoded individually. Load includes decoding and construction. Receive includes decoding and applying one complete edit batch. Preparation, checks, destruction and explicit JS process garbage collection are outside timings.
+Measured on Node 24.22.3, V8 13.6.233.17-node.63, linux x64, AMD EPYC 9V45 96-Core Processor. Random and concurrent workloads mix insertion, removal and replacement. Concurrent authors edit independent views. Sizes use MessagePack; updates are encoded individually. Load includes decoding and construction. Receive includes decoding and applying one complete edit batch. Preparation, checks, destruction and explicit JS process garbage collection are outside timings.
 
 [Full words results](benchmark/.results/words.md).
 
@@ -403,34 +403,34 @@ peer.destroy()
 
 <!-- BEGIN GENERATED:batch:benchmarks -->
 
-2026-11-27T21:42:30.060Z · local run
+2026-11-27T21:54:34.964Z · [CI run](https://github.com/sovereignbase/sequencer/actions/runs/46072517566)
 
-5 runs, 6,000 edits per author. Concurrent authors edit independent views; causal authors exchange history before the second author edits. Median results.
+3 runs, 6,000 edits per author. Concurrent authors edit independent views; causal authors exchange history before the second author edits. Median results.
 
 | Workload              | Mode       | Author edits/s | Apply edits/s | Receive edits/s | Update/author KiB | Document KiB | Memory MiB |
 | --------------------- | ---------- | -------------: | ------------: | --------------: | ----------------: | -----------: | ---------: |
-| append                | individual |      1,813,675 |     1,131,542 |         622,361 |             76.05 |         5.99 |      0.012 |
-| append                | batch      |      1,874,531 |   182,926,829 |     169,971,671 |              5.88 |         5.99 |      0.012 |
-| prepend               | individual |      1,360,174 |     1,433,692 |         880,346 |             76.11 |         5.99 |      0.896 |
-| prepend               | batch      |      1,699,043 |     2,114,985 |       1,874,649 |              5.89 |         5.99 |      0.896 |
-| random.characters     | individual |        876,399 |     1,008,386 |         808,124 |             82.09 |        28.31 |      0.917 |
-| random.characters     | batch      |      1,222,668 |     1,490,017 |       1,417,234 |             22.95 |        28.31 |      0.917 |
-| random.words          | individual |      1,017,725 |     1,128,329 |         781,596 |            125.68 |        73.88 |      0.991 |
-| random.words          | batch      |      1,141,900 |     1,725,129 |       1,617,076 |             59.71 |        73.88 |      0.991 |
-| concurrent.characters | individual |      1,385,345 |     1,247,687 |         845,988 |             82.04 |        56.41 |      1.834 |
-| concurrent.characters | batch      |      1,371,225 |     1,798,831 |       1,655,401 |             22.92 |        56.41 |      1.834 |
-| concurrent.words      | individual |      1,272,089 |     1,302,451 |         899,780 |            125.74 |       147.81 |      1.981 |
-| concurrent.words      | batch      |      1,373,186 |     1,645,053 |       1,535,528 |             59.79 |       147.81 |      1.981 |
-| concurrent.mixed      | individual |        709,685 |       945,634 |         699,341 |            154.61 |        97.82 |      1.505 |
-| concurrent.mixed      | batch      |        910,015 |     1,190,925 |       1,182,919 |             56.88 |        97.82 |      1.505 |
-| causal.characters     | individual |      1,232,387 |     1,419,195 |       1,035,921 |             88.96 |        63.81 |      1.842 |
-| causal.characters     | batch      |      1,203,925 |     1,796,273 |       1,654,009 |             23.18 |        63.81 |      1.842 |
-| causal.words          | individual |      1,105,471 |     1,335,544 |         877,899 |            135.13 |       156.41 |      1.989 |
-| causal.words          | batch      |      1,222,868 |     1,612,643 |       1,479,637 |             60.68 |       156.41 |      1.989 |
-| causal.mixed          | individual |        719,136 |       937,544 |         693,594 |            161.05 |       103.75 |      1.509 |
-| causal.mixed          | batch      |        853,485 |     1,244,904 |       1,137,851 |             57.34 |       103.75 |      1.509 |
+| append                | individual |      3,581,916 |     9,516,212 |       3,171,787 |             76.05 |         5.99 |      0.012 |
+| append                | batch      |      5,149,459 |   723,589,001 |     560,957,367 |              5.88 |         5.99 |      0.012 |
+| prepend               | individual |      3,184,938 |     3,817,267 |       2,083,398 |             76.11 |         5.99 |      0.896 |
+| prepend               | batch      |      4,000,541 |     6,825,100 |       6,077,667 |              5.89 |         5.99 |      0.896 |
+| random.characters     | individual |      1,762,065 |     2,306,441 |       1,845,499 |             82.09 |        28.31 |      0.917 |
+| random.characters     | batch      |      2,231,660 |     3,523,852 |       3,482,007 |             22.95 |        28.31 |      0.917 |
+| random.words          | individual |      1,932,297 |     2,171,304 |       1,767,959 |            125.68 |        73.88 |      0.991 |
+| random.words          | batch      |      2,255,130 |     3,419,384 |       3,151,183 |             59.71 |        73.88 |      0.991 |
+| concurrent.characters | individual |      2,469,048 |     2,498,205 |       2,058,595 |             82.04 |        56.41 |      1.834 |
+| concurrent.characters | batch      |      2,194,148 |     3,487,948 |       2,936,891 |             22.92 |        56.41 |      1.834 |
+| concurrent.words      | individual |      2,415,713 |     2,424,144 |       1,644,530 |            125.74 |       147.81 |      1.981 |
+| concurrent.words      | batch      |      2,595,710 |     3,156,396 |       2,721,154 |             59.79 |       147.81 |      1.981 |
+| concurrent.mixed      | individual |      1,351,326 |     1,679,153 |       1,337,607 |            154.61 |        97.83 |      1.505 |
+| concurrent.mixed      | batch      |      1,618,458 |     2,284,227 |       2,051,307 |             56.88 |        97.83 |      1.505 |
+| causal.characters     | individual |      1,958,468 |     2,797,214 |       2,234,606 |             88.96 |        63.81 |      1.842 |
+| causal.characters     | batch      |      2,441,259 |     3,382,577 |       3,003,946 |             23.18 |        63.81 |      1.842 |
+| causal.words          | individual |      1,923,797 |     2,340,529 |       1,856,387 |            135.13 |       156.41 |      1.989 |
+| causal.words          | batch      |      2,169,493 |     3,080,908 |       2,705,779 |             60.68 |       156.41 |      1.989 |
+| causal.mixed          | individual |      1,298,134 |     1,748,381 |       1,319,304 |            161.05 |       103.75 |      1.509 |
+| causal.mixed          | batch      |      1,596,316 |     2,350,261 |       2,165,106 |             57.34 |       103.75 |      1.509 |
 
-Measured on Node 24.16.0, V8 13.6.233.17-node.49, win32 x64, Intel(R) Core(TM) i5-10210U CPU @ 1.60GHz. Both modes group each author's binary Gossip into one MessagePack message. Batch Footage is uncompressed. Receive includes MessagePack decoding; apply excludes it. Document size follows complete acknowledgement exchange. Memory estimates use one receiver recreated from that compact checkpoint in a fresh runtime, excluding the author runtime. Preparation, verification, destruction and explicit JS process garbage collection are outside timings.
+Measured on Node 24.22.3, V8 13.6.233.17-node.63, linux x64, AMD EPYC 9V45 96-Core Processor. Both modes group each author's binary Gossip into one MessagePack message. Batch Footage is uncompressed. Receive includes MessagePack decoding; apply excludes it. Document size follows complete acknowledgement exchange. Memory estimates use one receiver recreated from that compact checkpoint in a fresh runtime, excluding the author runtime. Preparation, verification, destruction and explicit JS process garbage collection are outside timings.
 
 [Full batch results](benchmark/.results/batch.md).
 
@@ -452,16 +452,16 @@ Invalid input to `apply()` or `merge()` returns `undefined` instead of throwing.
 
 ### Behaviour guaranteed by excessive tests
 
-2026-11-27T21:35:32.466Z · local run
+2026-11-27T21:49:58.862Z · [CI run](https://github.com/sovereignbase/sequencer/actions/runs/46072517566)
 
-The latest verification passed 404 Vitest tests and 136 compatibility checks.
+The latest verification passed 404 Vitest tests and 153 compatibility checks.
 The configured 100% coverage threshold is met (100% statements, 100% branches, 100% functions, 100% lines).
 See the [test suites](test/README.md) and
 [automated test report](https://sovereignbase.dev/sequencer/tests/).
 
 ### Works everywhere where JavaScript and Wasm works
 
-2026-11-27T21:08:55.107Z · local run
+2026-11-27T21:49:58.866Z · [CI run](https://github.com/sovereignbase/sequencer/actions/runs/46072517566)
 
 Runtimes covered by the latest compatibility verification:
 
@@ -472,7 +472,7 @@ Runtimes covered by the latest compatibility verification:
 - Edge Runtime: passed
 - Cloudflare Workers through workerd: passed
 - Chromium browser windows: passed
-- Firefox browser windows: skipped
+- Firefox browser windows: passed
 - WebKit browser windows: passed
 
 ### Tested realtime and offline text editing behaviour examples

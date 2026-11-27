@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.11](https://github.com/sovereignbase/sequencer/compare/v1.2.10...v1.2.11) (2026-11-27)
+
+
+### Performance Improvements
+
+* reduce snapshot allocations and release masked footage ([8cde1de](https://github.com/sovereignbase/sequencer/commit/8cde1de8daafa5dd552f0370dea807ad9de79cc2))
+
 ## [1.2.10](https://github.com/sovereignbase/sequencer/compare/v1.2.9...v1.2.10) (2026-11-24)
 
 

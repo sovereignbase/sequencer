@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-11-27T21:52:16.397Z",
-  "run": "https://github.com/sovereignbase/sequencer/actions/runs/46072517566",
-  "environment": "Node 24.22.3, V8 13.6.233.17-node.63, linux x64, AMD EPYC 9V45 96-Core Processor",
+  "generatedAt": "2026-11-27T22:06:40.302Z",
+  "run": "https://github.com/sovereignbase/sequencer/actions/runs/46073953475",
+  "environment": "Node 24.22.3, V8 13.6.233.17-node.63, linux x64, AMD EPYC 9V74 80-Core Processor",
   "runs": 3,
   "samples": [
     {
@@ -10,15 +10,15 @@
       "representation": "array",
       "operation": "insert",
       "calls": 8192,
-      "milliseconds": 7.497641999999047
+      "milliseconds": 11.440938999999531
     },
     {
       "run": 1,
       "size": 1024,
       "representation": "array",
       "operation": "insert.append",
-      "calls": 5472,
-      "milliseconds": 25.058405999999138
+      "calls": 3730,
+      "milliseconds": 25.000253000000043
     },
     {
       "run": 1,
@@ -26,7 +26,7 @@
       "representation": "array",
       "operation": "replace",
       "calls": 8192,
-      "milliseconds": 11.23227000000196
+      "milliseconds": 16.653432000001715
     },
     {
       "run": 1,
@@ -34,7 +34,7 @@
       "representation": "array",
       "operation": "remove",
       "calls": 8192,
-      "milliseconds": 4.5926300000007245
+      "milliseconds": 6.40415099999592
     },
     {
       "run": 1,
@@ -42,7 +42,7 @@
       "representation": "array",
       "operation": "remove.middle",
       "calls": 8192,
-      "milliseconds": 6.922140000000695
+      "milliseconds": 9.08892200000082
     },
     {
       "run": 1,
@@ -50,7 +50,7 @@
       "representation": "array",
       "operation": "replace.middle",
       "calls": 8192,
-      "milliseconds": 7.853128999998717
+      "milliseconds": 11.678602999999214
     },
     {
       "run": 1,
@@ -58,7 +58,7 @@
       "representation": "array",
       "operation": "apply",
       "calls": 8192,
-      "milliseconds": 4.073288000002833
+      "milliseconds": 4.930078000001686
     },
     {
       "run": 1,
@@ -66,15 +66,15 @@
       "representation": "array",
       "operation": "apply.array",
       "calls": 8192,
-      "milliseconds": 2.8364140000028897
+      "milliseconds": 3.6982319999985975
     },
     {
       "run": 1,
       "size": 1024,
       "representation": "array",
       "operation": "concurrent.apply",
-      "calls": 1200,
-      "milliseconds": 25.005118999999468
+      "calls": 780,
+      "milliseconds": 25.124003000000016
     },
     {
       "run": 1,
@@ -82,7 +82,7 @@
       "representation": "array",
       "operation": "merge",
       "calls": 8192,
-      "milliseconds": 11.320116999997765
+      "milliseconds": 16.246035000003303
     },
     {
       "run": 1,
@@ -90,7 +90,7 @@
       "representation": "array",
       "operation": "create",
       "calls": 8192,
-      "milliseconds": 10.811205000000427
+      "milliseconds": 15.007358999997336
     },
     {
       "run": 1,
@@ -98,7 +98,7 @@
       "representation": "array",
       "operation": "value.random",
       "calls": 131072,
-      "milliseconds": 3.9550049999987777
+      "milliseconds": 3.698570000000359
     },
     {
       "run": 1,
@@ -106,55 +106,55 @@
       "representation": "array",
       "operation": "values.range",
       "calls": 131072,
-      "milliseconds": 7.396841000000222
+      "milliseconds": 9.601475999999252
     },
     {
       "run": 1,
       "size": 1024,
       "representation": "array",
       "operation": "values.array",
-      "calls": 114154,
-      "milliseconds": 25.000029999996514
+      "calls": 52519,
+      "milliseconds": 25.02153500000054
     },
     {
       "run": 1,
       "size": 1024,
       "representation": "array",
       "operation": "values.text",
-      "calls": 5880,
-      "milliseconds": 25.00378300000068
+      "calls": 3608,
+      "milliseconds": 25.005853999996475
     },
     {
       "run": 1,
       "size": 1024,
       "representation": "array",
       "operation": "sequence.array",
-      "calls": 87208,
-      "milliseconds": 25.00004100000433
+      "calls": 32596,
+      "milliseconds": 25.000503000005324
     },
     {
       "run": 1,
       "size": 1024,
       "representation": "array",
       "operation": "sequence.text",
-      "calls": 6959,
-      "milliseconds": 25.002627999999163
+      "calls": 4281,
+      "milliseconds": 25.00037000000225
     },
     {
       "run": 1,
       "size": 1024,
       "representation": "array",
       "operation": "sequence.edited.text",
-      "calls": 6364,
-      "milliseconds": 25.000952000003053
+      "calls": 4276,
+      "milliseconds": 25.00316500000247
     },
     {
       "run": 1,
       "size": 1024,
       "representation": "array",
       "operation": "sequence.masked.text",
-      "calls": 3729,
-      "milliseconds": 25.116570999995588
+      "calls": 3841,
+      "milliseconds": 25.00328199999717
     },
     {
       "run": 1,
@@ -162,7 +162,7 @@
       "representation": "string",
       "operation": "insert",
       "calls": 8192,
-      "milliseconds": 4.945389999999975
+      "milliseconds": 2.5659630000016023
     },
     {
       "run": 1,
@@ -170,7 +170,7 @@
       "representation": "string",
       "operation": "insert.append",
       "calls": 8192,
-      "milliseconds": 19.619714999995267
+      "milliseconds": 18.888843000000634
     },
     {
       "run": 1,
@@ -178,7 +178,7 @@
       "representation": "string",
       "operation": "replace",
       "calls": 8192,
-      "milliseconds": 6.317083999999227
+      "milliseconds": 9.051119999988714
     },
     {
       "run": 1,
@@ -186,7 +186,7 @@
       "representation": "string",
       "operation": "remove",
       "calls": 8192,
-      "milliseconds": 4.5953530000051614
+      "milliseconds": 5.253061999994316
     },
     {
       "run": 1,
@@ -194,7 +194,7 @@
       "representation": "string",
       "operation": "remove.middle",
       "calls": 8192,
-      "milliseconds": 4.444508999999016
+      "milliseconds": 6.0626629999947
     },
     {
       "run": 1,
@@ -202,7 +202,7 @@
       "representation": "string",
       "operation": "replace.middle",
       "calls": 8192,
-      "milliseconds": 7.2018809999956375
+      "milliseconds": 8.530461000004834
     },
     {
       "run": 1,
@@ -210,7 +210,7 @@
       "representation": "string",
       "operation": "apply",
       "calls": 8192,
-      "milliseconds": 4.56190600000491
+      "milliseconds": 5.19538899999975
     },
     {
       "run": 1,
@@ -218,7 +218,7 @@
       "representation": "string",
       "operation": "apply.array",
       "calls": 8192,
-      "milliseconds": 10.287699000007024
+      "milliseconds": 12.768879999987348
     },
     {
       "run": 1,
@@ -226,7 +226,7 @@
       "representation": "string",
       "operation": "concurrent.apply",
       "calls": 8192,
-      "milliseconds": 15.755446000000575
+      "milliseconds": 20.965111999996907
     },
     {
       "run": 1,
@@ -234,7 +234,7 @@
       "representation": "string",
       "operation": "merge",
       "calls": 8192,
-      "milliseconds": 6.530899999986104
+      "milliseconds": 7.81801600000199
     },
     {
       "run": 1,
@@ -242,7 +242,7 @@
       "representation": "string",
       "operation": "create",
       "calls": 8192,
-      "milliseconds": 5.139382999994041
+      "milliseconds": 6.504955000005111
     },
     {
       "run": 1,
@@ -250,7 +250,7 @@
       "representation": "string",
       "operation": "value.random",
       "calls": 131072,
-      "milliseconds": 3.3873789999991004
+      "milliseconds": 5.457868000001326
     },
     {
       "run": 1,
@@ -258,15 +258,15 @@
       "representation": "string",
       "operation": "values.range",
       "calls": 131072,
-      "milliseconds": 8.222957999994378
+      "milliseconds": 13.04989299999579
     },
     {
       "run": 1,
       "size": 1024,
       "representation": "string",
       "operation": "values.array",
-      "calls": 41994,
-      "milliseconds": 25.00029800001039
+      "calls": 25571,
+      "milliseconds": 25.000408999978617
     },
     {
       "run": 1,
@@ -274,15 +274,15 @@
       "representation": "string",
       "operation": "values.text",
       "calls": 131072,
-      "milliseconds": 4.346878999991077
+      "milliseconds": 5.711744000003364
     },
     {
       "run": 1,
       "size": 1024,
       "representation": "string",
       "operation": "sequence.array",
-      "calls": 35447,
-      "milliseconds": 25.00004700002728
+      "calls": 22263,
+      "milliseconds": 25.000334000016437
     },
     {
       "run": 1,
@@ -290,47 +290,47 @@
       "representation": "string",
       "operation": "sequence.text",
       "calls": 131072,
-      "milliseconds": 13.18184799999699
+      "milliseconds": 14.053072999998676
     },
     {
       "run": 1,
       "size": 1024,
       "representation": "string",
       "operation": "sequence.edited.text",
-      "calls": 76802,
-      "milliseconds": 25.00010899995641
+      "calls": 57006,
+      "milliseconds": 25.00014900000383
     },
     {
       "run": 1,
       "size": 1024,
       "representation": "string",
       "operation": "sequence.masked.text",
-      "calls": 14848,
-      "milliseconds": 25.072530000001052
+      "calls": 11264,
+      "milliseconds": 25.178838999999243
     },
     {
       "run": 1,
       "size": 65536,
       "representation": "array",
       "operation": "insert",
-      "calls": 112,
-      "milliseconds": 25.025829000001295
+      "calls": 94,
+      "milliseconds": 26.005937999998878
     },
     {
       "run": 1,
       "size": 65536,
       "representation": "array",
       "operation": "insert.append",
-      "calls": 34,
-      "milliseconds": 25.141940999999633
+      "calls": 25,
+      "milliseconds": 26.146343000000115
     },
     {
       "run": 1,
       "size": 65536,
       "representation": "array",
       "operation": "replace",
-      "calls": 114,
-      "milliseconds": 25.000798000001396
+      "calls": 97,
+      "milliseconds": 25.139840000000277
     },
     {
       "run": 1,
@@ -338,127 +338,127 @@
       "representation": "array",
       "operation": "remove",
       "calls": 8192,
-      "milliseconds": 6.3029450000021825
+      "milliseconds": 16.312493999989783
     },
     {
       "run": 1,
       "size": 65536,
       "representation": "array",
       "operation": "remove.middle",
-      "calls": 121,
-      "milliseconds": 25.05223300000489
-    },
-    {
-      "run": 1,
-      "size": 65536,
-      "representation": "array",
-      "operation": "replace.middle",
-      "calls": 122,
-      "milliseconds": 25.00698199999988
-    },
-    {
-      "run": 1,
-      "size": 65536,
-      "representation": "array",
-      "operation": "apply",
-      "calls": 8192,
-      "milliseconds": 4.456000000007407
-    },
-    {
-      "run": 1,
-      "size": 65536,
-      "representation": "array",
-      "operation": "apply.array",
-      "calls": 8192,
-      "milliseconds": 3.2938989999574915
-    },
-    {
-      "run": 1,
-      "size": 65536,
-      "representation": "array",
-      "operation": "concurrent.apply",
-      "calls": 14,
-      "milliseconds": 29.31887199999983
-    },
-    {
-      "run": 1,
-      "size": 65536,
-      "representation": "array",
-      "operation": "merge",
-      "calls": 120,
-      "milliseconds": 25.013177999999243
-    },
-    {
-      "run": 1,
-      "size": 65536,
-      "representation": "array",
-      "operation": "create",
-      "calls": 126,
-      "milliseconds": 25.099049999997987
-    },
-    {
-      "run": 1,
-      "size": 65536,
-      "representation": "array",
-      "operation": "value.random",
-      "calls": 131072,
-      "milliseconds": 3.1893960000361403
-    },
-    {
-      "run": 1,
-      "size": 65536,
-      "representation": "array",
-      "operation": "values.range",
-      "calls": 131072,
-      "milliseconds": 14.505355999987842
-    },
-    {
-      "run": 1,
-      "size": 65536,
-      "representation": "array",
-      "operation": "values.array",
-      "calls": 126,
-      "milliseconds": 26.112872000004245
-    },
-    {
-      "run": 1,
-      "size": 65536,
-      "representation": "array",
-      "operation": "values.text",
-      "calls": 60,
-      "milliseconds": 25.239485000006425
-    },
-    {
-      "run": 1,
-      "size": 65536,
-      "representation": "array",
-      "operation": "sequence.array",
-      "calls": 126,
-      "milliseconds": 25.697322000004533
-    },
-    {
-      "run": 1,
-      "size": 65536,
-      "representation": "array",
-      "operation": "sequence.text",
-      "calls": 60,
-      "milliseconds": 25.707643000004282
-    },
-    {
-      "run": 1,
-      "size": 65536,
-      "representation": "array",
-      "operation": "sequence.edited.text",
-      "calls": 60,
-      "milliseconds": 25.85874000000149
-    },
-    {
-      "run": 1,
-      "size": 65536,
-      "representation": "array",
-      "operation": "sequence.masked.text",
       "calls": 103,
-      "milliseconds": 25.3391010000023
+      "milliseconds": 25.0687869999947
+    },
+    {
+      "run": 1,
+      "size": 65536,
+      "representation": "array",
+      "operation": "replace.middle",
+      "calls": 95,
+      "milliseconds": 25.0891509999974
+    },
+    {
+      "run": 1,
+      "size": 65536,
+      "representation": "array",
+      "operation": "apply",
+      "calls": 8192,
+      "milliseconds": 6.2098299999852316
+    },
+    {
+      "run": 1,
+      "size": 65536,
+      "representation": "array",
+      "operation": "apply.array",
+      "calls": 8192,
+      "milliseconds": 3.939300000003641
+    },
+    {
+      "run": 1,
+      "size": 65536,
+      "representation": "array",
+      "operation": "concurrent.apply",
+      "calls": 9,
+      "milliseconds": 25.683822000001783
+    },
+    {
+      "run": 1,
+      "size": 65536,
+      "representation": "array",
+      "operation": "merge",
+      "calls": 100,
+      "milliseconds": 25.20554600000105
+    },
+    {
+      "run": 1,
+      "size": 65536,
+      "representation": "array",
+      "operation": "create",
+      "calls": 101,
+      "milliseconds": 25.160094999999274
+    },
+    {
+      "run": 1,
+      "size": 65536,
+      "representation": "array",
+      "operation": "value.random",
+      "calls": 131072,
+      "milliseconds": 3.908314999999675
+    },
+    {
+      "run": 1,
+      "size": 65536,
+      "representation": "array",
+      "operation": "values.range",
+      "calls": 131072,
+      "milliseconds": 19.429601000006187
+    },
+    {
+      "run": 1,
+      "size": 65536,
+      "representation": "array",
+      "operation": "values.array",
+      "calls": 105,
+      "milliseconds": 25.17184799999268
+    },
+    {
+      "run": 1,
+      "size": 65536,
+      "representation": "array",
+      "operation": "values.text",
+      "calls": 44,
+      "milliseconds": 25.50417599999855
+    },
+    {
+      "run": 1,
+      "size": 65536,
+      "representation": "array",
+      "operation": "sequence.array",
+      "calls": 106,
+      "milliseconds": 25.102625000002263
+    },
+    {
+      "run": 1,
+      "size": 65536,
+      "representation": "array",
+      "operation": "sequence.text",
+      "calls": 58,
+      "milliseconds": 25.222539999997935
+    },
+    {
+      "run": 1,
+      "size": 65536,
+      "representation": "array",
+      "operation": "sequence.edited.text",
+      "calls": 37,
+      "milliseconds": 25.147726000001057
+    },
+    {
+      "run": 1,
+      "size": 65536,
+      "representation": "array",
+      "operation": "sequence.masked.text",
+      "calls": 57,
+      "milliseconds": 25.299144000002343
     },
     {
       "run": 1,
@@ -466,15 +466,15 @@
       "representation": "string",
       "operation": "insert",
       "calls": 8192,
-      "milliseconds": 1.6729029999842169
+      "milliseconds": 3.0880990000232487
     },
     {
       "run": 1,
       "size": 65536,
       "representation": "string",
       "operation": "insert.append",
-      "calls": 4455,
-      "milliseconds": 25.003820000009
+      "calls": 2498,
+      "milliseconds": 25.000511999985065
     },
     {
       "run": 1,
@@ -482,7 +482,7 @@
       "representation": "string",
       "operation": "replace",
       "calls": 8192,
-      "milliseconds": 6.599231000014697
+      "milliseconds": 8.359810999982074
     },
     {
       "run": 1,
@@ -490,7 +490,7 @@
       "representation": "string",
       "operation": "remove",
       "calls": 8192,
-      "milliseconds": 4.743812999966394
+      "milliseconds": 5.9481269999851065
     },
     {
       "run": 1,
@@ -498,7 +498,7 @@
       "representation": "string",
       "operation": "remove.middle",
       "calls": 8192,
-      "milliseconds": 4.712380000036319
+      "milliseconds": 5.881739000032212
     },
     {
       "run": 1,
@@ -506,7 +506,7 @@
       "representation": "string",
       "operation": "replace.middle",
       "calls": 8192,
-      "milliseconds": 6.244813999988764
+      "milliseconds": 7.640870000000177
     },
     {
       "run": 1,
@@ -514,23 +514,23 @@
       "representation": "string",
       "operation": "apply",
       "calls": 8192,
-      "milliseconds": 4.088781999907042
+      "milliseconds": 6.546918999978516
     },
     {
       "run": 1,
       "size": 65536,
       "representation": "string",
       "operation": "apply.array",
-      "calls": 128,
-      "milliseconds": 28.67812800000138
+      "calls": 109,
+      "milliseconds": 25.08848400000352
     },
     {
       "run": 1,
       "size": 65536,
       "representation": "string",
       "operation": "concurrent.apply",
-      "calls": 256,
-      "milliseconds": 28.307157999998708
+      "calls": 236,
+      "milliseconds": 25.072611999998117
     },
     {
       "run": 1,
@@ -538,7 +538,7 @@
       "representation": "string",
       "operation": "merge",
       "calls": 8192,
-      "milliseconds": 6.274747000010393
+      "milliseconds": 7.687779999959275
     },
     {
       "run": 1,
@@ -546,7 +546,7 @@
       "representation": "string",
       "operation": "create",
       "calls": 8192,
-      "milliseconds": 5.385188999995989
+      "milliseconds": 6.3694569999534
     },
     {
       "run": 1,
@@ -554,7 +554,7 @@
       "representation": "string",
       "operation": "value.random",
       "calls": 131072,
-      "milliseconds": 3.3838350000014543
+      "milliseconds": 3.827825000010307
     },
     {
       "run": 1,
@@ -562,15 +562,15 @@
       "representation": "string",
       "operation": "values.range",
       "calls": 131072,
-      "milliseconds": 11.94764600000417
+      "milliseconds": 11.38240200000564
     },
     {
       "run": 1,
       "size": 65536,
       "representation": "string",
       "operation": "values.array",
-      "calls": 128,
-      "milliseconds": 28.74120899999798
+      "calls": 109,
+      "milliseconds": 25.04696900000272
     },
     {
       "run": 1,
@@ -578,15 +578,15 @@
       "representation": "string",
       "operation": "values.text",
       "calls": 131072,
-      "milliseconds": 4.112279999998464
+      "milliseconds": 5.838334999983999
     },
     {
       "run": 1,
       "size": 65536,
       "representation": "string",
       "operation": "sequence.array",
-      "calls": 128,
-      "milliseconds": 28.240170999998554
+      "calls": 109,
+      "milliseconds": 25.052455000001828
     },
     {
       "run": 1,
@@ -594,31 +594,31 @@
       "representation": "string",
       "operation": "sequence.text",
       "calls": 131072,
-      "milliseconds": 10.692538999978751
+      "milliseconds": 15.703444000007039
     },
     {
       "run": 1,
       "size": 65536,
       "representation": "string",
       "operation": "sequence.edited.text",
-      "calls": 8981,
-      "milliseconds": 25.002520000070035
+      "calls": 5429,
+      "milliseconds": 25.000885000014023
     },
     {
       "run": 1,
       "size": 65536,
       "representation": "string",
       "operation": "sequence.masked.text",
-      "calls": 14464,
-      "milliseconds": 25.00556399999641
+      "calls": 11392,
+      "milliseconds": 25.092756999999438
     },
     {
       "run": 1,
       "size": 1048576,
       "representation": "array",
       "operation": "insert",
-      "calls": 8,
-      "milliseconds": 27.28336499999932
+      "calls": 7,
+      "milliseconds": 25.630091000000903
     },
     {
       "run": 1,
@@ -626,39 +626,39 @@
       "representation": "array",
       "operation": "insert.append",
       "calls": 2,
-      "milliseconds": 33.19077300000026
+      "milliseconds": 45.33122000000094
     },
     {
       "run": 1,
       "size": 1048576,
       "representation": "array",
       "operation": "replace",
-      "calls": 8,
-      "milliseconds": 26.735756999999467
+      "calls": 6,
+      "milliseconds": 25.201544999999896
     },
     {
       "run": 1,
       "size": 1048576,
       "representation": "array",
       "operation": "remove",
-      "calls": 8192,
-      "milliseconds": 20.17349900014233
+      "calls": 3652,
+      "milliseconds": 25.00672200006011
     },
     {
       "run": 1,
       "size": 1048576,
       "representation": "array",
       "operation": "remove.middle",
-      "calls": 8,
-      "milliseconds": 25.084914999999455
+      "calls": 7,
+      "milliseconds": 28.6171170000016
     },
     {
       "run": 1,
       "size": 1048576,
       "representation": "array",
       "operation": "replace.middle",
-      "calls": 9,
-      "milliseconds": 29.74226399998588
+      "calls": 7,
+      "milliseconds": 26.223894999995537
     },
     {
       "run": 1,
@@ -666,7 +666,7 @@
       "representation": "array",
       "operation": "apply",
       "calls": 8192,
-      "milliseconds": 4.688270000136981
+      "milliseconds": 6.266408000028605
     },
     {
       "run": 1,
@@ -674,7 +674,7 @@
       "representation": "array",
       "operation": "apply.array",
       "calls": 8192,
-      "milliseconds": 2.940463000399177
+      "milliseconds": 3.783541000000696
     },
     {
       "run": 1,
@@ -682,7 +682,7 @@
       "representation": "array",
       "operation": "concurrent.apply",
       "calls": 1,
-      "milliseconds": 32.837688999999955
+      "milliseconds": 48.61159400000179
     },
     {
       "run": 1,
@@ -690,7 +690,7 @@
       "representation": "array",
       "operation": "merge",
       "calls": 8,
-      "milliseconds": 26.616937999991933
+      "milliseconds": 30.377668999994057
     },
     {
       "run": 1,
@@ -698,7 +698,7 @@
       "representation": "array",
       "operation": "create",
       "calls": 8,
-      "milliseconds": 26.40214700000797
+      "milliseconds": 30.087226000003284
     },
     {
       "run": 1,
@@ -706,7 +706,7 @@
       "representation": "array",
       "operation": "value.random",
       "calls": 131072,
-      "milliseconds": 4.107569000101648
+      "milliseconds": 3.8796199999633245
     },
     {
       "run": 1,
@@ -714,23 +714,23 @@
       "representation": "array",
       "operation": "values.range",
       "calls": 131072,
-      "milliseconds": 8.432284999908006
+      "milliseconds": 9.852232000008371
     },
     {
       "run": 1,
       "size": 1048576,
       "representation": "array",
       "operation": "values.array",
-      "calls": 9,
-      "milliseconds": 26.95520100000431
+      "calls": 7,
+      "milliseconds": 26.563669000006485
     },
     {
       "run": 1,
       "size": 1048576,
       "representation": "array",
       "operation": "values.text",
-      "calls": 4,
-      "milliseconds": 26.431431000004523
+      "calls": 3,
+      "milliseconds": 28.236840000001393
     },
     {
       "run": 1,
@@ -738,7 +738,7 @@
       "representation": "array",
       "operation": "sequence.array",
       "calls": 7,
-      "milliseconds": 29.871334999988903
+      "milliseconds": 27.11586100000204
     },
     {
       "run": 1,
@@ -746,7 +746,7 @@
       "representation": "array",
       "operation": "sequence.text",
       "calls": 2,
-      "milliseconds": 45.16052000000491
+      "milliseconds": 74.36014400000204
     },
     {
       "run": 1,
@@ -754,7 +754,7 @@
       "representation": "array",
       "operation": "sequence.edited.text",
       "calls": 2,
-      "milliseconds": 51.58418699999311
+      "milliseconds": 48.371265999998286
     },
     {
       "run": 1,
@@ -762,7 +762,7 @@
       "representation": "array",
       "operation": "sequence.masked.text",
       "calls": 2,
-      "milliseconds": 46.24495900000329
+      "milliseconds": 48.59886499999993
     },
     {
       "run": 1,
@@ -770,15 +770,15 @@
       "representation": "string",
       "operation": "insert",
       "calls": 8192,
-      "milliseconds": 2.081706999815651
+      "milliseconds": 2.898392999686621
     },
     {
       "run": 1,
       "size": 1048576,
       "representation": "string",
       "operation": "insert.append",
-      "calls": 64,
-      "milliseconds": 26.42405000002327
+      "calls": 56,
+      "milliseconds": 25.223228999995627
     },
     {
       "run": 1,
@@ -786,7 +786,7 @@
       "representation": "string",
       "operation": "replace",
       "calls": 8192,
-      "milliseconds": 6.914061000010406
+      "milliseconds": 9.33377500012648
     },
     {
       "run": 1,
@@ -794,7 +794,7 @@
       "representation": "string",
       "operation": "remove",
       "calls": 8192,
-      "milliseconds": 5.083015999800409
+      "milliseconds": 8.171079000094323
     },
     {
       "run": 1,
@@ -802,7 +802,7 @@
       "representation": "string",
       "operation": "remove.middle",
       "calls": 8192,
-      "milliseconds": 4.65170899995428
+      "milliseconds": 6.4411510001446
     },
     {
       "run": 1,
@@ -810,7 +810,7 @@
       "representation": "string",
       "operation": "replace.middle",
       "calls": 8192,
-      "milliseconds": 6.212553000455955
+      "milliseconds": 8.262403999906383
     },
     {
       "run": 1,
@@ -818,7 +818,7 @@
       "representation": "string",
       "operation": "apply",
       "calls": 8192,
-      "milliseconds": 4.138934000227891
+      "milliseconds": 5.361820999976771
     },
     {
       "run": 1,
@@ -826,7 +826,7 @@
       "representation": "string",
       "operation": "apply.array",
       "calls": 8,
-      "milliseconds": 26.031595999986166
+      "milliseconds": 32.75876700000299
     },
     {
       "run": 1,
@@ -834,7 +834,7 @@
       "representation": "string",
       "operation": "concurrent.apply",
       "calls": 16,
-      "milliseconds": 25.36652299999696
+      "milliseconds": 28.189721000002464
     },
     {
       "run": 1,
@@ -842,7 +842,7 @@
       "representation": "string",
       "operation": "merge",
       "calls": 8192,
-      "milliseconds": 5.83357600049203
+      "milliseconds": 7.837226000097871
     },
     {
       "run": 1,
@@ -850,7 +850,7 @@
       "representation": "string",
       "operation": "create",
       "calls": 8192,
-      "milliseconds": 4.936973999749171
+      "milliseconds": 6.183969000019715
     },
     {
       "run": 1,
@@ -858,7 +858,7 @@
       "representation": "string",
       "operation": "value.random",
       "calls": 131072,
-      "milliseconds": 4.71944099987013
+      "milliseconds": 5.10363999999754
     },
     {
       "run": 1,
@@ -866,7 +866,7 @@
       "representation": "string",
       "operation": "values.range",
       "calls": 131072,
-      "milliseconds": 8.668109000056575
+      "milliseconds": 12.564926999999443
     },
     {
       "run": 1,
@@ -874,7 +874,7 @@
       "representation": "string",
       "operation": "values.array",
       "calls": 8,
-      "milliseconds": 26.209392999990087
+      "milliseconds": 31.68346400000155
     },
     {
       "run": 1,
@@ -882,15 +882,15 @@
       "representation": "string",
       "operation": "values.text",
       "calls": 131072,
-      "milliseconds": 6.20379800000228
+      "milliseconds": 5.94350299996222
     },
     {
       "run": 1,
       "size": 1048576,
       "representation": "string",
       "operation": "sequence.array",
-      "calls": 8,
-      "milliseconds": 26.55431299999327
+      "calls": 7,
+      "milliseconds": 25.027741000001697
     },
     {
       "run": 1,
@@ -898,23 +898,23 @@
       "representation": "string",
       "operation": "sequence.text",
       "calls": 131072,
-      "milliseconds": 9.468929999973625
+      "milliseconds": 15.352848999875278
     },
     {
       "run": 1,
       "size": 1048576,
       "representation": "string",
       "operation": "sequence.edited.text",
-      "calls": 680,
-      "milliseconds": 25.002385000050708
+      "calls": 380,
+      "milliseconds": 25.004173999957857
     },
     {
       "run": 1,
       "size": 1048576,
       "representation": "string",
       "operation": "sequence.masked.text",
-      "calls": 14976,
-      "milliseconds": 25.1364610000237
+      "calls": 11264,
+      "milliseconds": 25.246146000001318
     },
     {
       "run": 2,
@@ -922,7 +922,7 @@
       "representation": "string",
       "operation": "insert",
       "calls": 8192,
-      "milliseconds": 1.6372259995696368
+      "milliseconds": 2.809693000413972
     },
     {
       "run": 2,
@@ -930,7 +930,7 @@
       "representation": "string",
       "operation": "insert.append",
       "calls": 8192,
-      "milliseconds": 16.708839000079024
+      "milliseconds": 20.502965000036056
     },
     {
       "run": 2,
@@ -938,7 +938,7 @@
       "representation": "string",
       "operation": "replace",
       "calls": 8192,
-      "milliseconds": 6.220550000260118
+      "milliseconds": 8.793808000082208
     },
     {
       "run": 2,
@@ -946,7 +946,7 @@
       "representation": "string",
       "operation": "remove",
       "calls": 8192,
-      "milliseconds": 4.725996000073792
+      "milliseconds": 5.357248000065738
     },
     {
       "run": 2,
@@ -954,7 +954,7 @@
       "representation": "string",
       "operation": "remove.middle",
       "calls": 8192,
-      "milliseconds": 4.84757899982651
+      "milliseconds": 6.56164299986267
     },
     {
       "run": 2,
@@ -962,7 +962,7 @@
       "representation": "string",
       "operation": "replace.middle",
       "calls": 8192,
-      "milliseconds": 6.550774999901478
+      "milliseconds": 8.528517000024294
     },
     {
       "run": 2,
@@ -970,7 +970,7 @@
       "representation": "string",
       "operation": "apply",
       "calls": 8192,
-      "milliseconds": 3.742971000239777
+      "milliseconds": 5.054452000120364
     },
     {
       "run": 2,
@@ -978,7 +978,7 @@
       "representation": "string",
       "operation": "apply.array",
       "calls": 8192,
-      "milliseconds": 8.011665000034554
+      "milliseconds": 11.900055000111024
     },
     {
       "run": 2,
@@ -986,7 +986,7 @@
       "representation": "string",
       "operation": "concurrent.apply",
       "calls": 8192,
-      "milliseconds": 15.786260999833758
+      "milliseconds": 19.205518999871856
     },
     {
       "run": 2,
@@ -994,7 +994,7 @@
       "representation": "string",
       "operation": "merge",
       "calls": 8192,
-      "milliseconds": 6.036760000250069
+      "milliseconds": 7.747882999974536
     },
     {
       "run": 2,
@@ -1002,7 +1002,7 @@
       "representation": "string",
       "operation": "create",
       "calls": 8192,
-      "milliseconds": 4.8481779997600825
+      "milliseconds": 6.283424999943236
     },
     {
       "run": 2,
@@ -1010,7 +1010,7 @@
       "representation": "string",
       "operation": "value.random",
       "calls": 131072,
-      "milliseconds": 4.495027999961167
+      "milliseconds": 4.413811000023998
     },
     {
       "run": 2,
@@ -1018,15 +1018,15 @@
       "representation": "string",
       "operation": "values.range",
       "calls": 131072,
-      "milliseconds": 12.56477699981042
+      "milliseconds": 11.000584999947023
     },
     {
       "run": 2,
       "size": 1024,
       "representation": "string",
       "operation": "values.array",
-      "calls": 44543,
-      "milliseconds": 25.000380001292797
+      "calls": 18879,
+      "milliseconds": 25.00105800012534
     },
     {
       "run": 2,
@@ -1034,15 +1034,15 @@
       "representation": "string",
       "operation": "values.text",
       "calls": 131072,
-      "milliseconds": 4.366339000123844
+      "milliseconds": 5.799396999755118
     },
     {
       "run": 2,
       "size": 1024,
       "representation": "string",
       "operation": "sequence.array",
-      "calls": 41210,
-      "milliseconds": 25.000893000113138
+      "calls": 22254,
+      "milliseconds": 25.000361999609595
     },
     {
       "run": 2,
@@ -1050,23 +1050,23 @@
       "representation": "string",
       "operation": "sequence.text",
       "calls": 131072,
-      "milliseconds": 9.303736999849207
+      "milliseconds": 13.19271499995375
     },
     {
       "run": 2,
       "size": 1024,
       "representation": "string",
       "operation": "sequence.edited.text",
-      "calls": 78629,
-      "milliseconds": 25.000071999304055
+      "calls": 61505,
+      "milliseconds": 25.000377001288143
     },
     {
       "run": 2,
       "size": 1024,
       "representation": "string",
       "operation": "sequence.masked.text",
-      "calls": 15488,
-      "milliseconds": 25.04932200002804
+      "calls": 11264,
+      "milliseconds": 25.068876999994245
     },
     {
       "run": 2,
@@ -1074,15 +1074,15 @@
       "representation": "array",
       "operation": "insert",
       "calls": 8192,
-      "milliseconds": 7.022426000025007
+      "milliseconds": 10.487001000004966
     },
     {
       "run": 2,
       "size": 1024,
       "representation": "array",
       "operation": "insert.append",
-      "calls": 2474,
-      "milliseconds": 25.00488000007317
+      "calls": 2156,
+      "milliseconds": 25.00164100002803
     },
     {
       "run": 2,
@@ -1090,7 +1090,7 @@
       "representation": "array",
       "operation": "replace",
       "calls": 8192,
-      "milliseconds": 11.102983999917342
+      "milliseconds": 16.93446299992138
     },
     {
       "run": 2,
@@ -1098,7 +1098,7 @@
       "representation": "array",
       "operation": "remove",
       "calls": 8192,
-      "milliseconds": 4.268144999943615
+      "milliseconds": 7.079842999723041
     },
     {
       "run": 2,
@@ -1106,7 +1106,7 @@
       "representation": "array",
       "operation": "remove.middle",
       "calls": 8192,
-      "milliseconds": 8.192545000209066
+      "milliseconds": 11.406490000001213
     },
     {
       "run": 2,
@@ -1114,7 +1114,7 @@
       "representation": "array",
       "operation": "replace.middle",
       "calls": 8192,
-      "milliseconds": 9.755520999453438
+      "milliseconds": 14.032837000162544
     },
     {
       "run": 2,
@@ -1122,7 +1122,7 @@
       "representation": "array",
       "operation": "apply",
       "calls": 8192,
-      "milliseconds": 4.458540999854449
+      "milliseconds": 5.152330000131769
     },
     {
       "run": 2,
@@ -1130,15 +1130,15 @@
       "representation": "array",
       "operation": "apply.array",
       "calls": 8192,
-      "milliseconds": 3.03960499981622
+      "milliseconds": 3.7870830000101705
     },
     {
       "run": 2,
       "size": 1024,
       "representation": "array",
       "operation": "concurrent.apply",
-      "calls": 1135,
-      "milliseconds": 25.009187999909045
+      "calls": 794,
+      "milliseconds": 25.00567599997521
     },
     {
       "run": 2,
@@ -1146,7 +1146,7 @@
       "representation": "array",
       "operation": "merge",
       "calls": 8192,
-      "milliseconds": 10.331537999758439
+      "milliseconds": 15.587627999939286
     },
     {
       "run": 2,
@@ -1154,7 +1154,7 @@
       "representation": "array",
       "operation": "create",
       "calls": 8192,
-      "milliseconds": 9.711664000111341
+      "milliseconds": 15.374576999889541
     },
     {
       "run": 2,
@@ -1162,7 +1162,7 @@
       "representation": "array",
       "operation": "value.random",
       "calls": 131072,
-      "milliseconds": 4.433897999973851
+      "milliseconds": 4.0771460000069055
     },
     {
       "run": 2,
@@ -1170,55 +1170,55 @@
       "representation": "array",
       "operation": "values.range",
       "calls": 131072,
-      "milliseconds": 7.67869499981316
+      "milliseconds": 10.211194000010437
     },
     {
       "run": 2,
       "size": 1024,
       "representation": "array",
       "operation": "values.array",
-      "calls": 75810,
-      "milliseconds": 25.000137999013532
+      "calls": 28260,
+      "milliseconds": 25.000454999844806
     },
     {
       "run": 2,
       "size": 1024,
       "representation": "array",
       "operation": "values.text",
-      "calls": 5252,
-      "milliseconds": 25.001912999898195
+      "calls": 3640,
+      "milliseconds": 25.000150999967445
     },
     {
       "run": 2,
       "size": 1024,
       "representation": "array",
       "operation": "sequence.array",
-      "calls": 55056,
-      "milliseconds": 25.000038000805944
+      "calls": 25851,
+      "milliseconds": 25.000459999650047
     },
     {
       "run": 2,
       "size": 1024,
       "representation": "array",
       "operation": "sequence.text",
-      "calls": 7017,
-      "milliseconds": 25.00009900006262
+      "calls": 4857,
+      "milliseconds": 25.004571000008582
     },
     {
       "run": 2,
       "size": 1024,
       "representation": "array",
       "operation": "sequence.edited.text",
-      "calls": 6385,
-      "milliseconds": 25.00016299998242
+      "calls": 4587,
+      "milliseconds": 25.003012000033777
     },
     {
       "run": 2,
       "size": 1024,
       "representation": "array",
       "operation": "sequence.masked.text",
-      "calls": 5354,
-      "milliseconds": 25.00474200008466
+      "calls": 3866,
+      "milliseconds": 25.002655000047525
     },
     {
       "run": 2,
@@ -1226,15 +1226,15 @@
       "representation": "string",
       "operation": "insert",
       "calls": 8192,
-      "milliseconds": 1.688419999445614
+      "milliseconds": 2.816095999758545
     },
     {
       "run": 2,
       "size": 65536,
       "representation": "string",
       "operation": "insert.append",
-      "calls": 3981,
-      "milliseconds": 25.004105999934836
+      "calls": 2710,
+      "milliseconds": 25.0055210000246
     },
     {
       "run": 2,
@@ -1242,7 +1242,7 @@
       "representation": "string",
       "operation": "replace",
       "calls": 8192,
-      "milliseconds": 6.644427000202995
+      "milliseconds": 9.638565000328526
     },
     {
       "run": 2,
@@ -1250,7 +1250,7 @@
       "representation": "string",
       "operation": "remove",
       "calls": 8192,
-      "milliseconds": 4.679112999976496
+      "milliseconds": 6.3777899999586225
     },
     {
       "run": 2,
@@ -1258,7 +1258,7 @@
       "representation": "string",
       "operation": "remove.middle",
       "calls": 8192,
-      "milliseconds": 4.351924999849871
+      "milliseconds": 5.836403000103019
     },
     {
       "run": 2,
@@ -1266,7 +1266,7 @@
       "representation": "string",
       "operation": "replace.middle",
       "calls": 8192,
-      "milliseconds": 6.21529200013174
+      "milliseconds": 7.864314999962517
     },
     {
       "run": 2,
@@ -1274,23 +1274,23 @@
       "representation": "string",
       "operation": "apply",
       "calls": 8192,
-      "milliseconds": 3.6958510000331444
+      "milliseconds": 5.033848999857582
     },
     {
       "run": 2,
       "size": 65536,
       "representation": "string",
       "operation": "apply.array",
-      "calls": 128,
-      "milliseconds": 29.773645999965083
+      "calls": 110,
+      "milliseconds": 25.035582000011345
     },
     {
       "run": 2,
       "size": 65536,
       "representation": "string",
       "operation": "concurrent.apply",
-      "calls": 256,
-      "milliseconds": 28.447293999939575
+      "calls": 237,
+      "milliseconds": 25.016473000010592
     },
     {
       "run": 2,
@@ -1298,7 +1298,7 @@
       "representation": "string",
       "operation": "merge",
       "calls": 8192,
-      "milliseconds": 5.872113000077661
+      "milliseconds": 8.044765000027837
     },
     {
       "run": 2,
@@ -1306,7 +1306,7 @@
       "representation": "string",
       "operation": "create",
       "calls": 8192,
-      "milliseconds": 4.54227199946763
+      "milliseconds": 6.4199530001751555
     },
     {
       "run": 2,
@@ -1314,7 +1314,7 @@
       "representation": "string",
       "operation": "value.random",
       "calls": 131072,
-      "milliseconds": 3.726831000058155
+      "milliseconds": 4.0209269999213575
     },
     {
       "run": 2,
@@ -1322,207 +1322,207 @@
       "representation": "string",
       "operation": "values.range",
       "calls": 131072,
-      "milliseconds": 9.73489400010294
+      "milliseconds": 10.909140000043408
     },
     {
       "run": 2,
       "size": 65536,
       "representation": "string",
       "operation": "values.array",
-      "calls": 128,
-      "milliseconds": 28.030096999988018
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "string",
-      "operation": "values.text",
-      "calls": 131072,
-      "milliseconds": 5.085448999932851
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "string",
-      "operation": "sequence.array",
-      "calls": 128,
-      "milliseconds": 27.943001000028744
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "string",
-      "operation": "sequence.text",
-      "calls": 131072,
-      "milliseconds": 11.148332000120718
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "string",
-      "operation": "sequence.edited.text",
-      "calls": 8921,
-      "milliseconds": 25.00233799999114
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "string",
-      "operation": "sequence.masked.text",
-      "calls": 15616,
-      "milliseconds": 25.053086999963853
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "insert",
-      "calls": 128,
-      "milliseconds": 28.92668200006301
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "insert.append",
-      "calls": 35,
-      "milliseconds": 25.304656000007526
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "replace",
-      "calls": 111,
-      "milliseconds": 25.029752999995253
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "remove",
-      "calls": 8192,
-      "milliseconds": 6.04206700004579
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "remove.middle",
-      "calls": 115,
-      "milliseconds": 25.12344100001792
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "replace.middle",
-      "calls": 117,
-      "milliseconds": 25.03103700003703
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "apply",
-      "calls": 8192,
-      "milliseconds": 4.212214000384847
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "apply.array",
-      "calls": 8192,
-      "milliseconds": 2.6095220000715926
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "concurrent.apply",
-      "calls": 14,
-      "milliseconds": 25.506430000001274
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "merge",
-      "calls": 128,
-      "milliseconds": 28.291405999989365
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "create",
-      "calls": 128,
-      "milliseconds": 27.205959999992047
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "value.random",
-      "calls": 131072,
-      "milliseconds": 3.5903079999261536
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "values.range",
-      "calls": 131072,
-      "milliseconds": 7.155093999950623
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "values.array",
-      "calls": 127,
-      "milliseconds": 25.22739900000306
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "values.text",
-      "calls": 65,
-      "milliseconds": 25.386361999975634
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "sequence.array",
-      "calls": 127,
-      "milliseconds": 25.80959700000676
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "sequence.text",
-      "calls": 102,
-      "milliseconds": 25.0614309999728
-    },
-    {
-      "run": 2,
-      "size": 65536,
-      "representation": "array",
-      "operation": "sequence.edited.text",
       "calls": 112,
-      "milliseconds": 25.128431999954046
+      "milliseconds": 25.216134000005695
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "string",
+      "operation": "values.text",
+      "calls": 131072,
+      "milliseconds": 8.900714999945194
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "string",
+      "operation": "sequence.array",
+      "calls": 110,
+      "milliseconds": 25.160111000008328
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "string",
+      "operation": "sequence.text",
+      "calls": 131072,
+      "milliseconds": 13.655882000006386
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "string",
+      "operation": "sequence.edited.text",
+      "calls": 5370,
+      "milliseconds": 25.001152999684564
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "string",
+      "operation": "sequence.masked.text",
+      "calls": 11264,
+      "milliseconds": 25.044267999976
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "insert",
+      "calls": 111,
+      "milliseconds": 25.001332000014372
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "insert.append",
+      "calls": 25,
+      "milliseconds": 25.56823599999916
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "replace",
+      "calls": 87,
+      "milliseconds": 25.044484000023658
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "remove",
+      "calls": 8192,
+      "milliseconds": 16.036154000386887
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "remove.middle",
+      "calls": 90,
+      "milliseconds": 25.006260000045586
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "replace.middle",
+      "calls": 92,
+      "milliseconds": 25.145084999974642
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "apply",
+      "calls": 8192,
+      "milliseconds": 4.779963000226417
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "apply.array",
+      "calls": 8192,
+      "milliseconds": 3.8607900005954434
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "concurrent.apply",
+      "calls": 10,
+      "milliseconds": 26.784499999994296
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "merge",
+      "calls": 108,
+      "milliseconds": 25.107007000035082
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "create",
+      "calls": 107,
+      "milliseconds": 25.087129000021378
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "value.random",
+      "calls": 131072,
+      "milliseconds": 4.504805999946257
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "values.range",
+      "calls": 131072,
+      "milliseconds": 10.589685999970243
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "values.array",
+      "calls": 111,
+      "milliseconds": 25.163160000025528
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "values.text",
+      "calls": 43,
+      "milliseconds": 25.21783399999549
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "sequence.array",
+      "calls": 114,
+      "milliseconds": 25.041350000014063
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "sequence.text",
+      "calls": 74,
+      "milliseconds": 25.054391000005126
+    },
+    {
+      "run": 2,
+      "size": 65536,
+      "representation": "array",
+      "operation": "sequence.edited.text",
+      "calls": 74,
+      "milliseconds": 25.050749000016367
     },
     {
       "run": 2,
       "size": 65536,
       "representation": "array",
       "operation": "sequence.masked.text",
-      "calls": 117,
-      "milliseconds": 25.135662000029697
+      "calls": 72,
+      "milliseconds": 25.25187400001596
     },
     {
       "run": 2,
@@ -1530,15 +1530,15 @@
       "representation": "string",
       "operation": "insert",
       "calls": 8192,
-      "milliseconds": 1.865017999545671
+      "milliseconds": 3.2641030000086175
     },
     {
       "run": 2,
       "size": 1048576,
       "representation": "string",
       "operation": "insert.append",
-      "calls": 64,
-      "milliseconds": 25.651310000030207
+      "calls": 57,
+      "milliseconds": 25.148210000006657
     },
     {
       "run": 2,
@@ -1546,7 +1546,7 @@
       "representation": "string",
       "operation": "replace",
       "calls": 8192,
-      "milliseconds": 7.677803999962634
+      "milliseconds": 9.39904000039678
     },
     {
       "run": 2,
@@ -1554,7 +1554,7 @@
       "representation": "string",
       "operation": "remove",
       "calls": 8192,
-      "milliseconds": 4.566828999966674
+      "milliseconds": 6.080541999835987
     },
     {
       "run": 2,
@@ -1562,7 +1562,7 @@
       "representation": "string",
       "operation": "remove.middle",
       "calls": 8192,
-      "milliseconds": 4.421300999689265
+      "milliseconds": 5.869119000264618
     },
     {
       "run": 2,
@@ -1570,7 +1570,7 @@
       "representation": "string",
       "operation": "replace.middle",
       "calls": 8192,
-      "milliseconds": 6.291598000076192
+      "milliseconds": 8.36001799973019
     },
     {
       "run": 2,
@@ -1578,23 +1578,23 @@
       "representation": "string",
       "operation": "apply",
       "calls": 8192,
-      "milliseconds": 4.115126999997301
+      "milliseconds": 5.503103999748419
     },
     {
       "run": 2,
       "size": 1048576,
       "representation": "string",
       "operation": "apply.array",
-      "calls": 8,
-      "milliseconds": 26.45083799999702
+      "calls": 7,
+      "milliseconds": 25.86287799999991
     },
     {
       "run": 2,
       "size": 1048576,
       "representation": "string",
       "operation": "concurrent.apply",
-      "calls": 17,
-      "milliseconds": 26.242301000005682
+      "calls": 16,
+      "milliseconds": 29.04216200000519
     },
     {
       "run": 2,
@@ -1602,7 +1602,7 @@
       "representation": "string",
       "operation": "merge",
       "calls": 8192,
-      "milliseconds": 6.03646199972718
+      "milliseconds": 7.960695000576379
     },
     {
       "run": 2,
@@ -1610,7 +1610,7 @@
       "representation": "string",
       "operation": "create",
       "calls": 8192,
-      "milliseconds": 4.327969999911147
+      "milliseconds": 6.294152000089525
     },
     {
       "run": 2,
@@ -1618,7 +1618,7 @@
       "representation": "string",
       "operation": "value.random",
       "calls": 131072,
-      "milliseconds": 4.535567000020819
+      "milliseconds": 3.9680410000000848
     },
     {
       "run": 2,
@@ -1626,7 +1626,7 @@
       "representation": "string",
       "operation": "values.range",
       "calls": 131072,
-      "milliseconds": 7.477088999992702
+      "milliseconds": 12.305976000097871
     },
     {
       "run": 2,
@@ -1634,7 +1634,7 @@
       "representation": "string",
       "operation": "values.array",
       "calls": 8,
-      "milliseconds": 26.545842000006814
+      "milliseconds": 31.516676000006555
     },
     {
       "run": 2,
@@ -1642,7 +1642,7 @@
       "representation": "string",
       "operation": "values.text",
       "calls": 131072,
-      "milliseconds": 5.323495999924489
+      "milliseconds": 5.827097000095819
     },
     {
       "run": 2,
@@ -1650,7 +1650,7 @@
       "representation": "string",
       "operation": "sequence.array",
       "calls": 8,
-      "milliseconds": 25.84683500000392
+      "milliseconds": 31.572181000003184
     },
     {
       "run": 2,
@@ -1658,23 +1658,23 @@
       "representation": "string",
       "operation": "sequence.text",
       "calls": 131072,
-      "milliseconds": 10.493720000013127
+      "milliseconds": 14.083797999854141
     },
     {
       "run": 2,
       "size": 1048576,
       "representation": "string",
       "operation": "sequence.edited.text",
-      "calls": 687,
-      "milliseconds": 25.030852000127197
+      "calls": 381,
+      "milliseconds": 25.05060300011246
     },
     {
       "run": 2,
       "size": 1048576,
       "representation": "string",
       "operation": "sequence.masked.text",
-      "calls": 15744,
-      "milliseconds": 25.25803700007964
+      "calls": 10496,
+      "milliseconds": 25.190828000013425
     },
     {
       "run": 2,
@@ -1682,7 +1682,7 @@
       "representation": "array",
       "operation": "insert",
       "calls": 8,
-      "milliseconds": 26.089563000001363
+      "milliseconds": 32.34658199999831
     },
     {
       "run": 2,
@@ -1690,39 +1690,39 @@
       "representation": "array",
       "operation": "insert.append",
       "calls": 2,
-      "milliseconds": 34.624157999998715
+      "milliseconds": 46.630356000001484
     },
     {
       "run": 2,
       "size": 1048576,
       "representation": "array",
       "operation": "replace",
-      "calls": 8,
-      "milliseconds": 25.569589000013366
+      "calls": 7,
+      "milliseconds": 27.796127000001434
     },
     {
       "run": 2,
       "size": 1048576,
       "representation": "array",
       "operation": "remove",
-      "calls": 7726,
-      "milliseconds": 25.000919999190955
+      "calls": 3752,
+      "milliseconds": 25.00389900027949
     },
     {
       "run": 2,
       "size": 1048576,
       "representation": "array",
       "operation": "remove.middle",
-      "calls": 8,
-      "milliseconds": 26.263473999977577
+      "calls": 7,
+      "milliseconds": 27.96009000000049
     },
     {
       "run": 2,
       "size": 1048576,
       "representation": "array",
       "operation": "replace.middle",
-      "calls": 9,
-      "milliseconds": 30.831113000007463
+      "calls": 7,
+      "milliseconds": 25.812535999997635
     },
     {
       "run": 2,
@@ -1730,7 +1730,7 @@
       "representation": "array",
       "operation": "apply",
       "calls": 8192,
-      "milliseconds": 4.80547399900388
+      "milliseconds": 5.939976999812643
     },
     {
       "run": 2,
@@ -1738,7 +1738,7 @@
       "representation": "array",
       "operation": "apply.array",
       "calls": 8192,
-      "milliseconds": 2.853630999845336
+      "milliseconds": 3.5323739999657846
     },
     {
       "run": 2,
@@ -1746,7 +1746,7 @@
       "representation": "array",
       "operation": "concurrent.apply",
       "calls": 1,
-      "milliseconds": 31.348346999991918
+      "milliseconds": 46.432717999996385
     },
     {
       "run": 2,
@@ -1754,7 +1754,7 @@
       "representation": "array",
       "operation": "merge",
       "calls": 8,
-      "milliseconds": 25.498277999984566
+      "milliseconds": 30.893627000004926
     },
     {
       "run": 2,
@@ -1762,7 +1762,7 @@
       "representation": "array",
       "operation": "create",
       "calls": 8,
-      "milliseconds": 35.29867499998363
+      "milliseconds": 30.335542999993777
     },
     {
       "run": 2,
@@ -1770,7 +1770,7 @@
       "representation": "array",
       "operation": "value.random",
       "calls": 131072,
-      "milliseconds": 3.6503769997507334
+      "milliseconds": 3.682696000149008
     },
     {
       "run": 2,
@@ -1778,31 +1778,31 @@
       "representation": "array",
       "operation": "values.range",
       "calls": 131072,
-      "milliseconds": 5.580909000127576
+      "milliseconds": 8.762522000135505
     },
     {
       "run": 2,
       "size": 1048576,
       "representation": "array",
       "operation": "values.array",
-      "calls": 9,
-      "milliseconds": 26.04539300003671
+      "calls": 7,
+      "milliseconds": 27.65129000001616
     },
     {
       "run": 2,
       "size": 1048576,
       "representation": "array",
       "operation": "values.text",
-      "calls": 4,
-      "milliseconds": 25.490947000012966
+      "calls": 3,
+      "milliseconds": 28.618964000001142
     },
     {
       "run": 2,
       "size": 1048576,
       "representation": "array",
       "operation": "sequence.array",
-      "calls": 9,
-      "milliseconds": 26.47785699997621
+      "calls": 7,
+      "milliseconds": 26.64220399998885
     },
     {
       "run": 2,
@@ -1810,7 +1810,7 @@
       "representation": "array",
       "operation": "sequence.text",
       "calls": 2,
-      "milliseconds": 36.408743000007235
+      "milliseconds": 52.581631000000925
     },
     {
       "run": 2,
@@ -1818,7 +1818,7 @@
       "representation": "array",
       "operation": "sequence.edited.text",
       "calls": 2,
-      "milliseconds": 40.97707999998238
+      "milliseconds": 48.15141200000653
     },
     {
       "run": 2,
@@ -1826,7 +1826,7 @@
       "representation": "array",
       "operation": "sequence.masked.text",
       "calls": 2,
-      "milliseconds": 44.2712880000181
+      "milliseconds": 49.89564500000415
     },
     {
       "run": 3,
@@ -1834,15 +1834,15 @@
       "representation": "array",
       "operation": "insert",
       "calls": 8192,
-      "milliseconds": 17.124166000066907
+      "milliseconds": 10.513510999880964
     },
     {
       "run": 3,
       "size": 1024,
       "representation": "array",
       "operation": "insert.append",
-      "calls": 2204,
-      "milliseconds": 25.004858000014792
+      "calls": 1947,
+      "milliseconds": 25.004126000050746
     },
     {
       "run": 3,
@@ -1850,7 +1850,7 @@
       "representation": "array",
       "operation": "replace",
       "calls": 8192,
-      "milliseconds": 11.462175000313437
+      "milliseconds": 16.461339999477786
     },
     {
       "run": 3,
@@ -1858,7 +1858,7 @@
       "representation": "array",
       "operation": "remove",
       "calls": 8192,
-      "milliseconds": 4.201565999494051
+      "milliseconds": 5.851080000233196
     },
     {
       "run": 3,
@@ -1866,7 +1866,7 @@
       "representation": "array",
       "operation": "remove.middle",
       "calls": 8192,
-      "milliseconds": 8.125252999932854
+      "milliseconds": 11.852305000153137
     },
     {
       "run": 3,
@@ -1874,7 +1874,7 @@
       "representation": "array",
       "operation": "replace.middle",
       "calls": 8192,
-      "milliseconds": 9.56600599992089
+      "milliseconds": 14.102917999793135
     },
     {
       "run": 3,
@@ -1882,7 +1882,7 @@
       "representation": "array",
       "operation": "apply",
       "calls": 8192,
-      "milliseconds": 3.5546889990364434
+      "milliseconds": 5.8208779999331455
     },
     {
       "run": 3,
@@ -1890,15 +1890,15 @@
       "representation": "array",
       "operation": "apply.array",
       "calls": 8192,
-      "milliseconds": 2.575487000431167
+      "milliseconds": 4.533605999509746
     },
     {
       "run": 3,
       "size": 1024,
       "representation": "array",
       "operation": "concurrent.apply",
-      "calls": 1221,
-      "milliseconds": 25.00982099994144
+      "calls": 794,
+      "milliseconds": 25.003683000024466
     },
     {
       "run": 3,
@@ -1906,7 +1906,7 @@
       "representation": "array",
       "operation": "merge",
       "calls": 8192,
-      "milliseconds": 12.002776000284939
+      "milliseconds": 15.552147999667795
     },
     {
       "run": 3,
@@ -1914,7 +1914,7 @@
       "representation": "array",
       "operation": "create",
       "calls": 8192,
-      "milliseconds": 9.520814000818064
+      "milliseconds": 14.991161000129068
     },
     {
       "run": 3,
@@ -1922,7 +1922,7 @@
       "representation": "array",
       "operation": "value.random",
       "calls": 131072,
-      "milliseconds": 3.2577450000098906
+      "milliseconds": 4.405641999997897
     },
     {
       "run": 3,
@@ -1930,55 +1930,55 @@
       "representation": "array",
       "operation": "values.range",
       "calls": 131072,
-      "milliseconds": 7.090369000099599
+      "milliseconds": 9.024771999989753
     },
     {
       "run": 3,
       "size": 1024,
       "representation": "array",
       "operation": "values.array",
-      "calls": 60068,
-      "milliseconds": 25.000124998987303
+      "calls": 32599,
+      "milliseconds": 25.00071000108437
     },
     {
       "run": 3,
       "size": 1024,
       "representation": "array",
       "operation": "values.text",
-      "calls": 5777,
-      "milliseconds": 25.003590000094846
+      "calls": 3414,
+      "milliseconds": 25.002110000074026
     },
     {
       "run": 3,
       "size": 1024,
       "representation": "array",
       "operation": "sequence.array",
-      "calls": 68336,
-      "milliseconds": 25.00001199899998
+      "calls": 24627,
+      "milliseconds": 25.000914000847843
     },
     {
       "run": 3,
       "size": 1024,
       "representation": "array",
       "operation": "sequence.text",
-      "calls": 7276,
-      "milliseconds": 25.02982699997665
+      "calls": 4844,
+      "milliseconds": 25.003445000140346
     },
     {
       "run": 3,
       "size": 1024,
       "representation": "array",
       "operation": "sequence.edited.text",
-      "calls": 7013,
-      "milliseconds": 25.000917000041227
+      "calls": 4649,
+      "milliseconds": 25.002160999763873
     },
     {
       "run": 3,
       "size": 1024,
       "representation": "array",
       "operation": "sequence.masked.text",
-      "calls": 5547,
-      "milliseconds": 25.00036000041291
+      "calls": 3963,
+      "milliseconds": 25.003571000102966
     },
     {
       "run": 3,
@@ -1986,7 +1986,7 @@
       "representation": "string",
       "operation": "insert",
       "calls": 8192,
-      "milliseconds": 2.1071190002112417
+      "milliseconds": 2.6116819999879226
     },
     {
       "run": 3,
@@ -1994,7 +1994,7 @@
       "representation": "string",
       "operation": "insert.append",
       "calls": 8192,
-      "milliseconds": 13.31058999945526
+      "milliseconds": 18.116467000152625
     },
     {
       "run": 3,
@@ -2002,7 +2002,7 @@
       "representation": "string",
       "operation": "replace",
       "calls": 8192,
-      "milliseconds": 6.533255000365898
+      "milliseconds": 8.446087000054831
     },
     {
       "run": 3,
@@ -2010,7 +2010,7 @@
       "representation": "string",
       "operation": "remove",
       "calls": 8192,
-      "milliseconds": 4.003983000206063
+      "milliseconds": 6.8721170002027065
     },
     {
       "run": 3,
@@ -2018,7 +2018,7 @@
       "representation": "string",
       "operation": "remove.middle",
       "calls": 8192,
-      "milliseconds": 4.4484429989533965
+      "milliseconds": 6.097902999827056
     },
     {
       "run": 3,
@@ -2026,7 +2026,7 @@
       "representation": "string",
       "operation": "replace.middle",
       "calls": 8192,
-      "milliseconds": 5.676605000131531
+      "milliseconds": 7.799262999913481
     },
     {
       "run": 3,
@@ -2034,7 +2034,7 @@
       "representation": "string",
       "operation": "apply",
       "calls": 8192,
-      "milliseconds": 3.889486000101897
+      "milliseconds": 6.563061999971978
     },
     {
       "run": 3,
@@ -2042,7 +2042,7 @@
       "representation": "string",
       "operation": "apply.array",
       "calls": 8192,
-      "milliseconds": 7.850034000570304
+      "milliseconds": 12.220613999503257
     },
     {
       "run": 3,
@@ -2050,7 +2050,7 @@
       "representation": "string",
       "operation": "concurrent.apply",
       "calls": 8192,
-      "milliseconds": 15.470046000380535
+      "milliseconds": 19.15080500037584
     },
     {
       "run": 3,
@@ -2058,7 +2058,7 @@
       "representation": "string",
       "operation": "merge",
       "calls": 8192,
-      "milliseconds": 5.338295001245569
+      "milliseconds": 7.277251000065007
     },
     {
       "run": 3,
@@ -2066,7 +2066,7 @@
       "representation": "string",
       "operation": "create",
       "calls": 8192,
-      "milliseconds": 4.4918899999174755
+      "milliseconds": 7.002961000172945
     },
     {
       "run": 3,
@@ -2074,7 +2074,7 @@
       "representation": "string",
       "operation": "value.random",
       "calls": 131072,
-      "milliseconds": 3.657415999667137
+      "milliseconds": 4.178685999955633
     },
     {
       "run": 3,
@@ -2082,15 +2082,15 @@
       "representation": "string",
       "operation": "values.range",
       "calls": 131072,
-      "milliseconds": 8.448869999934686
+      "milliseconds": 11.674936999952479
     },
     {
       "run": 3,
       "size": 1024,
       "representation": "string",
       "operation": "values.array",
-      "calls": 48565,
-      "milliseconds": 25.000006000787835
+      "calls": 27535,
+      "milliseconds": 25.00027100056468
     },
     {
       "run": 3,
@@ -2098,15 +2098,15 @@
       "representation": "string",
       "operation": "values.text",
       "calls": 131072,
-      "milliseconds": 4.9359010002808645
+      "milliseconds": 6.845022999994399
     },
     {
       "run": 3,
       "size": 1024,
       "representation": "string",
       "operation": "sequence.array",
-      "calls": 36655,
-      "milliseconds": 25.000067000553827
+      "calls": 23635,
+      "milliseconds": 25.000534000515472
     },
     {
       "run": 3,
@@ -2114,31 +2114,31 @@
       "representation": "string",
       "operation": "sequence.text",
       "calls": 131072,
-      "milliseconds": 11.02137999999104
+      "milliseconds": 14.389330000129121
     },
     {
       "run": 3,
       "size": 1024,
       "representation": "string",
       "operation": "sequence.edited.text",
-      "calls": 67431,
-      "milliseconds": 25.000176000132342
+      "calls": 58186,
+      "milliseconds": 25.000229000630497
     },
     {
       "run": 3,
       "size": 1024,
       "representation": "string",
       "operation": "sequence.masked.text",
-      "calls": 14080,
-      "milliseconds": 25.09290500008501
+      "calls": 11008,
+      "milliseconds": 25.018370000092546
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "array",
       "operation": "insert",
-      "calls": 128,
-      "milliseconds": 27.57051500014495
+      "calls": 106,
+      "milliseconds": 25.038051999988966
     },
     {
       "run": 3,
@@ -2146,15 +2146,15 @@
       "representation": "array",
       "operation": "insert.append",
       "calls": 25,
-      "milliseconds": 25.654974999968545
+      "milliseconds": 25.69722700001148
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "array",
       "operation": "replace",
-      "calls": 114,
-      "milliseconds": 25.06385300005786
+      "calls": 87,
+      "milliseconds": 25.104735999993864
     },
     {
       "run": 3,
@@ -2162,23 +2162,23 @@
       "representation": "array",
       "operation": "remove",
       "calls": 8192,
-      "milliseconds": 6.079302999380161
+      "milliseconds": 15.819424000488652
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "array",
       "operation": "remove.middle",
-      "calls": 123,
-      "milliseconds": 25.012817999944673
+      "calls": 93,
+      "milliseconds": 25.174978000031842
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "array",
       "operation": "replace.middle",
-      "calls": 121,
-      "milliseconds": 25.049913000009838
+      "calls": 92,
+      "milliseconds": 25.086821999990207
     },
     {
       "run": 3,
@@ -2186,7 +2186,7 @@
       "representation": "array",
       "operation": "apply",
       "calls": 8192,
-      "milliseconds": 4.091554999802611
+      "milliseconds": 5.977505000257224
     },
     {
       "run": 3,
@@ -2194,31 +2194,31 @@
       "representation": "array",
       "operation": "apply.array",
       "calls": 8192,
-      "milliseconds": 2.743113000266021
+      "milliseconds": 3.8419469998189015
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "array",
       "operation": "concurrent.apply",
-      "calls": 14,
-      "milliseconds": 25.62393699999666
+      "calls": 10,
+      "milliseconds": 27.044226999991224
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "array",
       "operation": "merge",
-      "calls": 128,
-      "milliseconds": 28.13971099993796
+      "calls": 106,
+      "milliseconds": 25.175474000017857
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "array",
       "operation": "create",
-      "calls": 128,
-      "milliseconds": 27.942138000085833
+      "calls": 109,
+      "milliseconds": 25.072420000069542
     },
     {
       "run": 3,
@@ -2226,7 +2226,7 @@
       "representation": "array",
       "operation": "value.random",
       "calls": 131072,
-      "milliseconds": 3.688273999869125
+      "milliseconds": 4.966119000091567
     },
     {
       "run": 3,
@@ -2234,55 +2234,55 @@
       "representation": "array",
       "operation": "values.range",
       "calls": 131072,
-      "milliseconds": 8.515776000014739
+      "milliseconds": 8.92272899976524
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "array",
       "operation": "values.array",
-      "calls": 127,
-      "milliseconds": 25.620331999991322
+      "calls": 115,
+      "milliseconds": 25.08638499998051
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "array",
       "operation": "values.text",
-      "calls": 64,
-      "milliseconds": 25.25459400001273
+      "calls": 43,
+      "milliseconds": 25.020826999978453
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "array",
       "operation": "sequence.array",
-      "calls": 127,
-      "milliseconds": 26.028309999848716
+      "calls": 122,
+      "milliseconds": 25.06057199998031
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "array",
       "operation": "sequence.text",
-      "calls": 122,
-      "milliseconds": 26.43670899992867
+      "calls": 80,
+      "milliseconds": 25.171587000040745
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "array",
       "operation": "sequence.edited.text",
-      "calls": 122,
-      "milliseconds": 25.991823000003933
+      "calls": 79,
+      "milliseconds": 25.14825800005201
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "array",
       "operation": "sequence.masked.text",
-      "calls": 117,
-      "milliseconds": 25.140676000068197
+      "calls": 78,
+      "milliseconds": 25.204907999977877
     },
     {
       "run": 3,
@@ -2290,15 +2290,15 @@
       "representation": "string",
       "operation": "insert",
       "calls": 8192,
-      "milliseconds": 1.7798259990813676
+      "milliseconds": 2.5633100004852167
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "string",
       "operation": "insert.append",
-      "calls": 4160,
-      "milliseconds": 25.002291000040714
+      "calls": 2641,
+      "milliseconds": 25.004537000102573
     },
     {
       "run": 3,
@@ -2306,7 +2306,7 @@
       "representation": "string",
       "operation": "replace",
       "calls": 8192,
-      "milliseconds": 6.446048000478186
+      "milliseconds": 8.178149999905145
     },
     {
       "run": 3,
@@ -2314,7 +2314,7 @@
       "representation": "string",
       "operation": "remove",
       "calls": 8192,
-      "milliseconds": 5.0211589997052215
+      "milliseconds": 5.43611499988765
     },
     {
       "run": 3,
@@ -2322,7 +2322,7 @@
       "representation": "string",
       "operation": "remove.middle",
       "calls": 8192,
-      "milliseconds": 4.919399000078556
+      "milliseconds": 5.402852999730385
     },
     {
       "run": 3,
@@ -2330,7 +2330,7 @@
       "representation": "string",
       "operation": "replace.middle",
       "calls": 8192,
-      "milliseconds": 6.071645999632892
+      "milliseconds": 7.838010999796097
     },
     {
       "run": 3,
@@ -2338,23 +2338,23 @@
       "representation": "string",
       "operation": "apply",
       "calls": 8192,
-      "milliseconds": 3.811617999643204
+      "milliseconds": 5.370878999987326
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "string",
       "operation": "apply.array",
-      "calls": 128,
-      "milliseconds": 27.915066999950795
+      "calls": 110,
+      "milliseconds": 25.160679000058735
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "string",
       "operation": "concurrent.apply",
-      "calls": 256,
-      "milliseconds": 28.022957000066526
+      "calls": 232,
+      "milliseconds": 25.08739600006811
     },
     {
       "run": 3,
@@ -2362,7 +2362,7 @@
       "representation": "string",
       "operation": "merge",
       "calls": 8192,
-      "milliseconds": 6.5449780000781175
+      "milliseconds": 7.344823999752407
     },
     {
       "run": 3,
@@ -2370,7 +2370,7 @@
       "representation": "string",
       "operation": "create",
       "calls": 8192,
-      "milliseconds": 4.460571000454365
+      "milliseconds": 6.058582999678038
     },
     {
       "run": 3,
@@ -2378,7 +2378,7 @@
       "representation": "string",
       "operation": "value.random",
       "calls": 131072,
-      "milliseconds": 4.524789000293822
+      "milliseconds": 4.089402000019618
     },
     {
       "run": 3,
@@ -2386,15 +2386,15 @@
       "representation": "string",
       "operation": "values.range",
       "calls": 131072,
-      "milliseconds": 9.259444999857806
+      "milliseconds": 13.968928999827767
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "string",
       "operation": "values.array",
-      "calls": 128,
-      "milliseconds": 27.8101429999806
+      "calls": 110,
+      "milliseconds": 25.073059000002104
     },
     {
       "run": 3,
@@ -2402,15 +2402,15 @@
       "representation": "string",
       "operation": "values.text",
       "calls": 131072,
-      "milliseconds": 4.266701999644283
+      "milliseconds": 5.998391999870364
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "string",
       "operation": "sequence.array",
-      "calls": 128,
-      "milliseconds": 27.869756999862147
+      "calls": 106,
+      "milliseconds": 25.117967000005592
     },
     {
       "run": 3,
@@ -2418,31 +2418,31 @@
       "representation": "string",
       "operation": "sequence.text",
       "calls": 131072,
-      "milliseconds": 9.522338000067975
+      "milliseconds": 14.457511000087834
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "string",
       "operation": "sequence.edited.text",
-      "calls": 9445,
-      "milliseconds": 25.001160999629064
+      "calls": 5482,
+      "milliseconds": 25.001160000203527
     },
     {
       "run": 3,
       "size": 65536,
       "representation": "string",
       "operation": "sequence.masked.text",
-      "calls": 15360,
-      "milliseconds": 25.17299600003753
+      "calls": 10880,
+      "milliseconds": 25.026754000020446
     },
     {
       "run": 3,
       "size": 1048576,
       "representation": "array",
       "operation": "insert",
-      "calls": 8,
-      "milliseconds": 26.11035199998878
+      "calls": 7,
+      "milliseconds": 25.610249999997905
     },
     {
       "run": 3,
@@ -2450,39 +2450,39 @@
       "representation": "array",
       "operation": "insert.append",
       "calls": 2,
-      "milliseconds": 34.342379000008805
+      "milliseconds": 45.91932999998971
     },
     {
       "run": 3,
       "size": 1048576,
       "representation": "array",
       "operation": "replace",
-      "calls": 8,
-      "milliseconds": 26.021146999977645
+      "calls": 6,
+      "milliseconds": 25.935504000008223
     },
     {
       "run": 3,
       "size": 1048576,
       "representation": "array",
       "operation": "remove",
-      "calls": 4153,
-      "milliseconds": 25.000559999825782
+      "calls": 3782,
+      "milliseconds": 25.000609000140685
     },
     {
       "run": 3,
       "size": 1048576,
       "representation": "array",
       "operation": "remove.middle",
-      "calls": 8,
-      "milliseconds": 25.67105099998298
+      "calls": 7,
+      "milliseconds": 28.26965799999016
     },
     {
       "run": 3,
       "size": 1048576,
       "representation": "array",
       "operation": "replace.middle",
-      "calls": 9,
-      "milliseconds": 30.523973999981536
+      "calls": 7,
+      "milliseconds": 25.36386699999275
     },
     {
       "run": 3,
@@ -2490,7 +2490,7 @@
       "representation": "array",
       "operation": "apply",
       "calls": 8192,
-      "milliseconds": 4.601413999975193
+      "milliseconds": 4.94783799922152
     },
     {
       "run": 3,
@@ -2498,7 +2498,7 @@
       "representation": "array",
       "operation": "apply.array",
       "calls": 8192,
-      "milliseconds": 2.9646579996915534
+      "milliseconds": 3.777729999506846
     },
     {
       "run": 3,
@@ -2506,7 +2506,7 @@
       "representation": "array",
       "operation": "concurrent.apply",
       "calls": 1,
-      "milliseconds": 31.198915999993915
+      "milliseconds": 46.29547699999239
     },
     {
       "run": 3,
@@ -2514,7 +2514,7 @@
       "representation": "array",
       "operation": "merge",
       "calls": 8,
-      "milliseconds": 25.291850999958115
+      "milliseconds": 30.717972000013106
     },
     {
       "run": 3,
@@ -2522,7 +2522,7 @@
       "representation": "array",
       "operation": "create",
       "calls": 8,
-      "milliseconds": 25.70446200000879
+      "milliseconds": 30.078630999982124
     },
     {
       "run": 3,
@@ -2530,7 +2530,7 @@
       "representation": "array",
       "operation": "value.random",
       "calls": 131072,
-      "milliseconds": 3.3683309996995376
+      "milliseconds": 3.917956000281265
     },
     {
       "run": 3,
@@ -2538,31 +2538,31 @@
       "representation": "array",
       "operation": "values.range",
       "calls": 131072,
-      "milliseconds": 6.319448000169359
+      "milliseconds": 8.76480399974389
     },
     {
       "run": 3,
       "size": 1048576,
       "representation": "array",
       "operation": "values.array",
-      "calls": 9,
-      "milliseconds": 27.671292999977595
+      "calls": 7,
+      "milliseconds": 27.36668100001407
     },
     {
       "run": 3,
       "size": 1048576,
       "representation": "array",
       "operation": "values.text",
-      "calls": 4,
-      "milliseconds": 26.039959999994608
+      "calls": 3,
+      "milliseconds": 28.65251799998805
     },
     {
       "run": 3,
       "size": 1048576,
       "representation": "array",
       "operation": "sequence.array",
-      "calls": 8,
-      "milliseconds": 25.84566699998686
+      "calls": 7,
+      "milliseconds": 26.752115000010235
     },
     {
       "run": 3,
@@ -2570,7 +2570,7 @@
       "representation": "array",
       "operation": "sequence.text",
       "calls": 2,
-      "milliseconds": 36.63751399998728
+      "milliseconds": 53.39585899998201
     },
     {
       "run": 3,
@@ -2578,7 +2578,7 @@
       "representation": "array",
       "operation": "sequence.edited.text",
       "calls": 2,
-      "milliseconds": 37.967614000008325
+      "milliseconds": 53.18271600001026
     },
     {
       "run": 3,
@@ -2586,7 +2586,7 @@
       "representation": "array",
       "operation": "sequence.masked.text",
       "calls": 2,
-      "milliseconds": 37.688922000001185
+      "milliseconds": 48.20714699999371
     },
     {
       "run": 3,
@@ -2594,15 +2594,15 @@
       "representation": "string",
       "operation": "insert",
       "calls": 8192,
-      "milliseconds": 1.9786809997603996
+      "milliseconds": 3.2633139997487888
     },
     {
       "run": 3,
       "size": 1048576,
       "representation": "string",
       "operation": "insert.append",
-      "calls": 64,
-      "milliseconds": 26.613789000053657
+      "calls": 58,
+      "milliseconds": 25.291775000019697
     },
     {
       "run": 3,
@@ -2610,7 +2610,7 @@
       "representation": "string",
       "operation": "replace",
       "calls": 8192,
-      "milliseconds": 7.235894000259577
+      "milliseconds": 9.126538000025903
     },
     {
       "run": 3,
@@ -2618,7 +2618,7 @@
       "representation": "string",
       "operation": "remove",
       "calls": 8192,
-      "milliseconds": 4.7797829990886385
+      "milliseconds": 6.338645000796532
     },
     {
       "run": 3,
@@ -2626,7 +2626,7 @@
       "representation": "string",
       "operation": "remove.middle",
       "calls": 8192,
-      "milliseconds": 4.617272000192315
+      "milliseconds": 5.937409001082415
     },
     {
       "run": 3,
@@ -2634,7 +2634,7 @@
       "representation": "string",
       "operation": "replace.middle",
       "calls": 8192,
-      "milliseconds": 6.080388999573188
+      "milliseconds": 8.502927001565695
     },
     {
       "run": 3,
@@ -2642,7 +2642,7 @@
       "representation": "string",
       "operation": "apply",
       "calls": 8192,
-      "milliseconds": 4.3289980006666156
+      "milliseconds": 5.412174000462983
     },
     {
       "run": 3,
@@ -2650,7 +2650,7 @@
       "representation": "string",
       "operation": "apply.array",
       "calls": 8,
-      "milliseconds": 28.11444200000551
+      "milliseconds": 31.901316999996197
     },
     {
       "run": 3,
@@ -2658,7 +2658,7 @@
       "representation": "string",
       "operation": "concurrent.apply",
       "calls": 16,
-      "milliseconds": 25.445619000020088
+      "milliseconds": 28.861898000031943
     },
     {
       "run": 3,
@@ -2666,7 +2666,7 @@
       "representation": "string",
       "operation": "merge",
       "calls": 8192,
-      "milliseconds": 5.772335000205203
+      "milliseconds": 8.037256000257912
     },
     {
       "run": 3,
@@ -2674,7 +2674,7 @@
       "representation": "string",
       "operation": "create",
       "calls": 8192,
-      "milliseconds": 4.451362999810954
+      "milliseconds": 6.353135999714141
     },
     {
       "run": 3,
@@ -2682,7 +2682,7 @@
       "representation": "string",
       "operation": "value.random",
       "calls": 131072,
-      "milliseconds": 3.959621999762021
+      "milliseconds": 3.9396559999731835
     },
     {
       "run": 3,
@@ -2690,7 +2690,7 @@
       "representation": "string",
       "operation": "values.range",
       "calls": 131072,
-      "milliseconds": 10.202501000138
+      "milliseconds": 11.42987299975357
     },
     {
       "run": 3,
@@ -2698,7 +2698,7 @@
       "representation": "string",
       "operation": "values.array",
       "calls": 8,
-      "milliseconds": 27.059436000010464
+      "milliseconds": 31.411659999997937
     },
     {
       "run": 3,
@@ -2706,7 +2706,7 @@
       "representation": "string",
       "operation": "values.text",
       "calls": 131072,
-      "milliseconds": 5.583683000018937
+      "milliseconds": 6.773983000239241
     },
     {
       "run": 3,
@@ -2714,7 +2714,7 @@
       "representation": "string",
       "operation": "sequence.array",
       "calls": 8,
-      "milliseconds": 26.567784999948344
+      "milliseconds": 32.05258400000457
     },
     {
       "run": 3,
@@ -2722,23 +2722,23 @@
       "representation": "string",
       "operation": "sequence.text",
       "calls": 131072,
-      "milliseconds": 14.019940000216593
+      "milliseconds": 14.565950999618508
     },
     {
       "run": 3,
       "size": 1048576,
       "representation": "string",
       "operation": "sequence.edited.text",
-      "calls": 687,
-      "milliseconds": 25.02451000001747
+      "calls": 386,
+      "milliseconds": 25.009339000025648
     },
     {
       "run": 3,
       "size": 1048576,
       "representation": "string",
       "operation": "sequence.masked.text",
-      "calls": 15872,
-      "milliseconds": 25.059528000143473
+      "calls": 11392,
+      "milliseconds": 25.12957399986044
     }
   ],
   "space": [
@@ -2768,9 +2768,9 @@
       "representation": "array",
       "estimatedBytes": 524672,
       "messagePackBytes": 65558,
-      "gzipBytes": 120,
+      "gzipBytes": 121,
       "updateMessagePackBytes": 131094,
-      "updateGzipBytes": 188
+      "updateGzipBytes": 189
     },
     {
       "run": 1,
@@ -2778,9 +2778,9 @@
       "representation": "string",
       "estimatedBytes": 131456,
       "messagePackBytes": 65558,
-      "gzipBytes": 120,
+      "gzipBytes": 121,
       "updateMessagePackBytes": 65558,
-      "updateGzipBytes": 121
+      "updateGzipBytes": 122
     },
     {
       "run": 1,
@@ -2788,9 +2788,9 @@
       "representation": "array",
       "estimatedBytes": 8388992,
       "messagePackBytes": 1048598,
-      "gzipBytes": 1076,
+      "gzipBytes": 1077,
       "updateMessagePackBytes": 2097174,
-      "updateGzipBytes": 2095
+      "updateGzipBytes": 2096
     },
     {
       "run": 1,
@@ -2798,7 +2798,7 @@
       "representation": "string",
       "estimatedBytes": 2097536,
       "messagePackBytes": 1048598,
-      "gzipBytes": 1076,
+      "gzipBytes": 1075,
       "updateMessagePackBytes": 1048598,
       "updateGzipBytes": 1076
     },
@@ -2820,7 +2820,7 @@
       "messagePackBytes": 1042,
       "gzipBytes": 47,
       "updateMessagePackBytes": 2066,
-      "updateGzipBytes": 55
+      "updateGzipBytes": 54
     },
     {
       "run": 2,
@@ -2838,9 +2838,9 @@
       "representation": "array",
       "estimatedBytes": 524672,
       "messagePackBytes": 65558,
-      "gzipBytes": 120,
+      "gzipBytes": 119,
       "updateMessagePackBytes": 131094,
-      "updateGzipBytes": 188
+      "updateGzipBytes": 187
     },
     {
       "run": 2,
@@ -2860,7 +2860,7 @@
       "messagePackBytes": 1048598,
       "gzipBytes": 1077,
       "updateMessagePackBytes": 2097174,
-      "updateGzipBytes": 2095
+      "updateGzipBytes": 2096
     },
     {
       "run": 3,
@@ -2868,9 +2868,9 @@
       "representation": "array",
       "estimatedBytes": 8576,
       "messagePackBytes": 1042,
-      "gzipBytes": 47,
+      "gzipBytes": 46,
       "updateMessagePackBytes": 2066,
-      "updateGzipBytes": 55
+      "updateGzipBytes": 54
     },
     {
       "run": 3,
@@ -2888,9 +2888,9 @@
       "representation": "array",
       "estimatedBytes": 524672,
       "messagePackBytes": 65558,
-      "gzipBytes": 120,
+      "gzipBytes": 118,
       "updateMessagePackBytes": 131094,
-      "updateGzipBytes": 187
+      "updateGzipBytes": 188
     },
     {
       "run": 3,
@@ -2898,9 +2898,9 @@
       "representation": "string",
       "estimatedBytes": 131456,
       "messagePackBytes": 65558,
-      "gzipBytes": 120,
+      "gzipBytes": 119,
       "updateMessagePackBytes": 65558,
-      "updateGzipBytes": 121
+      "updateGzipBytes": 119
     },
     {
       "run": 3,
@@ -2910,7 +2910,7 @@
       "messagePackBytes": 1048598,
       "gzipBytes": 1076,
       "updateMessagePackBytes": 2097174,
-      "updateGzipBytes": 2096
+      "updateGzipBytes": 2095
     },
     {
       "run": 3,
@@ -2918,9 +2918,9 @@
       "representation": "string",
       "estimatedBytes": 2097536,
       "messagePackBytes": 1048598,
-      "gzipBytes": 1076,
+      "gzipBytes": 1077,
       "updateMessagePackBytes": 1048598,
-      "updateGzipBytes": 1076
+      "updateGzipBytes": 1077
     }
   ]
 }
